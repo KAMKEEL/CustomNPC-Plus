@@ -94,6 +94,18 @@ public class ScriptTextContainer extends JavaTextContainer {
         return scriptContext;
     }
 
+    /**
+     * Add implicit imports that should be resolved without explicit import statements.
+     * Used for JaninoScript default imports and hook parameter types.
+     *
+     * @param patterns Array of import patterns to add (wildcard packages like "noppes.npcs.api.*" or FQ class names)
+     */
+    public void addImplicitImports(String... patterns) {
+        if (document != null) {
+            document.addImplicitImports(patterns);
+        }
+    }
+
     @Override
     public void init(int width, int height) {
         if (!USE_NEW_INTERPRETER) {
@@ -127,9 +139,12 @@ public class ScriptTextContainer extends JavaTextContainer {
             super.init(text, width, height);
             return;
         }
+
+        if (document == null) {
+            document = new ScriptDocument(this.text, this.language);
+            document.setScriptContext(this.scriptContext);
+        }
         
-        document = new ScriptDocument(this.text, this.language);
-        document.setScriptContext(this.scriptContext);
         init(width, height);
     }
 

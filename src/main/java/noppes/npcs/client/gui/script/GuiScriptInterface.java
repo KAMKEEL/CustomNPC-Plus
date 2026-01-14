@@ -27,6 +27,7 @@ import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
+import noppes.npcs.janino.JaninoScript;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -38,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener, ITextfieldListener {
     protected int activeTab = 0;
@@ -221,13 +223,28 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         // Set the scripting language for proper syntax highlighting
         // Use the container's language if available, otherwise fall back to handler's language
         String language = (container != null) ? container.getLanguage() : this.handler.getLanguage();
-      activeArea.setLanguage(language);
+        activeArea.setLanguage(language);
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());
+        activeArea.enableCodeHighlighting();
 
-        // Set the script context for context-aware hook autocomplete
-        activeArea.setScriptContext(getScriptContext());
+        // For JaninoScripts, add implicit imports (default imports + hook signature types)
+        // These allow the syntax highlighter to resolve types without explicit import statements
+        if (container instanceof JaninoScript) {
+            JaninoScript<?> janinoScript = (JaninoScript<?>) container;
+            
+            // Add default imports (e.g., noppes.npcs.api.*, noppes.npcs.api.entity.*, etc.)
+            activeArea.addImplicitImports(janinoScript.getDefaultImports());
+            
+            // Add hook types from signatures (parameters + return types)
+            // e.g., INpcEvent.InitEvent, Color, String, IOverlayContext, etc.
+            Set<String> hookTypes = janinoScript.getHookTypes();
+            activeArea.addImplicitImports(hookTypes.toArray(new String[0]));
+            
+            // Format to update which implicit imports are actually used
+            activeArea.formatCodeText();
+        }
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -236,7 +253,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
         });
 
-        activeArea.enableCodeHighlighting();
         this.addTextField(activeArea);
 
         // ==================== FULLSCREEN BUTTON ====================

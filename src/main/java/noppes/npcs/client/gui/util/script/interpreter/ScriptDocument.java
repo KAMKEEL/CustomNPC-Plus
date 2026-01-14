@@ -130,6 +130,10 @@ public class ScriptDocument {
     // Determines which hooks and event types are available
     private ScriptContext scriptContext = ScriptContext.GLOBAL;
 
+    // Implicit imports from JaninoScript default imports and hook parameter types
+    // These are types that should be resolved even without explicit import statements
+    private final Set<String> implicitImports = new HashSet<>();
+
     // Layout properties
     public int lineHeight = 13;
     public int totalHeight;
@@ -192,6 +196,27 @@ public class ScriptDocument {
      */
     public ScriptContext getScriptContext() {
         return scriptContext;
+    }
+
+    /**
+     * Add implicit imports that should be resolved without explicit import statements.
+     * Used for JaninoScript default imports and hook parameter types.
+     * 
+     * Patterns can be:
+     * - Wildcard: "noppes.npcs.api.*" (imports all classes from package)
+     * - Specific class: "noppes.npcs.api.event.INpcEvent$InitEvent" (nested class)
+     * - Regular class: "noppes.npcs.api.entity.IEntity"
+     *
+     * @param patterns Array of import patterns to add (packages with .* or fully qualified class names)
+     */
+    public void addImplicitImports(String... patterns) {
+        if (patterns != null) {
+            for (String pattern : patterns) {
+                if (pattern != null && !pattern.isEmpty()) {
+                    this.implicitImports.add(pattern);
+                }
+            }
+        }
     }
 
     // ==================== TEXT MANAGEMENT ====================
@@ -295,6 +320,9 @@ public class ScriptDocument {
         for (ScriptLine line : lines) {
             line.buildTokensFromMarks(marks, text, this);
         }
+
+        // Phase 6.5: Now that tokens are built, remove implicit imports that aren't actually used
+        removeUnusedImplicitImports();
 
         // Phase 7: Compute indent guides
         computeIndentGuides(marks);
@@ -451,9 +479,122 @@ public class ScriptDocument {
             }
         }
 
-        // Resolve all imports
+        // Add ALL implicit imports initially so tokens can be built with proper type resolution
+        addAllImplicitImportsToList();
+        
+        // Resolve all imports (including all implicit ones)
         importsBySimpleName = typeResolver.resolveImports(imports);
     }
+
+    /**
+     * Add ALL implicit imports to the imports list initially.
+     * This allows tokens to be built with proper type resolution.
+     * After tokenization, we'll remove the unused ones.
+     */
+    private void addAllImplicitImportsToList() {
+        for (String pattern : implicitImports) {
+            if (pattern == null || pattern.isEmpty()) continue;
+            
+            boolean isWildcard = pattern.endsWith(".*");
+            String fullPath;
+            String simpleName;
+            
+            if (isWildcard) {
+                fullPath = pattern.substring(0, pattern.length() - 2); // Remove ".*"
+                simpleName = null;
+                wildcardPackages.add(fullPath);
+            } else {
+                fullPath = pattern.replace('$', '.');
+                int lastDot = fullPath.lastIndexOf('.');
+                simpleName = lastDot >= 0 ? fullPath.substring(lastDot + 1) : fullPath;
+            }
+            
+            ImportData importData = new ImportData(
+                    fullPath, simpleName, isWildcard, false,
+                    -1, -1, -1, -1
+            );
+            
+            if (!imports.contains(importData)) {
+                imports.add(importData);
+            }
+        }
+    }
+
+    /**
+     * Remove implicit imports that aren't actually used in the text.
+     * This keeps autocomplete clean by not showing types from hooks that aren't present.
+     * Called after tokenization is complete.
+     */
+    private void removeUnusedImplicitImports() {
+        // Collect imports to remove (can't remove during iteration)
+        List<ImportData> toRemove = new ArrayList<>();
+        
+        for (ImportData imp : imports) {
+            // Only check implicit imports (those with offset -1)
+            if (imp.getStartOffset() != -1) continue;
+            
+            // Skip wildcard imports - keep them all
+            if (imp.isWildcard()) continue;
+            
+            // Check if this specific class import is actually used
+            String simpleName = imp.getSimpleName();
+            String fullPath = imp.getFullPath();
+            
+            if (!isTypeReferenced(simpleName, fullPath)) {
+                toRemove.add(imp);
+            }
+        }
+        
+        // Remove unused implicit imports
+        imports.removeAll(toRemove);
+        
+        // Re-resolve imports after removing unused ones
+        importsBySimpleName = typeResolver.resolveImports(imports);
+    }
+
+    /**
+     * Check if a type is referenced anywhere in the script tokens.
+     * Looks for the simple name or any part of the fully qualified name.
+     */
+    private boolean isTypeReferenced(String simpleName, String fullPath) {
+        if (simpleName == null || simpleName.isEmpty()) return false;
+        
+        // Check all lines and their tokens
+        for (ScriptLine line : lines) {
+            for (Token token : line.getTokens()) {
+                String tokenText = token.getText();
+                
+                // Check if token matches the simple name
+                if (tokenText.equals(simpleName)) {
+                    return true;
+                }
+                
+                // Check if token contains nested class reference (e.g., "InitEvent" in "INpcEvent.InitEvent")
+                if (fullPath.contains("$") && tokenText.equals(simpleName)) {
+                    return true;
+                }
+                
+                // Check for partial matches in qualified references
+                if (fullPath.contains(".") && tokenText.contains(".")) {
+                    // e.g., "INpcEvent.InitEvent" matches "noppes.npcs.api.event.INpcEvent$InitEvent"
+                    String[] pathParts = fullPath.replace('$', '.').split("\\.");
+                    String[] tokenParts = tokenText.split("\\.");
+                    
+                    // Check if the last parts match (e.g., "InitEvent")
+                    if (pathParts.length > 0 && tokenParts.length > 0) {
+                        String lastPathPart = pathParts[pathParts.length - 1];
+                        String lastTokenPart = tokenParts[tokenParts.length - 1];
+                        if (lastTokenPart.equals(lastPathPart)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
 
     // ==================== PHASE 3: STRUCTURE ====================
 
@@ -1934,6 +2075,11 @@ public class ScriptDocument {
 
     private void markImports(List<ScriptLine.Mark> marks) {
         for (ImportData imp : imports) {
+            // Skip implicit imports (from JaninoScript defaults, not in source text)
+            // These have offset -1 and don't need to be visually marked
+            if (imp.getStartOffset() < 0) 
+                continue;
+            
             // Mark 'import' keyword
             marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.IMPORT_KEYWORD, imp));
 

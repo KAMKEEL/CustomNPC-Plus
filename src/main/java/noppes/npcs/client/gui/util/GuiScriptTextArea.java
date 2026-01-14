@@ -2652,6 +2652,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return this.container != null ? this.container.getScriptContext() : ScriptContext.GLOBAL;
     }
 
+    /**
+     * Add implicit imports that should be resolved without explicit import statements.
+     * Used for JaninoScript default imports and hook parameter types.
+     *
+     * @param patterns Array of import patterns to add (wildcard packages like "noppes.npcs.api.*" or FQ class names)
+     */
+    public void addImplicitImports(String... patterns) {
+        if (this.container != null) {
+            this.container.addImplicitImports(patterns);
+        }
+    }
+
     public void setListener(ITextChangeListener listener) {
         this.listener = listener;
     }
@@ -2797,7 +2809,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         selection.reset(savedCursorPos + cursorAdjustment);
         scrollToCursor();
     }
-    
+
+    public void formatCodeText() {
+        if (this.enableCodeHighlighting && this.container != null) {
+            this.container.formatCodeText();
+        }
+    }
+
     /**
      * Helper class for tracking imports during sorting.
      */

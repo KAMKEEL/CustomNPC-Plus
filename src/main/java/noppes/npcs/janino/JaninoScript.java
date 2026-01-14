@@ -466,6 +466,58 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         return new ArrayList<>(hookList);
     }
 
+    /**
+     * Get the default imports configured for this script type.
+     * These are packages/classes that are automatically available without explicit import statements.
+     *
+     * @return Array of default import patterns (e.g., "noppes.npcs.api.*")
+     */
+    public String[] getDefaultImports() {
+        return defaultImports;
+    }
+
+    /**
+     * Get all types used in hook method signatures (parameters and return types).
+     * This includes event types like INpcEvent.InitEvent, INpcEvent.DamagedEvent, etc.,
+     * as well as return types like Color, String, etc.
+     * Useful for syntax highlighting to know what types are implicitly available.
+     *
+     * @return Set of fully qualified class names for all hook parameter and return types
+     */
+    public Set<String> getHookTypes() {
+        Set<String> types = new HashSet<>();
+        for (Method method : type.getDeclaredMethods()) {
+            // Add parameter types
+            for (Class<?> paramType : method.getParameterTypes())
+                addTypeAndEnclosingTypes(types, paramType);
+
+            // Add return types (in case any hook has a non-void return)
+            Class<?> returnType = method.getReturnType();
+            if (returnType != void.class)
+                addTypeAndEnclosingTypes(types, returnType);
+        }
+        return types;
+    }
+
+    /**
+     * Add a type and all its enclosing types to the set.
+     * For nested classes like INpcEvent.InitEvent, this adds both INpcEvent and INpcEvent$InitEvent.
+     */
+    private void addTypeAndEnclosingTypes(Set<String> types, Class<?> clazz) {
+        if (clazz == null || clazz.isPrimitive())
+            return;
+
+        // Add the type itself
+        types.add(clazz.getName());
+
+        // Add enclosing/declaring class if it's a nested type
+        Class<?> enclosing = clazz.getDeclaringClass();
+        while (enclosing != null) {
+            types.add(enclosing.getName());
+            enclosing = enclosing.getDeclaringClass();
+        }
+    }
+
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
