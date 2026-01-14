@@ -452,10 +452,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 this.setScript();
             }
             if (i == 102) {
-                ScriptContainer container;
+                IScriptUnit container;
                 if (this.activeTab > 0) {
-                    container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
-                    container.script = "";
+                    container = this.handler.getScripts().get(this.activeTab - 1);
+                    container.setScript("");
                 } else {
                     this.handler.clearConsole();
                     if (this.handler instanceof ScriptCustomItem) {
@@ -566,7 +566,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             displayGuiScreen(guiyesno);
         }
 
-        ScriptContainer container;
         if (guibutton.id == 102) {
             GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("gui.clear"), StatCollector.translateToLocal("gui.sure"), 102);
             displayGuiScreen(guiyesno);
@@ -592,7 +591,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 107) {
-            container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
+            IScriptUnit container = this.handler.getScripts().get(this.activeTab - 1);
             if (container == null) {
                 container = new ScriptContainer(this.handler);
                 if (singleContainer)
