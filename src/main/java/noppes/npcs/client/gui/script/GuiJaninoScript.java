@@ -166,7 +166,8 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
                 this.getScriptIndex()));
             // this.getButton(103).enabled = !this.languages.isEmpty();
             this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
-            this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20, new String[]{"gui.no", "gui.yes"}, this.container.getEnabled() ? 1 : 0));
+            // Note: GuiJaninoScript is deprecated; enabled button disabled
+            this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20, new String[]{"gui.no", "gui.yes"}, 0));
 
             this.addButton(new GuiNpcButton(109, var9, this.guiTop + 78, 80, 20, "gui.website"));
             this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 78, 80, 20, "gui.forum"));
@@ -280,7 +281,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
         }
         //Enable
         else if (guibutton.id == 104) {
-            this.container.setEnabled(((GuiNpcButton) guibutton).getValue() == 1);
+            // Deprecated GUI - enabled is now per-handler, not per-unit
         }
         //Remove
         else if (guibutton.id == 105) {
@@ -347,7 +348,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
     }
 
     private String getConsoleText() {
-        Map<Long, String> map = this.container.getConsoleText();
+        Map<Long, String> map = this.container.getConsole();
         StringBuilder builder = new StringBuilder();
         Iterator var3 = map.entrySet()
             .iterator();

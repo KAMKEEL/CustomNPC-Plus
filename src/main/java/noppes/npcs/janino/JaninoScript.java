@@ -22,10 +22,10 @@ import java.security.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class JaninoScript<T> implements IScriptUnit {
-    public boolean enabled;
     public boolean errored = false;
     private String language = "Java";
     public TreeMap<Long, String> console = new TreeMap();
@@ -157,14 +157,6 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
     public void ensureCompiled() {
-        if (!isEnabled()) {
-            if (!evaluated) {
-                compileScript("");
-                evaluated = true;
-            }
-            return;
-        }
-
         int global = ScriptController.Instance.globalRevision;
 
         if (!evaluated || global != lastSeenGlobalRevision) {
@@ -182,9 +174,6 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     private int lastSeenGlobalRevision;
 
     private String getFullCode() {
-        if (!isEnabled())
-            return "";
-
         StringBuilder sb = new StringBuilder();
 
         if (ConfigScript.RunLoadedScriptsFirst)
@@ -306,6 +295,8 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void setExternalScripts(List<String> externalScripts) {
         this.externalScripts = externalScripts;
         this.evaluated = false;
+        this.hookNameMap.clear();
+        this.missingHookNames.clear();
     }
     
     @Override
@@ -470,7 +461,6 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setString(IScriptUnit.NBT_TYPE_KEY, IScriptUnit.TYPE_JANINO);
-        compound.setBoolean("enabled", enabled);
         compound.setTag("console", NBTTags.NBTLongStringMap(this.console));
         compound.setTag("externalScripts", NBTTags.nbtStringList(this.externalScripts));
         compound.setString("script", script);
@@ -479,46 +469,27 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
-        this.enabled = compound.getBoolean("enabled");
+        // Read legacy enabled field but ignore it (handler owns enabled now)
         this.console = NBTTags.GetLongStringMap(compound.getTagList("console", 10));
         setExternalScripts(NBTTags.getStringList(compound.getTagList("externalScripts", 10)));
         setScript(compound.getString("script"));
     }
 
-    public boolean isEnabled() {
-        return this.enabled && ScriptController.HasStart && ConfigScript.ScriptingEnabled;
-    }
+    public static <T, S extends JaninoScript<T>> S readFromNBT(NBTTagCompound compound, S script, Supplier<S> factory) {
+        if (compound.hasKey("Script")) {
+            if (script == null)
+                script = factory.get();
 
-    public boolean isClient() {
-        return FMLCommonHandler.instance()
-            .getEffectiveSide()
-            .isClient();
-    }
-
-    public boolean getEnabled() {
-        return this.enabled;
-    }
-
-    public void setEnabled(boolean b) {
-        if (this.enabled != b) {
-            this.enabled = b;
-            this.evaluated = false;
+            script.readFromNBT(compound.getCompoundTag("Script"));
         }
+        return script;
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap();
-        int tab = 0;
+    public static <T> NBTTagCompound writeToNBT(NBTTagCompound compound, JaninoScript<T> script) {
+        if (script != null)
+            compound.setTag("Script", script.writeToNBT(new NBTTagCompound()));
 
-        Iterator var5 = console.entrySet()
-            .iterator();
-
-        while (var5.hasNext()) {
-            Map.Entry<Long, String> longStringEntry = (Map.Entry) var5.next();
-            map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + (String) longStringEntry.getValue());
-        }
-
-        return map;
+        return compound;
     }
     
     @Override
