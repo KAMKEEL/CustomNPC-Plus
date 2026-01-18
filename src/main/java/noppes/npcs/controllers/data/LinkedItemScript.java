@@ -8,10 +8,7 @@ import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
 
-public class LinkedItemScript implements IScriptHandler {
-    public IScriptUnit container;
-    public String scriptLanguage = "ECMAScript";
-    public boolean enabled = false;
+public class LinkedItemScript extends ScriptHandler {
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setString("ScriptLanguage", scriptLanguage);
@@ -30,66 +27,6 @@ public class LinkedItemScript implements IScriptHandler {
             container = IScriptUnit.createFromNBT(compound.getCompoundTag("ScriptContent"), this);
         }
         return this;
-    }
-
-    public boolean isEnabled() {
-        return this.enabled && ScriptController.HasStart && container != null && ConfigScript.ScriptingEnabled;
-    }
-
-    @Override
-    public void callScript(EnumScriptType type, Event event) {
-        this.callScript(type.function, event);
-    }
-
-    @Override
-    public void callScript(String s, Event event) {
-        if (!this.isEnabled()) {
-            return;
-        }
-        if (container != null) {
-            container.run(s, event);
-        }
-    }
-
-    @Override
-    public boolean isClient() {
-        return FMLCommonHandler.instance().getEffectiveSide().isClient();
-    }
-
-    @Override
-    public boolean getEnabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public void setEnabled(boolean b) {
-        this.enabled = b;
-    }
-
-    @Override
-    public String getLanguage() {
-        return this.scriptLanguage;
-    }
-
-    @Override
-    public void setLanguage(String s) {
-        this.scriptLanguage = s;
-    }
-
-    @Override
-    public void setScripts(List<IScriptUnit> list) {
-        if (list == null || list.isEmpty()) {
-            container = null;
-            return;
-        }
-        container = list.get(0);
-    }
-
-    @Override
-    public List<IScriptUnit> getScripts() {
-        if (container == null)
-            return new ArrayList<>();
-        return Collections.singletonList(container);
     }
 
     @Override
