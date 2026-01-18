@@ -7,7 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -76,9 +75,6 @@ public class GlobalNPCDataScript implements IScriptHandler {
         return ConfigScript.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
     }
 
-    public void callScript(EnumScriptType type, Event event) {
-        this.callScript(type.function, event);
-    }
 
     @Override
     public void callScript(String hookName, Event event) {
@@ -145,23 +141,6 @@ public class GlobalNPCDataScript implements IScriptHandler {
         return this.npcAPI;
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (IScriptUnit script : this.getScripts()) {
-            ++tab;
-            for (Map.Entry<Long, String> entry : script.getConsole().entrySet()) {
-                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
-            }
-        }
-        return map;
-    }
-
-    public void clearConsole() {
-        for (IScriptUnit script : this.getScripts()) {
-            script.clearConsole();
-        }
-    }
 
     public static final class ToStringHelper {
         private final String className;

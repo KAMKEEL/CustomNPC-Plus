@@ -89,9 +89,6 @@ public class PlayerDataScript implements IScriptHandler {
         return ConfigScript.GlobalPlayerScripts && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
     }
 
-    public void callScript(EnumScriptType type, Event event) {
-        this.callScript(type.function, event);
-    }
 
     @Override
     public void callScript(String hookName, Event event) {
@@ -187,10 +184,9 @@ public class PlayerDataScript implements IScriptHandler {
     public String noticeString() {
         if (this.player == null) {
             return "Global script";
-        } else {
-            BlockPos pos = new BlockPos(this.player);
-            return PlayerDataScript.toStringHelper(this.player).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
         }
+        BlockPos pos = new BlockPos(this.player);
+        return PlayerDataScript.toStringHelper(this.player).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
     }
 
     public IPlayer getPlayer() {
@@ -201,28 +197,19 @@ public class PlayerDataScript implements IScriptHandler {
     }
 
     public Map<Long, String> getConsoleText() {
-        if (ConfigScript.IndividualPlayerScripts)
+        if (ConfigScript.IndividualPlayerScripts) {
             return console;
-
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (IScriptUnit script : this.getScripts()) {
-            ++tab;
-            for (Entry<Long, String> entry : script.getConsole().entrySet()) {
-                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
-            }
         }
-        return map;
+        return IScriptHandler.super.getConsoleText();
     }
 
+    @Override
     public void clearConsole() {
-        if (ConfigScript.IndividualPlayerScripts)
+        if (ConfigScript.IndividualPlayerScripts) {
             console.clear();
-        else {
-            for (IScriptUnit script : this.getScripts()) {
-                script.clearConsole();
-            }
+            return;
         }
+        IScriptHandler.super.clearConsole();
     }
 
     public static final class ToStringHelper {

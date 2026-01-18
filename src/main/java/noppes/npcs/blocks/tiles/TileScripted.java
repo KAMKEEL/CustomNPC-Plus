@@ -416,26 +416,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     public List<IScriptUnit> getScripts() {
         return scripts;
     }
-
-    @Override
-    public Map<Long, String> getConsoleText() {
-        Map<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (IScriptUnit script : getScripts()) {
-            tab++;
-            for (Entry<Long, String> entry : script.getConsole().entrySet()) {
-                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
-            }
-        }
-        return map;
-    }
-
-    @Override
-    public void clearConsole() {
-        for (IScriptUnit script : getScripts()) {
-            script.clearConsole();
-        }
-    }
+    
 
     @SideOnly(Side.CLIENT)
     @Override

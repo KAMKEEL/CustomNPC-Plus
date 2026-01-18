@@ -1,21 +1,12 @@
 package noppes.npcs.controllers.data;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.Event;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
-import noppes.npcs.config.ConfigScript;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class LinkedItemScript implements IScriptHandler {
     public IScriptUnit container;
@@ -104,26 +95,6 @@ public class LinkedItemScript implements IScriptHandler {
     @Override
     public String noticeString() {
         return "LinkedItem";
-    }
-
-    @Override
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (IScriptUnit script : this.getScripts()) {
-            ++tab;
-            for (Map.Entry<Long, String> entry : script.getConsole().entrySet()) {
-                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
-            }
-        }
-        return map;
-    }
-
-    @Override
-    public void clearConsole() {
-        for (IScriptUnit script : this.getScripts()) {
-            script.clearConsole();
-        }
     }
 
     public void saveScript(ByteBuf buffer) throws IOException {

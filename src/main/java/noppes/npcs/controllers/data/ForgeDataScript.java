@@ -5,15 +5,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 public class ForgeDataScript implements IScriptHandler {
     private List<IScriptUnit> scripts = new ArrayList<>();
@@ -56,10 +52,6 @@ public class ForgeDataScript implements IScriptHandler {
         return compound;
     }
 
-    @Override
-    public void callScript(EnumScriptType var1, Event var2) {
-        this.callScript(var1.function, var2);
-    }
 
     public void callScript(String type, Event event) {
         if (this.isEnabled()) {
@@ -117,25 +109,5 @@ public class ForgeDataScript implements IScriptHandler {
         return this.scripts;
     }
 
-    public String noticeString() {
-        return "ForgeScript";
-    }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (IScriptUnit script : this.getScripts()) {
-            ++tab;
-            for (Entry<Long, String> entry : script.getConsole().entrySet()) {
-                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
-            }
-        }
-        return map;
-    }
-
-    public void clearConsole() {
-        for (IScriptUnit script : this.getScripts()) {
-            script.clearConsole();
-        }
-    }
 }
