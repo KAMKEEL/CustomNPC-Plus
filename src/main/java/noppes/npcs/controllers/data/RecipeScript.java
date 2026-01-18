@@ -1,57 +1,57 @@
 package noppes.npcs.controllers.data;
 
-import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.util.ByteBufUtils;
+import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.Constants;
-import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.api.handler.IScriptHookHandler;
 
-import java.io.IOException;
-
-public class RecipeScript extends ScriptHandler {
-
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setString("ScriptLanguage", scriptLanguage);
-        compound.setBoolean("ScriptEnabled", enabled);
-        if (container != null)
-            compound.setTag("ScriptContent", container.writeToNBT(new NBTTagCompound()));
-        return compound;
+/**
+ * Script handler for Recipe scripts (both carpentry and anvil).
+ * Manages a single script container for recipe hooks (pre, post).
+ */
+public class RecipeScript extends SingleScriptHandler implements IScriptHandlerPacket {
+    
+    /** The recipe ID for packet communication. -1 if not bound. */
+    private int recipeId = -1;
+    
+    /** Whether this is an anvil recipe (vs carpentry). */
+    private boolean anvil = false;
+    
+    /**
+     * Create an unbound RecipeScript (for server-side use).
+     */
+    public RecipeScript() {
     }
-
-    public RecipeScript readFromNBT(NBTTagCompound compound) {
-        scriptLanguage = compound.getString("ScriptLanguage");
-        enabled = compound.getBoolean("ScriptEnabled");
-        if (compound.hasKey("ScriptContent", Constants.NBT.TAG_COMPOUND)) {
-            container = IScriptUnit.createFromNBT(compound.getCompoundTag("ScriptContent"), this);
-        }
-        return this;
+    
+    /**
+     * Create a RecipeScript bound to a specific recipe (for GUI use).
+     * @param recipeId The ID of the recipe
+     * @param anvil true for anvil recipe, false for carpentry recipe
+     */
+    public RecipeScript(int recipeId, boolean anvil) {
+        this.recipeId = recipeId;
+        this.anvil = anvil;
     }
-
+    
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_RECIPE;
+    }
+    
     @Override
     public String noticeString() {
         return "RecipeScript";
     }
-
-    public void saveScript(ByteBuf buffer) throws IOException {
-        int tab = buffer.readInt();
-        int totalScripts = buffer.readInt();
-        if (totalScripts == 0)
-            this.container = null;
-        if (tab == 0) {
-            NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
-            this.container = IScriptUnit.createFromNBT(tabCompound, this);
-        } else {
-            NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
-            this.setLanguage(compound.getString("ScriptLanguage"));
-            if (!ScriptController.Instance.languages.containsKey(this.getLanguage())) {
-                if (!ScriptController.Instance.languages.isEmpty()) {
-                    this.setLanguage((String) ScriptController.Instance.languages.keySet().toArray()[0]);
-                } else {
-                    this.setLanguage("ECMAScript");
-                }
-            }
-            this.setEnabled(compound.getBoolean("ScriptEnabled"));
-        }
+    
+    @Override
+    public void requestData() {
+        if (recipeId >= 0) 
+            RecipeScriptPacket.Get(anvil, recipeId);
+    }
+    
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        if (recipeId >= 0) 
+            RecipeScriptPacket.Save(anvil, recipeId, index, totalCount, nbt);
     }
 
     public enum ScriptType {

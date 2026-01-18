@@ -12,7 +12,8 @@ import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
-import noppes.npcs.client.gui.script.GuiScriptLinkedItem;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.controllers.data.LinkedItemScript;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -307,10 +308,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             return;
         } else if (id == -3) {
             PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
-            GuiScriptLinkedItem scriptGUI = new GuiScriptLinkedItem((GuiNPCManageLinked) this.parent, linkedItem);
-            scriptGUI.setWorldAndResolution(mc, width, height);
-            scriptGUI.initGui();
-            mc.currentScreen = scriptGUI;
+            GuiScriptInterface.open(this.parent, new LinkedItemScript(linkedItem.id));
             return;
         } else if (id == 20) {
             // Open confirmation for version bump.

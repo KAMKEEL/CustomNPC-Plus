@@ -1,60 +1,58 @@
 package noppes.npcs.controllers.data;
 
-import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.util.ByteBufUtils;
+import kamkeel.npcs.network.packets.request.script.item.LinkedItemScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.Constants;
-import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.api.handler.IScriptHookHandler;
+import noppes.npcs.constants.ScriptContext;
 
-import java.io.IOException;
-
-public class LinkedItemScript extends ScriptHandler {
-
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setString("ScriptLanguage", scriptLanguage);
-        compound.setBoolean("ScriptEnabled", enabled);
-
-        if (container != null)
-            compound.setTag("ScriptContent", container.writeToNBT(new NBTTagCompound()));
-        return compound;
+/**
+ * Script handler for LinkedItem scripts.
+ * Manages a single script container for linked item hooks.
+ */
+public class LinkedItemScript extends SingleScriptHandler implements IScriptHandlerPacket {
+    
+    /** The linked item ID for packet communication. -1 if not bound. */
+    private int linkedItemId = -1;
+    
+    /**
+     * Create an unbound LinkedItemScript (for server-side use).
+     */
+    public LinkedItemScript() {
     }
-
-    public LinkedItemScript readFromNBT(NBTTagCompound compound) {
-        scriptLanguage = compound.getString("ScriptLanguage");
-        enabled = compound.getBoolean("ScriptEnabled");
-
-        if (compound.hasKey("ScriptContent", Constants.NBT.TAG_COMPOUND)) {
-            container = IScriptUnit.createFromNBT(compound.getCompoundTag("ScriptContent"), this);
-        }
-        return this;
+    
+    /**
+     * Create a LinkedItemScript bound to a specific linked item (for GUI use).
+     * @param linkedItemId The ID of the LinkedItem
+     */
+    public LinkedItemScript(int linkedItemId) {
+        this.linkedItemId = linkedItemId;
     }
-
+    
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_LINKED_ITEM;
+    }
+    
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.ITEM;
+    }
+    
     @Override
     public String noticeString() {
         return "LinkedItem";
     }
-
-    public void saveScript(ByteBuf buffer) throws IOException {
-        int tab = buffer.readInt();
-        int totalScripts = buffer.readInt();
-        if (totalScripts == 0) {
-            this.container = null;
-        }
-
-        if (tab == 0) {
-            NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
-            this.container = IScriptUnit.createFromNBT(tabCompound, this);
-        } else {
-            NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
-            this.setLanguage(compound.getString("ScriptLanguage"));
-            if (!ScriptController.Instance.languages.containsKey(this.getLanguage())) {
-                if (!ScriptController.Instance.languages.isEmpty()) {
-                    this.setLanguage((String) ScriptController.Instance.languages.keySet().toArray()[0]);
-                } else {
-                    this.setLanguage("ECMAScript");
-                }
-            }
-            this.setEnabled(compound.getBoolean("ScriptEnabled"));
-        }
+    
+    @Override
+    public void requestData() {
+        if (linkedItemId >= 0) 
+            LinkedItemScriptPacket.Get(linkedItemId);
+    }
+    
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        if (linkedItemId >= 0) 
+            LinkedItemScriptPacket.Save(linkedItemId, index, totalCount, nbt);
+        
     }
 }

@@ -1,63 +1,55 @@
 package noppes.npcs.controllers.data;
 
-import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.util.ByteBufUtils;
+import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.Constants;
-import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 
-import java.io.IOException;
-
-public class EffectScript extends ScriptHandler {
-
-
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setString("ScriptLanguage", scriptLanguage);
-        compound.setBoolean("ScriptEnabled", enabled);
-
-        if (container != null)
-            compound.setTag("ScriptContent", container.writeToNBT(new NBTTagCompound()));
-        return compound;
+/**
+ * Script handler for CustomEffect scripts.
+ * Manages a single script container for effect hooks (onEffectAdd, onEffectTick, onEffectRemove).
+ */
+public class EffectScript extends SingleScriptHandler implements IScriptHandlerPacket {
+    
+    /** The effect ID for packet communication. -1 if not bound to an effect. */
+    private int effectId = -1;
+    
+    /**
+     * Create an unbound EffectScript (for server-side use).
+     */
+    public EffectScript() {
     }
-
-    public EffectScript readFromNBT(NBTTagCompound compound) {
-        scriptLanguage = compound.getString("ScriptLanguage");
-        enabled = compound.getBoolean("ScriptEnabled");
-
-        if (compound.hasKey("ScriptContent", Constants.NBT.TAG_COMPOUND)) {
-            container = IScriptUnit.createFromNBT(compound.getCompoundTag("ScriptContent"), this);
-        }
-        return this;
+    
+    /**
+     * Create an EffectScript bound to a specific effect (for GUI use).
+     * @param effectId The ID of the CustomEffect
+     */
+    public EffectScript(int effectId) {
+        this.effectId = effectId;
     }
-
+    
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_EFFECT;
+    }
+    
+    /**
+     * Convenience method to call a script with a typed event.
+     */
     public void callScript(ScriptType type, PlayerEvent.EffectEvent event) {
         callScript(type.function, event);
     }
-
-
-    public void saveScript(ByteBuf buffer) throws IOException {
-        int tab = buffer.readInt();
-        int totalScripts = buffer.readInt();
-        if (totalScripts == 0) {
-            this.container = null;
-        }
-
-        if (tab == 0) {
-            NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
-            this.container = IScriptUnit.createFromNBT(tabCompound, this);
-        } else {
-            NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
-            this.setLanguage(compound.getString("ScriptLanguage"));
-            if (!ScriptController.Instance.languages.containsKey(this.getLanguage())) {
-                if (!ScriptController.Instance.languages.isEmpty()) {
-                    this.setLanguage((String) ScriptController.Instance.languages.keySet().toArray()[0]);
-                } else {
-                    this.setLanguage("ECMAScript");
-                }
-            }
-            this.setEnabled(compound.getBoolean("ScriptEnabled"));
-        }
+    
+    @Override
+    public void requestData() {
+        if (effectId >= 0) 
+            EffectScriptPacket.Get(effectId);
+    }
+    
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        if (effectId >= 0) 
+            EffectScriptPacket.Save(effectId, index, totalCount, nbt);
     }
 
     public enum ScriptType {

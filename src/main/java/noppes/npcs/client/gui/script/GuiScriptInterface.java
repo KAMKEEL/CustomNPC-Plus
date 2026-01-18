@@ -91,16 +91,17 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * Create a GuiScriptInterface for a single script without a handler.
      * Wraps the script in a SingleScriptHandler automatically.
      */
-    public static GuiScriptInterface create(GuiScreen parent, IScriptHandler handler) {
+    public static GuiScriptInterface open(GuiScreen parent, IScriptHandler handler) {
         GuiScriptInterface gui = new GuiScriptInterface();
         gui.handler = handler;
         gui.parent = parent;
-        gui.singleContainer = true;
-        gui.displayGuiScreen(gui);
 
         // Initialize hooks from handler
         gui.hookList = new ArrayList<>(handler.getHooks());
 
+        // Request data from server
+        if (handler instanceof IScriptHandlerPacket)
+            ((IScriptHandlerPacket) handler).requestData();
 
         Minecraft.getMinecraft().displayGuiScreen(gui);
         return gui;
@@ -637,59 +638,28 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public void setGuiData(NBTTagCompound compound) {
-        NBTTagList data = compound.getTagList("Languages", 10);
-        HashMap languages = new HashMap();
-
-        for (int i = 0; i < data.tagCount(); ++i) {
-            NBTTagCompound comp = data.getCompoundTagAt(i);
-            ArrayList scripts = new ArrayList();
-            NBTTagList list = comp.getTagList("Scripts", 8);
-
-            for (int j = 0; j < list.tagCount(); ++j) {
-                scripts.add(list.getStringTagAt(j));
+        if (handler instanceof IScriptHandlerPacket) {
+            IScriptHandlerPacket.GuiDataResult result = ((IScriptHandlerPacket) handler).setGuiData(compound);
+            if (result.kind == IScriptHandlerPacket.GuiDataKind.LOAD_COMPLETE) {
+                loaded = true;
+                return;
             }
-
-            languages.put(comp.getString("Language"), scripts);
-        }
-
-        this.languages = languages;
-        this.initGui();
-    }
-
-    /**
-     * Get the script context for this GUI.
-     * Override in subclasses to return the appropriate context.
-     *
-     * @return The script context (default: GLOBAL)
-     */
-    protected ScriptContext getScriptContext() {
-        return ScriptContext.GLOBAL;
-    }
-
-    // ==================== UNIFIED SCRIPT DATA HANDLING ====================
-
-    /**
-     * Unified setGuiData for script GUIs with old container system.
-     * Handles both language data and tab-specific script loading.
-     */
-    protected void setGuiDataWithOldContainer(NBTTagCompound compound) {
-        if (compound.hasKey("LoadComplete")) {
-            loaded = true;
+            if (result.kind == IScriptHandlerPacket.GuiDataKind.METADATA) {
+                loadLanguagesData(compound);
+                return;
+            }
+            if (result.kind == IScriptHandlerPacket.GuiDataKind.TAB) {
+                initGui();
+                return;
+            }
             return;
         }
-
-        if (!compound.hasKey("Tab")) {
-            this.handler.setLanguage(compound.getString("ScriptLanguage"));
-            this.handler.setEnabled(compound.getBoolean("ScriptEnabled"));
-            this.loadLanguagesData(compound);
-        } else {
-            int tab = compound.getInteger("Tab");
-            NBTTagCompound scriptCompound = compound.getCompoundTag("Script");
-            IScriptUnit container = IScriptUnit.createFromNBT(scriptCompound, this.handler);
-            this.setHandlerUnit(container);
-            this.initGui();
-        }
+        
+        loadLanguagesData(compound);
     }
+
+
+    // ==================== UNIFIED SCRIPT DATA HANDLING ====================
 
     /**
      * Load languages data from NBT.
@@ -715,50 +685,16 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.initGui();
     }
 
-    /**
-     * Set the handler's container. Override if handler is not IScriptHandler.
-     */
-    protected void setHandlerUnit(IScriptUnit container) {
-        // Default implementation - subclasses may need to cast and set differently
-        // e.g., ((LinkedItemScript) handler).container = container;
-    }
-
-    /**
-     * Unified save method for script GUIs with packet-based saving.
-     * Subclasses only need to override sendScriptPackets() and sendMetadataPacket().
-     */
-    protected void saveWithPackets() {
-        if (loaded) {
-            this.setScript();
-
-            List<IScriptUnit> containers = this.handler.getScripts();
-            for (int i = 0; i < containers.size(); i++) {
-                IScriptUnit container = containers.get(i);
-                sendSavePacket(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
-            }
-
-            NBTTagCompound scriptData = new NBTTagCompound();
-            scriptData.setString("ScriptLanguage", this.handler.getLanguage());
-            scriptData.setBoolean("ScriptEnabled", this.handler.getEnabled());
-            scriptData.setTag("ScriptConsole", noppes.npcs.NBTTags.NBTLongStringMap(this.handler.getConsoleText()));
-
-            sendSavePacket(-1, containers.size(), scriptData);
-        }
-    }
-
-    /**
-     * Send a script container packet. Override in subclasses.
-     * @param index The index of this script
-     * @param totalCount Total number of scripts
-     * @param scriptNBT The script container NBT data
-     */
-    protected void sendSavePacket(int index, int totalCount, NBTTagCompound scriptNBT) {
-        // Default: do nothing (for non-packet-based GUIs like GuiScriptItem)
-    }
-
     public void save() {
-        if (loaded)
-            this.setScript();
+        if (!loaded)
+            return;
+
+        this.setScript();
+        
+        if (handler instanceof IScriptHandlerPacket)
+            ((IScriptHandlerPacket) handler).sync();
+
+
     }
 
     public void textUpdate(String text) {

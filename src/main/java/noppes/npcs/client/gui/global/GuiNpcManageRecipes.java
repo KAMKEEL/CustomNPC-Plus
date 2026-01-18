@@ -12,7 +12,8 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
-import noppes.npcs.client.gui.script.GuiScriptRecipe;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.controllers.data.RecipeScript;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface2;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -222,15 +223,9 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         if (button.id == 16) {
             save();
             if (container.width == 1) {
-                GuiScriptRecipe gui = new GuiScriptRecipe(this, container.recipeAnvil);
-                gui.setWorldAndResolution(mc, width, height);
-                gui.initGui();
-                mc.currentScreen = gui;
+                GuiScriptInterface.open(this, new RecipeScript(container.recipeAnvil.id, true));
             } else if (!container.recipe.isGlobal) {
-                GuiScriptRecipe gui = new GuiScriptRecipe(this, container.recipe);
-                gui.setWorldAndResolution(mc, width, height);
-                gui.initGui();
-                mc.currentScreen = gui;
+                GuiScriptInterface.open(this, new RecipeScript(container.recipe.id, false));
             }
         }
     }
