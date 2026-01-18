@@ -564,7 +564,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 107) {
-            IScriptUnit container = this.handler.getScripts().get(this.activeTab - 1);
+            IScriptUnit container = getCurrentContainer();
             if (container == null) {
                 container = new ScriptContainer(this.handler);
                 if (singleContainer)
@@ -573,7 +573,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                     this.handler.getScripts().add(container);
             }
 
-            this.setSubGui(new EventGuiScriptList((List) this.languages.get(this.handler.getLanguage()), container));
+            String language = container != null ? container.getLanguage() : this.handler.getLanguage();
+            this.setSubGui(new EventGuiScriptList((List) this.languages.get(language), container));
         }
         
         // Language toggle button - switch between ECMAScript and Java
@@ -598,10 +599,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                         return; // Handler doesn't support Janino
                     }
                 }
-                
-                // Replace the script unit in the list
-                handler.getScripts().set(idx, newUnit);
-                
+
+                if (singleContainer) {
+                    setHandlerUnit(newUnit);
+                } else {
+                    // Replace the script unit in the list
+                    handler.getScripts().set(idx, newUnit);
+                }
                 // Clear the cached text area so it recreates with new language
                 textAreas.remove(idx);
                 
