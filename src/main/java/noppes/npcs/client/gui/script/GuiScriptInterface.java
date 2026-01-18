@@ -27,7 +27,6 @@ import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
-import noppes.npcs.controllers.data.SingleScriptHandler;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
 
@@ -92,9 +91,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * Create a GuiScriptInterface for a single script without a handler.
      * Wraps the script in a SingleScriptHandler automatically.
      */
-    public static GuiScriptInterface create(GuiScreen parent, IScriptUnit script) {
+    public static GuiScriptInterface create(GuiScreen parent, IScriptHandler handler) {
         GuiScriptInterface gui = new GuiScriptInterface();
-        gui.handler = new SingleScriptHandler(script);
+        gui.handler = handler;
         gui.parent = parent;
         gui.singleContainer = true;
         gui.displayGuiScreen(gui);

@@ -222,24 +222,6 @@ public class DataScript implements IScriptHandler {
         return map;
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (IScriptUnit script : this.getScripts()) {
-            ++tab;
-
-            for (Map.Entry<Long, String> longStringEntry : script.getConsole().entrySet()) {
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
-            }
-        }
-        return map;
-    }
-
-    public void clearConsole() {
-        for (IScriptUnit script : this.getScripts()) {
-            script.clearConsole();
-        }
-    }
 
     @Override
     public void callScript(EnumScriptType type, Event event) {
