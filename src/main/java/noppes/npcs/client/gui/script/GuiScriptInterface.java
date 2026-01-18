@@ -27,6 +27,7 @@ import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
+import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
 
@@ -49,7 +50,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     protected GuiScreen parent;
 
-    public boolean singleContainer = false;
     
     /** If true, uses scroll-based tab selection instead of top buttons */
     protected boolean useScrollTabs = false;
@@ -97,6 +97,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         gui.parent = parent;
         gui.singleContainer = true;
         gui.displayGuiScreen(gui);
+
+        // Initialize hooks from handler
+        gui.hookList = new ArrayList<>(handler.getHooks());
+
+
+        Minecraft.getMinecraft().displayGuiScreen(gui);
         return gui;
     }
 
@@ -113,6 +119,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.guiTop += 10;
         int yoffset = (int) ((double) this.ySize * 0.02D);
 
+        if (hookList.isEmpty())
+            hookList = new ArrayList<>(handler.getHooks());
+
         // ==================== TAB BUTTONS ====================
         // Skip standard tab creation for GUIs that use custom toggle/scroll tabs
         if (!useSettingsToggle) {
@@ -123,7 +132,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             int topXoffset = 0;
             int topYoffset = 0;
-            if(!singleContainer) {
+            boolean isSingle = handler.isSingleContainer();
+            if (!isSingle) {
                 for (int ta = 0; ta < this.handler.getScripts().size(); ++ta) {
                     if (ta % 20 == 0 && ta > 0) {
                         topYoffset -= 20;
@@ -137,7 +147,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 }
             }
 
-            if (singleContainer && getFirst() != null)
+            if (isSingle && handler.getSingleScript() != null)
                 this.addTopButton(
                         top = new GuiMenuTopButton(1, top.xPosition + top.width + topXoffset, top.yPosition + topYoffset,
                                 "Script"));
@@ -233,10 +243,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         // Set the scripting language for proper syntax highlighting
         // Use the container's language if available, otherwise fall back to handler's language
         String language = (container != null) ? container.getLanguage() : this.handler.getLanguage();
-      activeArea.setLanguage(language);
-
-        // Set the script context for context-aware hook autocomplete
-        activeArea.setScriptContext(getScriptContext());
+        activeArea.setLanguage(language);
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());
@@ -318,6 +325,16 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.xSize = x;
         this.ySize = y;
         return this;
+    }
+
+    /**
+     * Get the script context for this GUI.
+     * Override in subclasses to return a different context.
+     *
+     * @return The script context (default: GLOBAL, or handler's context if available)
+     */
+    protected ScriptContext getScriptContext() {
+        return handler.getContext();
     }
 
     // ==================== RENDERING ====================
@@ -418,10 +435,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 this.openLink("http://www.minecraftforge.net/forum/index.php/board,122.0.html");
             }
             if (i == 10) {
-                if (singleContainer)
-                    setHandlerUnit(null);
-                else
-                    this.handler.getScripts().remove(this.activeTab - 1);
+                handler.removeScriptUnit(this.activeTab - 1);
                 this.activeTab = 0;
             }
             if (i == 101) {
@@ -482,11 +496,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         return super.getTextField(id);
     }
 
-    public IScriptUnit getFirst() {
-        if (this.handler.getScripts().isEmpty())
-            return null;
-        return this.handler.getScripts().get(0);
-    }
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         if (guibutton.id >= 0 && guibutton.id < scriptLimit) {
@@ -501,14 +510,15 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == scriptLimit) {
-            if (singleContainer) {
-                if (getFirst() == null)
-                    setHandlerUnit(new ScriptContainer(handler));
-                else
+            if (handler.isSingleContainer()) {
+                if (handler.getSingleScript() == null) {
+                    handler.addScriptUnit(new ScriptContainer(handler));
+                } else {
                     this.setScript();
+                }
                 this.activeTab = 1;
             } else {
-                this.handler.getScripts().add(new ScriptContainer(this.handler));
+                handler.addScriptUnit(new ScriptContainer(this.handler));
                 this.activeTab = this.handler.getScripts().size();
             }
             this.initGui();
@@ -567,10 +577,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             IScriptUnit container = getCurrentContainer();
             if (container == null) {
                 container = new ScriptContainer(this.handler);
-                if (singleContainer)
-                    setHandlerUnit(container);
-                else
-                    this.handler.getScripts().add(container);
+                handler.addScriptUnit(container);
             }
 
             String language = container != null ? container.getLanguage() : this.handler.getLanguage();
@@ -600,12 +607,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                     }
                 }
 
-                if (singleContainer) {
-                    setHandlerUnit(newUnit);
-                } else {
-                    // Replace the script unit in the list
-                    handler.getScripts().set(idx, newUnit);
-                }
+                handler.replaceScriptUnit(idx, newUnit);
                 // Clear the cached text area so it recreates with new language
                 textAreas.remove(idx);
                 
@@ -621,10 +623,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             if (container == null) {
                 container = new ScriptContainer(this.handler);
-                if (singleContainer)
-                    setHandlerUnit(container);
-                else
-                    this.handler.getScripts().add(container);
+                handler.addScriptUnit(container);
             }
 
             if (container != null) {
