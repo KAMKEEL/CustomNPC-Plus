@@ -17,8 +17,51 @@ public interface IScriptHandler {
             callScript(type.function, event);
         
     }
-    
+
     void callScript(String hookName, Event event);
+
+    /**
+     * Call a function by name and return its result.
+     *
+     * Default implementation calls the function on each script unit (in order) and returns
+     * the first non-null value.
+     */
+    default Object callFunction(String hookName, Object... args) {
+        if (hookName == null || hookName.isEmpty())
+            return null;
+
+        if (!getEnabled())
+            return null;
+
+        List<IScriptUnit> scripts = getScripts();
+        if (scripts == null || scripts.isEmpty())
+            return null;
+
+        for (IScriptUnit script : scripts) {
+            if (script == null || script.hasErrored() || !script.hasCode())
+                continue;
+
+            Object result = script.callFunction(hookName, args);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+
+    /**
+     * Typed convenience wrapper around {@link #callFunction(String, Object...)}.
+     */
+    default <S> S callFunction(String hookName, Class<S> returnType, Object... args) {
+        Object result = callFunction(hookName, args);
+        if (result == null || returnType == null)
+            return null;
+
+        if (returnType.isInstance(result))
+            return returnType.cast(result);
+
+        return null;
+    }
 
     default boolean isClient() {
         return FMLCommonHandler.instance().getEffectiveSide().isClient();

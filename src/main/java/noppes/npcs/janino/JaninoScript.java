@@ -1,6 +1,5 @@
 package noppes.npcs.janino;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import io.github.somehussar.janinoloader.api.script.IScriptBodyBuilder;
 import io.github.somehussar.janinoloader.api.script.IScriptClassBody;
@@ -12,7 +11,6 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.janino.annotations.ParamName;
-import noppes.npcs.janino.annotations.ScriptHook;
 import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
@@ -50,15 +48,8 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public final IScriptBodyBuilder<T> builder;
     protected IScriptClassBody<T> scriptBody;
 
-    private boolean hooksInitialized = false;
-    // Hook list for GUI display
-    private List<String> hookList = new ArrayList<>();
-    // Map from display name (with parameters if overloaded) to Method
-    private Map<String, Method> hookMap = new HashMap<>();
-    // Map from EnumScriptType to Method for OLD tab-based script system
-    private Map<EnumScriptType, Method> hookTypeMap = new HashMap<>();
+    private final JaninoHookResolver hookResolver;
 
-    // Default imports for this script type (e.g., noppes.npcs.api.*)
     private final String[] defaultImports;
 
     protected JaninoScript(Class<T> type, String[] defaultImports) {
@@ -73,8 +64,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
         this.scriptBody = builder.build();
 
-        // Build hook type map from @ScriptHook annotations
-        initializeHookTypeMap();
+        this.hookResolver = new JaninoHookResolver(type);
     }
 
     protected T getUnsafe() {
@@ -147,8 +137,10 @@ public abstract class JaninoScript<T> implements IScriptUnit {
                     appendConsole(parentCause.getMessage());
                 appendConsole(rootCause.getMessage());
             }
+            hookResolver.clearResolutionCaches();
         } catch (Exception e) {
             appendConsole("Unknown error: " + e.getMessage());
+            hookResolver.clearResolutionCaches();
         }
     }
 
@@ -197,53 +189,42 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         }
     }
 
-    /**
-     * Scans the Functions interface for @ScriptHook annotations and builds the hookTypeMap.
-     * This allows direct method invocation by EnumScriptType without switch statements.
-     */
-    private void initializeHookTypeMap() {
-        for (Method method : type.getDeclaredMethods()) {
-            ScriptHook annotation = method.getAnnotation(ScriptHook.class);
-            if (annotation != null) {
-                for (EnumScriptType hookType : annotation.value()) {
-                    hookTypeMap.put(hookType, method);
-                }
-            }
-        }
+    public void callByHookName(String hookName, Object arg) {
+        callFunction(hookName, arg);
     }
 
-    /**
-     * Call a hook method by its EnumScriptType.
-     * Used by the OLD tab-based script system to execute hooks directly.
-     *
-     * @param hookType The script type/hook to execute
-     * @param event The event object to pass to the hook method
-     */
-    public void callByHookType(EnumScriptType hookType, Object event) {
-        Method method = hookTypeMap.get(hookType);
-        if (method == null) {
-            // Hook not implemented or not annotated
-            return;
-        }
+    @Override
+    public Object callFunction(String hookName, Object... args) {
+        if (hookName == null || hookName.isEmpty())
+            return null;
+
+        Method method = hookResolver.resolveHookMethod(hookName, args);
+        if (method == null)
+            return null;
 
         ensureCompiled();
         T t = getUnsafe();
         if (t == null)
-            return;
+            return null;
+
+        Method invokeMethod = method;
+        Object[] invokeArgs = args == null ? new Object[0] : args;
 
         try {
-            sandbox.confine((PrivilegedAction<Void>) () -> {
+            return sandbox.confine((PrivilegedAction<Object>) () -> {
                 try {
-                    method.invoke(t, event);
+                    return invokeMethod.invoke(t, invokeArgs);
                 } catch (Exception e) {
-                    appendConsole("Error calling hook " + hookType.name() + ": " + e.getMessage());
+                    appendConsole("Error calling hook " + hookName + ": " + e.getMessage());
+                    return null;
                 }
-                return null;
             });
         } catch (Exception e) {
-            appendConsole("Runtime Error in hook " + hookType.name() + ": " + e.getMessage());
+            appendConsole("Runtime Error in hook " + hookName + ": " + e.getMessage());
+            return null;
         }
     }
+
 
     // ==================== IScriptUnit IMPLEMENTATION ====================
 
@@ -256,7 +237,10 @@ public abstract class JaninoScript<T> implements IScriptUnit {
      */
     @Override
     public void run(EnumScriptType type, Event event) {
-        callByHookType(type, event);
+        if (type == null) 
+            return;
+        
+        callFunction(type.function, event);
     }
 
     /**
@@ -268,13 +252,9 @@ public abstract class JaninoScript<T> implements IScriptUnit {
      */
     @Override
     public void run(String hookName, Object event) {
-        try {
-            EnumScriptType enumType = EnumScriptType.valueOfIgnoreCase(hookName);
-            callByHookType(enumType, event);
-        } catch (IllegalArgumentException ignored) {
-            // Hook name doesn't map to an EnumScriptType
-        }
+        callFunction(hookName, event);
     }
+    
     @Override
     public String getScript() {
         return this.script;
@@ -284,6 +264,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void setScript(String script) {
         this.script = script;
         this.evaluated = false;
+        hookResolver.clearResolutionCaches();
     }
     
     @Override
@@ -295,8 +276,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void setExternalScripts(List<String> externalScripts) {
         this.externalScripts = externalScripts;
         this.evaluated = false;
-        this.hookNameMap.clear();
-        this.missingHookNames.clear();
+        hookResolver.clearResolutionCaches();
     }
     
     @Override
@@ -343,19 +323,14 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         return script != null && !script.isEmpty();
     }
 
-    @Override
-    public String generateHookStub(String hookName, Object hookData) {
-        // Build hook list and map
-        if (!hooksInitialized) {
-            createHookList();
-            hooksInitialized = true;
-        }
+     @Override
+     public String generateHookStub(String hookName, Object hookData) {
+         hookResolver.clearResolutionCaches();
 
-        // Look up in hookMap (handles both simple names and overloaded display names)
-        Method method = hookMap.get(hookName);
-        if (method != null)
-            return generateMethodStub(method);
-
+         Method method = hookResolver.getMethodForDisplayName(hookName);
+         if (method != null)
+             return generateMethodStub(method);
+         
         // Fallback for unknown hook names - generate basic override
         return String.format("public void %s() {\n    \n}\n", hookName);
     }
@@ -416,45 +391,8 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
 
-    /**
-     * Create the hook list and hook map for GUI display and generation.
-     * Groups methods by name and creates display names with parameters for overloaded methods.
-     */
-    private void createHookList() {
-        // Group all declared methods by their name
-        Map<String, List<Method>> grouped = Arrays.stream(type.getDeclaredMethods())
-                                                  .collect(Collectors.groupingBy(Method::getName));
-
-        for (Map.Entry<String, List<Method>> entry : grouped.entrySet()) {
-            List<Method> methods = entry.getValue();
-
-            // Sort overloads by parameter count (ascending)
-            methods.sort(Comparator.comparingInt(Method::getParameterCount));
-            boolean first = true;
-
-            for (Method m : methods) {
-                if (Modifier.isFinal(m.getModifiers()))
-                    continue; // Skip final methods
-
-                // For first (simplest) overload, use just the method name
-                // For additional overloads, include parameter types in display name
-                String displayName = first ? m.getName() :
-                        m.getName() + "(" + Arrays.stream(m.getParameterTypes())
-                                                  .map(Class::getSimpleName)
-                                                  .collect(Collectors.joining(", ")) + ")";
-
-                hookList.add(displayName);
-                hookMap.put(displayName, m);
-                first = false;
-            }
-        }
-    }
-
-    /**
-     * Get the list of hook names for GUI display.
-     */
     public List<String> getHookList() {
-        return new ArrayList<>(hookList);
+        return hookResolver.getDisplayHookList();
     }
 
 

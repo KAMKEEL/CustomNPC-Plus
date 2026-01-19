@@ -124,6 +124,13 @@ public class JaninoScriptHandler<S extends JaninoScript<?>> extends ScriptHandle
         deleteScript();
     }
 
+    public List<String> getHooks() {
+        if (script != null)
+            return script.getHookList();
+
+        return Collections.emptyList();
+    }
+
     @Override
     public IScriptUnit createJaninoScriptUnit() {
         return factory.get();

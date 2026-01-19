@@ -161,8 +161,6 @@ public interface IScriptUnit {
     
     /**
      * Execute this script unit for the given hook type and event.
-     * For ScriptContainer: calls run(EnumScriptType, Event)
-     * For JaninoScript: calls callByHookType(EnumScriptType, Event)
      * 
      * @param type The script hook type
      * @param event The event object
@@ -171,11 +169,32 @@ public interface IScriptUnit {
     
     /**
      * Execute this script unit for the given hook name and event.
-     * For ScriptContainer: calls run(String, Event)
-     * For JaninoScript: converts hookName to EnumScriptType and calls callByHookType
-     * 
+     *
      * @param hookName The hook name (e.g., "init", "interact")
      * @param event The event object
      */
     void run(String hookName, Object event);
+
+    /**
+     * Call a script function by name and return its result.
+     *
+     * Default implementation returns null (not supported).
+     */
+    default Object callFunction(String hookName, Object... args) {
+        return null;
+    }
+
+    /**
+     * Typed convenience wrapper around {@link #callFunction(String, Object...)}.
+     */
+    default <S> S callFunction(String hookName, Class<S> returnType, Object... args) {
+        Object result = callFunction(hookName, args);
+        if (result == null || returnType == null)
+            return null;
+
+        if (returnType.isInstance(result))
+            return returnType.cast(result);
+
+        return null;
+    }
 }
