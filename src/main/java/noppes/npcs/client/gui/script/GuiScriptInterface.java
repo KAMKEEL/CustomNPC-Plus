@@ -304,10 +304,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
         this.addButton(new GuiNpcButton(102, var9, this.guiTop + 146, 60, 20, "gui.clear"));
         this.addLabel(new GuiNpcLabel(1, "script.language", var9, this.guiTop + 15));
+        List<String> languageOptions = getLanguageOptions();
         this.addButton(new GuiNpcButton(103, var9 + 60, this.guiTop + 10, 80, 20,
-                (String[]) this.languages.keySet().toArray(new String[this.languages.keySet().size()]),
-                this.getScriptIndex()));
-        this.getButton(103).enabled = this.languages.size() > 0;
+            languageOptions.toArray(new String[0]),
+            this.getLanguageIndex(languageOptions)));
+        this.getButton(103).enabled = languageOptions.size() > 0;
         this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
         this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20,
                 new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
@@ -405,17 +406,64 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         return builder.toString();
     }
 
-    public int getScriptIndex() {
-        int i = 0;
 
-        for (Iterator var2 = this.languages.keySet().iterator(); var2.hasNext(); ++i) {
-            String language = (String) var2.next();
-            if (language.equalsIgnoreCase(this.handler.getLanguage())) {
+    /**
+     * Finds the index of the current handler's language within the available options.
+     *
+     * @return The 0-based index, or 0 if not found.
+     */
+    public int getLanguageIndex() {
+        return getLanguageIndex(getLanguageOptions());
+    }
+
+    /**
+     * Finds the index of the current handler's language within the provided list.
+     *
+     * @param languageOptions The list of available languages to search.
+     * @return The 0-based index, or 0 if not found.
+     */
+    protected int getLanguageIndex(List<String> languageOptions) {
+        if (languageOptions == null || languageOptions.isEmpty())
+            return 0;
+
+        int i = 0;
+        String current = this.handler != null ? this.handler.getLanguage() : null;
+        for (String language : languageOptions) {
+            if (current != null && language.equalsIgnoreCase(current))
                 return i;
-            }
+            i++;
         }
 
         return 0;
+    }
+
+    /**
+     * Retrieves the list of available scripting languages for this handler.
+     * <p>
+     * This method prioritizes languages provided by the server through the {@link #languages} map.
+     * If "Java" is not present but the handler supports Janino, it injects "Java" into the options
+     * and ensures the client-side Janino script list is synchronized for the {@link EventGuiScriptList}.
+     *
+     * @return A list of language names available for selection.
+     */
+    protected List<String> getLanguageOptions() {
+        List<String> options = new ArrayList<>();
+        if (this.languages != null && !this.languages.isEmpty())
+            options.addAll(this.languages.keySet());
+
+        if ((options.isEmpty() || !options.contains("Java")) && this.handler != null && this.handler.supportsJanino()) {
+            List<String> scripts = new ArrayList<>();
+            if (ScriptController.Instance != null && ScriptController.Instance.scripts != null) {
+                scripts.addAll(ScriptController.Instance.scripts.keySet());
+            }
+            if (this.languages == null)
+                this.languages = new HashMap();
+            if (!this.languages.containsKey("Java"))
+                this.languages.put("Java", scripts);
+            options.add("Java");
+        }
+
+        return options;
     }
 
     public void confirmClicked(boolean flag, int i) {
@@ -679,6 +727,17 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
 
             languages.put(comp.getString("Language"), scripts);
+        }
+
+        if (handler != null && handler.supportsJanino()) {
+            List<String> javaScripts = (List<String>) languages.get("Java");
+            if (javaScripts == null || javaScripts.isEmpty()) {
+                javaScripts = new ArrayList<>();
+                if (ScriptController.Instance != null && ScriptController.Instance.scripts != null) {
+                    javaScripts.addAll(ScriptController.Instance.scripts.keySet());
+                }
+                languages.put("Java", javaScripts);
+            }
         }
 
         this.languages = languages;

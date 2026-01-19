@@ -204,9 +204,10 @@ public class GuiScript extends GuiScriptInterface {
                 consoleOptions.toArray(new String[0]), activeConsole));
 
         addLabel(new GuiNpcLabel(1, "script.language", guiLeft + 232, guiTop + 30));
+        List<String> languageOptions = getLanguageOptions();
         addButton(new GuiNpcButton(103, guiLeft + 294, guiTop + 25, 80, 20, 
-                languages.keySet().toArray(new String[0]), getScriptIndex()));
-        getButton(103).enabled = languages.size() > 0;
+                languageOptions.toArray(new String[0]), getLanguageIndex(languageOptions)));
+        getButton(103).enabled = languageOptions.size() > 0;
 
         addLabel(new GuiNpcLabel(2, "gui.enabled", guiLeft + 232, guiTop + 53));
         addButton(new GuiNpcButton(104, guiLeft + 294, guiTop + 48, 50, 20, 

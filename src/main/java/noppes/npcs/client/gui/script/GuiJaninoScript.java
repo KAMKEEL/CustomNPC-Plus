@@ -163,7 +163,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
             this.addLabel(new GuiNpcLabel(1, "script.language", var9, this.guiTop + 15));
             String containerLang = container.getLanguage();
             this.addButton(new GuiNpcButton(103, var9 + 60, this.guiTop + 10, 80, 20, new String[]{containerLang.equals("Java") ? "Janino (JVM 8)" : containerLang},
-                this.getScriptIndex()));
+                this.getLanguageIndex()));
             // this.getButton(103).enabled = !this.languages.isEmpty();
             this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
             // Note: GuiJaninoScript is deprecated; enabled button disabled
@@ -361,7 +361,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
         return builder.toString();
     }
 
-    private int getScriptIndex() {
+    private int getLanguageIndex() {
         return 0;
     }
 
