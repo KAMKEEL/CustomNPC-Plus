@@ -271,10 +271,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.addButton(new GuiNpcButton(100, left1, this.guiTop + 21 + yoffset, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(105, left1 + 61, this.guiTop + 21 + yoffset, 60, 20, "gui.remove"));
             
-            // Language toggle button (only if handler supports Janino)
-            if (handler.supportsJanino() && container != null) {
-                String langLabel = container.isJanino() ? "Java" : "ECMAScript";
-                this.addButton(new GuiNpcButton(113, left1, this.guiTop + 42 + yoffset, 121, 20, langLabel));
+            // Language toggle button (only if handler supports Janino and there is more than one option)
+            if (handler.supportsJanino() && getLanguageOptions().size() > 1 && container != null) {
+                this.addButton(new GuiNpcButton(113, left1, this.guiTop + 42 + yoffset, 121, 20, container.getLanguage()));
             }
             
             this.addButton(new GuiNpcButton(107, left1, this.guiTop + 66 + yoffset, 80, 20, "script.loadscript"));
