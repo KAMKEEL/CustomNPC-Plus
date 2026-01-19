@@ -1297,6 +1297,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.setRevengeTarget(null);
         this.deathTime = 0;
         //fleeingTick = 0;
+
+        // Restore hitbox before moving entity to prevent bounding box validation issues
+        currentAnimation = EnumAnimation.NONE;
+        updateHitbox();
+
         if (ais.returnToStart && !hasOwner() && !this.isRemote())
             setLocationAndAngles(getStartXPos(), getStartYPos(), getStartZPos(), rotationYaw, rotationPitch);
         killedtime = 0;
@@ -1310,8 +1315,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
         moveEntityWithHeading(0, 0);
         distanceWalkedModified = 0;
-        currentAnimation = EnumAnimation.NONE;
-        updateHitbox();
         updateAI = true;
         ais.movingPos = 0;
         if (getOwner() != null) {
