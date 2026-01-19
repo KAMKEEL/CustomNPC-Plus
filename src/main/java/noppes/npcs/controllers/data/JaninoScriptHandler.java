@@ -110,6 +110,21 @@ public class JaninoScriptHandler<S extends JaninoScript<?>> extends ScriptHandle
     }
 
     @Override
+    public void addScriptUnit(IScriptUnit unit) {
+        setScripts(Collections.singletonList(unit));
+    }
+
+    @Override
+    public void replaceScriptUnit(int index, IScriptUnit unit) {
+        setScripts(Collections.singletonList(unit));
+    }
+
+    @Override
+    public void removeScriptUnit(int index) {
+        deleteScript();
+    }
+
+    @Override
     public IScriptUnit createJaninoScriptUnit() {
         return factory.get();
     }
