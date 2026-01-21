@@ -527,7 +527,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         addLabel(new GuiNpcLabel(140, StatCollector.translateToLocal("auction.listingFee") + " " + fee + " " + ConfigMarket.CurrencyName,
             leftX, guiTop + 104, fee > 0 ? 0xAA0000 : 0x008800));
 
-        addButton(new GuiNpcButton(71, leftX, guiTop + 126, 90, 20, StatCollector.translateToLocal("auction.create")));
+        addButton(new GuiNpcButton(71, leftX, guiTop + 126, 90, 20, StatCollector.translateToLocal("gui.create")));
         addButton(new GuiNpcButton(72, leftX + 100, guiTop + 126, 90, 20, StatCollector.translateToLocal("gui.cancel")));
 
         if (getButton(71) != null) {

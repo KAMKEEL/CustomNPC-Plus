@@ -37,7 +37,7 @@ public class SubGuiAbilityVortex extends SubGuiAbilityConfig {
         y += 24;
 
         // Row 2: Damage + Knockback
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(102, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, vortex.getDamage()));
 
         addLabel(new GuiNpcLabel(103, "ability.knockback", col2LabelX, y + 5));

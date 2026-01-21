@@ -28,10 +28,10 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Range
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, cutter.getDamage()));
 
-        addLabel(new GuiNpcLabel(101, "ability.range", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(101, "gui.range", col2LabelX, y + 5));
         addTextField(createFloatField(101, col2FieldX, y, 50, cutter.getRange()));
 
         y += 24;

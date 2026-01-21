@@ -1477,14 +1477,12 @@ ability.target.self=Self
 ability.target.aoe_self=AOE Self
 ability.target.aoe_target=AOE Target
 
-ability.telegraph.none=None
-ability.telegraph.circle=Circle
-ability.telegraph.ring=Ring
-ability.telegraph.line=Line
-ability.telegraph.cone=Cone
-ability.telegraph.point=Point
+telegraph.circle=Circle
+telegraph.ring=Ring
+telegraph.line=Line
+telegraph.cone=Cone
+telegraph.point=Point
 
-ability.tab.general=General
 ability.tab.timing=Timing
 ability.tab.effects=Effects
 ability.tab.telegraph=Telegraph
@@ -1497,7 +1495,6 @@ ability.windUpSound=Wind Up Sound
 ability.activeSound=Active Sound
 ability.windUpAnim=Wind Up Anim
 ability.activeAnim=Active Anim
-gui.animations=Animations
 
 ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
@@ -1516,15 +1513,11 @@ ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
 
 # Ability GUI - Type Tab
-ability.tab.type=Type
 
 # Common Type Settings
-ability.damage=Damage
 ability.radius=Radius
 ability.knockback=Knockback
 ability.knockbackUp=KB Up
-ability.speed=Speed
-ability.range=Range
 ability.maxDist=Max Dist
 ability.minDist=Min Dist
 ability.distance=Distance
@@ -1551,13 +1544,10 @@ ability.hitRadius=Hit Radius
 # Cutter Settings
 ability.arcAngle=Arc Angle
 ability.sweepWaves=Waves
-ability.waveInterval=Interval
 ability.rotSpeed=Rot Speed
 ability.piercing=Piercing
 
 # Orb Settings
-ability.orbSpeed=Speed
-ability.orbSize=Size
 ability.homing=Homing
 ability.explosive=Explosive
 
@@ -1569,7 +1559,6 @@ ability.aoe=AOE
 ability.maxTargets=Max Targets
 
 # Dash Settings
-ability.dashMode=Mode
 ability.dash.aggressive=Aggressive
 ability.dash.defensive=Defensive
 ability.mode=Mode
@@ -1609,7 +1598,6 @@ ability.counterAnim=Counter Anim
 ability.healAmount=Amount
 ability.healPercent=Percent
 ability.healRadius=Radius
-ability.instant=Instant
 ability.healSelf=Heal Self
 ability.healAllies=Heal Allies
 
@@ -1620,9 +1608,6 @@ ability.shape=Shape
 ability.placement=Placement
 ability.affectsCaster=Hit Caster
 ability.ignoreInvuln=Ign Invuln
-ability.shape.circle=Circle
-ability.shape.ring=Ring
-ability.shape.cone=Cone
 ability.place.caster=At Caster
 ability.place.target=At Target
 ability.place.followCaster=Follow Caster
@@ -1633,7 +1618,6 @@ ability.place.ahead=Ahead
 ability.triggerRadius=Trig Rad
 ability.armTime=Arm Time
 ability.maxTriggers=Max Trig
-ability.visible=Visible
 
 # Ability Save/Load
 ability.save.confirm=Save ability preset
@@ -1663,11 +1647,8 @@ ability.shockwaveFalloff=Damage/knockback drop off with distance
 
 # Ability Config GUI
 ability.typeId=Type ID
-ability.tab.target=Target
 ability.conditions=Conditions
 ability.noTypeSettings=No type-specific settings
-ability.sounds=Sounds
-ability.animations=Animations
 
 # Conditions
 condition.edit=Edit Condition
@@ -1726,7 +1707,6 @@ auction.claim=Claim
 auction.createListing=Create Listing
 auction.duration=Duration:
 auction.listingFee=Listing Fee:
-auction.create=Create
 auction.sort.newest=Newest First
 auction.sort.oldest=Oldest First
 auction.sort.priceHigh=Most Expensive

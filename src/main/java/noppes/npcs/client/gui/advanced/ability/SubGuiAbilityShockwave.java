@@ -27,7 +27,7 @@ public class SubGuiAbilityShockwave extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Push Radius
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, shockwave.getDamage()));
 
         addLabel(new GuiNpcLabel(101, "ability.pushRadius", col2LabelX, y + 5));

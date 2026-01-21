@@ -73,7 +73,7 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
             guiLeft + 20, guiTop + 142, fee > 0 ? 0xAA0000 : 0x008800));
 
         // Create button
-        addButton(new GuiNpcButton(50, guiLeft + 30, guiTop + 162, 90, 20, StatCollector.translateToLocal("auction.create")));
+        addButton(new GuiNpcButton(50, guiLeft + 30, guiTop + 162, 90, 20, StatCollector.translateToLocal("gui.create")));
         getButton(50).setEnabled(item != null);
 
         // Cancel button
