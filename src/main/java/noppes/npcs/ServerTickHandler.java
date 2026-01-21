@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.controllers.data.action.ActionManager;
@@ -65,6 +66,11 @@ public class ServerTickHandler {
         ProfileController.Instance.login(player);
         SyncController.beginLogin(player);
         SyncController.syncEffects(player);
+
+        // Send pending auction notifications
+        if (AuctionController.Instance != null) {
+            AuctionController.Instance.onPlayerLogin(player);
+        }
     }
 
     @SubscribeEvent

@@ -59,6 +59,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
+    // Currency data - NOT slot-bound, shared across all profile slots
+    public PlayerCurrencyData currencyData = new PlayerCurrencyData();
+
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
@@ -406,6 +409,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         }
 
         final NBTTagCompound compound = getNBT();
+        // Add currency data to main save (NOT slot-bound, preserved across profile changes)
+        currencyData.writeToNBT(compound);
+
         final String filename;
         if (ConfigMain.DatFormat) {
             filename = uuid + ".dat";
@@ -442,6 +448,13 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         if (data.hasNoTags()) {
             data = getNBT();
         }
+
+        // Load currency BEFORE setNBT so we can preserve it
+        // Currency is stored in main file but NOT in slot data
+        if (data.hasKey("CurrencyBalance")) {
+            currencyData.readFromNBT(data);
+        }
+
         setNBT(data);
     }
 

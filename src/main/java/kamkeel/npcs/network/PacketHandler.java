@@ -36,6 +36,7 @@ import kamkeel.npcs.network.packets.data.gui.GuiWaypointPacket;
 import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
+import kamkeel.npcs.network.packets.data.large.AuctionDataPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollListPacket;
 import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
@@ -51,6 +52,7 @@ import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.data.ability.TelegraphSpawnPacket;
 import kamkeel.npcs.network.packets.data.ability.TelegraphRemovePacket;
+import kamkeel.npcs.network.packets.player.AuctionActionPacket;
 import kamkeel.npcs.network.packets.player.BankActionPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.CompanionActionPacket;
@@ -564,6 +566,9 @@ public class PacketHandler {
         // Data | Ability Packets
         DATA_PACKET.registerPacket(new TelegraphSpawnPacket());
         DATA_PACKET.registerPacket(new TelegraphRemovePacket());
+
+        // Auction Data
+        DATA_PACKET.registerPacket(new AuctionDataPacket());
     }
 
     public void registerPlayerPackets() {
@@ -625,6 +630,9 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new PartyAcceptInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyIgnoreInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyLogToServerPacket());
+
+        // Auction Packets
+        PLAYER_PACKET.registerPacket(new AuctionActionPacket());
     }
 
     public void registerChannels() {
