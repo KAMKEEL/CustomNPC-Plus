@@ -3,7 +3,6 @@ package noppes.npcs.controllers;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
-import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.controllers.data.RecipeScript;
 
 import java.util.ArrayList;
@@ -230,6 +229,16 @@ public class ScriptHookController implements IScriptHookHandler {
         }
     }
 
+    @Override
+    public void registerHooks(ScriptContext context, String functionName) {
+        registerHook(context.hookContext, functionName);
+    }
+
+    @Override
+    public void registerHooks(ScriptContext context, String... functionNames) {
+        registerHooks(context.hookContext, functionNames);
+    }
+    
     @Override
     public void registerHook(String context, String functionName) {
         if (context == null || functionName == null || functionName.isEmpty()) {

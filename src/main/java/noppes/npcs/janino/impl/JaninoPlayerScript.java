@@ -41,7 +41,7 @@ import noppes.npcs.janino.annotations.ScriptHook;
 public class JaninoPlayerScript extends JaninoScript<JaninoPlayerScript.Functions> {
 
     public JaninoPlayerScript() {
-        super(Functions.class, null, false);
+        super(Functions.class, null);
     }
 
     /**

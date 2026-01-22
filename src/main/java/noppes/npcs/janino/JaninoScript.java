@@ -68,7 +68,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
     protected JaninoScript(Class<T> type, String[] defaultImports) {
-        this(type, defaultImports, true);
+        this(type, defaultImports, false);
     }
 
     protected T getUnsafe() {
