@@ -49,14 +49,11 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.controllers.AuctionController;
-import noppes.npcs.controllers.CurrencyController;
 import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.VaultHelper;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -899,185 +896,42 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         return (IPlayer[]) list.toArray(new IPlayer[list.size()]);
     }
 
-    // ==================== CURRENCY METHODS ====================
+    // =========================================
+    // Currency Methods
+    // =========================================
 
-    /**
-     * Get the player's current currency balance.
-     * Uses Vault if available, otherwise uses internal currency system.
-     * @return The player's currency balance
-     * @since 1.11
-     */
+    @Override
     public long getCurrencyBalance() {
-        if (CurrencyController.Instance == null) {
-            return 0;
-        }
-        return CurrencyController.Instance.getBalance(player);
+        return getData().currencyData.getBalance();
     }
 
-    /**
-     * Add currency to the player's balance.
-     * @param amount The amount to add (must be positive)
-     * @return true if successful, false if failed (e.g., would exceed max balance)
-     * @since 1.11
-     */
-    public boolean addCurrency(long amount) {
-        if (CurrencyController.Instance == null) {
-            return false;
-        }
-        return CurrencyController.Instance.deposit(player, amount);
+    @Override
+    public void setCurrencyBalance(long amount) {
+        getData().currencyData.setBalance(amount);
     }
 
-    /**
-     * Remove currency from the player's balance.
-     * @param amount The amount to remove (must be positive)
-     * @return true if successful, false if insufficient funds
-     * @since 1.11
-     */
-    public boolean removeCurrency(long amount) {
-        if (CurrencyController.Instance == null) {
-            return false;
-        }
-        return CurrencyController.Instance.withdraw(player, amount);
+    @Override
+    public boolean depositCurrency(long amount) {
+        return getData().currencyData.deposit(amount);
     }
 
-    /**
-     * Check if the player can afford a specific amount.
-     * @param amount The amount to check
-     * @return true if player has sufficient balance
-     * @since 1.11
-     */
+    @Override
+    public boolean withdrawCurrency(long amount) {
+        return getData().currencyData.withdraw(amount);
+    }
+
+    @Override
     public boolean canAffordCurrency(long amount) {
-        if (CurrencyController.Instance == null) {
-            return false;
-        }
-        return CurrencyController.Instance.canAfford(player, amount);
+        return getData().currencyData.canAfford(amount);
     }
 
-    /**
-     * Get the configured currency name (e.g., "Gold").
-     * @return The currency name
-     * @since 1.11
-     */
-    public String getCurrencyName() {
-        if (VaultHelper.Instance == null) {
-            return "Currency";
-        }
-        return VaultHelper.Instance.getCurrencyName();
+    @Override
+    public boolean isUsingVaultCurrency() {
+        return getData().currencyData.isUsingVault();
     }
 
-    /**
-     * Format a currency amount for display (e.g., "1,000 Gold").
-     * @param amount The amount to format
-     * @return Formatted string
-     * @since 1.11
-     */
-    public String formatCurrency(long amount) {
-        if (CurrencyController.Instance == null) {
-            return String.valueOf(amount);
-        }
-        return CurrencyController.Instance.formatAmount(amount);
-    }
-
-    /**
-     * Check if the player has pending currency claims.
-     * Claims are created by auction refunds, NPC payments, etc.
-     * @return true if there are pending claims
-     * @since 1.11
-     */
-    public boolean hasPendingClaims() {
-        if (CurrencyController.Instance == null) {
-            return false;
-        }
-        return CurrencyController.Instance.hasPendingClaims(player);
-    }
-
-    /**
-     * Get the total amount of pending currency claims.
-     * @return Total pending claim amount
-     * @since 1.11
-     */
-    public long getPendingClaimsTotal() {
-        if (CurrencyController.Instance == null) {
-            return 0;
-        }
-        return CurrencyController.Instance.getTotalPendingClaims(player);
-    }
-
-    /**
-     * Claim all pending currency claims and add them to balance.
-     * @return The total amount claimed
-     * @since 1.11
-     */
-    public long claimAllCurrency() {
-        if (CurrencyController.Instance == null) {
-            return 0;
-        }
-        return CurrencyController.Instance.claimAll(player);
-    }
-
-    // ==================== AUCTION METHODS ====================
-
-    /**
-     * Get the number of active auction listings the player has.
-     * @return Number of active listings
-     * @since 1.11
-     */
-    public int getAuctionListingCount() {
-        if (AuctionController.Instance == null) {
-            return 0;
-        }
-        return AuctionController.Instance.getActiveListingsCount(player.getUniqueID());
-    }
-
-    /**
-     * Get the maximum number of auction listings the player is allowed.
-     * @return Maximum listing count
-     * @since 1.11
-     */
-    public int getMaxAuctionListings() {
-        if (AuctionController.Instance == null) {
-            return 0;
-        }
-        return AuctionController.Instance.getMaxListings(player);
-    }
-
-    /**
-     * Check if the player has auction items waiting to be claimed.
-     * This includes won items, expired listings, and sale proceeds.
-     * @return true if there are claimable items
-     * @since 1.11
-     */
-    public boolean hasAuctionClaims() {
-        if (AuctionController.Instance == null) {
-            return false;
-        }
-        return !AuctionController.Instance.getClaimableListings(player.getUniqueID()).isEmpty();
-    }
-
-    /**
-     * Get the number of auction items waiting to be claimed.
-     * @return Number of claimable items/listings
-     * @since 1.11
-     */
-    public int getAuctionClaimCount() {
-        if (AuctionController.Instance == null) {
-            return 0;
-        }
-        return AuctionController.Instance.getClaimableListings(player.getUniqueID()).size();
-    }
-
-    /**
-     * Get the number of auctions where the player is the current high bidder.
-     * @return Number of active bids
-     * @since 1.11
-     */
-    public int getActiveAuctionBidCount() {
-        if (AuctionController.Instance == null) {
-            return 0;
-        }
-        return (int) AuctionController.Instance.getListingsAsBidder(player.getUniqueID())
-            .stream()
-            .filter(l -> l.isActive())
-            .count();
+    @Override
+    public String getFormattedCurrencyBalance() {
+        return getData().currencyData.formatBalance();
     }
 }

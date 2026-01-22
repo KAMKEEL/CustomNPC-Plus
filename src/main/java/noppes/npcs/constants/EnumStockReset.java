@@ -1,17 +1,25 @@
 package noppes.npcs.constants;
 
+import net.minecraft.util.StatCollector;
+
 /**
  * Stock reset types for Trader NPCs.
  * Mirrors EnumQuestRepeat pattern for consistency.
  */
 public enum EnumStockReset {
-    NONE,       // Never resets
-    MCDAILY,    // Every 24000 MC ticks (1 MC day)
-    MCWEEKLY,   // Every 168000 MC ticks (7 MC days)
-    MCCUSTOM,   // Custom MC tick interval
-    RLDAILY,    // Every 24 real hours
-    RLWEEKLY,   // Every 7 real days
-    RLCUSTOM;   // Custom real-time interval
+    NONE("stock.reset.never"),
+    MCDAILY("stock.reset.mcdaily"),
+    MCWEEKLY("stock.reset.mcweekly"),
+    MCCUSTOM("stock.reset.mccustom"),
+    RLDAILY("stock.reset.rldaily"),
+    RLWEEKLY("stock.reset.rlweekly"),
+    RLCUSTOM("stock.reset.rlcustom");
+
+    private final String langKey;
+
+    EnumStockReset(String langKey) {
+        this.langKey = langKey;
+    }
 
     /**
      * Get reset interval in milliseconds for real-time types
@@ -47,18 +55,21 @@ public enum EnumStockReset {
     }
 
     /**
-     * Get display name for GUI
+     * Get display name for GUI (translated)
      */
     public String getDisplayName() {
-        switch (this) {
-            case NONE: return "Never";
-            case MCDAILY: return "MC Daily";
-            case MCWEEKLY: return "MC Weekly";
-            case MCCUSTOM: return "MC Custom";
-            case RLDAILY: return "Real Daily";
-            case RLWEEKLY: return "Real Weekly";
-            case RLCUSTOM: return "Real Custom";
-            default: return "Unknown";
+        return StatCollector.translateToLocal(langKey);
+    }
+
+    /**
+     * Get all display names for dropdown menus
+     */
+    public static String[] getDisplayNames() {
+        EnumStockReset[] values = values();
+        String[] names = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
+            names[i] = values[i].getDisplayName();
         }
+        return names;
     }
 }

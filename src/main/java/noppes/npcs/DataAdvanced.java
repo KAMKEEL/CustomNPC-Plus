@@ -18,7 +18,6 @@ import noppes.npcs.roles.JobGuard;
 import noppes.npcs.roles.JobHealer;
 import noppes.npcs.roles.JobItemGiver;
 import noppes.npcs.roles.JobSpawner;
-import noppes.npcs.roles.RoleAuctioneer;
 import noppes.npcs.roles.RoleBank;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
@@ -219,8 +218,6 @@ public class DataAdvanced {
             npc.roleInterface = new RoleCompanion(npc);
         else if (role == EnumRoleType.Mount && !(npc.roleInterface instanceof RoleMount))
             npc.roleInterface = new RoleMount(npc);
-        else if (role == EnumRoleType.Auctioneer && !(npc.roleInterface instanceof RoleAuctioneer))
-            npc.roleInterface = new RoleAuctioneer(npc);
     }
 
     public void setJob(int i) {

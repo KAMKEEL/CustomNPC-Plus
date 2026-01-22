@@ -1,7 +1,6 @@
 package noppes.npcs.scripted.item;
 
 import com.google.common.collect.Multimap;
-import kamkeel.npcs.controllers.data.attribute.ItemTradeAttribute;
 import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
 import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 import kamkeel.npcs.util.AttributeItemUtil;
@@ -592,118 +591,5 @@ public class ScriptItemStack implements IItemStack {
         NBTTagCompound reqTag = rpgCore.getCompoundTag(AttributeItemUtil.TAG_REQUIREMENTS);
         Set<String> keys = reqTag.func_150296_c();
         return keys.toArray(new String[keys.size()]);
-    }
-
-    // ==================== Trade Restriction Methods ====================
-
-    /**
-     * Check if this item can be traded or auctioned.
-     * An item cannot be traded if it is:
-     * - Marked as untradeable
-     * - Bound to a profile slot
-     * - Soulbound to a player
-     * @return true if the item can be traded
-     * @since 1.11
-     */
-    public boolean canTrade() {
-        return ItemTradeAttribute.canTrade(item);
-    }
-
-    /**
-     * Get the reason why this item cannot be traded.
-     * @return Localization key for the block reason, or null if tradeable
-     * @since 1.11
-     */
-    public String getTradeBlockReason() {
-        return ItemTradeAttribute.getTradeBlockReason(item);
-    }
-
-    /**
-     * Check if this item is marked as untradeable
-     * @return true if untradeable
-     * @since 1.11
-     */
-    public boolean isUntradeable() {
-        return ItemTradeAttribute.isUntradeable(item);
-    }
-
-    /**
-     * Set whether this item is untradeable
-     * @param untradeable true to mark as untradeable
-     * @since 1.11
-     */
-    public void setUntradeable(boolean untradeable) {
-        ItemTradeAttribute.setUntradeable(item, untradeable);
-    }
-
-    /**
-     * Check if this item is bound to a profile slot
-     * @return true if profile slot bound
-     * @since 1.11
-     */
-    public boolean isProfileSlotBound() {
-        return ItemTradeAttribute.isProfileSlotBound(item);
-    }
-
-    /**
-     * Get the profile slot this item is bound to
-     * @return Profile slot ID, or -1 if not bound
-     * @since 1.11
-     */
-    public int getProfileSlot() {
-        return ItemTradeAttribute.getProfileSlot(item);
-    }
-
-    /**
-     * Bind this item to a specific profile slot
-     * @param slot The profile slot ID, or -1 to unbind
-     * @since 1.11
-     */
-    public void setProfileSlotBound(int slot) {
-        ItemTradeAttribute.setProfileSlotBound(item, slot);
-    }
-
-    /**
-     * Check if this item is soulbound to any player
-     * @return true if soulbound
-     * @since 1.11
-     */
-    public boolean isSoulbound() {
-        return ItemTradeAttribute.isSoulbound(item);
-    }
-
-    /**
-     * Get the UUID of the player this item is soulbound to
-     * @return UUID string, or null if not soulbound
-     * @since 1.11
-     */
-    public String getSoulbindOwner() {
-        return ItemTradeAttribute.getSoulbindOwner(item);
-    }
-
-    /**
-     * Remove the soulbind from this item
-     * @since 1.11
-     */
-    public void removeSoulbind() {
-        ItemTradeAttribute.removeSoulbind(item);
-    }
-
-    /**
-     * Clear all trade restrictions from this item
-     * (untradeable, profile slot bound, soulbound)
-     * @since 1.11
-     */
-    public void clearTradeRestrictions() {
-        ItemTradeAttribute.clearAllRestrictions(item);
-    }
-
-    /**
-     * Get a summary of all trade restrictions on this item
-     * @return Human-readable string of restrictions, or empty if none
-     * @since 1.11
-     */
-    public String getRestrictionSummary() {
-        return ItemTradeAttribute.getRestrictionSummary(item);
     }
 }

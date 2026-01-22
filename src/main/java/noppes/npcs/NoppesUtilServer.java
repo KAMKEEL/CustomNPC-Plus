@@ -384,6 +384,7 @@ public class NoppesUtilServer {
         if (gui == EnumGuiType.PlayerFollower || gui == EnumGuiType.PlayerFollowerHire || gui == EnumGuiType.PlayerTrader || gui == EnumGuiType.PlayerTransporter) {
             sendRoleData(player, npc);
         }
+        // Note: Trader-specific data (balance, stock, costs) is requested by client via GetTraderData packet
     }
 
     private static ArrayList<String> getScrollData(EntityPlayer player, EnumGuiType gui, EntityNPCInterface npc) {

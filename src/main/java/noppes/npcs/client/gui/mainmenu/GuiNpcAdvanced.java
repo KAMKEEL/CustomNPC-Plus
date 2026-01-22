@@ -26,7 +26,6 @@ import noppes.npcs.client.gui.roles.GuiNpcFollowerJob;
 import noppes.npcs.client.gui.roles.GuiNpcGuard;
 import noppes.npcs.client.gui.roles.GuiNpcHealer;
 import noppes.npcs.client.gui.roles.GuiNpcSpawner;
-import noppes.npcs.client.gui.roles.GuiNpcAuctioneer;
 import noppes.npcs.client.gui.roles.GuiNpcMount;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
@@ -158,8 +157,6 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
                 displayGuiScreen(new GuiNpcCompanion(npc));
             else if (npc.advanced.role == EnumRoleType.Mount)
                 displayGuiScreen(new GuiNpcMount(npc));
-            else if (npc.advanced.role == EnumRoleType.Auctioneer)
-                displayGuiScreen(new GuiNpcAuctioneer(npc));
         } else if (compound.hasKey("JobData")) {
             if (npc.jobInterface != null)
                 npc.jobInterface.readFromNBT(compound);

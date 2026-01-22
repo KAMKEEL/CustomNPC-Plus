@@ -64,7 +64,5 @@ public enum EnumGuiType {
     ScriptBlock,
     Paintbrush,
     MagicBook,
-    ManageAbilities,
-    PlayerAuction,
-    SetupAuctioneer;
+    ManageAbilities;
 }

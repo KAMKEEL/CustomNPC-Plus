@@ -45,7 +45,7 @@ public class TraderStock {
      * @param playerName The player name (for per-player mode)
      * @return Available stock count, or Integer.MAX_VALUE if unlimited
      */
-    public int getAvailableStock(int slot, String playerName) {
+    public synchronized int getAvailableStock(int slot, String playerName) {
         if (!enableStock || slot < 0 || slot >= 18 || maxStock[slot] < 0) {
             return Integer.MAX_VALUE;  // Unlimited
         }
@@ -75,7 +75,7 @@ public class TraderStock {
      * Consume stock when purchase is made
      * @return true if successful, false if insufficient stock
      */
-    public boolean consumeStock(int slot, String playerName, int amount) {
+    public synchronized boolean consumeStock(int slot, String playerName, int amount) {
         if (!enableStock || slot < 0 || slot >= 18 || maxStock[slot] < 0) {
             return true;  // Unlimited, always succeeds
         }
@@ -115,7 +115,7 @@ public class TraderStock {
      * Reset all stock to max values
      * @param currentTime Current time to record as reset time
      */
-    public void resetStock(long currentTime) {
+    public synchronized void resetStock(long currentTime) {
         lastResetTime = currentTime;
 
         // Reset per-server stock
@@ -123,7 +123,7 @@ public class TraderStock {
             currentStock[i] = maxStock[i];
         }
 
-        // Clear per-player stock
+        // Clear per-player stock (cleanup per-player data on reset)
         playerStock.clear();
     }
 
@@ -217,6 +217,44 @@ public class TraderStock {
         }
     }
 
+    /**
+     * Validate and clamp all current stock values to not exceed max stock.
+     * Should be called when trader GUI opens to ensure consistency.
+     * @return true if any stock was clamped
+     */
+    public boolean validateStock() {
+        boolean changed = false;
+        for (int i = 0; i < 18; i++) {
+            if (maxStock[i] >= 0) {
+                // Has a max limit
+                if (currentStock[i] < 0) {
+                    // Not initialized, set to max
+                    currentStock[i] = maxStock[i];
+                    changed = true;
+                } else if (currentStock[i] > maxStock[i]) {
+                    // Exceeds max, clamp down
+                    currentStock[i] = maxStock[i];
+                    changed = true;
+                }
+            }
+        }
+
+        // Also validate per-player stock
+        for (PlayerTraderStock pStock : playerStock.values()) {
+            for (int i = 0; i < 18; i++) {
+                if (maxStock[i] >= 0) {
+                    int available = pStock.getStock(i, maxStock[i]);
+                    if (available < 0) {
+                        // Over-purchased somehow, reset
+                        pStock.purchasedAmounts[i] = maxStock[i];
+                        changed = true;
+                    }
+                }
+            }
+        }
+        return changed;
+    }
+
     // ==================== NBT Serialization ====================
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
@@ -280,7 +318,6 @@ public class TraderStock {
 
     public static class PlayerTraderStock {
         public int[] purchasedAmounts = new int[18];
-        public long lastPurchaseTime = 0;
 
         public PlayerTraderStock() {
             for (int i = 0; i < 18; i++) {
@@ -297,7 +334,6 @@ public class TraderStock {
             if (slot < 0 || slot >= 18) return false;
             if (getStock(slot, maxStock) >= amount) {
                 purchasedAmounts[slot] += amount;
-                lastPurchaseTime = System.currentTimeMillis();
                 return true;
             }
             return false;
@@ -305,7 +341,6 @@ public class TraderStock {
 
         public void writeToNBT(NBTTagCompound compound) {
             compound.setIntArray("Purchased", purchasedAmounts);
-            compound.setLong("LastPurchase", lastPurchaseTime);
         }
 
         public void readFromNBT(NBTTagCompound compound) {
@@ -313,7 +348,6 @@ public class TraderStock {
             if (loaded != null && loaded.length == 18) {
                 purchasedAmounts = loaded;
             }
-            lastPurchaseTime = compound.getLong("LastPurchase");
         }
     }
 }
