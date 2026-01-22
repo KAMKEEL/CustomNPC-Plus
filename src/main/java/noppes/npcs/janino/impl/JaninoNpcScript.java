@@ -14,19 +14,8 @@ import noppes.npcs.janino.annotations.ScriptHook;
  */
 public class JaninoNpcScript extends JaninoScript<JaninoNpcScript.Functions> {
 
-    /** Default imports available to NPC scripts without explicit import statements. */
-    public static final String[] DEFAULT_IMPORTS = {
-        "noppes.npcs.api.*",
-        "noppes.npcs.api.entity.*",
-        "noppes.npcs.api.event.*",
-        "noppes.npcs.api.handler.*",
-        "noppes.npcs.api.handler.data.*",
-        "noppes.npcs.api.item.*",
-        "noppes.npcs.api.ability.*"
-    };
-
     public JaninoNpcScript() {
-        super(Functions.class, DEFAULT_IMPORTS);
+        super(Functions.class, null);
     }
 
     /**

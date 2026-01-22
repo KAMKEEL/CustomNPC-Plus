@@ -17,20 +17,9 @@ import noppes.npcs.janino.annotations.ScriptHook;
  * Janino (Java) script implementation for player events.
  */
 public class JaninoPlayerScript extends JaninoScript<JaninoPlayerScript.Functions> {
-
-    /** Default imports available to player scripts without explicit import statements. */
-    public static final String[] DEFAULT_IMPORTS = {
-        "noppes.npcs.api.*",
-        "noppes.npcs.api.entity.*",
-        "noppes.npcs.api.event.*",
-        "noppes.npcs.api.handler.*",
-        "noppes.npcs.api.handler.data.*",
-        "noppes.npcs.api.item.*",
-        "noppes.npcs.api.gui.*"
-    };
-
+    
     public JaninoPlayerScript() {
-        super(Functions.class, DEFAULT_IMPORTS);
+        super(Functions.class, null);
     }
 
     /**
