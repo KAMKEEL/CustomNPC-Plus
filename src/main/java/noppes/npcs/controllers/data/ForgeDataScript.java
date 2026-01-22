@@ -13,8 +13,6 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.EventHooks;
-import noppes.npcs.NBTTags;
-import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
@@ -26,79 +24,24 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
-public class ForgeDataScript implements IScriptHandlerPacket {
+public class ForgeDataScript extends MultiScriptHandler {
     private static final Object HOOK_LOCK = new Object();
     private static List<String> cachedHooks;
-    private List<IScriptUnit> scripts = new ArrayList<>();
-    private String scriptLanguage = "ECMAScript";
-    public long lastInited = -1L;
+
     private long lastForgeUpdate = -1L;
-    private boolean enabled = false;
 
     public ForgeDataScript() {
     }
 
-    public void clear() {
-        this.scripts = new ArrayList<>();
-    }
-
-    public void readFromNBT(NBTTagCompound compound) {
-        if (compound.hasKey("Scripts")) {
-            this.scripts = new ArrayList<>(NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this));
-        } else {
-            this.scripts = new ArrayList<>(NBTTags.GetScript(compound, this));
-        }
-        this.scriptLanguage = compound.getString("ScriptLanguage");
-        if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
-            if (!ScriptController.Instance.languages.isEmpty()) {
-                this.scriptLanguage = (String) ScriptController.Instance.languages.keySet().toArray()[0];
-            } else {
-                this.scriptLanguage = "ECMAScript";
-            }
-        }
-        this.enabled = compound.getBoolean("ScriptEnabled");
-    }
-
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setInteger("TotalScripts", this.scripts.size());
-        for (int i = 0; i < this.scripts.size(); i++) {
-            compound.setTag("Tab" + i, this.scripts.get(i).writeToNBT(new NBTTagCompound()));
-        }
-        compound.setString("ScriptLanguage", this.scriptLanguage);
-        compound.setBoolean("ScriptEnabled", this.enabled);
-        return compound;
-    }
-
-
-    public void callScript(String type, Event event) {
-        if (this.isEnabled()) {
-            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastForgeUpdate > this.lastForgeUpdate) {
-                this.lastInited = ScriptController.Instance.lastLoaded;
-                this.lastForgeUpdate = ScriptController.Instance.lastForgeUpdate;
-
-                for (IScriptUnit script : this.scripts) {
-                    if (script instanceof ScriptContainer)
-                        ((ScriptContainer) script).errored = false;
-                }
-
-                if (!type.equals("init")) {
-                    EventHooks.onForgeInit(this);
-                }
-            }
-
-            for (IScriptUnit script : this.scripts) {
-                if (script == null || script.hasErrored() || !script.hasCode())
-                    continue;
-                script.run(type, event);
-            }
-        }
-    }
-
     public boolean isEnabled() {
         return this.enabled && ConfigScript.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
+    }
+
+    @Override
+    protected boolean canRunScripts() {
+        return isEnabled();
     }
 
     @Override
@@ -107,8 +50,39 @@ public class ForgeDataScript implements IScriptHandlerPacket {
     }
 
     @Override
-    public String getHookContext() {
-        return IScriptHookHandler.CONTEXT_FORGE;
+    protected boolean needsReInit() {
+        return ScriptController.Instance.lastLoaded > lastInited || ScriptController.Instance.lastForgeUpdate > lastForgeUpdate;
+    }
+
+    @Override
+    protected void reInitScripts() {
+        lastInited = ScriptController.Instance.lastLoaded;
+        lastForgeUpdate = ScriptController.Instance.lastForgeUpdate;
+
+        for (IScriptUnit script : this.scripts) {
+            if (script instanceof ScriptContainer)
+                ((ScriptContainer) script).errored = false;
+        }
+    }
+
+    @Override
+    public void callScript(String type, Event event) {
+        if (!canRunScripts()) {
+            return;
+        }
+
+        if (needsReInit()) {
+            reInitScripts();
+            if (!type.equals("init")) {
+                EventHooks.onForgeInit(this);
+            }
+        }
+
+        for (IScriptUnit script : this.scripts) {
+            if (script == null || script.hasErrored() || !script.hasCode())
+                continue;
+            script.run(type, event);
+        }
     }
 
     @Override
@@ -120,9 +94,11 @@ public class ForgeDataScript implements IScriptHandlerPacket {
             if (cachedHooks != null)
                 return new ArrayList<>(cachedHooks);
 
-            List<String> hookList = new ArrayList<>(ScriptHookController.Instance.getBuiltInHooks(IScriptHookHandler.CONTEXT_FORGE));
+            // Start with built-in + addon hooks from ScriptHookController
+            List<String> hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(ScriptContext.FORGE.hookContext));
 
-            ArrayList<ClassPath.ClassInfo> list = new ArrayList();
+            // Dynamically discover Forge event classes
+            ArrayList<ClassPath.ClassInfo> list = new ArrayList<>();
             try {
                 list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
                 list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
@@ -131,42 +107,23 @@ public class ForgeDataScript implements IScriptHandlerPacket {
                 e.printStackTrace();
             }
 
-            for (ClassPath.ClassInfo e1 : list) {
-                ClassPath.ClassInfo classLoader = e1;
-                Class infoClass = classLoader.load();
-                ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));
-                if (c.isEmpty()) {
-                    c.add(infoClass);
+            for (ClassPath.ClassInfo classInfo : list) {
+                Class<?> infoClass = classInfo.load();
+                List<Class<?>> classes = new ArrayList<>(Arrays.asList(infoClass.getDeclaredClasses()));
+                if (classes.isEmpty()) {
+                    classes.add(infoClass);
                 }
-                Iterator var10 = c.iterator();
-                while (var10.hasNext()) {
-                    Class c1 = (Class) var10.next();
-                    if (!EntityEvent.EntityConstructing.class.isAssignableFrom(c1)
-                        && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1)
-                        && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1)
-                        && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1)
-                        && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1)
-                        && !ItemTooltipEvent.class.isAssignableFrom(c1)
-                        && Event.class.isAssignableFrom(c1)
-                        && !Modifier.isAbstract(c1.getModifiers())
-                        && Modifier.isPublic(c1.getModifiers())
-                        && !ChunkEvent.class.isAssignableFrom(c1)
-                        && !ChunkWatchEvent.class.isAssignableFrom(c1)
-                        && !ChunkDataEvent.class.isAssignableFrom(c1)) {
-                        String eventName = c1.getName();
-                        int i = eventName.lastIndexOf(".");
-                        eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
 
-                        hookList.add(eventName);
+                for (Class<?> eventClass : classes) {
+                    if (isValidForgeEvent(eventClass)) {
+                        String eventName = eventClass.getName();
+                        int lastDot = eventName.lastIndexOf(".");
+                        eventName = StringUtils.uncapitalize(eventName.substring(lastDot + 1).replace("$", ""));
+
+                        if (!hookList.contains(eventName)) {
+                            hookList.add(eventName);
+                        }
                     }
-                }
-            }
-
-            hookList.add("onCNPCNaturalSpawn");
-
-            for (String addonHook : ScriptHookController.Instance.getAddonHooks(IScriptHookHandler.CONTEXT_FORGE)) {
-                if (!hookList.contains(addonHook)) {
-                    hookList.add(addonHook);
                 }
             }
 
@@ -174,6 +131,24 @@ public class ForgeDataScript implements IScriptHandlerPacket {
         }
 
         return new ArrayList<>(cachedHooks);
+    }
+
+    /**
+     * Check if a class is a valid Forge event that should be exposed as a hook.
+     */
+    private boolean isValidForgeEvent(Class<?> eventClass) {
+        return Event.class.isAssignableFrom(eventClass)
+            && Modifier.isPublic(eventClass.getModifiers())
+            && !Modifier.isAbstract(eventClass.getModifiers())
+            && !EntityEvent.EntityConstructing.class.isAssignableFrom(eventClass)
+            && !WorldEvent.PotentialSpawns.class.isAssignableFrom(eventClass)
+            && !TickEvent.RenderTickEvent.class.isAssignableFrom(eventClass)
+            && !TickEvent.ClientTickEvent.class.isAssignableFrom(eventClass)
+            && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(eventClass)
+            && !ItemTooltipEvent.class.isAssignableFrom(eventClass)
+            && !ChunkEvent.class.isAssignableFrom(eventClass)
+            && !ChunkWatchEvent.class.isAssignableFrom(eventClass)
+            && !ChunkDataEvent.class.isAssignableFrom(eventClass);
     }
 
     @Override
@@ -186,33 +161,8 @@ public class ForgeDataScript implements IScriptHandlerPacket {
         ForgeScriptPacket.Save(index, totalCount, nbt);
     }
 
+    @Override
     public boolean isClient() {
         return false;
     }
-
-    public boolean getEnabled() {
-        return this.enabled;
-    }
-
-    public void setEnabled(boolean bo) {
-        this.enabled = bo;
-    }
-
-    public String getLanguage() {
-        return this.scriptLanguage;
-    }
-
-    public void setLanguage(String lang) {
-        this.scriptLanguage = lang;
-    }
-
-    public void setScripts(List<IScriptUnit> list) {
-        this.scripts = list;
-    }
-
-    public List<IScriptUnit> getScripts() {
-        return this.scripts;
-    }
-
-
 }

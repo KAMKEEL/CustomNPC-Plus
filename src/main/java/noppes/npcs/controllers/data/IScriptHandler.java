@@ -134,10 +134,14 @@ public interface IScriptHandler {
      * Get the hook context identifier for this handler.
      * Used by ScriptHookController to look up available hooks.
      *
-     * @return The context string (e.g., IScriptHookHandler.CONTEXT_EFFECT), or empty if none
+     * By default, derives from getContext().hookContext.
+     * Override if a different hook context is needed.
+     *
+     * @return The context string (e.g., "effect", "npc"), or empty if none
      */
     default String getHookContext() {
-        return "";
+        ScriptContext ctx = getContext();
+        return ctx != null ? ctx.hookContext : "";
     }
 
     /**

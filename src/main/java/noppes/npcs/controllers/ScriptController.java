@@ -134,7 +134,7 @@ public class ScriptController {
         File file = this.forgeScriptsFile();
         try {
             NBTJsonUtil.SaveFile(file, this.forgeScripts.writeToNBT(new NBTTagCompound()));
-            this.forgeScripts.lastInited = -1L;
+            this.forgeScripts.resetLastInited();
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
@@ -170,7 +170,7 @@ public class ScriptController {
         File file = this.playerScriptsFile();
         try {
             NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new NBTTagCompound()));
-            this.playerScripts.lastInited = -1L;
+            this.playerScripts.resetLastInited();
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
@@ -212,7 +212,7 @@ public class ScriptController {
         File file = this.npcScriptsFile();
         try {
             NBTJsonUtil.SaveFile(file, this.globalNpcScripts.writeToNBT(new NBTTagCompound()));
-            this.globalNpcScripts.lastInited = -1L;
+            this.globalNpcScripts.resetLastInited();
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
@@ -227,7 +227,7 @@ public class ScriptController {
             File file = this.playerScriptsFile();
             try {
                 NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new NBTTagCompound()));
-                this.playerScripts.lastInited = -1L;
+                this.playerScripts.resetLastInited();
             } catch (IOException | JsonException var4) {
                 var4.printStackTrace();
             }

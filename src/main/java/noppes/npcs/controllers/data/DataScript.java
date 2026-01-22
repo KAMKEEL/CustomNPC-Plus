@@ -13,7 +13,6 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.IWorld;
-import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
@@ -216,11 +215,6 @@ public class DataScript implements IScriptHandlerPacket {
     @Override
     public ScriptContext getContext() {
         return ScriptContext.NPC;
-    }
-
-    @Override
-    public String getHookContext() {
-        return IScriptHookHandler.CONTEXT_NPC;
     }
 
     @Override

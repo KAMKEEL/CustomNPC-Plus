@@ -2,6 +2,8 @@ package noppes.npcs.controllers;
 
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.controllers.data.RecipeScript;
 
 import java.util.ArrayList;
@@ -24,32 +26,22 @@ public class ScriptHookController implements IScriptHookHandler {
     // Addon-registered hooks per context
     private final Map<String, List<String>> addonHooks = new HashMap<>();
 
-    // All available contexts
-    private static final String[] CONTEXTS = {
-        CONTEXT_NPC,
-        CONTEXT_PLAYER,
-        CONTEXT_BLOCK,
-        CONTEXT_ITEM,
-        CONTEXT_LINKED_ITEM,
-        CONTEXT_FORGE,
-        CONTEXT_RECIPE,
-        CONTEXT_EFFECT
-    };
-
     public ScriptHookController() {
         Instance = this;
         initializeBuiltInHooks();
     }
 
     private void initializeBuiltInHooks() {
-        // Initialize empty lists for all contexts
-        for (String context : CONTEXTS) {
-            builtInHooks.put(context, new ArrayList<>());
-            addonHooks.put(context, new ArrayList<>());
+        // Initialize empty lists for all contexts from ScriptContext
+        for (ScriptContext context : ScriptContext.values()) {
+            if (!context.hookContext.isEmpty()) {
+                builtInHooks.put(context.hookContext, new ArrayList<>());
+                addonHooks.put(context.hookContext, new ArrayList<>());
+            }
         }
 
         // NPC hooks
-        registerBuiltIn(CONTEXT_NPC,
+        registerBuiltIn(ScriptContext.NPC,
             EnumScriptType.INIT.function,
             EnumScriptType.TICK.function,
             EnumScriptType.INTERACT.function,
@@ -76,7 +68,7 @@ public class ScriptHookController implements IScriptHookHandler {
         );
 
         // Player hooks
-        registerBuiltIn(CONTEXT_PLAYER,
+        registerBuiltIn(ScriptContext.PLAYER,
             EnumScriptType.INIT.function,
             EnumScriptType.TICK.function,
             EnumScriptType.INTERACT.function,
@@ -150,7 +142,7 @@ public class ScriptHookController implements IScriptHookHandler {
         );
 
         // Block hooks
-        registerBuiltIn(CONTEXT_BLOCK,
+        registerBuiltIn(ScriptContext.BLOCK,
             EnumScriptType.INIT.function,
             EnumScriptType.TICK.function,
             EnumScriptType.INTERACT.function,
@@ -167,7 +159,7 @@ public class ScriptHookController implements IScriptHookHandler {
         );
 
         // Item hooks
-        registerBuiltIn(CONTEXT_ITEM,
+        registerBuiltIn(ScriptContext.ITEM,
             EnumScriptType.INIT.function,
             EnumScriptType.TICK.function,
             EnumScriptType.TOSSED.function,
@@ -183,7 +175,7 @@ public class ScriptHookController implements IScriptHookHandler {
         );
 
         // Linked item hooks
-        registerBuiltIn(CONTEXT_LINKED_ITEM,
+        registerBuiltIn(ScriptContext.LINKED_ITEM,
             EnumScriptType.LINKED_ITEM_BUILD.function,
             EnumScriptType.LINKED_ITEM_VERSION.function,
             EnumScriptType.INIT.function,
@@ -201,22 +193,30 @@ public class ScriptHookController implements IScriptHookHandler {
         );
 
         // Recipe hooks
-        registerBuiltIn(CONTEXT_RECIPE,
+        registerBuiltIn(ScriptContext.RECIPE,
             RecipeScript.ScriptType.PRE.function,
             RecipeScript.ScriptType.POST.function
         );
 
         // Effect hooks
-        registerBuiltIn(CONTEXT_EFFECT,
+        registerBuiltIn(ScriptContext.EFFECT,
             EnumScriptType.ON_EFFECT_ADD.function,
             EnumScriptType.ON_EFFECT_TICK.function,
             EnumScriptType.ON_EFFECT_REMOVE.function
         );
 
-        // Forge hooks - just init, the rest are dynamically discovered
-        registerBuiltIn(CONTEXT_FORGE,
-            EnumScriptType.INIT.function
+        // Forge hooks - init + CNPC-specific hooks, the rest are dynamically discovered from Forge event classes
+        registerBuiltIn(ScriptContext.FORGE,
+            EnumScriptType.INIT.function,
+            EnumScriptType.CNPC_NATURAL_SPAWN.function
         );
+    }
+
+    /**
+     * Register built-in hooks for a ScriptContext.
+     */
+    private void registerBuiltIn(ScriptContext context, String... hooks) {
+        registerBuiltIn(context.hookContext, hooks);
     }
 
     private void registerBuiltIn(String context, String... hooks) {
@@ -322,7 +322,7 @@ public class ScriptHookController implements IScriptHookHandler {
 
     @Override
     public String[] getContexts() {
-        return CONTEXTS.clone();
+        return builtInHooks.keySet().toArray(new String[0]);
     }
 
     private boolean isBuiltInHook(String context, String functionName) {

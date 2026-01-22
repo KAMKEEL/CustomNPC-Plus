@@ -2,7 +2,7 @@ package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.api.handler.IScriptHookHandler;
+import noppes.npcs.constants.ScriptContext;
 
 /**
  * Script handler for Recipe scripts (both carpentry and anvil).
@@ -33,8 +33,8 @@ public class RecipeScript extends SingleScriptHandler implements IScriptHandlerP
     }
     
     @Override
-    public String getHookContext() {
-        return IScriptHookHandler.CONTEXT_RECIPE;
+    public ScriptContext getContext() {
+        return ScriptContext.RECIPE;
     }
     
     @Override

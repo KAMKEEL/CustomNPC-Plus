@@ -8,7 +8,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemCustom;
-import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.IScriptUnit;
@@ -70,11 +69,6 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     @Override
     public ScriptContext getContext() {
         return ScriptContext.ITEM;
-    }
-
-    @Override
-    public String getHookContext() {
-        return IScriptHookHandler.CONTEXT_ITEM;
     }
 
     @Override

@@ -64,4 +64,11 @@ public abstract class ScriptHandler implements IScriptHandler {
     public List<IScriptUnit> getScripts() {
         return this.scripts;
     }
+
+    /**
+     * Reset the lastInited timestamp to force re-initialization on next script call.
+     */
+    public void resetLastInited() {
+        this.lastInited = -1;
+    }
 }

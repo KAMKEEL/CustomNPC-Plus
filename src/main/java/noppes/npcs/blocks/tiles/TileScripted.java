@@ -170,11 +170,6 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler, ISc
     }
 
     @Override
-    public String getHookContext() {
-        return noppes.npcs.api.handler.IScriptHookHandler.CONTEXT_BLOCK;
-    }
-
-    @Override
     public void requestData() {
         BlockScriptPacket.Get(this.xCoord, this.yCoord, this.zCoord);
     }

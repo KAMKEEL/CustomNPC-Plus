@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.network.packets.request.script.item.LinkedItemScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.ScriptContext;
 
 /**
@@ -29,13 +28,8 @@ public class LinkedItemScript extends SingleScriptHandler implements IScriptHand
     }
     
     @Override
-    public String getHookContext() {
-        return IScriptHookHandler.CONTEXT_LINKED_ITEM;
-    }
-    
-    @Override
     public ScriptContext getContext() {
-        return ScriptContext.ITEM;
+        return ScriptContext.LINKED_ITEM;
     }
     
     @Override
