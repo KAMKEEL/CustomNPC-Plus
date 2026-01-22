@@ -52,11 +52,11 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     private final String[] defaultImports;
 
-    protected JaninoScript(Class<T> type, String[] defaultImports) {
+    protected JaninoScript(Class<T> type, String[] defaultImports, boolean isClient) {
         this.type = type;
         this.defaultImports = defaultImports != null ? defaultImports : new String[0];
-        this.builder = IScriptBodyBuilder.getBuilder(type, CustomNpcs.getClientCompiler())
-                                         .setDefaultImports(defaultImports);
+        this.builder = IScriptBodyBuilder.getBuilder(type, isClient ? CustomNpcs.getClientCompiler() : CustomNpcs.getDynamicCompiler())
+            .setDefaultImports(defaultImports);
 
         Permissions permissions = new Permissions();
         permissions.setReadOnly();
@@ -65,6 +65,10 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this.scriptBody = builder.build();
 
         this.hookResolver = new JaninoHookResolver(type);
+    }
+
+    protected JaninoScript(Class<T> type, String[] defaultImports) {
+        this(type, defaultImports, true);
     }
 
     protected T getUnsafe() {
@@ -237,9 +241,9 @@ public abstract class JaninoScript<T> implements IScriptUnit {
      */
     @Override
     public void run(EnumScriptType type, Event event) {
-        if (type == null) 
+        if (type == null)
             return;
-        
+
         callFunction(type.function, event);
     }
 
@@ -254,7 +258,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void run(String hookName, Object event) {
         callFunction(hookName, event);
     }
-    
+
     @Override
     public String getScript() {
         return this.script;
@@ -266,7 +270,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this.evaluated = false;
         hookResolver.clearResolutionCaches();
     }
-    
+
     @Override
     public List<String> getExternalScripts() {
         return this.externalScripts;
@@ -278,17 +282,17 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this.evaluated = false;
         hookResolver.clearResolutionCaches();
     }
-    
+
     @Override
     public TreeMap<Long, String> getConsole() {
         return this.console;
     }
-    
+
     @Override
     public void clearConsole() {
         console.clear();
     }
-    
+
     @Override
     public void appendConsole(String message) {
         if (message != null && !message.isEmpty()) {
@@ -304,18 +308,18 @@ public abstract class JaninoScript<T> implements IScriptUnit {
             }
         }
     }
-    
+
     @Override
     public String getLanguage() {
         return this.language;
     }
-    
+
     @Override
     public void setLanguage(String language) {
         // JaninoScript is always Java, ignore attempts to change
         // This method exists for IScriptUnit interface compatibility
     }
-    
+
     @Override
     public boolean hasCode() {
         if (!externalScripts.isEmpty())
@@ -330,11 +334,11 @@ public abstract class JaninoScript<T> implements IScriptUnit {
          Method method = hookResolver.getMethodForDisplayName(hookName);
          if (method != null)
              return generateMethodStub(method);
-         
+
         // Fallback for unknown hook names - generate basic override
         return String.format("public void %s() {\n    \n}\n", hookName);
     }
-    
+
     /**
      * Generates a stub string for a given Method.
      */
@@ -367,7 +371,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
                     typeCount.put(baseName, count);
                     paramName = count == 1 ? baseName : baseName + (count - 1);
                 }
-                
+
                 return typeName + " " + paramName;
             })
             .collect(Collectors.joining(", "));
@@ -429,12 +433,12 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
         return compound;
     }
-    
+
     @Override
     public boolean hasErrored() {
         return this.errored;
     }
-    
+
     @Override
     public void setErrored(boolean errored) {
         this.errored = errored;

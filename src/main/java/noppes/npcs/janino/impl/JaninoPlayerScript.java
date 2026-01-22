@@ -17,9 +17,9 @@ import noppes.npcs.janino.annotations.ScriptHook;
  * Janino (Java) script implementation for player events.
  */
 public class JaninoPlayerScript extends JaninoScript<JaninoPlayerScript.Functions> {
-    
+
     public JaninoPlayerScript() {
-        super(Functions.class, null);
+        super(Functions.class, null, false);
     }
 
     /**
