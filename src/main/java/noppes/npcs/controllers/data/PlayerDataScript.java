@@ -15,6 +15,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.janino.impl.JaninoPlayerScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 
@@ -426,5 +427,10 @@ public class PlayerDataScript implements IScriptHandlerPacket {
 
     public static PlayerDataScript.ToStringHelper toStringHelper(Object self) {
         return new PlayerDataScript.ToStringHelper(self.getClass().getSimpleName());
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new JaninoPlayerScript();
     }
 }
