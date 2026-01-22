@@ -344,6 +344,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     /**
      * Generates a stub string for a given Method.
+     * Handles nested classes properly (e.g., IPlayerEvent.InitEvent instead of just InitEvent).
      */
     public static String generateMethodStub(Method method) {
         String mods = Modifier.toString(method.getModifiers());
@@ -352,13 +353,14 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         if (!mods.isEmpty())
             mods += " ";
 
-        String returnTypeStr = method.getReturnType().getSimpleName();
+        String returnTypeStr = getUsableTypeName(method.getReturnType());
         String name = method.getName();
 
         Map<String, Integer> typeCount = new HashMap<>();
         String params = Arrays.stream(method.getParameters())
             .map(p -> {
-                String typeName = p.getType().getSimpleName();
+                String typeName = getUsableTypeName(p.getType());
+                String simpleTypeName = p.getType().getSimpleName();
 
                 // Check for @ParamName annotation first
                 ParamName paramNameAnnotation = p.getAnnotation(ParamName.class);
@@ -368,8 +370,8 @@ public abstract class JaninoScript<T> implements IScriptUnit {
                     // Use annotated name
                     paramName = paramNameAnnotation.value();
                 } else {
-                    // Fall back to generated name
-                    String baseName = Character.toLowerCase(typeName.charAt(0)) + typeName.substring(1);
+                    // Fall back to generated name based on simple name
+                    String baseName = Character.toLowerCase(simpleTypeName.charAt(0)) + simpleTypeName.substring(1);
                     int count = typeCount.getOrDefault(baseName, 0) + 1;
                     typeCount.put(baseName, count);
                     paramName = count == 1 ? baseName : baseName + (count - 1);
@@ -395,6 +397,30 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         }
 
         return String.format("%s%s %s(%s) {\n%s\n}\n", mods, returnTypeStr, name, params, body);
+    }
+
+    /**
+     * Gets a usable type name for stub generation.
+     * For nested classes like IPlayerEvent.InitEvent, returns "IPlayerEvent.InitEvent"
+     * For top-level classes, returns the simple name.
+     * For primitives, returns the primitive name.
+     */
+    private static String getUsableTypeName(Class<?> type) {
+        if (type.isPrimitive() || type.getEnclosingClass() == null) {
+            return type.getSimpleName();
+        }
+
+        // Build the nested class chain: OuterClass.InnerClass.DeeperClass
+        StringBuilder sb = new StringBuilder();
+        Class<?> current = type;
+        while (current != null) {
+            if (sb.length() > 0) {
+                sb.insert(0, ".");
+            }
+            sb.insert(0, current.getSimpleName());
+            current = current.getEnclosingClass();
+        }
+        return sb.toString();
     }
 
 

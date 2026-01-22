@@ -229,14 +229,24 @@ public class ScriptHookController implements IScriptHookHandler {
         }
     }
 
-    @Override
-    public void registerHooks(ScriptContext context, String functionName) {
+    /**
+     * Convenience method to register a hook using ScriptContext.
+     * @param context The script context
+     * @param functionName The hook function name
+     */
+    public void registerHook(ScriptContext context, String functionName) {
         registerHook(context.hookContext, functionName);
     }
 
-    @Override
+    /**
+     * Convenience method to register multiple hooks using ScriptContext.
+     * @param context The script context
+     * @param functionNames The hook function names
+     */
     public void registerHooks(ScriptContext context, String... functionNames) {
-        registerHooks(context.hookContext, functionNames);
+        for (String fn : functionNames) {
+            registerHook(context.hookContext, fn);
+        }
     }
     
     @Override

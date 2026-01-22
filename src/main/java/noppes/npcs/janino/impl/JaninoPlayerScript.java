@@ -40,8 +40,25 @@ import noppes.npcs.janino.annotations.ScriptHook;
  */
 public class JaninoPlayerScript extends JaninoScript<JaninoPlayerScript.Functions> {
 
+    /**
+     * Default imports for player scripts.
+     * These are automatically available in user code without explicit import statements.
+     */
+    private static final String[] DEFAULT_IMPORTS = {
+        "noppes.npcs.api.event.IPlayerEvent",
+        "noppes.npcs.api.event.IQuestEvent",
+        "noppes.npcs.api.event.IDialogEvent",
+        "noppes.npcs.api.event.IFactionEvent",
+        "noppes.npcs.api.event.IPartyEvent",
+        "noppes.npcs.api.event.ICustomGuiEvent",
+        "noppes.npcs.api.event.IAnimationEvent",
+        "noppes.npcs.api.event.ICustomNPCsEvent",
+        "noppes.npcs.api.entity.IPlayer",
+        "noppes.npcs.api.NpcAPI"
+    };
+
     public JaninoPlayerScript() {
-        super(Functions.class, null);
+        super(Functions.class, DEFAULT_IMPORTS, false);
     }
 
     /**
