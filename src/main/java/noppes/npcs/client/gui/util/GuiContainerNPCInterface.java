@@ -224,6 +224,15 @@ public abstract class GuiContainerNPCInterface extends GuiContainer {
             RenderHelper.disableStandardItemLighting();
             subgui.drawScreen(i, j, f);
         }
+
+        // Draw hover text for buttons
+        boolean subGui = hasSubGui();
+        for (GuiCustomScroll scroll : new ArrayList<GuiCustomScroll>(scrolls.values())) {
+            scroll.drawHover(i, j);
+        }
+        for (GuiNpcButton button : buttons.values()) {
+            button.drawHover(i, j, subGui);
+        }
     }
 
     @Override

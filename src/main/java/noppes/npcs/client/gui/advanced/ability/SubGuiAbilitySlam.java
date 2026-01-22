@@ -27,7 +27,7 @@ public class SubGuiAbilitySlam extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Radius
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, slam.getDamage()));
 
         addLabel(new GuiNpcLabel(101, "ability.radius", col2LabelX, y + 5));

@@ -429,10 +429,68 @@ role.mount.hover=Hover
 role.mount.ascendspeed=Ascend Speed
 role.mount.descendspeed=Descend Speed
 role.mount.walkspeed=Walk Speed: %s
+role.auctioneer=Auctioneer
+role.auctioneer.tabs=Tab Visibility
+role.auctioneer.showBrowse=Show Browse
+role.auctioneer.showMyListings=Show My Listings
+role.auctioneer.showMyBids=Show My Bids
+role.auctioneer.showClaims=Show Claims
+role.auctioneer.actions=Player Actions
+role.auctioneer.allowCreate=Allow Create
+role.auctioneer.allowBid=Allow Bid
+role.auctioneer.allowBuyout=Allow Buyout
+role.auctioneer.messages=Messages
+role.auctioneer.welcome=Welcome Message
+role.auctioneer.noAuction=Auction Disabled Message
 
-trader.insufficient=Insufficient Currency
-trader.sufficient=Sufficient Currency
+trader.unavailable=Unavailable
+trader.insufficient.currency=Insufficient Balance
+trader.available=Available
 trader.slotdisabled=Slot Disabled
+trader.currencycost=Cost
+trader.outofstock=Out of Stock
+trader.instock=in stock
+trader.restock=Restock
+trader.balance=Balance
+trader.reopentrader=Reopen Trader
+
+stock.options=Stock Options
+stock.enable=Enable Stock
+stock.perplayer=Per-Player
+stock.resettype=Reset Type
+stock.customtime=Custom Time
+stock.defaultmax=Default Max
+stock.perslot=Per-Slot Stock
+stock.reset=Reset Stock
+stock.resetcooldown=Reset Cooldown
+stock.perslot.title=Per-Slot Stock Limits
+stock.reset.confirm=Reset all stock?
+stock.reset.warning=This cannot be undone.
+stock.cooldown.confirm=Reset cooldown timer?
+stock.cooldown.warning=Stock will reset on next open.
+
+stock.reset.never=Never
+stock.reset.mcdaily=MC Daily
+stock.reset.mcweekly=MC Weekly
+stock.reset.mccustom=MC Custom
+stock.reset.rldaily=Real Daily
+stock.reset.rlweekly=Real Weekly
+stock.reset.rlcustom=Real Custom
+
+stock.options.hover=Configure stock limits and reset timers
+stock.enable.hover=Enable limited stock for trade slots
+stock.perplayer.hover=Track stock separately for each player
+stock.resettype.hover=When stock automatically replenishes
+stock.customtime.hover=Set a custom reset interval
+stock.defaultmax.hover=Default max stock for all slots (-1 = unlimited)
+stock.perslot.hover=Set max stock for individual slots
+stock.reset.hover=Reset all stock to max values
+stock.resetcooldown.hover=Force stock to reset on next trader open
+
+gui.settings.hover=Configure trading options
+gui.ignoreDamage.hover=Ignore item damage when comparing currency
+gui.ignoreNBT.hover=Ignore NBT data when comparing currency
+gui.recordHistory.hover=Record purchase history for analytics
 
 job.name=Job
 job.none=No Job
@@ -1464,14 +1522,12 @@ ability.target.self=Self
 ability.target.aoe_self=AOE Self
 ability.target.aoe_target=AOE Target
 
-ability.telegraph.none=None
-ability.telegraph.circle=Circle
-ability.telegraph.ring=Ring
-ability.telegraph.line=Line
-ability.telegraph.cone=Cone
-ability.telegraph.point=Point
+telegraph.circle=Circle
+telegraph.ring=Ring
+telegraph.line=Line
+telegraph.cone=Cone
+telegraph.point=Point
 
-ability.tab.general=General
 ability.tab.timing=Timing
 ability.tab.effects=Effects
 ability.tab.telegraph=Telegraph
@@ -1484,7 +1540,6 @@ ability.windUpSound=Wind Up Sound
 ability.activeSound=Active Sound
 ability.windUpAnim=Wind Up Anim
 ability.activeAnim=Active Anim
-gui.animations=Animations
 
 ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
@@ -1503,15 +1558,11 @@ ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
 
 # Ability GUI - Type Tab
-ability.tab.type=Type
 
 # Common Type Settings
-ability.damage=Damage
 ability.radius=Radius
 ability.knockback=Knockback
 ability.knockbackUp=KB Up
-ability.speed=Speed
-ability.range=Range
 ability.maxDist=Max Dist
 ability.minDist=Min Dist
 ability.distance=Distance
@@ -1538,13 +1589,10 @@ ability.hitRadius=Hit Radius
 # Cutter Settings
 ability.arcAngle=Arc Angle
 ability.sweepWaves=Waves
-ability.waveInterval=Interval
 ability.rotSpeed=Rot Speed
 ability.piercing=Piercing
 
 # Orb Settings
-ability.orbSpeed=Speed
-ability.orbSize=Size
 ability.homing=Homing
 ability.explosive=Explosive
 
@@ -1556,7 +1604,6 @@ ability.aoe=AOE
 ability.maxTargets=Max Targets
 
 # Dash Settings
-ability.dashMode=Mode
 ability.dash.aggressive=Aggressive
 ability.dash.defensive=Defensive
 ability.mode=Mode
@@ -1596,7 +1643,6 @@ ability.counterAnim=Counter Anim
 ability.healAmount=Amount
 ability.healPercent=Percent
 ability.healRadius=Radius
-ability.instant=Instant
 ability.healSelf=Heal Self
 ability.healAllies=Heal Allies
 
@@ -1607,9 +1653,6 @@ ability.shape=Shape
 ability.placement=Placement
 ability.affectsCaster=Hit Caster
 ability.ignoreInvuln=Ign Invuln
-ability.shape.circle=Circle
-ability.shape.ring=Ring
-ability.shape.cone=Cone
 ability.place.caster=At Caster
 ability.place.target=At Target
 ability.place.followCaster=Follow Caster
@@ -1620,7 +1663,6 @@ ability.place.ahead=Ahead
 ability.triggerRadius=Trig Rad
 ability.armTime=Arm Time
 ability.maxTriggers=Max Trig
-ability.visible=Visible
 
 # Ability Save/Load
 ability.save.confirm=Save ability preset
@@ -1650,11 +1692,8 @@ ability.shockwaveFalloff=Damage/knockback drop off with distance
 
 # Ability Config GUI
 ability.typeId=Type ID
-ability.tab.target=Target
 ability.conditions=Conditions
 ability.noTypeSettings=No type-specific settings
-ability.sounds=Sounds
-ability.animations=Animations
 
 # Conditions
 condition.edit=Edit Condition

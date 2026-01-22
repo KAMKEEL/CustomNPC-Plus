@@ -13,6 +13,7 @@ public enum EnumPlayerPacket {
     SaveBook,
     CompanionAction,
     GetRole,
+    GetTraderData,
     InputDevice,
     SpecialKeyState,
     ScreenSize,
@@ -33,4 +34,7 @@ public enum EnumPlayerPacket {
     ProfileGet,
     ProfileGetInfo,
     SyncRevisionInfo,
+
+    // Auction
+    AuctionAction,
 }

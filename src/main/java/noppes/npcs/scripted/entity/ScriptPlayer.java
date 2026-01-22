@@ -895,4 +895,43 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         }
         return (IPlayer[]) list.toArray(new IPlayer[list.size()]);
     }
+
+    // =========================================
+    // Currency Methods
+    // =========================================
+
+    @Override
+    public long getCurrencyBalance() {
+        return getData().currencyData.getBalance();
+    }
+
+    @Override
+    public void setCurrencyBalance(long amount) {
+        getData().currencyData.setBalance(amount);
+    }
+
+    @Override
+    public boolean depositCurrency(long amount) {
+        return getData().currencyData.deposit(amount);
+    }
+
+    @Override
+    public boolean withdrawCurrency(long amount) {
+        return getData().currencyData.withdraw(amount);
+    }
+
+    @Override
+    public boolean canAffordCurrency(long amount) {
+        return getData().currencyData.canAfford(amount);
+    }
+
+    @Override
+    public boolean isUsingVaultCurrency() {
+        return getData().currencyData.isUsingVault();
+    }
+
+    @Override
+    public String getFormattedCurrencyBalance() {
+        return getData().currencyData.formatBalance();
+    }
 }

@@ -144,20 +144,20 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // ═══════════════════════════════════════════════════════════════════════
         // TOP TABS using GuiMenuTopButton
         // ═══════════════════════════════════════════════════════════════════════
-        GuiMenuTopButton generalTab = new GuiMenuTopButton(90, guiLeft + 4, guiTop - 17, "ability.tab.general");
+        GuiMenuTopButton generalTab = new GuiMenuTopButton(90, guiLeft + 4, guiTop - 17, "menu.general");
         generalTab.active = (activeTab == TAB_GENERAL);
         addTopButton(generalTab);
 
         GuiMenuTopButton lastTab = generalTab;
 
         if (hasTypeSettings) {
-            GuiMenuTopButton typeTab = new GuiMenuTopButton(91, lastTab, "ability.tab.type");
+            GuiMenuTopButton typeTab = new GuiMenuTopButton(91, lastTab, "gui.type");
             typeTab.active = (activeTab == TAB_TYPE);
             addTopButton(typeTab);
             lastTab = typeTab;
         }
 
-        GuiMenuTopButton targetTab = new GuiMenuTopButton(92, lastTab, "ability.tab.target");
+        GuiMenuTopButton targetTab = new GuiMenuTopButton(92, lastTab, "script.target");
         targetTab.active = (activeTab == TAB_TARGET);
         addTopButton(targetTab);
         lastTab = targetTab;
@@ -435,7 +435,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // ─────────────────────────────────────────────────────────────────────
         // SOUNDS SECTION
         // ─────────────────────────────────────────────────────────────────────
-        addLabel(new GuiNpcLabel(30, "ability.sounds", col1LabelX, y));
+        addLabel(new GuiNpcLabel(30, "advanced.sounds", col1LabelX, y));
         y += 14;
 
         // Wind Up Sound
@@ -455,7 +455,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // ─────────────────────────────────────────────────────────────────────
         // ANIMATIONS SECTION
         // ─────────────────────────────────────────────────────────────────────
-        addLabel(new GuiNpcLabel(33, "ability.animations", col1LabelX, y));
+        addLabel(new GuiNpcLabel(33, "menu.animations", col1LabelX, y));
         y += 14;
 
         // Wind Up Animation
@@ -486,7 +486,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             // Telegraph Type (separate column)
             String typeKey = ability.getTelegraphType().name().toLowerCase();
             addLabel(new GuiNpcLabel(42, "ability.telegraphType", guiLeft + 200, y + 5));
-            addLabel(new GuiNpcLabel(43, "ability.telegraph." + typeKey, guiLeft + 280, y + 5));
+            String telegraphLangKey = typeKey.equals("none") ? "gui.none" : "telegraph." + typeKey;
+            addLabel(new GuiNpcLabel(43, telegraphLangKey, guiLeft + 280, y + 5));
 
             y += 24;
 

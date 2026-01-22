@@ -17,6 +17,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.IPlayerBankData;
+import noppes.npcs.api.handler.IPlayerCurrencyData;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.IPlayerDialogData;
 import noppes.npcs.api.handler.IPlayerFactionData;
@@ -58,6 +59,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataTimers timers = new DataTimers(this);
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
+
+    // Currency data - NOT slot-bound, shared across all profile slots
+    public PlayerCurrencyData currencyData = new PlayerCurrencyData(this);
 
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
@@ -397,6 +401,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         return mailData;
     }
 
+    public IPlayerCurrencyData getCurrencyData() {
+        return currencyData;
+    }
+
     public synchronized void save() {
         // Don't Save this is a Modification of a Profile's PlayerData
         Profile profile = ProfileController.Instance.getProfile(UUID.fromString(uuid));
@@ -406,6 +414,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         }
 
         final NBTTagCompound compound = getNBT();
+        // Currency data is saved at player level, NOT per profile slot
+        currencyData.writeToNBT(compound);
+
         final String filename;
         if (ConfigMain.DatFormat) {
             filename = uuid + ".dat";
@@ -442,6 +453,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         if (data.hasNoTags()) {
             data = getNBT();
         }
+
+        // Load currency BEFORE setNBT - currency is player-level, NOT per profile slot
+        currencyData.readFromNBT(data);
+
         setNBT(data);
     }
 

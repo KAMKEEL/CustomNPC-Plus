@@ -57,6 +57,7 @@ import kamkeel.npcs.network.packets.player.CompanionActionPacket;
 import kamkeel.npcs.network.packets.player.DialogSelectPacket;
 import kamkeel.npcs.network.packets.player.FollowerPacket;
 import kamkeel.npcs.network.packets.player.GetNPCRole;
+import kamkeel.npcs.network.packets.player.GetTraderData;
 import kamkeel.npcs.network.packets.player.InputDevicePacket;
 import kamkeel.npcs.network.packets.player.MailActionPacket;
 import kamkeel.npcs.network.packets.player.SaveBookPacket;
@@ -579,6 +580,7 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new CompanionActionPacket());
 
         PLAYER_PACKET.registerPacket(new GetNPCRole());
+        PLAYER_PACKET.registerPacket(new GetTraderData());
 
         PLAYER_PACKET.registerPacket(new InputDevicePacket());
 

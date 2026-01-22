@@ -49,7 +49,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
         super.initGui();
         int y = guiTop + 10;
         this.addButton(new GuiNpcButton(3, guiLeft + 85 + 160, y, 52, 20, "selectServer.edit"));
-        this.addButton(new GuiNpcButton(8, guiLeft + 85, y, 155, 20, new String[]{"role.none", "role.trader", "role.follower", "role.bank", "role.transporter", "role.mailman", NoppesStringUtils.translate("role.companion", "(WIP)"), "role.mount"}, npc.advanced.role.ordinal()));
+        this.addButton(new GuiNpcButton(8, guiLeft + 85, y, 155, 20, new String[]{"role.none", "role.trader", "role.follower", "role.bank", "role.transporter", "role.mailman", NoppesStringUtils.translate("role.companion", "(WIP)"), "role.mount", "role.auctioneer"}, npc.advanced.role.ordinal()));
         getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman);
 
         this.addButton(new GuiNpcButton(4, guiLeft + 85 + 160, y += 22, 52, 20, "selectServer.edit"));

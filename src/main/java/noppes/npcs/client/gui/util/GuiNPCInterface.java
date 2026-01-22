@@ -421,10 +421,23 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GL11.glScalef(bgScale * bgScaleX, bgScale * bgScaleY, bgScale * bgScaleZ);
         mc.renderEngine.bindTexture(background);
         if (xSize > 256) {
+            // GUI wider than texture: draw left portion, then right portion from texture edge
             drawTexturedModalRect(0, 0, 0, 0, 250, ySize);
             drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, ySize);
-        } else
+        } else if (xSize < 256) {
+            // GUI narrower than texture: stitch left and right edges together
+            // Left portion (first half of GUI)
+            int leftWidth = xSize / 2;
+            // Right portion width (remaining)
+            int rightWidth = xSize - leftWidth;
+            // Draw left side from texture start
+            drawTexturedModalRect(0, 0, 0, 0, leftWidth, ySize);
+            // Draw right side from texture end (256 - rightWidth)
+            drawTexturedModalRect(leftWidth, 0, 256 - rightWidth, 0, rightWidth, ySize);
+        } else {
+            // GUI exactly 256px: draw full texture
             drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
+        }
         GL11.glPopMatrix();
     }
 

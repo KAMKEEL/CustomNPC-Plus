@@ -27,10 +27,10 @@ public class SubGuiAbilityCharge extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Speed
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, charge.getDamage()));
 
-        addLabel(new GuiNpcLabel(101, "ability.speed", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(101, "stats.speed", col2LabelX, y + 5));
         addTextField(createFloatField(101, col2FieldX, y, 50, charge.getChargeSpeed()));
 
         y += 24;

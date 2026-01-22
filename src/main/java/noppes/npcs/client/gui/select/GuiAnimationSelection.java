@@ -50,7 +50,7 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
     public void initGui() {
         super.initGui();
 
-        this.addLabel(new GuiNpcLabel(0, "gui.animations", guiLeft + 8, guiTop + 4));
+        this.addLabel(new GuiNpcLabel(0, "menu.animations", guiLeft + 8, guiTop + 4));
 
         this.addButton(new GuiNpcButton(1, guiLeft + 4, guiTop + ySize - 35, 50, 20, "gui.clear"));
         this.addButton(new GuiNpcButton(2, guiLeft + xSize - 56, guiTop + ySize - 35, 50, 20, "gui.done"));

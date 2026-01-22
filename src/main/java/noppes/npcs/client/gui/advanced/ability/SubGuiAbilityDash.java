@@ -28,7 +28,7 @@ public class SubGuiAbilityDash extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Dash Mode
-        addLabel(new GuiNpcLabel(100, "ability.dashMode", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "ability.mode", labelX, y + 5));
         String[] dashModes = {"Aggressive", "Defensive"};
         addButton(new GuiNpcButton(100, fieldX, y, 80, 20, dashModes, dash.getDashMode().ordinal()));
 

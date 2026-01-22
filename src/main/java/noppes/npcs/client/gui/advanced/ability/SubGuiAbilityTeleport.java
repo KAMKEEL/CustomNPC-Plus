@@ -71,7 +71,7 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
         }
 
         // Damage + Damage Radius
-        addLabel(new GuiNpcLabel(106, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(106, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(106, fieldX, y, 50, teleport.getDamage()));
 
         addLabel(new GuiNpcLabel(107, "ability.dmgRadius", col2LabelX, y + 5));

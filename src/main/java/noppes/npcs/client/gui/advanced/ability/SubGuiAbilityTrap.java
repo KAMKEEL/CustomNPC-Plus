@@ -38,7 +38,7 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
         y += 24;
 
         // Row 2: Damage + Damage Radius
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(102, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, trap.getDamage()));
 
         addLabel(new GuiNpcLabel(103, "ability.dmgRadius", col2LabelX, y + 5));

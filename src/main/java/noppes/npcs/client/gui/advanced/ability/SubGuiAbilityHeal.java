@@ -40,7 +40,7 @@ public class SubGuiAbilityHeal extends SubGuiAbilityConfig {
         addLabel(new GuiNpcLabel(102, "ability.healRadius", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, heal.getHealRadius()));
 
-        addLabel(new GuiNpcLabel(103, "ability.instant", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(103, "dialog.instant", col2LabelX, y + 5));
         addButton(new GuiNpcButton(103, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isInstantHeal() ? 1 : 0));
 
         y += 24;
