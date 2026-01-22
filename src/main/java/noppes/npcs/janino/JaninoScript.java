@@ -338,8 +338,57 @@ public abstract class JaninoScript<T> implements IScriptUnit {
          if (method != null)
              return generateMethodStub(method);
 
-        // Fallback for unknown hook names - generate basic override
-        return String.format("public void %s() {\n    \n}\n", hookName);
+        // Fallback: try to find the event class by naming convention
+        String eventType = findEventTypeForHook(hookName);
+        if (eventType != null) {
+            return String.format("public void %s(%s event) {\n    \n}\n", hookName, eventType);
+        }
+
+        // Last resort: generic Object parameter
+        return String.format("public void %s(Object event) {\n    \n}\n", hookName);
+    }
+
+    /**
+     * Tries to find the event type for a hook by searching API event interfaces.
+     * Uses naming convention: hookName "questStart" -> event class "QuestStartEvent"
+     *
+     * @param hookName The hook name (e.g., "questStart", "dialogOpen")
+     * @return The usable type name (e.g., "IQuestEvent.QuestStartEvent") or null if not found
+     */
+    private String findEventTypeForHook(String hookName) {
+        if (hookName == null || hookName.isEmpty())
+            return null;
+
+        // Convert hook name to expected event class name
+        // questStart -> QuestStartEvent
+        String expectedEventName = Character.toUpperCase(hookName.charAt(0)) + hookName.substring(1) + "Event";
+
+        // Search in known API event interfaces
+        Class<?>[] eventInterfaces = {
+            noppes.npcs.api.event.IPlayerEvent.class,
+            noppes.npcs.api.event.INpcEvent.class,
+            noppes.npcs.api.event.IQuestEvent.class,
+            noppes.npcs.api.event.IDialogEvent.class,
+            noppes.npcs.api.event.IFactionEvent.class,
+            noppes.npcs.api.event.IPartyEvent.class,
+            noppes.npcs.api.event.ICustomGuiEvent.class,
+            noppes.npcs.api.event.IAnimationEvent.class,
+            noppes.npcs.api.event.IBlockEvent.class,
+            noppes.npcs.api.event.IItemEvent.class,
+            noppes.npcs.api.event.IProjectileEvent.class,
+            noppes.npcs.api.event.IAbilityEvent.class,
+            noppes.npcs.api.event.IForgeEvent.class
+        };
+
+        for (Class<?> eventInterface : eventInterfaces) {
+            for (Class<?> nested : eventInterface.getDeclaredClasses()) {
+                if (nested.getSimpleName().equals(expectedEventName)) {
+                    return getUsableTypeName(nested);
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
