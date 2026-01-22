@@ -14,11 +14,6 @@ import noppes.npcs.janino.annotations.ParamName;
 import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
-import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.*;
@@ -56,11 +51,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     private final JaninoHookResolver hookResolver;
 
     private final String[] defaultImports;
-    private final Map<String, HookInvokerEntry> invokerCache = new HashMap<>();
-    private Class<?> lastInvokerClass;
-
-    private static final MethodType HOOK_INVOKER_TYPE = MethodType.methodType(Object.class, Object.class, Object[].class);
-    private static final MethodType HOOK_INVOKER_VOID_TYPE = MethodType.methodType(void.class, Object.class, Object[].class);
+    private final JaninoHookInvoker hookInvoker = new JaninoHookInvoker();
 
     protected JaninoScript(Class<T> type, String[] defaultImports, boolean isClient) {
         this.type = type;
@@ -133,7 +124,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
      */
     public void compileScript(String code) {
 
-        clearInvokerCache();
+        hookInvoker.clear();
 
         try {
             scriptBody.setScript(code);
@@ -228,7 +219,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
         Object[] invokeArgs = args == null ? new Object[0] : args;
 
-        HookInvokerEntry invokerEntry = getOrCreateInvoker(method, t.getClass());
+        JaninoHookInvoker.HookInvokerEntry invokerEntry = hookInvoker.getOrCreate(method, t.getClass(), this);
         if (invokerEntry == null)
             return null;
 
@@ -291,7 +282,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this.script = script;
         this.evaluated = false;
         hookResolver.clearResolutionCaches();
-        clearInvokerCache();
+        hookInvoker.clear();
     }
 
     @Override
@@ -304,7 +295,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this.externalScripts = externalScripts;
         this.evaluated = false;
         hookResolver.clearResolutionCaches();
-        clearInvokerCache();
+        hookInvoker.clear();
     }
 
     @Override
@@ -492,107 +483,5 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     @Override
     public void setErrored(boolean errored) {
         this.errored = errored;
-    }
-
-    private void clearInvokerCache() {
-        invokerCache.clear();
-        lastInvokerClass = null;
-    }
-
-    private HookInvokerEntry getOrCreateInvoker(Method method, Class<?> compiledClass) {
-        if (compiledClass != lastInvokerClass) {
-            invokerCache.clear();
-            lastInvokerClass = compiledClass;
-        }
-
-        String key = buildInvokerKey(method);
-        HookInvokerEntry cached = invokerCache.get(key);
-        if (cached != null)
-            return cached;
-
-        try {
-            MethodHandle handle = unreflectMethod(method);
-            int paramCount = method.getParameterTypes().length;
-            boolean isStatic = Modifier.isStatic(method.getModifiers());
-
-            MethodHandle spreader;
-            if (isStatic) {
-                spreader = handle.asSpreader(Object[].class, paramCount);
-                spreader = MethodHandles.dropArguments(spreader, 0, Object.class);
-            } else {
-                MethodType type = handle.type();
-                if (type.parameterType(0) != Object.class)
-                    handle = handle.asType(type.changeParameterType(0, Object.class));
-
-                spreader = handle.asSpreader(Object[].class, paramCount);
-            }
-
-            HookInvokerEntry entry = new HookInvokerEntry();
-            if (method.getReturnType() == void.class) {
-                MethodHandle target = spreader.asType(HOOK_INVOKER_VOID_TYPE);
-                CallSite site = LambdaMetafactory.metafactory(
-                    MethodHandles.lookup(),
-                    "invoke",
-                    MethodType.methodType(HookInvokerVoid.class),
-                    HOOK_INVOKER_VOID_TYPE,
-                    target,
-                    HOOK_INVOKER_VOID_TYPE
-                );
-                entry.voidInvoker = (HookInvokerVoid) site.getTarget().invokeExact();
-                entry.returnsVoid = true;
-            } else {
-                MethodHandle target = spreader.asType(HOOK_INVOKER_TYPE);
-                CallSite site = LambdaMetafactory.metafactory(
-                    MethodHandles.lookup(),
-                    "invoke",
-                    MethodType.methodType(HookInvoker.class),
-                    HOOK_INVOKER_TYPE,
-                    target,
-                    HOOK_INVOKER_TYPE
-                );
-                entry.invoker = (HookInvoker) site.getTarget().invokeExact();
-            }
-
-            invokerCache.put(key, entry);
-            return entry;
-        } catch (Throwable e) {
-            appendConsole("Error binding hook " + method.getName() + ": " + e.getMessage());
-            return null;
-        }
-    }
-
-    private static MethodHandle unreflectMethod(Method method) throws IllegalAccessException {
-        try {
-            return MethodHandles.publicLookup().unreflect(method);
-        } catch (IllegalAccessException e) {
-            method.setAccessible(true);
-            return MethodHandles.lookup().unreflect(method);
-        }
-    }
-
-    private static String buildInvokerKey(Method method) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(method.getDeclaringClass().getName()).append('#').append(method.getName()).append('(');
-        Class<?>[] params = method.getParameterTypes();
-        for (int i = 0; i < params.length; i++) {
-            if (i > 0)
-                sb.append(',');
-            sb.append(params[i].getName());
-        }
-        return sb.append(')').toString();
-    }
-
-    private interface HookInvoker {
-        Object invoke(Object target, Object[] args) throws Throwable;
-    }
-
-    private interface HookInvokerVoid {
-        void invoke(Object target, Object[] args) throws Throwable;
-    }
-
-    private static final class HookInvokerEntry {
-        private HookInvoker invoker;
-        private HookInvokerVoid voidInvoker;
-        private boolean returnsVoid;
     }
 }
