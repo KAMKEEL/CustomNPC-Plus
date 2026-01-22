@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.script.GuiNPCEventScripts;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.ScriptContext;
@@ -270,7 +269,7 @@ public class GuiScript extends GuiScriptInterface {
         }
         if (guibutton.id == 16) {
             close();
-            mc.displayGuiScreen(new GuiNPCEventScripts(npc));
+            GuiScriptInterface.open(this, new DataScript(npc));
         }
         if (guibutton.id == 17) {
             close();

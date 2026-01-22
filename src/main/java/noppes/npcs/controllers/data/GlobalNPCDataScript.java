@@ -2,11 +2,14 @@ package noppes.npcs.controllers.data;
 
 import com.google.common.base.Preconditions;
 import cpw.mods.fml.common.eventhandler.Event;
+import kamkeel.npcs.network.packets.request.script.GlobalNPCScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -25,7 +28,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
 
-public class GlobalNPCDataScript implements IScriptHandler {
+public class GlobalNPCDataScript implements IScriptHandlerPacket {
     public List<IScriptUnit> scripts = new ArrayList<>();
     public String scriptLanguage = "ECMAScript";
     private EntityNPCInterface npc;
@@ -73,6 +76,26 @@ public class GlobalNPCDataScript implements IScriptHandler {
 
     public boolean isEnabled() {
         return ConfigScript.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.NPC;
+    }
+
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_NPC;
+    }
+
+    @Override
+    public void requestData() {
+        GlobalNPCScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        GlobalNPCScriptPacket.Save(index, totalCount, nbt);
     }
 
 

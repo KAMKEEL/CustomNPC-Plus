@@ -88,10 +88,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     /**
-     * Create a GuiScriptInterface for a single script without a handler.
-     * Wraps the script in a SingleScriptHandler automatically.
+     * Create a GuiScriptInterface for a handler without displaying it.
+     * Useful when a caller needs to return a GuiScreen (e.g. ClientProxy).
      */
-    public static GuiScriptInterface open(GuiScreen parent, IScriptHandler handler) {
+    public static GuiScriptInterface create(GuiScreen parent, IScriptHandler handler) {
         GuiScriptInterface gui = new GuiScriptInterface();
         gui.handler = handler;
         gui.parent = parent;
@@ -103,6 +103,15 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         if (handler instanceof IScriptHandlerPacket)
             ((IScriptHandlerPacket) handler).requestData();
 
+        return gui;
+    }
+
+    /**
+     * Open a GuiScriptInterface for a handler.
+     * Wraps the script in a SingleScriptHandler automatically.
+     */
+    public static GuiScriptInterface open(GuiScreen parent, IScriptHandler handler) {
+        GuiScriptInterface gui = create(parent, handler);
         Minecraft.getMinecraft().displayGuiScreen(gui);
         return gui;
     }

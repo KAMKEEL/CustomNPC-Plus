@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -12,10 +13,12 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.IWorld;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -36,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class DataScript implements IScriptHandler {
+public class DataScript implements IScriptHandlerPacket {
     public List<IScriptUnit> eventScripts = new ArrayList<>();
 
     private HashMap<EnumScriptType, ScriptContainer> scripts = new HashMap<>();
@@ -208,6 +211,26 @@ public class DataScript implements IScriptHandler {
 
     public boolean isEnabled() {
         return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.NPC;
+    }
+
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_NPC;
+    }
+
+    @Override
+    public void requestData() {
+        EventScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        EventScriptPacket.Save(index, totalCount, nbt);
     }
 
     public Map<Long, String> getOldConsoleText() {

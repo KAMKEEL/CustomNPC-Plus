@@ -1,17 +1,37 @@
 package noppes.npcs.controllers.data;
 
+import com.google.common.reflect.ClassPath;
 import cpw.mods.fml.common.eventhandler.Event;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent;
+import kamkeel.npcs.network.packets.request.script.ForgeScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.world.ChunkDataEvent;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.ChunkWatchEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
-public class ForgeDataScript implements IScriptHandler {
+public class ForgeDataScript implements IScriptHandlerPacket {
+    private static final Object HOOK_LOCK = new Object();
+    private static List<String> cachedHooks;
     private List<IScriptUnit> scripts = new ArrayList<>();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
@@ -79,6 +99,91 @@ public class ForgeDataScript implements IScriptHandler {
 
     public boolean isEnabled() {
         return this.enabled && ConfigScript.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.FORGE;
+    }
+
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_FORGE;
+    }
+
+    @Override
+    public List<String> getHooks() {
+        if (cachedHooks != null)
+            return new ArrayList<>(cachedHooks);
+
+        synchronized (HOOK_LOCK) {
+            if (cachedHooks != null)
+                return new ArrayList<>(cachedHooks);
+
+            List<String> hookList = new ArrayList<>(ScriptHookController.Instance.getBuiltInHooks(IScriptHookHandler.CONTEXT_FORGE));
+
+            ArrayList<ClassPath.ClassInfo> list = new ArrayList();
+            try {
+                list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
+                list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
+                list.removeAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event.terraingen"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            for (ClassPath.ClassInfo e1 : list) {
+                ClassPath.ClassInfo classLoader = e1;
+                Class infoClass = classLoader.load();
+                ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));
+                if (c.isEmpty()) {
+                    c.add(infoClass);
+                }
+                Iterator var10 = c.iterator();
+                while (var10.hasNext()) {
+                    Class c1 = (Class) var10.next();
+                    if (!EntityEvent.EntityConstructing.class.isAssignableFrom(c1)
+                        && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1)
+                        && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1)
+                        && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1)
+                        && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1)
+                        && !ItemTooltipEvent.class.isAssignableFrom(c1)
+                        && Event.class.isAssignableFrom(c1)
+                        && !Modifier.isAbstract(c1.getModifiers())
+                        && Modifier.isPublic(c1.getModifiers())
+                        && !ChunkEvent.class.isAssignableFrom(c1)
+                        && !ChunkWatchEvent.class.isAssignableFrom(c1)
+                        && !ChunkDataEvent.class.isAssignableFrom(c1)) {
+                        String eventName = c1.getName();
+                        int i = eventName.lastIndexOf(".");
+                        eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
+
+                        hookList.add(eventName);
+                    }
+                }
+            }
+
+            hookList.add("onCNPCNaturalSpawn");
+
+            for (String addonHook : ScriptHookController.Instance.getAddonHooks(IScriptHookHandler.CONTEXT_FORGE)) {
+                if (!hookList.contains(addonHook)) {
+                    hookList.add(addonHook);
+                }
+            }
+
+            cachedHooks = hookList;
+        }
+
+        return new ArrayList<>(cachedHooks);
+    }
+
+    @Override
+    public void requestData() {
+        ForgeScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        ForgeScriptPacket.Save(index, totalCount, nbt);
     }
 
     public boolean isClient() {

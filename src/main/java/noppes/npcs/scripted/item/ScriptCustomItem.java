@@ -1,15 +1,20 @@
 package noppes.npcs.scripted.item;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import kamkeel.npcs.network.packets.request.script.item.ItemScriptErrorPacket;
+import kamkeel.npcs.network.packets.request.script.item.ItemScriptPacket;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemCustom;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.ArrayList;
@@ -18,12 +23,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, IScriptHandler {
+public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, IScriptHandlerPacket {
     public List<IScriptUnit> scripts = new ArrayList();
     public List<Integer> errored = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
     public boolean loaded = false;
+
+    private Map<Long, String> clientConsoleText = new TreeMap<>();
 
     public double durabilityValue = 1.0D;
     public int stackSize = 64;
@@ -58,6 +65,48 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
             this.scriptLanguage = compound.getString("ScriptLanguage");
             this.enabled = compound.getBoolean("ScriptEnabled");
         }
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.ITEM;
+    }
+
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_ITEM;
+    }
+
+    @Override
+    public void requestData() {
+        ItemScriptErrorPacket.Get();
+        ItemScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        ItemScriptPacket.Save(nbt);
+    }
+
+    @Override
+    public GuiDataResult setGuiData(NBTTagCompound compound) {
+        if (compound.hasKey("LoadComplete")) {
+            return new GuiDataResult(GuiDataKind.LOAD_COMPLETE, -1);
+        }
+
+        if (compound.hasKey("ItemScriptConsole")) {
+            clientConsoleText = NBTTags.GetLongStringMap(compound.getTagList("ItemScriptConsole", 10));
+            return new GuiDataResult(GuiDataKind.TAB, -1);
+        }
+
+        setMCNbt(compound);
+        loadScriptData();
+        return new GuiDataResult(GuiDataKind.METADATA, -1);
+    }
+
+    @Override
+    public void sync() {
+        sendSavePacket(-1, getScripts().size(), getMCNbt());
     }
 
     public int getType() {
@@ -142,10 +191,12 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     public Map<Long, String> getConsoleText() {
-        return new TreeMap<>();
+        return clientConsoleText;
     }
 
     public void clearConsole() {
+        clientConsoleText.clear();
+        ItemScriptErrorPacket.Clear();
     }
 
     public int getMaxStackSize() {

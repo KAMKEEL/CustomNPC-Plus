@@ -2,14 +2,17 @@ package noppes.npcs.controllers.data;
 
 import com.google.common.base.Preconditions;
 import cpw.mods.fml.common.eventhandler.Event;
+import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
@@ -30,7 +33,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
 
-public class PlayerDataScript implements IScriptHandler {
+public class PlayerDataScript implements IScriptHandlerPacket {
     public List<IScriptUnit> scripts = new ArrayList<>();
     public String scriptLanguage = "ECMAScript";
     private EntityPlayer player;
@@ -87,6 +90,26 @@ public class PlayerDataScript implements IScriptHandler {
 
     public boolean isEnabled() {
         return ConfigScript.GlobalPlayerScripts && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.PLAYER;
+    }
+
+    @Override
+    public String getHookContext() {
+        return IScriptHookHandler.CONTEXT_PLAYER;
+    }
+
+    @Override
+    public void requestData() {
+        PlayerScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        PlayerScriptPacket.Save(index, totalCount, nbt);
     }
 
 
@@ -200,7 +223,7 @@ public class PlayerDataScript implements IScriptHandler {
         if (ConfigScript.IndividualPlayerScripts) {
             return console;
         }
-        return IScriptHandler.super.getConsoleText();
+        return IScriptHandlerPacket.super.getConsoleText();
     }
 
     @Override
@@ -209,7 +232,7 @@ public class PlayerDataScript implements IScriptHandler {
             console.clear();
             return;
         }
-        IScriptHandler.super.clearConsole();
+        IScriptHandlerPacket.super.clearConsole();
     }
 
     public static final class ToStringHelper {
