@@ -43,6 +43,7 @@ public class JaninoPlayerScript extends JaninoScript<JaninoPlayerScript.Function
     /**
      * Default imports for player scripts.
      * These are automatically available in user code without explicit import statements.
+     * Additional imports from registered hook definitions are added at compile time.
      */
     private static final String[] DEFAULT_IMPORTS = {
         "noppes.npcs.api.event.IPlayerEvent",
@@ -59,6 +60,11 @@ public class JaninoPlayerScript extends JaninoScript<JaninoPlayerScript.Function
 
     public JaninoPlayerScript() {
         super(Functions.class, DEFAULT_IMPORTS, false);
+    }
+
+    @Override
+    protected String getHookContext() {
+        return "player";
     }
 
     /**

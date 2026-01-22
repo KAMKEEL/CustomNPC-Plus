@@ -6,9 +6,11 @@ import io.github.somehussar.janinoloader.api.script.IScriptClassBody;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IHookDefinition;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.janino.annotations.ParamName;
 import org.codehaus.commons.compiler.InternalCompilerException;
@@ -52,6 +54,10 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     private final String[] defaultImports;
 
+    // Hook definition cache for fast lookup (NEW)
+    private Map<String, IHookDefinition> hookDefinitionCache;
+    private int lastHookRevision = -1;
+
     protected JaninoScript(Class<T> type, String[] defaultImports, boolean isClient) {
         this.type = type;
         this.defaultImports = defaultImports != null ? defaultImports : new String[0];
@@ -69,6 +75,79 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     protected JaninoScript(Class<T> type, String[] defaultImports) {
         this(type, defaultImports, false);
+    }
+
+    // ==================== HOOK CONTEXT (Abstract) ====================
+
+    /**
+     * Get the hook context identifier for this script type.
+     * Used to look up hook definitions from the registry.
+     *
+     * @return Context string, e.g., "npc", "player", "block"
+     */
+    protected abstract String getHookContext();
+
+    // ==================== HOOK DEFINITION CACHE ====================
+
+    /**
+     * Get hook definition from cache, rebuilding cache if revision changed.
+     *
+     * @param hookName The hook name to look up
+     * @return The hook definition, or null if not found
+     */
+    protected IHookDefinition getHookDefinition(String hookName) {
+        if (ScriptHookController.Instance == null) {
+            return null;
+        }
+
+        int currentRevision = ScriptHookController.Instance.getHookRevision();
+        if (hookDefinitionCache == null || currentRevision != lastHookRevision) {
+            rebuildHookDefinitionCache();
+            lastHookRevision = currentRevision;
+        }
+
+        return hookDefinitionCache.get(hookName);
+    }
+
+    /**
+     * Rebuild the hook definition cache from the registry.
+     */
+    private void rebuildHookDefinitionCache() {
+        hookDefinitionCache = new HashMap<>();
+        String context = getHookContext();
+
+        if (context == null || context.isEmpty() || ScriptHookController.Instance == null) {
+            return;
+        }
+
+        for (IHookDefinition def : ScriptHookController.Instance.getAllHookDefinitions(context)) {
+            hookDefinitionCache.put(def.hookName(), def);
+        }
+    }
+
+    /**
+     * Get all required imports from hook definitions plus default imports.
+     *
+     * @return Array of all import statements needed
+     */
+    protected String[] collectAllImports() {
+        Set<String> allImports = new LinkedHashSet<>();
+
+        // Add default imports first
+        Collections.addAll(allImports, defaultImports);
+
+        // Add imports from all hook definitions for this context
+        String context = getHookContext();
+        if (context != null && !context.isEmpty() && ScriptHookController.Instance != null) {
+            for (IHookDefinition def : ScriptHookController.Instance.getAllHookDefinitions(context)) {
+                String[] imports = def.requiredImports();
+                if (imports != null) {
+                    Collections.addAll(allImports, imports);
+                }
+            }
+        }
+
+        return allImports.toArray(new String[0]);
     }
 
     protected T getUnsafe() {
@@ -119,11 +198,16 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
     /**
-     * Feed the code into the engine and compile it
+     * Feed the code into the engine and compile it.
+     * Rebuilds imports from hook definitions before compilation.
      */
     public void compileScript(String code) {
 
         try {
+            // Rebuild imports from current hook definitions + defaults
+            String[] allImports = collectAllImports();
+            builder.setDefaultImports(allImports);
+
             scriptBody.setScript(code);
         } catch (InternalCompilerException e ) {
             Throwable parentCause = null;
@@ -330,65 +414,43 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         return script != null && !script.isEmpty();
     }
 
-     @Override
-     public String generateHookStub(String hookName, Object hookData) {
-         hookResolver.clearResolutionCaches();
+    @Override
+    public String generateHookStub(String hookName, Object hookData) {
+        hookResolver.clearResolutionCaches();
 
-         Method method = hookResolver.getMethodForDisplayName(hookName);
-         if (method != null)
-             return generateMethodStub(method);
+        // 1. Try interface method (existing @ScriptHook annotated methods)
+        Method method = hookResolver.getMethodForDisplayName(hookName);
+        if (method != null)
+            return generateMethodStub(method);
 
-        // Fallback: try to find the event class by naming convention
-        String eventType = findEventTypeForHook(hookName);
-        if (eventType != null) {
-            return String.format("public void %s(%s event) {\n    \n}\n", hookName, eventType);
+        // 2. Look up in hook definition registry (addon hooks, dynamic hooks)
+        IHookDefinition def = getHookDefinition(hookName);
+        if (def != null) {
+            return generateStubFromDefinition(def);
         }
 
-        // Last resort: generic Object parameter
+        // 3. Last resort: generic Object parameter
         return String.format("public void %s(Object event) {\n    \n}\n", hookName);
     }
 
     /**
-     * Tries to find the event type for a hook by searching API event interfaces.
-     * Uses naming convention: hookName "questStart" -> event class "QuestStartEvent"
+     * Generate a method stub from a hook definition.
      *
-     * @param hookName The hook name (e.g., "questStart", "dialogOpen")
-     * @return The usable type name (e.g., "IQuestEvent.QuestStartEvent") or null if not found
+     * @param def The hook definition containing type info
+     * @return Generated stub code
      */
-    private String findEventTypeForHook(String hookName) {
-        if (hookName == null || hookName.isEmpty())
-            return null;
+    private String generateStubFromDefinition(IHookDefinition def) {
+        String typeName = def.getUsableTypeName();
+        String[] params = def.paramNames();
+        String paramName = (params != null && params.length > 0) ? params[0] : "event";
 
-        // Convert hook name to expected event class name
-        // questStart -> QuestStartEvent
-        String expectedEventName = Character.toUpperCase(hookName.charAt(0)) + hookName.substring(1) + "Event";
-
-        // Search in known API event interfaces
-        Class<?>[] eventInterfaces = {
-            noppes.npcs.api.event.IPlayerEvent.class,
-            noppes.npcs.api.event.INpcEvent.class,
-            noppes.npcs.api.event.IQuestEvent.class,
-            noppes.npcs.api.event.IDialogEvent.class,
-            noppes.npcs.api.event.IFactionEvent.class,
-            noppes.npcs.api.event.IPartyEvent.class,
-            noppes.npcs.api.event.ICustomGuiEvent.class,
-            noppes.npcs.api.event.IAnimationEvent.class,
-            noppes.npcs.api.event.IBlockEvent.class,
-            noppes.npcs.api.event.IItemEvent.class,
-            noppes.npcs.api.event.IProjectileEvent.class,
-            noppes.npcs.api.event.IAbilityEvent.class,
-            noppes.npcs.api.event.IForgeEvent.class
-        };
-
-        for (Class<?> eventInterface : eventInterfaces) {
-            for (Class<?> nested : eventInterface.getDeclaredClasses()) {
-                if (nested.getSimpleName().equals(expectedEventName)) {
-                    return getUsableTypeName(nested);
-                }
-            }
+        if (typeName == null || typeName.isEmpty()) {
+            return String.format("public void %s(Object %s) {\n    \n}\n",
+                def.hookName(), paramName);
         }
 
-        return null;
+        return String.format("public void %s(%s %s) {\n    \n}\n",
+            def.hookName(), typeName, paramName);
     }
 
     /**

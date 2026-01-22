@@ -17,6 +17,7 @@ public class JaninoNpcScript extends JaninoScript<JaninoNpcScript.Functions> {
     /**
      * Default imports for NPC scripts.
      * These are automatically available in user code without explicit import statements.
+     * Additional imports from registered hook definitions are added at compile time.
      */
     private static final String[] DEFAULT_IMPORTS = {
         "noppes.npcs.api.event.INpcEvent",
@@ -29,6 +30,11 @@ public class JaninoNpcScript extends JaninoScript<JaninoNpcScript.Functions> {
 
     public JaninoNpcScript() {
         super(Functions.class, DEFAULT_IMPORTS);
+    }
+
+    @Override
+    protected String getHookContext() {
+        return "npc";
     }
 
     /**
