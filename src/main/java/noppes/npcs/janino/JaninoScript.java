@@ -12,18 +12,15 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.IScriptUnit;
-import noppes.npcs.janino.annotations.ParamName;
 import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.invoke.MethodHandle;
 import java.security.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public abstract class JaninoScript<T> implements IScriptUnit {
     public boolean errored = false;
@@ -286,26 +283,27 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         if (hookName == null || hookName.isEmpty())
             return null;
 
-        // Ensure compiled first so we can search the compiled class
         ensureCompiled();
         T t = getUnsafe();
         if (t == null)
             return null;
 
-        // Pass compiled instance to enable dynamic hook resolution
-        // This allows users to define methods for ANY hook (Forge events, addon hooks, etc.)
-        Method method = hookResolver.resolveHookMethod(hookName, args, t);
-        if (method == null)
-            return null;
-
-        Method invokeMethod = method;
         Object[] invokeArgs = args == null ? new Object[0] : args;
 
+        MethodHandle handle = hookResolver.resolveHookHandle(hookName, invokeArgs, t);
+        if (handle == null)
+            return null;
+
+        final MethodHandle finalHandle = handle;
         try {
             return sandbox.confine((PrivilegedAction<Object>) () -> {
                 try {
-                    return invokeMethod.invoke(t, invokeArgs);
-                } catch (Exception e) {
+                    // Prepend receiver to args for virtual method call
+                    Object[] fullArgs = new Object[invokeArgs.length + 1];
+                    fullArgs[0] = t;
+                    System.arraycopy(invokeArgs, 0, fullArgs, 1, invokeArgs.length);
+                    return finalHandle.invokeWithArguments(fullArgs);
+                } catch (Throwable e) {
                     appendConsole("Error calling hook " + hookName + ": " + e.getMessage());
                     return null;
                 }
@@ -416,127 +414,31 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     @Override
     public String generateHookStub(String hookName, Object hookData) {
-        hookResolver.clearResolutionCaches();
-
-        // 1. Try interface method (existing @ScriptHook annotated methods)
-        Method method = hookResolver.getMethodForDisplayName(hookName);
-        if (method != null)
-            return generateMethodStub(method);
-
-        // 2. Look up in hook definition registry (addon hooks, dynamic hooks)
+        // Look up in hook definition registry
         IHookDefinition def = getHookDefinition(hookName);
         if (def != null) {
-            return generateStubFromDefinition(def);
-        }
+            String typeName = def.getUsableTypeName();
+            String[] params = def.paramNames();
+            String paramName = (params != null && params.length > 0) ? params[0] : "event";
 
-        // 3. Last resort: generic Object parameter
-        return String.format("public void %s(Object event) {\n    \n}\n", hookName);
-    }
-
-    /**
-     * Generate a method stub from a hook definition.
-     *
-     * @param def The hook definition containing type info
-     * @return Generated stub code
-     */
-    private String generateStubFromDefinition(IHookDefinition def) {
-        String typeName = def.getUsableTypeName();
-        String[] params = def.paramNames();
-        String paramName = (params != null && params.length > 0) ? params[0] : "event";
-
-        if (typeName == null || typeName.isEmpty()) {
-            return String.format("public void %s(Object %s) {\n    \n}\n",
-                def.hookName(), paramName);
-        }
-
-        return String.format("public void %s(%s %s) {\n    \n}\n",
-            def.hookName(), typeName, paramName);
-    }
-
-    /**
-     * Generates a stub string for a given Method.
-     * Handles nested classes properly (e.g., IPlayerEvent.InitEvent instead of just InitEvent).
-     */
-    public static String generateMethodStub(Method method) {
-        String mods = Modifier.toString(method.getModifiers());
-        // Remove 'abstract' from modifiers for implementation
-        mods = mods.replace("abstract ", "").replace("abstract", "").trim();
-        if (!mods.isEmpty())
-            mods += " ";
-
-        String returnTypeStr = getUsableTypeName(method.getReturnType());
-        String name = method.getName();
-
-        Map<String, Integer> typeCount = new HashMap<>();
-        String params = Arrays.stream(method.getParameters())
-            .map(p -> {
-                String typeName = getUsableTypeName(p.getType());
-                String simpleTypeName = p.getType().getSimpleName();
-
-                // Check for @ParamName annotation first
-                ParamName paramNameAnnotation = p.getAnnotation(ParamName.class);
-                String paramName;
-
-                if (paramNameAnnotation != null) {
-                    // Use annotated name
-                    paramName = paramNameAnnotation.value();
-                } else {
-                    // Fall back to generated name based on simple name
-                    String baseName = Character.toLowerCase(simpleTypeName.charAt(0)) + simpleTypeName.substring(1);
-                    int count = typeCount.getOrDefault(baseName, 0) + 1;
-                    typeCount.put(baseName, count);
-                    paramName = count == 1 ? baseName : baseName + (count - 1);
-                }
-
-                return typeName + " " + paramName;
-            })
-            .collect(Collectors.joining(", "));
-
-        String body;
-        Class<?> returnType = method.getReturnType();
-        if (returnType == void.class)
-            body = "";
-        else if (returnType.isPrimitive()) {
-            if (returnType == boolean.class)
-                body = "    return false;";
-            else if (returnType == char.class)
-                body = "    return '\\0';";
-            else
-                body = "    return 0;";
-        } else {
-            body = "    return null;";
-        }
-
-        return String.format("%s%s %s(%s) {\n%s\n}\n", mods, returnTypeStr, name, params, body);
-    }
-
-    /**
-     * Gets a usable type name for stub generation.
-     * For nested classes like IPlayerEvent.InitEvent, returns "IPlayerEvent.InitEvent"
-     * For top-level classes, returns the simple name.
-     * For primitives, returns the primitive name.
-     */
-    private static String getUsableTypeName(Class<?> type) {
-        if (type.isPrimitive() || type.getEnclosingClass() == null) {
-            return type.getSimpleName();
-        }
-
-        // Build the nested class chain: OuterClass.InnerClass.DeeperClass
-        StringBuilder sb = new StringBuilder();
-        Class<?> current = type;
-        while (current != null) {
-            if (sb.length() > 0) {
-                sb.insert(0, ".");
+            if (typeName != null && !typeName.isEmpty()) {
+                return String.format("public void %s(%s %s) {\n    \n}\n",
+                    def.hookName(), typeName, paramName);
             }
-            sb.insert(0, current.getSimpleName());
-            current = current.getEnclosingClass();
         }
-        return sb.toString();
+
+        // Fallback: generic Object parameter
+        return String.format("public void %s(Object event) {\n    \n}\n", hookName);
     }
 
 
     public List<String> getHookList() {
-        return hookResolver.getDisplayHookList();
+        // Get hooks from registry based on context
+        String context = getHookContext();
+        if (context != null && !context.isEmpty() && ScriptHookController.Instance != null) {
+            return ScriptHookController.Instance.getAllHooks(context);
+        }
+        return Collections.emptyList();
     }
 
 
