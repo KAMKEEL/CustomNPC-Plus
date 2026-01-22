@@ -491,21 +491,21 @@ public class EventHooks {
     public static boolean onEffectAdded(IPlayer player, IPlayerEffect effect) {
         PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(player, effect);
-        handler.callScript(EffectScript.ScriptType.OnEffectAdd.function, event);
+        handler.callScript(EnumScriptType.ON_EFFECT_ADD.function, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onEffectTick(IPlayer player, IPlayerEffect effect) {
         PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(player, effect);
-        handler.callScript(EffectScript.ScriptType.OnEffectTick.function, event);
+        handler.callScript(EnumScriptType.ON_EFFECT_TICK.function, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onEffectRemove(IPlayer player, IPlayerEffect effect, EffectEvent.ExpirationType type) {
         PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(player, effect, type);
-        handler.callScript(EffectScript.ScriptType.OnEffectRemove.function, event);
+        handler.callScript(EnumScriptType.ON_EFFECT_REMOVE.function, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 

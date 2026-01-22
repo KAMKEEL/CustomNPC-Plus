@@ -116,6 +116,10 @@ public enum EnumScriptType {
     PROFILE_REMOVE("profileRemove"),
     PROFILE_CREATE("profileCreate"),
 
+    ON_EFFECT_ADD("onEffectAdd"),
+    ON_EFFECT_TICK("onEffectTick"),
+    ON_EFFECT_REMOVE("onEffectRemove"),
+
     ABILITY_START("abilityStart"),
     ABILITY_EXECUTE("abilityExecute"),
     ABILITY_INTERRUPT("abilityInterrupt"),

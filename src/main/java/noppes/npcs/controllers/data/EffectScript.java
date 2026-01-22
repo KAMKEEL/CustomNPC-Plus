@@ -3,7 +3,6 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.IScriptHookHandler;
-import noppes.npcs.scripted.event.player.PlayerEvent;
 
 /**
  * Script handler for CustomEffect scripts.
@@ -33,12 +32,6 @@ public class EffectScript extends SingleScriptHandler implements IScriptHandlerP
         return IScriptHookHandler.CONTEXT_EFFECT;
     }
     
-    /**
-     * Convenience method to call a script with a typed event.
-     */
-    public void callScript(ScriptType type, PlayerEvent.EffectEvent event) {
-        callScript(type.function, event);
-    }
     
     @Override
     public void requestData() {
@@ -52,15 +45,4 @@ public class EffectScript extends SingleScriptHandler implements IScriptHandlerP
             EffectScriptPacket.Save(effectId, index, totalCount, nbt);
     }
 
-    public enum ScriptType {
-        OnEffectAdd("onEffectAdd"),
-        OnEffectTick("onEffectTick"),
-        OnEffectRemove("onEffectRemove");
-
-        public final String function;
-
-        ScriptType(String functionName) {
-            this.function = functionName;
-        }
-    }
 }

@@ -2,7 +2,6 @@ package noppes.npcs.controllers;
 
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.controllers.data.RecipeScript;
 
 import java.util.ArrayList;
@@ -145,9 +144,9 @@ public class ScriptHookController implements IScriptHookHandler {
             EnumScriptType.PROFILE_CHANGE.function,
             EnumScriptType.PROFILE_REMOVE.function,
             EnumScriptType.PROFILE_CREATE.function,
-            EffectScript.ScriptType.OnEffectAdd.function,
-            EffectScript.ScriptType.OnEffectTick.function,
-            EffectScript.ScriptType.OnEffectRemove.function
+            EnumScriptType.ON_EFFECT_ADD.function,
+            EnumScriptType.ON_EFFECT_TICK.function,
+            EnumScriptType.ON_EFFECT_REMOVE.function
         );
 
         // Block hooks
@@ -209,9 +208,9 @@ public class ScriptHookController implements IScriptHookHandler {
 
         // Effect hooks
         registerBuiltIn(CONTEXT_EFFECT,
-            EffectScript.ScriptType.OnEffectAdd.function,
-            EffectScript.ScriptType.OnEffectTick.function,
-            EffectScript.ScriptType.OnEffectRemove.function
+            EnumScriptType.ON_EFFECT_ADD.function,
+            EnumScriptType.ON_EFFECT_TICK.function,
+            EnumScriptType.ON_EFFECT_REMOVE.function
         );
 
         // Forge hooks - just init, the rest are dynamically discovered
