@@ -40,11 +40,10 @@ public class PlayerDataScript extends MultiScriptHandler {
         }
     }
 
-    @Override
     public void clear() {
+        super.clear();
         staticConsole = new TreeMap<>();
         errored = new ArrayList<>();
-        scripts = new ArrayList<>();
     }
 
     @Override
