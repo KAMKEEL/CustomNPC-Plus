@@ -14,8 +14,21 @@ import noppes.npcs.janino.annotations.ScriptHook;
  */
 public class JaninoNpcScript extends JaninoScript<JaninoNpcScript.Functions> {
 
+    /**
+     * Default imports for NPC scripts.
+     * These are automatically available in user code without explicit import statements.
+     */
+    private static final String[] DEFAULT_IMPORTS = {
+        "noppes.npcs.api.event.INpcEvent",
+        "noppes.npcs.api.event.IProjectileEvent",
+        "noppes.npcs.api.event.IAbilityEvent",
+        "noppes.npcs.api.entity.ICustomNpc",
+        "noppes.npcs.api.entity.IPlayer",
+        "noppes.npcs.api.NpcAPI"
+    };
+
     public JaninoNpcScript() {
-        super(Functions.class, null);
+        super(Functions.class, DEFAULT_IMPORTS);
     }
 
     /**
