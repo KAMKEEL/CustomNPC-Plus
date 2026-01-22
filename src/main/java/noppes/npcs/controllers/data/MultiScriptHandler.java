@@ -21,13 +21,7 @@ import java.util.TreeMap;
  * - Override isEnabled() if custom enable logic is needed
  */
 public abstract class MultiScriptHandler extends ScriptHandler implements IScriptHandlerPacket {
-
-    /** Tracks when scripts were last updated (for reload detection) */
-    protected long lastUpdate = -1L;
-
-    /** Console output storage */
-    protected Map<Long, String> console = new TreeMap<>();
-
+    
     // ==================== NBT SERIALIZATION ====================
 
     /**
@@ -44,10 +38,6 @@ public abstract class MultiScriptHandler extends ScriptHandler implements IScrip
         normalizeLanguage();
 
         this.enabled = compound.getBoolean("ScriptEnabled");
-
-        if (compound.hasKey("ScriptConsole")) {
-            this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
-        }
     }
 
     /**
@@ -60,7 +50,6 @@ public abstract class MultiScriptHandler extends ScriptHandler implements IScrip
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
-        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(console));
         return compound;
     }
 
@@ -118,24 +107,5 @@ public abstract class MultiScriptHandler extends ScriptHandler implements IScrip
             }
             script.run(hookName, event);
         }
-    }
-
-    // ==================== CONSOLE HANDLING ====================
-
-    @Override
-    public Map<Long, String> getConsoleText() {
-        return console;
-    }
-
-    @Override
-    public void clearConsole() {
-        console.clear();
-    }
-
-    // ==================== UTILITY ====================
-
-    public void clear() {
-        this.scripts = new ArrayList<>();
-        this.console = new TreeMap<>();
     }
 }
