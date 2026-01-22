@@ -16,6 +16,15 @@ import java.util.stream.Collectors;
  * The resolver keeps simple caches for previously resolved signatures and
  * supports mapping enum-based hook names (via the {@code @ScriptHook}
  * annotation) to methods.
+ *
+ * <h3>Dynamic Hook Support</h3>
+ * This resolver supports two modes:
+ * <ul>
+ *   <li><b>Interface-only</b>: Only methods defined in the interface are found (legacy behavior)</li>
+ *   <li><b>Compiled class</b>: Methods on the actual compiled script class are found,
+ *       allowing users to define custom methods for Forge events, addon hooks, etc.</li>
+ * </ul>
+ * Use {@link #resolveHookMethod(String, Object[], Object)} to search the compiled instance.
  */
 public final class JaninoHookResolver {
     private final Class<?> interfaceType;
@@ -29,6 +38,18 @@ public final class JaninoHookResolver {
      * This avoids expensive recursive reflection lookups on every hook call.
      */
     private final Map<String, Method> signatureCache = new HashMap<>();
+
+    /**
+     * Cache for methods found on compiled classes (keyed by class + signature).
+     * Separate from signatureCache to handle recompilation.
+     */
+    private final Map<String, Method> compiledClassCache = new HashMap<>();
+
+    /**
+     * Track which compiled class we've cached methods for.
+     * If the class changes (recompilation), we clear the cache.
+     */
+    private Class<?> lastCompiledClass;
 
     /* Lazily built list of available hooks and a mapping for display names */
     private boolean hookListInitialized;
@@ -52,10 +73,12 @@ public final class JaninoHookResolver {
      */
     public void clearResolutionCaches() {
         signatureCache.clear();
+        compiledClassCache.clear();
+        lastCompiledClass = null;
     }
 
     /**
-     * Resolve a hook method by name and runtime argument values.
+     * Resolve a hook method by name and runtime argument values (interface-only mode).
      *
      * This first checks any enum-mapped methods (via {@code @ScriptHook}),
      * then a signature-based cache and finally attempts full candidate
@@ -66,16 +89,79 @@ public final class JaninoHookResolver {
      * @return the resolved {@link Method} or {@code null} if none matched
      */
     public Method resolveHookMethod(String hookName, Object[] args) {
+        return resolveHookMethod(hookName, args, null);
+    }
+
+    /**
+     * Resolve a hook method by name, searching both the compiled class and interface.
+     *
+     * <p>This enables <b>dynamic hook support</b>: users can define methods for any hook
+     * (Forge events, addon hooks, etc.) without needing them in the interface definition.</p>
+     *
+     * <p>Resolution order:</p>
+     * <ol>
+     *   <li>Enum-mapped methods (via {@code @ScriptHook})</li>
+     *   <li>Compiled class methods (user-defined, including custom hooks)</li>
+     *   <li>Interface methods (base hooks with defaults)</li>
+     *   <li>Fallback to no-arg versions</li>
+     * </ol>
+     *
+     * <p><b>Performance:</b> Method lookups are cached. First call per hook does reflection
+     * (~microseconds), subsequent calls use cache (essentially free).</p>
+     *
+     * @param hookName hook method name (or enum function name)
+     * @param args runtime arguments to use for overload resolution
+     * @param compiledInstance the compiled script instance (or null for interface-only)
+     * @return the resolved {@link Method} or {@code null} if none matched
+     */
+    public Method resolveHookMethod(String hookName, Object[] args, Object compiledInstance) {
         if (hookName == null || hookName.isEmpty())
             return null;
 
+        // 1. Check enum-mapped methods first (fastest path)
         Method method = enumHookLookup.get(hookName);
         if (method != null)
             return method;
 
         Object[] safeArgs = args == null ? new Object[0] : args;
-
         String signatureKey = buildSignatureKey(hookName, safeArgs);
+
+        // 2. If we have a compiled instance, search its class first
+        if (compiledInstance != null) {
+            Class<?> compiledClass = compiledInstance.getClass();
+
+            // Clear cache if compiled class changed (recompilation)
+            if (lastCompiledClass != compiledClass) {
+                compiledClassCache.clear();
+                lastCompiledClass = compiledClass;
+            }
+
+            // Check compiled class cache
+            method = compiledClassCache.get(signatureKey);
+            if (method != null)
+                return method;
+
+            // Search compiled class for matching method
+            method = resolveHookMethodInternal(compiledClass, hookName, safeArgs);
+            if (method != null) {
+                compiledClassCache.put(signatureKey, method);
+                return method;
+            }
+
+            // Try no-arg version on compiled class
+            String noArgKey = buildSignatureKey(hookName, new Object[0]);
+            method = compiledClassCache.get(noArgKey);
+            if (method != null)
+                return method;
+
+            method = resolveHookMethodInternal(compiledClass, hookName, new Object[0]);
+            if (method != null) {
+                compiledClassCache.put(noArgKey, method);
+                return method;
+            }
+        }
+
+        // 3. Fall back to interface-only search
         method = signatureCache.get(signatureKey);
         if (method != null)
             return method;
@@ -197,17 +283,32 @@ public final class JaninoHookResolver {
 
     /**
      * Internal resolution routine. Attempts to find the best matching method
-     * on the provided interface by comparing parameter counts and a simple
+     * on the provided class by comparing parameter counts and a simple
      * match scoring function (see {@link #scoreMethodMatch}).
+     *
+     * <p>This searches all public methods (including inherited) to support
+     * both interface-defined hooks and user-defined custom methods.</p>
+     *
+     * @param targetClass the class to search (interface or compiled class)
+     * @param hookName the method name to find
+     * @param args runtime arguments for overload resolution
+     * @return the best matching method, or null if none found
      */
-    private static Method resolveHookMethodInternal(Class<?> interfaceType, String hookName, Object[] args) {
+    private static Method resolveHookMethodInternal(Class<?> targetClass, String hookName, Object[] args) {
         Object[] safeArgs = args == null ? new Object[0] : args;
 
         Method best = null;
         int bestScore = Integer.MAX_VALUE;
 
-        for (Method method : interfaceType.getDeclaredMethods()) {
-            if (!method.getName().equals(hookName) || Modifier.isFinal(method.getModifiers()))
+        // Use getMethods() to include inherited methods (important for compiled classes)
+        for (Method method : targetClass.getMethods()) {
+            if (!method.getName().equals(hookName))
+                continue;
+
+            // Skip final methods and Object methods
+            if (Modifier.isFinal(method.getModifiers()))
+                continue;
+            if (method.getDeclaringClass() == Object.class)
                 continue;
 
             Class<?>[] paramTypes = method.getParameterTypes();

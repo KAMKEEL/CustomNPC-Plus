@@ -202,13 +202,16 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         if (hookName == null || hookName.isEmpty())
             return null;
 
-        Method method = hookResolver.resolveHookMethod(hookName, args);
-        if (method == null)
-            return null;
-
+        // Ensure compiled first so we can search the compiled class
         ensureCompiled();
         T t = getUnsafe();
         if (t == null)
+            return null;
+
+        // Pass compiled instance to enable dynamic hook resolution
+        // This allows users to define methods for ANY hook (Forge events, addon hooks, etc.)
+        Method method = hookResolver.resolveHookMethod(hookName, args, t);
+        if (method == null)
             return null;
 
         Method invokeMethod = method;
