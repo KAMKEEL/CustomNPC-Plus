@@ -43,7 +43,9 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     private final JaninoHookResolver hookResolver = new JaninoHookResolver();
     private final String[] defaultImports;
-
+    // Cache of imports used in the last compilation
+    private String[] cachedImports;
+    
     private Map<String, IHookDefinition> hookDefCache;
     private int lastHookRevision = -1;
     private int lastSeenGlobalRevision;
@@ -122,8 +124,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     public void compileScript(String code) {
         try {
-            String[] imports = collectImportsForCode(code);
-            builder.setDefaultImports(imports);
+            builder.setDefaultImports(cachedImports = collectImportsForCode(code));
             this.scriptBody = builder.build();
             scriptBody.setScript(code);
         } catch (InternalCompilerException e) {
@@ -400,6 +401,13 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         return defaultImports;
     }
 
+    private String[] getCachedImports() {
+        if (cachedImports == null) {
+            cachedImports = collectImportsForCode(getFullCode());
+        }
+        return cachedImports;
+    }
+
     /**
      * Get all types used in hook method signatures (parameters and return types).
      * This includes event types like INpcEvent.InitEvent, INpcEvent.DamagedEvent, etc.,
@@ -453,6 +461,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void setScript(String script) {
         this.script = script;
         this.evaluated = false;
+        this.cachedImports = null;
         hookResolver.clearResolutionCaches();
     }
 
@@ -465,6 +474,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void setExternalScripts(List<String> scripts) {
         this.externalScripts = scripts;
         this.evaluated = false;
+        this.cachedImports = null;
         hookResolver.clearResolutionCaches();
     }
 
