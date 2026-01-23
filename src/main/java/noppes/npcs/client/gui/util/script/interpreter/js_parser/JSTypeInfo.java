@@ -1,5 +1,9 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocReturnTag;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocTypeTag;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
@@ -31,7 +35,7 @@ public class JSTypeInfo {
     private JSTypeInfo parentType;        // The containing type (for inner types)
     
     // Documentation
-    private String documentation;
+    private JSDocInfo jsDocInfo;
     
     public JSTypeInfo(String simpleName, String namespace) {
         this.simpleName = simpleName;
@@ -45,8 +49,8 @@ public class JSTypeInfo {
         return this;
     }
     
-    public JSTypeInfo setDocumentation(String documentation) {
-        this.documentation = documentation;
+    public JSTypeInfo setJsDocInfo(JSDocInfo jsDocInfo) {
+        this.jsDocInfo = jsDocInfo;
         return this;
     }
     
@@ -86,7 +90,7 @@ public class JSTypeInfo {
     public String getNamespace() { return namespace; }
     public String getExtendsType() { return extendsType; }
     public JSTypeInfo getResolvedParent() { return resolvedParent; }
-    public String getDocumentation() { return documentation; }
+    public JSDocInfo getJsDocInfo() { return jsDocInfo; }
     public JSTypeInfo getParentType() { return parentType; }
     public List<TypeParamInfo> getTypeParams() { return typeParams; }
     
@@ -145,6 +149,49 @@ public class JSTypeInfo {
         for (JSFieldInfo field : fields.values()) {
             TypeInfo fieldTypeInfo = resolver.resolveJSType(field.getType());
             field.setTypeInfo(fieldTypeInfo);
+        }
+    }
+    
+    public void resolveJSDocTypes() {
+        TypeResolver resolver = TypeResolver.getInstance();
+        
+        if (jsDocInfo != null) {
+            resolveJSDocInfoTypes(jsDocInfo, resolver);
+        }
+        
+        for (JSMethodInfo method : methods.values()) {
+            JSDocInfo methodDoc = method.getJsDocInfo();
+            if (methodDoc != null) {
+                resolveJSDocInfoTypes(methodDoc, resolver);
+            }
+        }
+        
+        for (JSFieldInfo field : fields.values()) {
+            JSDocInfo fieldDoc = field.getJsDocInfo();
+            if (fieldDoc != null) {
+                resolveJSDocInfoTypes(fieldDoc, resolver);
+            }
+        }
+    }
+    
+    private void resolveJSDocInfoTypes(JSDocInfo jsDoc, TypeResolver resolver) {
+        JSDocTypeTag typeTag = jsDoc.getTypeTag();
+        if (typeTag != null && typeTag.hasType() && typeTag.getTypeInfo() == null) {
+            TypeInfo resolved = resolver.resolveJSType(typeTag.getTypeName());
+            typeTag.setType(typeTag.getTypeName(), resolved, typeTag.getTypeStart(), typeTag.getTypeEnd());
+        }
+        
+        for (JSDocParamTag paramTag : jsDoc.getParamTags()) {
+            if (paramTag.hasType() && paramTag.getTypeInfo() == null) {
+                TypeInfo resolved = resolver.resolveJSType(paramTag.getTypeName());
+                paramTag.setType(paramTag.getTypeName(), resolved, paramTag.getTypeStart(), paramTag.getTypeEnd());
+            }
+        }
+        
+        JSDocReturnTag returnTag = jsDoc.getReturnTag();
+        if (returnTag != null && returnTag.hasType() && returnTag.getTypeInfo() == null) {
+            TypeInfo resolved = resolver.resolveJSType(returnTag.getTypeName());
+            returnTag.setType(returnTag.getTypeName(), resolved, returnTag.getTypeStart(), returnTag.getTypeEnd());
         }
     }
     

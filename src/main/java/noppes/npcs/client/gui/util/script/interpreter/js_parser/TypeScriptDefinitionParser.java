@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
@@ -216,6 +218,11 @@ public class TypeScriptDefinitionParser {
             
             JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, parentNamespace);
             
+            JSDocInfo jsDoc = extractJSDocBefore(content, interfaceMatcher.start());
+            if (jsDoc != null) {
+                typeInfo.setJsDocInfo(jsDoc);
+            }
+            
             // Parse type parameters
             if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
                 parseTypeParameters(typeParamsStr, typeInfo);
@@ -261,6 +268,11 @@ public class TypeScriptDefinitionParser {
             
             JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, parentNamespace);
             
+            JSDocInfo jsDoc = extractJSDocBefore(content, nestedInterfaceMatcher.start());
+            if (jsDoc != null) {
+                typeInfo.setJsDocInfo(jsDoc);
+            }
+            
             // Parse type parameters
             if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
                 parseTypeParameters(typeParamsStr, typeInfo);
@@ -295,6 +307,11 @@ public class TypeScriptDefinitionParser {
             String extendsClause = classMatcher.group(3);
             
             JSTypeInfo typeInfo = new JSTypeInfo(className, parentNamespace);
+            
+            JSDocInfo jsDoc = extractJSDocBefore(content, classMatcher.start());
+            if (jsDoc != null) {
+                typeInfo.setJsDocInfo(jsDoc);
+            }
             
             // Parse type parameters
             if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
@@ -445,6 +462,12 @@ public class TypeScriptDefinitionParser {
             
             List<JSMethodInfo.JSParameterInfo> parameters = parseParameters(params);
             JSMethodInfo method = new JSMethodInfo(methodName, returnType, parameters);
+            
+            JSDocInfo jsDoc = extractJSDocBefore(body, methodMatcher.start());
+            if (jsDoc != null) {
+                method.setJsDocInfo(jsDoc);
+            }
+            
             typeInfo.addMethod(method);
         }
         
@@ -460,6 +483,12 @@ public class TypeScriptDefinitionParser {
             String fieldType = cleanType(fieldMatcher.group(3));
             
             JSFieldInfo field = new JSFieldInfo(fieldName, fieldType, readonly);
+            
+            JSDocInfo jsDoc = extractJSDocBefore(body, fieldMatcher.start());
+            if (jsDoc != null) {
+                field.setJsDocInfo(jsDoc);
+            }
+            
             typeInfo.addField(field);
         }
     }
@@ -567,5 +596,13 @@ public class TypeScriptDefinitionParser {
             sb.append(line).append("\n");
         }
         return sb.toString();
+    }
+    
+    private JSDocInfo extractJSDocBefore(String content, int elementStart) {
+        String jsDocBlock = DTSJSDocParser.extractJSDocBefore(content, elementStart);
+        if (jsDocBlock != null) {
+            return DTSJSDocParser.parseJSDocBlock(jsDocBlock);
+        }
+        return null;
     }
 }

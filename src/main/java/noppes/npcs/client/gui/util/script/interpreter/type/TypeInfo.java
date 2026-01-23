@@ -6,6 +6,7 @@ import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
@@ -225,6 +226,10 @@ public class TypeInfo {
      */
     public JSTypeInfo getJSTypeInfo() {
         return jsTypeInfo;
+    }
+
+    public JSDocInfo getJSDocInfo() {
+        return jsTypeInfo != null ? jsTypeInfo.getJsDocInfo() : null;
     }
 
     // Getters

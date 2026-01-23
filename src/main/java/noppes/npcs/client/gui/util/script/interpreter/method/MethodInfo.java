@@ -205,9 +205,14 @@ public final class MethodInfo {
         int modifiers = Modifier.PUBLIC;
         
         // Use the documentation from the method if available
-        String documentation = jsMethod.getDocumentation();
-        
-        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, documentation, null);
+        JSDocInfo jsDocInfo = jsMethod.getJsDocInfo();
+        String jsDocDesc = jsDocInfo != null ? jsDocInfo.getDescription() : null;
+        String documentation = jsDocDesc != null ? jsDocDesc : jsMethod.getDocumentation();
+
+        MethodInfo methodInfo = new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true,
+                false, modifiers, documentation, null);
+        methodInfo.setJSDocInfo(jsDocInfo);
+        return methodInfo;
     }
     
 

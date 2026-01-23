@@ -666,6 +666,23 @@ public class TokenHoverInfo {
                 }
             }
             
+        } else if (typeInfo.isJSType()) {
+            JSTypeInfo jsType = typeInfo.getJSTypeInfo();
+            
+            iconIndicator = "I";
+            addSegment("interface ", TokenType.MODIFIER.getHexColor());
+            addSegment(getName(typeInfo), TokenType.INTERFACE_DECL.getHexColor());
+            
+            if (jsType.getExtendsType() != null) {
+                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                addSegment(jsType.getExtendsType(), TokenType.INTERFACE_DECL.getHexColor());
+            }
+            
+            JSDocInfo jsDocInfo = typeInfo.getJSDocInfo();
+            if (jsDocInfo != null) {
+                formatJSDocumentation(jsDocInfo, null);
+            }
+            
         } else {
             // Unresolved type
             iconIndicator = "?";

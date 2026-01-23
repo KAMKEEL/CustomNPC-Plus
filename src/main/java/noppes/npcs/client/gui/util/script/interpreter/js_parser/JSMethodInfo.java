@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
@@ -14,7 +15,7 @@ public class JSMethodInfo {
     private final String returnType;      // Raw type string for display, e.g., "number", "IEntity", "void"
     private TypeInfo returnTypeInfo;      // Resolved TypeInfo (set during Phase 2)
     private final List<JSParameterInfo> parameters;
-    private String documentation;
+    private JSDocInfo jsDocInfo;
     private JSTypeInfo containingType;    // The type that contains this method
     
     public JSMethodInfo(String name, String returnType, List<JSParameterInfo> parameters) {
@@ -23,8 +24,8 @@ public class JSMethodInfo {
         this.parameters = parameters != null ? new ArrayList<>(parameters) : new ArrayList<>();
     }
     
-    public JSMethodInfo setDocumentation(String documentation) {
-        this.documentation = documentation;
+    public JSMethodInfo setJsDocInfo(JSDocInfo jsDocInfo) {
+        this.jsDocInfo = jsDocInfo;
         return this;
     }
 
@@ -74,9 +75,17 @@ public class JSMethodInfo {
     public String getReturnType() { return returnType; }
     public TypeInfo getReturnTypeInfo() { return returnTypeInfo; }
     public List<JSParameterInfo> getParameters() { return parameters; }
-    public String getDocumentation() { return documentation; }
+    public JSDocInfo getJsDocInfo() { return jsDocInfo; }
     public int getParameterCount() { return parameters.size(); }
     public JSTypeInfo getContainingType() { return containingType; }
+    
+    /**
+     * Get documentation string (backward compatibility).
+     * Extracts description from JSDocInfo if available.
+     */
+    public String getDocumentation() {
+        return jsDocInfo != null ? jsDocInfo.getDescription() : null;
+    }
     
     /**
      * Get a formatted signature string for display.
@@ -106,8 +115,8 @@ public class JSMethodInfo {
         }
         sb.append("): <i>").append(returnType).append("</i>");
         
-        if (documentation != null && !documentation.isEmpty()) {
-            sb.append("<br><br>").append(documentation);
+        if (jsDocInfo != null && jsDocInfo.getDescription() != null && !jsDocInfo.getDescription().isEmpty()) {
+            sb.append("<br><br>").append(jsDocInfo.getDescription());
         }
         
         return sb.toString();

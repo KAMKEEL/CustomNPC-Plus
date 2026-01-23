@@ -182,9 +182,13 @@ public final class FieldInfo {
         }
         
         // Use documentation if available
-        String documentation = jsField.getDocumentation();
+        JSDocInfo jsDocInfo = jsField.getJsDocInfo();
+        String jsDocDesc = jsDocInfo != null ? jsDocInfo.getDescription() : null;
+        String documentation = jsDocDesc != null ? jsDocDesc : jsField.getDocumentation();
         
-        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, documentation, -1, -1, modifiers, null);
+        FieldInfo fieldInfo = new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, documentation, -1, -1, modifiers, null);
+        fieldInfo.setJSDocInfo(jsDocInfo);
+        return fieldInfo;
     }
     
     /**

@@ -97,6 +97,9 @@ public class JSTypeRegistry {
             // Phase 2b: Resolve member types (return types, field types, param types)
             resolveAllMemberTypes();
             
+            // Phase 2c: Resolve JSDoc types (@param, @return, @type type references)
+            resolveAllJSDocTypes();
+            
             resolveInheritance();
             registerEngineGlobalObjects();
             
@@ -239,6 +242,7 @@ public class JSTypeRegistry {
             parser.parseDirectory(directory);
             resolveAllTypeParameters();
             resolveAllMemberTypes();
+            resolveAllJSDocTypes();
             resolveInheritance();
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks");
@@ -259,6 +263,7 @@ public class JSTypeRegistry {
             parser.parseVsixArchive(vsixFile);
             resolveAllTypeParameters();
             resolveAllMemberTypes();
+            resolveAllJSDocTypes();
             resolveInheritance();
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from VSIX");
@@ -592,6 +597,11 @@ public class JSTypeRegistry {
     public void resolveAllMemberTypes() {
         for (JSTypeInfo type : types.values()) 
             type.resolveMemberTypes();
+    }
+    
+    public void resolveAllJSDocTypes() {
+        for (JSTypeInfo type : types.values())
+            type.resolveJSDocTypes();
     }
     
     /**

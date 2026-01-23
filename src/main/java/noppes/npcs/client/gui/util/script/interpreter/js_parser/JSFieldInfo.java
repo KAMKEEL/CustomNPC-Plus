@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 /**
@@ -11,7 +12,7 @@ public class JSFieldInfo {
     private final String type;          // Raw type string for display
     private TypeInfo typeInfo;          // Resolved TypeInfo 
     private final boolean readonly;
-    private String documentation;
+    private JSDocInfo jsDocInfo;
     private JSTypeInfo containingType;  // The type that contains this field
     
     public JSFieldInfo(String name, String type, boolean readonly) {
@@ -20,8 +21,8 @@ public class JSFieldInfo {
         this.readonly = readonly;
     }
     
-    public JSFieldInfo setDocumentation(String documentation) {
-        this.documentation = documentation;
+    public JSFieldInfo setJsDocInfo(JSDocInfo jsDocInfo) {
+        this.jsDocInfo = jsDocInfo;
         return this;
     }
     
@@ -66,8 +67,16 @@ public class JSFieldInfo {
     public String getType() { return type; }
     public TypeInfo getTypeInfo() { return typeInfo; }
     public boolean isReadonly() { return readonly; }
-    public String getDocumentation() { return documentation; }
+    public JSDocInfo getJsDocInfo() { return jsDocInfo; }
     public JSTypeInfo getContainingType() { return containingType; }
+    
+    /**
+     * Get documentation string (backward compatibility).
+     * Extracts description from JSDocInfo if available.
+     */
+    public String getDocumentation() {
+        return jsDocInfo != null ? jsDocInfo.getDescription() : null;
+    }
     
     /**
      * Get display name - uses resolved TypeInfo simple name if available.
@@ -89,8 +98,8 @@ public class JSFieldInfo {
         }
         sb.append("<b>").append(name).append("</b>: <i>").append(type).append("</i>");
         
-        if (documentation != null && !documentation.isEmpty()) {
-            sb.append("<br><br>").append(documentation);
+        if (jsDocInfo != null && jsDocInfo.getDescription() != null && !jsDocInfo.getDescription().isEmpty()) {
+            sb.append("<br><br>").append(jsDocInfo.getDescription());
         }
         
         return sb.toString();
