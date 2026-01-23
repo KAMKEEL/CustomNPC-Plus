@@ -19,6 +19,8 @@ import java.lang.invoke.MethodHandle;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class JaninoScript<T> implements IScriptUnit {
@@ -60,6 +62,54 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
     protected abstract String getHookContext();
+
+    protected T getUnsafe() {
+        return scriptBody.get();
+    }
+
+    public <R> R call(Function<T, R> fn) {
+        ensureCompiled();
+
+        T t = getUnsafe();
+        if (t == null)
+            return null;
+
+        //        CodeSource cs = t.getClass().getProtectionDomain().getCodeSource();
+        //        ProtectionDomain pd = new ProtectionDomain(cs, new Permissions());
+
+        try {
+            return sandbox.confine((PrivilegedAction<R>) () -> fn.apply(t));
+            //            return AccessController.doPrivileged((PrivilegedAction<? extends R>) () -> fn.apply(t), new AccessControlContext(
+            //                new ProtectionDomain[] {
+            //                    pd
+            //                }
+            //            ));
+        } catch (Exception e) {
+            appendConsole("Runtime Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public void run(Consumer<T> fn) {
+        ensureCompiled();
+
+        T t = getUnsafe();
+        if (t == null)
+            return;
+
+        try {
+            sandbox.confine((PrivilegedAction<Void>) () -> {
+                fn.accept(t);
+                return null;
+            });
+        } catch (Exception e) {
+            appendConsole("Runtime Error: " + e.getMessage());
+        }
+    }
+
+    public void unload() {
+    }
+
 
     // ==================== COMPILATION ====================
 
