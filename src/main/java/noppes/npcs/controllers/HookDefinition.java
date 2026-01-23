@@ -2,6 +2,10 @@ package noppes.npcs.controllers;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import noppes.npcs.api.handler.IHookDefinition;
+import noppes.npcs.janino.annotations.ParamName;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 /**
  * Implementation of {@link IHookDefinition} with a fluent builder API.
@@ -119,6 +123,65 @@ public class HookDefinition implements IHookDefinition {
      */
     public static Builder builder(String hookName) {
         return new Builder(hookName);
+    }
+
+    /**
+     * Create a hook definition from an interface method.
+     * Automatically extracts metadata from the method signature and @ParamName annotations.
+     * This provides backward compatibility with the annotation-based hook definition approach.
+     *
+     * @param hookName The hook name (may differ from method name)
+     * @param method The method to extract metadata from
+     * @return A hook definition with extracted metadata
+     */
+    public static HookDefinition fromMethod(String hookName, Method method) {
+        Builder builder = builder(hookName);
+
+        // Extract event type from first parameter
+        if (method.getParameterCount() > 0) {
+            Class<?> eventType = method.getParameterTypes()[0];
+            builder.eventClass(eventType);
+
+            // Auto-detect cancelable from event class
+            if (eventType.isAnnotationPresent(Cancelable.class)) {
+                builder.cancelable(true);
+            }
+
+            // Build required imports from event type
+            String importName = getImportForClass(eventType);
+            if (importName != null) {
+                builder.requiredImports(importName);
+            }
+        }
+
+        // Extract parameter names from @ParamName annotations
+        Parameter[] params = method.getParameters();
+        if (params.length > 0) {
+            String[] names = new String[params.length];
+            for (int i = 0; i < params.length; i++) {
+                ParamName annotation = params[i].getAnnotation(ParamName.class);
+                if (annotation != null) {
+                    names[i] = annotation.value();
+                } else {
+                    // Fallback: use lowercase simple type name
+                    names[i] = Character.toLowerCase(params[i].getType().getSimpleName().charAt(0))
+                             + params[i].getType().getSimpleName().substring(1);
+                }
+            }
+            builder.paramNames(names);
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Create a hook definition from a method using its name as the hook name.
+     *
+     * @param method The method to extract metadata from
+     * @return A hook definition with extracted metadata
+     */
+    public static HookDefinition fromMethod(Method method) {
+        return fromMethod(method.getName(), method);
     }
 
     /**

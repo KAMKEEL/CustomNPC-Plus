@@ -8,6 +8,8 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IHookDefinition;
 import noppes.npcs.config.ConfigScript;
+import noppes.npcs.controllers.HookDefinition;
+import noppes.npcs.janino.annotations.ParamName;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
@@ -17,6 +19,8 @@ import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.util.*;
@@ -256,15 +260,29 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
     public List<String> getHookList() {
+        Set<String> hooks = new LinkedHashSet<>();
+
+        // 1. Add hooks from ScriptHookController (new system)
         String context = getHookContext();
         if (context != null && !context.isEmpty() && ScriptHookController.Instance != null) {
-            return ScriptHookController.Instance.getAllHooks(context);
+            hooks.addAll(ScriptHookController.Instance.getAllHooks(context));
         }
-        return Collections.emptyList();
+
+        // 2. Add methods from interface type (backward compatibility with @ParamName)
+        if (type != null) {
+            for (Method m : type.getDeclaredMethods()) {
+                if (!Modifier.isFinal(m.getModifiers()) && !hooks.contains(m.getName())) {
+                    hooks.add(m.getName());
+                }
+            }
+        }
+
+        return new ArrayList<>(hooks);
     }
 
     @Override
     public String generateHookStub(String hookName, Object hookData) {
+        // 1. Try HookDefinition from registry (new system)
         IHookDefinition def = getHookDefinition(hookName);
         if (def != null) {
             String typeName = def.getUsableTypeName();
@@ -276,7 +294,101 @@ public abstract class JaninoScript<T> implements IScriptUnit {
                     def.hookName(), typeName, paramName);
             }
         }
+
+        // 2. Fallback: Try interface method with @ParamName (backward compatibility)
+        Method method = findInterfaceMethod(hookName);
+        if (method != null) {
+            return generateMethodStub(method);
+        }
+
+        // 3. Final fallback: generic stub
         return String.format("public void %s(Object event) {\n    \n}\n", hookName);
+    }
+
+    /**
+     * Find a method in the type interface by name.
+     */
+    private Method findInterfaceMethod(String methodName) {
+        if (type == null || methodName == null) return null;
+
+        for (Method m : type.getDeclaredMethods()) {
+            if (m.getName().equals(methodName) && !Modifier.isFinal(m.getModifiers())) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Generate a method stub from a Method, supporting @ParamName annotations.
+     * Provides backward compatibility with interface-based hook definitions.
+     */
+    public static String generateMethodStub(Method method) {
+        String mods = Modifier.toString(method.getModifiers());
+        mods = mods.replace("abstract ", "").replace("abstract", "")
+                   .replace("default ", "").replace("default", "").trim();
+        if (!mods.isEmpty()) mods += " ";
+
+        String returnTypeStr = getUsableTypeName(method.getReturnType());
+        String name = method.getName();
+
+        Map<String, Integer> typeCount = new HashMap<>();
+        StringBuilder params = new StringBuilder();
+        for (int i = 0; i < method.getParameters().length; i++) {
+            java.lang.reflect.Parameter p = method.getParameters()[i];
+            String typeName = getUsableTypeName(p.getType());
+
+            // Check for @ParamName annotation first
+            ParamName annotation = p.getAnnotation(ParamName.class);
+            String paramName;
+            if (annotation != null) {
+                paramName = annotation.value();
+            } else {
+                // Fallback to generated name
+                String baseName = Character.toLowerCase(p.getType().getSimpleName().charAt(0))
+                                + p.getType().getSimpleName().substring(1);
+                int count = typeCount.getOrDefault(baseName, 0) + 1;
+                typeCount.put(baseName, count);
+                paramName = count == 1 ? baseName : baseName + (count - 1);
+            }
+
+            if (i > 0) params.append(", ");
+            params.append(typeName).append(" ").append(paramName);
+        }
+
+        String body;
+        Class<?> returnType = method.getReturnType();
+        if (returnType == void.class) {
+            body = "";
+        } else if (returnType.isPrimitive()) {
+            if (returnType == boolean.class) body = "    return false;";
+            else if (returnType == char.class) body = "    return '\\0';";
+            else body = "    return 0;";
+        } else {
+            body = "    return null;";
+        }
+
+        return String.format("%s%s %s(%s) {\n%s\n}\n", mods, returnTypeStr, name, params, body);
+    }
+
+    /**
+     * Gets a usable type name for stub generation.
+     * For nested classes, returns "OuterClass.InnerClass" format.
+     */
+    private static String getUsableTypeName(Class<?> type) {
+        if (type.isPrimitive() || type.getEnclosingClass() == null) {
+            return type.getSimpleName();
+        }
+
+        // Build the nested class chain
+        StringBuilder sb = new StringBuilder();
+        Class<?> current = type;
+        while (current != null) {
+            if (sb.length() > 0) sb.insert(0, ".");
+            sb.insert(0, current.getSimpleName());
+            current = current.getEnclosingClass();
+        }
+        return sb.toString();
     }
 
     // ==================== IScriptUnit ====================
