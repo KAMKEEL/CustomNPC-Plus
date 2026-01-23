@@ -598,16 +598,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int maxScroll = Math.max(0, getPaddedLineCount() - container.visibleLines);
 
         // Handle mouse wheel scroll
-        boolean isMouseOverTextArea = xMouse >= x && xMouse < x + width && yMouse >= y && yMouse < y + height;
-        int wheelDelta = 0;
-        if (isMouseOverTextArea) {
-            wheelDelta = Mouse.getDWheel();
-            if (listener instanceof GuiNPCInterface) {
-                ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
+        int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
+        if (listener instanceof GuiNPCInterface) {
+            ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
+
+            // Let autocomplete menu consume scroll first if visible
+            if (wheelDelta != 0 && autocompleteManager.isVisible() && autocompleteManager.mouseScrolled(xMouse, yMouse, wheelDelta)) {
+                // Autocomplete consumed the scroll
+            } else {
+                boolean canScroll = !KEYS_OVERLAY.isVisible() || KEYS_OVERLAY.isVisible() && !KEYS_OVERLAY.aboveOverlay;
+                if (wheelDelta != 0 && canScroll)
+                    scroll.applyWheelScroll(wheelDelta, maxScroll);
             }
-            boolean canScroll = !KEYS_OVERLAY.isVisible() || KEYS_OVERLAY.isVisible() && !KEYS_OVERLAY.aboveOverlay;
-            if (wheelDelta != 0 && canScroll)
-                scroll.applyWheelScroll(wheelDelta, maxScroll);
         }
 
         // Handle scrollbar dragging (delegated to ScrollState)
