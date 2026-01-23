@@ -418,16 +418,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
      */
     public Set<String> getHookTypes() {
         Set<String> types = new HashSet<>();
-        for (Method method : type.getDeclaredMethods()) {
-            // Add parameter types
-            for (Class<?> paramType : method.getParameterTypes())
-                addTypeAndEnclosingTypes(types, paramType);
-
-            // Add return types (in case any hook has a non-void return)
-            Class<?> returnType = method.getReturnType();
-            if (returnType != void.class)
-                addTypeAndEnclosingTypes(types, returnType);
-        }
+        Collections.addAll(types, getCachedImports());
         return types;
     }
 
