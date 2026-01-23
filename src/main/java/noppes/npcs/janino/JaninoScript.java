@@ -137,8 +137,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         // Add imports from all hook definitions for this context
         String context = getHookContext();
         if (context != null && !context.isEmpty() && ScriptHookController.Instance != null) {
-            java.util.List<IHookDefinition> defs = ScriptHookController.Instance.getAllHookDefinitions(context);
-            for (IHookDefinition def : defs) {
+            for (IHookDefinition def : ScriptHookController.Instance.getAllHookDefinitions(context)) {
                 String[] imports = def.requiredImports();
                 if (imports != null) {
                     Collections.addAll(allImports, imports);
