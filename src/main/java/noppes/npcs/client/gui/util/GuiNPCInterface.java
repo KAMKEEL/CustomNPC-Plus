@@ -108,7 +108,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
 
         //Important for GuiScriptTextArea
-        for (GuiNpcTextField tf : textfields.values()) 
+        for (GuiNpcTextField tf : textfields.values())
                 tf.initGui();
     }
 
@@ -264,8 +264,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
             else
                 close();
         }
-        
-        
+
+
         if (subgui != null)
             subgui.keyTyped(c, i);
         for (GuiNpcTextField tf : textfields.values())
@@ -274,7 +274,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
             guiScrollableComponent.keyTyped(c, i);
         }
-     
+
     }
 
     public void onGuiClosed() {
@@ -284,7 +284,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void closeOnEsc(Supplier<Boolean> close) {
         this.closeOnEscSupplier = close;
     }
-    
+
     public void close() {
         if(GuiNpcTextField.activeTextfield != null)
             GuiNpcTextField.unfocus();

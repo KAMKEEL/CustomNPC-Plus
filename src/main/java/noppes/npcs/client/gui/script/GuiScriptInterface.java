@@ -354,7 +354,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         super.drawScreen(mouseX, mouseY, partialTicks);
 
         // Draw fullscreen button on top of everything when on script editor tab
-        if (this.activeTab > 0) {
+        // Skip for useSettingsToggle GUIs (like GuiScript) - they handle this themselves
+        if (this.activeTab > 0 && !useSettingsToggle && !handler.isSingleContainer()) {
             fullscreenButton.draw(mouseX, mouseY);
         }
     }
@@ -364,7 +365,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         // Check fullscreen button first when on script editor tab
-        if (this.activeTab > 0 && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
+        // Skip for useSettingsToggle GUIs (like GuiScript) - they handle this themselves
+        if (this.activeTab > 0 && !useSettingsToggle && !handler.isSingleContainer() && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
             return;
         }
 

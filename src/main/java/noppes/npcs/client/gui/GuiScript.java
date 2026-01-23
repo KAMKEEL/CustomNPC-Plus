@@ -80,16 +80,18 @@ public class GuiScript extends GuiScriptInterface {
     public void initGui() {
         super.initGui();
         this.guiTop += 10;
-        
-        // ==================== TOP BUTTONS ====================
-        GuiMenuTopButton top;
-        addTopButton(top = new GuiMenuTopButton(13, guiLeft + 4, guiTop - 17, "script.scripts"));
-        addTopButton(new GuiMenuTopButton(16, guiLeft + (xSize - 102), guiTop - 17, "eventscript.eventScripts"));
-        addTopButton(new GuiMenuTopButton(17, guiLeft + (xSize - 22), guiTop - 17, "X"));
-        top.active = showScript;
-        addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
-        top.active = !showScript;
-        addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
+
+        // ==================== TOP BUTTONS (hidden in fullscreen) ====================
+        if (!isFullscreen) {
+            GuiMenuTopButton top;
+            addTopButton(top = new GuiMenuTopButton(13, guiLeft + 4, guiTop - 17, "script.scripts"));
+            addTopButton(new GuiMenuTopButton(16, guiLeft + (xSize - 102), guiTop - 17, "eventscript.eventScripts"));
+            addTopButton(new GuiMenuTopButton(17, guiLeft + (xSize - 22), guiTop - 17, "X"));
+            top.active = showScript;
+            addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
+            top.active = !showScript;
+            addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
+        }
 
         if (showScript) {
             initScriptView();
@@ -166,10 +168,8 @@ public class GuiScript extends GuiScriptInterface {
         int scrollbarOffset = activeArea.hasVerticalScrollbar() ? -8 : -2;
         fullscreenButton.initGui(editorX + editorWidth, editorY, scrollbarOffset);
 
-            // Set language and script context for proper syntax highlighting and autocomplete
-            activeArea.setLanguage(script.getLanguage());
-            activeArea.setScriptContext(ScriptContext.NPC);
-
+        // ==================== RIGHT PANEL (hidden in fullscreen) ====================
+        if (!isFullscreen) {
             addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
             addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
             addButton(new GuiNpcButton(100, guiLeft + 315, guiTop + 25, 50, 20, "gui.copy"));
@@ -183,11 +183,13 @@ public class GuiScript extends GuiScriptInterface {
                 scroll.setList(container.scripts);
             addScroll(scroll);
         }
+    }
     
     
     private void initSettingsView() {
         addLabel(new GuiNpcLabel(0, "script.console", guiLeft + 4, guiTop + 16));
-        getTopButton(14).active = true;
+        if (getTopButton(14) != null)
+            getTopButton(14).active = true;
         
         GuiNpcTextArea consoleArea = new GuiNpcTextArea(2, this, guiLeft + 4, guiTop + 26, 226, 186, getConsoleText());
         consoleArea.canEdit = false;
@@ -269,7 +271,7 @@ public class GuiScript extends GuiScriptInterface {
         }
         if (guibutton.id == 16) {
             close();
-            GuiScriptInterface.open(this, new DataScript(npc));
+            GuiScriptInterface.open(this, this.script);
         }
         if (guibutton.id == 17) {
             close();
@@ -341,6 +343,25 @@ public class GuiScript extends GuiScriptInterface {
             activeTab = scroll.selected;
             initGui();
         }
+    }
+
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        super.drawScreen(mouseX, mouseY, partialTicks);
+
+        // Draw fullscreen button when in script view (GuiScript uses 0-based activeTab)
+        if (showScript) {
+            fullscreenButton.draw(mouseX, mouseY);
+        }
+    }
+
+    @Override
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+        // Check fullscreen button first when in script view
+        if (showScript && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
+            return;
+        }
+        super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 }
 

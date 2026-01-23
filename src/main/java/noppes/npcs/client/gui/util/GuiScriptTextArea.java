@@ -493,12 +493,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         int maxScroll = Math.max(0, getPaddedLineCount() - container.visibleLines);
 
-        // Handle mouse wheel scroll
-        int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
-        if (listener instanceof GuiNPCInterface) {
-            ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
+        // Handle mouse wheel scroll - only consume when mouse is over this text area
+        boolean isMouseOverTextArea = xMouse >= x && xMouse < x + width && yMouse >= y && yMouse < y + height;
+        int wheelDelta = 0;
+        if (isMouseOverTextArea) {
+            wheelDelta = Mouse.getDWheel();
+            if (listener instanceof GuiNPCInterface) {
+                ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
+            }
             boolean canScroll = !KEYS_OVERLAY.isVisible() || KEYS_OVERLAY.isVisible() && !KEYS_OVERLAY.aboveOverlay;
-            if (wheelDelta != 0 && canScroll) 
+            if (wheelDelta != 0 && canScroll)
                 scroll.applyWheelScroll(wheelDelta, maxScroll);
         }
 
