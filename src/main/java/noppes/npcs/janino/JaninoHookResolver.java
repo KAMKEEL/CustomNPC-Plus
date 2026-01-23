@@ -7,20 +7,16 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
- * Resolves script hook methods for compiled script classes using runtime
- * argument values. Resolution favors exact matches and then the "closest"
- * assignable parameter types (measured by inheritance distance).
- *
- * Methods are resolved dynamically from the compiled class - no interface
- * definitions required.
+ * Resolves script hook methods for compiled script classes.
+ * Optimized for high-frequency hooks like TICK with fast O(1) lookups.
  */
 public final class JaninoHookResolver {
-    private final Class<?> interfaceType;
 
     /**
-     * Cache for methods found on compiled classes (keyed by signature).
+     * Primary cache: hookName -> CachedHandle
+     * Fast O(1) lookup without string building for non-overloaded hooks.
      */
-    private final Map<String, Method> compiledClassCache = new HashMap<>();
+    private final Map<String, CachedHandle> handleCache = new HashMap<>();
 
     /**
      * Track which compiled class we've cached methods for.
@@ -28,164 +24,78 @@ public final class JaninoHookResolver {
      */
     private Class<?> lastCompiledClass;
 
-    // MethodHandle caches
-    private final Map<String, MethodHandle> compiledHandleCache = new HashMap<>();
-
-    // Method -> MethodHandle for identity-based deduplication
-    private final Map<Method, MethodHandle> methodToHandle = new IdentityHashMap<>();
-
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     /**
-     * Create a resolver for the provided script interface type.
-     * @param interfaceType non-null interface class that scripts implement
+     * Cached handle with expected parameter count for quick validation.
      */
-    public JaninoHookResolver(Class<?> interfaceType) {
-        this.interfaceType = Objects.requireNonNull(interfaceType, "interfaceType");
+    private static final class CachedHandle {
+        final MethodHandle handle;
+        final int paramCount;
+
+        CachedHandle(MethodHandle handle, int paramCount) {
+            this.handle = handle;
+            this.paramCount = paramCount;
+        }
+    }
+
+    public JaninoHookResolver() {
     }
 
     /**
-     * Clears internal resolution caches so future calls perform fresh
-     * method resolution. Call when scripts or available methods change.
+     * Clears internal resolution caches.
      */
     public void clearResolutionCaches() {
-        compiledClassCache.clear();
-        compiledHandleCache.clear();
-        methodToHandle.clear();
+        handleCache.clear();
         lastCompiledClass = null;
     }
 
     /**
-     * Resolve a hook method by name, searching the compiled class.
-     *
-     * <p>Resolution order:</p>
-     * <ol>
-     *   <li>Compiled class methods (user-defined)</li>
-     *   <li>Fallback to no-arg versions</li>
-     * </ol>
-     *
-     * @param hookName hook method name
-     * @param args runtime arguments to use for overload resolution
-     * @param compiledInstance the compiled script instance
-     * @return the resolved {@link Method} or {@code null} if none matched
-     */
-    public Method resolveHookMethod(String hookName, Object[] args, Object compiledInstance) {
-        if (hookName == null || hookName.isEmpty() || compiledInstance == null)
-            return null;
-
-        Object[] safeArgs = args == null ? new Object[0] : args;
-        String signatureKey = buildSignatureKey(hookName, safeArgs);
-
-        Class<?> compiledClass = compiledInstance.getClass();
-
-        // Clear cache if compiled class changed (recompilation)
-        if (lastCompiledClass != compiledClass) {
-            compiledClassCache.clear();
-            compiledHandleCache.clear();
-            methodToHandle.clear();
-            lastCompiledClass = compiledClass;
-        }
-
-        // Check compiled class cache
-        Method method = compiledClassCache.get(signatureKey);
-        if (method != null)
-            return method;
-
-        // Search compiled class for matching method
-        method = resolveHookMethodInternal(compiledClass, hookName, safeArgs);
-        if (method != null) {
-            compiledClassCache.put(signatureKey, method);
-            return method;
-        }
-
-        // Try no-arg version on compiled class
-        String noArgKey = buildSignatureKey(hookName, new Object[0]);
-        method = compiledClassCache.get(noArgKey);
-        if (method != null)
-            return method;
-
-        method = resolveHookMethodInternal(compiledClass, hookName, new Object[0]);
-        if (method != null) {
-            compiledClassCache.put(noArgKey, method);
-            return method;
-        }
-
-        return null;
-    }
-
-    /**
-     * Resolve a MethodHandle for the given hook. Faster than Method.invoke().
-     * Uses existing Method resolution, then converts to cached MethodHandle.
+     * Resolve a MethodHandle for the given hook.
+     * Optimized for repeated calls with same hook name - O(1) after first resolution.
      */
     public MethodHandle resolveHookHandle(String hookName, Object[] args, Object compiledInstance) {
         if (hookName == null || hookName.isEmpty() || compiledInstance == null)
             return null;
 
-        Object[] safeArgs = args == null ? new Object[0] : args;
-        String signatureKey = buildSignatureKey(hookName, safeArgs);
-
         Class<?> compiledClass = compiledInstance.getClass();
 
         // Clear cache if compiled class changed (recompilation)
         if (lastCompiledClass != compiledClass) {
-            compiledClassCache.clear();
-            compiledHandleCache.clear();
-            methodToHandle.clear();
+            handleCache.clear();
             lastCompiledClass = compiledClass;
         }
 
-        // Check handle cache
-        MethodHandle handle = compiledHandleCache.get(signatureKey);
-        if (handle != null)
-            return handle;
+        int argCount = args == null ? 0 : args.length;
 
-        // Resolve Method first
-        Method method = resolveHookMethod(hookName, args, compiledInstance);
+        // Fast path: check primary cache by hookName only
+        CachedHandle cached = handleCache.get(hookName);
+        if (cached != null) {
+            // Verify arg count matches (handles most cases without full signature check)
+            if (cached.paramCount == argCount) {
+                return cached.handle;
+            }
+            // Arg count mismatch - need full resolution for potential overload
+        }
+
+        // Slow path: resolve method and cache
+        Method method = resolveMethod(compiledClass, hookName, args);
         if (method == null)
             return null;
 
-        // Convert Method to MethodHandle (deduplicated by Method identity)
-        handle = methodToHandle.get(method);
-        if (handle == null) {
-            try {
-                handle = LOOKUP.unreflect(method);
-                methodToHandle.put(method, handle);
-            } catch (IllegalAccessException e) {
-                return null;
-            }
+        try {
+            MethodHandle handle = LOOKUP.unreflect(method);
+            handleCache.put(hookName, new CachedHandle(handle, method.getParameterCount()));
+            return handle;
+        } catch (IllegalAccessException e) {
+            return null;
         }
-
-        compiledHandleCache.put(signatureKey, handle);
-        return handle;
     }
 
     /**
-     * Build a cache key for a hook name and runtime argument list.
+     * Find the best matching method on the compiled class.
      */
-    private static String buildSignatureKey(String hookName, Object[] args) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(hookName).append('#');
-
-        if (args == null || args.length == 0)
-            return sb.append('0').toString();
-
-        sb.append(args.length).append(':');
-        for (int i = 0; i < args.length; i++) {
-            Object arg = args[i];
-            if (i > 0)
-                sb.append(',');
-
-            sb.append(arg == null ? "null" : arg.getClass().getName());
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Internal resolution routine. Attempts to find the best matching method
-     * on the provided class by comparing parameter counts and a simple
-     * match scoring function.
-     */
-    private static Method resolveHookMethodInternal(Class<?> targetClass, String hookName, Object[] args) {
+    private Method resolveMethod(Class<?> targetClass, String hookName, Object[] args) {
         Object[] safeArgs = args == null ? new Object[0] : args;
 
         Method best = null;
@@ -202,18 +112,31 @@ public final class JaninoHookResolver {
                 continue;
 
             Class<?>[] paramTypes = method.getParameterTypes();
-            if (paramTypes.length != safeArgs.length)
-                continue;
 
-            int score = scoreMethodMatch(paramTypes, safeArgs);
-            if (score == Integer.MAX_VALUE)
-                continue;
+            // Try exact arg count match first
+            if (paramTypes.length == safeArgs.length) {
+                int score = scoreMethodMatch(paramTypes, safeArgs);
+                if (score != Integer.MAX_VALUE && score < bestScore) {
+                    bestScore = score;
+                    best = method;
+                    if (score == 0)
+                        return best; // Perfect match
+                }
+            }
+        }
 
-            if (score < bestScore) {
-                bestScore = score;
-                best = method;
-                if (score == 0)
-                    return best;
+        // If no match with args, try no-arg version
+        if (best == null && safeArgs.length > 0) {
+            for (Method method : targetClass.getMethods()) {
+                if (!method.getName().equals(hookName))
+                    continue;
+                if (Modifier.isFinal(method.getModifiers()))
+                    continue;
+                if (method.getDeclaringClass() == Object.class)
+                    continue;
+                if (method.getParameterCount() == 0) {
+                    return method;
+                }
             }
         }
 
@@ -221,8 +144,8 @@ public final class JaninoHookResolver {
     }
 
     /**
-     * Score how well a method's parameter types match the provided runtime arguments.
-     * Lower scores are better; Integer.MAX_VALUE indicates an incompatible parameter.
+     * Score how well parameter types match runtime arguments.
+     * Lower is better; MAX_VALUE means incompatible.
      */
     private static int scoreMethodMatch(Class<?>[] paramTypes, Object[] args) {
         int score = 0;
@@ -233,7 +156,6 @@ public final class JaninoHookResolver {
             if (arg == null) {
                 if (paramType.isPrimitive())
                     return Integer.MAX_VALUE;
-
                 score += 1;
                 continue;
             }
@@ -251,36 +173,26 @@ public final class JaninoHookResolver {
 
             return Integer.MAX_VALUE;
         }
-
         return score;
     }
 
     private static Class<?> boxType(Class<?> type) {
         if (!type.isPrimitive())
             return type;
-        if (type == boolean.class)
-            return Boolean.class;
-        if (type == byte.class)
-            return Byte.class;
-        if (type == short.class)
-            return Short.class;
-        if (type == int.class)
-            return Integer.class;
-        if (type == long.class)
-            return Long.class;
-        if (type == float.class)
-            return Float.class;
-        if (type == double.class)
-            return Double.class;
-        if (type == char.class)
-            return Character.class;
+        if (type == boolean.class) return Boolean.class;
+        if (type == byte.class) return Byte.class;
+        if (type == short.class) return Short.class;
+        if (type == int.class) return Integer.class;
+        if (type == long.class) return Long.class;
+        if (type == float.class) return Float.class;
+        if (type == double.class) return Double.class;
+        if (type == char.class) return Character.class;
         return type;
     }
 
     private static int inheritanceDistance(Class<?> child, Class<?> parent) {
         if (child.equals(parent))
             return 0;
-
         if (!parent.isAssignableFrom(child))
             return 1000;
 

@@ -48,14 +48,7 @@ public class JaninoScriptHandler<S extends JaninoScript<?>> extends ScriptHandle
     }
 
     public void deleteScript() {
-        unloadScript();
         script = null;
-    }
-
-    public void unloadScript() {
-        if (script != null) {
-            script.unload();
-        }
     }
 
     // -------------------- NBT helpers --------------------

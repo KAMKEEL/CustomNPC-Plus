@@ -6,11 +6,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.RecipeScript;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Controller for managing script hooks.
@@ -30,16 +26,10 @@ public class ScriptHookController implements IScriptHookHandler {
 
     public static ScriptHookController Instance;
 
-    // Built-in hooks per context (legacy string list)
-    private final Map<String, List<String>> builtInHooks = new HashMap<>();
-
-    // Addon-registered hooks per context (legacy string list)
-    private final Map<String, List<String>> addonHooks = new HashMap<>();
-
-    // Rich hook definitions per context (NEW)
+    // Hook definitions per context - single source of truth
     private final Map<String, Map<String, HookDefinition>> hookDefinitions = new HashMap<>();
 
-    // Revision counter for cache invalidation (NEW)
+    // Revision counter for cache invalidation
     private int hookRevision = 0;
 
     public ScriptHookController() {
@@ -48,48 +38,40 @@ public class ScriptHookController implements IScriptHookHandler {
     }
 
     private void initializeBuiltInHooks() {
-        // Initialize empty lists for all contexts from ScriptContext
+        // Initialize empty maps for all contexts from ScriptContext
         for (ScriptContext context : ScriptContext.values()) {
             if (!context.hookContext.isEmpty()) {
-                builtInHooks.put(context.hookContext, new ArrayList<>());
-                addonHooks.put(context.hookContext, new ArrayList<>());
-                hookDefinitions.put(context.hookContext, new HashMap<>());
+                hookDefinitions.put(context.hookContext, new LinkedHashMap<>());
             }
         }
 
-        // NPC hooks with full definitions
+        // NPC hooks
         initializeNpcHooks();
 
-        // Player hooks with full definitions
+        // Player hooks
         initializePlayerHooks();
 
-        // Block hooks with full definitions
+        // Block hooks
         initializeBlockHooks();
 
-        // Item hooks with full definitions
+        // Item hooks
         initializeItemHooks();
 
-        // Linked item hooks with full definitions
+        // Linked item hooks
         initializeLinkedItemHooks();
 
         // Recipe hooks
-        registerBuiltIn(ScriptContext.RECIPE,
-            RecipeScript.ScriptType.PRE.function,
-            RecipeScript.ScriptType.POST.function
-        );
+        registerHookDef(ScriptContext.RECIPE, RecipeScript.ScriptType.PRE.function, null, null);
+        registerHookDef(ScriptContext.RECIPE, RecipeScript.ScriptType.POST.function, null, null);
 
         // Effect hooks
-        registerBuiltIn(ScriptContext.EFFECT,
-            EnumScriptType.ON_EFFECT_ADD.function,
-            EnumScriptType.ON_EFFECT_TICK.function,
-            EnumScriptType.ON_EFFECT_REMOVE.function
-        );
+        registerHookDef(ScriptContext.EFFECT, EnumScriptType.ON_EFFECT_ADD.function, null, null);
+        registerHookDef(ScriptContext.EFFECT, EnumScriptType.ON_EFFECT_TICK.function, null, null);
+        registerHookDef(ScriptContext.EFFECT, EnumScriptType.ON_EFFECT_REMOVE.function, null, null);
 
-        // Forge hooks - init + CNPC-specific hooks, the rest are dynamically discovered from Forge event classes
-        registerBuiltIn(ScriptContext.FORGE,
-            EnumScriptType.INIT.function,
-            EnumScriptType.CNPC_NATURAL_SPAWN.function
-        );
+        // Forge hooks
+        registerHookDef(ScriptContext.FORGE, EnumScriptType.INIT.function, null, null);
+        registerHookDef(ScriptContext.FORGE, EnumScriptType.CNPC_NATURAL_SPAWN.function, null, null);
     }
 
     private void initializeNpcHooks() {
@@ -99,60 +81,37 @@ public class ScriptHookController implements IScriptHookHandler {
         String abilityImport = "noppes.npcs.api.event.IAbilityEvent";
 
         // Core lifecycle
-        registerBuiltInDefinition(ctx, EnumScriptType.INIT.function,
-            "noppes.npcs.api.event.INpcEvent$InitEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TICK.function,
-            "noppes.npcs.api.event.INpcEvent$UpdateEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TIMER.function,
-            "noppes.npcs.api.event.INpcEvent$TimerEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.INIT.function, "noppes.npcs.api.event.INpcEvent$InitEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.TICK.function, "noppes.npcs.api.event.INpcEvent$UpdateEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.TIMER.function, "noppes.npcs.api.event.INpcEvent$TimerEvent", npcImport);
 
         // Interaction
-        registerBuiltInDefinition(ctx, EnumScriptType.INTERACT.function,
-            "noppes.npcs.api.event.INpcEvent$InteractEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.DIALOG.function,
-            "noppes.npcs.api.event.INpcEvent$DialogEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.DIALOG_CLOSE.function,
-            "noppes.npcs.api.event.INpcEvent$DialogClosedEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.COLLIDE.function,
-            "noppes.npcs.api.event.INpcEvent$CollideEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.INTERACT.function, "noppes.npcs.api.event.INpcEvent$InteractEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.DIALOG.function, "noppes.npcs.api.event.INpcEvent$DialogEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.DIALOG_CLOSE.function, "noppes.npcs.api.event.INpcEvent$DialogClosedEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.COLLIDE.function, "noppes.npcs.api.event.INpcEvent$CollideEvent", npcImport);
 
         // Combat
-        registerBuiltInDefinition(ctx, EnumScriptType.DAMAGED.function,
-            "noppes.npcs.api.event.INpcEvent$DamagedEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.KILLED.function,
-            "noppes.npcs.api.event.INpcEvent$DiedEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.KILLS.function,
-            "noppes.npcs.api.event.INpcEvent$KilledEntityEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ATTACK_MELEE.function,
-            "noppes.npcs.api.event.INpcEvent$MeleeAttackEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ATTACK_SWING.function,
-            "noppes.npcs.api.event.INpcEvent$SwingEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.RANGED_LAUNCHED.function,
-            "noppes.npcs.api.event.INpcEvent$RangedLaunchedEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TARGET.function,
-            "noppes.npcs.api.event.INpcEvent$TargetEvent", npcImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TARGET_LOST.function,
-            "noppes.npcs.api.event.INpcEvent$TargetLostEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.DAMAGED.function, "noppes.npcs.api.event.INpcEvent$DamagedEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.KILLED.function, "noppes.npcs.api.event.INpcEvent$DiedEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.KILLS.function, "noppes.npcs.api.event.INpcEvent$KilledEntityEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.ATTACK_MELEE.function, "noppes.npcs.api.event.INpcEvent$MeleeAttackEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.ATTACK_SWING.function, "noppes.npcs.api.event.INpcEvent$SwingEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.RANGED_LAUNCHED.function, "noppes.npcs.api.event.INpcEvent$RangedLaunchedEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.TARGET.function, "noppes.npcs.api.event.INpcEvent$TargetEvent", npcImport);
+        registerHookDef(ctx, EnumScriptType.TARGET_LOST.function, "noppes.npcs.api.event.INpcEvent$TargetLostEvent", npcImport);
 
         // Projectile events
-        registerBuiltInDefinition(ctx, EnumScriptType.PROJECTILE_TICK.function,
-            "noppes.npcs.api.event.IProjectileEvent$UpdateEvent", projImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PROJECTILE_IMPACT.function,
-            "noppes.npcs.api.event.IProjectileEvent$ImpactEvent", projImport);
+        registerHookDef(ctx, EnumScriptType.PROJECTILE_TICK.function, "noppes.npcs.api.event.IProjectileEvent$UpdateEvent", projImport);
+        registerHookDef(ctx, EnumScriptType.PROJECTILE_IMPACT.function, "noppes.npcs.api.event.IProjectileEvent$ImpactEvent", projImport);
 
         // Ability events
-        registerBuiltInDefinition(ctx, EnumScriptType.ABILITY_START.function,
-            "noppes.npcs.api.event.IAbilityEvent$StartEvent", abilityImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ABILITY_EXECUTE.function,
-            "noppes.npcs.api.event.IAbilityEvent$ExecuteEvent", abilityImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ABILITY_HIT.function,
-            "noppes.npcs.api.event.IAbilityEvent$HitEvent", abilityImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ABILITY_TICK.function,
-            "noppes.npcs.api.event.IAbilityEvent$TickEvent", abilityImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ABILITY_INTERRUPT.function,
-            "noppes.npcs.api.event.IAbilityEvent$InterruptEvent", abilityImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ABILITY_COMPLETE.function,
-            "noppes.npcs.api.event.IAbilityEvent$CompleteEvent", abilityImport);
+        registerHookDef(ctx, EnumScriptType.ABILITY_START.function, "noppes.npcs.api.event.IAbilityEvent$StartEvent", abilityImport);
+        registerHookDef(ctx, EnumScriptType.ABILITY_EXECUTE.function, "noppes.npcs.api.event.IAbilityEvent$ExecuteEvent", abilityImport);
+        registerHookDef(ctx, EnumScriptType.ABILITY_HIT.function, "noppes.npcs.api.event.IAbilityEvent$HitEvent", abilityImport);
+        registerHookDef(ctx, EnumScriptType.ABILITY_TICK.function, "noppes.npcs.api.event.IAbilityEvent$TickEvent", abilityImport);
+        registerHookDef(ctx, EnumScriptType.ABILITY_INTERRUPT.function, "noppes.npcs.api.event.IAbilityEvent$InterruptEvent", abilityImport);
+        registerHookDef(ctx, EnumScriptType.ABILITY_COMPLETE.function, "noppes.npcs.api.event.IAbilityEvent$CompleteEvent", abilityImport);
     }
 
     private void initializePlayerHooks() {
@@ -166,238 +125,143 @@ public class ScriptHookController implements IScriptHookHandler {
         String animImport = "noppes.npcs.api.event.IAnimationEvent";
 
         // Core lifecycle
-        registerBuiltInDefinition(ctx, EnumScriptType.INIT.function,
-            "noppes.npcs.api.event.IPlayerEvent$InitEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TICK.function,
-            "noppes.npcs.api.event.IPlayerEvent$UpdateEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TIMER.function,
-            "noppes.npcs.api.event.IPlayerEvent$TimerEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.INIT.function, "noppes.npcs.api.event.IPlayerEvent$InitEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.TICK.function, "noppes.npcs.api.event.IPlayerEvent$UpdateEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.TIMER.function, "noppes.npcs.api.event.IPlayerEvent$TimerEvent", playerImport);
 
         // Combat
-        registerBuiltInDefinition(ctx, EnumScriptType.ATTACK.function,
-            "noppes.npcs.api.event.IPlayerEvent$AttackEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ATTACKED.function,
-            "noppes.npcs.api.event.IPlayerEvent$AttackedEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.DAMAGED.function,
-            "noppes.npcs.api.event.IPlayerEvent$DamagedEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.DAMAGED_ENTITY.function,
-            "noppes.npcs.api.event.IPlayerEvent$DamagedEntityEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.KILLS.function,
-            "noppes.npcs.api.event.IPlayerEvent$KilledEntityEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.KILLED.function,
-            "noppes.npcs.api.event.IPlayerEvent$DiedEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.ATTACK.function, "noppes.npcs.api.event.IPlayerEvent$AttackEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.ATTACKED.function, "noppes.npcs.api.event.IPlayerEvent$AttackedEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.DAMAGED.function, "noppes.npcs.api.event.IPlayerEvent$DamagedEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.DAMAGED_ENTITY.function, "noppes.npcs.api.event.IPlayerEvent$DamagedEntityEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.KILLS.function, "noppes.npcs.api.event.IPlayerEvent$KilledEntityEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.KILLED.function, "noppes.npcs.api.event.IPlayerEvent$DiedEvent", playerImport);
 
         // Interaction
-        registerBuiltInDefinition(ctx, EnumScriptType.INTERACT.function,
-            "noppes.npcs.api.event.IPlayerEvent$InteractEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.RIGHT_CLICK.function,
-            "noppes.npcs.api.event.IPlayerEvent$RightClickEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.BREAK_BLOCK.function,
-            "noppes.npcs.api.event.IPlayerEvent$BreakEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CHAT.function,
-            "noppes.npcs.api.event.IPlayerEvent$ChatEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.INTERACT.function, "noppes.npcs.api.event.IPlayerEvent$InteractEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.RIGHT_CLICK.function, "noppes.npcs.api.event.IPlayerEvent$RightClickEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.BREAK_BLOCK.function, "noppes.npcs.api.event.IPlayerEvent$BreakEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.CHAT.function, "noppes.npcs.api.event.IPlayerEvent$ChatEvent", playerImport);
 
         // Connection
-        registerBuiltInDefinition(ctx, EnumScriptType.LOGIN.function,
-            "noppes.npcs.api.event.IPlayerEvent$LoginEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.LOGOUT.function,
-            "noppes.npcs.api.event.IPlayerEvent$LogoutEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.RESPAWN.function,
-            "noppes.npcs.api.event.IPlayerEvent$RespawnEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.LOGIN.function, "noppes.npcs.api.event.IPlayerEvent$LoginEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.LOGOUT.function, "noppes.npcs.api.event.IPlayerEvent$LogoutEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.RESPAWN.function, "noppes.npcs.api.event.IPlayerEvent$RespawnEvent", playerImport);
 
         // Input
-        registerBuiltInDefinition(ctx, EnumScriptType.KEY_PRESSED.function,
-            "noppes.npcs.api.event.IPlayerEvent$KeyPressedEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.MOUSE_CLICKED.function,
-            "noppes.npcs.api.event.IPlayerEvent$MouseClickedEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.KEY_PRESSED.function, "noppes.npcs.api.event.IPlayerEvent$KeyPressedEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.MOUSE_CLICKED.function, "noppes.npcs.api.event.IPlayerEvent$MouseClickedEvent", playerImport);
 
         // Items
-        registerBuiltInDefinition(ctx, EnumScriptType.PICKUP.function,
-            "noppes.npcs.api.event.IPlayerEvent$PickUpEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TOSS.function,
-            "noppes.npcs.api.event.IPlayerEvent$TossEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.DROP.function,
-            "noppes.npcs.api.event.IPlayerEvent$DropEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PICKUP_XP.function,
-            "noppes.npcs.api.event.IPlayerEvent$PickupXPEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.START_USING_ITEM.function,
-            "noppes.npcs.api.event.IPlayerEvent$StartUsingItem", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.USING_ITEM.function,
-            "noppes.npcs.api.event.IPlayerEvent$UsingItem", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.STOP_USING_ITEM.function,
-            "noppes.npcs.api.event.IPlayerEvent$StopUsingItem", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.FINISH_USING_ITEM.function,
-            "noppes.npcs.api.event.IPlayerEvent$FinishUsingItem", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CONTAINER_OPEN.function,
-            "noppes.npcs.api.event.IPlayerEvent$ContainerOpen", playerImport);
+        registerHookDef(ctx, EnumScriptType.PICKUP.function, "noppes.npcs.api.event.IPlayerEvent$PickUpEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.TOSS.function, "noppes.npcs.api.event.IPlayerEvent$TossEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.DROP.function, "noppes.npcs.api.event.IPlayerEvent$DropEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.PICKUP_XP.function, "noppes.npcs.api.event.IPlayerEvent$PickupXPEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.START_USING_ITEM.function, "noppes.npcs.api.event.IPlayerEvent$StartUsingItem", playerImport);
+        registerHookDef(ctx, EnumScriptType.USING_ITEM.function, "noppes.npcs.api.event.IPlayerEvent$UsingItem", playerImport);
+        registerHookDef(ctx, EnumScriptType.STOP_USING_ITEM.function, "noppes.npcs.api.event.IPlayerEvent$StopUsingItem", playerImport);
+        registerHookDef(ctx, EnumScriptType.FINISH_USING_ITEM.function, "noppes.npcs.api.event.IPlayerEvent$FinishUsingItem", playerImport);
+        registerHookDef(ctx, EnumScriptType.CONTAINER_OPEN.function, "noppes.npcs.api.event.IPlayerEvent$ContainerOpen", playerImport);
 
         // Movement
-        registerBuiltInDefinition(ctx, EnumScriptType.JUMP.function,
-            "noppes.npcs.api.event.IPlayerEvent$JumpEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.FALL.function,
-            "noppes.npcs.api.event.IPlayerEvent$FallEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CHANGED_DIM.function,
-            "noppes.npcs.api.event.IPlayerEvent$ChangedDimension", playerImport);
+        registerHookDef(ctx, EnumScriptType.JUMP.function, "noppes.npcs.api.event.IPlayerEvent$JumpEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.FALL.function, "noppes.npcs.api.event.IPlayerEvent$FallEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.CHANGED_DIM.function, "noppes.npcs.api.event.IPlayerEvent$ChangedDimension", playerImport);
 
         // World
-        registerBuiltInDefinition(ctx, EnumScriptType.RANGED_CHARGE.function,
-            "noppes.npcs.api.event.IPlayerEvent$RangedChargeEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.RANGED_LAUNCHED.function,
-            "noppes.npcs.api.event.IPlayerEvent$RangedLaunchedEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.USE_HOE.function,
-            "noppes.npcs.api.event.IPlayerEvent$UseHoeEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.BONEMEAL.function,
-            "noppes.npcs.api.event.IPlayerEvent$BonemealEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.FILL_BUCKET.function,
-            "noppes.npcs.api.event.IPlayerEvent$FillBucketEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.WAKE_UP.function,
-            "noppes.npcs.api.event.IPlayerEvent$WakeUpEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.SLEEP.function,
-            "noppes.npcs.api.event.IPlayerEvent$SleepEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PLAYSOUND.function,
-            "noppes.npcs.api.event.IPlayerEvent$SoundEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.LIGHTNING.function,
-            "noppes.npcs.api.event.IPlayerEvent$LightningEvent", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.SCRIPT_COMMAND.function,
-            "noppes.npcs.api.event.ICustomNPCsEvent$ScriptedCommandEvent", "noppes.npcs.api.event.ICustomNPCsEvent");
+        registerHookDef(ctx, EnumScriptType.RANGED_CHARGE.function, "noppes.npcs.api.event.IPlayerEvent$RangedChargeEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.RANGED_LAUNCHED.function, "noppes.npcs.api.event.IPlayerEvent$RangedLaunchedEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.USE_HOE.function, "noppes.npcs.api.event.IPlayerEvent$UseHoeEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.BONEMEAL.function, "noppes.npcs.api.event.IPlayerEvent$BonemealEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.FILL_BUCKET.function, "noppes.npcs.api.event.IPlayerEvent$FillBucketEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.WAKE_UP.function, "noppes.npcs.api.event.IPlayerEvent$WakeUpEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.SLEEP.function, "noppes.npcs.api.event.IPlayerEvent$SleepEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.PLAYSOUND.function, "noppes.npcs.api.event.IPlayerEvent$SoundEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.LIGHTNING.function, "noppes.npcs.api.event.IPlayerEvent$LightningEvent", playerImport);
+        registerHookDef(ctx, EnumScriptType.SCRIPT_COMMAND.function, "noppes.npcs.api.event.ICustomNPCsEvent$ScriptedCommandEvent", "noppes.npcs.api.event.ICustomNPCsEvent");
 
         // Quest events
-        registerBuiltInDefinition(ctx, EnumScriptType.QUEST_START.function,
-            "noppes.npcs.api.event.IQuestEvent$QuestStartEvent", questImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.QUEST_COMPLETED.function,
-            "noppes.npcs.api.event.IQuestEvent$QuestCompletedEvent", questImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.QUEST_TURNIN.function,
-            "noppes.npcs.api.event.IQuestEvent$QuestTurnedInEvent", questImport);
+        registerHookDef(ctx, EnumScriptType.QUEST_START.function, "noppes.npcs.api.event.IQuestEvent$QuestStartEvent", questImport);
+        registerHookDef(ctx, EnumScriptType.QUEST_COMPLETED.function, "noppes.npcs.api.event.IQuestEvent$QuestCompletedEvent", questImport);
+        registerHookDef(ctx, EnumScriptType.QUEST_TURNIN.function, "noppes.npcs.api.event.IQuestEvent$QuestTurnedInEvent", questImport);
 
         // Dialog events
-        registerBuiltInDefinition(ctx, EnumScriptType.DIALOG_OPEN.function,
-            "noppes.npcs.api.event.IDialogEvent$DialogOpen", dialogImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.DIALOG_OPTION.function,
-            "noppes.npcs.api.event.IDialogEvent$DialogOption", dialogImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.DIALOG_CLOSE.function,
-            "noppes.npcs.api.event.IDialogEvent$DialogClosed", dialogImport);
+        registerHookDef(ctx, EnumScriptType.DIALOG_OPEN.function, "noppes.npcs.api.event.IDialogEvent$DialogOpen", dialogImport);
+        registerHookDef(ctx, EnumScriptType.DIALOG_OPTION.function, "noppes.npcs.api.event.IDialogEvent$DialogOption", dialogImport);
+        registerHookDef(ctx, EnumScriptType.DIALOG_CLOSE.function, "noppes.npcs.api.event.IDialogEvent$DialogClosed", dialogImport);
 
         // Faction events
-        registerBuiltInDefinition(ctx, EnumScriptType.FACTION_POINTS.function,
-            "noppes.npcs.api.event.IFactionEvent$FactionPoints", factionImport);
+        registerHookDef(ctx, EnumScriptType.FACTION_POINTS.function, "noppes.npcs.api.event.IFactionEvent$FactionPoints", factionImport);
 
         // Custom GUI events
-        registerBuiltInDefinition(ctx, EnumScriptType.CUSTOM_GUI_CLOSED.function,
-            "noppes.npcs.api.event.ICustomGuiEvent$CloseEvent", guiImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CUSTOM_GUI_BUTTON.function,
-            "noppes.npcs.api.event.ICustomGuiEvent$ButtonEvent", guiImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CUSTOM_GUI_SLOT.function,
-            "noppes.npcs.api.event.ICustomGuiEvent$SlotEvent", guiImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CUSTOM_GUI_SLOT_CLICKED.function,
-            "noppes.npcs.api.event.ICustomGuiEvent$SlotClickEvent", guiImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CUSTOM_GUI_SCROLL.function,
-            "noppes.npcs.api.event.ICustomGuiEvent$ScrollEvent", guiImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CUSTOM_GUI_TEXTFIELD.function,
-            "noppes.npcs.api.event.ICustomGuiEvent$UnfocusedEvent", guiImport);
+        registerHookDef(ctx, EnumScriptType.CUSTOM_GUI_CLOSED.function, "noppes.npcs.api.event.ICustomGuiEvent$CloseEvent", guiImport);
+        registerHookDef(ctx, EnumScriptType.CUSTOM_GUI_BUTTON.function, "noppes.npcs.api.event.ICustomGuiEvent$ButtonEvent", guiImport);
+        registerHookDef(ctx, EnumScriptType.CUSTOM_GUI_SLOT.function, "noppes.npcs.api.event.ICustomGuiEvent$SlotEvent", guiImport);
+        registerHookDef(ctx, EnumScriptType.CUSTOM_GUI_SLOT_CLICKED.function, "noppes.npcs.api.event.ICustomGuiEvent$SlotClickEvent", guiImport);
+        registerHookDef(ctx, EnumScriptType.CUSTOM_GUI_SCROLL.function, "noppes.npcs.api.event.ICustomGuiEvent$ScrollEvent", guiImport);
+        registerHookDef(ctx, EnumScriptType.CUSTOM_GUI_TEXTFIELD.function, "noppes.npcs.api.event.ICustomGuiEvent$UnfocusedEvent", guiImport);
 
         // Party events
-        registerBuiltInDefinition(ctx, EnumScriptType.PARTY_QUEST_COMPLETED.function,
-            "noppes.npcs.api.event.IPartyEvent$PartyQuestCompletedEvent", partyImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PARTY_QUEST_SET.function,
-            "noppes.npcs.api.event.IPartyEvent$PartyQuestSetEvent", partyImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PARTY_QUEST_TURNED_IN.function,
-            "noppes.npcs.api.event.IPartyEvent$PartyQuestTurnedInEvent", partyImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PARTY_INVITE.function,
-            "noppes.npcs.api.event.IPartyEvent$PartyInviteEvent", partyImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PARTY_KICK.function,
-            "noppes.npcs.api.event.IPartyEvent$PartyKickEvent", partyImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PARTY_LEAVE.function,
-            "noppes.npcs.api.event.IPartyEvent$PartyLeaveEvent", partyImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PARTY_DISBAND.function,
-            "noppes.npcs.api.event.IPartyEvent$PartyDisbandEvent", partyImport);
+        registerHookDef(ctx, EnumScriptType.PARTY_QUEST_COMPLETED.function, "noppes.npcs.api.event.IPartyEvent$PartyQuestCompletedEvent", partyImport);
+        registerHookDef(ctx, EnumScriptType.PARTY_QUEST_SET.function, "noppes.npcs.api.event.IPartyEvent$PartyQuestSetEvent", partyImport);
+        registerHookDef(ctx, EnumScriptType.PARTY_QUEST_TURNED_IN.function, "noppes.npcs.api.event.IPartyEvent$PartyQuestTurnedInEvent", partyImport);
+        registerHookDef(ctx, EnumScriptType.PARTY_INVITE.function, "noppes.npcs.api.event.IPartyEvent$PartyInviteEvent", partyImport);
+        registerHookDef(ctx, EnumScriptType.PARTY_KICK.function, "noppes.npcs.api.event.IPartyEvent$PartyKickEvent", partyImport);
+        registerHookDef(ctx, EnumScriptType.PARTY_LEAVE.function, "noppes.npcs.api.event.IPartyEvent$PartyLeaveEvent", partyImport);
+        registerHookDef(ctx, EnumScriptType.PARTY_DISBAND.function, "noppes.npcs.api.event.IPartyEvent$PartyDisbandEvent", partyImport);
 
         // Animation events
-        registerBuiltInDefinition(ctx, EnumScriptType.ANIMATION_START.function,
-            "noppes.npcs.api.event.IAnimationEvent$Started", animImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ANIMATION_END.function,
-            "noppes.npcs.api.event.IAnimationEvent$Ended", animImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ANIMATION_FRAME_ENTER.function,
-            "noppes.npcs.api.event.IAnimationEvent$IFrameEvent$Entered", animImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ANIMATION_FRAME_EXIT.function,
-            "noppes.npcs.api.event.IAnimationEvent$IFrameEvent$Exited", animImport);
+        registerHookDef(ctx, EnumScriptType.ANIMATION_START.function, "noppes.npcs.api.event.IAnimationEvent$Started", animImport);
+        registerHookDef(ctx, EnumScriptType.ANIMATION_END.function, "noppes.npcs.api.event.IAnimationEvent$Ended", animImport);
+        registerHookDef(ctx, EnumScriptType.ANIMATION_FRAME_ENTER.function, "noppes.npcs.api.event.IAnimationEvent$IFrameEvent$Entered", animImport);
+        registerHookDef(ctx, EnumScriptType.ANIMATION_FRAME_EXIT.function, "noppes.npcs.api.event.IAnimationEvent$IFrameEvent$Exited", animImport);
 
         // Profile events
-        registerBuiltInDefinition(ctx, EnumScriptType.PROFILE_CHANGE.function,
-            "noppes.npcs.api.event.IPlayerEvent$ProfileEvent$Changed", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PROFILE_REMOVE.function,
-            "noppes.npcs.api.event.IPlayerEvent$ProfileEvent$Removed", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PROFILE_CREATE.function,
-            "noppes.npcs.api.event.IPlayerEvent$ProfileEvent$Create", playerImport);
+        registerHookDef(ctx, EnumScriptType.PROFILE_CHANGE.function, "noppes.npcs.api.event.IPlayerEvent$ProfileEvent$Changed", playerImport);
+        registerHookDef(ctx, EnumScriptType.PROFILE_REMOVE.function, "noppes.npcs.api.event.IPlayerEvent$ProfileEvent$Removed", playerImport);
+        registerHookDef(ctx, EnumScriptType.PROFILE_CREATE.function, "noppes.npcs.api.event.IPlayerEvent$ProfileEvent$Create", playerImport);
 
         // Effect events (for player context)
-        registerBuiltInDefinition(ctx, EnumScriptType.ON_EFFECT_ADD.function,
-            "noppes.npcs.api.event.IPlayerEvent$EffectEvent$Added", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ON_EFFECT_TICK.function,
-            "noppes.npcs.api.event.IPlayerEvent$EffectEvent$Ticked", playerImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ON_EFFECT_REMOVE.function,
-            "noppes.npcs.api.event.IPlayerEvent$EffectEvent$Removed", playerImport);
+        registerHookDef(ctx, EnumScriptType.ON_EFFECT_ADD.function, "noppes.npcs.api.event.IPlayerEvent$EffectEvent$Added", playerImport);
+        registerHookDef(ctx, EnumScriptType.ON_EFFECT_TICK.function, "noppes.npcs.api.event.IPlayerEvent$EffectEvent$Ticked", playerImport);
+        registerHookDef(ctx, EnumScriptType.ON_EFFECT_REMOVE.function, "noppes.npcs.api.event.IPlayerEvent$EffectEvent$Removed", playerImport);
     }
 
     private void initializeBlockHooks() {
         String ctx = ScriptContext.BLOCK.hookContext;
         String blockImport = "noppes.npcs.api.event.IBlockEvent";
 
-        registerBuiltInDefinition(ctx, EnumScriptType.INIT.function,
-            "noppes.npcs.api.event.IBlockEvent$InitEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TICK.function,
-            "noppes.npcs.api.event.IBlockEvent$UpdateEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.INTERACT.function,
-            "noppes.npcs.api.event.IBlockEvent$InteractEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.FALLEN_UPON.function,
-            "noppes.npcs.api.event.IBlockEvent$EntityFallenUponEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.REDSTONE.function,
-            "noppes.npcs.api.event.IBlockEvent$RedstoneEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.BROKEN.function,
-            "noppes.npcs.api.event.IBlockEvent$BreakEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.EXPLODED.function,
-            "noppes.npcs.api.event.IBlockEvent$ExplodedEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.RAIN_FILLED.function,
-            "noppes.npcs.api.event.IBlockEvent$RainFillEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.NEIGHBOR_CHANGED.function,
-            "noppes.npcs.api.event.IBlockEvent$NeighborChangedEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.CLICKED.function,
-            "noppes.npcs.api.event.IBlockEvent$ClickedEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.HARVESTED.function,
-            "noppes.npcs.api.event.IBlockEvent$HarvestedEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.COLLIDE.function,
-            "noppes.npcs.api.event.IBlockEvent$CollidedEvent", blockImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TIMER.function,
-            "noppes.npcs.api.event.IBlockEvent$TimerEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.INIT.function, "noppes.npcs.api.event.IBlockEvent$InitEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.TICK.function, "noppes.npcs.api.event.IBlockEvent$UpdateEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.INTERACT.function, "noppes.npcs.api.event.IBlockEvent$InteractEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.FALLEN_UPON.function, "noppes.npcs.api.event.IBlockEvent$EntityFallenUponEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.REDSTONE.function, "noppes.npcs.api.event.IBlockEvent$RedstoneEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.BROKEN.function, "noppes.npcs.api.event.IBlockEvent$BreakEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.EXPLODED.function, "noppes.npcs.api.event.IBlockEvent$ExplodedEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.RAIN_FILLED.function, "noppes.npcs.api.event.IBlockEvent$RainFillEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.NEIGHBOR_CHANGED.function, "noppes.npcs.api.event.IBlockEvent$NeighborChangedEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.CLICKED.function, "noppes.npcs.api.event.IBlockEvent$ClickedEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.HARVESTED.function, "noppes.npcs.api.event.IBlockEvent$HarvestedEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.COLLIDE.function, "noppes.npcs.api.event.IBlockEvent$CollidedEvent", blockImport);
+        registerHookDef(ctx, EnumScriptType.TIMER.function, "noppes.npcs.api.event.IBlockEvent$TimerEvent", blockImport);
     }
 
     private void initializeItemHooks() {
         String ctx = ScriptContext.ITEM.hookContext;
         String itemImport = "noppes.npcs.api.event.IItemEvent";
 
-        registerBuiltInDefinition(ctx, EnumScriptType.INIT.function,
-            "noppes.npcs.api.event.IItemEvent$InitEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TICK.function,
-            "noppes.npcs.api.event.IItemEvent$UpdateEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TOSSED.function,
-            "noppes.npcs.api.event.IItemEvent$TossedEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PICKEDUP.function,
-            "noppes.npcs.api.event.IItemEvent$PickedUpEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.SPAWN.function,
-            "noppes.npcs.api.event.IItemEvent$SpawnEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.INTERACT.function,
-            "noppes.npcs.api.event.IItemEvent$InteractEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.RIGHT_CLICK.function,
-            "noppes.npcs.api.event.IItemEvent$RightClickEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ATTACK.function,
-            "noppes.npcs.api.event.IItemEvent$AttackEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.START_USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$StartUsingItem", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$UsingItem", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.STOP_USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$StopUsingItem", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.FINISH_USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$FinishUsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.INIT.function, "noppes.npcs.api.event.IItemEvent$InitEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.TICK.function, "noppes.npcs.api.event.IItemEvent$UpdateEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.TOSSED.function, "noppes.npcs.api.event.IItemEvent$TossedEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.PICKEDUP.function, "noppes.npcs.api.event.IItemEvent$PickedUpEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.SPAWN.function, "noppes.npcs.api.event.IItemEvent$SpawnEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.INTERACT.function, "noppes.npcs.api.event.IItemEvent$InteractEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.RIGHT_CLICK.function, "noppes.npcs.api.event.IItemEvent$RightClickEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.ATTACK.function, "noppes.npcs.api.event.IItemEvent$AttackEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.START_USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$StartUsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$UsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.STOP_USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$StopUsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.FINISH_USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$FinishUsingItem", itemImport);
     }
 
     private void initializeLinkedItemHooks() {
@@ -406,95 +270,64 @@ public class ScriptHookController implements IScriptHookHandler {
         String linkedImport = "noppes.npcs.api.event.ILinkedItemEvent";
 
         // Linked item specific hooks
-        registerBuiltInDefinition(ctx, EnumScriptType.LINKED_ITEM_BUILD.function,
-            "noppes.npcs.api.event.ILinkedItemEvent$BuildEvent", linkedImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.LINKED_ITEM_VERSION.function,
-            "noppes.npcs.api.event.ILinkedItemEvent$VersionChangeEvent", linkedImport);
+        registerHookDef(ctx, EnumScriptType.LINKED_ITEM_BUILD.function, "noppes.npcs.api.event.ILinkedItemEvent$BuildEvent", linkedImport);
+        registerHookDef(ctx, EnumScriptType.LINKED_ITEM_VERSION.function, "noppes.npcs.api.event.ILinkedItemEvent$VersionChangeEvent", linkedImport);
 
         // Standard item hooks
-        registerBuiltInDefinition(ctx, EnumScriptType.INIT.function,
-            "noppes.npcs.api.event.IItemEvent$InitEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TICK.function,
-            "noppes.npcs.api.event.IItemEvent$UpdateEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.TOSSED.function,
-            "noppes.npcs.api.event.IItemEvent$TossedEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.PICKEDUP.function,
-            "noppes.npcs.api.event.IItemEvent$PickedUpEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.SPAWN.function,
-            "noppes.npcs.api.event.IItemEvent$SpawnEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.INTERACT.function,
-            "noppes.npcs.api.event.IItemEvent$InteractEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.RIGHT_CLICK.function,
-            "noppes.npcs.api.event.IItemEvent$RightClickEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.ATTACK.function,
-            "noppes.npcs.api.event.IItemEvent$AttackEvent", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.START_USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$StartUsingItem", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$UsingItem", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.STOP_USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$StopUsingItem", itemImport);
-        registerBuiltInDefinition(ctx, EnumScriptType.FINISH_USING_ITEM.function,
-            "noppes.npcs.api.event.IItemEvent$FinishUsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.INIT.function, "noppes.npcs.api.event.IItemEvent$InitEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.TICK.function, "noppes.npcs.api.event.IItemEvent$UpdateEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.TOSSED.function, "noppes.npcs.api.event.IItemEvent$TossedEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.PICKEDUP.function, "noppes.npcs.api.event.IItemEvent$PickedUpEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.SPAWN.function, "noppes.npcs.api.event.IItemEvent$SpawnEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.INTERACT.function, "noppes.npcs.api.event.IItemEvent$InteractEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.RIGHT_CLICK.function, "noppes.npcs.api.event.IItemEvent$RightClickEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.ATTACK.function, "noppes.npcs.api.event.IItemEvent$AttackEvent", itemImport);
+        registerHookDef(ctx, EnumScriptType.START_USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$StartUsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$UsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.STOP_USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$StopUsingItem", itemImport);
+        registerHookDef(ctx, EnumScriptType.FINISH_USING_ITEM.function, "noppes.npcs.api.event.IItemEvent$FinishUsingItem", itemImport);
     }
 
     /**
-     * Register a built-in hook with full definition metadata.
+     * Internal helper to register a hook definition.
      */
-    private void registerBuiltInDefinition(String context, String hookName, String eventClassName, String... imports) {
-        HookDefinition def = HookDefinition.builder(hookName)
-            .eventClass(eventClassName)
-            .requiredImports(imports)
-            .build();
-
+    private void registerHookDef(String context, String hookName, String eventClassName, String... imports) {
         Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
         if (contextDefs == null) {
-            contextDefs = new HashMap<>();
+            contextDefs = new LinkedHashMap<>();
             hookDefinitions.put(context, contextDefs);
         }
-        contextDefs.put(hookName, def);
 
-        // Also register in legacy string list
-        registerBuiltIn(context, hookName);
-    }
-
-    /**
-     * Register built-in hooks for a ScriptContext.
-     */
-    private void registerBuiltIn(ScriptContext context, String... hooks) {
-        registerBuiltIn(context.hookContext, hooks);
-    }
-
-    private void registerBuiltIn(String context, String... hooks) {
-        List<String> list = builtInHooks.get(context);
-        if (list != null) {
-            for (String hook : hooks) {
-                if (!list.contains(hook)) {
-                    list.add(hook);
-                }
-            }
+        HookDefinition.Builder builder = HookDefinition.builder(hookName);
+        if (eventClassName != null) {
+            builder.eventClass(eventClassName);
         }
+        if (imports != null && imports.length > 0 && imports[0] != null) {
+            builder.requiredImports(imports);
+        }
+        contextDefs.put(hookName, builder.build());
     }
 
-    // ==================== RICH HOOK REGISTRATION (NEW API) ====================
+    private void registerHookDef(ScriptContext context, String hookName, String eventClassName, String... imports) {
+        registerHookDef(context.hookContext, hookName, eventClassName, imports);
+    }
+
+    // ==================== PUBLIC API ====================
 
     @Override
     public void registerHookDefinition(String context, IHookDefinition definition) {
-        if (context == null || definition == null || definition.hookName() == null) {
+        if (context == null || definition == null || definition.hookName() == null)
             return;
-        }
 
         Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
         if (contextDefs == null) {
-            contextDefs = new HashMap<>();
+            contextDefs = new LinkedHashMap<>();
             hookDefinitions.put(context, contextDefs);
         }
 
-        // Store as HookDefinition (implementation)
         if (definition instanceof HookDefinition) {
             contextDefs.put(definition.hookName(), (HookDefinition) definition);
         } else {
-            // Convert foreign IHookDefinition to HookDefinition
             HookDefinition def = HookDefinition.builder(definition.hookName())
                 .eventClass(definition.eventClassName())
                 .paramNames(definition.paramNames())
@@ -504,18 +337,13 @@ public class ScriptHookController implements IScriptHookHandler {
             contextDefs.put(definition.hookName(), def);
         }
 
-        // Also add to legacy addon hooks list for backward compatibility
-        registerHook(context, definition.hookName());
-
-        // Increment revision for cache invalidation
         hookRevision++;
     }
 
     @Override
     public IHookDefinition getHookDefinition(String context, String hookName) {
-        if (context == null || hookName == null) {
+        if (context == null || hookName == null)
             return null;
-        }
 
         Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
         return contextDefs != null ? contextDefs.get(hookName) : null;
@@ -523,14 +351,12 @@ public class ScriptHookController implements IScriptHookHandler {
 
     @Override
     public List<IHookDefinition> getAllHookDefinitions(String context) {
-        if (context == null) {
+        if (context == null)
             return Collections.emptyList();
-        }
 
         Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
-        if (contextDefs == null || contextDefs.isEmpty()) {
+        if (contextDefs == null || contextDefs.isEmpty())
             return Collections.emptyList();
-        }
 
         return new ArrayList<>(contextDefs.values());
     }
@@ -542,60 +368,44 @@ public class ScriptHookController implements IScriptHookHandler {
 
     // ==================== CONVENIENCE METHODS ====================
 
-    /**
-     * Convenience method to register a hook using ScriptContext.
-     * @param context The script context
-     * @param functionName The hook function name
-     */
     public void registerHook(ScriptContext context, String functionName) {
         registerHook(context.hookContext, functionName);
     }
 
-    /**
-     * Convenience method to register multiple hooks using ScriptContext.
-     * @param context The script context
-     * @param functionNames The hook function names
-     */
     public void registerHooks(ScriptContext context, String... functionNames) {
         for (String fn : functionNames) {
             registerHook(context.hookContext, fn);
         }
     }
 
-    /**
-     * Convenience method to register a hook definition using ScriptContext.
-     * @param context The script context
-     * @param definition The hook definition
-     */
     public void registerHookDefinition(ScriptContext context, IHookDefinition definition) {
         registerHookDefinition(context.hookContext, definition);
     }
 
-    // ==================== LEGACY HOOK REGISTRATION ====================
+    // ==================== LEGACY API (IScriptHookHandler) ====================
 
     @Override
     public void registerHook(String context, String functionName) {
-        if (context == null || functionName == null || functionName.isEmpty()) {
+        if (context == null || functionName == null || functionName.isEmpty())
             return;
+
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs == null) {
+            contextDefs = new LinkedHashMap<>();
+            hookDefinitions.put(context, contextDefs);
         }
 
-        List<String> hooks = addonHooks.get(context);
-        if (hooks == null) {
-            // Custom context - create it
-            hooks = new ArrayList<>();
-            addonHooks.put(context, hooks);
-        }
-
-        if (!hooks.contains(functionName) && !isBuiltInHook(context, functionName)) {
-            hooks.add(functionName);
+        // Only add if not already present
+        if (!contextDefs.containsKey(functionName)) {
+            contextDefs.put(functionName, HookDefinition.builder(functionName).build());
+            hookRevision++;
         }
     }
 
     @Override
     public void registerHooks(String functionName, String... contexts) {
-        if (functionName == null || functionName.isEmpty() || contexts == null) {
+        if (functionName == null || functionName.isEmpty() || contexts == null)
             return;
-        }
 
         for (String context : contexts) {
             registerHook(context, functionName);
@@ -604,85 +414,57 @@ public class ScriptHookController implements IScriptHookHandler {
 
     @Override
     public void unregisterHook(String context, String functionName) {
-        if (context == null || functionName == null) {
+        if (context == null || functionName == null)
             return;
-        }
 
-        List<String> hooks = addonHooks.get(context);
-        if (hooks != null) {
-            hooks.remove(functionName);
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs != null && contextDefs.remove(functionName) != null) {
+            hookRevision++;
         }
     }
 
     @Override
     public void unregisterHookFromAll(String functionName) {
-        if (functionName == null) {
+        if (functionName == null)
             return;
-        }
 
-        for (List<String> hooks : addonHooks.values()) {
-            hooks.remove(functionName);
+        for (Map<String, HookDefinition> contextDefs : hookDefinitions.values()) {
+            if (contextDefs.remove(functionName) != null) {
+                hookRevision++;
+            }
         }
     }
 
     @Override
     public List<String> getAddonHooks(String context) {
-        List<String> hooks = addonHooks.get(context);
-        return hooks != null ? Collections.unmodifiableList(hooks) : Collections.emptyList();
+        // With unified storage, we can't distinguish addon vs built-in
+        // Return empty for backwards compatibility
+        return Collections.emptyList();
     }
 
     @Override
     public List<String> getAllHooks(String context) {
-        List<String> result = new ArrayList<>();
+        if (context == null)
+            return Collections.emptyList();
 
-        // Add built-in hooks
-        List<String> builtIn = builtInHooks.get(context);
-        if (builtIn != null) {
-            result.addAll(builtIn);
-        }
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs == null || contextDefs.isEmpty())
+            return Collections.emptyList();
 
-        // Add addon hooks
-        List<String> addon = addonHooks.get(context);
-        if (addon != null) {
-            for (String hook : addon) {
-                if (!result.contains(hook)) {
-                    result.add(hook);
-                }
-            }
-        }
-
-        return result;
+        return new ArrayList<>(contextDefs.keySet());
     }
 
     @Override
     public boolean hasHook(String context, String functionName) {
-        if (context == null || functionName == null) {
+        if (context == null || functionName == null)
             return false;
-        }
 
-        return isBuiltInHook(context, functionName) || isAddonHook(context, functionName);
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        return contextDefs != null && contextDefs.containsKey(functionName);
     }
 
     @Override
     public String[] getContexts() {
-        return builtInHooks.keySet().toArray(new String[0]);
-    }
-
-    private boolean isBuiltInHook(String context, String functionName) {
-        List<String> hooks = builtInHooks.get(context);
-        return hooks != null && hooks.contains(functionName);
-    }
-
-    private boolean isAddonHook(String context, String functionName) {
-        List<String> hooks = addonHooks.get(context);
-        return hooks != null && hooks.contains(functionName);
-    }
-
-    /**
-     * Get built-in hooks for a context (used by GUIs for backwards compatibility).
-     */
-    public List<String> getBuiltInHooks(String context) {
-        List<String> hooks = builtInHooks.get(context);
-        return hooks != null ? Collections.unmodifiableList(hooks) : Collections.emptyList();
+        return hookDefinitions.keySet().toArray(new String[0]);
     }
 }

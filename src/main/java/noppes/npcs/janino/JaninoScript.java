@@ -16,10 +16,9 @@ import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
 import java.lang.invoke.MethodHandle;
-import java.security.*;
+import java.security.Permissions;
+import java.security.PrivilegedAction;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class JaninoScript<T> implements IScriptUnit {
@@ -67,7 +66,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
         this.scriptBody = builder.build();
 
-        this.hookResolver = new JaninoHookResolver(type);
+        this.hookResolver = new JaninoHookResolver();
     }
 
     protected JaninoScript(Class<T> type, String[] defaultImports) {
@@ -151,49 +150,6 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         return scriptBody.get();
     }
 
-    public <R> R call(Function<T, R> fn) {
-        ensureCompiled();
-
-        T t = getUnsafe();
-        if (t == null)
-            return null;
-
-//        CodeSource cs = t.getClass().getProtectionDomain().getCodeSource();
-//        ProtectionDomain pd = new ProtectionDomain(cs, new Permissions());
-
-        try {
-            return sandbox.confine((PrivilegedAction<R>) () -> fn.apply(t));
-//            return AccessController.doPrivileged((PrivilegedAction<? extends R>) () -> fn.apply(t), new AccessControlContext(
-//                new ProtectionDomain[] {
-//                    pd
-//                }
-//            ));
-        } catch (Exception e) {
-            appendConsole("Runtime Error: " + e.getMessage());
-            return null;
-        }
-    }
-
-    public void run(Consumer<T> fn) {
-        ensureCompiled();
-
-        T t = getUnsafe();
-        if (t == null)
-            return;
-
-        try {
-            sandbox.confine((PrivilegedAction<Void>) () -> {
-                fn.accept(t);
-                return null;
-            });
-        } catch (Exception e) {
-            appendConsole("Runtime Error: " + e.getMessage());
-        }
-    }
-
-    public void unload() {
-    }
-
     /**
      * Feed the code into the engine and compile it.
      * Rebuilds imports from hook definitions before compilation.
@@ -205,6 +161,8 @@ public abstract class JaninoScript<T> implements IScriptUnit {
             String[] allImports = collectAllImports();
             builder.setDefaultImports(allImports);
 
+            // Rebuild scriptBody to apply new imports
+            this.scriptBody = builder.build();
             scriptBody.setScript(code);
         } catch (InternalCompilerException e ) {
             Throwable parentCause = null;
