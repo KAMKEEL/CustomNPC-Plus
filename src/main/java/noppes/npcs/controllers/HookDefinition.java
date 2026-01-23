@@ -2,32 +2,23 @@ package noppes.npcs.controllers;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import noppes.npcs.api.handler.IHookDefinition;
-import noppes.npcs.janino.annotations.ParamName;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 
 /**
  * Implementation of {@link IHookDefinition} with a fluent builder API.
  *
  * <h3>Usage Examples</h3>
  * <pre>{@code
- * // Full definition with class reference
- * HookDefinition.builder("onDBCTransform")
- *     .eventClass(IDBCEvent.TransformEvent.class)
- *     .paramNames("event")
- *     .requiredImports("com.dbc.api.event.IDBCEvent")
+ * // Recommended: auto-derives imports from event class
+ * HookDefinition.of("onDBCTransform", IDBCEvent.TransformEvent.class);
+ *
+ * // Full control with builder
+ * HookDefinition.builder("onDBCPowerUp")
+ *     .eventClass(IDBCEvent.PowerUpEvent.class)
  *     .cancelable(true)
  *     .build();
  *
- * // String-based (avoids classloading issues)
- * HookDefinition.builder("onDBCPowerUp")
- *     .eventClass("com.dbc.api.event.IDBCEvent$PowerUpEvent")
- *     .requiredImports("com.dbc.api.event.IDBCEvent")
- *     .build();
- *
- * // Simple hook (backward compat, no metadata)
- * HookDefinition.simple("legacyHook");
+ * // Simple hook (no event metadata)
+ * HookDefinition.simple("customHook");
  * }</pre>
  */
 public class HookDefinition implements IHookDefinition {
@@ -38,7 +29,6 @@ public class HookDefinition implements IHookDefinition {
     private final String[] requiredImports;
     private final boolean cancelable;
 
-    // Cached resolved class (transient - not serialized)
     private transient Class<?> cachedEventClass;
     private transient boolean classResolutionAttempted;
 
@@ -100,18 +90,19 @@ public class HookDefinition implements IHookDefinition {
     // ==================== Factory Methods ====================
 
     /**
-     * Create a new builder for a hook definition.
+     * Create a hook definition from a hook name and event class.
+     * Automatically derives imports from the event class.
      *
      * @param hookName The hook function name
-     * @return A new builder instance
+     * @param eventClass The event class (e.g., INpcEvent.InitEvent.class)
+     * @return A hook definition with auto-derived imports
      */
-    public static Builder builder(String hookName) {
-        return new Builder(hookName);
+    public static HookDefinition of(String hookName, Class<?> eventClass) {
+        return builder(hookName).eventClass(eventClass).build();
     }
 
     /**
-     * Create a simple hook definition with just a name (no metadata).
-     * For backward compatibility with legacy hook registration.
+     * Create a simple hook definition with just a name (no event metadata).
      *
      * @param hookName The hook function name
      * @return A minimal hook definition
@@ -121,49 +112,13 @@ public class HookDefinition implements IHookDefinition {
     }
 
     /**
-     * Create a hook definition from an interface method.
-     * Automatically extracts metadata from the method signature and annotations.
+     * Create a new builder for a hook definition.
      *
-     * @param hookName The hook name (may differ from method name)
-     * @param method The method to extract metadata from
-     * @return A hook definition with extracted metadata
+     * @param hookName The hook function name
+     * @return A new builder instance
      */
-    public static HookDefinition fromMethod(String hookName, Method method) {
-        Builder builder = builder(hookName);
-
-        // Extract event type from first parameter
-        if (method.getParameterCount() > 0) {
-            Class<?> eventType = method.getParameterTypes()[0];
-            builder.eventClass(eventType);
-
-            // Extract @Cancelable annotation
-            if (eventType.isAnnotationPresent(Cancelable.class)) {
-                builder.cancelable(true);
-            }
-
-            // Build required imports from event type
-            String importName = getImportForClass(eventType);
-            if (importName != null) {
-                builder.requiredImports(importName);
-            }
-        }
-
-        // Extract parameter names from @ParamName annotations
-        Parameter[] params = method.getParameters();
-        if (params.length > 0) {
-            String[] names = new String[params.length];
-            for (int i = 0; i < params.length; i++) {
-                ParamName annotation = params[i].getAnnotation(ParamName.class);
-                if (annotation != null) {
-                    names[i] = annotation.value();
-                } else {
-                    names[i] = params[i].getType().getSimpleName().toLowerCase();
-                }
-            }
-            builder.paramNames(names);
-        }
-
-        return builder.build();
+    public static Builder builder(String hookName) {
+        return new Builder(hookName);
     }
 
     /**
@@ -182,7 +137,6 @@ public class HookDefinition implements IHookDefinition {
         }
 
         String name = enclosing.getName();
-        // Skip java.lang classes
         if (name.startsWith("java.lang.")) {
             return null;
         }
@@ -192,9 +146,6 @@ public class HookDefinition implements IHookDefinition {
 
     // ==================== Builder ====================
 
-    /**
-     * Builder for creating HookDefinition instances with a fluent API.
-     */
     public static class Builder {
         private final String hookName;
         private String eventClassName;
@@ -210,27 +161,18 @@ public class HookDefinition implements IHookDefinition {
         }
 
         /**
-         * Set the event class by name (avoids classloading issues).
-         *
-         * @param className Full qualified class name (use $ for nested classes)
-         * @return this builder
-         */
-        public Builder eventClass(String className) {
-            this.eventClassName = className;
-            return this;
-        }
-
-        /**
-         * Set the event class directly (convenience method).
-         * The class name will be extracted automatically.
-         *
-         * @param clazz The event class
-         * @return this builder
+         * Set the event class directly.
+         * Automatically derives: class name, required imports, and cancelable status.
          */
         public Builder eventClass(Class<?> clazz) {
             if (clazz != null) {
                 this.eventClassName = clazz.getName();
-                // Auto-detect cancelable
+
+                String importName = getImportForClass(clazz);
+                if (importName != null) {
+                    this.requiredImports = new String[]{importName};
+                }
+
                 if (clazz.isAnnotationPresent(Cancelable.class)) {
                     this.cancelable = true;
                 }
@@ -239,10 +181,15 @@ public class HookDefinition implements IHookDefinition {
         }
 
         /**
+         * Set the event class by name (for addon classes that may not be loaded).
+         */
+        public Builder eventClass(String className) {
+            this.eventClassName = className;
+            return this;
+        }
+
+        /**
          * Set parameter names for stub generation.
-         *
-         * @param names Parameter names
-         * @return this builder
          */
         public Builder paramNames(String... names) {
             this.paramNames = names;
@@ -250,10 +197,7 @@ public class HookDefinition implements IHookDefinition {
         }
 
         /**
-         * Set required imports for this hook's event type.
-         *
-         * @param imports Fully qualified class names to import
-         * @return this builder
+         * Set required imports (only needed if using eventClass(String)).
          */
         public Builder requiredImports(String... imports) {
             this.requiredImports = imports;
@@ -262,20 +206,12 @@ public class HookDefinition implements IHookDefinition {
 
         /**
          * Set whether the event is cancelable.
-         *
-         * @param cancelable true if the event can be canceled
-         * @return this builder
          */
         public Builder cancelable(boolean cancelable) {
             this.cancelable = cancelable;
             return this;
         }
 
-        /**
-         * Build the hook definition.
-         *
-         * @return A new HookDefinition instance
-         */
         public HookDefinition build() {
             return new HookDefinition(this);
         }
@@ -285,19 +221,14 @@ public class HookDefinition implements IHookDefinition {
 
     @Override
     public String toString() {
-        return "HookDefinition{" +
-            "hookName='" + hookName + '\'' +
-            ", eventClassName='" + eventClassName + '\'' +
-            ", cancelable=" + cancelable +
-            '}';
+        return "HookDefinition{hookName='" + hookName + "', eventClass='" + eventClassName + "'}";
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof HookDefinition)) return false;
-        HookDefinition other = (HookDefinition) obj;
-        return hookName.equals(other.hookName);
+        return hookName.equals(((HookDefinition) obj).hookName);
     }
 
     @Override
