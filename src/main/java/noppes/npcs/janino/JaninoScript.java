@@ -9,6 +9,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IHookDefinition;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.IScriptUnit;
@@ -23,6 +24,7 @@ import java.util.function.Supplier;
 
 public abstract class JaninoScript<T> implements IScriptUnit {
 
+    public ScriptContext context = ScriptContext.GLOBAL;
     public boolean errored = false;
     public String script = "";
     public List<String> externalScripts = new ArrayList<>();
@@ -59,7 +61,9 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this(type, defaultImports, false);
     }
 
-    protected abstract String getHookContext();
+    protected String getHookContext(){
+        return this.context.hookContext;
+    }
 
     // ==================== COMPILATION ====================
 
