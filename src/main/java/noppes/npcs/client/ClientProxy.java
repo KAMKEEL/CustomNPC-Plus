@@ -6,6 +6,8 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.client.renderer.TelegraphRenderer;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -138,9 +140,6 @@ import noppes.npcs.client.renderer.RenderNpcCrystal;
 import noppes.npcs.client.renderer.RenderNpcDragon;
 import noppes.npcs.client.renderer.RenderNpcSlime;
 import noppes.npcs.client.renderer.RenderProjectile;
-import kamkeel.npcs.client.renderer.TelegraphRenderer;
-import noppes.npcs.scripted.item.ScriptCustomItem;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -214,6 +213,7 @@ import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.InventoryTabVanilla;
@@ -635,7 +635,7 @@ public class ClientProxy extends CommonProxy {
 
         return GuiScriptInterface.create(null, (TileScripted) tile);
     }
-    
+
 
     @Override
     public void spawnParticle(EntityLivingBase player, String string, Object... ob) {

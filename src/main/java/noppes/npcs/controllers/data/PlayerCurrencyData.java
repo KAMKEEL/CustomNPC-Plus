@@ -99,6 +99,7 @@ public class PlayerCurrencyData implements IPlayerCurrencyData {
 
     /**
      * Add currency to balance (deposit)
+     *
      * @param amount Amount to add
      * @return true if successful, false if would exceed max balance
      */
@@ -135,6 +136,7 @@ public class PlayerCurrencyData implements IPlayerCurrencyData {
 
     /**
      * Remove currency from balance (withdraw)
+     *
      * @param amount Amount to remove
      * @return true if successful, false if insufficient funds
      */

@@ -238,9 +238,9 @@ public class RoleTrader extends RoleInterface {
      * Consume stock after purchase.
      * For shared stock, syncs all viewers (market-wide for linked markets, per-NPC otherwise).
      *
-     * @param slot The slot purchased from
+     * @param slot       The slot purchased from
      * @param playerName The player making the purchase
-     * @param amount Amount to consume
+     * @param amount     Amount to consume
      * @return true if stock was consumed successfully
      */
     public boolean consumeStock(int slot, String playerName, int amount) {
@@ -284,6 +284,7 @@ public class RoleTrader extends RoleInterface {
     /**
      * Get time until stock reset in real-time milliseconds.
      * Converts MC ticks to approximate real-time for client countdown display.
+     *
      * @return Remaining time in milliseconds, or -1 if no reset scheduled
      */
     public long getResetTimeRemainingMillis() {

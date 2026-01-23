@@ -270,41 +270,41 @@ public class ScriptContainer implements IScriptUnit {
             this.evaluated = false;
         }
     }
-    
+
     // ==================== IScriptUnit IMPLEMENTATION ====================
-    
+
     @Override
     public String getScript() {
         return this.script;
     }
-    
+
     @Override
     public void setScript(String script) {
         this.script = script;
         this.evaluated = false;
     }
-    
+
     @Override
     public List<String> getExternalScripts() {
         return this.scripts;
     }
-    
+
     @Override
     public void setExternalScripts(List<String> scripts) {
         this.scripts = scripts;
         this.evaluated = false;
     }
-    
+
     @Override
     public TreeMap<Long, String> getConsole() {
         return this.console;
     }
-    
+
     @Override
     public void clearConsole() {
         this.console.clear();
     }
-    
+
     @Override
     public String getLanguage() {
         // If a specific language is set for this container, use it
@@ -314,7 +314,7 @@ public class ScriptContainer implements IScriptUnit {
         }
         return handler != null ? handler.getLanguage() : "ECMAScript";
     }
-    
+
     @Override
     public void setLanguage(String language) {
         if (!Objects.equals(this.currentScriptLanguage, language)) {
@@ -322,7 +322,7 @@ public class ScriptContainer implements IScriptUnit {
             this.evaluated = false;
         }
     }
-    
+
     @Override
     public String generateHookStub(String hookName, Object hookData) {
         // ECMAScript function template
@@ -330,13 +330,14 @@ public class ScriptContainer implements IScriptUnit {
     }
 
     @Override
-    public void ensureCompiled() {}
+    public void ensureCompiled() {
+    }
 
     @Override
     public boolean hasErrored() {
         return this.errored;
     }
-    
+
     @Override
     public void setErrored(boolean errored) {
         this.errored = errored;

@@ -67,14 +67,13 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ServerChatEvent;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.DataAbilities;
 import noppes.npcs.DataAI;
+import noppes.npcs.DataAbilities;
 import noppes.npcs.DataAdvanced;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.DataInventory;
@@ -96,12 +95,12 @@ import noppes.npcs.ai.EntityAIDodgeShoot;
 import noppes.npcs.ai.EntityAIFindShade;
 import noppes.npcs.ai.EntityAIFollow;
 import noppes.npcs.ai.EntityAIJob;
+import noppes.npcs.ai.EntityAILeapAtTargetNpc;
 import noppes.npcs.ai.EntityAILook;
 import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIMovingPath;
 import noppes.npcs.ai.EntityAIOrbitTarget;
 import noppes.npcs.ai.EntityAIPanic;
-import noppes.npcs.ai.EntityAILeapAtTargetNpc;
 import noppes.npcs.ai.EntityAIPounceTarget;
 import noppes.npcs.ai.EntityAIRangedAttack;
 import noppes.npcs.ai.EntityAIReturn;
@@ -155,8 +154,8 @@ import noppes.npcs.roles.JobFollower;
 import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
-import noppes.npcs.roles.RoleMount;
 import noppes.npcs.roles.RoleInterface;
+import noppes.npcs.roles.RoleMount;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
@@ -2150,7 +2149,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     protected boolean handleMountedMovement(float strafe, float forward) {
         return NPCMountUtil.handleMountedMovement(this, mountState, strafe, forward);
     }
-    
+
     public void performMountedMovement(float strafe, float forward, float moveSpeed) {
         this.moveStrafing = strafe;
         this.moveForward = forward;

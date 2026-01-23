@@ -41,7 +41,8 @@ public class TraderStock {
 
     /**
      * Get available stock for a slot
-     * @param slot The slot index
+     *
+     * @param slot       The slot index
      * @param playerName The player name (for per-player mode)
      * @return Available stock count, or Integer.MAX_VALUE if unlimited
      */
@@ -73,6 +74,7 @@ public class TraderStock {
 
     /**
      * Consume stock when purchase is made
+     *
      * @return true if successful, false if insufficient stock
      */
     public synchronized boolean consumeStock(int slot, String playerName, int amount) {
@@ -98,6 +100,7 @@ public class TraderStock {
 
     /**
      * Check if stock should reset based on current time
+     *
      * @param currentTime Current MC world time (ticks) or real time (ms) depending on reset type
      */
     public boolean shouldReset(long currentTime) {
@@ -113,6 +116,7 @@ public class TraderStock {
 
     /**
      * Reset all stock to max values
+     *
      * @param currentTime Current time to record as reset time
      */
     public synchronized void resetStock(long currentTime) {
@@ -129,6 +133,7 @@ public class TraderStock {
 
     /**
      * Get reset interval based on reset type
+     *
      * @return Interval in ticks (MC time) or milliseconds (real time)
      */
     public long getResetInterval() {
@@ -152,6 +157,7 @@ public class TraderStock {
 
     /**
      * Get time until next reset
+     *
      * @param currentTime Current time
      * @return Time remaining until reset, or -1 if no reset scheduled
      */
@@ -166,6 +172,7 @@ public class TraderStock {
 
     /**
      * Format time until reset for display
+     *
      * @param currentTime Current time
      * @return Formatted string like "2 hours" or "1 day, 5 hours"
      */
@@ -183,7 +190,7 @@ public class TraderStock {
 
             if (days > 0) {
                 return days + " day" + (days != 1 ? "s" : "") +
-                       (hours > 0 ? ", " + hours + " hour" + (hours != 1 ? "s" : "") : "");
+                    (hours > 0 ? ", " + hours + " hour" + (hours != 1 ? "s" : "") : "");
             } else if (hours > 0) {
                 return hours + " hour" + (hours != 1 ? "s" : "");
             } else {
@@ -198,7 +205,7 @@ public class TraderStock {
 
             if (mcDays > 0) {
                 return mcDays + " MC day" + (mcDays != 1 ? "s" : "") +
-                       (mcHours > 0 ? ", " + mcHours + " MC hour" + (mcHours != 1 ? "s" : "") : "");
+                    (mcHours > 0 ? ", " + mcHours + " MC hour" + (mcHours != 1 ? "s" : "") : "");
             } else {
                 return mcHours + " MC hour" + (mcHours != 1 ? "s" : "");
             }
@@ -220,6 +227,7 @@ public class TraderStock {
     /**
      * Validate and clamp all current stock values to not exceed max stock.
      * Should be called when trader GUI opens to ensure consistency.
+     *
      * @return true if any stock was clamped
      */
     public boolean validateStock() {

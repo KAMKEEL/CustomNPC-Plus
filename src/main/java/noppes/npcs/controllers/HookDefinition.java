@@ -97,7 +97,7 @@ public class HookDefinition implements IHookDefinition {
      * Create a hook definition from a hook name and event class.
      * Automatically derives imports from the event class.
      *
-     * @param hookName The hook function name
+     * @param hookName   The hook function name
      * @param eventClass The event class (e.g., INpcEvent.InitEvent.class)
      * @return A hook definition with auto-derived imports
      */
@@ -131,7 +131,7 @@ public class HookDefinition implements IHookDefinition {
      * This provides backward compatibility with the annotation-based hook definition approach.
      *
      * @param hookName The hook name (may differ from method name)
-     * @param method The method to extract metadata from
+     * @param method   The method to extract metadata from
      * @return A hook definition with extracted metadata
      */
     public static HookDefinition fromMethod(String hookName, Method method) {
@@ -165,7 +165,7 @@ public class HookDefinition implements IHookDefinition {
                 } else {
                     // Fallback: use lowercase simple type name
                     names[i] = Character.toLowerCase(params[i].getType().getSimpleName().charAt(0))
-                             + params[i].getType().getSimpleName().substring(1);
+                        + params[i].getType().getSimpleName().substring(1);
                 }
             }
             builder.paramNames(names);

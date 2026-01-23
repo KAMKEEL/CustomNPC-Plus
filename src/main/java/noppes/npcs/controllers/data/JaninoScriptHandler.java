@@ -11,13 +11,13 @@ import java.util.function.Supplier;
 
 /**
  * Reusable IScriptHandler implementation for objects that own an optional single JaninoScript unit.
- *
+ * <p>
  * This is meant for "function provider" scripts (not EnumScriptType driven). Execution is typically
  * initiated by the owning system calling script.call(...) directly.
- *
+ * <p>
  * NBT storage is kept under the parent compound key "Script" (same convention as JaninoScriptable).
  */
-public class JaninoScriptHandler<S extends JaninoScript<?>> extends ScriptHandler    {
+public class JaninoScriptHandler<S extends JaninoScript<?>> extends ScriptHandler {
 
     protected S script;
 
@@ -41,9 +41,9 @@ public class JaninoScriptHandler<S extends JaninoScript<?>> extends ScriptHandle
     }
 
     public JaninoScript createScript() {
-        if (script == null) 
+        if (script == null)
             script = factory.get();
-        
+
         return script;
     }
 
@@ -96,9 +96,9 @@ public class JaninoScriptHandler<S extends JaninoScript<?>> extends ScriptHandle
 
     @Override
     public List<IScriptUnit> getScripts() {
-        if (script == null) 
+        if (script == null)
             return Collections.emptyList();
-        
+
         return Collections.<IScriptUnit>singletonList(script);
     }
 

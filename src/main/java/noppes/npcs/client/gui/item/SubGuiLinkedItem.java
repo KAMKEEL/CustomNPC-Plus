@@ -13,7 +13,6 @@ import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
-import noppes.npcs.controllers.data.LinkedItemScript;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -26,6 +25,7 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.controllers.data.LinkedItemScript;
 import org.lwjgl.opengl.GL11;
 
 public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListener, GuiYesNoCallback, ISubGuiListener {
@@ -120,8 +120,8 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         GuiNpcTextField digSpeedField = new GuiNpcTextField(12, this, x + 110, y, 50, 20, "" + linkedItem.digSpeed);
         digSpeedField.setIntegersOnly().setMinMaxDefault(0, 20, 1);
         addTextField(digSpeedField);
-        GuiNpcTextField attackSpeedField = new GuiNpcTextField(14, this, x +165, y, 50, 20, "" +linkedItem.attackSpeed);
-        attackSpeedField.setIntegersOnly().setMinMaxDefault(0,999999999,20);
+        GuiNpcTextField attackSpeedField = new GuiNpcTextField(14, this, x + 165, y, 50, 20, "" + linkedItem.attackSpeed);
+        attackSpeedField.setIntegersOnly().setMinMaxDefault(0, 999999999, 20);
         addTextField(attackSpeedField);
 
         y += spacing;

@@ -2,9 +2,7 @@ package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.ScriptContext;
-import noppes.npcs.scripted.event.player.PlayerEvent;
 
 /**
  * Script handler for CustomEffect scripts.
@@ -12,7 +10,9 @@ import noppes.npcs.scripted.event.player.PlayerEvent;
  */
 public class EffectScript extends SingleScriptHandler implements IScriptHandlerPacket {
 
-    /** The effect ID for packet communication. -1 if not bound to an effect. */
+    /**
+     * The effect ID for packet communication. -1 if not bound to an effect.
+     */
     private int effectId = -1;
 
     /**
@@ -23,6 +23,7 @@ public class EffectScript extends SingleScriptHandler implements IScriptHandlerP
 
     /**
      * Create an EffectScript bound to a specific effect (for GUI use).
+     *
      * @param effectId The ID of the CustomEffect
      */
     public EffectScript(int effectId) {

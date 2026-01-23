@@ -41,7 +41,7 @@ public class ItemNpcScripter extends Item {
             }
             return itemStack;
         }
-        
+
         CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, player);
         return itemStack;
     }

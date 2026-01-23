@@ -7,13 +7,11 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Base class for script handlers that manage multiple script containers (tabs).
  * Provides shared NBT serialization and common script execution patterns.
- *
+ * <p>
  * Subclasses should:
  * - Override getContext() to return the appropriate ScriptContext
  * - Override getHookContext() if not using ScriptContext's hookContext
@@ -21,7 +19,7 @@ import java.util.TreeMap;
  * - Override isEnabled() if custom enable logic is needed
  */
 public abstract class MultiScriptHandler extends ScriptHandler implements IScriptHandlerPacket {
-    
+
     // ==================== NBT SERIALIZATION ====================
 
     /**

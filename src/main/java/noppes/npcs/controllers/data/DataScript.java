@@ -312,6 +312,7 @@ public class DataScript implements IScriptHandlerPacket {
     public Collection<ScriptContainer> getNPCScripts() {
         return this.scripts.values();
     }
+
     @Override
     public IScriptUnit createJaninoScriptUnit() {
         return new EventJaninoScript(ScriptContext.NPC);

@@ -10,7 +10,14 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiMenuTopButton;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.ISubGuiListener;
+import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +25,13 @@ import java.util.List;
 /**
  * Base SubGui for editing ability configuration with tabbed interface.
  * Uses GuiMenuTopButton for navigation tabs.
- *
+ * <p>
  * Tabs:
  * - General: Name, Weight, Lock Movement, Interruptible, Timing
  * - Type: Type-specific settings per Ability (override in subclasses)
  * - Target: Min/Max Range, Targeting Mode, Conditions (up to 3)
  * - Effects: Sounds, Animations, Telegraph settings, Colors
- *
+ * <p>
  * Subclasses should override initTypeTab() and handleTypeButton()/handleTypeTextField()
  * to provide type-specific settings UI.
  */
@@ -376,13 +383,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         String typeId = cond.getTypeId();
         switch (typeId) {
             case "hp_above":
-                return StatCollector.translateToLocal("condition.hp_above") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+                return StatCollector.translateToLocal("condition.hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
             case "hp_below":
-                return StatCollector.translateToLocal("condition.hp_below") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+                return StatCollector.translateToLocal("condition.hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
             case "target_hp_above":
-                return StatCollector.translateToLocal("condition.target_hp_above") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+                return StatCollector.translateToLocal("condition.target_hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
             case "target_hp_below":
-                return StatCollector.translateToLocal("condition.target_hp_below") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+                return StatCollector.translateToLocal("condition.target_hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
             case "hit_count":
                 Condition.ConditionHitCount hitCount = (Condition.ConditionHitCount) cond;
                 return StatCollector.translateToLocal("condition.hit_count") + ": " + hitCount.getRequiredHits() + "/" + hitCount.getWithinTicks() + "t";
@@ -566,8 +573,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // General tab buttons
         else if (id == 14) {
             interruptible = ((GuiNpcButton) guibutton).getValue() == 1;
-        }
-        else if (id == 16) {
+        } else if (id == 16) {
             lockMovement = ((GuiNpcButton) guibutton).getValue() == 1;
         }
 
@@ -619,12 +625,10 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         else if (id == 20) {
             showTelegraph = ((GuiNpcButton) guibutton).getValue() == 1;
             initGui();
-        }
-        else if (id == 22) {
+        } else if (id == 22) {
             editingColorId = 22;
             setSubGui(new SubGuiColorSelector(windUpColor));
-        }
-        else if (id == 24) {
+        } else if (id == 24) {
             editingColorId = 24;
             setSubGui(new SubGuiColorSelector(activeColor));
         }
@@ -633,8 +637,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         else if (id == 30) {
             editingSoundId = 30;
             setSubGui(new GuiSoundSelection(windUpSound));
-        }
-        else if (id == 31) {
+        } else if (id == 31) {
             editingSoundId = 31;
             setSubGui(new GuiSoundSelection(activeSound));
         }
@@ -642,8 +645,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         else if (id == 35) {
             windUpSound = "";
             initGui();
-        }
-        else if (id == 36) {
+        } else if (id == 36) {
             activeSound = "";
             initGui();
         }
@@ -651,8 +653,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         else if (id == 32) {
             editingAnimationId = 32;
             setSubGui(new GuiAnimationSelection(windUpAnimationId));
-        }
-        else if (id == 33) {
+        } else if (id == 33) {
             editingAnimationId = 33;
             setSubGui(new GuiAnimationSelection(activeAnimationId));
         }
@@ -661,8 +662,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             windUpAnimationId = -1;
             windUpAnimationName = null;
             initGui();
-        }
-        else if (id == 38) {
+        } else if (id == 38) {
             activeAnimationId = -1;
             activeAnimationName = null;
             initGui();

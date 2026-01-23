@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Projectile ability type-specific settings.
@@ -79,19 +79,33 @@ public class SubGuiAbilityProjectile extends SubGuiAbilityConfig {
                 String[] projTypes = {"fireball", "arrow", "magic"};
                 projectile.setProjectileType(projTypes[value]);
                 break;
-            case 104: projectile.setExplosive(value == 1); break;
-            case 106: projectile.setHoming(value == 1); break;
+            case 104:
+                projectile.setExplosive(value == 1);
+                break;
+            case 106:
+                projectile.setHoming(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: projectile.setDamage(parseFloat(field, projectile.getDamage())); break;
-            case 101: projectile.setSpeed(parseFloat(field, projectile.getSpeed())); break;
-            case 102: projectile.setKnockback(parseFloat(field, projectile.getKnockback())); break;
-            case 105: projectile.setExplosionRadius(parseFloat(field, projectile.getExplosionRadius())); break;
-            case 107: projectile.setHomingStrength(parseFloat(field, projectile.getHomingStrength())); break;
+            case 100:
+                projectile.setDamage(parseFloat(field, projectile.getDamage()));
+                break;
+            case 101:
+                projectile.setSpeed(parseFloat(field, projectile.getSpeed()));
+                break;
+            case 102:
+                projectile.setKnockback(parseFloat(field, projectile.getKnockback()));
+                break;
+            case 105:
+                projectile.setExplosionRadius(parseFloat(field, projectile.getExplosionRadius()));
+                break;
+            case 107:
+                projectile.setHomingStrength(parseFloat(field, projectile.getHomingStrength()));
+                break;
         }
     }
 }

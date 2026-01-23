@@ -8,13 +8,12 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IHookDefinition;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.controllers.HookDefinition;
-import noppes.npcs.janino.annotations.ParamName;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.IScriptUnit;
+import noppes.npcs.janino.annotations.ParamName;
 import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
@@ -23,7 +22,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -54,7 +60,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this.type = type;
         this.defaultImports = defaultImports != null ? defaultImports : new String[0];
         this.builder = IScriptBodyBuilder.getBuilder(type,
-            isClient ? CustomNpcs.getClientCompiler() : CustomNpcs.getDynamicCompiler())
+                isClient ? CustomNpcs.getClientCompiler() : CustomNpcs.getDynamicCompiler())
             .setDefaultImports(this.defaultImports);
 
         Permissions permissions = new Permissions();
@@ -67,7 +73,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this(type, defaultImports, false);
     }
 
-    protected String getHookContext(){
+    protected String getHookContext() {
         return this.context.hookContext;
     }
 
@@ -326,7 +332,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public static String generateMethodStub(Method method) {
         String mods = Modifier.toString(method.getModifiers());
         mods = mods.replace("abstract ", "").replace("abstract", "")
-                   .replace("default ", "").replace("default", "").trim();
+            .replace("default ", "").replace("default", "").trim();
         if (!mods.isEmpty()) mods += " ";
 
         String returnTypeStr = getUsableTypeName(method.getReturnType());
@@ -346,7 +352,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
             } else {
                 // Fallback to generated name
                 String baseName = Character.toLowerCase(p.getType().getSimpleName().charAt(0))
-                                + p.getType().getSimpleName().substring(1);
+                    + p.getType().getSimpleName().substring(1);
                 int count = typeCount.getOrDefault(baseName, 0) + 1;
                 typeCount.put(baseName, count);
                 paramName = count == 1 ? baseName : baseName + (count - 1);
@@ -393,7 +399,10 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     // ==================== IScriptUnit ====================
 
-    @Override public String getScript() { return script; }
+    @Override
+    public String getScript() {
+        return script;
+    }
 
     @Override
     public void setScript(String script) {
@@ -402,7 +411,10 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         hookResolver.clearResolutionCaches();
     }
 
-    @Override public List<String> getExternalScripts() { return externalScripts; }
+    @Override
+    public List<String> getExternalScripts() {
+        return externalScripts;
+    }
 
     @Override
     public void setExternalScripts(List<String> scripts) {
@@ -411,8 +423,15 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         hookResolver.clearResolutionCaches();
     }
 
-    @Override public TreeMap<Long, String> getConsole() { return console; }
-    @Override public void clearConsole() { console.clear(); }
+    @Override
+    public TreeMap<Long, String> getConsole() {
+        return console;
+    }
+
+    @Override
+    public void clearConsole() {
+        console.clear();
+    }
 
     @Override
     public void appendConsole(String message) {
@@ -427,16 +446,29 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         }
     }
 
-    @Override public String getLanguage() { return "Java"; }
-    @Override public void setLanguage(String language) { }
+    @Override
+    public String getLanguage() {
+        return "Java";
+    }
+
+    @Override
+    public void setLanguage(String language) {
+    }
 
     @Override
     public boolean hasCode() {
         return !externalScripts.isEmpty() || (script != null && !script.isEmpty());
     }
 
-    @Override public boolean hasErrored() { return errored; }
-    @Override public void setErrored(boolean errored) { this.errored = errored; }
+    @Override
+    public boolean hasErrored() {
+        return errored;
+    }
+
+    @Override
+    public void setErrored(boolean errored) {
+        this.errored = errored;
+    }
 
     // ==================== NBT ====================
 

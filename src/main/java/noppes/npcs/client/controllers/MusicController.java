@@ -199,6 +199,7 @@ public class MusicController {
     /**
      * Stops a specific sound by its resource key.
      * This is used to stop dialog sounds without affecting Bard music.
+     *
      * @param soundKey The sound resource key to stop
      */
     public void stopSound(String soundKey) {

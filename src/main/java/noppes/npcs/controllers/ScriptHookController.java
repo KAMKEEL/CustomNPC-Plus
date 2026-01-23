@@ -1,16 +1,43 @@
 package noppes.npcs.controllers;
 
-import noppes.npcs.api.event.*;
+import noppes.npcs.api.event.IAbilityEvent;
+import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IBlockEvent;
+import noppes.npcs.api.event.ICustomGuiEvent;
+import noppes.npcs.api.event.ICustomNPCsEvent;
+import noppes.npcs.api.event.IDialogEvent;
+import noppes.npcs.api.event.IFactionEvent;
+import noppes.npcs.api.event.IForgeEvent;
+import noppes.npcs.api.event.IItemEvent;
+import noppes.npcs.api.event.ILinkedItemEvent;
+import noppes.npcs.api.event.INpcEvent;
+import noppes.npcs.api.event.IPartyEvent;
+import noppes.npcs.api.event.IPlayerEvent;
+import noppes.npcs.api.event.IProjectileEvent;
+import noppes.npcs.api.event.IQuestEvent;
+import noppes.npcs.api.event.IRecipeEvent;
 import noppes.npcs.api.handler.IHookDefinition;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.RecipeScript;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static noppes.npcs.constants.EnumScriptType.*;
-import static noppes.npcs.constants.ScriptContext.*;
+import static noppes.npcs.constants.ScriptContext.BLOCK;
+import static noppes.npcs.constants.ScriptContext.EFFECT;
+import static noppes.npcs.constants.ScriptContext.FORGE;
+import static noppes.npcs.constants.ScriptContext.ITEM;
+import static noppes.npcs.constants.ScriptContext.LINKED_ITEM;
+import static noppes.npcs.constants.ScriptContext.NPC;
+import static noppes.npcs.constants.ScriptContext.PLAYER;
+import static noppes.npcs.constants.ScriptContext.RECIPE;
 
 /**
  * Controller for managing script hooks.
@@ -290,8 +317,8 @@ public class ScriptHookController implements IScriptHookHandler {
      * Register a hook with event class (auto-derives imports).
      * For addon mods to register custom hooks.
      *
-     * @param context Hook context (e.g., "npc", "player")
-     * @param hookName Function name in scripts
+     * @param context    Hook context (e.g., "npc", "player")
+     * @param hookName   Function name in scripts
      * @param eventClass The event class (imports auto-derived from enclosing class)
      */
     public void registerHook(String context, String hookName, Class<?> eventClass) {

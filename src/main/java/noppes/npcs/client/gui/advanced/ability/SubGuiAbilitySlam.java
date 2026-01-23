@@ -1,10 +1,10 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Slam ability type-specific settings.
@@ -52,11 +52,21 @@ public class SubGuiAbilitySlam extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: slam.setDamage(parseFloat(field, slam.getDamage())); break;
-            case 101: slam.setRadius(parseFloat(field, slam.getRadius())); break;
-            case 102: slam.setKnockbackStrength(parseFloat(field, slam.getKnockbackStrength())); break;
-            case 103: slam.setLeapSpeed(parseFloat(field, slam.getLeapSpeed())); break;
-            case 104: slam.setLeapHeight(parseFloat(field, slam.getLeapHeight())); break;
+            case 100:
+                slam.setDamage(parseFloat(field, slam.getDamage()));
+                break;
+            case 101:
+                slam.setRadius(parseFloat(field, slam.getRadius()));
+                break;
+            case 102:
+                slam.setKnockbackStrength(parseFloat(field, slam.getKnockbackStrength()));
+                break;
+            case 103:
+                slam.setLeapSpeed(parseFloat(field, slam.getLeapSpeed()));
+                break;
+            case 104:
+                slam.setLeapHeight(parseFloat(field, slam.getLeapHeight()));
+                break;
         }
     }
 }

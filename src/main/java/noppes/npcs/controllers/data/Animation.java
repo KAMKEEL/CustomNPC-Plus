@@ -185,16 +185,26 @@ public class Animation implements IAnimation {
     }
 
     @Override
-    public boolean hasData(String key) {return dataStore.containsKey(key);}
-    
-    @Override
-    public Object getData(String key) {return dataStore.get(key);}
+    public boolean hasData(String key) {
+        return dataStore.containsKey(key);
+    }
 
     @Override
-    public IAnimation setData(String key, Object v) {dataStore.put(key, v);return this;}
+    public Object getData(String key) {
+        return dataStore.get(key);
+    }
 
     @Override
-    public IAnimation removeData(String key) {dataStore.remove(key);return this;}
+    public IAnimation setData(String key, Object v) {
+        dataStore.put(key, v);
+        return this;
+    }
+
+    @Override
+    public IAnimation removeData(String key) {
+        dataStore.remove(key);
+        return this;
+    }
 
     public void readFromNBT(NBTTagCompound compound) {
         if (compound.hasKey("ID")) {
@@ -323,13 +333,13 @@ public class Animation implements IAnimation {
         this.onAnimationStart = task;
         return this;
     }
-    
+
     @Override
     public IAnimation onFrame(BiConsumer<Integer, IAnimation> task) {
         this.onAnimationFrame = task;
         return this;
     }
-    
+
     @Override
     public IAnimation onEnd(Consumer<IAnimation> task) {
         this.onAnimationEnd = task;
@@ -355,7 +365,7 @@ public class Animation implements IAnimation {
     }
 
     /**
-     * Only called on setAnimation, to transfer tasks from 
+     * Only called on setAnimation, to transfer tasks from
      * this global instance stored in AnimationController
      * to the new local instance on entity's AnimationData,
      * and clear them from the global instance.
@@ -372,6 +382,6 @@ public class Animation implements IAnimation {
         this.dataStore.putAll(animation.dataStore);
         animation.dataStore.clear();
     }
-    
-    
+
+
 }

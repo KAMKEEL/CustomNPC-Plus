@@ -42,7 +42,7 @@ public class SubGuiSelectList extends SubGuiInterface {
             scroll1.setSize(140, 180);
         }
 
-        addTopButton(new GuiMenuTopButton(-1, guiLeft + xSize-22 , guiTop - 17, "X"));
+        addTopButton(new GuiMenuTopButton(-1, guiLeft + xSize - 22, guiTop - 17, "X"));
 
         scroll1.guiLeft = guiLeft + 4;
         scroll1.guiTop = guiTop + 14;

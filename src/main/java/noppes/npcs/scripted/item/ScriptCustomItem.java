@@ -10,10 +10,10 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
-import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptHandlerPacket;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.ArrayList;
@@ -279,7 +279,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     public void setAttackSpeed(int speed) {
-        if(speed <= 0) {
+        if (speed <= 0) {
             speed = 10;
         }
         this.attackSpeed = speed;

@@ -95,6 +95,7 @@ public class BukkitUtil {
 
     /**
      * Checks if a specific Bukkit plugin is enabled.
+     *
      * @param pluginName the plugin name to check
      * @return true if the plugin is enabled
      */
@@ -112,6 +113,7 @@ public class BukkitUtil {
 
     /**
      * Gets a Bukkit OfflinePlayer by name.
+     *
      * @param playerName the player name
      * @return the OfflinePlayer object, or null if not available
      */
@@ -128,6 +130,7 @@ public class BukkitUtil {
 
     /**
      * Gets a Bukkit Player by name (online players only).
+     *
      * @param playerName the player name
      * @return the Player object, or null if not online or not available
      */
@@ -144,6 +147,7 @@ public class BukkitUtil {
 
     /**
      * Gets a service provider from Bukkit's ServicesManager.
+     *
      * @param serviceClass the service class to get
      * @return the service provider, or null if not available
      */

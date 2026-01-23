@@ -1,6 +1,20 @@
 package kamkeel.npcs.controllers.data.ability;
 
-import kamkeel.npcs.controllers.data.ability.type.*;
+import kamkeel.npcs.controllers.data.ability.type.AbilityBeam;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
+import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
+import kamkeel.npcs.controllers.data.ability.type.AbilityHeal;
+import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
+import kamkeel.npcs.controllers.data.ability.type.AbilityOrb;
+import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
+import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
+import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
+import kamkeel.npcs.controllers.data.ability.type.AbilityTeleport;
+import kamkeel.npcs.controllers.data.ability.type.AbilityTrap;
+import kamkeel.npcs.controllers.data.ability.type.AbilityVortex;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
@@ -8,13 +22,17 @@ import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * Controller for ability types. Allows external mods to register custom ability types.
  * Initialize during FMLInitializationEvent.
- *
+ * <p>
  * Also manages saved ability presets that can be reused across NPCs.
  */
 public class AbilityController implements IAbilityHandler {
@@ -211,7 +229,7 @@ public class AbilityController implements IAbilityHandler {
      * Call during FMLInitializationEvent.
      *
      * @param factoryKey The factory key (e.g., "cnpc:slam", "mymod:custom_ability")
-     * @param factory Factory lambda that creates a new instance
+     * @param factory    Factory lambda that creates a new instance
      */
     public void registerType(String factoryKey, Supplier<Ability> factory) {
         if (factories.containsKey(factoryKey)) {
@@ -252,6 +270,7 @@ public class AbilityController implements IAbilityHandler {
 
     /**
      * Create a new empty ability of the given type.
+     *
      * @param factoryKey The factory key (e.g., "cnpc:slam") or the ability typeId (e.g., "ability.cnpc.slam")
      */
     public Ability create(String factoryKey) {

@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Central registry for linked market synchronization.
  * Tracks which RoleTrader instances use which markets,
  * and which players are viewing each market.
- *
+ * <p>
  * This enables immediate sync across all traders sharing
  * the same market when a purchase occurs.
  */

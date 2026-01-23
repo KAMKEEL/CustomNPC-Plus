@@ -2,11 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -16,6 +12,9 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -61,25 +60,31 @@ public class AbilityVortex extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
+        IAbilityConfigCallback callback) {
         return new SubGuiAbilityVortex(this, callback);
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
-
-    @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AOE_SELF };
+    public boolean isTargetingModeLocked() {
+        return true;
     }
 
     @Override
-    public float getTelegraphRadius() { return pullRadius; }
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AOE_SELF};
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return pullRadius;
+    }
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
@@ -249,33 +254,83 @@ public class AbilityVortex extends Ability {
     }
 
     // Getters & Setters
-    public float getPullRadius() { return pullRadius; }
-    public void setPullRadius(float pullRadius) { this.pullRadius = pullRadius; }
+    public float getPullRadius() {
+        return pullRadius;
+    }
 
-    public float getPullStrength() { return pullStrength; }
-    public void setPullStrength(float pullStrength) { this.pullStrength = pullStrength; }
+    public void setPullRadius(float pullRadius) {
+        this.pullRadius = pullRadius;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getPullStrength() {
+        return pullStrength;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public void setPullStrength(float pullStrength) {
+        this.pullStrength = pullStrength;
+    }
 
-    public int getStunDuration() { return stunDuration; }
-    public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public int getRootDuration() { return rootDuration; }
-    public void setRootDuration(int rootDuration) { this.rootDuration = rootDuration; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public boolean isAoe() { return aoe; }
-    public void setAoe(boolean aoe) { this.aoe = aoe; }
+    public float getKnockback() {
+        return knockback;
+    }
 
-    public int getMaxTargets() { return maxTargets; }
-    public void setMaxTargets(int maxTargets) { this.maxTargets = maxTargets; }
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
 
-    public boolean isDamageOnPull() { return damageOnPull; }
-    public void setDamageOnPull(boolean damageOnPull) { this.damageOnPull = damageOnPull; }
+    public int getStunDuration() {
+        return stunDuration;
+    }
 
-    public float getPullDamage() { return pullDamage; }
-    public void setPullDamage(float pullDamage) { this.pullDamage = pullDamage; }
+    public void setStunDuration(int stunDuration) {
+        this.stunDuration = stunDuration;
+    }
+
+    public int getRootDuration() {
+        return rootDuration;
+    }
+
+    public void setRootDuration(int rootDuration) {
+        this.rootDuration = rootDuration;
+    }
+
+    public boolean isAoe() {
+        return aoe;
+    }
+
+    public void setAoe(boolean aoe) {
+        this.aoe = aoe;
+    }
+
+    public int getMaxTargets() {
+        return maxTargets;
+    }
+
+    public void setMaxTargets(int maxTargets) {
+        this.maxTargets = maxTargets;
+    }
+
+    public boolean isDamageOnPull() {
+        return damageOnPull;
+    }
+
+    public void setDamageOnPull(boolean damageOnPull) {
+        this.damageOnPull = damageOnPull;
+    }
+
+    public float getPullDamage() {
+        return pullDamage;
+    }
+
+    public void setPullDamage(float pullDamage) {
+        this.pullDamage = pullDamage;
+    }
 }

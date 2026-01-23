@@ -15,10 +15,27 @@ public class KeyEvent {
         this.timestamp = System.currentTimeMillis();
     }
 
-    public boolean is(KeyPreset.PressType t) { return this.type == t; }
-    public boolean isPress() { return is(KeyPreset.PressType.PRESS); }
-    public boolean isHold() { return is(KeyPreset.PressType.HOLD); }
-    public boolean isRelease() { return is(KeyPreset.PressType.RELEASE); }
-    public boolean isSinglePress() { return is(KeyPreset.PressType.SINGLE_PRESS); }
-    public boolean isPressRelease() { return is(KeyPreset.PressType.PRESS_RELEASE); }
+    public boolean is(KeyPreset.PressType t) {
+        return this.type == t;
+    }
+
+    public boolean isPress() {
+        return is(KeyPreset.PressType.PRESS);
+    }
+
+    public boolean isHold() {
+        return is(KeyPreset.PressType.HOLD);
+    }
+
+    public boolean isRelease() {
+        return is(KeyPreset.PressType.RELEASE);
+    }
+
+    public boolean isSinglePress() {
+        return is(KeyPreset.PressType.SINGLE_PRESS);
+    }
+
+    public boolean isPressRelease() {
+        return is(KeyPreset.PressType.PRESS_RELEASE);
+    }
 }

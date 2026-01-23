@@ -5,34 +5,41 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiMenuTopButton;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextArea;
+import noppes.npcs.client.gui.util.GuiScriptTextArea;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.DataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * NPC Script GUI - extends GuiScriptInterface but with unique behavior:
  * - Uses scroll-based tab selection instead of top buttons
- * - Shows settings/script toggle 
+ * - Shows settings/script toggle
  * - Uses DataScript with getNPCScript(index) access pattern
  * - Has console filtering by hook type
  */
 public class GuiScript extends GuiScriptInterface {
     public boolean showScript = false;
     public DataScript script;
-    
+
     private static int activeConsole = 0;
-    
+
     public GuiScript(EntityNPCInterface npc) {
         super();
         this.npc = npc;
@@ -40,7 +47,7 @@ public class GuiScript extends GuiScriptInterface {
         this.handler = script;
         this.useScrollTabs = true;
         this.useSettingsToggle = true;
-        
+
         // Initialize hook list for NPC scripts
         hookList.add("script.init");
         hookList.add("script.update");
@@ -57,20 +64,20 @@ public class GuiScript extends GuiScriptInterface {
         hookList.add("script.targetLost");
         hookList.add("script.projectileTick");
         hookList.add("script.projectileImpact");
-        
+
         NPCScriptPacket.Get();
     }
-    
+
     @Override
     protected ScriptContext getScriptContext() {
         return ScriptContext.NPC;
     }
-    
+
     @Override
     protected int getActiveScriptIndex() {
         return this.activeTab;
     }
-    
+
     @Override
     protected ScriptContainer getCurrentContainer() {
         return script.getNPCScript(activeTab);
@@ -99,13 +106,13 @@ public class GuiScript extends GuiScriptInterface {
             initSettingsView();
         }
     }
-    
+
     private void initScriptView() {
         ScriptContainer container = getCurrentContainer();
-        
+
         // ==================== CALCULATE VIEWPORT BOUNDS ====================
         int editorX, editorY, editorWidth, editorHeight;
-        
+
         if (isFullscreen) {
             // Fullscreen: viewport fills screen with configured padding
             FullscreenConfig.paddingTop = 30;
@@ -123,11 +130,11 @@ public class GuiScript extends GuiScriptInterface {
             editorWidth = 239;
             editorHeight = 208;
         }
-        
+
         // ==================== HOOKS SCROLL (hidden in fullscreen) ====================
         if (!isFullscreen) {
             addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft + 4, guiTop + 5));
-            
+
             GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
             hooks.setSize(68, 198);
             hooks.guiLeft = guiLeft + 4;
@@ -142,28 +149,28 @@ public class GuiScript extends GuiScriptInterface {
         GuiScriptTextArea activeArea = getActiveScriptArea();
         if (activeArea == null) {
             activeArea = new GuiScriptTextArea(this, 2, editorX, editorY, editorWidth, editorHeight,
-                    container == null ? "" : container.script);
+                container == null ? "" : container.script);
             activeArea.setListener(this);
             this.closeOnEsc(activeArea::closeOnEsc);
             textAreas.put(idx, activeArea);
         } else {
-            activeArea.init(editorX, editorY, editorWidth, editorHeight, 
-                    container == null ? "" : container.script);
+            activeArea.init(editorX, editorY, editorWidth, editorHeight,
+                container == null ? "" : container.script);
         }
 
         activeArea.setLanguage(script.getLanguage());
         activeArea.setScriptContext(getScriptContext());
-        
+
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
             if (e.isPress()) {
                 toggleFullscreen();
             }
         });
-        
+
         activeArea.enableCodeHighlighting();
         addTextField(activeArea);
-        
+
         // Initialize fullscreen button
         int scrollbarOffset = activeArea.hasVerticalScrollbar() ? -8 : -2;
         fullscreenButton.initGui(editorX + editorWidth, editorY, scrollbarOffset);
@@ -184,35 +191,35 @@ public class GuiScript extends GuiScriptInterface {
             addScroll(scroll);
         }
     }
-    
-    
+
+
     private void initSettingsView() {
         addLabel(new GuiNpcLabel(0, "script.console", guiLeft + 4, guiTop + 16));
         if (getTopButton(14) != null)
             getTopButton(14).active = true;
-        
+
         GuiNpcTextArea consoleArea = new GuiNpcTextArea(2, this, guiLeft + 4, guiTop + 26, 226, 186, getConsoleText());
         consoleArea.canEdit = false;
         addTextField(consoleArea);
-        
+
         addButton(new GuiNpcButton(100, guiLeft + 232, guiTop + 170, 56, 20, "gui.copy"));
         addButton(new GuiNpcButton(102, guiLeft + 232, guiTop + 192, 56, 20, "gui.clear"));
 
         List<String> consoleOptions = new ArrayList<>();
         consoleOptions.add("All");
         consoleOptions.addAll(hookList);
-        addButton(new GuiNpcButton(105, guiLeft + 60, guiTop + 4, 80, 20, 
-                consoleOptions.toArray(new String[0]), activeConsole));
+        addButton(new GuiNpcButton(105, guiLeft + 60, guiTop + 4, 80, 20,
+            consoleOptions.toArray(new String[0]), activeConsole));
 
         addLabel(new GuiNpcLabel(1, "script.language", guiLeft + 232, guiTop + 30));
         List<String> languageOptions = getLanguageOptions();
-        addButton(new GuiNpcButton(103, guiLeft + 294, guiTop + 25, 80, 20, 
-                languageOptions.toArray(new String[0]), getLanguageIndex(languageOptions)));
+        addButton(new GuiNpcButton(103, guiLeft + 294, guiTop + 25, 80, 20,
+            languageOptions.toArray(new String[0]), getLanguageIndex(languageOptions)));
         getButton(103).enabled = languageOptions.size() > 0;
 
         addLabel(new GuiNpcLabel(2, "gui.enabled", guiLeft + 232, guiTop + 53));
-        addButton(new GuiNpcButton(104, guiLeft + 294, guiTop + 48, 50, 20, 
-                new String[]{"gui.no", "gui.yes"}, script.enabled ? 1 : 0));
+        addButton(new GuiNpcButton(104, guiLeft + 294, guiTop + 48, 50, 20,
+            new String[]{"gui.no", "gui.yes"}, script.enabled ? 1 : 0));
 
         if (MinecraftServer.getServer() != null)
             addButton(new GuiNpcButton(106, guiLeft + 232, guiTop + 71, 150, 20, "script.openfolder"));
@@ -280,12 +287,12 @@ public class GuiScript extends GuiScriptInterface {
             NoppesStringUtils.setClipboardContents(getTextField(2).getText());
         }
         if (guibutton.id == 101) {
-            displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("gui.paste"), 
-                    StatCollector.translateToLocal("gui.sure"), 101));
+            displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("gui.paste"),
+                StatCollector.translateToLocal("gui.sure"), 101));
         }
         if (guibutton.id == 102) {
-            displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("gui.clear"), 
-                    StatCollector.translateToLocal("gui.sure"), 102));
+            displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("gui.clear"),
+                StatCollector.translateToLocal("gui.sure"), 102));
         }
         if (guibutton.id == 103) {
             script.scriptLanguage = ((GuiNpcButton) guibutton).displayString;

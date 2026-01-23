@@ -194,7 +194,7 @@ public class CustomEffect implements ICustomEffect {
                 return;
             }
 
-        script.callScript(EnumScriptType.ON_EFFECT_ADD, event);
+            script.callScript(EnumScriptType.ON_EFFECT_ADD, event);
         }
 
         EventHooks.onEffectAdded(iPlayer, playerEffect);
@@ -214,7 +214,7 @@ public class CustomEffect implements ICustomEffect {
                 return;
             }
 
-        script.callScript(EnumScriptType.ON_EFFECT_TICK, event);
+            script.callScript(EnumScriptType.ON_EFFECT_TICK, event);
         }
 
         EventHooks.onEffectTick(iPlayer, playerEffect);
@@ -235,7 +235,7 @@ public class CustomEffect implements ICustomEffect {
                 return;
             }
 
-        script.callScript(EnumScriptType.ON_EFFECT_REMOVE, event);
+            script.callScript(EnumScriptType.ON_EFFECT_REMOVE, event);
         }
 
         EventHooks.onEffectRemove(iPlayer, playerEffect, type);

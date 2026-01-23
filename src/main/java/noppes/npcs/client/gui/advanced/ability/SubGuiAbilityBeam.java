@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityBeam;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Beam ability type-specific settings.
@@ -72,21 +72,39 @@ public class SubGuiAbilityBeam extends SubGuiAbilityConfig {
     protected void handleTypeButton(int id, GuiNpcButton button) {
         int value = button.getValue();
         switch (id) {
-            case 106: beam.setPiercing(value == 1); break;
-            case 107: beam.setLockOnTarget(value == 1); break;
-            case 108: beam.setSweepBackAndForth(value == 1); break;
+            case 106:
+                beam.setPiercing(value == 1);
+                break;
+            case 107:
+                beam.setLockOnTarget(value == 1);
+                break;
+            case 108:
+                beam.setSweepBackAndForth(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: beam.setDamage(parseFloat(field, beam.getDamage())); break;
-            case 101: beam.setDamageInterval(field.getInteger()); break;
-            case 102: beam.setBeamLength(parseFloat(field, beam.getBeamLength())); break;
-            case 103: beam.setBeamWidth(parseFloat(field, beam.getBeamWidth())); break;
-            case 104: beam.setSweepAngle(parseFloat(field, beam.getSweepAngle())); break;
-            case 105: beam.setSweepSpeed(parseFloat(field, beam.getSweepSpeed())); break;
+            case 100:
+                beam.setDamage(parseFloat(field, beam.getDamage()));
+                break;
+            case 101:
+                beam.setDamageInterval(field.getInteger());
+                break;
+            case 102:
+                beam.setBeamLength(parseFloat(field, beam.getBeamLength()));
+                break;
+            case 103:
+                beam.setBeamWidth(parseFloat(field, beam.getBeamWidth()));
+                break;
+            case 104:
+                beam.setSweepAngle(parseFloat(field, beam.getSweepAngle()));
+                break;
+            case 105:
+                beam.setSweepSpeed(parseFloat(field, beam.getSweepSpeed()));
+                break;
         }
     }
 }

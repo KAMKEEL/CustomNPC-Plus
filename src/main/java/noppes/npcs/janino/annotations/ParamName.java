@@ -12,9 +12,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface ParamName {
-    /** The parameter name (e.g., "event") */
+    /**
+     * The parameter name (e.g., "event")
+     */
     String value();
-    
-    /** The fully qualified type name (e.g., "noppes.npcs.api.event.INpcEvent.InitEvent") */
+
+    /**
+     * The fully qualified type name (e.g., "noppes.npcs.api.event.INpcEvent.InitEvent")
+     */
     String type() default "";
 }

@@ -10,9 +10,9 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -50,7 +50,9 @@ public class AbilityHeal extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -59,11 +61,13 @@ public class AbilityHeal extends Ability {
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.SELF };
+        return new TargetingMode[]{TargetingMode.SELF};
     }
 
     @Override
@@ -197,21 +201,51 @@ public class AbilityHeal extends Ability {
     }
 
     // Getters & Setters
-    public float getHealAmount() { return healAmount; }
-    public void setHealAmount(float healAmount) { this.healAmount = healAmount; }
+    public float getHealAmount() {
+        return healAmount;
+    }
 
-    public float getHealPercent() { return healPercent; }
-    public void setHealPercent(float healPercent) { this.healPercent = healPercent; }
+    public void setHealAmount(float healAmount) {
+        this.healAmount = healAmount;
+    }
 
-    public boolean isHealSelf() { return healSelf; }
-    public void setHealSelf(boolean healSelf) { this.healSelf = healSelf; }
+    public float getHealPercent() {
+        return healPercent;
+    }
 
-    public boolean isHealAllies() { return healAllies; }
-    public void setHealAllies(boolean healAllies) { this.healAllies = healAllies; }
+    public void setHealPercent(float healPercent) {
+        this.healPercent = healPercent;
+    }
 
-    public float getHealRadius() { return healRadius; }
-    public void setHealRadius(float healRadius) { this.healRadius = healRadius; }
+    public boolean isHealSelf() {
+        return healSelf;
+    }
 
-    public boolean isInstantHeal() { return instantHeal; }
-    public void setInstantHeal(boolean instantHeal) { this.instantHeal = instantHeal; }
+    public void setHealSelf(boolean healSelf) {
+        this.healSelf = healSelf;
+    }
+
+    public boolean isHealAllies() {
+        return healAllies;
+    }
+
+    public void setHealAllies(boolean healAllies) {
+        this.healAllies = healAllies;
+    }
+
+    public float getHealRadius() {
+        return healRadius;
+    }
+
+    public void setHealRadius(float healRadius) {
+        this.healRadius = healRadius;
+    }
+
+    public boolean isInstantHeal() {
+        return instantHeal;
+    }
+
+    public void setInstantHeal(boolean instantHeal) {
+        this.instantHeal = instantHeal;
+    }
 }

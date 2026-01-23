@@ -20,7 +20,7 @@ public class GuiScriptList extends SubGuiInterface {
     public GuiScriptList(List<String> scripts, ScriptContainer container) {
         this(scripts, (IScriptUnit) container);
     }
-    
+
     public GuiScriptList(List<String> scripts, IScriptUnit scriptUnit) {
         this.scriptUnit = scriptUnit;
         setBackground("menubg.png");

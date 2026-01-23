@@ -2,19 +2,17 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityBeam;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityBeam;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -61,21 +59,25 @@ public class AbilityBeam extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
+        IAbilityConfigCallback callback) {
         return new SubGuiAbilityBeam(this, callback);
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
@@ -184,7 +186,7 @@ public class AbilityBeam extends Ability {
     }
 
     private boolean isInBeamPath(EntityLivingBase entity, double startX, double startY, double startZ,
-                                  double dirX, double dirZ) {
+                                 double dirX, double dirZ) {
         // Project entity position onto beam line
         double entityX = entity.posX - startX;
         double entityZ = entity.posZ - startZ;
@@ -209,7 +211,7 @@ public class AbilityBeam extends Ability {
     }
 
     private void spawnBeamParticles(World world, double startX, double startY, double startZ,
-                                     double dirX, double dirZ) {
+                                    double dirX, double dirZ) {
         // Spawn particles along beam line
         for (int i = 0; i < beamLength; i++) {
             double px = startX + dirX * i;
@@ -259,30 +261,75 @@ public class AbilityBeam extends Ability {
     }
 
     // Getters & Setters
-    public float getBeamLength() { return beamLength; }
-    public void setBeamLength(float beamLength) { this.beamLength = beamLength; }
+    public float getBeamLength() {
+        return beamLength;
+    }
 
-    public float getBeamWidth() { return beamWidth; }
-    public void setBeamWidth(float beamWidth) { this.beamWidth = beamWidth; }
+    public void setBeamLength(float beamLength) {
+        this.beamLength = beamLength;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getBeamWidth() {
+        return beamWidth;
+    }
 
-    public int getDamageInterval() { return damageInterval; }
-    public void setDamageInterval(int damageInterval) { this.damageInterval = damageInterval; }
+    public void setBeamWidth(float beamWidth) {
+        this.beamWidth = beamWidth;
+    }
 
-    public boolean isPiercing() { return piercing; }
-    public void setPiercing(boolean piercing) { this.piercing = piercing; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public float getSweepAngle() { return sweepAngle; }
-    public void setSweepAngle(float sweepAngle) { this.sweepAngle = sweepAngle; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public float getSweepSpeed() { return sweepSpeed; }
-    public void setSweepSpeed(float sweepSpeed) { this.sweepSpeed = sweepSpeed; }
+    public int getDamageInterval() {
+        return damageInterval;
+    }
 
-    public boolean isSweepBackAndForth() { return sweepBackAndForth; }
-    public void setSweepBackAndForth(boolean sweepBackAndForth) { this.sweepBackAndForth = sweepBackAndForth; }
+    public void setDamageInterval(int damageInterval) {
+        this.damageInterval = damageInterval;
+    }
 
-    public boolean isLockOnTarget() { return lockOnTarget; }
-    public void setLockOnTarget(boolean lockOnTarget) { this.lockOnTarget = lockOnTarget; }
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public void setPiercing(boolean piercing) {
+        this.piercing = piercing;
+    }
+
+    public float getSweepAngle() {
+        return sweepAngle;
+    }
+
+    public void setSweepAngle(float sweepAngle) {
+        this.sweepAngle = sweepAngle;
+    }
+
+    public float getSweepSpeed() {
+        return sweepSpeed;
+    }
+
+    public void setSweepSpeed(float sweepSpeed) {
+        this.sweepSpeed = sweepSpeed;
+    }
+
+    public boolean isSweepBackAndForth() {
+        return sweepBackAndForth;
+    }
+
+    public void setSweepBackAndForth(boolean sweepBackAndForth) {
+        this.sweepBackAndForth = sweepBackAndForth;
+    }
+
+    public boolean isLockOnTarget() {
+        return lockOnTarget;
+    }
+
+    public void setLockOnTarget(boolean lockOnTarget) {
+        this.lockOnTarget = lockOnTarget;
+    }
 }

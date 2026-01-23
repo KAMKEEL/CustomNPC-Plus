@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.util.script;
 
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import org.lwjgl.input.Keyboard;
 
@@ -12,7 +11,7 @@ import java.util.regex.Pattern;
 
 /**
  * Handles IntelliJ-like rename refactoring with scope-aware renaming.
- *
+ * <p>
  * Features:
  * - Scope detection: local variables rename only within their block, global fields rename everywhere
  * - Visual feedback: primary occurrence has white border, others just highlighted
@@ -33,7 +32,7 @@ public class RenameRefactorHandler {
     private int primaryOccurrenceEnd = -1;
     private List<int[]> allOccurrences = new ArrayList<>();
     private ScopeInfo scope = null;
-    
+
     // For global scope, track positions that have local shadowing (to exclude them)
     private List<int[]> localShadowedPositions = new ArrayList<>();
 
@@ -141,10 +140,10 @@ public class RenameRefactorHandler {
         initialWord = text.substring(wordBounds[0], wordBounds[1]);  // Remember for undo
         originalWord = initialWord;
         currentWord = initialWord;
-        
+
         // Determine scope for this identifier - MUST check if local shadows global
         scope = determineScope(text, wordBounds[0], originalWord, callback.getContainer());
-        
+
         // If global scope, find all positions where local variables shadow this name
         localShadowedPositions.clear();
         if (scope != null && scope.isGlobal) {
@@ -158,12 +157,12 @@ public class RenameRefactorHandler {
             return false;
 
         active = true;
-        
+
         // Set selection to full word (uses GuiScriptTextArea's selection)
         primaryOccurrenceStart = wordBounds[0];
         primaryOccurrenceEnd = wordBounds[1];
         callback.getSelectionState().setSelection(wordBounds[0], wordBounds[1]);
-       // callback.setCursorPosition(wordBounds[1]);
+        // callback.setCursorPosition(wordBounds[1]);
         callback.getSelectionState().markActivity();
 
         return true;
@@ -207,7 +206,7 @@ public class RenameRefactorHandler {
         // During live editing we used setTextWithoutUndo to avoid creating intermediate
         // undo entries; pushing the original snapshot here gives a single predictable
         // undo step back to the pre-rename state.
-        if (originalText != null && !originalText.isEmpty()) 
+        if (originalText != null && !originalText.isEmpty())
             callback.pushUndoState(originalText, originalCursorPos);
 
         // Calculate cursor position relative to primary occurrence
@@ -237,6 +236,7 @@ public class RenameRefactorHandler {
 
     /**
      * Handle keyboard input during rename
+     *
      * @return true if input was consumed
      */
     public boolean keyTyped(char c, int keyCode) {
@@ -264,7 +264,7 @@ public class RenameRefactorHandler {
         // Get selection state
         SelectionState sel = callback.getSelectionState();
         boolean hasSelection = sel.hasSelection();
-        
+
         // Calculate cursor position within the word
         int cursorInWord = callback.getCursorPosition() - primaryOccurrenceStart;
         cursorInWord = Math.max(0, Math.min(cursorInWord, currentWord.length()));
@@ -315,7 +315,7 @@ public class RenameRefactorHandler {
             sel.setSelection(primaryOccurrenceStart, primaryOccurrenceStart);
             callback.setCursorPosition(primaryOccurrenceStart);
         }
-        
+
         // Left arrow
         if (keyCode == Keyboard.KEY_LEFT) {
             if (cursorInWord > 0) {
@@ -354,7 +354,7 @@ public class RenameRefactorHandler {
 
         // Ctrl+A - select all (select the whole word)
         if (keyCode == Keyboard.KEY_A &&
-                Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
+            Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
             sel.setSelection(primaryOccurrenceStart, primaryOccurrenceStart + currentWord.length());
             callback.setCursorPosition(primaryOccurrenceStart + currentWord.length());
             sel.markActivity();
@@ -537,22 +537,22 @@ public class RenameRefactorHandler {
             }
         }
     }
-    
+
     /**
      * Find all positions where local variables with the same name shadow the global variable.
      * This populates localShadowedPositions with ranges where local declarations exist.
      */
     private void findLocalShadowedPositions(String text, String varName) {
         localShadowedPositions.clear();
-        
+
         List<MethodBlock> methods = MethodBlock.collectMethodBlocks(text);
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
-        
+
         for (MethodBlock method : methods) {
             // Check if this method has a local variable or parameter with the same name
             boolean hasLocalDecl = method.localVariables.contains(varName);
             boolean hasParamDecl = isParameterInMethod(text, varName, method);
-            
+
             if (hasLocalDecl || hasParamDecl) {
                 // Find where the local/param scope starts
                 int scopeStart;
@@ -564,18 +564,18 @@ public class RenameRefactorHandler {
                     scopeStart = findLocalDeclarationPosition(text, varName, method);
                     if (scopeStart < 0) scopeStart = method.startOffset;
                 }
-                
+
                 // Find all occurrences of varName within this method's shadowed range
                 Pattern pattern = Pattern.compile("\\b" + Pattern.quote(varName) + "\\b");
                 Matcher m = pattern.matcher(text);
-                
+
                 while (m.find()) {
                     int pos = m.start();
-                    
+
                     // Skip if in string or comment
                     if (isInExcludedRange(pos, excluded))
                         continue;
-                    
+
                     // Check if within the shadowed scope of this method
                     if (pos >= scopeStart && pos < method.endOffset) {
                         localShadowedPositions.add(new int[]{m.start(), m.end()});
@@ -584,7 +584,7 @@ public class RenameRefactorHandler {
             }
         }
     }
-    
+
     /**
      * Check if a position is within a locally shadowed range
      */
@@ -595,13 +595,13 @@ public class RenameRefactorHandler {
         }
         return false;
     }
-    
+
     /**
      * Check if varName is a parameter in the method
      */
     private boolean isParameterInMethod(String text, String varName, MethodBlock method) {
         String methodHeader = text.substring(method.startOffset,
-                Math.min(method.startOffset + 500, method.endOffset));
+            Math.min(method.startOffset + 500, method.endOffset));
         int parenStart = methodHeader.indexOf('(');
         int parenEnd = methodHeader.indexOf(')');
         if (parenStart >= 0 && parenEnd > parenStart) {
@@ -687,7 +687,7 @@ public class RenameRefactorHandler {
         // Cursor is inside a method
         // Check if it's a method parameter first
         String methodHeader = text.substring(containingMethod.startOffset,
-                Math.min(containingMethod.startOffset + 500, containingMethod.endOffset));
+            Math.min(containingMethod.startOffset + 500, containingMethod.endOffset));
         int parenStart = methodHeader.indexOf('(');
         int parenEnd = methodHeader.indexOf(')');
         if (parenStart >= 0 && parenEnd > parenStart) {
@@ -861,9 +861,9 @@ public class RenameRefactorHandler {
     public boolean isWordFullySelected() {
         if (callback == null) return false;
         SelectionState selection = callback.getSelectionState();
-        return selection.hasSelection() && 
-               selection.getStartSelection() == primaryOccurrenceStart && 
-               selection.getEndSelection() == primaryOccurrenceEnd;
+        return selection.hasSelection() &&
+            selection.getStartSelection() == primaryOccurrenceStart &&
+            selection.getEndSelection() == primaryOccurrenceEnd;
     }
 
     /**
@@ -884,7 +884,7 @@ public class RenameRefactorHandler {
     public boolean handleClick(int clickPosInText) {
         if (!active || callback == null)
             return false;
-        
+
         return false;
     }
 

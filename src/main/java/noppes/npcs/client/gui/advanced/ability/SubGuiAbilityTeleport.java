@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityTeleport;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Teleport ability type-specific settings.
@@ -95,21 +95,39 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
                 teleport.setMode(AbilityTeleport.TeleportMode.values()[value]);
                 initGui();
                 break;
-            case 105: teleport.setRequireLineOfSight(value == 1); break;
-            case 108: teleport.setDamageAtStart(value == 1); break;
-            case 109: teleport.setDamageAtEnd(value == 1); break;
+            case 105:
+                teleport.setRequireLineOfSight(value == 1);
+                break;
+            case 108:
+                teleport.setDamageAtStart(value == 1);
+                break;
+            case 109:
+                teleport.setDamageAtEnd(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 101: teleport.setBlinkRadius(parseFloat(field, teleport.getBlinkRadius())); break;
-            case 102: teleport.setBlinkCount(field.getInteger()); break;
-            case 103: teleport.setBlinkDelayTicks(field.getInteger()); break;
-            case 104: teleport.setBehindDistance(parseFloat(field, teleport.getBehindDistance())); break;
-            case 106: teleport.setDamage(parseFloat(field, teleport.getDamage())); break;
-            case 107: teleport.setDamageRadius(parseFloat(field, teleport.getDamageRadius())); break;
+            case 101:
+                teleport.setBlinkRadius(parseFloat(field, teleport.getBlinkRadius()));
+                break;
+            case 102:
+                teleport.setBlinkCount(field.getInteger());
+                break;
+            case 103:
+                teleport.setBlinkDelayTicks(field.getInteger());
+                break;
+            case 104:
+                teleport.setBehindDistance(parseFloat(field, teleport.getBehindDistance()));
+                break;
+            case 106:
+                teleport.setDamage(parseFloat(field, teleport.getDamage()));
+                break;
+            case 107:
+                teleport.setDamageRadius(parseFloat(field, teleport.getDamageRadius()));
+                break;
         }
     }
 }

@@ -249,8 +249,8 @@ public class LinkedItem implements ILinkedItem {
 
     @Override
     public void setAttackSpeed(int time) {
-        if(time <= 0) {
-        	time = 10;
+        if (time <= 0) {
+            time = 10;
         }
         this.attackSpeed = time;
     }

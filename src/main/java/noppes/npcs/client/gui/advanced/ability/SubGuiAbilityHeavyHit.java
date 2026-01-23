@@ -1,10 +1,10 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Heavy Hit ability type-specific settings.
@@ -52,11 +52,21 @@ public class SubGuiAbilityHeavyHit extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: heavyHit.setDamage(parseFloat(field, heavyHit.getDamage())); break;
-            case 101: heavyHit.setPotionDurationSeconds(field.getInteger()); break;
-            case 102: heavyHit.setKnockback(parseFloat(field, heavyHit.getKnockback())); break;
-            case 103: heavyHit.setSlownessLevel(field.getInteger()); break;
-            case 104: heavyHit.setWeaknessLevel(field.getInteger()); break;
+            case 100:
+                heavyHit.setDamage(parseFloat(field, heavyHit.getDamage()));
+                break;
+            case 101:
+                heavyHit.setPotionDurationSeconds(field.getInteger());
+                break;
+            case 102:
+                heavyHit.setKnockback(parseFloat(field, heavyHit.getKnockback()));
+                break;
+            case 103:
+                heavyHit.setSlownessLevel(field.getInteger());
+                break;
+            case 104:
+                heavyHit.setWeaknessLevel(field.getInteger());
+                break;
         }
     }
 }

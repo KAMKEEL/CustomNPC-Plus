@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityOrb;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Orb ability type-specific settings.
@@ -75,22 +75,42 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
     protected void handleTypeButton(int id, GuiNpcButton button) {
         int value = button.getValue();
         switch (id) {
-            case 104: orb.setHoming(value == 1); break;
-            case 106: orb.setExplosive(value == 1); break;
+            case 104:
+                orb.setHoming(value == 1);
+                break;
+            case 106:
+                orb.setExplosive(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: orb.setDamage(parseFloat(field, orb.getDamage())); break;
-            case 101: orb.setOrbSpeed(parseFloat(field, orb.getOrbSpeed())); break;
-            case 102: orb.setOrbSize(parseFloat(field, orb.getOrbSize())); break;
-            case 103: orb.setMaxDistance(parseFloat(field, orb.getMaxDistance())); break;
-            case 105: orb.setHomingStrength(parseFloat(field, orb.getHomingStrength())); break;
-            case 107: orb.setExplosionRadius(parseFloat(field, orb.getExplosionRadius())); break;
-            case 108: orb.setKnockback(parseFloat(field, orb.getKnockback())); break;
-            case 109: orb.setMaxLifetime(field.getInteger()); break;
+            case 100:
+                orb.setDamage(parseFloat(field, orb.getDamage()));
+                break;
+            case 101:
+                orb.setOrbSpeed(parseFloat(field, orb.getOrbSpeed()));
+                break;
+            case 102:
+                orb.setOrbSize(parseFloat(field, orb.getOrbSize()));
+                break;
+            case 103:
+                orb.setMaxDistance(parseFloat(field, orb.getMaxDistance()));
+                break;
+            case 105:
+                orb.setHomingStrength(parseFloat(field, orb.getHomingStrength()));
+                break;
+            case 107:
+                orb.setExplosionRadius(parseFloat(field, orb.getExplosionRadius()));
+                break;
+            case 108:
+                orb.setKnockback(parseFloat(field, orb.getKnockback()));
+                break;
+            case 109:
+                orb.setMaxLifetime(field.getInteger());
+                break;
         }
     }
 }

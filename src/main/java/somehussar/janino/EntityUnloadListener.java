@@ -47,7 +47,7 @@ public class EntityUnloadListener implements IWorldAccess {
             EntityNPCInterface npc = (EntityNPCInterface) entity;
             // TODO: REMOVE SCRIPTED OBJECT AND CLASSLOADER FOR IT
         }
-     }
+    }
 
     @Override
     public void playRecord(String p_72702_1_, int p_72702_2_, int p_72702_3_, int p_72702_4_) {

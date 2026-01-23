@@ -105,7 +105,7 @@ public class EventGuiScriptList extends SubGuiInterface {
     public List<String> getScripts() {
         return this.container.getExternalScripts();
     }
-    
+
     public void save() {
     }
 }

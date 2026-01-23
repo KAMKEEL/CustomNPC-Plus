@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Base class for script handlers that manage a single script container.
  * Provides shared NBT/ByteBuf serialization and packet handling.
- *
+ * <p>
  * Subclasses should:
  * - Store their parent object (e.g., CustomEffect, LinkedItem)
  * - Override getHookContext() to return the appropriate context string
@@ -57,9 +57,9 @@ public abstract class SingleScriptHandler extends ScriptHandler {
 
     @Override
     public List<IScriptUnit> getScripts() {
-        if(container == null)
+        if (container == null)
             return new ArrayList<>();
-        
+
         return Collections.singletonList(container);
     }
 
@@ -112,7 +112,7 @@ public abstract class SingleScriptHandler extends ScriptHandler {
     /**
      * Save script data from a ByteBuf packet.
      * Handles the tab/totalScripts protocol used by script packets.
-     *
+     * <p>
      * Protocol:
      * - tab == 0: Script content NBT follows
      * - tab != 0 (typically -1): Script metadata (language, enabled) follows

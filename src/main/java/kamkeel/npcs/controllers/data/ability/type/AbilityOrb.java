@@ -2,11 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -16,6 +12,9 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
@@ -67,21 +66,25 @@ public class AbilityOrb extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
+        IAbilityConfigCallback callback) {
         return new SubGuiAbilityOrb(this, callback);
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
@@ -124,8 +127,8 @@ public class AbilityOrb extends Ability {
 
         double distTraveled = Math.sqrt(
             Math.pow(orbX - startX, 2) +
-            Math.pow(orbY - startY, 2) +
-            Math.pow(orbZ - startZ, 2)
+                Math.pow(orbY - startY, 2) +
+                Math.pow(orbZ - startZ, 2)
         );
         if (distTraveled >= maxDistance) {
             hasHit = true;
@@ -139,8 +142,8 @@ public class AbilityOrb extends Ability {
 
             double distToTarget = Math.sqrt(
                 Math.pow(targetX - orbX, 2) +
-                Math.pow(targetY - orbY, 2) +
-                Math.pow(targetZ - orbZ, 2)
+                    Math.pow(targetY - orbY, 2) +
+                    Math.pow(targetZ - orbZ, 2)
             );
 
             if (distToTarget <= homingRange) {
@@ -202,7 +205,7 @@ public class AbilityOrb extends Ability {
             break;
         }
 
-        if (!hasHit && world.getBlock((int)orbX, (int)orbY, (int)orbZ).getMaterial().isSolid()) {
+        if (!hasHit && world.getBlock((int) orbX, (int) orbY, (int) orbZ).getMaterial().isSolid()) {
             hasHit = true;
             if (explosive) {
                 doExplosion(npc, world);
@@ -224,12 +227,12 @@ public class AbilityOrb extends Ability {
 
             double dist = Math.sqrt(
                 Math.pow(blastTarget.posX - orbX, 2) +
-                Math.pow(blastTarget.posY - orbY, 2) +
-                Math.pow(blastTarget.posZ - orbZ, 2)
+                    Math.pow(blastTarget.posY - orbY, 2) +
+                    Math.pow(blastTarget.posZ - orbZ, 2)
             );
 
             if (dist <= explosionRadius) {
-                float falloff = 1.0f - (float)(dist / explosionRadius) * explosionDamageFalloff;
+                float falloff = 1.0f - (float) (dist / explosionRadius) * explosionDamageFalloff;
                 // Apply damage with scripted event support
                 boolean wasHit = applyAbilityDamage(npc, blastTarget, damage * falloff, knockback * falloff);
                 if (wasHit) {
@@ -314,54 +317,140 @@ public class AbilityOrb extends Ability {
     }
 
     // Getters & Setters
-    public float getOrbSpeed() { return orbSpeed; }
-    public void setOrbSpeed(float orbSpeed) { this.orbSpeed = orbSpeed; }
+    public float getOrbSpeed() {
+        return orbSpeed;
+    }
 
-    public float getOrbSize() { return orbSize; }
-    public void setOrbSize(float orbSize) { this.orbSize = orbSize; }
+    public void setOrbSpeed(float orbSpeed) {
+        this.orbSpeed = orbSpeed;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getOrbSize() {
+        return orbSize;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public void setOrbSize(float orbSize) {
+        this.orbSize = orbSize;
+    }
 
-    public float getMaxDistance() { return maxDistance; }
-    public void setMaxDistance(float maxDistance) { this.maxDistance = maxDistance; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public int getMaxLifetime() { return maxLifetime; }
-    public void setMaxLifetime(int maxLifetime) { this.maxLifetime = maxLifetime; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public boolean isHoming() { return homing; }
-    public void setHoming(boolean homing) { this.homing = homing; }
+    public float getKnockback() {
+        return knockback;
+    }
 
-    public float getHomingStrength() { return homingStrength; }
-    public void setHomingStrength(float homingStrength) { this.homingStrength = homingStrength; }
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
 
-    public float getHomingRange() { return homingRange; }
-    public void setHomingRange(float homingRange) { this.homingRange = homingRange; }
+    public float getMaxDistance() {
+        return maxDistance;
+    }
 
-    public boolean isExplosive() { return explosive; }
-    public void setExplosive(boolean explosive) { this.explosive = explosive; }
+    public void setMaxDistance(float maxDistance) {
+        this.maxDistance = maxDistance;
+    }
 
-    public float getExplosionRadius() { return explosionRadius; }
-    public void setExplosionRadius(float explosionRadius) { this.explosionRadius = explosionRadius; }
+    public int getMaxLifetime() {
+        return maxLifetime;
+    }
 
-    public float getExplosionDamageFalloff() { return explosionDamageFalloff; }
-    public void setExplosionDamageFalloff(float explosionDamageFalloff) { this.explosionDamageFalloff = explosionDamageFalloff; }
+    public void setMaxLifetime(int maxLifetime) {
+        this.maxLifetime = maxLifetime;
+    }
 
-    public int getStunDuration() { return stunDuration; }
-    public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }
+    public boolean isHoming() {
+        return homing;
+    }
 
-    public int getSlowDuration() { return slowDuration; }
-    public void setSlowDuration(int slowDuration) { this.slowDuration = slowDuration; }
+    public void setHoming(boolean homing) {
+        this.homing = homing;
+    }
 
-    public int getSlowLevel() { return slowLevel; }
-    public void setSlowLevel(int slowLevel) { this.slowLevel = slowLevel; }
+    public float getHomingStrength() {
+        return homingStrength;
+    }
+
+    public void setHomingStrength(float homingStrength) {
+        this.homingStrength = homingStrength;
+    }
+
+    public float getHomingRange() {
+        return homingRange;
+    }
+
+    public void setHomingRange(float homingRange) {
+        this.homingRange = homingRange;
+    }
+
+    public boolean isExplosive() {
+        return explosive;
+    }
+
+    public void setExplosive(boolean explosive) {
+        this.explosive = explosive;
+    }
+
+    public float getExplosionRadius() {
+        return explosionRadius;
+    }
+
+    public void setExplosionRadius(float explosionRadius) {
+        this.explosionRadius = explosionRadius;
+    }
+
+    public float getExplosionDamageFalloff() {
+        return explosionDamageFalloff;
+    }
+
+    public void setExplosionDamageFalloff(float explosionDamageFalloff) {
+        this.explosionDamageFalloff = explosionDamageFalloff;
+    }
+
+    public int getStunDuration() {
+        return stunDuration;
+    }
+
+    public void setStunDuration(int stunDuration) {
+        this.stunDuration = stunDuration;
+    }
+
+    public int getSlowDuration() {
+        return slowDuration;
+    }
+
+    public void setSlowDuration(int slowDuration) {
+        this.slowDuration = slowDuration;
+    }
+
+    public int getSlowLevel() {
+        return slowLevel;
+    }
+
+    public void setSlowLevel(int slowLevel) {
+        this.slowLevel = slowLevel;
+    }
 
     // Runtime getters for rendering
-    public double getOrbX() { return orbX; }
-    public double getOrbY() { return orbY; }
-    public double getOrbZ() { return orbZ; }
-    public boolean hasHit() { return hasHit; }
+    public double getOrbX() {
+        return orbX;
+    }
+
+    public double getOrbY() {
+        return orbY;
+    }
+
+    public double getOrbZ() {
+        return orbZ;
+    }
+
+    public boolean hasHit() {
+        return hasHit;
+    }
 }

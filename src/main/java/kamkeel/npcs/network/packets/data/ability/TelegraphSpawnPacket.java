@@ -3,7 +3,6 @@ package kamkeel.npcs.network.packets.data.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import kamkeel.npcs.network.AbstractPacket;

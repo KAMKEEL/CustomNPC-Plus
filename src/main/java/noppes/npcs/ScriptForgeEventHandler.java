@@ -36,7 +36,7 @@ public class ScriptForgeEventHandler {
     @SubscribeEvent
     public void forgeEntity(Event event) {
         if (CustomNpcs.getServer() != null && ScriptController.Instance.forgeScripts.isEnabled()) {
-            if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT){
+            if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
                 return;
             }
 

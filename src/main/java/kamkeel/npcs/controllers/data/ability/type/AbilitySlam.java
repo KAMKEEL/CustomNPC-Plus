@@ -11,18 +11,17 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySlam;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 
 /**
  * Slam ability: NPC leaps toward target in an arc and slams down, dealing AOE damage on landing.
- *
+ * <p>
  * Phases:
  * - WINDUP: NPC prepares to leap, telegraph shows landing zone
  * - ACTIVE: NPC is in the air, traveling in arc toward destination
@@ -62,7 +61,9 @@ public class AbilitySlam extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -80,7 +81,7 @@ public class AbilitySlam extends Ability {
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AOE_SELF, TargetingMode.AOE_TARGET };
+        return new TargetingMode[]{TargetingMode.AOE_SELF, TargetingMode.AOE_TARGET};
     }
 
     @Override
@@ -317,7 +318,7 @@ public class AbilitySlam extends Ability {
         }
 
         // Ground crack particles - check if block is valid
-        net.minecraft.block.Block groundBlock = world.getBlock((int)x, (int)y - 1, (int)z);
+        net.minecraft.block.Block groundBlock = world.getBlock((int) x, (int) y - 1, (int) z);
         if (groundBlock != null && groundBlock.getMaterial().isSolid()) {
             int blockId = net.minecraft.block.Block.getIdFromBlock(groundBlock);
             if (blockId > 0) {
@@ -427,18 +428,43 @@ public class AbilitySlam extends Ability {
     }
 
     // Getters & Setters
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public float getRadius() { return radius; }
-    public void setRadius(float radius) { this.radius = radius; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public float getKnockbackStrength() { return knockbackStrength; }
-    public void setKnockbackStrength(float knockbackStrength) { this.knockbackStrength = knockbackStrength; }
+    public float getRadius() {
+        return radius;
+    }
 
-    public float getLeapSpeed() { return leapSpeed; }
-    public void setLeapSpeed(float leapSpeed) { this.leapSpeed = leapSpeed; }
+    public void setRadius(float radius) {
+        this.radius = radius;
+    }
 
-    public float getLeapHeight() { return leapHeight; }
-    public void setLeapHeight(float leapHeight) { this.leapHeight = leapHeight; }
+    public float getKnockbackStrength() {
+        return knockbackStrength;
+    }
+
+    public void setKnockbackStrength(float knockbackStrength) {
+        this.knockbackStrength = knockbackStrength;
+    }
+
+    public float getLeapSpeed() {
+        return leapSpeed;
+    }
+
+    public void setLeapSpeed(float leapSpeed) {
+        this.leapSpeed = leapSpeed;
+    }
+
+    public float getLeapHeight() {
+        return leapHeight;
+    }
+
+    public void setLeapHeight(float leapHeight) {
+        this.leapHeight = leapHeight;
+    }
 }

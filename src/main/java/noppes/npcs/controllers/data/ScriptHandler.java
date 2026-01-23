@@ -68,6 +68,7 @@ public abstract class ScriptHandler implements IScriptHandler {
     public void clear() {
         this.scripts = new ArrayList<>();
     }
+
     /**
      * Reset the lastInited timestamp to force re-initialization on next script call.
      */

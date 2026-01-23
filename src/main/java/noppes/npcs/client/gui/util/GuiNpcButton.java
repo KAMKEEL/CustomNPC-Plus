@@ -126,6 +126,7 @@ public class GuiNpcButton extends GuiButton {
     }
 
     public AtomicBoolean rightClicked = new AtomicBoolean();
+
     @Override
     public boolean mousePressed(Minecraft minecraft, int i, int j) {
         boolean bo = super.mousePressed(minecraft, i, j);

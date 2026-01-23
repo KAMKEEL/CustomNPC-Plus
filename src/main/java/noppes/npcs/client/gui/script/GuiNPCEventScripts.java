@@ -1,7 +1,7 @@
 package noppes.npcs.client.gui.script;
 
-import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.controllers.data.DataScript;
+import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCEventScripts extends GuiScriptInterface {

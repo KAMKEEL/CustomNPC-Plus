@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script;
 
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,14 +9,15 @@ import java.util.List;
  * Handles bracket matching, brace span computation, and indent guide generation.
  */
 public class BracketMatcher {
-    
+
     /**
      * Find matching bracket at cursor position.
+     *
      * @return int[2] with {startPos, endPos} or null if no bracket found
      */
     public static int[] findBracketSpanAt(String text, int pos) {
         if (text == null || text.isEmpty()) return null;
-        
+
         // Try at current position
         if (pos >= 0 && pos < text.length()) {
             char c = text.charAt(pos);
@@ -34,7 +36,10 @@ public class BracketMatcher {
             int scan = pos - 1;
             while (scan >= 0) {
                 char sc = text.charAt(scan);
-                if (sc == ' ' || sc == '\t') { scan--; continue; }
+                if (sc == ' ' || sc == '\t') {
+                    scan--;
+                    continue;
+                }
                 if (sc == '\n') break; // Don't cross line boundary
 
                 int found2 = 0;
@@ -73,25 +78,43 @@ public class BracketMatcher {
             char next = pos + 1 < text.length() ? text.charAt(pos + 1) : 0;
 
             if (inString) {
-                if (escape) { escape = false; }
-                else if (c == '\\') { escape = true; }
-                else if (c == stringDelimiter) { inString = false; }
-                else if (c == '\n') { inString = false; }
+                if (escape) {
+                    escape = false;
+                } else if (c == '\\') {
+                    escape = true;
+                } else if (c == stringDelimiter) {
+                    inString = false;
+                } else if (c == '\n') {
+                    inString = false;
+                }
                 continue;
             }
 
             if (inBlockComment) {
-                if (c == '*' && next == '/') { inBlockComment = false; pos++; }
+                if (c == '*' && next == '/') {
+                    inBlockComment = false;
+                    pos++;
+                }
                 continue;
             }
 
             if (inLineComment) {
-                if (c == '\n') { inLineComment = false; }
+                if (c == '\n') {
+                    inLineComment = false;
+                }
                 continue;
             }
 
-            if (c == '/' && next == '/') { inLineComment = true; pos++; continue; }
-            if (c == '/' && next == '*') { inBlockComment = true; pos++; continue; }
+            if (c == '/' && next == '/') {
+                inLineComment = true;
+                pos++;
+                continue;
+            }
+            if (c == '/' && next == '*') {
+                inBlockComment = true;
+                pos++;
+                continue;
+            }
 
             if (c == '"' || c == '\'') {
                 inString = true;
@@ -193,29 +216,47 @@ public class BracketMatcher {
 
             // String handling
             if (inString) {
-                if (escape) { escape = false; }
-                else if (c == '\\') { escape = true; }
-                else if (c == stringDelimiter) { inString = false; }
-                else if (c == '\n') { inString = false; } // Unterminated string
+                if (escape) {
+                    escape = false;
+                } else if (c == '\\') {
+                    escape = true;
+                } else if (c == stringDelimiter) {
+                    inString = false;
+                } else if (c == '\n') {
+                    inString = false;
+                } // Unterminated string
                 continue;
             }
 
             // Block comment handling
             if (inBlockComment) {
-                if (c == '*' && next == '/') { inBlockComment = false; pos++; }
+                if (c == '*' && next == '/') {
+                    inBlockComment = false;
+                    pos++;
+                }
                 continue;
             }
 
             // Line comment handling
             if (inLineComment) {
-                if (c == '\n') { inLineComment = false; }
+                if (c == '\n') {
+                    inLineComment = false;
+                }
                 continue;
             }
 
             // Start of comments
-            if (c == '/' && next == '/') { inLineComment = true; pos++; continue; }
-            if (c == '/' && next == '*') { inBlockComment = true; pos++; continue; }
-            
+            if (c == '/' && next == '/') {
+                inLineComment = true;
+                pos++;
+                continue;
+            }
+            if (c == '/' && next == '*') {
+                inBlockComment = true;
+                pos++;
+                continue;
+            }
+
             // Start of string
             if (c == '"' || c == '\'') {
                 inString = true;
@@ -256,11 +297,12 @@ public class BracketMatcher {
 
     /**
      * Find which brace span should be highlighted based on bracket at position
+     *
      * @return int[2] {openLine, closeLine} or null
      */
     public static int[] findHighlightedSpan(int bracketPos, List<LineData> lines, List<int[]> spans) {
         if (bracketPos < 0 || lines == null || spans == null) return null;
-        
+
         // Find line containing bracket
         int bracketLineIdx = -1;
         for (int i = 0; i < lines.size(); i++) {
@@ -270,7 +312,7 @@ public class BracketMatcher {
                 break;
             }
         }
-        
+
         if (bracketLineIdx >= 0) {
             for (int[] span : spans) {
                 int openLine = span[1];
@@ -282,13 +324,13 @@ public class BracketMatcher {
         }
         return null;
     }
-    
+
     /**
      * Check if a brace at given position has a matching close with same indent
      */
     public static boolean hasMatchingCloseWithSameIndent(String text, int bracePos, List<LineData> lines, int currentIndent) {
         if (text == null || lines == null || bracePos < 0) return false;
-        
+
         // Find line containing the brace
         int openLineIdx = -1;
         for (int i = 0; i < lines.size(); i++) {
@@ -298,9 +340,9 @@ public class BracketMatcher {
                 break;
             }
         }
-        
+
         if (openLineIdx < 0) return false;
-        
+
         List<int[]> spans = computeBraceSpans(text, lines);
         for (int[] span : spans) {
             if (span[1] == openLineIdx) {
@@ -314,7 +356,7 @@ public class BracketMatcher {
         }
         return false;
     }
-    
+
     /**
      * Get leading whitespace count of a line
      */

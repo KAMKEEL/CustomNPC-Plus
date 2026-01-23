@@ -1,7 +1,11 @@
 package noppes.npcs.client.gui.script;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiConfirmOpenLink;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
@@ -21,13 +25,13 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
 import noppes.npcs.client.gui.util.ITextChangeListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
-import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.data.IScriptHandlerPacket;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
 
@@ -50,15 +54,21 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     protected GuiScreen parent;
 
-    
-    /** If true, uses scroll-based tab selection instead of top buttons */
+
+    /**
+     * If true, uses scroll-based tab selection instead of top buttons
+     */
     protected boolean useScrollTabs = false;
-    
-    /** If true, shows settings/script toggle instead of numbered tabs */
-    protected boolean useSettingsToggle = false; 
+
+    /**
+     * If true, shows settings/script toggle instead of numbered tabs
+     */
+    protected boolean useSettingsToggle = false;
 
     // ==================== FULLSCREEN MODE ====================
-    /** Whether the editor viewport is currently in fullscreen mode */
+    /**
+     * Whether the editor viewport is currently in fullscreen mode
+     */
     public static boolean isFullscreen = false;
 
     /**
@@ -67,19 +77,29 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * All padding values are in scaled GUI pixels.
      */
     public static class FullscreenConfig {
-        /** Padding from the top edge of the screen */
+        /**
+         * Padding from the top edge of the screen
+         */
         public static int paddingTop = 20;
-        /** Padding from the bottom edge of the screen */
+        /**
+         * Padding from the bottom edge of the screen
+         */
         public static int paddingBottom = 20;
-        /** Padding from the left edge of the screen */
+        /**
+         * Padding from the left edge of the screen
+         */
         public static int paddingLeft = 20;
-        /** Padding from the right edge of the screen */
+        /**
+         * Padding from the right edge of the screen
+         */
         public static int paddingRight = 20;
     }
 
-    /** Fullscreen toggle button drawn at top-right of viewport */
+    /**
+     * Fullscreen toggle button drawn at top-right of viewport
+     */
     public final FullscreenButton fullscreenButton = new FullscreenButton();
-    
+
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
@@ -150,7 +170,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                         topXoffset -= top.width + 20 * 22;
                     }
                     this.addTopButton(top = new GuiMenuTopButton(ta + 1, top.xPosition + top.width + topXoffset,
-                            top.yPosition + topYoffset, ta + 1 + ""));
+                        top.yPosition + topYoffset, ta + 1 + ""));
                     topXoffset = 0;
                     topYoffset = 0;
                     scriptLimit = ta + 2;
@@ -159,8 +179,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             if (isSingle && handler.getSingleScript() != null)
                 this.addTopButton(
-                        top = new GuiMenuTopButton(1, top.xPosition + top.width + topXoffset, top.yPosition + topYoffset,
-                                "Script"));
+                    top = new GuiMenuTopButton(1, top.xPosition + top.width + topXoffset, top.yPosition + topYoffset,
+                        "Script"));
             else if (this.handler.getScripts().size() < 100)
                 this.addTopButton(new GuiMenuTopButton(scriptLimit, top.xPosition + top.width, top.yPosition, "+"));
 
@@ -241,15 +261,15 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         GuiScriptTextArea activeArea = getActiveScriptArea();
         if (activeArea == null) {
             activeArea = new GuiScriptTextArea(this, 2, editorX, editorY, editorWidth, editorHeight,
-                    container == null ? "" : container.getScript());
+                container == null ? "" : container.getScript());
             activeArea.setListener(this);
             this.closeOnEsc(activeArea::closeOnEsc);
             textAreas.put(idx, activeArea);
         } else {
             activeArea.init(editorX, editorY, editorWidth, editorHeight,
-                    container == null ? "" : container.getScript());
+                container == null ? "" : container.getScript());
         }
-        
+
         // Set the scripting language for proper syntax highlighting
         // Use the container's language if available, otherwise fall back to handler's language
         String language = (container != null) ? container.getLanguage() : this.handler.getLanguage();
@@ -279,12 +299,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));
             this.addButton(new GuiNpcButton(100, left1, this.guiTop + 21 + yoffset, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(105, left1 + 61, this.guiTop + 21 + yoffset, 60, 20, "gui.remove"));
-            
+
             // Language toggle button (only if handler supports Janino and there is more than one option)
             if (handler.supportsJanino() && getLanguageOptions().size() > 1 && container != null) {
                 this.addButton(new GuiNpcButton(113, left1, this.guiTop + 42 + yoffset, 121, 20, container.getLanguage()));
             }
-            
+
             this.addButton(new GuiNpcButton(107, left1, this.guiTop + 66 + yoffset, 80, 20, "script.loadscript"));
 
             GuiCustomScroll scroll = (new GuiCustomScroll(this, 0)).setUnselectable();
@@ -303,7 +323,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      */
     private void initSettingsTab(int yoffset) {
         GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset,
-                this.xSize - 160 - yoffset, (int) ((float) this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
+            this.xSize - 160 - yoffset, (int) ((float) this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
         var8.canEdit = false;
         var8.setFocused(true);
         this.addTextField(var8);
@@ -319,7 +339,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.getButton(103).enabled = languageOptions.size() > 0;
         this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
         this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20,
-                new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
+            new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
 
         if (this.player.worldObj.isRemote) {
             this.addButton(new GuiNpcButton(106, var9, this.guiTop + 55, 150, 20, "script.openfolder"));
@@ -382,11 +402,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             IScriptUnit container = getCurrentContainer();
             if (container == null)
                 return;
-            
+
             String addString = "";
             if (!this.getTextField(2).getText().isEmpty())
                 addString += "\n";
-            
+
             // Generate the appropriate stub based on language
             // hook is already the proper method name from EnumScriptType.function
             addString += container.generateHookStub(hook, null);
@@ -525,7 +545,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             return textAreas.get(idx);
         return null;
     }
-    
+
     /**
      * Get the current script index for text area storage.
      * Override in subclasses with different tab logic.
@@ -533,7 +553,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected int getActiveScriptIndex() {
         return this.activeTab - 1;
     }
-    
+
     /**
      * Get the current script container.
      * Override in subclasses with different container access patterns.
@@ -642,14 +662,14 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             String language = container != null ? container.getLanguage() : this.handler.getLanguage();
             this.setSubGui(new EventGuiScriptList((List) this.languages.get(language), container));
         }
-        
+
         // Language toggle button - switch between ECMAScript and Java
         if (guibutton.id == 113) {
             int idx = getActiveScriptIndex();
             if (idx >= 0 && idx < handler.getScripts().size()) {
                 IScriptUnit currentUnit = handler.getScripts().get(idx);
                 IScriptUnit newUnit;
-                
+
                 if (currentUnit.isJanino()) {
                     // Switch from Java to ECMAScript
                     newUnit = new ScriptContainer(handler);
@@ -669,7 +689,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 handler.replaceScriptUnit(idx, newUnit);
                 // Clear the cached text area so it recreates with new language
                 textAreas.remove(idx);
-                
+
                 // Reinitialize the GUI
                 initGui();
             }
@@ -712,7 +732,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
             return;
         }
-        
+
         loadLanguagesData(compound);
     }
 
@@ -759,7 +779,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             return;
 
         this.setScript();
-        
+
         if (handler instanceof IScriptHandlerPacket)
             ((IScriptHandlerPacket) handler).sync();
 
@@ -790,7 +810,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         IScriptUnit current = getCurrentContainer();
         if (current != null)
             current.ensureCompiled();
-        
+
         if (parent != null) {
             this.save();
             parent.setWorldAndResolution(mc, width, height);
@@ -838,14 +858,18 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         public int size = 12;
         public boolean hovered = false;
 
-        /** Initialize button position relative to viewport bounds */
+        /**
+         * Initialize button position relative to viewport bounds
+         */
         public void initGui(int viewportEndX, int viewportY, int scrollbarOffset) {
             // Position at top-right, accounting for scrollbar
             this.x = viewportEndX + scrollbarOffset - size - 4;
             this.y = viewportY + 4;
         }
 
-        /** Draw the fullscreen toggle button */
+        /**
+         * Draw the fullscreen toggle button
+         */
         public void draw(int mouseX, int mouseY) {
             hovered = isMouseOver(mouseX, mouseY);
             int y = this.y + getYOffset();
@@ -877,7 +901,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
                 drawRect(right, bottom, right + cornerLen, bottom + 1, iconColor);
                 drawRect(right, bottom, right + 1, bottom + cornerLen, iconColor);
-                  
+
             } else {
                 // Draw expand icon (corners pointing outward) ⌐¬⌙⌞
                 // Top-left corner pointing outward
@@ -891,23 +915,27 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 drawRect(x + inset, y + size - inset - 1, x + inset + cornerLen, y + size - inset, iconColor);
                 // Bottom-right corner pointing outward
                 drawRect(x + size - inset - 1, y + size - inset - cornerLen, x + size - inset, y + size - inset,
-                        iconColor);
+                    iconColor);
                 drawRect(x + size - inset - cornerLen, y + size - inset - 1, x + size - inset, y + size - inset,
-                        iconColor);
+                    iconColor);
             }
         }
-        
+
         public void drawRect(int x1, int y1, int x2, int y2, int color) {
             GuiUtil.drawRectD(x1, y1, x2, y2, color);
         }
 
-        /** Check if mouse is over the button */
+        /**
+         * Check if mouse is over the button
+         */
         public boolean isMouseOver(int mouseX, int mouseY) {
             int y = this.y + getYOffset();
             return mouseX >= x && mouseX < x + size && mouseY >= y && mouseY < y + size;
         }
 
-        /** Handle click - returns true if click was consumed */
+        /**
+         * Handle click - returns true if click was consumed
+         */
         public boolean mouseClicked(int mouseX, int mouseY, int button) {
             if (button == 0 && isMouseOver(mouseX, mouseY)) {
                 toggleFullscreen();

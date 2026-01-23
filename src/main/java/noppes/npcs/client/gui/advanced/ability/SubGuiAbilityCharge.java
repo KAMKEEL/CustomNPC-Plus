@@ -1,10 +1,10 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Charge ability type-specific settings.
@@ -50,10 +50,18 @@ public class SubGuiAbilityCharge extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: charge.setDamage(parseFloat(field, charge.getDamage())); break;
-            case 101: charge.setChargeSpeed(parseFloat(field, charge.getChargeSpeed())); break;
-            case 102: charge.setKnockback(parseFloat(field, charge.getKnockback())); break;
-            case 104: charge.setHitWidth(parseFloat(field, charge.getHitWidth())); break;
+            case 100:
+                charge.setDamage(parseFloat(field, charge.getDamage()));
+                break;
+            case 101:
+                charge.setChargeSpeed(parseFloat(field, charge.getChargeSpeed()));
+                break;
+            case 102:
+                charge.setKnockback(parseFloat(field, charge.getKnockback()));
+                break;
+            case 104:
+                charge.setHitWidth(parseFloat(field, charge.getHitWidth()));
+                break;
         }
     }
 }

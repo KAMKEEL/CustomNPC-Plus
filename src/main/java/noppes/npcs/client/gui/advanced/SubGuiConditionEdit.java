@@ -2,7 +2,11 @@ package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Condition;
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 
 /**
  * SubGui for editing a single ability condition.
@@ -106,7 +110,7 @@ public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldLi
         } else {
             // HP threshold field (as percentage)
             addLabel(new GuiNpcLabel(2, "condition.percent", labelX, y + 5));
-            int percent = (int)(threshold * 100);
+            int percent = (int) (threshold * 100);
             GuiNpcTextField thresholdField = new GuiNpcTextField(4, this, fontRendererObj, fieldX, y, 40, 20, String.valueOf(percent));
             thresholdField.setIntegersOnly();
             thresholdField.setMinMaxDefault(1, 99, 50);

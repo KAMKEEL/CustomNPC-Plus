@@ -5,7 +5,6 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -13,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 /**
  * Go To Line:Column dialog for the script editor.
  * Provides IntelliJ-like "Go to Line" functionality (Ctrl+G).
- *
+ * <p>
  * Input format: "line" or "line:column"
  * Example: "42" goes to line 42, column 1
  * Example: "42:15" goes to line 42, column 15
@@ -55,26 +54,35 @@ public class GoToLineDialog {
      * Callback interface for go-to-line operations
      */
     public interface GoToLineCallback {
-        /** Get total line count */
+        /**
+         * Get total line count
+         */
         int getLineCount();
 
-        /** Get the column count for a specific line (0-indexed) */
+        /**
+         * Get the column count for a specific line (0-indexed)
+         */
         int getColumnCount(int lineIndex);
 
-        /** Navigate to specific line and column (both 1-indexed for user display) */
+        /**
+         * Navigate to specific line and column (both 1-indexed for user display)
+         */
         void goToLineColumn(int line, int column);
 
-        /** Called when dialog closes - should restore focus to editor */
+        /**
+         * Called when dialog closes - should restore focus to editor
+         */
         void onDialogClose();
 
         void unfocusMainEditor();
-        
+
         void focusMainEditor();
     }
-    
+
     public void setCallback(GoToLineCallback callback) {
         this.callback = callback;
     }
+
     /**
      * Initialize/update position for the dialog
      */
@@ -163,7 +171,7 @@ public class GoToLineDialog {
         int fieldY = y + padding + 14 + 5;
         textFieldWidth = dialogWidth - padding * 2;
         drawTextField(fieldX, fieldY, textFieldWidth, textFieldHeight, inputText, cursor,
-                selectionStart, selectionEnd, scrollOffset, focused);
+            selectionStart, selectionEnd, scrollOffset, focused);
 
         if (inputText.isEmpty())
             font.drawString("[Line][:Column]", x + padding + 6, y + padding + 23, 0xFF888888);
@@ -228,7 +236,7 @@ public class GoToLineDialog {
             int maxSel = Math.max(adjustedSelStart, adjustedSelEnd);
             String beforeSel = visibleText.substring(0, Math.min(minSel, visibleText.length()));
             String inSel = visibleText.substring(Math.min(minSel, visibleText.length()),
-                    Math.min(maxSel, visibleText.length()));
+                Math.min(maxSel, visibleText.length()));
             int selX = textX + font.getStringWidth(beforeSel);
             int selW = font.getStringWidth(inSel);
             Gui.drawRect(selX, textY - 1, selX + selW, textY + 9, 0xFF264f78);
@@ -240,7 +248,7 @@ public class GoToLineDialog {
         // Draw cursor
         if (isFocused && shouldShowCursor()) {
             String beforeCursor = adjustedCursor > 0 && adjustedCursor <= visibleText.length()
-                    ? visibleText.substring(0, adjustedCursor) : "";
+                ? visibleText.substring(0, adjustedCursor) : "";
             int cursorX = textX + font.getStringWidth(beforeCursor);
             Gui.drawRect(cursorX, textY - 1, cursorX + 1, textY + 9, 0xFFe0e0e0);
         }
@@ -258,13 +266,13 @@ public class GoToLineDialog {
             int fieldX = x + padding;
             int fieldY = y + padding + 14;
             if (mouseX >= fieldX && mouseX < fieldX + textFieldWidth &&
-                    mouseY >= fieldY && mouseY < fieldY + textFieldHeight) {
+                mouseY >= fieldY && mouseY < fieldY + textFieldHeight) {
                 focused = true;
                 if (callback != null) callback.unfocusMainEditor();
                 // Position cursor based on click
                 int clickX = mouseX - fieldX - 4;
                 String visibleText = scrollOffset > 0 && scrollOffset < inputText.length()
-                        ? inputText.substring(scrollOffset) : inputText;
+                    ? inputText.substring(scrollOffset) : inputText;
                 int newCursor = getCharIndexAtX(visibleText, clickX) + scrollOffset;
                 cursor = Math.max(0, Math.min(newCursor, inputText.length()));
                 selectionStart = cursor;
@@ -297,7 +305,7 @@ public class GoToLineDialog {
             close();
             return true;
         }
-        
+
         if (!visible || !focused)
             return false;
 

@@ -15,9 +15,9 @@ public interface IScriptHandlerPacket extends IScriptHandler {
     /**
      * Client-side: send a script container packet to the server.
      *
-     * @param index {@code >= 0} for a script tab, {@code -1} for handler metadata (language/enabled/console)
+     * @param index      {@code >= 0} for a script tab, {@code -1} for handler metadata (language/enabled/console)
      * @param totalCount Total number of scripts for this handler
-     * @param nbt The script container NBT (tab content or metadata)
+     * @param nbt        The script container NBT (tab content or metadata)
      */
     void sendSavePacket(int index, int totalCount, NBTTagCompound nbt);
 

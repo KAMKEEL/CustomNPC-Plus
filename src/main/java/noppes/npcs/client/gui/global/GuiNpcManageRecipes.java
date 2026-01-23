@@ -13,7 +13,6 @@ import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
-import noppes.npcs.controllers.data.RecipeScript;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface2;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -32,6 +31,7 @@ import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipeScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 

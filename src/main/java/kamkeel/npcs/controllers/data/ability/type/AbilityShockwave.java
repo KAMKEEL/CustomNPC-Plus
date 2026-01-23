@@ -12,9 +12,9 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityShockwave;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
@@ -50,7 +50,9 @@ public class AbilityShockwave extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -59,15 +61,19 @@ public class AbilityShockwave extends Ability {
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
-
-    @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AOE_SELF };
+    public boolean isTargetingModeLocked() {
+        return true;
     }
 
     @Override
-    public float getTelegraphRadius() { return pushRadius; }
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AOE_SELF};
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return pushRadius;
+    }
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
@@ -111,7 +117,7 @@ public class AbilityShockwave extends Ability {
             }
 
             // Scale knockback by distance (closer = stronger)
-            float distFactor = 1.0f - (float)(dist / pushRadius) * 0.5f;
+            float distFactor = 1.0f - (float) (dist / pushRadius) * 0.5f;
             float finalPush = pushStrength * distFactor;
             // Apply damage with custom knockback direction
             boolean wasHit = applyAbilityDamageWithDirection(npc, entity, damage * distFactor, finalPush, dx, dz);
@@ -153,19 +159,44 @@ public class AbilityShockwave extends Ability {
     }
 
     // Getters & Setters
-    public float getPushRadius() { return pushRadius; }
-    public void setPushRadius(float pushRadius) { this.pushRadius = pushRadius; }
+    public float getPushRadius() {
+        return pushRadius;
+    }
 
-    public float getPushStrength() { return pushStrength; }
-    public void setPushStrength(float pushStrength) { this.pushStrength = pushStrength; }
+    public void setPushRadius(float pushRadius) {
+        this.pushRadius = pushRadius;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getPushStrength() {
+        return pushStrength;
+    }
 
-    public int getStunDuration() { return stunDuration; }
-    public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }
+    public void setPushStrength(float pushStrength) {
+        this.pushStrength = pushStrength;
+    }
 
-    public int getMaxTargets() { return maxTargets; }
-    public void setMaxTargets(int maxTargets) { this.maxTargets = maxTargets; }
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public int getStunDuration() {
+        return stunDuration;
+    }
+
+    public void setStunDuration(int stunDuration) {
+        this.stunDuration = stunDuration;
+    }
+
+    public int getMaxTargets() {
+        return maxTargets;
+    }
+
+    public void setMaxTargets(int maxTargets) {
+        this.maxTargets = maxTargets;
+    }
 
 }

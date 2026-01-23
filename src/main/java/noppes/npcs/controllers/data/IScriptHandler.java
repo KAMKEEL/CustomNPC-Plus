@@ -13,16 +13,16 @@ import java.util.TreeMap;
 
 public interface IScriptHandler {
     default void callScript(EnumScriptType type, Event event) {
-        if (type != null) 
+        if (type != null)
             callScript(type.function, event);
-        
+
     }
 
     void callScript(String hookName, Event event);
 
     /**
      * Call a function by name and return its result.
-     *
+     * <p>
      * Default implementation calls the function on each script unit (in order) and returns
      * the first non-null value.
      */
@@ -86,7 +86,7 @@ public interface IScriptHandler {
     default Map<Long, String> getConsoleText() {
         Map<Long, String> map = new TreeMap<>();
         int tab = 0;
-        
+
         for (IScriptUnit script : getScripts()) {
             ++tab;
             for (Map.Entry<Long, String> entry : script.getConsole().entrySet()) {
@@ -97,24 +97,24 @@ public interface IScriptHandler {
     }
 
     default void clearConsole() {
-        for (IScriptUnit script : getScripts()) 
+        for (IScriptUnit script : getScripts())
             script.clearConsole();
-        
+
     }
-    
+
     /**
      * Create a new Janino (Java) script unit for this handler.
      * Handlers that don't support Janino scripts should return null.
-     * 
+     *
      * @return A new JaninoScript instance, or null if not supported
      */
     default IScriptUnit createJaninoScriptUnit() {
         return null; // Default: Janino not supported
     }
-    
+
     /**
      * Check if this handler supports Janino (Java) scripts.
-     * 
+     *
      * @return true if createJaninoScriptUnit() can create valid Janino scripts
      */
     default boolean supportsJanino() {
@@ -133,7 +133,7 @@ public interface IScriptHandler {
     /**
      * Get the hook context identifier for this handler.
      * Used by ScriptHookController to look up available hooks.
-     *
+     * <p>
      * By default, derives from getContext().hookContext.
      * Override if a different hook context is needed.
      *
@@ -152,9 +152,9 @@ public interface IScriptHandler {
      */
     default List<String> getHooks() {
         String context = getHookContext();
-        if (context == null || context.isEmpty()) 
+        if (context == null || context.isEmpty())
             return Collections.emptyList();
-        
+
         return ScriptHookController.Instance.getAllHooks(context);
     }
 

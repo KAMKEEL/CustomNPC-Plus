@@ -109,7 +109,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
         //Important for GuiScriptTextArea
         for (GuiNpcTextField tf : textfields.values())
-                tf.initGui();
+            tf.initGui();
     }
 
     @Override
@@ -208,6 +208,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
             }
         }
     }
+
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (subgui != null) {
@@ -286,7 +287,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     }
 
     public void close() {
-        if(GuiNpcTextField.activeTextfield != null)
+        if (GuiNpcTextField.activeTextfield != null)
             GuiNpcTextField.unfocus();
 
         Keyboard.enableRepeatEvents(false);
@@ -537,6 +538,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void drawNpcWithExtras(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         drawNpc(entity, mouseX, mouseY, partialTicks);
     }
+
     public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         if (hasSubGui() && !drawNPConSub)
             return;

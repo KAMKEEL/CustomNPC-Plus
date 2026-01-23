@@ -35,7 +35,8 @@ public class Telegraph {
     private boolean followsCaster = false;
     private float offsetForward = 0.0f;
 
-    public Telegraph() {}
+    public Telegraph() {
+    }
 
     public Telegraph(String id, TelegraphType type) {
         this.id = id;
@@ -149,54 +150,139 @@ public class Telegraph {
     // GETTERS & SETTERS
     // ═══════════════════════════════════════════════════════════════════
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
 
-    public TelegraphType getType() { return type; }
-    public void setType(TelegraphType type) { this.type = type; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public float getRadius() { return radius; }
-    public void setRadius(float radius) { this.radius = radius; }
+    public TelegraphType getType() {
+        return type;
+    }
 
-    public float getInnerRadius() { return innerRadius; }
-    public void setInnerRadius(float innerRadius) { this.innerRadius = innerRadius; }
+    public void setType(TelegraphType type) {
+        this.type = type;
+    }
 
-    public float getLength() { return length; }
-    public void setLength(float length) { this.length = length; }
+    public float getRadius() {
+        return radius;
+    }
 
-    public float getWidth() { return width; }
-    public void setWidth(float width) { this.width = width; }
+    public void setRadius(float radius) {
+        this.radius = radius;
+    }
 
-    public float getAngle() { return angle; }
-    public void setAngle(float angle) { this.angle = angle; }
+    public float getInnerRadius() {
+        return innerRadius;
+    }
 
-    public int getDurationTicks() { return durationTicks; }
-    public void setDurationTicks(int durationTicks) { this.durationTicks = durationTicks; }
+    public void setInnerRadius(float innerRadius) {
+        this.innerRadius = innerRadius;
+    }
 
-    public int getColor() { return color; }
-    public void setColor(int color) { this.color = color; }
+    public float getLength() {
+        return length;
+    }
 
-    public int getWarningColor() { return warningColor; }
-    public void setWarningColor(int warningColor) { this.warningColor = warningColor; }
+    public void setLength(float length) {
+        this.length = length;
+    }
 
-    public int getWarningStartTick() { return warningStartTick; }
-    public void setWarningStartTick(int warningStartTick) { this.warningStartTick = warningStartTick; }
+    public float getWidth() {
+        return width;
+    }
 
-    public boolean isAnimated() { return animated; }
-    public void setAnimated(boolean animated) { this.animated = animated; }
+    public void setWidth(float width) {
+        this.width = width;
+    }
 
-    public float getHeightOffset() { return heightOffset; }
-    public void setHeightOffset(float heightOffset) { this.heightOffset = heightOffset; }
+    public float getAngle() {
+        return angle;
+    }
 
-    public boolean isAtTarget() { return atTarget; }
-    public void setAtTarget(boolean atTarget) { this.atTarget = atTarget; }
+    public void setAngle(float angle) {
+        this.angle = angle;
+    }
 
-    public boolean isFollowsTarget() { return followsTarget; }
-    public void setFollowsTarget(boolean followsTarget) { this.followsTarget = followsTarget; }
+    public int getDurationTicks() {
+        return durationTicks;
+    }
 
-    public boolean isFollowsCaster() { return followsCaster; }
-    public void setFollowsCaster(boolean followsCaster) { this.followsCaster = followsCaster; }
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = durationTicks;
+    }
 
-    public float getOffsetForward() { return offsetForward; }
-    public void setOffsetForward(float offsetForward) { this.offsetForward = offsetForward; }
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
+    public int getWarningColor() {
+        return warningColor;
+    }
+
+    public void setWarningColor(int warningColor) {
+        this.warningColor = warningColor;
+    }
+
+    public int getWarningStartTick() {
+        return warningStartTick;
+    }
+
+    public void setWarningStartTick(int warningStartTick) {
+        this.warningStartTick = warningStartTick;
+    }
+
+    public boolean isAnimated() {
+        return animated;
+    }
+
+    public void setAnimated(boolean animated) {
+        this.animated = animated;
+    }
+
+    public float getHeightOffset() {
+        return heightOffset;
+    }
+
+    public void setHeightOffset(float heightOffset) {
+        this.heightOffset = heightOffset;
+    }
+
+    public boolean isAtTarget() {
+        return atTarget;
+    }
+
+    public void setAtTarget(boolean atTarget) {
+        this.atTarget = atTarget;
+    }
+
+    public boolean isFollowsTarget() {
+        return followsTarget;
+    }
+
+    public void setFollowsTarget(boolean followsTarget) {
+        this.followsTarget = followsTarget;
+    }
+
+    public boolean isFollowsCaster() {
+        return followsCaster;
+    }
+
+    public void setFollowsCaster(boolean followsCaster) {
+        this.followsCaster = followsCaster;
+    }
+
+    public float getOffsetForward() {
+        return offsetForward;
+    }
+
+    public void setOffsetForward(float offsetForward) {
+        this.offsetForward = offsetForward;
+    }
 }

@@ -39,7 +39,6 @@ import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IMagicData;
-import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.api.handler.data.IPlayerAttributes;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.ISound;
@@ -882,13 +881,13 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 
     @Override
-    public IPlayer[] getPartyMembers(){
+    public IPlayer[] getPartyMembers() {
         Party party = this.getData().getPlayerParty();
         if (party == null) {
             throw new CustomNPCsException("Player is not in party");
         }
-         List<IPlayer> list = new ArrayList<>();
-        for(int i = 0; i < party.getPlayerNamesList().size();i++){
+        List<IPlayer> list = new ArrayList<>();
+        for (int i = 0; i < party.getPlayerNamesList().size(); i++) {
             IPlayer player = NpcAPI.Instance().getPlayer(party.getPlayerNamesList().get(i));
             if (player == null) continue;
             list.add(player);

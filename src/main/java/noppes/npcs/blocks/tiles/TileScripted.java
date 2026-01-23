@@ -28,8 +28,8 @@ import noppes.npcs.client.renderer.blocks.BlockScriptedRenderer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.controllers.data.IScriptBlockHandler;
+import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.scripted.BlockScriptedWrapper;
@@ -39,8 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 public class TileScripted extends TileEntity implements IScriptBlockHandler, IScriptHandlerPacket {
     public List<IScriptUnit> scripts = new ArrayList<>();
@@ -449,7 +447,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler, ISc
     public List<IScriptUnit> getScripts() {
         return scripts;
     }
-    
+
 
     @SideOnly(Side.CLIENT)
     @Override

@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Guard ability type-specific settings.
@@ -86,11 +86,21 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: guard.setDamageReduction(parseFloat(field, guard.getDamageReduction())); break;
-            case 103: guard.setCounterValue(parseFloat(field, guard.getCounterValue())); break;
-            case 104: guard.setCounterChance(parseFloat(field, guard.getCounterChance())); break;
-            case 105: guard.setCounterSound(field.getText()); break;
-            case 106: guard.setCounterAnimationId(field.getInteger()); break;
+            case 100:
+                guard.setDamageReduction(parseFloat(field, guard.getDamageReduction()));
+                break;
+            case 103:
+                guard.setCounterValue(parseFloat(field, guard.getCounterValue()));
+                break;
+            case 104:
+                guard.setCounterChance(parseFloat(field, guard.getCounterChance()));
+                break;
+            case 105:
+                guard.setCounterSound(field.getText());
+                break;
+            case 106:
+                guard.setCounterAnimationId(field.getInteger());
+                break;
         }
     }
 }

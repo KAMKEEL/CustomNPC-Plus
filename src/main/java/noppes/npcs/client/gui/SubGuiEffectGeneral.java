@@ -8,7 +8,6 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.global.GuiNPCManageEffects;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
-import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -18,6 +17,7 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.EffectScript;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;

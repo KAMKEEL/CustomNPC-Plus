@@ -8,11 +8,10 @@ import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityProjectile;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
@@ -49,7 +48,9 @@ public class AbilityProjectile extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -58,11 +59,13 @@ public class AbilityProjectile extends Ability {
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
@@ -187,27 +190,67 @@ public class AbilityProjectile extends Ability {
     }
 
     // Getters & Setters
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public float getSpeed() { return speed; }
-    public void setSpeed(float speed) { this.speed = speed; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public float getSpeed() {
+        return speed;
+    }
 
-    public String getProjectileType() { return projectileType; }
-    public void setProjectileType(String projectileType) { this.projectileType = projectileType; }
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
 
-    public boolean isExplosive() { return explosive; }
-    public void setExplosive(boolean explosive) { this.explosive = explosive; }
+    public float getKnockback() {
+        return knockback;
+    }
 
-    public float getExplosionRadius() { return explosionRadius; }
-    public void setExplosionRadius(float explosionRadius) { this.explosionRadius = explosionRadius; }
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
 
-    public boolean isHoming() { return homing; }
-    public void setHoming(boolean homing) { this.homing = homing; }
+    public String getProjectileType() {
+        return projectileType;
+    }
 
-    public float getHomingStrength() { return homingStrength; }
-    public void setHomingStrength(float homingStrength) { this.homingStrength = homingStrength; }
+    public void setProjectileType(String projectileType) {
+        this.projectileType = projectileType;
+    }
+
+    public boolean isExplosive() {
+        return explosive;
+    }
+
+    public void setExplosive(boolean explosive) {
+        this.explosive = explosive;
+    }
+
+    public float getExplosionRadius() {
+        return explosionRadius;
+    }
+
+    public void setExplosionRadius(float explosionRadius) {
+        this.explosionRadius = explosionRadius;
+    }
+
+    public boolean isHoming() {
+        return homing;
+    }
+
+    public void setHoming(boolean homing) {
+        this.homing = homing;
+    }
+
+    public float getHomingStrength() {
+        return homingStrength;
+    }
+
+    public void setHomingStrength(float homingStrength) {
+        this.homingStrength = homingStrength;
+    }
 }

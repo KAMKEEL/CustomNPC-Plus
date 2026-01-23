@@ -1,17 +1,38 @@
 package noppes.npcs.client.gui.script;
 
 
-import noppes.npcs.janino.JaninoScript;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiConfirmOpenLink;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiMenuTopButton;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextArea;
+import noppes.npcs.client.gui.util.GuiScriptTextArea;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.ISubGuiListener;
+import noppes.npcs.client.gui.util.ITextChangeListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.janino.JaninoScript;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback, ITextChangeListener, ICustomScrollListener, ISubGuiListener {
@@ -21,7 +42,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
     public List<String> allExternalScripts = new ArrayList<>();
     private final int scriptLimit = 1;
     public String previousHookClicked = "";
-    
+
     // GUI display list
     List<String> hooklist = new ArrayList<>();
 
@@ -83,6 +104,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
             }
         }
     }
+
     public void initGui() {
         this.ySize = (int) ((double) this.xSize * 0.56);
         if ((double) this.ySize > (double) this.height * 0.95) {
@@ -95,7 +117,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
         this.guiTop += 10;
         int yoffset = (int) ((double) this.ySize * 0.02);
         GuiMenuTopButton top;
-        addTopButton(new GuiMenuTopButton(-1, guiLeft + xSize-2 , guiTop - 17, "X"));
+        addTopButton(new GuiMenuTopButton(-1, guiLeft + xSize - 2, guiTop - 17, "X"));
         this.addTopButton(top = new GuiMenuTopButton(0, this.guiLeft + 4, this.guiTop - 17, "gui.settings"));
         int topXoffset = 0;
         int topYoffset = 0;
@@ -135,7 +157,7 @@ public class GuiJaninoScript extends GuiNPCInterface implements GuiYesNoCallback
             textArea.setListener(this);
             this.closeOnEsc(textArea::closeOnEsc);
             this.addTextField(textArea);
-            
+
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));

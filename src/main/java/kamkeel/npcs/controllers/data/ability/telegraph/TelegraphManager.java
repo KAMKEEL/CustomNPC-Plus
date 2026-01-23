@@ -12,12 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TelegraphManager {
 
-    /** Client-side instance for rendering */
+    /**
+     * Client-side instance for rendering
+     */
     public static TelegraphManager ClientInstance;
 
     private final ConcurrentHashMap<String, TelegraphInstance> telegraphs = new ConcurrentHashMap<>();
 
-    public TelegraphManager() {}
+    public TelegraphManager() {
+    }
 
     /**
      * Initialize the client-side manager.
