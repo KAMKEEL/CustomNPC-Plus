@@ -19,6 +19,8 @@ import java.lang.invoke.MethodHandle;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class JaninoScript<T> implements IScriptUnit {
@@ -58,7 +60,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         this.type = type;
         this.defaultImports = defaultImports != null ? defaultImports : new String[0];
         this.builder = IScriptBodyBuilder.getBuilder(type, isClient ? CustomNpcs.getClientCompiler() : CustomNpcs.getDynamicCompiler())
-            .setDefaultImports(defaultImports);
+            .setDefaultImports(this.defaultImports);
 
         Permissions permissions = new Permissions();
         permissions.setReadOnly();
@@ -135,7 +137,8 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         // Add imports from all hook definitions for this context
         String context = getHookContext();
         if (context != null && !context.isEmpty() && ScriptHookController.Instance != null) {
-            for (IHookDefinition def : ScriptHookController.Instance.getAllHookDefinitions(context)) {
+            java.util.List<IHookDefinition> defs = ScriptHookController.Instance.getAllHookDefinitions(context);
+            for (IHookDefinition def : defs) {
                 String[] imports = def.requiredImports();
                 if (imports != null) {
                     Collections.addAll(allImports, imports);
@@ -270,6 +273,49 @@ public abstract class JaninoScript<T> implements IScriptUnit {
             appendConsole("Runtime Error in hook " + hookName + ": " + e.getMessage());
             return null;
         }
+    }
+
+    public <R> R call(Function<T, R> fn) {
+        ensureCompiled();
+
+        T t = getUnsafe();
+        if (t == null)
+            return null;
+
+//        CodeSource cs = t.getClass().getProtectionDomain().getCodeSource();
+//        ProtectionDomain pd = new ProtectionDomain(cs, new Permissions());
+
+        try {
+            return sandbox.confine((PrivilegedAction<R>) () -> fn.apply(t));
+//            return AccessController.doPrivileged((PrivilegedAction<? extends R>) () -> fn.apply(t), new AccessControlContext(
+//                new ProtectionDomain[] {
+//                    pd
+//                }
+//            ));
+        } catch (Exception e) {
+            appendConsole("Runtime Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public void run(Consumer<T> fn) {
+        ensureCompiled();
+
+        T t = getUnsafe();
+        if (t == null)
+            return;
+
+        try {
+            sandbox.confine((PrivilegedAction<Void>) () -> {
+                fn.accept(t);
+                return null;
+            });
+        } catch (Exception e) {
+            appendConsole("Runtime Error: " + e.getMessage());
+        }
+    }
+
+    public void unload() {
     }
 
 
