@@ -5,10 +5,14 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocDeprecatedTag;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocReturnTag;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocSeeTag;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocSinceTag;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocTypeTag;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
@@ -1192,6 +1196,46 @@ public class TokenHoverInfo {
             }
 
             jsDocLines.add(returnLine);
+        }
+        
+        JSDocDeprecatedTag deprecatedTag = jsDoc.getDeprecatedTag();
+        if (deprecatedTag != null) {
+            DocumentationLine deprecatedLine = new DocumentationLine();
+            deprecatedLine.addSegment("@deprecated", TokenType.JSDOC_TAG.getHexColor());
+            
+            if (deprecatedTag.hasReason()) {
+                deprecatedLine.addText(" - ");
+                deprecatedLine.addText(deprecatedTag.getReason());
+            }
+            
+            jsDocLines.add(deprecatedLine);
+        }
+        
+        JSDocSinceTag sinceTag = jsDoc.getSinceTag();
+        if (sinceTag != null) {
+            DocumentationLine sinceLine = new DocumentationLine();
+            sinceLine.addSegment("Since:", TokenType.JSDOC_TAG.getHexColor());
+            sinceLine.addText(" " + sinceTag.getVersion());
+            
+            jsDocLines.add(sinceLine);
+        }
+        
+        List<JSDocSeeTag> seeTags = jsDoc.getSeeTags();
+        if (seeTags != null && !seeTags.isEmpty()) {
+            for (JSDocSeeTag seeTag : seeTags) {
+                DocumentationLine seeLine = new DocumentationLine();
+                seeLine.addSegment("See:", TokenType.JSDOC_TAG.getHexColor());
+                
+                String reference = seeTag.getReference();
+                if (seeTag.hasLinkText()) {
+                    seeLine.addText(" ");
+                    seeLine.addSegment(seeTag.getLinkText(), TokenType.INTERFACE_DECL.getHexColor());
+                } else if (reference != null) {
+                    seeLine.addText(" " + reference);
+                }
+                
+                jsDocLines.add(seeLine);
+            }
         }
     }
     
