@@ -2,9 +2,9 @@ package kamkeel.npcs.controllers;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.addon.DBCAddon;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSyncAction;

@@ -117,10 +117,9 @@ public class ActionManager implements IActionManager {
 //        return false;
 //    }
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
     // Creators
-
     @Override
     public IAction create(String name) {
         return new Action(this, name);
@@ -186,10 +185,9 @@ public class ActionManager implements IActionManager {
         return new ConditionalAction(this, name, condition, task, terminateWhen, onTermination);
     }
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
     // Queues
-
     @Override
     public IActionQueue createQueue(String name) {
         return createQueue(name, false);
@@ -237,10 +235,9 @@ public class ActionManager implements IActionManager {
         return true;
     }
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
     // Sequential
-
     @Override
     public IActionQueue getSequentialQueue() {
         return sequentialQueue;
@@ -299,10 +296,9 @@ public class ActionManager implements IActionManager {
         return sequentialQueue.scheduleActionAt(index, action);
     }
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
     // Parallels
-
     @Override
     public IActionQueue getParallelQueue() {
         return parallelQueue;
@@ -345,7 +341,7 @@ public class ActionManager implements IActionManager {
 
     @Override
     public IAction scheduleParallel(String name, int delay, Consumer<IAction> task) {
-        return parallelQueue.schedule(name,delay, task);
+        return parallelQueue.schedule(name, delay, task);
     }
 
     @Override
@@ -353,10 +349,9 @@ public class ActionManager implements IActionManager {
         return parallelQueue.schedule(name, maxDuration, delay, task);
     }
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
     // Conditionals
-
     @Override
     public IActionQueue getConditionalQueue() {
         return conditionalQueue;
@@ -403,10 +398,9 @@ public class ActionManager implements IActionManager {
         return schedule(new ConditionalAction(this, name, condition, task, terminateWhen, onTermination));
     }
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
     // Handling
-
     @Override
     public IActionQueue[] getAllQueues() {
         ArrayList<IActionQueue> allQueues = new ArrayList<>();

@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.global.GuiNPCManageEffects;
-import noppes.npcs.client.gui.script.GuiScriptEffect;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -17,6 +17,7 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.EffectScript;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -202,10 +203,7 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         }
         if (id == -2) {
             PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), originalName));
-            GuiScriptEffect scriptGUI = new GuiScriptEffect(parent, effect);
-            scriptGUI.setWorldAndResolution(mc, width, height);
-            scriptGUI.initGui();
-            mc.currentScreen = scriptGUI;
+            GuiScriptInterface.open(parent, new EffectScript(effect.id));
         }
         if (id == 10) {
             GuiNpcButtonYesNo button = (GuiNpcButtonYesNo) guibutton;

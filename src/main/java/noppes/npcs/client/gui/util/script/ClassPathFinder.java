@@ -1,6 +1,13 @@
 package noppes.npcs.client.gui.util.script;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Helper class for resolving Java classpath imports and determining class types.
@@ -21,14 +28,14 @@ public class ClassPathFinder {
 
     // Common java.lang classes (auto-imported in Java)
     public static final Set<String> JAVA_LANG_CLASSES = new HashSet<>(Arrays.asList(
-            "Object", "String", "Class", "System", "Math", "Integer", "Double", "Float", "Long", "Short", "Byte",
-            "Character", "Boolean", "Number", "Void", "Thread", "Runnable", "Exception", "RuntimeException",
-            "Error", "Throwable", "StringBuilder", "StringBuffer", "Enum", "Comparable", "Iterable",
-            "CharSequence", "Cloneable", "Process", "ProcessBuilder", "Runtime", "SecurityManager",
-            "ClassLoader", "Package", "ArithmeticException", "ArrayIndexOutOfBoundsException",
-            "ClassCastException", "IllegalArgumentException", "IllegalStateException",
-            "IndexOutOfBoundsException", "NullPointerException", "NumberFormatException",
-            "UnsupportedOperationException", "AssertionError", "OutOfMemoryError", "StackOverflowError"
+        "Object", "String", "Class", "System", "Math", "Integer", "Double", "Float", "Long", "Short", "Byte",
+        "Character", "Boolean", "Number", "Void", "Thread", "Runnable", "Exception", "RuntimeException",
+        "Error", "Throwable", "StringBuilder", "StringBuffer", "Enum", "Comparable", "Iterable",
+        "CharSequence", "Cloneable", "Process", "ProcessBuilder", "Runtime", "SecurityManager",
+        "ClassLoader", "Package", "ArithmeticException", "ArrayIndexOutOfBoundsException",
+        "ClassCastException", "IllegalArgumentException", "IllegalStateException",
+        "IndexOutOfBoundsException", "NullPointerException", "NumberFormatException",
+        "UnsupportedOperationException", "AssertionError", "OutOfMemoryError", "StackOverflowError"
     ));
 
     /**
@@ -193,10 +200,10 @@ public class ClassPathFinder {
 
                     // Full resolution successful
                     List<ClassSegment> classSegments = buildClassSegments(segments, classStartIdx, n);
-                        return ResolveResult.found(
-                            new ClassInfo(info.resolvedName, info.type, packagePortion.length()),
-                            packagePortion, validClassPortion, classSegments, classStartIdx
-                        );
+                    return ResolveResult.found(
+                        new ClassInfo(info.resolvedName, info.type, packagePortion.length()),
+                        packagePortion, validClassPortion, classSegments, classStartIdx
+                    );
                 }
             }
         }
@@ -243,7 +250,7 @@ public class ClassPathFinder {
         // Build the typed package path segment by segment and compare with cache
         StringBuilder sb = new StringBuilder();
         int lastValidIndex = -1;
-        
+
         for (int i = 0; i < classStartIdx; i++) {
             if (i > 0) sb.append(".");
             sb.append(segments[i]);
@@ -272,7 +279,7 @@ public class ClassPathFinder {
                 }
             }
         }
-        
+
         // If we found some valid prefix but not all, return where it stopped being valid
         if (lastValidIndex > 0 && lastValidIndex < classStartIdx) {
             // Check if segment at lastValidIndex diverges from any known path
@@ -282,15 +289,15 @@ public class ClassPathFinder {
                     // There's a known continuation - check if typed segment matches
                     String nextTyped = segments[lastValidIndex];
                     String cachedRemainder = cached.substring(validPrefix.length() + 1);
-                    String nextCached = cachedRemainder.contains(".") ? 
-                            cachedRemainder.substring(0, cachedRemainder.indexOf('.')) : cachedRemainder;
+                    String nextCached = cachedRemainder.contains(".") ?
+                        cachedRemainder.substring(0, cachedRemainder.indexOf('.')) : cachedRemainder;
                     if (!nextTyped.equals(nextCached)) {
                         return lastValidIndex; // Divergence point
                     }
                 }
             }
         }
-        
+
         return -1; // No typo detected
     }
 
@@ -312,7 +319,7 @@ public class ClassPathFinder {
             registerValidPackage(packagePath);
             return true;
         }
-        
+
         // Fallback: try to find any class under this package to validate it
         String[] testClasses = getTestClassesForPackage(packagePath);
         for (String testClass : testClasses) {
@@ -583,7 +590,7 @@ public class ClassPathFinder {
             default:
                 // For unknown packages, try common class suffixes
                 return new String[]{
-                        packagePath + ".package-info",  // Won't work but harmless
+                    packagePath + ".package-info",  // Won't work but harmless
                 };
         }
     }
@@ -594,7 +601,7 @@ public class ClassPathFinder {
      * Parse generic type content and return type names with their positions.
      * Handles arbitrary nesting depth like "Map<String, List<Map<String, String>>>"
      *
-     * @param genericContent The content inside <...> (without the outer angle brackets)
+     * @param genericContent  The content inside <...> (without the outer angle brackets)
      * @param importedClasses Map of simple name -> full class name for resolution
      * @return List of TypeOccurrence with position and type info
      */

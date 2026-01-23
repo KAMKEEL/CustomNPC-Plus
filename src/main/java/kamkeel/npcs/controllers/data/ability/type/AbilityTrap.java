@@ -13,9 +13,9 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTrap;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -80,7 +80,9 @@ public class AbilityTrap extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -89,15 +91,19 @@ public class AbilityTrap extends Ability {
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
-
-    @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+    public boolean isTargetingModeLocked() {
+        return true;
     }
 
     @Override
-    public float getTelegraphRadius() { return triggerRadius; }
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return triggerRadius;
+    }
 
     @Override
     public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
@@ -362,66 +368,172 @@ public class AbilityTrap extends Ability {
     }
 
     // Getters & Setters
-    public TrapPlacement getPlacement() { return placement; }
-    public void setPlacement(TrapPlacement placement) { this.placement = placement; }
+    public TrapPlacement getPlacement() {
+        return placement;
+    }
 
-    public float getPlacementDistance() { return placementDistance; }
-    public void setPlacementDistance(float placementDistance) { this.placementDistance = placementDistance; }
+    public void setPlacement(TrapPlacement placement) {
+        this.placement = placement;
+    }
 
-    public float getTriggerRadius() { return triggerRadius; }
-    public void setTriggerRadius(float triggerRadius) { this.triggerRadius = triggerRadius; }
+    public float getPlacementDistance() {
+        return placementDistance;
+    }
 
-    public int getArmTime() { return armTime; }
-    public void setArmTime(int armTime) { this.armTime = armTime; }
+    public void setPlacementDistance(float placementDistance) {
+        this.placementDistance = placementDistance;
+    }
 
-    public int getMaxTriggers() { return maxTriggers; }
-    public void setMaxTriggers(int maxTriggers) { this.maxTriggers = maxTriggers; }
+    public float getTriggerRadius() {
+        return triggerRadius;
+    }
 
-    public int getTriggerCooldown() { return triggerCooldown; }
-    public void setTriggerCooldown(int triggerCooldown) { this.triggerCooldown = triggerCooldown; }
+    public void setTriggerRadius(float triggerRadius) {
+        this.triggerRadius = triggerRadius;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public int getArmTime() {
+        return armTime;
+    }
 
-    public float getDamageRadius() { return damageRadius; }
-    public void setDamageRadius(float damageRadius) { this.damageRadius = damageRadius; }
+    public void setArmTime(int armTime) {
+        this.armTime = armTime;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public int getMaxTriggers() {
+        return maxTriggers;
+    }
 
-    public int getStunDuration() { return stunDuration; }
-    public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }
+    public void setMaxTriggers(int maxTriggers) {
+        this.maxTriggers = maxTriggers;
+    }
 
-    public int getRootDuration() { return rootDuration; }
-    public void setRootDuration(int rootDuration) { this.rootDuration = rootDuration; }
+    public int getTriggerCooldown() {
+        return triggerCooldown;
+    }
 
-    public int getSlowDuration() { return slowDuration; }
-    public void setSlowDuration(int slowDuration) { this.slowDuration = slowDuration; }
+    public void setTriggerCooldown(int triggerCooldown) {
+        this.triggerCooldown = triggerCooldown;
+    }
 
-    public int getSlowLevel() { return slowLevel; }
-    public void setSlowLevel(int slowLevel) { this.slowLevel = slowLevel; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public int getPoisonDuration() { return poisonDuration; }
-    public void setPoisonDuration(int poisonDuration) { this.poisonDuration = poisonDuration; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public int getPoisonLevel() { return poisonLevel; }
-    public void setPoisonLevel(int poisonLevel) { this.poisonLevel = poisonLevel; }
+    public float getDamageRadius() {
+        return damageRadius;
+    }
 
-    public boolean isVisible() { return visible; }
-    public void setVisible(boolean visible) { this.visible = visible; }
+    public void setDamageRadius(float damageRadius) {
+        this.damageRadius = damageRadius;
+    }
 
-    public float getMinOffset() { return minOffset; }
-    public void setMinOffset(float minOffset) { this.minOffset = minOffset; }
+    public float getKnockback() {
+        return knockback;
+    }
 
-    public float getMaxOffset() { return maxOffset; }
-    public void setMaxOffset(float maxOffset) { this.maxOffset = maxOffset; }
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
 
-    public boolean isRandomOffset() { return randomOffset; }
-    public void setRandomOffset(boolean randomOffset) { this.randomOffset = randomOffset; }
+    public int getStunDuration() {
+        return stunDuration;
+    }
+
+    public void setStunDuration(int stunDuration) {
+        this.stunDuration = stunDuration;
+    }
+
+    public int getRootDuration() {
+        return rootDuration;
+    }
+
+    public void setRootDuration(int rootDuration) {
+        this.rootDuration = rootDuration;
+    }
+
+    public int getSlowDuration() {
+        return slowDuration;
+    }
+
+    public void setSlowDuration(int slowDuration) {
+        this.slowDuration = slowDuration;
+    }
+
+    public int getSlowLevel() {
+        return slowLevel;
+    }
+
+    public void setSlowLevel(int slowLevel) {
+        this.slowLevel = slowLevel;
+    }
+
+    public int getPoisonDuration() {
+        return poisonDuration;
+    }
+
+    public void setPoisonDuration(int poisonDuration) {
+        this.poisonDuration = poisonDuration;
+    }
+
+    public int getPoisonLevel() {
+        return poisonLevel;
+    }
+
+    public void setPoisonLevel(int poisonLevel) {
+        this.poisonLevel = poisonLevel;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public float getMinOffset() {
+        return minOffset;
+    }
+
+    public void setMinOffset(float minOffset) {
+        this.minOffset = minOffset;
+    }
+
+    public float getMaxOffset() {
+        return maxOffset;
+    }
+
+    public void setMaxOffset(float maxOffset) {
+        this.maxOffset = maxOffset;
+    }
+
+    public boolean isRandomOffset() {
+        return randomOffset;
+    }
+
+    public void setRandomOffset(boolean randomOffset) {
+        this.randomOffset = randomOffset;
+    }
 
     // Runtime getters
-    public double getTrapX() { return trapX; }
-    public double getTrapY() { return trapY; }
-    public double getTrapZ() { return trapZ; }
-    public boolean isArmed() { return armed; }
+    public double getTrapX() {
+        return trapX;
+    }
+
+    public double getTrapY() {
+        return trapY;
+    }
+
+    public double getTrapZ() {
+        return trapZ;
+    }
+
+    public boolean isArmed() {
+        return armed;
+    }
 }

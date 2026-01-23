@@ -42,7 +42,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader
     public IItemStack getSellOption(int slot) {
         if (slot >= 18 || slot < 0) return null;
         if (role.inventorySold.items.get(slot) == null) return null;
-        return NpcAPI.Instance().getIItemStack(role.inventoryCurrency.items.get(slot));
+        return NpcAPI.Instance().getIItemStack(role.inventorySold.items.get(slot));
     }
 
     public IItemStack[] getCurrency(int slot) {
@@ -100,7 +100,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader
 
     public boolean isSlotEnabled(int slot) {
         if (slot >= 18 || slot < 0) return false;
-        return role.disableSlot[slot] > 0;
+        return role.disableSlot[slot] <= 0;  // enabled when NOT disabled
     }
 
     public boolean isSlotEnabled(int slot, IPlayer player) {
@@ -126,6 +126,132 @@ public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader
     public void enableSlot(int slot, IPlayer player) {
         if (slot >= 18 || slot < 0) return;
         role.getArrayByName(player.getDisplayName(), role.playerDisableSlot)[slot] = 0;
+    }
+
+    // ==================== Stock System ====================
+
+    public boolean isStockEnabled() {
+        return role.stock.enableStock;
+    }
+
+    public void setStockEnabled(boolean enabled) {
+        role.stock.enableStock = enabled;
+    }
+
+    public boolean isPerPlayerStock() {
+        return role.stock.perPlayer;
+    }
+
+    public void setPerPlayerStock(boolean perPlayer) {
+        role.stock.perPlayer = perPlayer;
+    }
+
+    public int getStockResetType() {
+        return role.stock.resetType.ordinal();
+    }
+
+    public void setStockResetType(int type) {
+        noppes.npcs.constants.EnumStockReset[] values = noppes.npcs.constants.EnumStockReset.values();
+        if (type >= 0 && type < values.length) {
+            role.stock.resetType = values[type];
+        }
+    }
+
+    public long getCustomResetTime() {
+        return role.stock.customResetTime;
+    }
+
+    public void setCustomResetTime(long time) {
+        role.stock.customResetTime = Math.max(0, time);
+    }
+
+    public int getMaxStock(int slot) {
+        if (slot < 0 || slot >= 18) return -1;
+        return role.stock.maxStock[slot];
+    }
+
+    public void setMaxStock(int slot, int amount) {
+        if (slot >= 0 && slot < 18) {
+            role.stock.setMaxStock(slot, amount);
+        }
+    }
+
+    public int getAvailableStock(int slot) {
+        if (slot < 0 || slot >= 18) return 0;
+        return role.stock.getAvailableStock(slot, "");
+    }
+
+    public int getAvailableStock(int slot, IPlayer player) {
+        if (slot < 0 || slot >= 18) return 0;
+        return role.stock.getAvailableStock(slot, player.getDisplayName());
+    }
+
+    public void resetStock() {
+        long currentTime = role.stock.resetType.isRealTime()
+            ? System.currentTimeMillis()
+            : (npc.worldObj != null ? npc.worldObj.getTotalWorldTime() : 0);
+        role.stock.resetStock(currentTime);
+    }
+
+    public void resetCooldown() {
+        long currentTime = role.stock.resetType.isRealTime()
+            ? System.currentTimeMillis()
+            : (npc.worldObj != null ? npc.worldObj.getTotalWorldTime() : 0);
+        role.stock.lastResetTime = currentTime;
+    }
+
+    public int getCurrentStock(int slot) {
+        if (slot < 0 || slot >= 18) return -1;
+        return role.stock.currentStock[slot];
+    }
+
+    public void setCurrentStock(int slot, int amount) {
+        if (slot >= 0 && slot < 18) {
+            role.stock.currentStock[slot] = amount;
+        }
+    }
+
+    public int getPlayerPurchased(int slot, IPlayer player) {
+        if (slot < 0 || slot >= 18) return 0;
+        noppes.npcs.controllers.data.TraderStock.PlayerTraderStock pStock =
+            role.stock.playerStock.get(player.getDisplayName());
+        if (pStock == null) return 0;
+        return pStock.purchasedAmounts[slot];
+    }
+
+    public void setPlayerPurchased(int slot, IPlayer player, int amount) {
+        if (slot < 0 || slot >= 18) return;
+        noppes.npcs.controllers.data.TraderStock.PlayerTraderStock pStock =
+            role.stock.playerStock.computeIfAbsent(
+                player.getDisplayName(),
+                k -> new noppes.npcs.controllers.data.TraderStock.PlayerTraderStock()
+            );
+        pStock.purchasedAmounts[slot] = Math.max(0, amount);
+    }
+
+    public long getLastResetTime() {
+        return role.stock.lastResetTime;
+    }
+
+    public long getTimeUntilReset() {
+        long currentTime = role.stock.resetType.isRealTime()
+            ? System.currentTimeMillis()
+            : (npc.worldObj != null ? npc.worldObj.getTotalWorldTime() : 0);
+        return role.stock.getTimeUntilReset(currentTime);
+    }
+
+    // ==================== Currency Cost System ====================
+
+    public long getCurrencyCost(int slot) {
+        return role.getCurrencyCost(slot);
+    }
+
+    public void setCurrencyCost(int slot, long cost) {
+        role.setCurrencyCost(slot, cost);
+    }
+
+    public boolean hasCurrencyCost(int slot) {
+        return role.hasCurrencyCost(slot);
     }
 
     @Override

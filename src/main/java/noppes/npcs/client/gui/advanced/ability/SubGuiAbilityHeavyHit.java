@@ -1,10 +1,10 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Heavy Hit ability type-specific settings.
@@ -27,7 +27,7 @@ public class SubGuiAbilityHeavyHit extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Potion Time
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, heavyHit.getDamage()));
 
         addLabel(new GuiNpcLabel(101, "ability.potionTime", col2LabelX, y + 5));
@@ -52,11 +52,21 @@ public class SubGuiAbilityHeavyHit extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: heavyHit.setDamage(parseFloat(field, heavyHit.getDamage())); break;
-            case 101: heavyHit.setPotionDurationSeconds(field.getInteger()); break;
-            case 102: heavyHit.setKnockback(parseFloat(field, heavyHit.getKnockback())); break;
-            case 103: heavyHit.setSlownessLevel(field.getInteger()); break;
-            case 104: heavyHit.setWeaknessLevel(field.getInteger()); break;
+            case 100:
+                heavyHit.setDamage(parseFloat(field, heavyHit.getDamage()));
+                break;
+            case 101:
+                heavyHit.setPotionDurationSeconds(field.getInteger());
+                break;
+            case 102:
+                heavyHit.setKnockback(parseFloat(field, heavyHit.getKnockback()));
+                break;
+            case 103:
+                heavyHit.setSlownessLevel(field.getInteger());
+                break;
+            case 104:
+                heavyHit.setWeaknessLevel(field.getInteger());
+                break;
         }
     }
 }

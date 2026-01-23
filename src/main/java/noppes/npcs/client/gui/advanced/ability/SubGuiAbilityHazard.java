@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Hazard ability type-specific settings.
@@ -77,22 +77,42 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
     protected void handleTypeButton(int id, GuiNpcButton button) {
         int value = button.getValue();
         switch (id) {
-            case 100: hazard.setShape(AbilityHazard.HazardShape.values()[value]); break;
-            case 101: hazard.setPlacement(AbilityHazard.PlacementMode.values()[value]); break;
-            case 109: hazard.setAffectsCaster(value == 1); break;
+            case 100:
+                hazard.setShape(AbilityHazard.HazardShape.values()[value]);
+                break;
+            case 101:
+                hazard.setPlacement(AbilityHazard.PlacementMode.values()[value]);
+                break;
+            case 109:
+                hazard.setAffectsCaster(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 102: hazard.setRadius(parseFloat(field, hazard.getRadius())); break;
-            case 103: hazard.setInnerRadius(parseFloat(field, hazard.getInnerRadius())); break;
-            case 104: hazard.setDamagePerTick(parseFloat(field, hazard.getDamagePerTick())); break;
-            case 105: hazard.setDamageInterval(field.getInteger()); break;
-            case 106: hazard.setSlownessLevel(field.getInteger()); break;
-            case 107: hazard.setDebuffDuration(field.getInteger()); break;
-            case 108: hazard.setPoisonLevel(field.getInteger()); break;
+            case 102:
+                hazard.setRadius(parseFloat(field, hazard.getRadius()));
+                break;
+            case 103:
+                hazard.setInnerRadius(parseFloat(field, hazard.getInnerRadius()));
+                break;
+            case 104:
+                hazard.setDamagePerTick(parseFloat(field, hazard.getDamagePerTick()));
+                break;
+            case 105:
+                hazard.setDamageInterval(field.getInteger());
+                break;
+            case 106:
+                hazard.setSlownessLevel(field.getInteger());
+                break;
+            case 107:
+                hazard.setDebuffDuration(field.getInteger());
+                break;
+            case 108:
+                hazard.setPoisonLevel(field.getInteger());
+                break;
         }
     }
 }

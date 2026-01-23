@@ -62,7 +62,6 @@ import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomizableItem;
-import noppes.npcs.scripted.item.ScriptItemStack;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
@@ -549,7 +548,7 @@ public class ScriptPlayerEventHandler {
 
             if (event.source.getEntity() instanceof EntityPlayerMP) {
                 EntityPlayerMP playerMP = (EntityPlayerMP) event.source.getEntity();
-                if(playerMP.getHeldItem() != null) {
+                if (playerMP.getHeldItem() != null) {
                     IItemStack itemStack = NpcAPI.Instance().getIItemStack(playerMP.getHeldItem());
                     if (itemStack instanceof ScriptCustomizableItem) {
                         ScriptCustomizableItem sci = (ScriptCustomizableItem) itemStack;

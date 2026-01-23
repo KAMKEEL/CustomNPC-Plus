@@ -11,17 +11,17 @@ public class MethodBlock {
 
     // pattern matches returnType + methodName + parentheses
     public static final Pattern METHOD_PATTERN = Pattern.compile(
-            "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
-                    "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(" // method name
+        "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
+            "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(" // method name
     );
 
     // Pattern for variable declarations (same as in JavaTextContainer)
     public static final Pattern LOCAL_VAR_DECL = Pattern.compile(
-            "\\b([A-Z][a-zA-Z0-9_<>\\[\\]]*|[a-z][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
-    
+        "\\b([A-Z][a-zA-Z0-9_<>\\[\\]]*|[a-z][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+
     // Pattern for method parameters: Type name (with optional ... for varargs)
     public static final Pattern PARAMETER_PATTERN = Pattern.compile(
-            "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
+        "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
 
     public int startOffset;
     public int endOffset;
@@ -37,22 +37,22 @@ public class MethodBlock {
         extractParameters();
         extractLocalVariables();
     }
-    
+
     // Extract method parameters from the method signature
     private void extractParameters() {
         parameters.clear();
-        
+
         // Find the parameter list between ( and )
         int parenStart = text.indexOf('(');
         int parenEnd = text.indexOf(')');
-        
+
         if (parenStart < 0 || parenEnd <= parenStart) return;
-        
+
         String paramList = text.substring(parenStart + 1, parenEnd);
-        
+
         // Skip if empty
         if (paramList.trim().isEmpty()) return;
-        
+
         // Split by comma (but be careful of generic types like List<A, B>)
         Matcher m = PARAMETER_PATTERN.matcher(paramList);
         while (m.find()) {
@@ -67,20 +67,20 @@ public class MethodBlock {
     private void extractLocalVariables() {
         localVariables.clear();
         localVarPositions.clear();
-        
+
         // Get excluded ranges (strings and comments) for this method's text
         List<int[]> excludedRanges = getExcludedRanges(text);
-        
+
         Matcher m = LOCAL_VAR_DECL.matcher(text);
         while (m.find()) {
             String varName = m.group(2);
             int declPosition = m.start();
-            
+
             // Skip if inside a string or comment
             if (isInExcludedRange(declPosition, excludedRanges)) {
                 continue;
             }
-            
+
             // Check if this is a "this.field" assignment - if so, skip it
             // Look backwards from the declaration position to see if preceded by "this."
             boolean isThisFieldAssignment = false;
@@ -91,7 +91,7 @@ public class MethodBlock {
                     isThisFieldAssignment = true;
                 }
             }
-            
+
             if (!isThisFieldAssignment && !localVariables.contains(varName)) {
                 localVariables.add(varName);
                 // Store the absolute position in the full text (startOffset + relative position)
@@ -99,7 +99,7 @@ public class MethodBlock {
             }
         }
     }
-    
+
     // Check if a reference position comes before the local variable declaration
     // This handles cases like: global.field on line 7, then var global = "x" on line 9
     // At line 7, the local 'global' doesn't exist yet, so it should refer to the global 'global'
@@ -129,10 +129,10 @@ public class MethodBlock {
 
         // Matches: returnType methodName(...) { (non-greedy capture until first { )
         Pattern methodPattern = Pattern.compile(
-                "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
-                        "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\([^)]*\\)\\s*" + // method name + parameters
-                        "\\{", // opening brace
-                Pattern.MULTILINE);
+            "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
+                "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\([^)]*\\)\\s*" + // method name + parameters
+                "\\{", // opening brace
+            Pattern.MULTILINE);
 
         Matcher m = methodPattern.matcher(text);
         while (m.find()) {
@@ -160,14 +160,14 @@ public class MethodBlock {
         Pattern stringPattern = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
         Matcher stringMatcher = stringPattern.matcher(text);
         while (stringMatcher.find()) {
-            ranges.add(new int[] { stringMatcher.start(), stringMatcher.end() });
+            ranges.add(new int[]{stringMatcher.start(), stringMatcher.end()});
         }
 
         // Find all comments (block and line comments)
         Pattern commentPattern = Pattern.compile("/\\*[\\s\\S]*?(?:\\*/|$)|//.*");
         Matcher commentMatcher = commentPattern.matcher(text);
         while (commentMatcher.find()) {
-            ranges.add(new int[] { commentMatcher.start(), commentMatcher.end() });
+            ranges.add(new int[]{commentMatcher.start(), commentMatcher.end()});
         }
 
         if (ranges.isEmpty())

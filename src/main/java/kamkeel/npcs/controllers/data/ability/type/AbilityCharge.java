@@ -11,12 +11,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -59,7 +58,9 @@ public class AbilityCharge extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -68,11 +69,13 @@ public class AbilityCharge extends Ability {
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
@@ -150,7 +153,7 @@ public class AbilityCharge extends Ability {
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
             Math.pow(npc.posX - startX, 2) +
-            Math.pow(npc.posZ - startZ, 2)
+                Math.pow(npc.posZ - startZ, 2)
         );
 
         // Check if reached max distance
@@ -305,15 +308,35 @@ public class AbilityCharge extends Ability {
     }
 
     // Getters & Setters
-    public float getChargeSpeed() { return chargeSpeed; }
-    public void setChargeSpeed(float chargeSpeed) { this.chargeSpeed = chargeSpeed; }
+    public float getChargeSpeed() {
+        return chargeSpeed;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public void setChargeSpeed(float chargeSpeed) {
+        this.chargeSpeed = chargeSpeed;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public float getHitWidth() { return hitWidth; }
-    public void setHitWidth(float hitWidth) { this.hitWidth = hitWidth; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public float getKnockback() {
+        return knockback;
+    }
+
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
+
+    public float getHitWidth() {
+        return hitWidth;
+    }
+
+    public void setHitWidth(float hitWidth) {
+        this.hitWidth = hitWidth;
+    }
 }

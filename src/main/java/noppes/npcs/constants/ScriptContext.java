@@ -1,13 +1,29 @@
 package noppes.npcs.constants;
 
-import noppes.npcs.api.event.*;
+import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IBlockEvent;
+import noppes.npcs.api.event.ICustomGuiEvent;
+import noppes.npcs.api.event.IDialogEvent;
+import noppes.npcs.api.event.IFactionEvent;
+import noppes.npcs.api.event.IForgeEvent;
+import noppes.npcs.api.event.IItemEvent;
+import noppes.npcs.api.event.INpcEvent;
+import noppes.npcs.api.event.IPartyEvent;
+import noppes.npcs.api.event.IPlayerEvent;
+import noppes.npcs.api.event.IProjectileEvent;
+import noppes.npcs.api.event.IQuestEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents a script context that maps to one or more event interface namespaces.
- *
+ * <p>
  * A script context can have multiple namespaces because script editors often
  * support hooks from multiple event types. For example, Player scripts support:
  * - IPlayerEvent (core player hooks)
@@ -15,14 +31,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * - IPartyEvent (party hooks)
  * - ICustomGuiEvent (custom GUI hooks)
  * - etc.
- *
+ * <p>
+ * Each context also has a hookContext string used by ScriptHookController for
+ * hook registration and lookup.
+ * <p>
  * This is a registerable system - any mod can register their own contexts:
- *
- *   // Register a new context with multiple namespaces:
- *   ScriptContext.register("DBC", "IDBCEvent", "IDBCPlayerEvent", "IDBCFormEvent");
- *
- *   // Or add namespaces to an existing context:
- *   ScriptContext.PLAYER.addNamespace("IDBCPlayerEvent");
+ * <p>
+ * // Register a new context with multiple namespaces:
+ * ScriptContext.register("DBC", "dbc", IDBCEvent.class, IDBCPlayerEvent.class);
+ * <p>
+ * // Or add namespaces to an existing context:
+ * ScriptContext.PLAYER.addNamespace("IDBCPlayerEvent");
  */
 public class ScriptContext {
 
@@ -31,49 +50,71 @@ public class ScriptContext {
 
     // ==================== BUILT-IN CONTEXTS ====================
 
-    public static final ScriptContext NPC = register("NPC",
-       INpcEvent.class,
-       IProjectileEvent.class
+    public static final ScriptContext NPC = register("NPC", "npc",
+        INpcEvent.class,
+        IProjectileEvent.class
     );
 
-    public static final ScriptContext PLAYER = register("PLAYER",
-       IPlayerEvent.class,
-       IAnimationEvent.class,
-       IPartyEvent.class,
-       IDialogEvent.class,
-       IQuestEvent.class,
-       IFactionEvent.class,
-       ICustomGuiEvent.class
+    public static final ScriptContext PLAYER = register("PLAYER", "player",
+        IPlayerEvent.class,
+        IAnimationEvent.class,
+        IPartyEvent.class,
+        IDialogEvent.class,
+        IQuestEvent.class,
+        IFactionEvent.class,
+        ICustomGuiEvent.class
     );
 
-    public static final ScriptContext BLOCK = register("BLOCK",
-       IBlockEvent.class
+    public static final ScriptContext BLOCK = register("BLOCK", "block",
+        IBlockEvent.class
     );
 
-    public static final ScriptContext ITEM = register("ITEM",
-       IItemEvent.class
+    public static final ScriptContext ITEM = register("ITEM", "item",
+        IItemEvent.class
     );
 
-    public static final ScriptContext FORGE = register("FORGE",
-       IForgeEvent.class
+    public static final ScriptContext FORGE = register("FORGE", "forge",
+        IForgeEvent.class
     );
 
-    public static final ScriptContext GLOBAL = register("GLOBAL",
+    public static final ScriptContext LINKED_ITEM = register("LINKED_ITEM", "linked_item",
+        IItemEvent.class
+    );
+
+    public static final ScriptContext RECIPE = register("RECIPE", "recipe",
+        "Recipe"
+    );
+
+    public static final ScriptContext EFFECT = register("EFFECT", "effect",
+        "Effect"
+    );
+
+    public static final ScriptContext GLOBAL = register("GLOBAL", "",
         "Global"  // Special case: Global namespace doesn't have a corresponding event class
     );
 
     // ==================== INSTANCE FIELDS ====================
 
-    /** Unique identifier for this context (e.g., "NPC", "PLAYER", "DBC") */
+    /**
+     * Unique identifier for this context (e.g., "NPC", "PLAYER", "DBC")
+     */
     public final String id;
 
-    /** The event interface namespaces this context supports */
+    /**
+     * Hook context identifier used by ScriptHookController (e.g., "npc", "player")
+     */
+    public final String hookContext;
+
+    /**
+     * The event interface namespaces this context supports
+     */
     private final List<String> namespaces;
 
     // ==================== CONSTRUCTOR ====================
 
-    private ScriptContext(String id, String... namespaces) {
+    private ScriptContext(String id, String hookContext, String... namespaces) {
         this.id = id;
+        this.hookContext = hookContext != null ? hookContext : "";
         this.namespaces = new ArrayList<>(Arrays.asList(namespaces));
     }
 
@@ -123,14 +164,15 @@ public class ScriptContext {
     // ==================== REGISTRATION API ====================
 
     /**
-     * Register a new script context with one or more namespaces.
+     * Register a new script context with a hook context and one or more namespaces.
      *
-     * @param id Unique identifier (e.g., "DBC", "CUSTOM")
-     * @param namespaces The event interface names (e.g., "IDBCEvent", "IDBCPlayerEvent")
+     * @param id          Unique identifier (e.g., "DBC", "CUSTOM")
+     * @param hookContext The hook context string for ScriptHookController (e.g., "dbc")
+     * @param namespaces  The event interface names (e.g., "IDBCEvent", "IDBCPlayerEvent")
      * @return The registered ScriptContext
      */
-    public static ScriptContext register(String id, String... namespaces) {
-        ScriptContext context = new ScriptContext(id, namespaces);
+    public static ScriptContext register(String id, String hookContext, String... namespaces) {
+        ScriptContext context = new ScriptContext(id, hookContext, namespaces);
         REGISTRY.put(id, context);
         return context;
     }
@@ -138,20 +180,21 @@ public class ScriptContext {
     /**
      * Register a new script context using event interface classes.
      * Automatically extracts the simple name from each class.
-     *
+     * <p>
      * Example:
-     *   ScriptContext.register("NPC", INpcEvent.class, IProjectileEvent.class);
+     * ScriptContext.register("NPC", "npc", INpcEvent.class, IProjectileEvent.class);
      *
-     * @param id Unique identifier (e.g., "DBC", "CUSTOM")
+     * @param id           Unique identifier (e.g., "DBC", "CUSTOM")
+     * @param hookContext  The hook context string for ScriptHookController (e.g., "npc")
      * @param eventClasses The event interface classes (simple names will be extracted)
      * @return The registered ScriptContext
      */
-    public static ScriptContext register(String id, Class<?>... eventClasses) {
+    public static ScriptContext register(String id, String hookContext, Class<?>... eventClasses) {
         String[] namespaces = new String[eventClasses.length];
         for (int i = 0; i < eventClasses.length; i++) {
             namespaces[i] = eventClasses[i].getSimpleName();
         }
-        return register(id, namespaces);
+        return register(id, hookContext, namespaces);
     }
 
     /**
@@ -174,6 +217,22 @@ public class ScriptContext {
         if (namespace == null) return GLOBAL;
         for (ScriptContext ctx : REGISTRY.values()) {
             if (ctx.hasNamespace(namespace)) {
+                return ctx;
+            }
+        }
+        return GLOBAL;
+    }
+
+    /**
+     * Find a script context by its hook context string.
+     *
+     * @param hookContext The hook context string (e.g., "npc", "player")
+     * @return The ScriptContext with that hook context, or GLOBAL if not found
+     */
+    public static ScriptContext byHookContext(String hookContext) {
+        if (hookContext == null || hookContext.isEmpty()) return GLOBAL;
+        for (ScriptContext ctx : REGISTRY.values()) {
+            if (hookContext.equals(ctx.hookContext)) {
                 return ctx;
             }
         }

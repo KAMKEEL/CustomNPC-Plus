@@ -11,37 +11,38 @@ import java.util.regex.Pattern;
 public class JavaTextContainer extends TextContainer {
 
     public static final Pattern MODIFIER = Pattern.compile(
-            "\\b(public|protected|private|static|final|abstract|synchronized|native|default)\\b");
+        "\\b(public|protected|private|static|final|abstract|synchronized|native|default)\\b");
     public static final Pattern KEYWORD = Pattern.compile(
-            "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof|import)\\b");
+        "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof|import)\\b");
 
     public static final Pattern CLASS_DECL = Pattern.compile("\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
-    public static final Pattern NEW_TYPE = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");;
+    public static final Pattern NEW_TYPE = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
+    ;
 
     public static final Pattern METHOD_DECL = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
-            "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(" // method name
+        "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(" // method name
     );
     public static final Pattern METHOD_CALL = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
 
     // Class-level global fields
     public static final Pattern GLOBAL_FIELD_DECL = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+        "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
 
     // Local fields inside methods (simplified)
     public static final Pattern LOCAL_FIELD_DECL = Pattern.compile(
-            "\\b([A-Z][a-zA-Z0-9_<>\\[\\]]*|[a-z][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+        "\\b([A-Z][a-zA-Z0-9_<>\\[\\]]*|[a-z][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
 
     public static final Pattern STRING = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
     public static final Pattern COMMENT = Pattern.compile("/\\*[\\s\\S]*?(?:\\*/|$)|//.*|#.*");
     public static final Pattern NUMBER = Pattern.compile(
-            "\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|true|false)\\b");
+        "\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|true|false)\\b");
 
-        // Import statement: import [static] package.path.ClassName [.*]; (semicolon optional for live typing)
-        // Allows optional whitespace (including newlines) around the dots so wrapped imports match.
-        // Match imports while allowing optional whitespace/newlines around dots.
-        public static final Pattern IMPORT = Pattern.compile(
-            "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*?)?\\s*(?:;|$)");
+    // Import statement: import [static] package.path.ClassName [.*]; (semicolon optional for live typing)
+    // Allows optional whitespace (including newlines) around the dots so wrapped imports match.
+    // Match imports while allowing optional whitespace/newlines around dots.
+    public static final Pattern IMPORT = Pattern.compile(
+        "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*?)?\\s*(?:;|$)");
 
     // ClassPathFinder for resolving imports and determining class types
     private final ClassPathFinder classPathFinder = new ClassPathFinder();
@@ -73,10 +74,10 @@ public class JavaTextContainer extends TextContainer {
         return pathStart + orig.length();
     }
 
-    public void init(String text,int width, int height) {
+    public void init(String text, int width, int height) {
         this.text = text == null ? "" : text.replaceAll("\\r?\\n|\\r", "\n");
         lines.clear();
-        String[] split = text.split("\n",-1);
+        String[] split = text.split("\n", -1);
 
         int totalChars = 0;
         for (String l : split) {
@@ -196,32 +197,38 @@ public class JavaTextContainer extends TextContainer {
             }
         }
     }
-    
+
     /**
      * Parse and highlight generic type parameters using ClassPathFinder.
      * Handles arbitrarily nested generics like "Map<String, List<Map<String, String>>>".
      */
     private void highlightGenericTypes(String genericContent, int contentStart, List<Mark> marks, List<int[]> excluded) {
         if (genericContent == null || genericContent.isEmpty()) return;
-        
+
         List<ClassPathFinder.TypeOccurrence> occurrences = classPathFinder.parseGenericTypes(genericContent, importedClasses, importedPackages);
-        
+
         for (ClassPathFinder.TypeOccurrence occ : occurrences) {
             int absStart = contentStart + occ.startOffset;
             int absEnd = contentStart + occ.endOffset;
-            
+
             if (!isInExcludedRange(absStart, excluded)) {
                 TokenType tokenType;
                 switch (occ.type) {
-                    case INTERFACE: tokenType = TokenType.INTERFACE_DECL; break;
-                    case ENUM: tokenType = TokenType.ENUM_DECL; break;
-                    default: tokenType = TokenType.IMPORTED_CLASS; break;
+                    case INTERFACE:
+                        tokenType = TokenType.INTERFACE_DECL;
+                        break;
+                    case ENUM:
+                        tokenType = TokenType.ENUM_DECL;
+                        break;
+                    default:
+                        tokenType = TokenType.IMPORTED_CLASS;
+                        break;
                 }
                 marks.add(new Mark(absStart, absEnd, tokenType));
             }
         }
     }
-    
+
     private void collectFields() {
         globalFields.clear();
         localFields.clear();
@@ -229,7 +236,7 @@ public class JavaTextContainer extends TextContainer {
 
         // Extract method blocks first
         methodBlocks = MethodBlock.collectMethodBlocks(text);
-        
+
         // Get excluded ranges (strings and comments) for the entire text
         List<int[]> excludedRanges = MethodBlock.getExcludedRanges(text);
 
@@ -238,7 +245,7 @@ public class JavaTextContainer extends TextContainer {
         while (mGlobal.find()) {
             String varName = mGlobal.group(2);
             int varPosition = mGlobal.start(2);
-            
+
             // Skip if inside a string or comment
             if (isInExcludedRange(varPosition, excludedRanges)) {
                 continue;
@@ -298,7 +305,7 @@ public class JavaTextContainer extends TextContainer {
             "String", "Object", "Array", "Math", "System", "Integer", "Double", "Float",
             "Boolean", "Long", "Byte", "Short", "Character", "List", "Map", "Set"
         ));
-        
+
         // First pass: handle field accesses (this.field and obj.field patterns)
         Pattern thisFieldPattern = Pattern.compile("\\bthis\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
         Matcher thisFieldMatcher = thisFieldPattern.matcher(text);
@@ -312,7 +319,7 @@ public class JavaTextContainer extends TextContainer {
                 marks.add(new Mark(fieldPos, thisFieldMatcher.end(1), TokenType.UNDEFINED_VAR));
             }
         }
-        
+
         // Handle identifier.field patterns (e.g., obj.field, global.field)
         // The field part should be highlighted as GLOBAL_FIELD (light blue)
         // Also, detect chained accesses like `a.b.c` and treat subsequent segments
@@ -378,13 +385,13 @@ public class JavaTextContainer extends TextContainer {
                 marks.add(new Mark(fieldPos, objFieldMatcher.end(2), TokenType.GLOBAL_FIELD));
             }
         }
-        
+
         Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
         Matcher m = identifier.matcher(text);
         while (m.find()) {
             String name = m.group(1);
             int position = m.start(1);
-            
+
             // Skip known keywords
             if (knownIdentifiers.contains(name)) continue;
 
@@ -462,24 +469,24 @@ public class JavaTextContainer extends TextContainer {
         }
         return false;
     }
-    
+
     /**
      * Check if the identifier at this position is a field access (preceded by a dot)
      * e.g., in "obj.field", the "field" part is a field access
      */
     private boolean isFieldAccess(int position) {
         if (position <= 0) return false;
-        
+
         // Look backwards from position, skipping any whitespace
         int i = position - 1;
         while (i >= 0 && Character.isWhitespace(text.charAt(i))) {
             i--;
         }
-        
+
         // Check if preceded by a dot
         return i >= 0 && text.charAt(i) == '.';
     }
-    
+
     /**
      * Check if the identifier at this position is a method call (followed by parenthesis)
      */
@@ -497,7 +504,7 @@ public class JavaTextContainer extends TextContainer {
         // Check for opening paren
         return i < text.length() && text.charAt(i) == '(';
     }
-    
+
     /**
      * Check if this looks like a type reference (e.g., part of a declaration or generic)
      * But NOT a comparison like "i < container" which uses < as less-than operator
@@ -510,7 +517,7 @@ public class JavaTextContainer extends TextContainer {
                 return true;
             }
         }
-        
+
         // Check if preceded by < but make sure it's a generic, not a comparison
         // Generic: Type<Name or ,Name in generics
         // Comparison: value < name (space before < means comparison)
@@ -549,7 +556,7 @@ public class JavaTextContainer extends TextContainer {
         }
         return false;
     }
-    
+
     /**
      * Check if position is in an excluded range (string or comment)
      */
@@ -608,9 +615,15 @@ public class JavaTextContainer extends TextContainer {
                                 ClassPathFinder.ClassSegment seg = result.classSegments.get(si);
                                 TokenType segType;
                                 switch (seg.type) {
-                                    case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
-                                    case ENUM: segType = TokenType.ENUM_DECL; break;
-                                    default: segType = TokenType.IMPORTED_CLASS; break;
+                                    case INTERFACE:
+                                        segType = TokenType.INTERFACE_DECL;
+                                        break;
+                                    case ENUM:
+                                        segType = TokenType.ENUM_DECL;
+                                        break;
+                                    default:
+                                        segType = TokenType.IMPORTED_CLASS;
+                                        break;
                                 }
                                 marks.add(new Mark(s, e, segType));
                             }
@@ -631,9 +644,15 @@ public class JavaTextContainer extends TextContainer {
                             ClassPathFinder.ClassSegment seg = result.classSegments.get(si);
                             TokenType segType;
                             switch (seg.type) {
-                                case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
-                                case ENUM: segType = TokenType.ENUM_DECL; break;
-                                default: segType = TokenType.IMPORTED_CLASS; break;
+                                case INTERFACE:
+                                    segType = TokenType.INTERFACE_DECL;
+                                    break;
+                                case ENUM:
+                                    segType = TokenType.ENUM_DECL;
+                                    break;
+                                default:
+                                    segType = TokenType.IMPORTED_CLASS;
+                                    break;
                             }
                             marks.add(new Mark(s, e, segType));
                         }
@@ -698,7 +717,11 @@ public class JavaTextContainer extends TextContainer {
                             List<Integer> tokenStarts = new ArrayList<>();
                             List<Integer> tokenEnds = new ArrayList<>();
                             Matcher tokm = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*").matcher(orig);
-                            while (tokm.find()) { tokens.add(tokm.group()); tokenStarts.add(tokm.start()); tokenEnds.add(tokm.end()); }
+                            while (tokm.find()) {
+                                tokens.add(tokm.group());
+                                tokenStarts.add(tokm.start());
+                                tokenEnds.add(tokm.end());
+                            }
 
                             int tokenCount = tokenStarts.size();
                             if (tokenCount > 0) {
@@ -713,9 +736,15 @@ public class JavaTextContainer extends TextContainer {
                                 TokenType segType = TokenType.IMPORTED_CLASS;
                                 if (outerInfo != null) {
                                     switch (outerInfo.type) {
-                                        case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
-                                        case ENUM: segType = TokenType.ENUM_DECL; break;
-                                        default: segType = TokenType.IMPORTED_CLASS; break;
+                                        case INTERFACE:
+                                            segType = TokenType.INTERFACE_DECL;
+                                            break;
+                                        case ENUM:
+                                            segType = TokenType.ENUM_DECL;
+                                            break;
+                                        default:
+                                            segType = TokenType.IMPORTED_CLASS;
+                                            break;
                                     }
                                 }
                                 marks.add(new Mark(s, e, segType));
@@ -748,7 +777,6 @@ public class JavaTextContainer extends TextContainer {
         }
     }
 
-    
 
     private void collectImportedClassUsages(List<Mark> marks) {
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
@@ -779,7 +807,7 @@ public class JavaTextContainer extends TextContainer {
             boolean isShadowed = globalFields.contains(className) || localFields.contains(className);
             if (block != null) {
                 isShadowed = isShadowed || block.parameters.contains(className) || block.isLocalDeclaredAtPosition(
-                        className, start);
+                    className, start);
             }
 
             if (isImported && !isShadowed) {
@@ -788,8 +816,12 @@ public class JavaTextContainer extends TextContainer {
                 TokenType tokenType = TokenType.IMPORTED_CLASS;
                 if (info != null) {
                     switch (info.type) {
-                        case INTERFACE: tokenType = TokenType.INTERFACE_DECL; break;
-                        case ENUM: tokenType = TokenType.ENUM_DECL; break;
+                        case INTERFACE:
+                            tokenType = TokenType.INTERFACE_DECL;
+                            break;
+                        case ENUM:
+                            tokenType = TokenType.ENUM_DECL;
+                            break;
                     }
                 }
                 marks.add(new Mark(start, end, tokenType));
@@ -819,7 +851,7 @@ public class JavaTextContainer extends TextContainer {
             }
         }
     }
-    
+
     public void formatCodeText() {
         // Step 1: Tokenize the full text
         List<Mark> marks = new ArrayList<>();
@@ -855,7 +887,7 @@ public class JavaTextContainer extends TextContainer {
 
         // Compute indent guides based on matched braces, ignoring strings/comments
         computeIndentGuides(marks);
-        
+
         // Step 2: Clear existing tokens
         for (LineData line : lines) {
             line.tokens.clear();
@@ -880,7 +912,7 @@ public class JavaTextContainer extends TextContainer {
                 if (cursor < tokenStart) {
                     int end = Math.min(tokenStart, text.length());
                     line.tokens.add(
-                            new Token(text.substring(cursor, end), TokenType.DEFAULT, cursor, end));
+                        new Token(text.substring(cursor, end), TokenType.DEFAULT, cursor, end));
                 }
 
                 // token text
@@ -910,50 +942,53 @@ public class JavaTextContainer extends TextContainer {
 
     private void collectTypeDeclarations(List<Mark> marks) {
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
-        
+
         // Pattern to find type declarations: Type<...> variableName or Type variableName
         // We'll manually parse the generic portion to handle arbitrary nesting
         Pattern typeStart = Pattern.compile(
             "(?:(?:public|private|protected|static|final|transient|volatile)\\s+)*" +
-            "([A-Z][a-zA-Z0-9_]*)\\s*" // Group 1 → type name (must start with uppercase)
+                "([A-Z][a-zA-Z0-9_]*)\\s*" // Group 1 → type name (must start with uppercase)
         );
-        
+
         for (LineData ld : lines) {
             int lineStart = ld.start;
             int lineEnd = ld.end;
             if (lineStart >= lineEnd) continue;
             String s = ld.text;
-            
+
             Matcher m = typeStart.matcher(s);
             int searchFrom = 0;
-            
+
             while (m.find(searchFrom)) {
                 int typeNameStart = lineStart + m.start(1);
                 int typeNameEnd = lineStart + m.end(1);
-                
+
                 // Skip if in excluded range
                 boolean skip = false;
                 for (int[] r : excluded) {
-                    if (typeNameStart < r[1] && typeNameEnd > r[0]) { skip = true; break; }
+                    if (typeNameStart < r[1] && typeNameEnd > r[0]) {
+                        skip = true;
+                        break;
+                    }
                 }
                 if (skip) {
                     searchFrom = m.end();
                     continue;
                 }
-                
+
                 String typeName = m.group(1);
                 int posAfterType = m.end(1);
-                
+
                 // Skip whitespace after type name
                 while (posAfterType < s.length() && Character.isWhitespace(s.charAt(posAfterType))) {
                     posAfterType++;
                 }
-                
+
                 // Check for generic parameters
                 String genericContent = null;
                 int genericStart = -1;
                 int genericEnd = -1;
-                
+
                 if (posAfterType < s.length() && s.charAt(posAfterType) == '<') {
                     genericStart = posAfterType;
                     int depth = 1;
@@ -970,12 +1005,12 @@ public class JavaTextContainer extends TextContainer {
                         posAfterType = genericEnd;
                     }
                 }
-                
+
                 // Skip whitespace after generics
                 while (posAfterType < s.length() && Character.isWhitespace(s.charAt(posAfterType))) {
                     posAfterType++;
                 }
-                
+
                 // Check if this looks like a type declaration:
                 // 1. Has generic content (e.g., List<String>) - always a type
                 // 2. Followed by a variable name (lowercase start or underscore)
@@ -983,38 +1018,43 @@ public class JavaTextContainer extends TextContainer {
                 boolean hasGeneric = genericContent != null && !genericContent.isEmpty();
                 boolean atEndOfLine = posAfterType >= s.length();
                 boolean followedByVarName = false;
-                
+
                 if (!atEndOfLine) {
                     char nextChar = s.charAt(posAfterType);
                     followedByVarName = Character.isLetter(nextChar) || nextChar == '_';
                 }
-                
+
                 // Accept as type if: has generics OR followed by variable name
                 // This handles both `List<String> myList` and wrapped lines like `List<String>`
                 if (hasGeneric || followedByVarName) {
                     // This looks like a type declaration
-                    
+
                     // Resolve the main type
                     ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(typeName, importedClasses, importedPackages);
                     TokenType tokenType = TokenType.UNDEFINED_VAR;
                     if (info != null) {
                         switch (info.type) {
-                            case INTERFACE: tokenType = TokenType.INTERFACE_DECL; break;
-                            case ENUM: tokenType = TokenType.ENUM_DECL; break;
-                            default: tokenType = TokenType.TYPE_DECL;
+                            case INTERFACE:
+                                tokenType = TokenType.INTERFACE_DECL;
+                                break;
+                            case ENUM:
+                                tokenType = TokenType.ENUM_DECL;
+                                break;
+                            default:
+                                tokenType = TokenType.TYPE_DECL;
                         }
                     }
                     marks.add(new Mark(typeNameStart, typeNameEnd, tokenType));
-                    
+
                     // Handle generic content
                     if (hasGeneric && genericStart >= 0) {
                         int absGenericStart = lineStart + genericStart;
                         int absGenericEnd = lineStart + genericEnd;
-                        
+
                         // Mark < and > as default
                         marks.add(new Mark(absGenericStart, absGenericStart + 1, TokenType.DEFAULT));
                         marks.add(new Mark(absGenericEnd - 1, absGenericEnd, TokenType.DEFAULT));
-                        
+
                         // Parse and highlight all types in generic content
                         int contentStart = lineStart + genericStart + 1;
                         highlightGenericTypes(genericContent, contentStart, marks, excluded);
@@ -1046,7 +1086,7 @@ public class JavaTextContainer extends TextContainer {
                         }
                     }
                 }
-                
+
                 searchFrom = m.end();
             }
         }

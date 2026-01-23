@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityTrap;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Trap ability type-specific settings.
@@ -38,7 +38,7 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
         y += 24;
 
         // Row 2: Damage + Damage Radius
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(102, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, trap.getDamage()));
 
         addLabel(new GuiNpcLabel(103, "ability.dmgRadius", col2LabelX, y + 5));
@@ -79,14 +79,30 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 101: trap.setTriggerRadius(parseFloat(field, trap.getTriggerRadius())); break;
-            case 102: trap.setDamage(parseFloat(field, trap.getDamage())); break;
-            case 103: trap.setDamageRadius(parseFloat(field, trap.getDamageRadius())); break;
-            case 104: trap.setArmTime(field.getInteger()); break;
-            case 105: trap.setMaxTriggers(field.getInteger()); break;
-            case 106: trap.setRootDuration(field.getInteger()); break;
-            case 107: trap.setStunDuration(field.getInteger()); break;
-            case 108: trap.setKnockback(parseFloat(field, trap.getKnockback())); break;
+            case 101:
+                trap.setTriggerRadius(parseFloat(field, trap.getTriggerRadius()));
+                break;
+            case 102:
+                trap.setDamage(parseFloat(field, trap.getDamage()));
+                break;
+            case 103:
+                trap.setDamageRadius(parseFloat(field, trap.getDamageRadius()));
+                break;
+            case 104:
+                trap.setArmTime(field.getInteger());
+                break;
+            case 105:
+                trap.setMaxTriggers(field.getInteger());
+                break;
+            case 106:
+                trap.setRootDuration(field.getInteger());
+                break;
+            case 107:
+                trap.setStunDuration(field.getInteger());
+                break;
+            case 108:
+                trap.setKnockback(parseFloat(field, trap.getKnockback()));
+                break;
         }
     }
 }

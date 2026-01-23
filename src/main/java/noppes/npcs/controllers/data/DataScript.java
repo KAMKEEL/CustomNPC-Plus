@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -16,10 +17,11 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.janino.impl.JaninoNpcScript;
+import noppes.npcs.janino.EventJaninoScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
@@ -36,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class DataScript implements IScriptHandler {
+public class DataScript implements IScriptHandlerPacket {
     public List<IScriptUnit> eventScripts = new ArrayList<>();
 
     private HashMap<EnumScriptType, ScriptContainer> scripts = new HashMap<>();
@@ -210,6 +212,21 @@ public class DataScript implements IScriptHandler {
         return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
     }
 
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.NPC;
+    }
+
+    @Override
+    public void requestData() {
+        EventScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        EventScriptPacket.Save(index, totalCount, nbt);
+    }
+
     public Map<Long, String> getOldConsoleText() {
         Map<Long, String> map = new TreeMap<>();
 
@@ -222,24 +239,6 @@ public class DataScript implements IScriptHandler {
         return map;
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (IScriptUnit script : this.getScripts()) {
-            ++tab;
-
-            for (Map.Entry<Long, String> longStringEntry : script.getConsole().entrySet()) {
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
-            }
-        }
-        return map;
-    }
-
-    public void clearConsole() {
-        for (IScriptUnit script : this.getScripts()) {
-            script.clearConsole();
-        }
-    }
 
     @Override
     public void callScript(EnumScriptType type, Event event) {
@@ -313,8 +312,9 @@ public class DataScript implements IScriptHandler {
     public Collection<ScriptContainer> getNPCScripts() {
         return this.scripts.values();
     }
+
     @Override
     public IScriptUnit createJaninoScriptUnit() {
-        return new JaninoNpcScript();
+        return new EventJaninoScript(ScriptContext.NPC);
     }
 }

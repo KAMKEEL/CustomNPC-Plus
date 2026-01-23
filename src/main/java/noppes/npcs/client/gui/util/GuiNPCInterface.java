@@ -108,8 +108,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
 
         //Important for GuiScriptTextArea
-        for (GuiNpcTextField tf : textfields.values()) 
-                tf.initGui();
+        for (GuiNpcTextField tf : textfields.values())
+            tf.initGui();
     }
 
     @Override
@@ -208,6 +208,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
             }
         }
     }
+
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (subgui != null) {
@@ -264,8 +265,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
             else
                 close();
         }
-        
-        
+
+
         if (subgui != null)
             subgui.keyTyped(c, i);
         for (GuiNpcTextField tf : textfields.values())
@@ -274,7 +275,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
             guiScrollableComponent.keyTyped(c, i);
         }
-     
+
     }
 
     public void onGuiClosed() {
@@ -284,9 +285,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void closeOnEsc(Supplier<Boolean> close) {
         this.closeOnEscSupplier = close;
     }
-    
+
     public void close() {
-        if(GuiNpcTextField.activeTextfield != null)
+        if (GuiNpcTextField.activeTextfield != null)
             GuiNpcTextField.unfocus();
 
         Keyboard.enableRepeatEvents(false);
@@ -421,10 +422,23 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GL11.glScalef(bgScale * bgScaleX, bgScale * bgScaleY, bgScale * bgScaleZ);
         mc.renderEngine.bindTexture(background);
         if (xSize > 256) {
+            // GUI wider than texture: draw left portion, then right portion from texture edge
             drawTexturedModalRect(0, 0, 0, 0, 250, ySize);
             drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, ySize);
-        } else
+        } else if (xSize < 256) {
+            // GUI narrower than texture: stitch left and right edges together
+            // Left portion (first half of GUI)
+            int leftWidth = xSize / 2;
+            // Right portion width (remaining)
+            int rightWidth = xSize - leftWidth;
+            // Draw left side from texture start
+            drawTexturedModalRect(0, 0, 0, 0, leftWidth, ySize);
+            // Draw right side from texture end (256 - rightWidth)
+            drawTexturedModalRect(leftWidth, 0, 256 - rightWidth, 0, rightWidth, ySize);
+        } else {
+            // GUI exactly 256px: draw full texture
             drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
+        }
         GL11.glPopMatrix();
     }
 
@@ -524,6 +538,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void drawNpcWithExtras(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         drawNpc(entity, mouseX, mouseY, partialTicks);
     }
+
     public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         if (hasSubGui() && !drawNPConSub)
             return;

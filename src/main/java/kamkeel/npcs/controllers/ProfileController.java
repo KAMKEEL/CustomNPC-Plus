@@ -1,6 +1,5 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.controllers.data.profile.EnumProfileOperation;
 import kamkeel.npcs.controllers.data.profile.IProfileData;

@@ -12,9 +12,9 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCutter;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -67,7 +67,9 @@ public class AbilityCutter extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -76,21 +78,29 @@ public class AbilityCutter extends Ability {
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
-
-    @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AOE_SELF };
+    public boolean isTargetingModeLocked() {
+        return true;
     }
 
     @Override
-    public float getTelegraphRadius() { return range; }
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AOE_SELF};
+    }
 
     @Override
-    public float getTelegraphLength() { return range; }
+    public float getTelegraphRadius() {
+        return range;
+    }
 
     @Override
-    public float getTelegraphAngle() { return arcAngle; }
+    public float getTelegraphLength() {
+        return range;
+    }
+
+    @Override
+    public float getTelegraphAngle() {
+        return arcAngle;
+    }
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
@@ -145,7 +155,7 @@ public class AbilityCutter extends Ability {
 
             hitEntities.add(entity.getEntityId());
 
-            float distFactor = 1.0f - ((float)dist / maxDist) * 0.3f;
+            float distFactor = 1.0f - ((float) dist / maxDist) * 0.3f;
             float actualDamage = damage * distFactor;
 
             // Apply damage with scripted event support
@@ -223,38 +233,95 @@ public class AbilityCutter extends Ability {
     }
 
     // Getters & Setters
-    public float getArcAngle() { return arcAngle; }
-    public void setArcAngle(float arcAngle) { this.arcAngle = arcAngle; }
+    public float getArcAngle() {
+        return arcAngle;
+    }
 
-    public float getRange() { return range; }
-    public void setRange(float range) { this.range = range; }
+    public void setArcAngle(float arcAngle) {
+        this.arcAngle = arcAngle;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getRange() {
+        return range;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public void setRange(float range) {
+        this.range = range;
+    }
 
-    public SweepMode getSweepMode() { return sweepMode; }
-    public void setSweepMode(SweepMode sweepMode) { this.sweepMode = sweepMode; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public float getSweepSpeed() { return sweepSpeed; }
-    public void setSweepSpeed(float sweepSpeed) { this.sweepSpeed = sweepSpeed; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public int getStunDuration() { return stunDuration; }
-    public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }
+    public float getKnockback() {
+        return knockback;
+    }
 
-    public int getPoisonDurationSeconds() { return poisonDurationSeconds; }
-    public void setPoisonDurationSeconds(int poisonDurationSeconds) { this.poisonDurationSeconds = poisonDurationSeconds; }
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
 
-    public int getPoisonLevel() { return poisonLevel; }
-    public void setPoisonLevel(int poisonLevel) { this.poisonLevel = poisonLevel; }
+    public SweepMode getSweepMode() {
+        return sweepMode;
+    }
 
-    public boolean isPiercing() { return piercing; }
-    public void setPiercing(boolean piercing) { this.piercing = piercing; }
+    public void setSweepMode(SweepMode sweepMode) {
+        this.sweepMode = sweepMode;
+    }
 
-    public float getInnerRadius() { return innerRadius; }
-    public void setInnerRadius(float innerRadius) { this.innerRadius = innerRadius; }
+    public float getSweepSpeed() {
+        return sweepSpeed;
+    }
 
-    public float getCurrentRotation() { return currentRotation; }
+    public void setSweepSpeed(float sweepSpeed) {
+        this.sweepSpeed = sweepSpeed;
+    }
+
+    public int getStunDuration() {
+        return stunDuration;
+    }
+
+    public void setStunDuration(int stunDuration) {
+        this.stunDuration = stunDuration;
+    }
+
+    public int getPoisonDurationSeconds() {
+        return poisonDurationSeconds;
+    }
+
+    public void setPoisonDurationSeconds(int poisonDurationSeconds) {
+        this.poisonDurationSeconds = poisonDurationSeconds;
+    }
+
+    public int getPoisonLevel() {
+        return poisonLevel;
+    }
+
+    public void setPoisonLevel(int poisonLevel) {
+        this.poisonLevel = poisonLevel;
+    }
+
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public void setPiercing(boolean piercing) {
+        this.piercing = piercing;
+    }
+
+    public float getInnerRadius() {
+        return innerRadius;
+    }
+
+    public void setInnerRadius(float innerRadius) {
+        this.innerRadius = innerRadius;
+    }
+
+    public float getCurrentRotation() {
+        return currentRotation;
+    }
 }

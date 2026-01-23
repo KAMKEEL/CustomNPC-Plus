@@ -5,7 +5,8 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.font.GlyphVector;
 import java.lang.ref.WeakReference;
 import java.text.Bidi;

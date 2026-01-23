@@ -125,7 +125,7 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
         private float knockbackUp;
 
         public HitEvent(ICustomNpc npc, Ability ability, EntityLivingBase target,
-                       EntityLivingBase hitEntity, float damage, float knockback, float knockbackUp) {
+                        EntityLivingBase hitEntity, float damage, float knockback, float knockbackUp) {
             super(npc, ability, target);
             this.hitEntity = hitEntity != null ? (IEntityLivingBase) NpcAPI.Instance().getIEntity(hitEntity) : null;
             this.damage = damage;

@@ -1,65 +1,13 @@
 package noppes.npcs.client.gui.script;
 
-import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.NBTTags;
-import noppes.npcs.api.handler.IScriptHookHandler;
-import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.DataScript;
-import noppes.npcs.controllers.data.IScriptUnit;
+import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class GuiNPCEventScripts extends GuiScriptInterface {
-    private final DataScript script;
-
     public GuiNPCEventScripts(EntityNPCInterface npc) {
-        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_NPC));
-        this.script = new DataScript(npc);
-        this.handler = this.script;
-        EventScriptPacket.Get();
-    }
-
-    public void setGuiData(NBTTagCompound compound) {
-        if (compound.hasKey("LoadComplete")) {
-            loaded = true;
-            return;
-        }
-
-        if (!compound.hasKey("Tab")) {
-            script.setLanguage(compound.getString("ScriptLanguage"));
-            script.setEnabled(compound.getBoolean("ScriptEnabled"));
-            super.setGuiData(compound);
-        } else {
-            int tab = compound.getInteger("Tab");
-            NBTTagCompound scriptCompound = compound.getCompoundTag("Script");
-            IScriptUnit container = IScriptUnit.createFromNBT(scriptCompound, script);
-            if (script.getScripts().isEmpty()) {
-                for (int i = 0; i < compound.getInteger("TotalScripts"); i++) {
-                    script.getScripts().add(new ScriptContainer(script));
-                }
-            }
-            script.getScripts().set(tab, container);
-            initGui();
-        }
-    }
-
-    public void save() {
-        if (loaded) {
-            super.save();
-            List<IScriptUnit> containers = this.script.getScripts();
-            for (int i = 0; i < containers.size(); i++) {
-                IScriptUnit container = containers.get(i);
-                EventScriptPacket.Save(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
-            }
-            NBTTagCompound scriptData = new NBTTagCompound();
-            scriptData.setString("ScriptLanguage", this.script.getLanguage());
-            scriptData.setBoolean("ScriptEnabled", this.script.getEnabled());
-            scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.script.getConsoleText()));
-            EventScriptPacket.Save(-1, containers.size(), scriptData);
-        }
+        this.handler = new DataScript(npc);
+        if (this.handler instanceof IScriptHandlerPacket)
+            ((IScriptHandlerPacket) this.handler).requestData();
     }
 }

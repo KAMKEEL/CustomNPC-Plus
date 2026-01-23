@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 /**
  * Configurable code formatter with IntelliJ-like settings.
- * 
+ * <p>
  * Features:
  * - Operator spacing (a+b → a + b)
  * - Whitespace normalization (a   b → a b)
@@ -15,9 +15,9 @@ import java.util.regex.Pattern;
  * - Preserves string content and comments
  */
 public class FormatHelper {
-    
+
     // ==================== SETTINGS ====================
-    
+
     /**
      * Formatting configuration - similar to IntelliJ Code Style settings
      */
@@ -28,12 +28,12 @@ public class FormatHelper {
         public boolean spaceAroundComparison = true;          // a == b, a != b, a <= b
         public boolean spaceAroundLogical = true;             // a && b || c
         public boolean spaceAroundBitwise = true;             // a & b | c ^ d
-        
+
         // Spaces within brackets
         public boolean spaceWithinParens = false;             // (a) vs ( a )
         public boolean spaceWithinBrackets = false;           // [a] vs [ a ]
         public boolean spaceWithinBraces = true;              // {a} vs { a } (for initializers)
-        
+
         // Spaces before/after
         public boolean spaceAfterComma = true;                // a, b vs a,b
         public boolean spaceBeforeComma = false;              // a, b vs a , b
@@ -41,48 +41,48 @@ public class FormatHelper {
         public boolean spaceBeforeSemicolon = false;
         public boolean spaceAfterColon = true;                // case a: b vs case a:b
         public boolean spaceBeforeColon = false;
-        
+
         // Method calls
         public boolean spaceBeforeMethodParens = false;       // foo() vs foo ()
         public boolean spaceAfterTypeCast = true;             // (int) x vs (int)x
-        
+
         // Control statements
         public boolean spaceBeforeIfParens = true;            // if (...) vs if(...)
         public boolean spaceBeforeWhileParens = true;
         public boolean spaceBeforeForParens = true;
         public boolean spaceBeforeSwitchParens = true;
         public boolean spaceBeforeCatchParens = true;
-        
+
         // Braces
         public boolean spaceBeforeOpenBrace = true;           // if () { vs if (){
-        
+
         // Line length
         public int maxLineLength = 120;
         public boolean wrapLongLines = false;                  // Auto-wrap lines longer than maxLineLength
         public int wrapIndentSpaces = 4;                       // Extra indent for wrapped lines
         public boolean wrapComments = true;                    // Also wrap long comments
-        
+
         // Wrap break preferences (where to break long lines)
         public boolean wrapAfterComma = true;                  // Prefer breaking after commas
         public boolean wrapAfterOperator = true;               // Prefer breaking after operators
         public boolean wrapBeforeDot = true;                   // Break before . for chained calls
         public boolean wrapMethodArguments = true;             // Each arg on new line when wrapping method calls
-        
+
         // Whitespace normalization
         public boolean normalizeWhitespace = true;            // Multiple spaces → single space
         public boolean trimTrailingWhitespace = true;
-        
+
         // Unary operators
         public boolean spaceAroundUnaryNot = false;           // !a vs ! a
         public boolean spaceAroundUnaryIncDec = false;        // ++i vs ++ i
-        
+
         /**
          * Create default settings (similar to IntelliJ defaults)
          */
         public static FormatSettings defaults() {
             return new FormatSettings();
         }
-        
+
         /**
          * Create compact settings (minimal spacing)
          */
@@ -95,53 +95,53 @@ public class FormatHelper {
             return s;
         }
     }
-    
+
     private FormatSettings settings;
-    
+
     public FormatHelper() {
         this.settings = FormatSettings.defaults();
     }
-    
+
     public FormatHelper(FormatSettings settings) {
         this.settings = settings != null ? settings : FormatSettings.defaults();
     }
-    
+
     public void setSettings(FormatSettings settings) {
         this.settings = settings;
     }
-    
+
     public FormatSettings getSettings() {
         return settings;
     }
-    
+
     // ==================== MAIN FORMAT METHOD ====================
-    
+
     /**
      * Format the entire text with all configured options
      */
     public String format(String text) {
         if (text == null || text.isEmpty()) return text;
-        
+
         // Process line by line to preserve structure
         String[] lines = text.split("\n", -1);
         StringBuilder result = new StringBuilder();
-        
+
         for (int i = 0; i < lines.length; i++) {
             String line = formatLine(lines[i], text, getLineStartOffset(lines, i));
-            
+
             if (settings.trimTrailingWhitespace) {
                 line = trimTrailing(line);
             }
-            
+
             result.append(line);
             if (i < lines.length - 1) {
                 result.append("\n");
             }
         }
-        
+
         return result.toString();
     }
-    
+
     /**
      * Split multiple statements on one line into separate lines with proper indentation.
      * E.g., "    this.a = 1; this.b = 2;" becomes two lines
@@ -150,10 +150,10 @@ public class FormatHelper {
     private String splitStatementsOntoSeparateLines(String text) {
         String[] lines = text.split("\n", -1);
         StringBuilder result = new StringBuilder();
-        
+
         for (int lineIdx = 0; lineIdx < lines.length; lineIdx++) {
             String line = lines[lineIdx];
-            
+
             // Skip empty lines or comment-only lines
             String trimmed = line.trim();
             if (trimmed.isEmpty() || trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) {
@@ -161,7 +161,7 @@ public class FormatHelper {
                 if (lineIdx < lines.length - 1) result.append("\n");
                 continue;
             }
-            
+
             // Extract leading indentation
             int indent = 0;
             while (indent < line.length() && (line.charAt(indent) == ' ' || line.charAt(indent) == '\t')) {
@@ -169,14 +169,14 @@ public class FormatHelper {
             }
             String indentation = line.substring(0, indent);
             String content = line.substring(indent);
-            
+
             // Split by semicolons (but preserve those in strings, for loops, etc.)
             List<String> statements = splitBySemicolons(content);
-            
+
             for (int si = 0; si < statements.size(); si++) {
                 String stmt = statements.get(si).trim();
                 if (stmt.isEmpty()) continue;
-                
+
                 // Check if statement opens a scope { and has code after it
                 int braceIdx = stmt.indexOf('{');
                 if (braceIdx >= 0 && braceIdx < stmt.length() - 1) {
@@ -191,20 +191,20 @@ public class FormatHelper {
                         continue;
                     }
                 }
-                
+
                 result.append(indentation).append(stmt);
                 // Add semicolon back if it was removed
                 if (si < statements.size() - 1) {
                     result.append("\n");
                 }
             }
-            
+
             if (lineIdx < lines.length - 1) result.append("\n");
         }
-        
+
         return result.toString();
     }
-    
+
     /**
      * Split content by semicolons, preserving those in strings and for-loops
      */
@@ -216,25 +216,25 @@ public class FormatHelper {
         boolean inChar = false;
         boolean escaped = false;
         int forLoopDepth = 0; // Track for(...) depth to preserve semicolons
-        
+
         for (int i = 0; i < content.length(); i++) {
             char c = content.charAt(i);
             char prev = i > 0 ? content.charAt(i - 1) : ' ';
-            
+
             // Track strings
             if (c == '\"' && !escaped && !inChar) {
                 inString = !inString;
             } else if (c == '\'' && !escaped && !inString) {
                 inChar = !inChar;
             }
-            
+
             escaped = (c == '\\' && !escaped);
-            
+
             if (inString || inChar) {
                 current.append(c);
                 continue;
             }
-            
+
             // Track for loops
             if (c == '(' && i >= 3 && content.substring(Math.max(0, i - 3), i + 1).matches(".*\\bfor\\s*\\(")) {
                 forLoopDepth++;
@@ -247,7 +247,7 @@ public class FormatHelper {
                     forLoopDepth = 0;
                 }
             }
-            
+
             // Semicolon: split if not in for-loop header
             if (c == ';' && forLoopDepth == 0) {
                 current.append(c);
@@ -255,18 +255,18 @@ public class FormatHelper {
                 current = new StringBuilder();
                 continue;
             }
-            
+
             current.append(c);
         }
-        
+
         // Add remaining content
         if (current.length() > 0) {
             statements.add(current.toString());
         }
-        
+
         return statements;
     }
-    
+
     private int getLineStartOffset(String[] lines, int lineIndex) {
         int offset = 0;
         for (int i = 0; i < lineIndex; i++) {
@@ -274,13 +274,13 @@ public class FormatHelper {
         }
         return offset;
     }
-    
+
     /**
      * Format a single line of code
      */
     private String formatLine(String line, String fullText, int lineOffset) {
         if (line.trim().isEmpty()) return line;
-        
+
         // Preserve leading indentation
         int indent = 0;
         while (indent < line.length() && (line.charAt(indent) == ' ' || line.charAt(indent) == '\t')) {
@@ -288,27 +288,27 @@ public class FormatHelper {
         }
         String indentation = line.substring(0, indent);
         String content = line.substring(indent);
-        
+
         if (content.isEmpty()) return line;
-        
+
         // Skip formatting for lines that are entirely comments
         String trimmed = content.trim();
         if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) {
             return line;
         }
-        
+
         // Skip formatting for continuation lines (lines that start with operators, dots, etc.)
         // These are wrapped lines from a previous format and should be preserved as-is
         if (isContinuationLine(trimmed)) {
             return line;
         }
-        
+
         // Format the content
         String formatted = formatContent(content, fullText, lineOffset + indent);
-        
+
         return indentation + formatted;
     }
-    
+
     /**
      * Check if a line appears to be a continuation of a previous line
      * (i.e., starts with an operator, dot, or other continuation character)
@@ -317,7 +317,7 @@ public class FormatHelper {
         if (trimmedContent.isEmpty()) return false;
         char firstChar = trimmedContent.charAt(0);
         // Lines starting with these are likely continuations
-        if (firstChar == '.' || firstChar == '+' || firstChar == '-' || 
+        if (firstChar == '.' || firstChar == '+' || firstChar == '-' ||
             firstChar == '*' || firstChar == '/' || firstChar == '%' ||
             firstChar == '&' || firstChar == '|' || firstChar == '^' ||
             firstChar == '?' || firstChar == ':' || firstChar == ',') {
@@ -329,53 +329,53 @@ public class FormatHelper {
         }
         return false;
     }
-    
+
     /**
      * Format line content, preserving strings and comments
      */
     private String formatContent(String content, String fullText, int offset) {
         // Find string/comment regions to preserve
         List<int[]> preserveRegions = findPreserveRegions(content);
-        
+
         if (preserveRegions.isEmpty()) {
             // No strings/comments, format everything
             return formatCodeSegment(content);
         }
-        
+
         // Build result by formatting non-preserved regions
         StringBuilder result = new StringBuilder();
         int lastEnd = 0;
-        
+
         for (int[] region : preserveRegions) {
             // Format code before this preserved region
             if (region[0] > lastEnd) {
                 String codeSegment = content.substring(lastEnd, region[0]);
                 result.append(formatCodeSegment(codeSegment));
             }
-            
+
             // Append preserved region unchanged
             result.append(content.substring(region[0], region[1]));
             lastEnd = region[1];
         }
-        
+
         // Format remaining code after last preserved region
         if (lastEnd < content.length()) {
             result.append(formatCodeSegment(content.substring(lastEnd)));
         }
-        
+
         return result.toString();
     }
-    
+
     /**
      * Find string literals and comments that should not be formatted
      */
     private List<int[]> findPreserveRegions(String content) {
         List<int[]> regions = new ArrayList<>();
-        
+
         int i = 0;
         while (i < content.length()) {
             char c = content.charAt(i);
-            
+
             // String literal
             if (c == '"') {
                 int end = findStringEnd(content, i, '"');
@@ -383,7 +383,7 @@ public class FormatHelper {
                 i = end;
                 continue;
             }
-            
+
             // Char literal
             if (c == '\'') {
                 int end = findStringEnd(content, i, '\'');
@@ -391,13 +391,13 @@ public class FormatHelper {
                 i = end;
                 continue;
             }
-            
+
             // Line comment
             if (c == '/' && i + 1 < content.length() && content.charAt(i + 1) == '/') {
                 regions.add(new int[]{i, content.length()});
                 break;
             }
-            
+
             // Block comment (could span multiple lines but we process line-by-line)
             if (c == '/' && i + 1 < content.length() && content.charAt(i + 1) == '*') {
                 int end = content.indexOf("*/", i + 2);
@@ -410,13 +410,13 @@ public class FormatHelper {
                 }
                 continue;
             }
-            
+
             i++;
         }
-        
+
         return regions;
     }
-    
+
     /**
      * Find end of string/char literal
      */
@@ -435,37 +435,37 @@ public class FormatHelper {
         }
         return content.length();
     }
-    
+
     // ==================== CODE SEGMENT FORMATTING ====================
-    
+
     /**
      * Format a code segment (no strings/comments)
      */
     private String formatCodeSegment(String code) {
         if (code.isEmpty()) return code;
-        
+
         String result = code;
-        
+
         // Normalize whitespace first
         if (settings.normalizeWhitespace) {
             result = normalizeWhitespace(result);
         }
-        
+
         // Apply operator spacing
         result = formatOperators(result);
-        
+
         // Apply bracket spacing
         result = formatBrackets(result);
-        
+
         // Apply keyword spacing
         result = formatKeywords(result);
-        
+
         // Apply punctuation spacing
         result = formatPunctuation(result);
-        
+
         return result;
     }
-    
+
     /**
      * Normalize whitespace (multiple spaces → single space)
      */
@@ -473,13 +473,13 @@ public class FormatHelper {
         // Replace multiple spaces with single space, but preserve indentation
         return code.replaceAll("  +", " ");
     }
-    
+
     /**
      * Format operator spacing
      */
     private String formatOperators(String code) {
         String result = code;
-        
+
         // Assignment operators
         if (settings.spaceAroundAssignment) {
             // Compound assignments first (longer patterns first)
@@ -494,11 +494,11 @@ public class FormatHelper {
             result = formatBinaryOp(result, "<<=", " <<= ");
             result = formatBinaryOp(result, ">>=", " >>= ");
             result = formatBinaryOp(result, ">>>=", " >>>= ");
-            
+
             // Simple assignment (but not ==, !=, <=, >=)
             result = formatSimpleAssignment(result);
         }
-        
+
         // Comparison operators
         if (settings.spaceAroundComparison) {
             result = formatBinaryOp(result, "==", " == ");
@@ -508,27 +508,27 @@ public class FormatHelper {
             // Simple < > (but not generics)
             result = formatComparisonOperators(result);
         }
-        
+
         // Logical operators
         if (settings.spaceAroundLogical) {
             result = formatBinaryOp(result, "&&", " && ");
             result = formatBinaryOp(result, "||", " || ");
         }
-        
+
         // Arithmetic operators
         if (settings.spaceAroundArithmetic) {
             // Handle ++ and -- first to avoid conflicts
             result = formatArithmeticOperators(result);
         }
-        
+
         // Bitwise operators (but not in generics)
         if (settings.spaceAroundBitwise) {
             result = formatBitwiseOperators(result);
         }
-        
+
         return result;
     }
-    
+
     /**
      * Format a binary operator with proper spacing
      */
@@ -537,7 +537,7 @@ public class FormatHelper {
         String pattern = "\\s*" + Pattern.quote(op) + "\\s*";
         return code.replaceAll(pattern, replacement);
     }
-    
+
     /**
      * Format simple assignment = (not ==, !=, <=, >=, etc.)
      */
@@ -550,13 +550,13 @@ public class FormatHelper {
                 // Check it's not part of ==, !=, <=, >=, +=, etc.
                 char prev = i > 0 ? code.charAt(i - 1) : ' ';
                 char next = i + 1 < code.length() ? code.charAt(i + 1) : ' ';
-                
-                boolean isCompound = prev == '!' || prev == '<' || prev == '>' || 
-                                    prev == '+' || prev == '-' || prev == '*' || 
-                                    prev == '/' || prev == '%' || prev == '&' || 
-                                    prev == '|' || prev == '^';
+
+                boolean isCompound = prev == '!' || prev == '<' || prev == '>' ||
+                    prev == '+' || prev == '-' || prev == '*' ||
+                    prev == '/' || prev == '%' || prev == '&' ||
+                    prev == '|' || prev == '^';
                 boolean isEquality = next == '=';
-                
+
                 if (!isCompound && !isEquality) {
                     // Ensure space before =
                     if (result.length() > 0 && result.charAt(result.length() - 1) != ' ') {
@@ -577,7 +577,7 @@ public class FormatHelper {
         }
         return result.toString();
     }
-    
+
     /**
      * Format < and > comparison operators (avoiding generics)
      */
@@ -586,11 +586,11 @@ public class FormatHelper {
         int i = 0;
         while (i < code.length()) {
             char c = code.charAt(i);
-            
+
             if ((c == '<' || c == '>') && !isLikelyGeneric(code, i, c)) {
                 char prev = i > 0 ? code.charAt(i - 1) : ' ';
                 char next = i + 1 < code.length() ? code.charAt(i + 1) : ' ';
-                
+
                 // Skip if part of <<, >>, <=, >=
                 if ((c == '<' && next == '<') || (c == '>' && next == '>') ||
                     next == '=' || prev == '<' || prev == '>') {
@@ -612,7 +612,7 @@ public class FormatHelper {
         }
         return result.toString();
     }
-    
+
     /**
      * Check if < or > is likely part of a generic type declaration
      */
@@ -656,7 +656,7 @@ public class FormatHelper {
             return depth == 0;
         }
     }
-    
+
     /**
      * Format arithmetic operators (+, -, *, /, %)
      */
@@ -667,9 +667,9 @@ public class FormatHelper {
             char c = code.charAt(i);
             char next = i + 1 < code.length() ? code.charAt(i + 1) : ' ';
             char prev = i > 0 ? code.charAt(i - 1) : ' ';
-            
+
             boolean isArithOp = c == '+' || c == '-' || c == '*' || c == '/' || c == '%';
-            
+
             if (isArithOp) {
                 // Skip ++, --, +=, -=, *=, /=, %=, and unary +/-
                 if ((c == '+' && next == '+') || (c == '-' && next == '-') ||
@@ -696,41 +696,41 @@ public class FormatHelper {
         }
         return result.toString();
     }
-    
+
     /**
      * Check if position is in a unary context (operator is unary, not binary)
      */
     private boolean isUnaryContext(String code, int pos) {
         if (pos == 0) return true;
-        
+
         // Look back for context
         int i = pos - 1;
         while (i >= 0 && code.charAt(i) == ' ') {
             i--;
         }
-        
+
         if (i < 0) return true;
-        
+
         char prev = code.charAt(i);
         // Unary context after: ( [ { , ; = + - * / % < > & | ^ ? :
-        return prev == '(' || prev == '[' || prev == '{' || prev == ',' || 
-               prev == ';' || prev == '=' || prev == '+' || prev == '-' || 
-               prev == '*' || prev == '/' || prev == '%' || prev == '<' || 
-               prev == '>' || prev == '&' || prev == '|' || prev == '^' || 
-               prev == '?' || prev == ':' || prev == '!';
+        return prev == '(' || prev == '[' || prev == '{' || prev == ',' ||
+            prev == ';' || prev == '=' || prev == '+' || prev == '-' ||
+            prev == '*' || prev == '/' || prev == '%' || prev == '<' ||
+            prev == '>' || prev == '&' || prev == '|' || prev == '^' ||
+            prev == '?' || prev == ':' || prev == '!';
     }
-    
+
     /**
      * Format bitwise operators
      */
     private String formatBitwiseOperators(String code) {
         String result = code;
-        
+
         // Shift operators first
         result = formatBinaryOp(result, ">>>", " >>> ");
         result = formatBinaryOp(result, "<<", " << ");
         result = formatBinaryOp(result, ">>", " >> ");
-        
+
         // Single & | ^ (not && ||)
         StringBuilder sb = new StringBuilder();
         int i = 0;
@@ -738,7 +738,7 @@ public class FormatHelper {
             char c = result.charAt(i);
             char next = i + 1 < result.length() ? result.charAt(i + 1) : ' ';
             char prev = i > 0 ? result.charAt(i - 1) : ' ';
-            
+
             if ((c == '&' && next != '&' && prev != '&' && next != '=') ||
                 (c == '|' && next != '|' && prev != '|' && next != '=') ||
                 (c == '^' && next != '=')) {
@@ -754,18 +754,18 @@ public class FormatHelper {
             }
             i++;
         }
-        
+
         return sb.toString();
     }
-    
+
     // ==================== BRACKET FORMATTING ====================
-    
+
     /**
      * Format bracket spacing
      */
     private String formatBrackets(String code) {
         String result = code;
-        
+
         // Parentheses
         if (settings.spaceWithinParens) {
             result = result.replaceAll("\\(\\s*", "( ");
@@ -774,7 +774,7 @@ public class FormatHelper {
             result = result.replaceAll("\\(\\s+", "(");
             result = result.replaceAll("\\s+\\)", ")");
         }
-        
+
         // Square brackets
         if (settings.spaceWithinBrackets) {
             result = result.replaceAll("\\[\\s*", "[ ");
@@ -783,69 +783,69 @@ public class FormatHelper {
             result = result.replaceAll("\\[\\s+", "[");
             result = result.replaceAll("\\s+\\]", "]");
         }
-        
+
         // Curly braces (for array initializers inline)
         // Note: standalone braces for blocks are handled by indentation logic
-        
+
         return result;
     }
-    
+
     // ==================== KEYWORD FORMATTING ====================
-    
+
     /**
      * Format keyword spacing (if, while, for, etc.)
      */
     private String formatKeywords(String code) {
         String result = code;
-        
+
         if (settings.spaceBeforeIfParens) {
             result = result.replaceAll("\\bif\\s*\\(", "if (");
         } else {
             result = result.replaceAll("\\bif\\s+\\(", "if(");
         }
-        
+
         if (settings.spaceBeforeWhileParens) {
             result = result.replaceAll("\\bwhile\\s*\\(", "while (");
         } else {
             result = result.replaceAll("\\bwhile\\s+\\(", "while(");
         }
-        
+
         if (settings.spaceBeforeForParens) {
             result = result.replaceAll("\\bfor\\s*\\(", "for (");
         } else {
             result = result.replaceAll("\\bfor\\s+\\(", "for(");
         }
-        
+
         if (settings.spaceBeforeSwitchParens) {
             result = result.replaceAll("\\bswitch\\s*\\(", "switch (");
         } else {
             result = result.replaceAll("\\bswitch\\s+\\(", "switch(");
         }
-        
+
         if (settings.spaceBeforeCatchParens) {
             result = result.replaceAll("\\bcatch\\s*\\(", "catch (");
         } else {
             result = result.replaceAll("\\bcatch\\s+\\(", "catch(");
         }
-        
+
         // Space before opening brace
         if (settings.spaceBeforeOpenBrace) {
             result = result.replaceAll("\\)\\s*\\{", ") {");
         } else {
             result = result.replaceAll("\\)\\s+\\{", "){");
         }
-        
+
         return result;
     }
-    
+
     // ==================== PUNCTUATION FORMATTING ====================
-    
+
     /**
      * Format punctuation spacing (commas, semicolons, colons)
      */
     private String formatPunctuation(String code) {
         String result = code;
-        
+
         // Commas
         if (settings.spaceAfterComma && !settings.spaceBeforeComma) {
             result = result.replaceAll("\\s*,\\s*", ", ");
@@ -856,17 +856,17 @@ public class FormatHelper {
         } else {
             result = result.replaceAll("\\s*,\\s*", ",");
         }
-        
+
         // Semicolons (but not in for loops - handle more carefully)
         // This is tricky because for(;;) should be handled differently
         // For now, just handle trailing semicolons
         if (settings.trimTrailingWhitespace) {
             result = result.replaceAll("\\s+;", ";");
         }
-        
+
         return result;
     }
-    
+
     /**
      * Trim trailing whitespace from a line
      */
@@ -877,43 +877,43 @@ public class FormatHelper {
         }
         return line.substring(0, end);
     }
-    
+
     // ==================== STATIC UTILITIES ====================
-    
+
     /**
      * Format code with default settings
      */
     public static String formatCode(String code) {
         return new FormatHelper().format(code);
     }
-    
+
     /**
      * Format code with custom settings
      */
     public static String formatCode(String code, FormatSettings settings) {
         return new FormatHelper(settings).format(code);
     }
-    
+
     // ==================== LINE WRAPPING ====================
-    
+
     /**
      * Wrap long lines according to settings.
      * Call this after format() if wrapLongLines is enabled.
-     * 
-     * @param text The text to wrap
+     *
+     * @param text     The text to wrap
      * @param maxWidth Maximum line width (use settings.maxLineLength if 0)
      * @return Text with wrapped lines
      */
     public String wrapLines(String text, int maxWidth) {
         if (text == null || text.isEmpty()) return text;
-        
+
         int width = maxWidth > 0 ? maxWidth : settings.maxLineLength;
         String[] lines = text.split("\n", -1);
         StringBuilder result = new StringBuilder();
-        
+
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            
+
             if (getVisualLength(line) <= width) {
                 result.append(line);
             } else {
@@ -927,15 +927,15 @@ public class FormatHelper {
                     result.append(wrapCodeLine(line, width));
                 }
             }
-            
+
             if (i < lines.length - 1) {
                 result.append("\n");
             }
         }
-        
+
         return result.toString();
     }
-    
+
     /**
      * Get visual length of a line (tabs count as 4 spaces)
      */
@@ -950,7 +950,7 @@ public class FormatHelper {
         }
         return len;
     }
-    
+
     /**
      * Extract leading indentation from a line
      */
@@ -961,67 +961,67 @@ public class FormatHelper {
         }
         return line.substring(0, i);
     }
-    
+
     /**
      * Wrap a single-line comment (// style)
      */
     private String wrapCommentLine(String line, int maxWidth) {
         if (!settings.wrapComments) return line;
-        
+
         String indent = extractIndent(line);
         String content = line.substring(indent.length());
-        
+
         // Must start with //
         if (!content.startsWith("//")) return line;
-        
+
         String commentContent = content.substring(2).trim();
         String prefix = indent + "// ";
         int prefixLen = getVisualLength(prefix);
         int contentWidth = maxWidth - prefixLen;
-        
+
         if (contentWidth <= 10) return line; // Too narrow to wrap
-        
+
         StringBuilder result = new StringBuilder();
         result.append(indent).append("// ");
-        
+
         String[] words = commentContent.split("\\s+");
         int lineLen = prefixLen;
-        
+
         for (int i = 0; i < words.length; i++) {
             String word = words[i];
             int wordLen = word.length();
-            
+
             if (lineLen + wordLen > maxWidth && lineLen > prefixLen) {
                 // Start new line
                 result.append("\n").append(prefix);
                 lineLen = prefixLen;
             }
-            
+
             if (lineLen > prefixLen) {
                 result.append(" ");
                 lineLen++;
             }
-            
+
             result.append(word);
             lineLen += wordLen;
         }
-        
+
         return result.toString();
     }
-    
+
     /**
      * Wrap a block comment line (* style)
      */
     private String wrapBlockCommentLine(String line, int maxWidth) {
         if (!settings.wrapComments) return line;
-        
+
         String indent = extractIndent(line);
         String content = line.substring(indent.length()).trim();
-        
+
         // Determine prefix for wrapped lines
         String prefix;
         String textContent;
-        
+
         if (content.startsWith("/**")) {
             prefix = indent + " * ";
             textContent = content.substring(3).trim();
@@ -1034,20 +1034,20 @@ public class FormatHelper {
         } else {
             return line;
         }
-        
+
         // Handle closing */
         boolean hasClose = textContent.endsWith("*/");
         if (hasClose) {
             textContent = textContent.substring(0, textContent.length() - 2).trim();
         }
-        
+
         int prefixLen = getVisualLength(prefix);
         int contentWidth = maxWidth - prefixLen;
-        
+
         if (contentWidth <= 10) return line;
-        
+
         StringBuilder result = new StringBuilder();
-        
+
         // First line keeps original prefix
         if (content.startsWith("/**")) {
             result.append(indent).append("/** ");
@@ -1056,72 +1056,72 @@ public class FormatHelper {
         } else {
             result.append(indent).append(" * ");
         }
-        
+
         String[] words = textContent.split("\\s+");
         int lineLen = prefixLen;
-        
+
         for (int i = 0; i < words.length; i++) {
             String word = words[i];
             int wordLen = word.length();
-            
+
             if (lineLen + wordLen > maxWidth && lineLen > prefixLen) {
                 result.append("\n").append(prefix);
                 lineLen = prefixLen;
             }
-            
+
             if (lineLen > prefixLen) {
                 result.append(" ");
                 lineLen++;
             }
-            
+
             result.append(word);
             lineLen += wordLen;
         }
-        
+
         if (hasClose) {
             result.append(" */");
         }
-        
+
         return result.toString();
     }
-    
+
     /**
      * Wrap a code line at appropriate break points
      */
     private String wrapCodeLine(String line, int maxWidth) {
         String indent = extractIndent(line);
         String content = line.substring(indent.length());
-        
+
         // Additional indent for wrapped lines
         String wrapIndent = indent + spaces(settings.wrapIndentSpaces);
-        
+
         // Find break points - positions where we can break the line
         List<BreakPoint> breakPoints = findBreakPoints(content);
-        
+
         if (breakPoints.isEmpty()) {
             // No good break points, just return as-is
             return line;
         }
-        
+
         StringBuilder result = new StringBuilder();
         result.append(indent);
-        
+
         int currentLen = getVisualLength(indent);
         int lastBreak = 0;
         boolean isFirstLine = true;
-        
+
         for (BreakPoint bp : breakPoints) {
             int segmentEnd = bp.position;
             String segment = content.substring(lastBreak, segmentEnd);
             int segmentLen = getVisualLength(segment);
-            
+
             // Check if adding this segment would exceed max width
             if (currentLen + segmentLen > maxWidth && !isFirstLine) {
                 // Break here
                 result.append("\n").append(wrapIndent);
                 currentLen = getVisualLength(wrapIndent);
                 isFirstLine = false;
-                
+
                 // Trim leading space from continuation if any
                 segment = trimLeading(segment);
             } else if (currentLen + segmentLen > maxWidth && isFirstLine && lastBreak > 0) {
@@ -1130,29 +1130,29 @@ public class FormatHelper {
                 currentLen = getVisualLength(wrapIndent);
                 isFirstLine = false;
             }
-            
+
             result.append(segment);
             currentLen += getVisualLength(segment);
             lastBreak = segmentEnd;
             isFirstLine = false;
         }
-        
+
         // Append remaining content
         if (lastBreak < content.length()) {
             String remaining = content.substring(lastBreak);
             int remLen = getVisualLength(remaining);
-            
+
             if (currentLen + remLen > maxWidth && !isFirstLine) {
                 result.append("\n").append(wrapIndent);
                 remaining = trimLeading(remaining);
             }
-            
+
             result.append(remaining);
         }
-        
+
         return result.toString();
     }
-    
+
     /**
      * Trim leading whitespace (Java 8 compatible)
      */
@@ -1163,7 +1163,7 @@ public class FormatHelper {
         }
         return s.substring(start);
     }
-    
+
     /**
      * A potential line break point
      */
@@ -1171,29 +1171,29 @@ public class FormatHelper {
         int position;      // Position in string (after this char)
         @SuppressWarnings("unused")
         int priority;      // Lower = better place to break (for future sorting)
-        
+
         BreakPoint(int pos, int prio) {
             this.position = pos;
             this.priority = prio;
         }
     }
-    
+
     /**
      * Find good positions to break a line
      */
     private List<BreakPoint> findBreakPoints(String content) {
         List<BreakPoint> points = new ArrayList<>();
-        
+
         int parenDepth = 0;
         int bracketDepth = 0;
         int braceDepth = 0;
         boolean inString = false;
         char stringChar = 0;
-        
+
         for (int i = 0; i < content.length(); i++) {
             char c = content.charAt(i);
             char prev = i > 0 ? content.charAt(i - 1) : ' ';
-            
+
             // Track string state
             if ((c == '"' || c == '\'') && prev != '\\') {
                 if (!inString) {
@@ -1203,9 +1203,9 @@ public class FormatHelper {
                     inString = false;
                 }
             }
-            
+
             if (inString) continue;
-            
+
             // Track bracket depth
             if (c == '(') parenDepth++;
             else if (c == ')') parenDepth--;
@@ -1213,16 +1213,16 @@ public class FormatHelper {
             else if (c == ']') bracketDepth--;
             else if (c == '{') braceDepth++;
             else if (c == '}') braceDepth--;
-            
+
             // Calculate total nesting depth (prefer breaking at lower depth)
             int depth = parenDepth + bracketDepth + braceDepth;
-            
+
             // Find break points
             if (settings.wrapAfterComma && c == ',') {
                 // After comma is a good break point (better at lower depth)
                 points.add(new BreakPoint(i + 1, 1 + depth));
             }
-            
+
             if (settings.wrapAfterOperator) {
                 // After binary operators
                 if ((c == '+' || c == '-') && i > 0 && i < content.length() - 1) {
@@ -1239,24 +1239,24 @@ public class FormatHelper {
                     points.add(new BreakPoint(i + 2, 2 + depth));
                 }
             }
-            
+
             if (settings.wrapBeforeDot && c == '.') {
                 // Before dot (for method chaining)
                 points.add(new BreakPoint(i, 2 + depth));
             }
-            
+
             // After opening brace
             if (c == '{' && i + 1 < content.length()) {
                 points.add(new BreakPoint(i + 1, 1));
             }
         }
-        
+
         // Sort by position
         points.sort((a, b) -> Integer.compare(a.position, b.position));
-        
+
         return points;
     }
-    
+
     /**
      * Create a string of n spaces
      */
@@ -1267,7 +1267,7 @@ public class FormatHelper {
         }
         return sb.toString();
     }
-    
+
     /**
      * Format and wrap code in one step
      */

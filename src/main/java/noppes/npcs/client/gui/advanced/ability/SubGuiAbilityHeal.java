@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityHeal;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Heal ability type-specific settings.
@@ -40,7 +40,7 @@ public class SubGuiAbilityHeal extends SubGuiAbilityConfig {
         addLabel(new GuiNpcLabel(102, "ability.healRadius", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, heal.getHealRadius()));
 
-        addLabel(new GuiNpcLabel(103, "ability.instant", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(103, "dialog.instant", col2LabelX, y + 5));
         addButton(new GuiNpcButton(103, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isInstantHeal() ? 1 : 0));
 
         y += 24;
@@ -57,18 +57,30 @@ public class SubGuiAbilityHeal extends SubGuiAbilityConfig {
     protected void handleTypeButton(int id, GuiNpcButton button) {
         int value = button.getValue();
         switch (id) {
-            case 103: heal.setInstantHeal(value == 1); break;
-            case 104: heal.setHealSelf(value == 1); break;
-            case 105: heal.setHealAllies(value == 1); break;
+            case 103:
+                heal.setInstantHeal(value == 1);
+                break;
+            case 104:
+                heal.setHealSelf(value == 1);
+                break;
+            case 105:
+                heal.setHealAllies(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: heal.setHealAmount(parseFloat(field, heal.getHealAmount())); break;
-            case 101: heal.setHealPercent(parseFloat(field, heal.getHealPercent())); break;
-            case 102: heal.setHealRadius(parseFloat(field, heal.getHealRadius())); break;
+            case 100:
+                heal.setHealAmount(parseFloat(field, heal.getHealAmount()));
+                break;
+            case 101:
+                heal.setHealPercent(parseFloat(field, heal.getHealPercent()));
+                break;
+            case 102:
+                heal.setHealRadius(parseFloat(field, heal.getHealRadius()));
+                break;
         }
     }
 }

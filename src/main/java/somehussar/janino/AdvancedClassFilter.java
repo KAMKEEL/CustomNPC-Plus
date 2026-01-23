@@ -24,14 +24,17 @@ public class AdvancedClassFilter implements LoadClassCondition {
         allowedWildCards.addAll(Arrays.stream(classRegexes).map(Pattern::compile).collect(Collectors.toList()));
         return this;
     }
+
     public AdvancedClassFilter banRegexes(String... classRegexes) {
         bannedWildCards.addAll(Arrays.stream(classRegexes).map(Pattern::compile).collect(Collectors.toList()));
         return this;
     }
+
     public AdvancedClassFilter addClasses(String... classPath) {
         allowedClasses.addAll(Arrays.asList(classPath));
         return this;
     }
+
     public AdvancedClassFilter banClasses(String... classPath) {
         bannedClasses.addAll(Arrays.asList(classPath));
         return this;

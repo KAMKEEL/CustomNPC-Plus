@@ -1,10 +1,10 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Shockwave ability type-specific settings.
@@ -27,7 +27,7 @@ public class SubGuiAbilityShockwave extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Push Radius
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, shockwave.getDamage()));
 
         addLabel(new GuiNpcLabel(101, "ability.pushRadius", col2LabelX, y + 5));
@@ -55,11 +55,21 @@ public class SubGuiAbilityShockwave extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: shockwave.setDamage(parseFloat(field, shockwave.getDamage())); break;
-            case 101: shockwave.setPushRadius(parseFloat(field, shockwave.getPushRadius())); break;
-            case 102: shockwave.setPushStrength(parseFloat(field, shockwave.getPushStrength())); break;
-            case 103: shockwave.setStunDuration(field.getInteger()); break;
-            case 104: shockwave.setMaxTargets(field.getInteger()); break;
+            case 100:
+                shockwave.setDamage(parseFloat(field, shockwave.getDamage()));
+                break;
+            case 101:
+                shockwave.setPushRadius(parseFloat(field, shockwave.getPushRadius()));
+                break;
+            case 102:
+                shockwave.setPushStrength(parseFloat(field, shockwave.getPushStrength()));
+                break;
+            case 103:
+                shockwave.setStunDuration(field.getInteger());
+                break;
+            case 104:
+                shockwave.setMaxTargets(field.getInteger());
+                break;
         }
     }
 }

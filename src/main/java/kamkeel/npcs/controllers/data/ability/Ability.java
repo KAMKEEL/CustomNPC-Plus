@@ -15,8 +15,8 @@ import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
@@ -89,33 +89,46 @@ public abstract class Ability implements IAbility {
     // ABSTRACT METHODS
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Called first tick of ACTIVE phase */
+    /**
+     * Called first tick of ACTIVE phase
+     */
     public abstract void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world);
 
-    /** Called every tick of ACTIVE phase */
+    /**
+     * Called every tick of ACTIVE phase
+     */
     public abstract void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick);
 
-    /** Write type-specific config to NBT */
+    /**
+     * Write type-specific config to NBT
+     */
     public abstract void writeTypeNBT(NBTTagCompound nbt);
 
-    /** Read type-specific config from NBT */
+    /**
+     * Read type-specific config from NBT
+     */
     public abstract void readTypeNBT(NBTTagCompound nbt);
 
     // ═══════════════════════════════════════════════════════════════════
     // OPTIONAL OVERRIDES
     // ═══════════════════════════════════════════════════════════════════
 
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {}
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {}
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {}
+    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    }
+
+    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    }
+
+    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    }
 
     /**
      * Apply damage to an entity with ability hit event support.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc The NPC executing the ability
+     * @param npc       The NPC executing the ability
      * @param hitEntity The entity being hit
-     * @param damage The damage amount
+     * @param damage    The damage amount
      * @param knockback The horizontal knockback
      * @return true if damage was applied (not cancelled), false if cancelled
      */
@@ -160,17 +173,17 @@ public abstract class Ability implements IAbility {
      * Apply damage to an entity with ability hit event support and custom knockback direction.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc The NPC executing the ability
-     * @param hitEntity The entity being hit
-     * @param damage The damage amount
-     * @param knockback The horizontal knockback
+     * @param npc           The NPC executing the ability
+     * @param hitEntity     The entity being hit
+     * @param damage        The damage amount
+     * @param knockback     The horizontal knockback
      * @param knockbackDirX The X component of knockback direction (normalized)
      * @param knockbackDirZ The Z component of knockback direction (normalized)
      * @return true if damage was applied (not cancelled), false if cancelled
      */
     protected boolean applyAbilityDamageWithDirection(EntityNPCInterface npc, EntityLivingBase hitEntity,
-                                                       float damage, float knockback,
-                                                       double knockbackDirX, double knockbackDirZ) {
+                                                      float damage, float knockback,
+                                                      double knockbackDirX, double knockbackDirZ) {
         DataAbilities dataAbilities = npc.abilities;
         AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
             this, currentTarget, hitEntity, damage, knockback, 0.0f);
@@ -206,53 +219,77 @@ public abstract class Ability implements IAbility {
         hitEntity.addVelocity(x, 0.1D, z);
         hitEntity.velocityChanged = true;
     }
-    public float getTelegraphRadius() { return 5.0f; }
-    public float getTelegraphLength() { return 5.0f; }
-    public float getTelegraphWidth() { return 2.0f; }
-    public float getTelegraphAngle() { return 45.0f; }
+
+    public float getTelegraphRadius() {
+        return 5.0f;
+    }
+
+    public float getTelegraphLength() {
+        return 5.0f;
+    }
+
+    public float getTelegraphWidth() {
+        return 2.0f;
+    }
+
+    public float getTelegraphAngle() {
+        return 45.0f;
+    }
 
     /**
      * Returns true if this ability controls NPC movement during ACTIVE phase.
      * When true, AI pathfinding will be blocked during ability execution.
      * Override in abilities that move the NPC (Charge, Dash, Slam, etc.)
      */
-    public boolean hasAbilityMovement() { return false; }
+    public boolean hasAbilityMovement() {
+        return false;
+    }
 
     /**
      * Returns true if the targeting mode for this ability type is locked and cannot be changed.
      * Most abilities have fixed targeting (e.g., Heal is always SELF, Charge is always AGGRO_TARGET).
      * Override and return false for abilities with flexible targeting.
      */
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     /**
      * Returns the allowed targeting modes for this ability, or null if all modes are allowed.
      * Override in abilities that only support specific targeting modes.
      */
-    public TargetingMode[] getAllowedTargetingModes() { return null; }
+    public TargetingMode[] getAllowedTargetingModes() {
+        return null;
+    }
 
     /**
      * Returns true if the telegraph type for this ability is locked and cannot be changed.
      * Telegraph type is inherent to how the ability works (e.g., Charge uses LINE, Slam uses CIRCLE).
      */
-    public boolean isTelegraphTypeLocked() { return true; }
+    public boolean isTelegraphTypeLocked() {
+        return true;
+    }
 
     /**
      * Returns true if this ability type has custom settings that need a Type-specific tab.
      * Override to return true if the ability has settings beyond the base Ability fields.
      */
-    public boolean hasTypeSettings() { return false; }
+    public boolean hasTypeSettings() {
+        return false;
+    }
 
     /**
      * Get the number of rows needed for type-specific settings in the GUI.
      * Each row is approximately 24 pixels. Used for GUI layout.
      */
-    public int getTypeSettingsRowCount() { return 0; }
+    public int getTypeSettingsRowCount() {
+        return 0;
+    }
 
     /**
      * Creates the GUI for configuring this ability.
      * Override this method to provide a custom GUI subclass for type-specific settings.
-     *
+     * <p>
      * Third-party mods can extend SubGuiAbilityConfig and override initTypeTab(),
      * handleTypeButton(), and handleTypeTextField() to provide custom type settings.
      *
@@ -268,7 +305,7 @@ public abstract class Ability implements IAbility {
      * Create a telegraph instance for this ability.
      * Override for custom telegraph shapes.
      *
-     * @param npc The caster
+     * @param npc    The caster
      * @param target The target (for position calculation)
      * @return The telegraph instance, or null if no telegraph
      */
@@ -283,9 +320,9 @@ public abstract class Ability implements IAbility {
 
         // Determine position based on targeting mode
         boolean positionAtNpc = targetingMode == TargetingMode.AOE_SELF ||
-                                targetingMode == TargetingMode.SELF ||
-                                telegraphType == TelegraphType.LINE ||
-                                telegraphType == TelegraphType.CONE;
+            targetingMode == TargetingMode.SELF ||
+            telegraphType == TelegraphType.LINE ||
+            telegraphType == TelegraphType.CONE;
 
         if (positionAtNpc) {
             x = npc.posX;
@@ -347,10 +384,10 @@ public abstract class Ability implements IAbility {
      * Find the ground level at a given position.
      * Searches downward from the given Y to find a solid block.
      *
-     * @param world The world
-     * @param x X coordinate
+     * @param world  The world
+     * @param x      X coordinate
      * @param startY Starting Y coordinate (entity feet position)
-     * @param z Z coordinate
+     * @param z      Z coordinate
      * @return The Y coordinate of the ground surface
      */
     protected double findGroundLevel(World world, double x, double startY, double z) {
@@ -391,7 +428,9 @@ public abstract class Ability implements IAbility {
     // EXECUTION LOGIC (called by CombatHandler)
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Start executing this ability */
+    /**
+     * Start executing this ability
+     */
     public void start(EntityLivingBase target) {
         this.phase = AbilityPhase.WINDUP;
         this.currentTick = 0;
@@ -399,7 +438,9 @@ public abstract class Ability implements IAbility {
         this.executionStartTime = System.currentTimeMillis();
     }
 
-    /** Tick the ability. Returns true if phase changed. */
+    /**
+     * Tick the ability. Returns true if phase changed.
+     */
     public boolean tick() {
         if (phase == AbilityPhase.IDLE) return false;
 
@@ -432,7 +473,9 @@ public abstract class Ability implements IAbility {
         return false;
     }
 
-    /** Interrupt this ability */
+    /**
+     * Interrupt this ability
+     */
     public void interrupt() {
         phase = AbilityPhase.IDLE;
         currentTick = 0;
@@ -440,17 +483,23 @@ public abstract class Ability implements IAbility {
         telegraphInstance = null;
     }
 
-    /** Start cooldown timer */
+    /**
+     * Start cooldown timer
+     */
     public void startCooldown() {
         cooldownEndTime = System.currentTimeMillis() + (cooldownTicks * 50L);
     }
 
-    /** Check if on cooldown */
+    /**
+     * Check if on cooldown
+     */
     public boolean isOnCooldown() {
         return System.currentTimeMillis() < cooldownEndTime;
     }
 
-    /** Check if executing */
+    /**
+     * Check if executing
+     */
     public boolean isExecuting() {
         return phase != AbilityPhase.IDLE;
     }
@@ -487,7 +536,9 @@ public abstract class Ability implements IAbility {
         return true;
     }
 
-    /** Reset all execution state (called on combat end) */
+    /**
+     * Reset all execution state (called on combat end)
+     */
     public void reset() {
         phase = AbilityPhase.IDLE;
         currentTick = 0;
@@ -507,7 +558,9 @@ public abstract class Ability implements IAbility {
         return true;
     }
 
-    /** Full eligibility check */
+    /**
+     * Full eligibility check
+     */
     public boolean canUse(EntityNPCInterface npc, EntityLivingBase target) {
         if (!enabled) return false;
         if (isOnCooldown()) return false;
@@ -634,110 +687,266 @@ public abstract class Ability implements IAbility {
     // GETTERS & SETTERS
     // ═══════════════════════════════════════════════════════════════════
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getTypeId() { return typeId; }
+    public String getName() {
+        return name;
+    }
 
-    public int getWeight() { return weight; }
-    public void setWeight(int weight) { this.weight = weight; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public String getTypeId() {
+        return typeId;
+    }
 
-    public TargetingMode getTargetingMode() { return targetingMode; }
-    public void setTargetingMode(TargetingMode targetingMode) { this.targetingMode = targetingMode; }
+    public int getWeight() {
+        return weight;
+    }
 
-    public float getMinRange() { return minRange; }
-    public void setMinRange(float minRange) { this.minRange = minRange; }
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
 
-    public float getMaxRange() { return maxRange; }
-    public void setMaxRange(float maxRange) { this.maxRange = maxRange; }
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-    public int getCooldownTicks() { return cooldownTicks; }
-    public void setCooldownTicks(int cooldownTicks) { this.cooldownTicks = cooldownTicks; }
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-    public int getWindUpTicks() { return windUpTicks; }
-    public void setWindUpTicks(int windUpTicks) { this.windUpTicks = windUpTicks; }
+    public TargetingMode getTargetingMode() {
+        return targetingMode;
+    }
 
-    public int getActiveTicks() { return activeTicks; }
-    public void setActiveTicks(int activeTicks) { this.activeTicks = activeTicks; }
+    public void setTargetingMode(TargetingMode targetingMode) {
+        this.targetingMode = targetingMode;
+    }
 
-    public int getRecoveryTicks() { return recoveryTicks; }
-    public void setRecoveryTicks(int recoveryTicks) { this.recoveryTicks = recoveryTicks; }
+    public float getMinRange() {
+        return minRange;
+    }
 
-    public boolean isInterruptible() { return interruptible; }
-    public void setInterruptible(boolean interruptible) { this.interruptible = interruptible; }
+    public void setMinRange(float minRange) {
+        this.minRange = minRange;
+    }
 
-    public boolean isLockMovement() { return lockMovement; }
-    public void setLockMovement(boolean lockMovement) { this.lockMovement = lockMovement; }
+    public float getMaxRange() {
+        return maxRange;
+    }
 
-    public int getWindUpColor() { return windUpColor; }
-    public void setWindUpColor(int windUpColor) { this.windUpColor = windUpColor; }
+    public void setMaxRange(float maxRange) {
+        this.maxRange = maxRange;
+    }
 
-    public int getActiveColor() { return activeColor; }
-    public void setActiveColor(int activeColor) { this.activeColor = activeColor; }
+    public int getCooldownTicks() {
+        return cooldownTicks;
+    }
 
-    /** @deprecated Use getWindUpColor() instead */
+    public void setCooldownTicks(int cooldownTicks) {
+        this.cooldownTicks = cooldownTicks;
+    }
+
+    public int getWindUpTicks() {
+        return windUpTicks;
+    }
+
+    public void setWindUpTicks(int windUpTicks) {
+        this.windUpTicks = windUpTicks;
+    }
+
+    public int getActiveTicks() {
+        return activeTicks;
+    }
+
+    public void setActiveTicks(int activeTicks) {
+        this.activeTicks = activeTicks;
+    }
+
+    public int getRecoveryTicks() {
+        return recoveryTicks;
+    }
+
+    public void setRecoveryTicks(int recoveryTicks) {
+        this.recoveryTicks = recoveryTicks;
+    }
+
+    public boolean isInterruptible() {
+        return interruptible;
+    }
+
+    public void setInterruptible(boolean interruptible) {
+        this.interruptible = interruptible;
+    }
+
+    public boolean isLockMovement() {
+        return lockMovement;
+    }
+
+    public void setLockMovement(boolean lockMovement) {
+        this.lockMovement = lockMovement;
+    }
+
+    public int getWindUpColor() {
+        return windUpColor;
+    }
+
+    public void setWindUpColor(int windUpColor) {
+        this.windUpColor = windUpColor;
+    }
+
+    public int getActiveColor() {
+        return activeColor;
+    }
+
+    public void setActiveColor(int activeColor) {
+        this.activeColor = activeColor;
+    }
+
+    /**
+     * @deprecated Use getWindUpColor() instead
+     */
     @Deprecated
-    public int getTelegraphColor() { return windUpColor; }
-    /** @deprecated Use setWindUpColor() instead */
+    public int getTelegraphColor() {
+        return windUpColor;
+    }
+
+    /**
+     * @deprecated Use setWindUpColor() instead
+     */
     @Deprecated
-    public void setTelegraphColor(int telegraphColor) { this.windUpColor = telegraphColor; }
+    public void setTelegraphColor(int telegraphColor) {
+        this.windUpColor = telegraphColor;
+    }
 
-    public String getWindUpSound() { return windUpSound; }
-    public void setWindUpSound(String windUpSound) { this.windUpSound = windUpSound; }
+    public String getWindUpSound() {
+        return windUpSound;
+    }
 
-    public String getActiveSound() { return activeSound; }
-    public void setActiveSound(String activeSound) { this.activeSound = activeSound; }
+    public void setWindUpSound(String windUpSound) {
+        this.windUpSound = windUpSound;
+    }
 
-    public int getWindUpAnimationId() { return windUpAnimationId; }
-    public void setWindUpAnimationId(int windUpAnimationId) { this.windUpAnimationId = windUpAnimationId; }
+    public String getActiveSound() {
+        return activeSound;
+    }
 
-    public int getActiveAnimationId() { return activeAnimationId; }
-    public void setActiveAnimationId(int activeAnimationId) { this.activeAnimationId = activeAnimationId; }
+    public void setActiveSound(String activeSound) {
+        this.activeSound = activeSound;
+    }
 
-    /** @deprecated Use getWindUpSound() instead */
+    public int getWindUpAnimationId() {
+        return windUpAnimationId;
+    }
+
+    public void setWindUpAnimationId(int windUpAnimationId) {
+        this.windUpAnimationId = windUpAnimationId;
+    }
+
+    public int getActiveAnimationId() {
+        return activeAnimationId;
+    }
+
+    public void setActiveAnimationId(int activeAnimationId) {
+        this.activeAnimationId = activeAnimationId;
+    }
+
+    /**
+     * @deprecated Use getWindUpSound() instead
+     */
     @Deprecated
-    public String getCastSound() { return windUpSound; }
-    /** @deprecated Use setWindUpSound() instead */
+    public String getCastSound() {
+        return windUpSound;
+    }
+
+    /**
+     * @deprecated Use setWindUpSound() instead
+     */
     @Deprecated
-    public void setCastSound(String castSound) { this.windUpSound = castSound; }
+    public void setCastSound(String castSound) {
+        this.windUpSound = castSound;
+    }
 
-    /** @deprecated Use getWindUpAnimationId() instead */
+    /**
+     * @deprecated Use getWindUpAnimationId() instead
+     */
     @Deprecated
-    public int getAnimationId() { return windUpAnimationId; }
-    /** @deprecated Use setWindUpAnimationId() instead */
+    public int getAnimationId() {
+        return windUpAnimationId;
+    }
+
+    /**
+     * @deprecated Use setWindUpAnimationId() instead
+     */
     @Deprecated
-    public void setAnimationId(int animationId) { this.windUpAnimationId = animationId; }
+    public void setAnimationId(int animationId) {
+        this.windUpAnimationId = animationId;
+    }
 
-    public boolean isShowTelegraph() { return showTelegraph; }
-    public void setShowTelegraph(boolean showTelegraph) { this.showTelegraph = showTelegraph; }
+    public boolean isShowTelegraph() {
+        return showTelegraph;
+    }
 
-    public TelegraphType getTelegraphType() { return telegraphType; }
-    public void setTelegraphType(TelegraphType telegraphType) { this.telegraphType = telegraphType; }
+    public void setShowTelegraph(boolean showTelegraph) {
+        this.showTelegraph = showTelegraph;
+    }
 
-    public float getTelegraphHeightOffset() { return telegraphHeightOffset; }
-    public void setTelegraphHeightOffset(float telegraphHeightOffset) { this.telegraphHeightOffset = telegraphHeightOffset; }
+    public TelegraphType getTelegraphType() {
+        return telegraphType;
+    }
 
-    public AbilityPhase getPhase() { return phase; }
+    public void setTelegraphType(TelegraphType telegraphType) {
+        this.telegraphType = telegraphType;
+    }
+
+    public float getTelegraphHeightOffset() {
+        return telegraphHeightOffset;
+    }
+
+    public void setTelegraphHeightOffset(float telegraphHeightOffset) {
+        this.telegraphHeightOffset = telegraphHeightOffset;
+    }
+
+    public AbilityPhase getPhase() {
+        return phase;
+    }
 
     /**
      * Get the current execution phase as int (0=IDLE, 1=WINDUP, 2=ACTIVE, 3=RECOVERY).
      * Required for IAbility interface.
      */
     @Override
-    public int getPhaseInt() { return phase.ordinal(); }
+    public int getPhaseInt() {
+        return phase.ordinal();
+    }
 
-    public int getCurrentTick() { return currentTick; }
-    public EntityLivingBase getCurrentTarget() { return currentTarget; }
-    public NBTTagCompound getCustomData() { return customData; }
+    public int getCurrentTick() {
+        return currentTick;
+    }
 
-    public List<Condition> getConditions() { return conditions; }
-    public void addCondition(Condition c) { conditions.add(c); }
+    public EntityLivingBase getCurrentTarget() {
+        return currentTarget;
+    }
+
+    public NBTTagCompound getCustomData() {
+        return customData;
+    }
+
+    public List<Condition> getConditions() {
+        return conditions;
+    }
+
+    public void addCondition(Condition c) {
+        conditions.add(c);
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // IAbility API METHODS

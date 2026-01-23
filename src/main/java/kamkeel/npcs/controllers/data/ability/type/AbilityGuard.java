@@ -2,17 +2,16 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.Random;
@@ -62,21 +61,25 @@ public class AbilityGuard extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
+        IAbilityConfigCallback callback) {
         return new SubGuiAbilityGuard(this, callback);
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.SELF };
+        return new TargetingMode[]{TargetingMode.SELF};
     }
 
     @Override
@@ -99,7 +102,7 @@ public class AbilityGuard extends Ability {
      * This should be called from the damage handling code.
      *
      * @param attacker The entity that attacked
-     * @param damage The damage amount (after reduction)
+     * @param damage   The damage amount (after reduction)
      */
     public void onDamageTaken(EntityNPCInterface npc, EntityLivingBase attacker, DamageSource source, float damage) {
         if (!canCounter || attacker == null) return;
@@ -212,24 +215,59 @@ public class AbilityGuard extends Ability {
     }
 
     // Getters & Setters
-    public float getDamageReduction() { return damageReduction; }
-    public void setDamageReduction(float damageReduction) { this.damageReduction = damageReduction; }
+    public float getDamageReduction() {
+        return damageReduction;
+    }
 
-    public boolean isCanCounter() { return canCounter; }
-    public void setCanCounter(boolean canCounter) { this.canCounter = canCounter; }
+    public void setDamageReduction(float damageReduction) {
+        this.damageReduction = damageReduction;
+    }
 
-    public CounterType getCounterType() { return counterType; }
-    public void setCounterType(CounterType counterType) { this.counterType = counterType; }
+    public boolean isCanCounter() {
+        return canCounter;
+    }
 
-    public float getCounterValue() { return counterValue; }
-    public void setCounterValue(float counterValue) { this.counterValue = counterValue; }
+    public void setCanCounter(boolean canCounter) {
+        this.canCounter = canCounter;
+    }
 
-    public float getCounterChance() { return counterChance; }
-    public void setCounterChance(float counterChance) { this.counterChance = counterChance; }
+    public CounterType getCounterType() {
+        return counterType;
+    }
 
-    public String getCounterSound() { return counterSound; }
-    public void setCounterSound(String counterSound) { this.counterSound = counterSound; }
+    public void setCounterType(CounterType counterType) {
+        this.counterType = counterType;
+    }
 
-    public int getCounterAnimationId() { return counterAnimationId; }
-    public void setCounterAnimationId(int counterAnimationId) { this.counterAnimationId = counterAnimationId; }
+    public float getCounterValue() {
+        return counterValue;
+    }
+
+    public void setCounterValue(float counterValue) {
+        this.counterValue = counterValue;
+    }
+
+    public float getCounterChance() {
+        return counterChance;
+    }
+
+    public void setCounterChance(float counterChance) {
+        this.counterChance = counterChance;
+    }
+
+    public String getCounterSound() {
+        return counterSound;
+    }
+
+    public void setCounterSound(String counterSound) {
+        this.counterSound = counterSound;
+    }
+
+    public int getCounterAnimationId() {
+        return counterAnimationId;
+    }
+
+    public void setCounterAnimationId(int counterAnimationId) {
+        this.counterAnimationId = counterAnimationId;
+    }
 }

@@ -13,8 +13,10 @@ public class KeyPreset {
      * @field SINGLE_PRESS => on releasing before 5 ticks press time
      * @field PRESS_RELEASE => on pressing and releasing
      */
-    /** Press types for key events. */
-    public enum PressType { PRESS, HOLD, RELEASE, SINGLE_PRESS, PRESS_RELEASE }
+    /**
+     * Press types for key events.
+     */
+    public enum PressType {PRESS, HOLD, RELEASE, SINGLE_PRESS, PRESS_RELEASE}
 
     public KeyState defaultState = new KeyState();
     public KeyState currentState = new KeyState();
@@ -81,7 +83,7 @@ public class KeyPreset {
         if (throttleInterval <= 0) return false;
         long currentTime = System.currentTimeMillis();
         long intervalToUse = pressType == PressType.HOLD && isFirstAction && firstThrottleInterval > 0 ?
-                firstThrottleInterval : throttleInterval;
+            firstThrottleInterval : throttleInterval;
         if (currentTime - lastActionTime < intervalToUse) return true;
         lastActionTime = currentTime;
         isFirstAction = false;
@@ -106,7 +108,7 @@ public class KeyPreset {
         }
 
         if (!down && isDown) { // just released
-            if (getPressTime() <= SHORT_PRESS_MS) 
+            if (getPressTime() <= SHORT_PRESS_MS)
                 onAction(PressType.SINGLE_PRESS);
             onAction(PressType.RELEASE, PressType.PRESS_RELEASE);
             pressStartMs = 0;
@@ -114,10 +116,10 @@ public class KeyPreset {
 
         if (down) // while held
             onAction(PressType.HOLD);
-        
+
         this.isDown = down;
     }
-    
+
     public long getPressTime() {
         return pressStartMs > 0 ? (System.currentTimeMillis() - pressStartMs) : 0L;
     }

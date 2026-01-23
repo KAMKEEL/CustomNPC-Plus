@@ -34,7 +34,7 @@ public class KeyPresetManager {
     }
     
     public void tick() {
-        for (KeyPreset key : keys) 
+        for (KeyPreset key : keys)
             key.tick();
     }
 

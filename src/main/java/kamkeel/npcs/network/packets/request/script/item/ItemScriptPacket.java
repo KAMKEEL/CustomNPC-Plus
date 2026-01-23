@@ -75,6 +75,10 @@ public final class ItemScriptPacket extends AbstractPacket {
             NBTTagCompound compound = iw.getMCNbt();
             compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
+
+            NBTTagCompound loadComplete = new NBTTagCompound();
+            loadComplete.setInteger("LoadComplete", 1);
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, loadComplete);
         } else {
             if (!player.capabilities.isCreativeMode) {
                 return;

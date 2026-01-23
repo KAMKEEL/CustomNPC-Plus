@@ -55,6 +55,7 @@ public class TelegraphInstance {
 
     /**
      * Called every tick to update telegraph state.
+     *
      * @param world The world (for entity lookup)
      * @return false if telegraph should be removed
      */
@@ -90,10 +91,10 @@ public class TelegraphInstance {
      * Find the ground level at a given position.
      * Searches downward from the given Y to find a solid block.
      *
-     * @param world The world
-     * @param x X coordinate
+     * @param world  The world
+     * @param x      X coordinate
      * @param startY Starting Y coordinate (entity feet position)
-     * @param z Z coordinate
+     * @param z      Z coordinate
      * @return The Y coordinate of the ground surface
      */
     private double findGroundLevel(World world, double x, double startY, double z) {
@@ -207,42 +208,99 @@ public class TelegraphInstance {
     // GETTERS & SETTERS
     // ═══════════════════════════════════════════════════════════════════
 
-    public String getInstanceId() { return instanceId; }
-    public void setInstanceId(String instanceId) { this.instanceId = instanceId; }
+    public String getInstanceId() {
+        return instanceId;
+    }
 
-    public Telegraph getTelegraph() { return telegraph; }
-    public void setTelegraph(Telegraph telegraph) { this.telegraph = telegraph; }
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+    }
 
-    public double getX() { return x; }
-    public void setX(double x) { this.x = x; }
+    public Telegraph getTelegraph() {
+        return telegraph;
+    }
 
-    public double getY() { return y; }
-    public void setY(double y) { this.y = y; }
+    public void setTelegraph(Telegraph telegraph) {
+        this.telegraph = telegraph;
+    }
 
-    public double getZ() { return z; }
-    public void setZ(double z) { this.z = z; }
+    public double getX() {
+        return x;
+    }
 
-    public float getYaw() { return yaw; }
-    public void setYaw(float yaw) { this.yaw = yaw; }
+    public void setX(double x) {
+        this.x = x;
+    }
 
-    public int getEntityIdToFollow() { return entityIdToFollow; }
-    public void setEntityIdToFollow(int entityIdToFollow) { this.entityIdToFollow = entityIdToFollow; }
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    public void setZ(double z) {
+        this.z = z;
+    }
+
+    public float getYaw() {
+        return yaw;
+    }
+
+    public void setYaw(float yaw) {
+        this.yaw = yaw;
+    }
+
+    public int getEntityIdToFollow() {
+        return entityIdToFollow;
+    }
+
+    public void setEntityIdToFollow(int entityIdToFollow) {
+        this.entityIdToFollow = entityIdToFollow;
+    }
 
     /**
      * Locks the telegraph at its current position.
      * Stops following any entity - used when ability commits to action.
      */
-    public void lockPosition() { this.entityIdToFollow = -1; }
+    public void lockPosition() {
+        this.entityIdToFollow = -1;
+    }
 
-    public int getCasterEntityId() { return casterEntityId; }
-    public void setCasterEntityId(int casterEntityId) { this.casterEntityId = casterEntityId; }
+    public int getCasterEntityId() {
+        return casterEntityId;
+    }
 
-    public int getRemainingTicks() { return remainingTicks; }
-    public void setRemainingTicks(int remainingTicks) { this.remainingTicks = remainingTicks; }
+    public void setCasterEntityId(int casterEntityId) {
+        this.casterEntityId = casterEntityId;
+    }
 
-    public int getTotalTicks() { return totalTicks; }
-    public void setTotalTicks(int totalTicks) { this.totalTicks = totalTicks; }
+    public int getRemainingTicks() {
+        return remainingTicks;
+    }
 
-    public boolean isWarning() { return isWarning; }
-    public void setWarning(boolean warning) { isWarning = warning; }
+    public void setRemainingTicks(int remainingTicks) {
+        this.remainingTicks = remainingTicks;
+    }
+
+    public int getTotalTicks() {
+        return totalTicks;
+    }
+
+    public void setTotalTicks(int totalTicks) {
+        this.totalTicks = totalTicks;
+    }
+
+    public boolean isWarning() {
+        return isWarning;
+    }
+
+    public void setWarning(boolean warning) {
+        isWarning = warning;
+    }
 }

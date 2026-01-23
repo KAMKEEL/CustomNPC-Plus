@@ -2,11 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.block.Block;
@@ -14,10 +10,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
@@ -73,21 +71,25 @@ public class AbilityTeleport extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
+        IAbilityConfigCallback callback) {
         return new SubGuiAbilityTeleport(this, callback);
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
@@ -202,7 +204,7 @@ public class AbilityTeleport extends Ability {
     }
 
     private Vec3 findSafeDestination(World world, double oldX, double oldY, double oldZ,
-                                      double destX, double destY, double destZ) {
+                                     double destX, double destY, double destZ) {
         int oldBlockX = (int) Math.floor(oldX);
         int oldBlockY = (int) Math.floor(oldY);
         int oldBlockZ = (int) Math.floor(oldZ);
@@ -291,7 +293,7 @@ public class AbilityTeleport extends Ability {
             double checkZ = z1 + dz * d;
 
             if (hasLineOfSight(world, x1, y1 + npc.getEyeHeight(), z1,
-                              checkX, checkY + npc.getEyeHeight(), checkZ)) {
+                checkX, checkY + npc.getEyeHeight(), checkZ)) {
                 int blockX = MathHelper.floor_double(checkX);
                 int blockY = MathHelper.floor_double(checkY);
                 int blockZ = MathHelper.floor_double(checkZ);
@@ -330,8 +332,8 @@ public class AbilityTeleport extends Ability {
         Block headBlock = world.getBlock(x, y + 1, z);
 
         return groundBlock.getMaterial().isSolid() &&
-               !feetBlock.getMaterial().isSolid() &&
-               !headBlock.getMaterial().isSolid();
+            !feetBlock.getMaterial().isSolid() &&
+            !headBlock.getMaterial().isSolid();
     }
 
     private void dealDamageAt(EntityNPCInterface npc, World world, double x, double y, double z) {
@@ -414,33 +416,83 @@ public class AbilityTeleport extends Ability {
     }
 
     // Getters & Setters
-    public TeleportMode getMode() { return mode; }
-    public void setMode(TeleportMode mode) { this.mode = mode; }
+    public TeleportMode getMode() {
+        return mode;
+    }
 
-    public int getBlinkCount() { return blinkCount; }
-    public void setBlinkCount(int blinkCount) { this.blinkCount = blinkCount; }
+    public void setMode(TeleportMode mode) {
+        this.mode = mode;
+    }
 
-    public int getBlinkDelayTicks() { return blinkDelayTicks; }
-    public void setBlinkDelayTicks(int blinkDelayTicks) { this.blinkDelayTicks = blinkDelayTicks; }
+    public int getBlinkCount() {
+        return blinkCount;
+    }
 
-    public float getBlinkRadius() { return blinkRadius; }
-    public void setBlinkRadius(float blinkRadius) { this.blinkRadius = blinkRadius; }
+    public void setBlinkCount(int blinkCount) {
+        this.blinkCount = blinkCount;
+    }
 
-    public float getBehindDistance() { return behindDistance; }
-    public void setBehindDistance(float behindDistance) { this.behindDistance = behindDistance; }
+    public int getBlinkDelayTicks() {
+        return blinkDelayTicks;
+    }
 
-    public boolean isRequireLineOfSight() { return requireLineOfSight; }
-    public void setRequireLineOfSight(boolean requireLineOfSight) { this.requireLineOfSight = requireLineOfSight; }
+    public void setBlinkDelayTicks(int blinkDelayTicks) {
+        this.blinkDelayTicks = blinkDelayTicks;
+    }
 
-    public boolean isDamageAtStart() { return damageAtStart; }
-    public void setDamageAtStart(boolean damageAtStart) { this.damageAtStart = damageAtStart; }
+    public float getBlinkRadius() {
+        return blinkRadius;
+    }
 
-    public boolean isDamageAtEnd() { return damageAtEnd; }
-    public void setDamageAtEnd(boolean damageAtEnd) { this.damageAtEnd = damageAtEnd; }
+    public void setBlinkRadius(float blinkRadius) {
+        this.blinkRadius = blinkRadius;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getBehindDistance() {
+        return behindDistance;
+    }
 
-    public float getDamageRadius() { return damageRadius; }
-    public void setDamageRadius(float damageRadius) { this.damageRadius = damageRadius; }
+    public void setBehindDistance(float behindDistance) {
+        this.behindDistance = behindDistance;
+    }
+
+    public boolean isRequireLineOfSight() {
+        return requireLineOfSight;
+    }
+
+    public void setRequireLineOfSight(boolean requireLineOfSight) {
+        this.requireLineOfSight = requireLineOfSight;
+    }
+
+    public boolean isDamageAtStart() {
+        return damageAtStart;
+    }
+
+    public void setDamageAtStart(boolean damageAtStart) {
+        this.damageAtStart = damageAtStart;
+    }
+
+    public boolean isDamageAtEnd() {
+        return damageAtEnd;
+    }
+
+    public void setDamageAtEnd(boolean damageAtEnd) {
+        this.damageAtEnd = damageAtEnd;
+    }
+
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public float getDamageRadius() {
+        return damageRadius;
+    }
+
+    public void setDamageRadius(float damageRadius) {
+        this.damageRadius = damageRadius;
+    }
 }

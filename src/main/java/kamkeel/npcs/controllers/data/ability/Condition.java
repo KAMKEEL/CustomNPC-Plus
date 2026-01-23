@@ -13,7 +13,7 @@ public interface Condition {
     /**
      * Check if this condition is met.
      *
-     * @param npc The NPC that would use the ability
+     * @param npc    The NPC that would use the ability
      * @param target The current target (may be null for self-targeting abilities)
      * @return true if the condition is satisfied
      */
@@ -80,7 +80,8 @@ public interface Condition {
     class ConditionHPAbove implements Condition {
         private float threshold = 0.5f; // 50%
 
-        public ConditionHPAbove() {}
+        public ConditionHPAbove() {
+        }
 
         public ConditionHPAbove(float threshold) {
             this.threshold = threshold;
@@ -92,7 +93,9 @@ public interface Condition {
         }
 
         @Override
-        public String getTypeId() { return "hp_above"; }
+        public String getTypeId() {
+            return "hp_above";
+        }
 
         @Override
         public NBTTagCompound writeNBT() {
@@ -114,7 +117,8 @@ public interface Condition {
     class ConditionHPBelow implements Condition {
         private float threshold = 0.5f;
 
-        public ConditionHPBelow() {}
+        public ConditionHPBelow() {
+        }
 
         public ConditionHPBelow(float threshold) {
             this.threshold = threshold;
@@ -126,7 +130,9 @@ public interface Condition {
         }
 
         @Override
-        public String getTypeId() { return "hp_below"; }
+        public String getTypeId() {
+            return "hp_below";
+        }
 
         @Override
         public NBTTagCompound writeNBT() {
@@ -148,7 +154,8 @@ public interface Condition {
     class ConditionTargetHPAbove implements Condition {
         private float threshold = 0.5f;
 
-        public ConditionTargetHPAbove() {}
+        public ConditionTargetHPAbove() {
+        }
 
         public ConditionTargetHPAbove(float threshold) {
             this.threshold = threshold;
@@ -161,7 +168,9 @@ public interface Condition {
         }
 
         @Override
-        public String getTypeId() { return "target_hp_above"; }
+        public String getTypeId() {
+            return "target_hp_above";
+        }
 
         @Override
         public NBTTagCompound writeNBT() {
@@ -183,7 +192,8 @@ public interface Condition {
     class ConditionTargetHPBelow implements Condition {
         private float threshold = 0.5f;
 
-        public ConditionTargetHPBelow() {}
+        public ConditionTargetHPBelow() {
+        }
 
         public ConditionTargetHPBelow(float threshold) {
             this.threshold = threshold;
@@ -196,7 +206,9 @@ public interface Condition {
         }
 
         @Override
-        public String getTypeId() { return "target_hp_below"; }
+        public String getTypeId() {
+            return "target_hp_below";
+        }
 
         @Override
         public NBTTagCompound writeNBT() {
@@ -220,7 +232,8 @@ public interface Condition {
         private int requiredHits = 3;
         private int withinTicks = 60;
 
-        public ConditionHitCount() {}
+        public ConditionHitCount() {
+        }
 
         public ConditionHitCount(int requiredHits, int withinTicks) {
             this.requiredHits = requiredHits;
@@ -237,7 +250,9 @@ public interface Condition {
         }
 
         @Override
-        public String getTypeId() { return "hit_count"; }
+        public String getTypeId() {
+            return "hit_count";
+        }
 
         @Override
         public NBTTagCompound writeNBT() {
@@ -254,10 +269,20 @@ public interface Condition {
             withinTicks = nbt.getInteger("withinTicks");
         }
 
-        public int getRequiredHits() { return requiredHits; }
-        public void setRequiredHits(int hits) { this.requiredHits = hits; }
+        public int getRequiredHits() {
+            return requiredHits;
+        }
 
-        public int getWithinTicks() { return withinTicks; }
-        public void setWithinTicks(int ticks) { this.withinTicks = ticks; }
+        public void setRequiredHits(int hits) {
+            this.requiredHits = hits;
+        }
+
+        public int getWithinTicks() {
+            return withinTicks;
+        }
+
+        public void setWithinTicks(int ticks) {
+            this.withinTicks = ticks;
+        }
     }
 }

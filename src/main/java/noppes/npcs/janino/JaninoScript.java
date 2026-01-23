@@ -1,80 +1,73 @@
 package noppes.npcs.janino;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import io.github.somehussar.janinoloader.api.script.IScriptBodyBuilder;
 import io.github.somehussar.janinoloader.api.script.IScriptClassBody;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IHookDefinition;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.janino.annotations.ParamName;
-import noppes.npcs.janino.annotations.ScriptHook;
 import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.security.*;
+import java.security.Permissions;
+import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 public abstract class JaninoScript<T> implements IScriptUnit {
-    public boolean enabled;
-    public boolean errored = false;
-    private String language = "Java";
-    public TreeMap<Long, String> console = new TreeMap();
 
-    /**
-     * Text written in the script GUI
-     */
+    public ScriptContext context = ScriptContext.GLOBAL;
+    public boolean errored = false;
     public String script = "";
-    /**
-     * This script's selected external files
-     *  stored in "world/customnpcs/scripts/java"
-     */
     public List<String> externalScripts = new ArrayList<>();
-    /**
-     *  To evaluate if script/externalScripts were changed or not,
-     *  and compile the fullScript freshly if so.
-     */
+    public TreeMap<Long, String> console = new TreeMap<>();
     public boolean evaluated;
 
     public final Class<T> type;
-    protected final Sandbox sandbox;
     public final IScriptBodyBuilder<T> builder;
+    protected final Sandbox sandbox;
     protected IScriptClassBody<T> scriptBody;
 
-    private boolean hooksInitialized = false;
-    // Hook list for GUI display
-    private List<String> hookList = new ArrayList<>();
-    // Map from display name (with parameters if overloaded) to Method
-    private Map<String, Method> hookMap = new HashMap<>();
-    // Map from EnumScriptType to Method for OLD tab-based script system
-    private Map<EnumScriptType, Method> hookTypeMap = new HashMap<>();
-
-    // Default imports for this script type (e.g., noppes.npcs.api.*)
+    private final JaninoHookResolver hookResolver = new JaninoHookResolver();
     private final String[] defaultImports;
 
-    protected JaninoScript(Class<T> type, String[] defaultImports) {
+    private Map<String, IHookDefinition> hookDefCache;
+    private int lastHookRevision = -1;
+    private int lastSeenGlobalRevision;
+
+
+    protected JaninoScript(Class<T> type, String[] defaultImports, boolean isClient) {
         this.type = type;
         this.defaultImports = defaultImports != null ? defaultImports : new String[0];
-        this.builder = IScriptBodyBuilder.getBuilder(type, CustomNpcs.getClientCompiler())
-                                         .setDefaultImports(defaultImports);
+        this.builder = IScriptBodyBuilder.getBuilder(type,
+                isClient ? CustomNpcs.getClientCompiler() : CustomNpcs.getDynamicCompiler())
+            .setDefaultImports(this.defaultImports);
 
         Permissions permissions = new Permissions();
         permissions.setReadOnly();
-        sandbox = new Sandbox(permissions);
-
+        this.sandbox = new Sandbox(permissions);
         this.scriptBody = builder.build();
+    }
 
-        // Build hook type map from @ScriptHook annotations
-        initializeHookTypeMap();
+    protected JaninoScript(Class<T> type, String[] defaultImports) {
+        this(type, defaultImports, false);
+    }
+
+    protected String getHookContext() {
+        return this.context.hookContext;
     }
 
     protected T getUnsafe() {
@@ -88,16 +81,16 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         if (t == null)
             return null;
 
-//        CodeSource cs = t.getClass().getProtectionDomain().getCodeSource();
-//        ProtectionDomain pd = new ProtectionDomain(cs, new Permissions());
+        //        CodeSource cs = t.getClass().getProtectionDomain().getCodeSource();
+        //        ProtectionDomain pd = new ProtectionDomain(cs, new Permissions());
 
         try {
             return sandbox.confine((PrivilegedAction<R>) () -> fn.apply(t));
-//            return AccessController.doPrivileged((PrivilegedAction<? extends R>) () -> fn.apply(t), new AccessControlContext(
-//                new ProtectionDomain[] {
-//                    pd
-//                }
-//            ));
+            //            return AccessController.doPrivileged((PrivilegedAction<? extends R>) () -> fn.apply(t), new AccessControlContext(
+            //                new ProtectionDomain[] {
+            //                    pd
+            //                }
+            //            ));
         } catch (Exception e) {
             appendConsole("Runtime Error: " + e.getMessage());
             return null;
@@ -124,31 +117,24 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void unload() {
     }
 
-    /**
-     * Feed the code into the engine and compile it
-     */
+
+    // ==================== COMPILATION ====================
+
     public void compileScript(String code) {
-
         try {
+            String[] imports = collectImportsForCode(code);
+            builder.setDefaultImports(imports);
+            this.scriptBody = builder.build();
             scriptBody.setScript(code);
-        } catch (InternalCompilerException e ) {
-            Throwable parentCause = null;
-            Throwable cause = e;
-
+        } catch (InternalCompilerException e) {
             appendConsole("Compilation error: " + e.getMessage());
-
-            while (cause.getCause() != null) { parentCause = cause; cause = cause.getCause(); }
-            Throwable rootCause = cause;
-
-            if (e != cause) {
-                appendConsole("\n");
-
-                if (parentCause != null)
-                    appendConsole(parentCause.getMessage());
-                appendConsole(rootCause.getMessage());
-            }
+            Throwable cause = e;
+            while (cause.getCause() != null) cause = cause.getCause();
+            if (e != cause) appendConsole(cause.getMessage());
+            hookResolver.clearResolutionCaches();
         } catch (Exception e) {
-            appendConsole("Unknown error: " + e.getMessage());
+            appendConsole("Error: " + e.getMessage());
+            hookResolver.clearResolutionCaches();
         }
     }
 
@@ -157,16 +143,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
     public void ensureCompiled() {
-        if (!isEnabled()) {
-            if (!evaluated) {
-                compileScript("");
-                evaluated = true;
-            }
-            return;
-        }
-
         int global = ScriptController.Instance.globalRevision;
-
         if (!evaluated || global != lastSeenGlobalRevision) {
             compileScript();
             lastSeenGlobalRevision = global;
@@ -174,249 +151,218 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         }
     }
 
-    /**
-     * globalRevision is incremented on server
-     * each time externalScripts are updated
-     * then sent to client.
-     */
-    private int lastSeenGlobalRevision;
-
     private String getFullCode() {
-        if (!isEnabled())
-            return "";
-
         StringBuilder sb = new StringBuilder();
-
-        if (ConfigScript.RunLoadedScriptsFirst)
-            this.appendExternalScripts(sb);
-
-        // Main script
-        if (this.script != null && !this.script.isEmpty())
-            sb.append(this.script).append("\n");
-
-        if (!ConfigScript.RunLoadedScriptsFirst)
-            this.appendExternalScripts(sb);
-
+        if (ConfigScript.RunLoadedScriptsFirst) appendExternalScripts(sb);
+        if (script != null && !script.isEmpty()) sb.append(script).append("\n");
+        if (!ConfigScript.RunLoadedScriptsFirst) appendExternalScripts(sb);
         return sb.toString();
     }
 
     private void appendExternalScripts(StringBuilder sb) {
-        for (String scriptName : externalScripts) {
-            String code = ScriptController.Instance.scripts.get(scriptName);
-            if (code != null && !code.isEmpty())
-                sb.append(code).append("\n");
+        for (String name : externalScripts) {
+            String code = ScriptController.Instance.scripts.get(name);
+            if (code != null && !code.isEmpty()) sb.append(code).append("\n");
         }
     }
 
-    /**
-     * Scans the Functions interface for @ScriptHook annotations and builds the hookTypeMap.
-     * This allows direct method invocation by EnumScriptType without switch statements.
-     */
-    private void initializeHookTypeMap() {
-        for (Method method : type.getDeclaredMethods()) {
-            ScriptHook annotation = method.getAnnotation(ScriptHook.class);
-            if (annotation != null) {
-                for (EnumScriptType hookType : annotation.value()) {
-                    hookTypeMap.put(hookType, method);
+    // ==================== SMART IMPORTS ====================
+
+    private String[] collectImportsForCode(String code) {
+        Set<String> imports = new LinkedHashSet<>();
+        Collections.addAll(imports, defaultImports);
+
+        if (ScriptHookController.Instance == null) {
+            return imports.toArray(new String[0]);
+        }
+
+        String context = getHookContext();
+        if (context == null || context.isEmpty()) {
+            return imports.toArray(new String[0]);
+        }
+
+        for (IHookDefinition def : ScriptHookController.Instance.getAllHookDefinitions(context)) {
+            if (code.contains(def.hookName() + "(")) {
+                String[] hookImports = def.requiredImports();
+                if (hookImports != null) {
+                    Collections.addAll(imports, hookImports);
                 }
             }
         }
+
+        return imports.toArray(new String[0]);
     }
 
-    /**
-     * Call a hook method by its EnumScriptType.
-     * Used by the OLD tab-based script system to execute hooks directly.
-     *
-     * @param hookType The script type/hook to execute
-     * @param event The event object to pass to the hook method
-     */
-    public void callByHookType(EnumScriptType hookType, Object event) {
-        Method method = hookTypeMap.get(hookType);
-        if (method == null) {
-            // Hook not implemented or not annotated
-            return;
-        }
+    // ==================== HOOK EXECUTION ====================
+
+    @Override
+    public Object callFunction(String hookName, Object... args) {
+        if (hookName == null || hookName.isEmpty()) return null;
 
         ensureCompiled();
-        T t = getUnsafe();
-        if (t == null)
-            return;
+        T instance = scriptBody.get();
+        if (instance == null) return null;
+
+        Object[] invokeArgs = args == null ? new Object[0] : args;
+        MethodHandle handle = hookResolver.resolveHookHandle(hookName, invokeArgs, instance);
+        if (handle == null) return null;
 
         try {
-            sandbox.confine((PrivilegedAction<Void>) () -> {
+            return sandbox.confine((PrivilegedAction<Object>) () -> {
                 try {
-                    method.invoke(t, event);
-                } catch (Exception e) {
-                    appendConsole("Error calling hook " + hookType.name() + ": " + e.getMessage());
+                    Object[] fullArgs = new Object[invokeArgs.length + 1];
+                    fullArgs[0] = instance;
+                    System.arraycopy(invokeArgs, 0, fullArgs, 1, invokeArgs.length);
+                    return handle.invokeWithArguments(fullArgs);
+                } catch (Throwable e) {
+                    appendConsole("Error in " + hookName + ": " + e.getMessage());
+                    return null;
                 }
-                return null;
             });
         } catch (Exception e) {
-            appendConsole("Runtime Error in hook " + hookType.name() + ": " + e.getMessage());
+            appendConsole("Runtime error in " + hookName + ": " + e.getMessage());
+            return null;
         }
     }
 
-    // ==================== IScriptUnit IMPLEMENTATION ====================
-
-    /**
-     * Execute this script unit for the given hook type and event.
-     * Implementation of IScriptUnit.run(EnumScriptType, Event)
-     *
-     * @param type The script hook type
-     * @param event The event object
-     */
     @Override
     public void run(EnumScriptType type, Event event) {
-        callByHookType(type, event);
+        if (type != null) callFunction(type.function, event);
     }
 
-    /**
-     * Execute this script unit for the given hook name and event.
-     * Implementation of IScriptUnit.run(String, Event)
-     *
-     * @param hookName The hook name (e.g., "init", "interact")
-     * @param event The event object
-     */
     @Override
     public void run(String hookName, Object event) {
-        try {
-            EnumScriptType enumType = EnumScriptType.valueOfIgnoreCase(hookName);
-            callByHookType(enumType, event);
-        } catch (IllegalArgumentException ignored) {
-            // Hook name doesn't map to an EnumScriptType
+        callFunction(hookName, event);
+    }
+
+    // ==================== HOOK DEFINITIONS ====================
+
+    protected IHookDefinition getHookDefinition(String hookName) {
+        if (ScriptHookController.Instance == null) return null;
+
+        int rev = ScriptHookController.Instance.getHookRevision();
+        if (hookDefCache == null || rev != lastHookRevision) {
+            rebuildHookDefCache();
+            lastHookRevision = rev;
+        }
+        return hookDefCache.get(hookName);
+    }
+
+    private void rebuildHookDefCache() {
+        hookDefCache = new HashMap<>();
+        String context = getHookContext();
+        if (context == null || context.isEmpty() || ScriptHookController.Instance == null) return;
+
+        for (IHookDefinition def : ScriptHookController.Instance.getAllHookDefinitions(context)) {
+            hookDefCache.put(def.hookName(), def);
         }
     }
-    @Override
-    public String getScript() {
-        return this.script;
-    }
 
-    @Override
-    public void setScript(String script) {
-        this.script = script;
-        this.evaluated = false;
-    }
-    
-    @Override
-    public List<String> getExternalScripts() {
-        return this.externalScripts;
-    }
+    public List<String> getHookList() {
+        Set<String> hooks = new LinkedHashSet<>();
 
-    @Override
-    public void setExternalScripts(List<String> externalScripts) {
-        this.externalScripts = externalScripts;
-        this.evaluated = false;
-    }
-    
-    @Override
-    public TreeMap<Long, String> getConsole() {
-        return this.console;
-    }
-    
-    @Override
-    public void clearConsole() {
-        console.clear();
-    }
-    
-    @Override
-    public void appendConsole(String message) {
-        if (message != null && !message.isEmpty()) {
-            long time = System.currentTimeMillis();
-            if (this.console.containsKey(time)) {
-                message = (String) this.console.get(time) + "\n" + message;
-            }
+        // 1. Add hooks from ScriptHookController (new system)
+        String context = getHookContext();
+        if (context != null && !context.isEmpty() && ScriptHookController.Instance != null) {
+            hooks.addAll(ScriptHookController.Instance.getAllHooks(context));
+        }
 
-            this.console.put(time, message);
-
-            while (this.console.size() > 40) {
-                this.console.remove(this.console.firstKey());
+        // 2. Add methods from interface type (backward compatibility with @ParamName)
+        if (type != null) {
+            for (Method m : type.getDeclaredMethods()) {
+                if (!Modifier.isFinal(m.getModifiers()) && !hooks.contains(m.getName())) {
+                    hooks.add(m.getName());
+                }
             }
         }
-    }
-    
-    @Override
-    public String getLanguage() {
-        return this.language;
-    }
-    
-    @Override
-    public void setLanguage(String language) {
-        // JaninoScript is always Java, ignore attempts to change
-        // This method exists for IScriptUnit interface compatibility
-    }
-    
-    @Override
-    public boolean hasCode() {
-        if (!externalScripts.isEmpty())
-            return true;
-        return script != null && !script.isEmpty();
+
+        return new ArrayList<>(hooks);
     }
 
     @Override
     public String generateHookStub(String hookName, Object hookData) {
-        // Build hook list and map
-        if (!hooksInitialized) {
-            createHookList();
-            hooksInitialized = true;
+        // 1. Try HookDefinition from registry (new system)
+        IHookDefinition def = getHookDefinition(hookName);
+        if (def != null) {
+            String typeName = def.getUsableTypeName();
+            String[] params = def.paramNames();
+            String paramName = (params != null && params.length > 0) ? params[0] : "event";
+
+            if (typeName != null && !typeName.isEmpty()) {
+                return String.format("public void %s(%s %s) {\n    \n}\n",
+                    def.hookName(), typeName, paramName);
+            }
         }
 
-        // Look up in hookMap (handles both simple names and overloaded display names)
-        Method method = hookMap.get(hookName);
-        if (method != null)
+        // 2. Fallback: Try interface method with @ParamName (backward compatibility)
+        Method method = findInterfaceMethod(hookName);
+        if (method != null) {
             return generateMethodStub(method);
+        }
 
-        // Fallback for unknown hook names - generate basic override
-        return String.format("public void %s() {\n    \n}\n", hookName);
+        // 3. Final fallback: generic stub
+        return String.format("public void %s(Object event) {\n    \n}\n", hookName);
     }
-    
+
     /**
-     * Generates a stub string for a given Method.
+     * Find a method in the type interface by name.
+     */
+    private Method findInterfaceMethod(String methodName) {
+        if (type == null || methodName == null) return null;
+
+        for (Method m : type.getDeclaredMethods()) {
+            if (m.getName().equals(methodName) && !Modifier.isFinal(m.getModifiers())) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Generate a method stub from a Method, supporting @ParamName annotations.
+     * Provides backward compatibility with interface-based hook definitions.
      */
     public static String generateMethodStub(Method method) {
         String mods = Modifier.toString(method.getModifiers());
-        // Remove 'abstract' from modifiers for implementation
-        mods = mods.replace("abstract ", "").replace("abstract", "").trim();
-        if (!mods.isEmpty())
-            mods += " ";
+        mods = mods.replace("abstract ", "").replace("abstract", "")
+            .replace("default ", "").replace("default", "").trim();
+        if (!mods.isEmpty()) mods += " ";
 
-        String returnTypeStr = method.getReturnType().getSimpleName();
+        String returnTypeStr = getUsableTypeName(method.getReturnType());
         String name = method.getName();
 
         Map<String, Integer> typeCount = new HashMap<>();
-        String params = Arrays.stream(method.getParameters())
-            .map(p -> {
-                String typeName = p.getType().getSimpleName();
+        StringBuilder params = new StringBuilder();
+        for (int i = 0; i < method.getParameters().length; i++) {
+            java.lang.reflect.Parameter p = method.getParameters()[i];
+            String typeName = getUsableTypeName(p.getType());
 
-                // Check for @ParamName annotation first
-                ParamName paramNameAnnotation = p.getAnnotation(ParamName.class);
-                String paramName;
+            // Check for @ParamName annotation first
+            ParamName annotation = p.getAnnotation(ParamName.class);
+            String paramName;
+            if (annotation != null) {
+                paramName = annotation.value();
+            } else {
+                // Fallback to generated name
+                String baseName = Character.toLowerCase(p.getType().getSimpleName().charAt(0))
+                    + p.getType().getSimpleName().substring(1);
+                int count = typeCount.getOrDefault(baseName, 0) + 1;
+                typeCount.put(baseName, count);
+                paramName = count == 1 ? baseName : baseName + (count - 1);
+            }
 
-                if (paramNameAnnotation != null) {
-                    // Use annotated name
-                    paramName = paramNameAnnotation.value();
-                } else {
-                    // Fall back to generated name
-                    String baseName = Character.toLowerCase(typeName.charAt(0)) + typeName.substring(1);
-                    int count = typeCount.getOrDefault(baseName, 0) + 1;
-                    typeCount.put(baseName, count);
-                    paramName = count == 1 ? baseName : baseName + (count - 1);
-                }
-                
-                return typeName + " " + paramName;
-            })
-            .collect(Collectors.joining(", "));
+            if (i > 0) params.append(", ");
+            params.append(typeName).append(" ").append(paramName);
+        }
 
         String body;
         Class<?> returnType = method.getReturnType();
-        if (returnType == void.class)
+        if (returnType == void.class) {
             body = "";
-        else if (returnType.isPrimitive()) {
-            if (returnType == boolean.class)
-                body = "    return false;";
-            else if (returnType == char.class)
-                body = "    return '\\0';";
-            else
-                body = "    return 0;";
+        } else if (returnType.isPrimitive()) {
+            if (returnType == boolean.class) body = "    return false;";
+            else if (returnType == char.class) body = "    return '\\0';";
+            else body = "    return 0;";
         } else {
             body = "    return null;";
         }
@@ -424,46 +370,24 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         return String.format("%s%s %s(%s) {\n%s\n}\n", mods, returnTypeStr, name, params, body);
     }
 
-
     /**
-     * Create the hook list and hook map for GUI display and generation.
-     * Groups methods by name and creates display names with parameters for overloaded methods.
+     * Gets a usable type name for stub generation.
+     * For nested classes, returns "OuterClass.InnerClass" format.
      */
-    private void createHookList() {
-        // Group all declared methods by their name
-        Map<String, List<Method>> grouped = Arrays.stream(type.getDeclaredMethods())
-                                                  .collect(Collectors.groupingBy(Method::getName));
-
-        for (Map.Entry<String, List<Method>> entry : grouped.entrySet()) {
-            List<Method> methods = entry.getValue();
-
-            // Sort overloads by parameter count (ascending)
-            methods.sort(Comparator.comparingInt(Method::getParameterCount));
-            boolean first = true;
-
-            for (Method m : methods) {
-                if (Modifier.isFinal(m.getModifiers()))
-                    continue; // Skip final methods
-
-                // For first (simplest) overload, use just the method name
-                // For additional overloads, include parameter types in display name
-                String displayName = first ? m.getName() :
-                        m.getName() + "(" + Arrays.stream(m.getParameterTypes())
-                                                  .map(Class::getSimpleName)
-                                                  .collect(Collectors.joining(", ")) + ")";
-
-                hookList.add(displayName);
-                hookMap.put(displayName, m);
-                first = false;
-            }
+    private static String getUsableTypeName(Class<?> type) {
+        if (type.isPrimitive() || type.getEnclosingClass() == null) {
+            return type.getSimpleName();
         }
-    }
 
-    /**
-     * Get the list of hook names for GUI display.
-     */
-    public List<String> getHookList() {
-        return new ArrayList<>(hookList);
+        // Build the nested class chain
+        StringBuilder sb = new StringBuilder();
+        Class<?> current = type;
+        while (current != null) {
+            if (sb.length() > 0) sb.insert(0, ".");
+            sb.insert(0, current.getSimpleName());
+            current = current.getEnclosingClass();
+        }
+        return sb.toString();
     }
 
     /**
@@ -518,68 +442,107 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         }
     }
 
+    // ==================== IScriptUnit ====================
+
+    @Override
+    public String getScript() {
+        return script;
+    }
+
+    @Override
+    public void setScript(String script) {
+        this.script = script;
+        this.evaluated = false;
+        hookResolver.clearResolutionCaches();
+    }
+
+    @Override
+    public List<String> getExternalScripts() {
+        return externalScripts;
+    }
+
+    @Override
+    public void setExternalScripts(List<String> scripts) {
+        this.externalScripts = scripts;
+        this.evaluated = false;
+        hookResolver.clearResolutionCaches();
+    }
+
+    @Override
+    public TreeMap<Long, String> getConsole() {
+        return console;
+    }
+
+    @Override
+    public void clearConsole() {
+        console.clear();
+    }
+
+    @Override
+    public void appendConsole(String message) {
+        if (message == null || message.isEmpty()) return;
+        long time = System.currentTimeMillis();
+        if (console.containsKey(time)) {
+            message = console.get(time) + "\n" + message;
+        }
+        console.put(time, message);
+        while (console.size() > 40) {
+            console.remove(console.firstKey());
+        }
+    }
+
+    @Override
+    public String getLanguage() {
+        return "Java";
+    }
+
+    @Override
+    public void setLanguage(String language) {
+    }
+
+    @Override
+    public boolean hasCode() {
+        return !externalScripts.isEmpty() || (script != null && !script.isEmpty());
+    }
+
+    @Override
+    public boolean hasErrored() {
+        return errored;
+    }
+
+    @Override
+    public void setErrored(boolean errored) {
+        this.errored = errored;
+    }
+
+    // ==================== NBT ====================
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setString(IScriptUnit.NBT_TYPE_KEY, IScriptUnit.TYPE_JANINO);
-        compound.setBoolean("enabled", enabled);
-        compound.setTag("console", NBTTags.NBTLongStringMap(this.console));
-        compound.setTag("externalScripts", NBTTags.nbtStringList(this.externalScripts));
+        compound.setTag("console", NBTTags.NBTLongStringMap(console));
+        compound.setTag("externalScripts", NBTTags.nbtStringList(externalScripts));
         compound.setString("script", script);
         return compound;
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
-        this.enabled = compound.getBoolean("enabled");
         this.console = NBTTags.GetLongStringMap(compound.getTagList("console", 10));
         setExternalScripts(NBTTags.getStringList(compound.getTagList("externalScripts", 10)));
         setScript(compound.getString("script"));
     }
 
-    public boolean isEnabled() {
-        return this.enabled && ScriptController.HasStart && ConfigScript.ScriptingEnabled;
-    }
-
-    public boolean isClient() {
-        return FMLCommonHandler.instance()
-            .getEffectiveSide()
-            .isClient();
-    }
-
-    public boolean getEnabled() {
-        return this.enabled;
-    }
-
-    public void setEnabled(boolean b) {
-        if (this.enabled != b) {
-            this.enabled = b;
-            this.evaluated = false;
+    public static <T, S extends JaninoScript<T>> S readFromNBT(NBTTagCompound compound, S script, Supplier<S> factory) {
+        if (compound.hasKey("Script")) {
+            if (script == null) script = factory.get();
+            script.readFromNBT(compound.getCompoundTag("Script"));
         }
+        return script;
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap();
-        int tab = 0;
-
-        Iterator var5 = console.entrySet()
-            .iterator();
-
-        while (var5.hasNext()) {
-            Map.Entry<Long, String> longStringEntry = (Map.Entry) var5.next();
-            map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + (String) longStringEntry.getValue());
-        }
-
-        return map;
-    }
-    
-    @Override
-    public boolean hasErrored() {
-        return this.errored;
-    }
-    
-    @Override
-    public void setErrored(boolean errored) {
-        this.errored = errored;
+    public static <T> NBTTagCompound writeToNBT(NBTTagCompound compound, JaninoScript<T> script) {
+        if (script != null) compound.setTag("Script", script.writeToNBT(new NBTTagCompound()));
+        return compound;
     }
 }

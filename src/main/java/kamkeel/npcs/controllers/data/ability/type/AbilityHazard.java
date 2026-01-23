@@ -2,11 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHazard;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
@@ -17,6 +13,9 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHazard;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -90,25 +89,31 @@ public class AbilityHazard extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
+        IAbilityConfigCallback callback) {
         return new SubGuiAbilityHazard(this, callback);
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
-
-    @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+    public boolean isTargetingModeLocked() {
+        return true;
     }
 
     @Override
-    public float getTelegraphRadius() { return radius; }
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return radius;
+    }
 
     @Override
     public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
@@ -414,68 +419,176 @@ public class AbilityHazard extends Ability {
     }
 
     // Getters & Setters
-    public float getRadius() { return radius; }
-    public void setRadius(float radius) { this.radius = radius; }
+    public float getRadius() {
+        return radius;
+    }
 
-    public float getInnerRadius() { return innerRadius; }
-    public void setInnerRadius(float innerRadius) { this.innerRadius = innerRadius; }
+    public void setRadius(float radius) {
+        this.radius = radius;
+    }
 
-    public float getConeAngle() { return coneAngle; }
-    public void setConeAngle(float coneAngle) { this.coneAngle = coneAngle; }
+    public float getInnerRadius() {
+        return innerRadius;
+    }
 
-    public HazardShape getShape() { return shape; }
-    public void setShape(HazardShape shape) { this.shape = shape; }
+    public void setInnerRadius(float innerRadius) {
+        this.innerRadius = innerRadius;
+    }
 
-    public PlacementMode getPlacement() { return placement; }
-    public void setPlacement(PlacementMode placement) { this.placement = placement; }
+    public float getConeAngle() {
+        return coneAngle;
+    }
 
-    public float getDamagePerTick() { return damagePerTick; }
-    public void setDamagePerTick(float damagePerTick) { this.damagePerTick = damagePerTick; }
+    public void setConeAngle(float coneAngle) {
+        this.coneAngle = coneAngle;
+    }
 
-    public int getDamageInterval() { return damageInterval; }
-    public void setDamageInterval(int damageInterval) { this.damageInterval = damageInterval; }
+    public HazardShape getShape() {
+        return shape;
+    }
 
-    public boolean isIgnoreInvulnFrames() { return ignoreInvulnFrames; }
-    public void setIgnoreInvulnFrames(boolean ignoreInvulnFrames) { this.ignoreInvulnFrames = ignoreInvulnFrames; }
+    public void setShape(HazardShape shape) {
+        this.shape = shape;
+    }
 
-    public int getSlownessLevel() { return slownessLevel; }
-    public void setSlownessLevel(int slownessLevel) { this.slownessLevel = slownessLevel; }
+    public PlacementMode getPlacement() {
+        return placement;
+    }
 
-    public int getWeaknessLevel() { return weaknessLevel; }
-    public void setWeaknessLevel(int weaknessLevel) { this.weaknessLevel = weaknessLevel; }
+    public void setPlacement(PlacementMode placement) {
+        this.placement = placement;
+    }
 
-    public int getPoisonLevel() { return poisonLevel; }
-    public void setPoisonLevel(int poisonLevel) { this.poisonLevel = poisonLevel; }
+    public float getDamagePerTick() {
+        return damagePerTick;
+    }
 
-    public int getWitherLevel() { return witherLevel; }
-    public void setWitherLevel(int witherLevel) { this.witherLevel = witherLevel; }
+    public void setDamagePerTick(float damagePerTick) {
+        this.damagePerTick = damagePerTick;
+    }
 
-    public int getBlindnessLevel() { return blindnessLevel; }
-    public void setBlindnessLevel(int blindnessLevel) { this.blindnessLevel = blindnessLevel; }
+    public int getDamageInterval() {
+        return damageInterval;
+    }
 
-    public int getDebuffDuration() { return debuffDuration; }
-    public void setDebuffDuration(int debuffDuration) { this.debuffDuration = debuffDuration; }
+    public void setDamageInterval(int damageInterval) {
+        this.damageInterval = damageInterval;
+    }
 
-    public boolean isAffectsCaster() { return affectsCaster; }
-    public void setAffectsCaster(boolean affectsCaster) { this.affectsCaster = affectsCaster; }
+    public boolean isIgnoreInvulnFrames() {
+        return ignoreInvulnFrames;
+    }
 
-    public float getHeightAbove() { return heightAbove; }
-    public void setHeightAbove(float heightAbove) { this.heightAbove = heightAbove; }
+    public void setIgnoreInvulnFrames(boolean ignoreInvulnFrames) {
+        this.ignoreInvulnFrames = ignoreInvulnFrames;
+    }
 
-    public float getHeightBelow() { return heightBelow; }
-    public void setHeightBelow(float heightBelow) { this.heightBelow = heightBelow; }
+    public int getSlownessLevel() {
+        return slownessLevel;
+    }
 
-    public float getMinOffset() { return minOffset; }
-    public void setMinOffset(float minOffset) { this.minOffset = minOffset; }
+    public void setSlownessLevel(int slownessLevel) {
+        this.slownessLevel = slownessLevel;
+    }
 
-    public float getMaxOffset() { return maxOffset; }
-    public void setMaxOffset(float maxOffset) { this.maxOffset = maxOffset; }
+    public int getWeaknessLevel() {
+        return weaknessLevel;
+    }
 
-    public boolean isRandomOffset() { return randomOffset; }
-    public void setRandomOffset(boolean randomOffset) { this.randomOffset = randomOffset; }
+    public void setWeaknessLevel(int weaknessLevel) {
+        this.weaknessLevel = weaknessLevel;
+    }
+
+    public int getPoisonLevel() {
+        return poisonLevel;
+    }
+
+    public void setPoisonLevel(int poisonLevel) {
+        this.poisonLevel = poisonLevel;
+    }
+
+    public int getWitherLevel() {
+        return witherLevel;
+    }
+
+    public void setWitherLevel(int witherLevel) {
+        this.witherLevel = witherLevel;
+    }
+
+    public int getBlindnessLevel() {
+        return blindnessLevel;
+    }
+
+    public void setBlindnessLevel(int blindnessLevel) {
+        this.blindnessLevel = blindnessLevel;
+    }
+
+    public int getDebuffDuration() {
+        return debuffDuration;
+    }
+
+    public void setDebuffDuration(int debuffDuration) {
+        this.debuffDuration = debuffDuration;
+    }
+
+    public boolean isAffectsCaster() {
+        return affectsCaster;
+    }
+
+    public void setAffectsCaster(boolean affectsCaster) {
+        this.affectsCaster = affectsCaster;
+    }
+
+    public float getHeightAbove() {
+        return heightAbove;
+    }
+
+    public void setHeightAbove(float heightAbove) {
+        this.heightAbove = heightAbove;
+    }
+
+    public float getHeightBelow() {
+        return heightBelow;
+    }
+
+    public void setHeightBelow(float heightBelow) {
+        this.heightBelow = heightBelow;
+    }
+
+    public float getMinOffset() {
+        return minOffset;
+    }
+
+    public void setMinOffset(float minOffset) {
+        this.minOffset = minOffset;
+    }
+
+    public float getMaxOffset() {
+        return maxOffset;
+    }
+
+    public void setMaxOffset(float maxOffset) {
+        this.maxOffset = maxOffset;
+    }
+
+    public boolean isRandomOffset() {
+        return randomOffset;
+    }
+
+    public void setRandomOffset(boolean randomOffset) {
+        this.randomOffset = randomOffset;
+    }
 
     // Runtime getters
-    public double getZoneX() { return zoneX; }
-    public double getZoneY() { return zoneY; }
-    public double getZoneZ() { return zoneZ; }
+    public double getZoneX() {
+        return zoneX;
+    }
+
+    public double getZoneY() {
+        return zoneY;
+    }
+
+    public double getZoneZ() {
+        return zoneZ;
+    }
 }

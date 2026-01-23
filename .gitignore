@@ -6,7 +6,6 @@
 /out/
 /build/
 /eclipse/
-/gradle-plugins/
 .classpath
 .project
 /bin/

@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Cutter ability type-specific settings.
@@ -28,10 +28,10 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Range
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, cutter.getDamage()));
 
-        addLabel(new GuiNpcLabel(101, "ability.range", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(101, "gui.range", col2LabelX, y + 5));
         addTextField(createFloatField(101, col2FieldX, y, 50, cutter.getRange()));
 
         y += 24;
@@ -82,23 +82,45 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
     protected void handleTypeButton(int id, GuiNpcButton button) {
         int value = button.getValue();
         switch (id) {
-            case 106: cutter.setSweepMode(AbilityCutter.SweepMode.values()[value]); break;
-            case 107: cutter.setPiercing(value == 1); break;
+            case 106:
+                cutter.setSweepMode(AbilityCutter.SweepMode.values()[value]);
+                break;
+            case 107:
+                cutter.setPiercing(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: cutter.setDamage(parseFloat(field, cutter.getDamage())); break;
-            case 101: cutter.setRange(parseFloat(field, cutter.getRange())); break;
-            case 102: cutter.setArcAngle(parseFloat(field, cutter.getArcAngle())); break;
-            case 103: cutter.setInnerRadius(parseFloat(field, cutter.getInnerRadius())); break;
-            case 104: cutter.setKnockback(parseFloat(field, cutter.getKnockback())); break;
-            case 105: cutter.setSweepSpeed(parseFloat(field, cutter.getSweepSpeed())); break;
-            case 108: cutter.setStunDuration(field.getInteger()); break;
-            case 109: cutter.setPoisonDurationSeconds(field.getInteger()); break;
-            case 110: cutter.setPoisonLevel(field.getInteger()); break;
+            case 100:
+                cutter.setDamage(parseFloat(field, cutter.getDamage()));
+                break;
+            case 101:
+                cutter.setRange(parseFloat(field, cutter.getRange()));
+                break;
+            case 102:
+                cutter.setArcAngle(parseFloat(field, cutter.getArcAngle()));
+                break;
+            case 103:
+                cutter.setInnerRadius(parseFloat(field, cutter.getInnerRadius()));
+                break;
+            case 104:
+                cutter.setKnockback(parseFloat(field, cutter.getKnockback()));
+                break;
+            case 105:
+                cutter.setSweepSpeed(parseFloat(field, cutter.getSweepSpeed()));
+                break;
+            case 108:
+                cutter.setStunDuration(field.getInteger());
+                break;
+            case 109:
+                cutter.setPoisonDurationSeconds(field.getInteger());
+                break;
+            case 110:
+                cutter.setPoisonLevel(field.getInteger());
+                break;
         }
     }
 }

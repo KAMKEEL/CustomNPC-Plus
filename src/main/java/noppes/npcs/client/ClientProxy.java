@@ -6,6 +6,8 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.client.renderer.TelegraphRenderer;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -21,7 +23,9 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.stats.Achievement;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
@@ -120,9 +124,8 @@ import noppes.npcs.client.gui.roles.GuiNpcFollowerSetup;
 import noppes.npcs.client.gui.roles.GuiNpcItemGiver;
 import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
-import noppes.npcs.client.gui.script.GuiScriptBlock;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
-import noppes.npcs.client.gui.script.GuiScriptItem;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.script.PackageFinder;
 import noppes.npcs.client.gui.util.script.interpreter.type.ClassIndex;
 import noppes.npcs.client.model.ModelNPCGolem;
@@ -138,8 +141,6 @@ import noppes.npcs.client.renderer.RenderNpcCrystal;
 import noppes.npcs.client.renderer.RenderNpcDragon;
 import noppes.npcs.client.renderer.RenderNpcSlime;
 import noppes.npcs.client.renderer.RenderProjectile;
-import kamkeel.npcs.client.renderer.TelegraphRenderer;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -213,6 +214,7 @@ import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.InventoryTabVanilla;
@@ -493,7 +495,7 @@ public class ClientProxy extends CommonProxy {
             return new GuiScript(npc);
 
         else if (gui == EnumGuiType.ScriptItem)
-            return new GuiScriptItem();
+            return GuiScriptInterface.create(null, new ScriptCustomItem(new ItemStack(CustomItems.scripted_item)));
 
         else if (gui == EnumGuiType.PlayerCarpentryBench)
             return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);
@@ -568,7 +570,7 @@ public class ClientProxy extends CommonProxy {
             return new GuiCustom((ContainerCustomGui) container);
 
         else if (gui == EnumGuiType.ScriptBlock)
-            return new GuiScriptBlock(x, y, z);
+            return getScriptBlockGui(x, y, z);
 
         else if (gui == EnumGuiType.Paintbrush)
             return new GuiNpcPaintbrush();
@@ -620,8 +622,21 @@ public class ClientProxy extends CommonProxy {
         if (guiscreen != null) {
             minecraft.displayGuiScreen((GuiScreen) guiscreen);
         }
-
     }
+
+
+    private GuiScreen getScriptBlockGui(int x, int y, int z) {
+        World world = Minecraft.getMinecraft().theWorld;
+        if (world == null)
+            return null;
+
+        TileEntity tile = world.getTileEntity(x, y, z);
+        if (!(tile instanceof TileScripted))
+            return null;
+
+        return GuiScriptInterface.create(null, (TileScripted) tile);
+    }
+
 
     @Override
     public void spawnParticle(EntityLivingBase player, String string, Object... ob) {

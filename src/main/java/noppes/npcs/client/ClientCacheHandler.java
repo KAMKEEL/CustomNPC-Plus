@@ -1,5 +1,6 @@
 package noppes.npcs.client;
 
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.controllers.MusicController;
@@ -15,7 +16,6 @@ import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
-import kamkeel.npcs.network.enums.EnumSyncType;
 import noppes.npcs.util.CacheHashMap;
 
 import java.util.EnumMap;

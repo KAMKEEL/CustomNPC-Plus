@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityVortex;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Vortex ability type-specific settings.
@@ -37,7 +37,7 @@ public class SubGuiAbilityVortex extends SubGuiAbilityConfig {
         y += 24;
 
         // Row 2: Damage + Knockback
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(102, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, vortex.getDamage()));
 
         addLabel(new GuiNpcLabel(103, "ability.knockback", col2LabelX, y + 5));
@@ -75,22 +75,42 @@ public class SubGuiAbilityVortex extends SubGuiAbilityConfig {
     protected void handleTypeButton(int id, GuiNpcButton button) {
         int value = button.getValue();
         switch (id) {
-            case 104: vortex.setAoe(value == 1); break;
-            case 108: vortex.setDamageOnPull(value == 1); break;
+            case 104:
+                vortex.setAoe(value == 1);
+                break;
+            case 108:
+                vortex.setDamageOnPull(value == 1);
+                break;
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: vortex.setPullRadius(parseFloat(field, vortex.getPullRadius())); break;
-            case 101: vortex.setPullStrength(parseFloat(field, vortex.getPullStrength())); break;
-            case 102: vortex.setDamage(parseFloat(field, vortex.getDamage())); break;
-            case 103: vortex.setKnockback(parseFloat(field, vortex.getKnockback())); break;
-            case 105: vortex.setMaxTargets(field.getInteger()); break;
-            case 106: vortex.setStunDuration(field.getInteger()); break;
-            case 107: vortex.setRootDuration(field.getInteger()); break;
-            case 109: vortex.setPullDamage(parseFloat(field, vortex.getPullDamage())); break;
+            case 100:
+                vortex.setPullRadius(parseFloat(field, vortex.getPullRadius()));
+                break;
+            case 101:
+                vortex.setPullStrength(parseFloat(field, vortex.getPullStrength()));
+                break;
+            case 102:
+                vortex.setDamage(parseFloat(field, vortex.getDamage()));
+                break;
+            case 103:
+                vortex.setKnockback(parseFloat(field, vortex.getKnockback()));
+                break;
+            case 105:
+                vortex.setMaxTargets(field.getInteger());
+                break;
+            case 106:
+                vortex.setStunDuration(field.getInteger());
+                break;
+            case 107:
+                vortex.setRootDuration(field.getInteger());
+                break;
+            case 109:
+                vortex.setPullDamage(parseFloat(field, vortex.getPullDamage()));
+                break;
         }
     }
 }

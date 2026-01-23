@@ -2,11 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -14,6 +10,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -46,21 +45,25 @@ public class AbilityHeavyHit extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
+    public boolean hasTypeSettings() {
+        return true;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
+        IAbilityConfigCallback callback) {
         return new SubGuiAbilityHeavyHit(this, callback);
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
@@ -105,18 +108,43 @@ public class AbilityHeavyHit extends Ability {
     }
 
     // Getters & Setters
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public int getSlownessLevel() { return slownessLevel; }
-    public void setSlownessLevel(int slownessLevel) { this.slownessLevel = slownessLevel; }
+    public float getKnockback() {
+        return knockback;
+    }
 
-    public int getWeaknessLevel() { return weaknessLevel; }
-    public void setWeaknessLevel(int weaknessLevel) { this.weaknessLevel = weaknessLevel; }
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
 
-    public int getPotionDurationSeconds() { return potionDurationSeconds; }
-    public void setPotionDurationSeconds(int potionDurationSeconds) { this.potionDurationSeconds = potionDurationSeconds; }
+    public int getSlownessLevel() {
+        return slownessLevel;
+    }
+
+    public void setSlownessLevel(int slownessLevel) {
+        this.slownessLevel = slownessLevel;
+    }
+
+    public int getWeaknessLevel() {
+        return weaknessLevel;
+    }
+
+    public void setWeaknessLevel(int weaknessLevel) {
+        this.weaknessLevel = weaknessLevel;
+    }
+
+    public int getPotionDurationSeconds() {
+        return potionDurationSeconds;
+    }
+
+    public void setPotionDurationSeconds(int potionDurationSeconds) {
+        this.potionDurationSeconds = potionDurationSeconds;
+    }
 }

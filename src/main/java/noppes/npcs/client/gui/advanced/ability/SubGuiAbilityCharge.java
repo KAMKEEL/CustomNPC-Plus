@@ -1,10 +1,10 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 
 /**
  * GUI for configuring Charge ability type-specific settings.
@@ -27,10 +27,10 @@ public class SubGuiAbilityCharge extends SubGuiAbilityConfig {
         int col2FieldX = guiLeft + 205;
 
         // Row 1: Damage + Speed
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "enchantment.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, charge.getDamage()));
 
-        addLabel(new GuiNpcLabel(101, "ability.speed", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(101, "stats.speed", col2LabelX, y + 5));
         addTextField(createFloatField(101, col2FieldX, y, 50, charge.getChargeSpeed()));
 
         y += 24;
@@ -50,10 +50,18 @@ public class SubGuiAbilityCharge extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
-            case 100: charge.setDamage(parseFloat(field, charge.getDamage())); break;
-            case 101: charge.setChargeSpeed(parseFloat(field, charge.getChargeSpeed())); break;
-            case 102: charge.setKnockback(parseFloat(field, charge.getKnockback())); break;
-            case 104: charge.setHitWidth(parseFloat(field, charge.getHitWidth())); break;
+            case 100:
+                charge.setDamage(parseFloat(field, charge.getDamage()));
+                break;
+            case 101:
+                charge.setChargeSpeed(parseFloat(field, charge.getChargeSpeed()));
+                break;
+            case 102:
+                charge.setKnockback(parseFloat(field, charge.getKnockback()));
+                break;
+            case 104:
+                charge.setHitWidth(parseFloat(field, charge.getHitWidth()));
+                break;
         }
     }
 }

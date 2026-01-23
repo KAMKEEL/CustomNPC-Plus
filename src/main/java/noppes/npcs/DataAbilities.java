@@ -1,8 +1,8 @@
 package noppes.npcs;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.ability.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.ability.TelegraphSpawnPacket;
@@ -35,32 +35,48 @@ public class DataAbilities {
     // CONFIGURATION (saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
-    /** List of abilities this NPC can use */
+    /**
+     * List of abilities this NPC can use
+     */
     private List<Ability> abilities = new ArrayList<>();
 
-    /** Whether the ability system is enabled for this NPC */
+    /**
+     * Whether the ability system is enabled for this NPC
+     */
     public boolean enabled = false;
 
-    /** Minimum ticks between ability selections (global cooldown) */
+    /**
+     * Minimum ticks between ability selections (global cooldown)
+     */
     public int globalCooldown = 20;
 
     // ═══════════════════════════════════════════════════════════════════
     // RUNTIME STATE (not saved)
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Currently executing ability (null if none) */
+    /**
+     * Currently executing ability (null if none)
+     */
     private transient Ability currentAbility;
 
-    /** Per-ability cooldown timers (ability ID -> world time when cooldown ends) */
+    /**
+     * Per-ability cooldown timers (ability ID -> world time when cooldown ends)
+     */
     private transient Map<String, Long> cooldowns = new HashMap<>();
 
-    /** Ticks until next ability can be selected (global cooldown timer) */
+    /**
+     * Ticks until next ability can be selected (global cooldown timer)
+     */
     private transient int globalCooldownTimer = 0;
 
-    /** Last target used for ability execution */
+    /**
+     * Last target used for ability execution
+     */
     private transient EntityLivingBase lastTarget;
 
-    /** Recent hit timestamps for hit count condition */
+    /**
+     * Recent hit timestamps for hit count condition
+     */
     private transient List<Long> recentHitTimes = new ArrayList<>();
 
     // ═══════════════════════════════════════════════════════════════════
@@ -532,11 +548,11 @@ public class DataAbilities {
      * Fire an ability hit event. Called by abilities when they hit an entity.
      * Returns null if the event was cancelled, otherwise returns the (possibly modified) event.
      *
-     * @param ability The ability doing the hit
-     * @param target The original target of the ability
-     * @param hitEntity The entity being hit
-     * @param damage The damage amount
-     * @param knockback The horizontal knockback
+     * @param ability     The ability doing the hit
+     * @param target      The original target of the ability
+     * @param hitEntity   The entity being hit
+     * @param damage      The damage amount
+     * @param knockback   The horizontal knockback
      * @param knockbackUp The vertical knockback (deprecated, ignored)
      * @return The event (with possibly modified values), or null if cancelled
      */
@@ -636,7 +652,7 @@ public class DataAbilities {
     /**
      * Check if ability is controlling NPC movement (AI pathfinding should be blocked).
      * Called by AI tasks to determine if they should try to path.
-     *
+     * <p>
      * Rules:
      * - WINDUP phase: Block AI if lockMovement is true
      * - ACTIVE phase: Block AI if lockMovement OR hasAbilityMovement is true
@@ -672,6 +688,7 @@ public class DataAbilities {
 
     /**
      * Check if NPC movement should be blocked due to ability execution.
+     *
      * @deprecated Use isAbilityControllingMovement() instead
      */
     @Deprecated

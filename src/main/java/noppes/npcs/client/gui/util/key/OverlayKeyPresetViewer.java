@@ -79,7 +79,7 @@ public class OverlayKeyPresetViewer {
 
     public void drawOverlay(int wheel) {
         scroll.update(wheel);
-        
+
         if (hasBorder) {
             // int borderCol2 = 0xffff00ff,borderCol2 = 0xff00ffff; NEON
 
@@ -133,7 +133,7 @@ public class OverlayKeyPresetViewer {
             showOverlay = false;
             return true;
         }
-        
+
         // If overlay is visible but no element consumed the key, consider it handled
         return true;
     }
@@ -155,7 +155,7 @@ public class OverlayKeyPresetViewer {
         // If overlay is not visible, no other clicks matter
         if (!showOverlay)
             return false;
-        
+
         boolean isAboveOverlay = isMouseAbove(mouseX, mouseY);
         // In click-to-open mode, clicking outside the overlay (and not the button) should close it
         if (openOnClick && !isAboveOverlay && !isAboveButton) {
@@ -259,7 +259,7 @@ public class OverlayKeyPresetViewer {
         public void drawBar() {
             GL11.glPushMatrix();
             GL11.glTranslatef(endX - barWidth - 2, startY + yStartSpacing + scrollY * scrollFactor, 1);
-            GuiUtil.drawRectD(0, 1, barWidth, scrollbarHeight-1, (isMouseAboveBar(mouseX, mouseY) || isMouseDragging) ? 0xffbababa : 0xff767676);
+            GuiUtil.drawRectD(0, 1, barWidth, scrollbarHeight - 1, (isMouseAboveBar(mouseX, mouseY) || isMouseDragging) ? 0xffbababa : 0xff767676);
             GL11.glPopMatrix();
         }
 
@@ -480,7 +480,7 @@ public class OverlayKeyPresetViewer {
             int oldMinFilter = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
             GL11.glDisable(GL11.GL_BLEND);
-            
+
             GL11.glPushMatrix();
             float color = aboveButton ? 1f : 0.4f;
             GL11.glColor4f(color, color, color, 1);

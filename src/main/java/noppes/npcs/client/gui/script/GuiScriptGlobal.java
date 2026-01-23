@@ -8,6 +8,9 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.GlobalNPCDataScript;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
@@ -65,13 +68,13 @@ public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
 
     protected void actionPerformed(GuiButton guibutton) {
         if (guibutton.id == 0) {
-            this.displayGuiScreen(new GuiScriptPlayers());
+            GuiScriptInterface.open(this, new PlayerDataScript(null));
         }
         if (guibutton.id == 1) {
-            this.displayGuiScreen(new GuiScriptForge());
+            GuiScriptInterface.open(this, new ForgeDataScript());
         }
         if (guibutton.id == 2) {
-            this.displayGuiScreen(new GuiScriptAllNPCs());
+            GuiScriptInterface.open(this, new GlobalNPCDataScript(null));
         }
         if (guibutton.id > 2) {
             try {
