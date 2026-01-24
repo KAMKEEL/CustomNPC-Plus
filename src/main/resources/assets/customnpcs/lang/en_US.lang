@@ -1769,6 +1769,8 @@ auction.bid.buyout=Buyout Now
 # Errors
 auction.error.notEnoughCurrency=Not enough currency!
 auction.error.bidTooLow=Bid must be at least %s.
+auction.error.blacklisted=This item cannot be listed on the Auction House.
+auction.error.boundItem=Bound items cannot be listed on the Auction House.
 
 # Navigation
 auction.nav.listings=Browse Auctions

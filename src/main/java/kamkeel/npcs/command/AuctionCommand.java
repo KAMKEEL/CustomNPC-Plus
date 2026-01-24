@@ -1,9 +1,9 @@
 package kamkeel.npcs.command;
 
+import kamkeel.npcs.command.auction.BlacklistSubCommand;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.constants.EnumGuiType;
@@ -20,6 +20,11 @@ import static kamkeel.npcs.util.ColorUtil.sendMessage;
 import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class AuctionCommand extends CommandKamkeelBase {
+
+    public AuctionCommand() {
+        super();
+        registerNestedCommand(new BlacklistSubCommand());
+    }
 
     @Override
     public String getCommandName() {
@@ -158,10 +163,17 @@ public class AuctionCommand extends CommandKamkeelBase {
     }
 
     @Override
-    public List addTabCompletionOptions(ICommandSender par1, String[] args) {
+    public List addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, new String[]{"list", "view", "open"});
+            return getListOfStringsMatchingLastWord(args, getAllSubCommandNames());
         }
+
+        // Delegate to nested commands for deeper tab completion
+        List nestedCompletions = getNestedTabCompletions(sender, args);
+        if (nestedCompletions != null) {
+            return nestedCompletions;
+        }
+
         return null;
     }
 }

@@ -13,6 +13,7 @@ public class ConfigMarket {
 
     public final static String CURRENCY = "Market.Currency";
     public final static String AUCTION = "Market.Auction";
+    public final static String AUCTION_BLACKLIST = "Market.Auction.Blacklist";
     public final static String AUCTION_LOGGING = "Market.Auction.Logging";
 
     // Max trades grid = 9x5 = 45 slots
@@ -40,6 +41,14 @@ public class ConfigMarket {
     public static int ClaimExpirationDays = 20;
     public static double MinBidIncrementPercent = 0.05;
     public static double CancellationPenaltyPercent = 0.10;
+
+    // =========================================
+    // Auction Blacklist Settings
+    // =========================================
+    public static boolean BlacklistEnabled = true;
+    public static String[] BlacklistedItems = new String[]{};
+    public static String[] BlacklistedMods = new String[]{};
+    public static String[] BlacklistedNBTTags = new String[]{};
 
     // =========================================
     // Auction Logging Settings
@@ -114,6 +123,45 @@ public class ConfigMarket {
                 "Percentage of current bid taken as penalty when seller cancels an auction with bids (0.10 = 10%)").getDouble(0.10);
 
             // =========================================
+            // Auction Blacklist Settings
+            // =========================================
+            config.setCategoryComment(AUCTION_BLACKLIST,
+                "Item Blacklist settings for the Auction House.\n" +
+                "Prevents specific items, mods, or items with certain NBT tags from being listed.\n\n" +
+                "ITEM FORMAT: Use 'modid:itemname' format (e.g., 'minecraft:bedrock', 'customnpcs:npcWand')\n" +
+                "WILDCARDS: Use * for wildcards (e.g., 'customnpcs:npc*' blocks all items starting with 'npc')\n" +
+                "MOD FORMAT: Use just the mod ID (e.g., 'projecte' blocks all items from that mod)\n" +
+                "NBT FORMAT: Use the NBT tag key name (e.g., 'AdminOnly' blocks items with that tag)");
+
+            BlacklistEnabled = config.get(AUCTION_BLACKLIST, "Enable Blacklist", true,
+                "Enable item blacklist checking when creating listings").getBoolean(true);
+
+            BlacklistedItems = config.get(AUCTION_BLACKLIST, "Blacklisted Items", new String[]{
+                    "minecraft:bedrock",
+                    "minecraft:command_block",
+                    "customnpcs:npcWand",
+                    "customnpcs:npcMobCloner",
+                    "customnpcs:npcScripter",
+                    "customnpcs:npcMovingPath",
+                    "customnpcs:npcMounter",
+                    "customnpcs:npcTeleporter",
+                    "customnpcs:npcTool",
+                    "customnpcs:npcSoulstoneFilled"
+                },
+                "Items that cannot be listed on the Auction House.\n" +
+                "Format: modid:itemname (supports * wildcards)\n" +
+                "Example: 'minecraft:diamond_sword' or 'customnpcs:npc*'").getStringList();
+
+            BlacklistedMods = config.get(AUCTION_BLACKLIST, "Blacklisted Mods", new String[]{},
+                "All items from these mods are blocked from the Auction House.\n" +
+                "Format: modid (e.g., 'projecte', 'thaumcraft')").getStringList();
+
+            BlacklistedNBTTags = config.get(AUCTION_BLACKLIST, "Blacklisted NBT Tags", new String[]{},
+                "Items containing any of these NBT tag keys are blocked.\n" +
+                "Checks the root level of the item's NBT compound.\n" +
+                "Example: 'AdminOnly', 'CreativeMode'").getStringList();
+
+            // =========================================
             // Auction Logging Settings
             // =========================================
             config.setCategoryComment(AUCTION_LOGGING, "Auction logging settings. Enable specific log types to track auction activity.");
@@ -161,6 +209,13 @@ public class ConfigMarket {
                 "Claim Expiration Days",
                 "Min Bid Increment Percent",
                 "Cancellation Penalty Percent"
+            )));
+
+            config.setCategoryPropertyOrder(AUCTION_BLACKLIST, new ArrayList<>(Arrays.asList(
+                "Enable Blacklist",
+                "Blacklisted Items",
+                "Blacklisted Mods",
+                "Blacklisted NBT Tags"
             )));
 
             config.setCategoryPropertyOrder(AUCTION_LOGGING, new ArrayList<>(Arrays.asList(

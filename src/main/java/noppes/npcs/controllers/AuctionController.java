@@ -21,6 +21,7 @@ import noppes.npcs.constants.EnumAuctionSort;
 import noppes.npcs.constants.EnumAuctionStatus;
 import noppes.npcs.constants.EnumClaimType;
 import noppes.npcs.constants.EnumNotificationType;
+import noppes.npcs.controllers.data.AuctionBlacklist;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
@@ -86,6 +87,7 @@ public class AuctionController implements IAuctionHandler {
 
     public AuctionController() {
         Instance = this;
+        AuctionBlacklist.reload();
         load();
     }
 
@@ -239,6 +241,11 @@ public class AuctionController implements IAuctionHandler {
     public String createListing(EntityPlayer player, ItemStack item, long startingPrice, long buyoutPrice) {
         if (!ConfigMarket.AuctionEnabled) {
             return "Auction is disabled.";
+        }
+
+        // Check blacklist (with bypass for admins)
+        if (AuctionBlacklist.isBlacklistedForPlayer(item, player)) {
+            return "This item cannot be listed on the Auction House.";
         }
 
         // Validate minimum price
@@ -1413,5 +1420,19 @@ public class AuctionController implements IAuctionHandler {
     public boolean isPlayerSeller(String listingId, UUID playerUUID) {
         AuctionListing listing = listings.get(listingId);
         return listing != null && listing.isSeller(playerUUID);
+    }
+
+    /**
+     * Reload the item blacklist from config.
+     */
+    public void reloadBlacklist() {
+        AuctionBlacklist.reload();
+    }
+
+    /**
+     * Check if an item is blacklisted.
+     */
+    public boolean isItemBlacklisted(ItemStack item) {
+        return AuctionBlacklist.isBlacklisted(item);
     }
 }
