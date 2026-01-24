@@ -55,7 +55,8 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
     public GuiAuctionTrades(EntityNPCInterface npc, ContainerAuctionTrades container) {
         super(npc, container);
         this.tradesContainer = container;
-        this.maxTradeSlots = AuctionClientConfig.getMaxActiveListings() * 2;
+        // Initial value from client config, updated when server sends trades data
+        this.maxTradeSlots = AuctionClientConfig.getMaxActiveListings();
     }
 
     @Override
@@ -372,6 +373,8 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         if (compound.hasKey("TradesData")) {
             // Full trades data received from server
             tradesContainer.setTradesData(compound);
+            // Update max trade slots from server (permission-aware)
+            this.maxTradeSlots = tradesContainer.getMaxTradeSlots();
             clearPending();
         } else if (compound.hasKey("TradesUpdate")) {
             // Legacy flag - should not happen now but keep for safety

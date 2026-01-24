@@ -832,6 +832,15 @@ public class ProfileController implements IProfileHandler {
         else
             compound = (NBTTagCompound) compound.copy();
         playerData.setNBT(compound);
+
+        // Trade data is shared across all profile slots - copy from player's live data
+        PlayerData liveData = PlayerData.get(player);
+        if (liveData != null) {
+            NBTTagCompound tradeCompound = new NBTTagCompound();
+            liveData.tradeData.writeToNBT(tradeCompound);
+            playerData.tradeData.readFromNBT(tradeCompound);
+        }
+
         return playerData;
     }
 

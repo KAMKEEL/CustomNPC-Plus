@@ -68,6 +68,11 @@ public class ServerTickHandler {
             playerData.onLogout();
         }
 
+        // Clear auction permission cache on logout
+        if (AuctionController.Instance != null) {
+            AuctionController.Instance.onPlayerLogout(event.player.getUniqueID());
+        }
+
         // Save and unload the player's profile data on logout
         ProfileController.Instance.logout(event.player);
     }

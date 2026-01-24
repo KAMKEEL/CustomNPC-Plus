@@ -4,8 +4,8 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.PlayerCurrencyData;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerTradeData;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class MoneyCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData playerdata : dataList) {
-            PlayerCurrencyData currency = playerdata.currencyData;
+            PlayerTradeData currency = playerdata.tradeData;
             long balance = currency.getBalance();
             sendResult(sender, String.format("Player \u00A7b%s\u00A77 has \u00A76%,d %s",
                 playerdata.playername, balance, ConfigMarket.CurrencyName));
@@ -72,7 +72,7 @@ public class MoneyCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData playerdata : dataList) {
-            PlayerCurrencyData currency = playerdata.currencyData;
+            PlayerTradeData currency = playerdata.tradeData;
             if (currency.deposit(amount)) {
                 playerdata.save();
                 sendResult(sender, String.format("Gave \u00A76%,d %s\u00A77 to player \u00A7b%s\u00A77. New balance: \u00A76%,d",
@@ -111,7 +111,7 @@ public class MoneyCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData playerdata : dataList) {
-            PlayerCurrencyData currency = playerdata.currencyData;
+            PlayerTradeData currency = playerdata.tradeData;
             if (currency.withdraw(amount)) {
                 playerdata.save();
                 sendResult(sender, String.format("Withdrew \u00A76%,d %s\u00A77 from player \u00A7b%s\u00A77. New balance: \u00A76%,d",
@@ -150,7 +150,7 @@ public class MoneyCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData playerdata : dataList) {
-            PlayerCurrencyData currency = playerdata.currencyData;
+            PlayerTradeData currency = playerdata.tradeData;
             currency.setBalance(amount);
             playerdata.save();
             sendResult(sender, String.format("Set balance of player \u00A7b%s\u00A77 to \u00A76%,d %s",

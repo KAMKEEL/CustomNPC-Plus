@@ -2,11 +2,15 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.IAuctionClaim;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.constants.EnumClaimType;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.util.UUID;
 
-public class AuctionClaim {
+public class AuctionClaim implements IAuctionClaim {
     public String id;
     public UUID playerUUID;
     public String playerName;
@@ -98,6 +102,95 @@ public class AuctionClaim {
 
     public boolean isForPlayer(UUID uuid) {
         return playerUUID != null && playerUUID.equals(uuid);
+    }
+
+    // =========================================
+    // IAuctionClaim Implementation
+    // =========================================
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getPlayerUUID() {
+        return playerUUID != null ? playerUUID.toString() : null;
+    }
+
+    @Override
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    @Override
+    public String getListingId() {
+        return listingId;
+    }
+
+    @Override
+    public int getType() {
+        return type.ordinal();
+    }
+
+    @Override
+    public boolean isItemClaim() {
+        return type == EnumClaimType.ITEM;
+    }
+
+    @Override
+    public boolean isCurrencyClaim() {
+        return type == EnumClaimType.CURRENCY;
+    }
+
+    @Override
+    public boolean isRefundClaim() {
+        return type == EnumClaimType.REFUND;
+    }
+
+    @Override
+    public IItemStack getItem() {
+        return item != null ? NpcAPI.Instance().getIItemStack(item) : null;
+    }
+
+    @Override
+    public String getItemName() {
+        return itemName;
+    }
+
+    @Override
+    public long getCurrency() {
+        return currency;
+    }
+
+    @Override
+    public String getOtherPlayerName() {
+        return otherPlayerName;
+    }
+
+    @Override
+    public long getCreatedTime() {
+        return createdTime;
+    }
+
+    @Override
+    public boolean isClaimed() {
+        return claimed;
+    }
+
+    @Override
+    public boolean isReturnedItem() {
+        return isReturned;
+    }
+
+    @Override
+    public long getDaysUntilExpiration() {
+        return getDaysUntilExpiration(ConfigMarket.ClaimExpirationDays);
+    }
+
+    @Override
+    public boolean isExpired() {
+        return isExpired(ConfigMarket.ClaimExpirationDays);
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {

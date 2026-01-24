@@ -11,16 +11,13 @@ import java.util.Arrays;
 public class ConfigMarket {
     public static Configuration config;
 
-    public final static String MARKET = "Market";
     public final static String CURRENCY = "Market.Currency";
-    public final static String TRADER = "Market.Trader";
     public final static String AUCTION = "Market.Auction";
     public final static String AUCTION_LOGGING = "Market.Auction.Logging";
 
-    // =========================================
-    // Market General
-    // =========================================
-    public static boolean MarketEnabled = true;
+    // Max trades grid = 9x5 = 45 slots
+    public static final int MAX_TRADE_SLOTS = 45;
+    public static final int MIN_TRADE_SLOTS = 1;
 
     // =========================================
     // Currency Settings
@@ -31,19 +28,14 @@ public class ConfigMarket {
     public static long MaxBalance = Long.MAX_VALUE;
 
     // =========================================
-    // Trader Settings
-    // =========================================
-    public static boolean EnableStockByDefault = false;
-    public static String DefaultResetType = "NONE";
-
-    // =========================================
     // Auction Settings
     // =========================================
     public static boolean AuctionEnabled = true;
     public static int AuctionDurationHours = 24;
     public static long ListingFee = 10;
+    public static long MinimumListingPrice = 1;
     public static double SalesTaxPercent = 0.05;
-    public static int DefaultMaxListings = 5;
+    public static int DefaultMaxTrades = 8;
     public static int SnipeProtectionMinutes = 2;
     public static int ClaimExpirationDays = 20;
     public static double MinBidIncrementPercent = 0.05;
@@ -68,17 +60,11 @@ public class ConfigMarket {
             config.load();
 
             // =========================================
-            // Market General
-            // =========================================
-            MarketEnabled = config.get(MARKET, "Enable Market System", true,
-                "Enable the market/economy system").getBoolean(true);
-
-            // =========================================
             // Currency Settings
             // =========================================
             config.setCategoryComment(CURRENCY, "CNPC+ Currency system settings. When UseVault is enabled, all currency operations use Vault instead of the built-in system.");
 
-            UseVault = config.get(CURRENCY, "Use Vault", true,
+            UseVault = config.get(CURRENCY, "Use Vault", false,
                 "If true, use Vault API for all currency operations instead of CNPC+ built-in currency. The built-in currency data will be preserved but unused.").getBoolean(false);
 
             CurrencyName = config.get(CURRENCY, "Currency Name", "Coins",
@@ -91,23 +77,12 @@ public class ConfigMarket {
                 "Maximum currency balance a player can have").getInt(Integer.MAX_VALUE);
 
             // =========================================
-            // Trader Settings
-            // =========================================
-            config.setCategoryComment(TRADER, "Trader stock system settings");
-
-            EnableStockByDefault = config.get(TRADER, "Enable Stock By Default", false,
-                "Enable stock system by default for new traders").getBoolean(false);
-
-            DefaultResetType = config.get(TRADER, "Default Reset Type", "NONE",
-                "Default stock reset type (NONE, MCDAILY, MCWEEKLY, RLDAILY, RLWEEKLY)").getString();
-
-            // =========================================
             // Auction Settings
             // =========================================
-            config.setCategoryComment(AUCTION, "Auction House system settings. The Auction House allows players to list items for sale with bidding and buyout options.");
+            config.setCategoryComment(AUCTION, "Auction system settings. The Auction allows players to list items for sale with bidding and buyout options.");
 
-            AuctionEnabled = config.get(AUCTION, "Enable Auction House", true,
-                "Enable the Auction House system").getBoolean(true);
+            AuctionEnabled = config.get(AUCTION, "Enable Auction", true,
+                "Enable the Auction system").getBoolean(true);
 
             AuctionDurationHours = config.get(AUCTION, "Auction Duration Hours", 24,
                 "Default duration for auctions in hours").getInt(24);
@@ -115,11 +90,16 @@ public class ConfigMarket {
             ListingFee = config.get(AUCTION, "Listing Fee", 10,
                 "Flat fee charged when creating a listing").getInt(10);
 
+            MinimumListingPrice = config.get(AUCTION, "Minimum Listing Price", 1,
+                "Minimum starting price for auction listings").getInt(1);
+            if (MinimumListingPrice < 1) MinimumListingPrice = 1;
+
             SalesTaxPercent = config.get(AUCTION, "Sales Tax Percent", 0.05,
                 "Percentage of sale price taken as tax (0.05 = 5%). Tax is deleted as a currency sink.").getDouble(0.05);
 
-            DefaultMaxListings = config.get(AUCTION, "Default Max Listings", 5,
-                "Default maximum number of active listings per player").getInt(5);
+            int maxTrades = config.get(AUCTION, "Default Max Trades", 8,
+                "Default maximum number of trade slots per player (listings + bids + claims). Min: 1, Max: 45. Players can have more via customnpcs.auction.trades.X permissions.").getInt(8);
+            DefaultMaxTrades = Math.max(MIN_TRADE_SLOTS, Math.min(MAX_TRADE_SLOTS, maxTrades));
 
             SnipeProtectionMinutes = config.get(AUCTION, "Snipe Protection Minutes", 2,
                 "When a bid is placed with less than this many minutes remaining, the auction is extended to this duration").getInt(2);
@@ -136,7 +116,7 @@ public class ConfigMarket {
             // =========================================
             // Auction Logging Settings
             // =========================================
-            config.setCategoryComment(AUCTION_LOGGING, "Auction House logging settings. Enable specific log types to track auction activity.");
+            config.setCategoryComment(AUCTION_LOGGING, "Auction logging settings. Enable specific log types to track auction activity.");
 
             AuctionLoggingEnabled = config.get(AUCTION_LOGGING, "Enable Auction Logging", false,
                 "Master switch for auction logging. If false, no auction events are logged.").getBoolean(false);
@@ -163,10 +143,6 @@ public class ConfigMarket {
                 "Log when claims are collected").getBoolean(true);
 
             // Set category order
-            config.setCategoryPropertyOrder(MARKET, new ArrayList<>(Arrays.asList(
-                "Enable Market System"
-            )));
-
             config.setCategoryPropertyOrder(CURRENCY, new ArrayList<>(Arrays.asList(
                 "Use Vault",
                 "Currency Name",
@@ -174,17 +150,13 @@ public class ConfigMarket {
                 "Max Balance"
             )));
 
-            config.setCategoryPropertyOrder(TRADER, new ArrayList<>(Arrays.asList(
-                "Enable Stock By Default",
-                "Default Reset Type"
-            )));
-
             config.setCategoryPropertyOrder(AUCTION, new ArrayList<>(Arrays.asList(
-                "Enable Auction House",
+                "Enable Auction",
                 "Auction Duration Hours",
                 "Listing Fee",
+                "Minimum Listing Price",
                 "Sales Tax Percent",
-                "Default Max Listings",
+                "Default Max Trades",
                 "Snipe Protection Minutes",
                 "Claim Expiration Days",
                 "Min Bid Increment Percent",

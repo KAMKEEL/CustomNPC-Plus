@@ -45,7 +45,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
     private final ContainerAuctionSell sellContainer;
     private long startingPrice = 0;
     private long buyoutPrice = 0;
-    private boolean allowBuyout = false;
+    private boolean allowBuyout = true;
     private String errorMessage = null;
 
     // Buttons

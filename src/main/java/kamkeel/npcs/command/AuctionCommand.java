@@ -28,7 +28,7 @@ public class AuctionCommand extends CommandKamkeelBase {
 
     @Override
     public String getDescription() {
-        return "Auction House operations";
+        return "Auction operations";
     }
 
     @SubCommand(
@@ -135,7 +135,7 @@ public class AuctionCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-        desc = "Open the Auction House GUI",
+        desc = "Open the Auction GUI",
         usage = "",
         permission = 0
     )
@@ -154,7 +154,7 @@ public class AuctionCommand extends CommandKamkeelBase {
 
         // Open the auction GUI without requiring an NPC
         NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerAuction, null);
-        sendResult(sender, "Opening Auction House...");
+        sendResult(sender, "Opening Auction...");
     }
 
     @Override

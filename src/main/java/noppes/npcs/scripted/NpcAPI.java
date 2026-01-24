@@ -65,6 +65,7 @@ import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.IAnimationHandler;
+import noppes.npcs.api.handler.IAuctionHandler;
 import noppes.npcs.api.handler.IAttributeHandler;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.api.handler.ICustomEffectHandler;
@@ -90,6 +91,7 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.DialogController;
@@ -383,6 +385,15 @@ public class NpcAPI extends AbstractNpcAPI {
     public ITelegraph createTelegraph(String type) {
         this.checkWorld();
         return TelegraphController.Instance.create(type);
+    }
+
+    @Override
+    public IAuctionHandler getAuctions() {
+        this.checkWorld();
+        if (!noppes.npcs.config.ConfigMarket.AuctionEnabled) {
+            return null;
+        }
+        return AuctionController.getInstance();
     }
 
     @Override

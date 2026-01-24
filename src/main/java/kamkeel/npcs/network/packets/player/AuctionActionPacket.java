@@ -338,6 +338,9 @@ public class AuctionActionPacket extends AbstractPacket {
         NBTTagCompound response = new NBTTagCompound();
         response.setBoolean("TradesData", true);
 
+        // Send player's max trade slots (permission-aware)
+        response.setInteger("MaxTradeSlots", controller.getMaxTradesForPlayer(player));
+
         // Active listings (items player is selling)
         List<AuctionListing> listings = controller.getPlayerActiveListings(player.getUniqueID());
         NBTTagList listingsNBT = new NBTTagList();
@@ -354,8 +357,8 @@ public class AuctionActionPacket extends AbstractPacket {
         }
         response.setTag("ActiveBids", bidsNBT);
 
-        // Claims (items/currency to claim)
-        List<AuctionClaim> claims = controller.getPlayerClaims(player.getUniqueID());
+        // Claims (items/currency to claim) - now from PlayerData
+        List<AuctionClaim> claims = controller.getPlayerClaims(player);
         NBTTagList claimsNBT = new NBTTagList();
         for (AuctionClaim claim : claims) {
             claimsNBT.appendTag(claim.writeToNBT(new NBTTagCompound()));
@@ -488,7 +491,7 @@ public class AuctionActionPacket extends AbstractPacket {
 
     private void sendError(EntityPlayerMP player, String message) {
         player.addChatMessage(new net.minecraft.util.ChatComponentText(
-            net.minecraft.util.EnumChatFormatting.RED + "[Auction House] " + message));
+            net.minecraft.util.EnumChatFormatting.RED + "[Auction] " + message));
     }
 
     private void sendTradesUpdate(EntityPlayerMP player) {

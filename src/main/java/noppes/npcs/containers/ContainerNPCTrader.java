@@ -105,7 +105,7 @@ public class ContainerNPCTrader extends ContainerNpcInterface {
         long currencyCost = role.getCurrencyCost(i);
         if (currencyCost > 0) {
             PlayerData data = PlayerData.get(entityplayer);
-            if (data.currencyData.getBalance() < currencyCost) {
+            if (data.tradeData.getBalance() < currencyCost) {
                 return null;  // Can't afford currency cost
             }
         }
@@ -117,7 +117,7 @@ public class ContainerNPCTrader extends ContainerNpcInterface {
         // Withdraw currency cost (after item consumption to maintain order)
         if (currencyCost > 0) {
             PlayerData data = PlayerData.get(entityplayer);
-            data.currencyData.withdraw(currencyCost);
+            data.tradeData.withdraw(currencyCost);
         }
 
         // Consume stock

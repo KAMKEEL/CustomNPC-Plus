@@ -31,6 +31,7 @@ public class ContainerAuctionTrades extends ContainerAuction {
     private List<AuctionListing> activeBids = new ArrayList<>();
     private List<AuctionClaim> claims = new ArrayList<>();
     private int hiddenSlot = -1;
+    private int maxTradeSlots = 8;  // Player's max trade slots (permission-aware, synced from server)
 
     // Slot type tracking for proper accessor methods
     private int[] slotTypes = new int[SLOT_COUNT];  // 0=empty, 1=selling, 2=bidding, 3=claim
@@ -71,6 +72,11 @@ public class ContainerAuctionTrades extends ContainerAuction {
     public void setTradesData(NBTTagCompound compound) {
         // Clear existing data
         clearData();
+
+        // Read player's max trade slots (permission-aware)
+        if (compound.hasKey("MaxTradeSlots")) {
+            maxTradeSlots = compound.getInteger("MaxTradeSlots");
+        }
 
         List<AuctionListing> newListings = new ArrayList<>();
         List<AuctionListing> newBids = new ArrayList<>();
@@ -341,4 +347,7 @@ public class ContainerAuctionTrades extends ContainerAuction {
     }
 
     public int getHiddenSlot() { return hiddenSlot; }
+
+    /** Get player's max trade slots (synced from server based on permissions) */
+    public int getMaxTradeSlots() { return maxTradeSlots; }
 }

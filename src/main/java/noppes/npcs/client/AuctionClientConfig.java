@@ -15,11 +15,11 @@ import net.minecraft.nbt.NBTTagCompound;
 public class AuctionClientConfig {
     // Cached values from server
     private static long listingFee = 0;
-    private static String currencyName = "Gold";
-    private static int auctionDurationHours = 48;
+    private static String currencyName = "Coins";
+    private static int auctionDurationHours = 24;
     private static double minBidIncrement = 0.05;
-    private static int maxActiveListings = 10;
-    private static int claimExpirationDays = 30;
+    private static int maxActiveListings = 8;
+    private static int claimExpirationDays = 20;
     private static boolean auctionEnabled = false;
 
     /**
@@ -47,11 +47,11 @@ public class AuctionClientConfig {
      */
     public static void reset() {
         listingFee = 0;
-        currencyName = "Gold";
-        auctionDurationHours = 48;
+        currencyName = "Coins";
+        auctionDurationHours = 24;
         minBidIncrement = 0.05;
-        maxActiveListings = 10;
-        claimExpirationDays = 30;
+        maxActiveListings = 8;
+        claimExpirationDays = 20;
         auctionEnabled = false;
     }
 

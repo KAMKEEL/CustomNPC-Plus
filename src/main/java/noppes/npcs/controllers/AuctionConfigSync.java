@@ -25,7 +25,7 @@ public class AuctionConfigSync {
         compound.setString("CurrencyName", getEffectiveCurrencyName());
         compound.setInteger("AuctionDurationHours", ConfigMarket.AuctionDurationHours);
         compound.setDouble("MinBidIncrement", ConfigMarket.MinBidIncrementPercent);
-        compound.setInteger("MaxActiveListings", ConfigMarket.DefaultMaxListings);
+        compound.setInteger("MaxActiveListings", ConfigMarket.DefaultMaxTrades);
         compound.setInteger("ClaimExpirationDays", ConfigMarket.ClaimExpirationDays);
         return compound;
     }
