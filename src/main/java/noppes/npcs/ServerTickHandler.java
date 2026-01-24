@@ -6,6 +6,7 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
+import noppes.npcs.controllers.AuctionController;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.controllers.ScriptController;
@@ -19,6 +20,11 @@ public class ServerTickHandler {
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == Phase.END) {
             ActionManager.GLOBAL.tick();
+
+            // Process auction system tick
+            if (AuctionController.Instance != null) {
+                AuctionController.Instance.onServerTick();
+            }
         }
     }
 
@@ -43,6 +49,11 @@ public class ServerTickHandler {
         SyncController.beginLogin(player);
         SyncController.syncEffects(player);
         ScriptController.Instance.syncClientScripts(player);
+
+        // Send auction notifications on login
+        if (AuctionController.Instance != null) {
+            AuctionController.Instance.onPlayerLogin(player);
+        }
     }
 
     @SubscribeEvent

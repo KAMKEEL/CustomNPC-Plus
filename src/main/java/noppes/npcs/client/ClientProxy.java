@@ -108,6 +108,10 @@ import noppes.npcs.client.gui.player.GuiCrate;
 import noppes.npcs.client.gui.player.GuiMailbox;
 import noppes.npcs.client.gui.player.GuiMailmanWrite;
 import noppes.npcs.client.gui.player.GuiNPCBankChest;
+import noppes.npcs.client.gui.player.GuiAuctionBidding;
+import noppes.npcs.client.gui.player.GuiAuctionTrades;
+import noppes.npcs.client.gui.player.GuiAuctionListing;
+import noppes.npcs.client.gui.player.GuiAuctionSell;
 import noppes.npcs.client.gui.player.GuiNPCTrader;
 import noppes.npcs.client.gui.player.GuiNpcAnvil;
 import noppes.npcs.client.gui.player.GuiNpcCarpentryBench;
@@ -193,6 +197,11 @@ import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.containers.ContainerNPCFollowerHire;
 import noppes.npcs.containers.ContainerNPCFollowerSetup;
 import noppes.npcs.containers.ContainerNPCInv;
+import noppes.npcs.containers.ContainerAuction;
+import noppes.npcs.containers.ContainerAuctionBidding;
+import noppes.npcs.containers.ContainerAuctionTrades;
+import noppes.npcs.containers.ContainerAuctionListing;
+import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.containers.ContainerNPCTrader;
 import noppes.npcs.containers.ContainerNPCTraderSetup;
 import noppes.npcs.containers.ContainerNpcItemGiver;
@@ -483,6 +492,18 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.PlayerTrader)
             return new GuiNPCTrader(npc, (ContainerNPCTrader) container);
+
+        else if (gui == EnumGuiType.PlayerAuction)
+            return new GuiAuctionListing(npc, (ContainerAuctionListing) container);
+
+        else if (gui == EnumGuiType.PlayerAuctionSell)
+            return new GuiAuctionSell(npc, (ContainerAuctionSell) container);
+
+        else if (gui == EnumGuiType.PlayerAuctionTrades)
+            return new GuiAuctionTrades(npc, (ContainerAuctionTrades) container);
+
+        else if (gui == EnumGuiType.PlayerAuctionBidding)
+            return new GuiAuctionBidding(npc, (ContainerAuctionBidding) container);
 
         else if (gui == EnumGuiType.PlayerBankSmall || gui == EnumGuiType.PlayerBankUnlock || gui == EnumGuiType.PlayerBankUprade || gui == EnumGuiType.PlayerBankLarge)
             return new GuiNPCBankChest(npc, (ContainerNPCBankInterface) container);
