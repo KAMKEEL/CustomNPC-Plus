@@ -247,12 +247,30 @@ public class ContainerAuctionTrades extends ContainerAuction {
         return slot >= 0 && slot < SLOT_COUNT && slotTypes[slot] == 2;
     }
 
-    /** Find listing matching item */
+    /** Find listing matching item (searches both selling and bidding) */
     public AuctionListing getListingForItem(ItemStack stack) {
         if (stack == null) return null;
         for (AuctionListing listing : activeListings) {
             if (listing.item != null && ItemStack.areItemStacksEqual(listing.item, stack)) return listing;
         }
+        for (AuctionListing bid : activeBids) {
+            if (bid.item != null && ItemStack.areItemStacksEqual(bid.item, stack)) return bid;
+        }
+        return null;
+    }
+
+    /** Find listing in selling list */
+    public AuctionListing getSellingListingForItem(ItemStack stack) {
+        if (stack == null) return null;
+        for (AuctionListing listing : activeListings) {
+            if (listing.item != null && ItemStack.areItemStacksEqual(listing.item, stack)) return listing;
+        }
+        return null;
+    }
+
+    /** Find listing in bidding list */
+    public AuctionListing getBiddingListingForItem(ItemStack stack) {
+        if (stack == null) return null;
         for (AuctionListing bid : activeBids) {
             if (bid.item != null && ItemStack.areItemStacksEqual(bid.item, stack)) return bid;
         }

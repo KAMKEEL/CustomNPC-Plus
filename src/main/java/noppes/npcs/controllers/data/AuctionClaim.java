@@ -70,14 +70,14 @@ public class AuctionClaim {
         return claim;
     }
 
-    /** Create claim for outbid refund (stores item name for tooltip, not full item) */
-    public static AuctionClaim createRefundClaim(UUID playerUUID, String playerName, String listingId, long currency, String itemName, String outbidderName) {
+    /** Create claim for outbid refund (stores item for display and rebid option) */
+    public static AuctionClaim createRefundClaim(UUID playerUUID, String playerName, String listingId, long currency, String itemName, String outbidderName, ItemStack item) {
         AuctionClaim claim = new AuctionClaim();
         claim.playerUUID = playerUUID;
         claim.playerName = playerName;
         claim.listingId = listingId;
         claim.type = EnumClaimType.REFUND;
-        claim.item = null;  // No item stored for refund claims
+        claim.item = item != null ? item.copy() : null;  // Store item for display and rebid
         claim.itemName = itemName != null ? itemName : "";
         claim.otherPlayerName = outbidderName != null ? outbidderName : "";
         claim.currency = currency;

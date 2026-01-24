@@ -57,7 +57,7 @@ public class AuctionActionPacket extends AbstractPacket {
     }
 
     @Override
-    public boolean needsNPC() { return true; }
+    public boolean needsNPC() { return false; }  // Allow opening via command without NPC
 
     // =========================================
     // Client-side static methods
@@ -174,7 +174,9 @@ public class AuctionActionPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP)) return;
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
 
-        if (npc.advanced.role != EnumRoleType.Auctioneer) return;
+        // Skip role check if NPC is null (opened via command/script)
+        // Otherwise require Auctioneer role
+        if (npc != null && npc.advanced.role != EnumRoleType.Auctioneer) return;
         if (!ConfigMarket.AuctionEnabled) return;
 
         int actionOrdinal = in.readInt();

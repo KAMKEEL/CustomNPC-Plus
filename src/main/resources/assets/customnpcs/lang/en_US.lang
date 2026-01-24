@@ -1822,6 +1822,19 @@ auction.trades.leftClickConfirm=Left-click again to confirm
 auction.trades.otherClickCancel=Any other click to cancel
 auction.trades.buyer=Buyer
 auction.trades.outbidBy=Outbid by
+auction.trades.selling=Selling
+auction.trades.bidding=Bidding
+auction.trades.sold=Sold
+auction.trades.won=Won
+auction.trades.expired=Expired
+auction.trades.outbid=Outbid
+auction.trades.clickToRebid=Click to increase bid
+auction.trades.leftClickRebid=Left-click to rebid
+auction.trades.rightClickRefund=Right-click to claim refund
+auction.claim.soldItem=Item: %s
+auction.claim.buyer=Buyer: %s
+auction.claim.outbidItem=Item: %s
+auction.claim.outbidBy=Outbid by: %s
 
 # Sell Page - Buyout Toggle
 auction.sell.allowBuyout=Allow Buy Now

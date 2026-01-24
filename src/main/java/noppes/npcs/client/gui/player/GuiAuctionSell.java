@@ -16,7 +16,6 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -305,14 +304,8 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         super.drawGuiContainerForegroundLayer(mouseX, mouseY);
         if (hasSubGui()) return;
 
-        // Draw tooltips for buttons
+        // Draw tooltips for buttons (icons, not items - item tooltips handled by AuctionTooltipHandler)
         drawSellPageTooltips(mouseX, mouseY);
-
-        // Sell slot tooltip
-        drawSellSlotTooltip(mouseX, mouseY);
-
-        // Inventory item tooltip (only add extra info, item tooltip is handled by AuctionTooltipHandler)
-        drawInventoryTooltip(mouseX, mouseY);
     }
 
     /** Draw tooltips for sell page buttons */
@@ -333,64 +326,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         }
 
         if (tooltip != null && !tooltip.isEmpty()) {
-            drawTooltip(tooltip, mouseX - guiLeft, mouseY - guiTop);
+            drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj);
         }
-    }
-
-    /** Draw tooltip for sell slot */
-    private void drawSellSlotTooltip(int mouseX, int mouseY) {
-        int slotX = guiLeft + contentX + 30;
-        int slotY = guiTop + contentY + 55;
-
-        if (mouseX >= slotX && mouseX < slotX + 18 && mouseY >= slotY && mouseY < slotY + 18) {
-            ItemStack sellItem = sellContainer.getItemToSell();
-            if (sellItem != null) {
-                List<String> tooltip = new ArrayList<>();
-                tooltip.add(EnumChatFormatting.GOLD + StatCollector.translateToLocal("auction.sell.slotTitle"));
-                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.sell.leftClear"));
-                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.sell.rightRemove"));
-                drawTooltip(tooltip, mouseX - guiLeft, mouseY - guiTop);
-            }
-        }
-    }
-
-    /** Draw tooltip for inventory items */
-    private void drawInventoryTooltip(int mouseX, int mouseY) {
-        Slot hoveredSlot = getSlotUnderMouse(mouseX, mouseY);
-        if (hoveredSlot != null && sellContainer.isPlayerInventorySlot(hoveredSlot.slotNumber)) {
-            if (hoveredSlot.getStack() != null) {
-                List<String> tooltip = new ArrayList<>();
-                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.leftAdd"));
-                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.rightAddOne"));
-                drawTooltip(tooltip, mouseX - guiLeft, mouseY - guiTop + 40);
-            }
-        }
-    }
-
-    /** Get slot under mouse position */
-    private Slot getSlotUnderMouse(int mouseX, int mouseY) {
-        for (int i = 0; i < inventorySlots.inventorySlots.size(); i++) {
-            Slot slot = (Slot) inventorySlots.inventorySlots.get(i);
-            if (isMouseOverSlot(slot, mouseX, mouseY)) {
-                return slot;
-            }
-        }
-        return null;
-    }
-
-    /** Check if mouse is over a slot */
-    private boolean isMouseOverSlot(Slot slot, int mouseX, int mouseY) {
-        int x = guiLeft + slot.xDisplayPosition;
-        int y = guiTop + slot.yDisplayPosition;
-        return mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16;
-    }
-
-    /** Draw tooltip with proper GL state */
-    private void drawTooltip(List<String> tooltip, int x, int y) {
-        GL11.glPushMatrix();
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-        drawHoveringText(tooltip, x, y, fontRendererObj);
-        GL11.glPopAttrib();
-        GL11.glPopMatrix();
     }
 }

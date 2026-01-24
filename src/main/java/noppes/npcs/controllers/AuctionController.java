@@ -363,10 +363,10 @@ public class AuctionController {
             if (listing.hasBids()) {
                 long penalty = (long) (listing.currentBid * ConfigMarket.CancellationPenaltyPercent);
 
-                // Refund bidder
+                // Refund bidder (no item - can't rebid on cancelled auction)
                 AuctionClaim refundClaim = AuctionClaim.createRefundClaim(
                     listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid,
-                    listing.item.getDisplayName(), listing.sellerName);
+                    listing.item.getDisplayName(), listing.sellerName, null);
                 addClaim(refundClaim);
 
                 // Remove from bidder's active bids
@@ -451,24 +451,29 @@ public class AuctionController {
             }
 
             PlayerCurrencyData currency = playerData.currencyData;
-            if (!currency.canAfford(bidAmount)) {
+
+            // Store previous bidder info
+            UUID previousBidder = listing.highBidderUUID;
+            long previousBid = listing.currentBid;
+            boolean isSameBidder = previousBidder != null && previousBidder.equals(playerUUID);
+
+            // Calculate amount to charge
+            long amountToCharge = isSameBidder ? (bidAmount - previousBid) : bidAmount;
+
+            if (!currency.canAfford(amountToCharge)) {
                 return "You cannot afford this bid.";
             }
 
-            // Store previous bidder info for refund
-            UUID previousBidder = listing.highBidderUUID;
-            long previousBid = listing.currentBid;
-
             // Deduct bid from new bidder FIRST
-            if (!currency.withdraw(bidAmount)) {
+            if (!currency.withdraw(amountToCharge)) {
                 return "Failed to deduct bid amount.";
             }
 
-            // Refund previous bidder if any
-            if (listing.hasBids() && previousBidder != null) {
+            // Refund previous bidder if different player (include item for rebid option)
+            if (listing.hasBids() && previousBidder != null && !isSameBidder) {
                 AuctionClaim refundClaim = AuctionClaim.createRefundClaim(
                     previousBidder, listing.highBidderName, listing.id, previousBid,
-                    listing.item.getDisplayName(), playerName);
+                    listing.item.getDisplayName(), playerName, listing.item);
                 addClaim(refundClaim);
 
                 // Remove from previous bidder's active bids
@@ -550,11 +555,11 @@ public class AuctionController {
                 return "Failed to deduct buyout amount.";
             }
 
-            // Refund previous bidder if any
+            // Refund previous bidder if any (no item - auction ended via buyout)
             if (listing.hasBids() && listing.highBidderUUID != null) {
                 AuctionClaim refundClaim = AuctionClaim.createRefundClaim(
                     listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid,
-                    listing.item.getDisplayName(), playerName);
+                    listing.item.getDisplayName(), playerName, null);
                 addClaim(refundClaim);
 
                 // Remove from previous bidder's active bids

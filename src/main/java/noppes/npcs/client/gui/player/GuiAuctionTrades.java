@@ -95,10 +95,24 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
             // Left-click on active bid = open bidding GUI to increase bid
             AuctionActionPacket.openBidding(listing.id);
             NoppesUtil.clickSound();
-        } else if (claim != null && mouseButton == 0) {
-            // Left-click on claim = show claim
-            setPending(slot, PendingOp.CLAIM);
-            NoppesUtil.clickSound();
+        } else if (claim != null) {
+            // Handle claim clicks
+            if (claim.type == EnumClaimType.REFUND && claim.item != null) {
+                // REFUND with item = can rebid
+                if (mouseButton == 0) {
+                    // Left-click = open bidding to rebid
+                    AuctionActionPacket.openBidding(claim.listingId);
+                    NoppesUtil.clickSound();
+                } else if (mouseButton == 1) {
+                    // Right-click = show refund claim confirmation
+                    setPending(slot, PendingOp.CLAIM);
+                    NoppesUtil.clickSound();
+                }
+            } else if (mouseButton == 0) {
+                // Normal claim - left-click shows claim confirmation
+                setPending(slot, PendingOp.CLAIM);
+                NoppesUtil.clickSound();
+            }
         }
     }
 
@@ -112,18 +126,31 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
                 playConfirmSound();
             }
             clearPending();
-        } else if (pendingOp == PendingOp.CLAIM && mouseButton == 0) {
-            // Left-click confirms claim
+        } else if (pendingOp == PendingOp.CLAIM) {
             AuctionClaim claim = tradesContainer.getClaimAt(pendingSlot);
             if (claim != null) {
-                if (claim.type.isItem()) {
-                    AuctionActionPacket.claimItem(claim.id);
+                // For REFUND claims with item (rebid option), right-click confirms refund
+                // For all others, left-click confirms claim
+                boolean shouldClaim = (claim.type == EnumClaimType.REFUND && claim.item != null)
+                    ? mouseButton == 1  // Right-click for rebiddable refunds
+                    : mouseButton == 0; // Left-click for normal claims
+
+                if (shouldClaim) {
+                    if (claim.type.isItem()) {
+                        AuctionActionPacket.claimItem(claim.id);
+                    } else {
+                        AuctionActionPacket.claimCurrency(claim.id);
+                    }
+                    playConfirmSound();
+                    clearPending();
                 } else {
-                    AuctionActionPacket.claimCurrency(claim.id);
+                    // Wrong button - cancel operation
+                    clearPending();
+                    NoppesUtil.clickSound();
                 }
-                playConfirmSound();
+            } else {
+                clearPending();
             }
-            clearPending();
         } else {
             // Wrong button - cancel operation
             clearPending();
@@ -197,10 +224,14 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
                         drawIconOverlay(x, y, ICON_CHECK);
                     }
                 } else {
-                    // Draw coin icon for currency/refund claims (no item in slot)
+                    // Draw coin icon for currency claims or refund claims without item
                     AuctionClaim claim = tradesContainer.getClaimAt(slot);
-                    if (claim != null && (claim.type == EnumClaimType.CURRENCY || claim.type == EnumClaimType.REFUND)) {
-                        drawIconOverlay(x, y, ICON_COIN);
+                    if (claim != null) {
+                        // Show coin if: CURRENCY claim OR REFUND claim without item
+                        if (claim.type == EnumClaimType.CURRENCY ||
+                            (claim.type == EnumClaimType.REFUND && claim.item == null)) {
+                            drawIconOverlay(x, y, ICON_COIN);
+                        }
                     }
                 }
             }
@@ -213,16 +244,21 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         AuctionClaim claim = tradesContainer.getClaimAt(slot);
 
         if (listing != null) {
-            // Active listing or bid - Blue
-            return TINT_BLUE;
+            if (tradesContainer.isSellingAt(slot)) {
+                // Selling - Blue
+                return TINT_BLUE;
+            } else {
+                // Bidding - Yellow
+                return TINT_YELLOW;
+            }
         } else if (claim != null) {
             switch (claim.type) {
                 case CURRENCY:
                     // Sold item - Green
                     return TINT_GREEN;
                 case REFUND:
-                    // Outbid - Yellow
-                    return TINT_YELLOW;
+                    // Outbid - Red (whether rebiddable or not)
+                    return TINT_RED;
                 case ITEM:
                     // Won item (green) or Returned/Expired (red)
                     return claim.isReturned ? TINT_RED : TINT_GREEN;
@@ -286,14 +322,18 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
                         tooltip.add(EnumChatFormatting.GOLD + String.format("%,d", claim.currency) + " " + AuctionClientConfig.getCurrencyName());
                         break;
                     case REFUND:
-                        tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.refundClaim"));
-                        if (!claim.itemName.isEmpty()) {
-                            tooltip.add(EnumChatFormatting.WHITE + claim.itemName);
-                        }
+                        tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocal("auction.trades.outbid"));
                         if (!claim.otherPlayerName.isEmpty()) {
                             tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.outbidBy") + ": " + EnumChatFormatting.AQUA + claim.otherPlayerName);
                         }
                         tooltip.add(EnumChatFormatting.GOLD + String.format("%,d", claim.currency) + " " + AuctionClientConfig.getCurrencyName());
+                        // Show rebid option if item is present (active listing)
+                        if (claim.item != null) {
+                            tooltip.add("");
+                            tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.leftClickRebid"));
+                            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.rightClickRefund"));
+                            return; // Skip the generic claim message
+                        }
                         break;
                     case ITEM:
                         if (claim.isReturned) {
