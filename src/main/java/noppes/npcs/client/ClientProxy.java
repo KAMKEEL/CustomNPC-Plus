@@ -7,7 +7,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import kamkeel.npcs.addon.client.DBCClient;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;

@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.telegraph;
+package kamkeel.npcs.controllers.data.telegraph;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -33,6 +33,10 @@ public class TelegraphInstance {
 
     // State
     private boolean isWarning = false;
+
+    // Server-side tracking (for removal)
+    private transient World world;
+    private transient int dimensionId;
 
     public TelegraphInstance() {
         this.instanceId = UUID.randomUUID().toString().substring(0, 8);
@@ -302,5 +306,24 @@ public class TelegraphInstance {
 
     public void setWarning(boolean warning) {
         isWarning = warning;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+        if (world != null) {
+            this.dimensionId = world.provider.dimensionId;
+        }
+    }
+
+    public int getDimensionId() {
+        return dimensionId;
+    }
+
+    public void setDimensionId(int dimensionId) {
+        this.dimensionId = dimensionId;
     }
 }

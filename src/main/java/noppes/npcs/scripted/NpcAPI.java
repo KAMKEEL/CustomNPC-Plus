@@ -5,6 +5,7 @@ import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
@@ -52,6 +53,7 @@ import noppes.npcs.api.IContainer;
 import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
+import noppes.npcs.api.ITelegraph;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ISkinOverlay;
 import noppes.npcs.api.ITileEntity;
@@ -75,6 +77,7 @@ import noppes.npcs.api.handler.IProfileHandler;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.IRecipeHandler;
 import noppes.npcs.api.handler.IScriptHookHandler;
+import noppes.npcs.api.handler.ITelegraphHandler;
 import noppes.npcs.api.handler.ITransportHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
@@ -368,6 +371,18 @@ public class NpcAPI extends AbstractNpcAPI {
     public IAbilityHandler getAbilities() {
         this.checkWorld();
         return AbilityController.Instance;
+    }
+
+    @Override
+    public ITelegraphHandler getTelegraphs() {
+        this.checkWorld();
+        return TelegraphController.Instance;
+    }
+
+    @Override
+    public ITelegraph createTelegraph(String type) {
+        this.checkWorld();
+        return TelegraphController.Instance.create(type);
     }
 
     @Override

@@ -1,10 +1,10 @@
-package kamkeel.npcs.controllers.data.ability.telegraph;
+package kamkeel.npcs.controllers.data.telegraph;
 
 import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * Telegraph configuration - defines a visual warning shape.
- * Telegraphs warn players about incoming attacks.
+ * Telegraphs warn players about incoming attacks or mark areas of effect.
  */
 public class Telegraph {
 
@@ -144,6 +144,10 @@ public class Telegraph {
         t.length = length;
         t.angle = angle;
         return t;
+    }
+
+    public static Telegraph point() {
+        return new Telegraph("", TelegraphType.POINT);
     }
 
     // ═══════════════════════════════════════════════════════════════════

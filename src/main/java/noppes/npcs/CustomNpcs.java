@@ -24,6 +24,7 @@ import kamkeel.npcs.command.profile.CommandProfile;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
@@ -331,7 +332,7 @@ public class CustomNpcs {
         new AnimationController();
         new AbilityController();
         AbilityController.Instance.load();
-
+        TelegraphController.init();
 
         LinkedItemController.getInstance().load();
 
