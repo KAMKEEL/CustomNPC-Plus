@@ -145,8 +145,8 @@ public class TokenHoverRenderer {
      */
     private static void renderTooltipBox(int x, int y, int boxWidth, int wrapWidth, TokenHoverInfo info) {
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        
-        int boxHeight = calculateContentHeight(info, wrapWidth) + PADDING * 1;
+
+        int boxHeight = calculateContentHeight(info, wrapWidth) + PADDING * 2;
         
         // Draw background
         Gui.drawRect(x, y, x + boxWidth, y + boxHeight, BG_COLOR);
@@ -468,18 +468,16 @@ public class TokenHoverRenderer {
         
         // JSDoc-formatted documentation lines
         if (jsDocLines != null && !jsDocLines.isEmpty()) {
-            // Add separator if there was plain documentation or declaration but no plain docs
             if (docs.isEmpty() && !declaration.isEmpty()) {
-               // totalHeight += SEPARATOR_SPACING + SEPARATOR_HEIGHT;
+                totalHeight += SEPARATOR_HEIGHT + SEPARATOR_SPACING;
             }
-            
+
             for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
                 if (!docLine.isEmpty()) {
                     totalHeight += calculateSegmentsHeight(contentWidth, docLine.segments);
-                   //. totalHeight += LINE_SPACING;
+                    totalHeight += LINE_SPACING;
                 } else {
-                    // Empty line
-                   // totalHeight += lineHeight + LINE_SPACING;
+                    totalHeight += lineHeight + LINE_SPACING;
                 }
             }
         }
@@ -520,7 +518,12 @@ public class TokenHoverRenderer {
             }
         }
         
-        return lineCount * (lineHeight + LINE_SPACING);
+        if (lineCount <= 0) {
+            return 0;
+        }
+        
+        // Total height = (lines * lineHeight) + (spacing between lines)
+        return (lineCount * lineHeight) + ((lineCount - 1) * LINE_SPACING);
     }
 
     /**
