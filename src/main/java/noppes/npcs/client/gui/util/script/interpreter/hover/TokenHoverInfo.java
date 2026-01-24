@@ -665,6 +665,11 @@ public class TokenHoverInfo {
                     errors.add(scriptType.getErrorMessage());
                 }
             }
+
+            JSDocInfo jsDocInfo = scriptType.getJSDocInfo();
+            if (jsDocInfo != null) {
+                formatJSDocumentation(jsDocInfo, null);
+            }
             
         } else if (typeInfo.isJSType()) {
             JSTypeInfo jsType = typeInfo.getJSTypeInfo();

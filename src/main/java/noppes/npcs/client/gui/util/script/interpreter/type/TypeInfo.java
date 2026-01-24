@@ -66,6 +66,9 @@ public class TypeInfo {
     // Type parameters (generics)
     private final List<TypeParamInfo> typeParams = new ArrayList<>();
 
+    // Documentation (script-defined types)
+    private JSDocInfo jsDocInfo;
+
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
         this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, null);
@@ -229,8 +232,13 @@ public class TypeInfo {
     }
 
     public JSDocInfo getJSDocInfo() {
+        if (jsDocInfo != null) {
+            return jsDocInfo;
+        }
         return jsTypeInfo != null ? jsTypeInfo.getJsDocInfo() : null;
     }
+
+    public void setJSDocInfo(JSDocInfo jsDocInfo) { this.jsDocInfo = jsDocInfo; }
 
     // Getters
     public String getSimpleName() { return simpleName; }

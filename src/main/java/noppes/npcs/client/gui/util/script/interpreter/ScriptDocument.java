@@ -671,9 +671,15 @@ public class ScriptDocument {
             // Extract modifiers from the matched text
             String fullMatch = text.substring(m.start(), m.end());
             int modifiers = parseModifiers(fullMatch);
+
+            JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
             
             ScriptTypeInfo scriptType = ScriptTypeInfo.create(
                     typeName, kind, m.start(), bodyStart, bodyEnd, modifiers);
+
+            if (jsDoc != null) {
+                scriptType.setJSDocInfo(jsDoc);
+            }
 
             // Store the script type first so it can be resolved by other types
             scriptTypes.put(typeName, scriptType);
