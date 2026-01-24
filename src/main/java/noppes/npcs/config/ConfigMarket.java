@@ -78,7 +78,7 @@ public class ConfigMarket {
             // =========================================
             config.setCategoryComment(CURRENCY, "CNPC+ Currency system settings. When UseVault is enabled, all currency operations use Vault instead of the built-in system.");
 
-            UseVault = config.get(CURRENCY, "Use Vault", false,
+            UseVault = config.get(CURRENCY, "Use Vault", true,
                 "If true, use Vault API for all currency operations instead of CNPC+ built-in currency. The built-in currency data will be preserved but unused.").getBoolean(false);
 
             CurrencyName = config.get(CURRENCY, "Currency Name", "Coins",
