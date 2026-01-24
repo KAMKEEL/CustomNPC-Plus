@@ -6,6 +6,7 @@ import noppes.npcs.scripted.NpcAPI;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -18,9 +19,6 @@ public class JSTypeRegistry {
     
     private static JSTypeRegistry INSTANCE;
     
-    // Resource location for the API definitions
-    private static final String API_RESOURCE_PATH = "customnpcs:api/";
-    
     // All registered types by full name (e.g., "IPlayerEvent.InteractEvent")
     private final Map<String, JSTypeInfo> types = new LinkedHashMap<>();
 
@@ -29,6 +27,12 @@ public class JSTypeRegistry {
     
     // Type aliases (simple name -> full type name)
     private final Map<String, String> typeAliases = new HashMap<>();
+
+    // Type full name -> origin string (modId:domain:relativePath)
+    private final Map<String, String> typeOrigins = new HashMap<>();
+
+    // Alias name -> origin string (modId:domain:relativePath)
+    private final Map<String, String> aliasOrigins = new HashMap<>();
     
     // Context-aware hook function signatures: namespace -> functionName -> list of signatures
     // The namespace is the event interface name (e.g., "INpcEvent", "IPlayerEvent")
@@ -53,6 +57,8 @@ public class JSTypeRegistry {
     
     private boolean initialized = false;
     private boolean initializationAttempted = false;
+
+    private String currentSource = null;
     
     public static JSTypeRegistry getInstance() {
         if (INSTANCE == null) {
@@ -73,25 +79,28 @@ public class JSTypeRegistry {
         
         try {
             TypeScriptDefinitionParser parser = new TypeScriptDefinitionParser(this);
-            
-            // Recursively load all .d.ts files from the api directory
-            Set<String> dtsFiles = findAllDtsFilesInResources("assets/customnpcs/api");
-            
-            System.out.println("[JSTypeRegistry] Found " + dtsFiles.size() + " .d.ts files in resources");
-            
-            // Load hooks.d.ts and index.d.ts first if they exist (defines core types)
-            if (dtsFiles.contains("hooks.d.ts")) {
-                loadResourceFile(parser, "hooks.d.ts");
-            }
-            if (dtsFiles.contains("index.d.ts")) {
-                loadResourceFile(parser, "index.d.ts");
-            }
-            
-            // Load all other .d.ts files
-            for (String filePath : dtsFiles) {
-                if (!filePath.equals("hooks.d.ts") && !filePath.equals("index.d.ts")) {
-                    loadResourceFile(parser, filePath);
+
+            List<DtsModScanner.DtsFileRef> dtsFiles = DtsModScanner.collectDtsFilesFromMods();
+            if (dtsFiles.isEmpty()) {
+                Set<String> fallbackFiles = findAllDtsFilesInResources("assets/customnpcs/api");
+
+                System.out.println("[JSTypeRegistry] Found " + fallbackFiles.size() + " .d.ts files in resources");
+
+                if (fallbackFiles.contains("hooks.d.ts")) {
+                    loadResourceFile(parser, "hooks.d.ts");
                 }
+                if (fallbackFiles.contains("index.d.ts")) {
+                    loadResourceFile(parser, "index.d.ts");
+                }
+
+                for (String filePath : fallbackFiles) {
+                    if (!filePath.equals("hooks.d.ts") && !filePath.equals("index.d.ts")) {
+                        loadResourceFile(parser, filePath);
+                    }
+                }
+            } else {
+                DtsModScanner.logSummary(dtsFiles);
+                loadDtsFiles(parser, dtsFiles);
             }
             
             // Phase 2: Resolve all type parameters now that all types are loaded
@@ -112,6 +121,33 @@ public class JSTypeRegistry {
             System.err.println("[JSTypeRegistry] Failed to load type definitions from resources: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void loadDtsFiles(TypeScriptDefinitionParser parser, List<DtsModScanner.DtsFileRef> dtsFiles) {
+        DtsModScanner.sortDtsFiles(dtsFiles);
+        for (DtsModScanner.DtsFileRef ref : dtsFiles) {
+            try (InputStream is = ref.openStream()) {
+                if (is == null) {
+                    continue;
+                }
+                String content = readFully(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)));
+                setCurrentSource(ref.getOrigin());
+                parser.parseDefinitionFile(content, ref.getRelativePath());
+            } catch (Exception e) {
+                System.err.println("[JSTypeRegistry] Failed to load " + ref.getOrigin() + ": " + e.getMessage());
+            } finally {
+                setCurrentSource(null);
+            }
+        }
+    }
+
+    private String readFully(BufferedReader reader) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+        return sb.toString();
     }
     
     /**
@@ -210,7 +246,7 @@ public class JSTypeRegistry {
             System.err.println("[JSTypeRegistry] Error scanning JAR for .d.ts files: " + e.getMessage());
         }
     }
-    
+
     /**
      * Load a specific .d.ts file from resources.
      */
@@ -280,9 +316,20 @@ public class JSTypeRegistry {
      * Register a type.
      */
     public void registerType(JSTypeInfo type) {
-        types.put(type.getFullName(), type);
+        String fullName = type.getFullName();
+        if (types.containsKey(fullName)) {
+            logTypeCollision(fullName, getCurrentSource());
+            return;
+        }
+        types.put(fullName, type);
+        typeOrigins.put(fullName, getCurrentSource());
         if (type.getJavaFqn() != null && !type.getJavaFqn().isEmpty()) {
-            typesByJavaFqn.put(type.getJavaFqn(), type);
+            String javaFqn = type.getJavaFqn();
+            if (!typesByJavaFqn.containsKey(javaFqn)) {
+                typesByJavaFqn.put(javaFqn, type);
+            } else {
+                System.out.println("[JSTypeRegistry] Duplicate javaFqn " + javaFqn + " from " + getCurrentSource());
+            }
         }
     }
 
@@ -298,7 +345,15 @@ public class JSTypeRegistry {
      * Register a type alias.
      */
     public void registerTypeAlias(String alias, String fullType) {
+        if (typeAliases.containsKey(alias)) {
+            String existing = typeAliases.get(alias);
+            if (!Objects.equals(existing, fullType)) {
+                logAliasCollision(alias, existing, fullType, getCurrentSource());
+            }
+            return;
+        }
         typeAliases.put(alias, fullType);
+        aliasOrigins.put(alias, getCurrentSource());
     }
     
     /**
@@ -755,11 +810,33 @@ public class JSTypeRegistry {
      */
     public void clear() {
         types.clear();
+        typesByJavaFqn.clear();
         typeAliases.clear();
+        typeOrigins.clear();
+        aliasOrigins.clear();
         hooks.clear();
         contextHooks.clear();
         globalEngineObjects.clear();
         initialized = false;
+    }
+
+    private void setCurrentSource(String source) {
+        currentSource = source;
+    }
+
+    private String getCurrentSource() {
+        return currentSource == null ? "unknown" : currentSource;
+    }
+
+    private void logTypeCollision(String fullName, String incomingSource) {
+        String existingSource = typeOrigins.getOrDefault(fullName, "unknown");
+        System.out.println("[JSTypeRegistry] Duplicate type " + fullName + " from " + incomingSource + " (kept " + existingSource + ")");
+    }
+
+    private void logAliasCollision(String alias, String existingType, String incomingType, String incomingSource) {
+        String existingSource = aliasOrigins.getOrDefault(alias, "unknown");
+        System.out.println("[JSTypeRegistry] Duplicate alias " + alias + " from " + incomingSource + " (kept " + existingSource + ")");
+        System.out.println("[JSTypeRegistry] Alias " + alias + " existing=" + existingType + " incoming=" + incomingType);
     }
 
     /**
