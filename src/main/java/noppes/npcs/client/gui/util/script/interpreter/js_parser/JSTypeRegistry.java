@@ -23,6 +23,9 @@ public class JSTypeRegistry {
     
     // All registered types by full name (e.g., "IPlayerEvent.InteractEvent")
     private final Map<String, JSTypeInfo> types = new LinkedHashMap<>();
+
+    // Registered types by Java fully-qualified name (e.g., "noppes.npcs.api.entity.IPlayer")
+    private final Map<String, JSTypeInfo> typesByJavaFqn = new LinkedHashMap<>();
     
     // Type aliases (simple name -> full type name)
     private final Map<String, String> typeAliases = new HashMap<>();
@@ -278,6 +281,17 @@ public class JSTypeRegistry {
      */
     public void registerType(JSTypeInfo type) {
         types.put(type.getFullName(), type);
+        if (type.getJavaFqn() != null && !type.getJavaFqn().isEmpty()) {
+            typesByJavaFqn.put(type.getJavaFqn(), type);
+        }
+    }
+
+    /**
+     * Get a type by Java fully-qualified name.
+     */
+    public JSTypeInfo getTypeByJavaFqn(String javaFqn) {
+        if (javaFqn == null || javaFqn.isEmpty()) return null;
+        return typesByJavaFqn.get(javaFqn);
     }
     
     /**

@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocTag;
 
 import java.io.*;
 import java.util.*;
@@ -130,9 +131,10 @@ public class TypeScriptDefinitionParser {
             parseIndexFile(content);
             return;
         }
-        
+
         // Parse regular interface files
-        parseInterfaceFile(content, null);
+        String packageName = derivePackageName(fileName);
+        parseInterfaceFile(content, null, packageName);
     }
     
     /**
@@ -208,7 +210,7 @@ public class TypeScriptDefinitionParser {
     /**
      * Parse interface and class definitions from content.
      */
-    private void parseInterfaceFile(String content, String parentNamespace) {
+    private void parseInterfaceFile(String content, String parentNamespace, String packageName) {
         // Find exported interfaces
         Matcher interfaceMatcher = INTERFACE_PATTERN.matcher(content);
         while (interfaceMatcher.find()) {
@@ -221,6 +223,11 @@ public class TypeScriptDefinitionParser {
             JSDocInfo jsDoc = extractJSDocBefore(content, interfaceMatcher.start());
             if (jsDoc != null) {
                 typeInfo.setJsDocInfo(jsDoc);
+            }
+
+            String javaFqn = findJavaFqn(jsDoc, packageName, typeInfo.getFullName());
+            if (javaFqn != null && !javaFqn.isEmpty()) {
+                typeInfo.setJavaFqn(javaFqn);
             }
             
             // Parse type parameters
@@ -253,7 +260,7 @@ public class TypeScriptDefinitionParser {
                 // Parse nested interfaces and type aliases within this interface body
                 String fullNamespace = parentNamespace != null ? 
                     parentNamespace + "." + interfaceName : interfaceName;
-                parseNestedTypes(body, fullNamespace);
+                parseNestedTypes(body, fullNamespace, packageName);
             }
             
             registry.registerType(typeInfo);
@@ -354,7 +361,7 @@ public class TypeScriptDefinitionParser {
                 // Namespaces contain exported types, so use parseInterfaceFile
                 String fullNamespace = parentNamespace != null ? 
                     parentNamespace + "." + namespaceName : namespaceName;
-                parseInterfaceFile(body, fullNamespace);
+            parseInterfaceFile(body, fullNamespace, packageName);
                 // Don't call parseNestedTypes here - namespace members are all exported
                 // and will be caught by parseInterfaceFile's INTERFACE_PATTERN
             }
@@ -393,7 +400,7 @@ public class TypeScriptDefinitionParser {
     /**
      * Parse nested types (interfaces and type aliases) within a parent type or namespace.
      */
-    private void parseNestedTypes(String content, String namespace) {
+    private void parseNestedTypes(String content, String namespace, String packageName) {
         // Parse nested interfaces
         Matcher nestedInterfaceMatcher = NESTED_INTERFACE_PATTERN.matcher(content);
         while (nestedInterfaceMatcher.find()) {
@@ -402,6 +409,16 @@ public class TypeScriptDefinitionParser {
             String extendsClause = nestedInterfaceMatcher.group(3);
             
             JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, namespace);
+
+            JSDocInfo jsDoc = extractJSDocBefore(content, nestedInterfaceMatcher.start());
+            if (jsDoc != null) {
+                typeInfo.setJsDocInfo(jsDoc);
+            }
+
+            String javaFqn = findJavaFqn(jsDoc, packageName, typeInfo.getFullName());
+            if (javaFqn != null && !javaFqn.isEmpty()) {
+                typeInfo.setJavaFqn(javaFqn);
+            }
             
             // Parse type parameters
             if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
@@ -431,6 +448,49 @@ public class TypeScriptDefinitionParser {
         
         // Parse type aliases within this context
         parseTypeAliases(content, namespace);
+    }
+
+    private String findJavaFqn(JSDocInfo jsDoc, String packageName, String typeFullName) {
+        String tagged = extractJavaFqnFromJSDoc(jsDoc);
+        if (tagged != null && !tagged.isEmpty()) {
+            return tagged;
+        }
+        return buildJavaFqnFromPackage(packageName, typeFullName);
+    }
+
+    private String extractJavaFqnFromJSDoc(JSDocInfo jsDoc) {
+        if (jsDoc == null) return null;
+        for (JSDocTag tag : jsDoc.getAllTags()) {
+            if (tag == null) continue;
+            if ("javaFqn".equals(tag.getTagName())) {
+                if (tag.getDescription() != null && !tag.getDescription().trim().isEmpty()) {
+                    return tag.getDescription().trim();
+                }
+                if (tag.getTypeName() != null && !tag.getTypeName().trim().isEmpty()) {
+                    return tag.getTypeName().trim();
+                }
+            }
+        }
+        return null;
+    }
+
+    private String buildJavaFqnFromPackage(String packageName, String typeFullName) {
+        if (typeFullName == null || typeFullName.isEmpty()) return null;
+        if (packageName == null || packageName.isEmpty()) return null;
+        return packageName + "." + typeFullName;
+    }
+
+    private String derivePackageName(String fileName) {
+        if (fileName == null || fileName.isEmpty()) return null;
+        String normalized = fileName.replace('\\', '/');
+        if (normalized.endsWith(".d.ts")) {
+            normalized = normalized.substring(0, normalized.length() - 5);
+        }
+        int lastSlash = normalized.lastIndexOf('/');
+        if (lastSlash < 0) return null;
+        String pkgPath = normalized.substring(0, lastSlash);
+        if (pkgPath.isEmpty()) return null;
+        return pkgPath.replace('/', '.');
     }
     
     /**

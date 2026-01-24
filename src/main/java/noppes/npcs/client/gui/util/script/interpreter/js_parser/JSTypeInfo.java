@@ -18,6 +18,9 @@ public class JSTypeInfo {
     private final String simpleName;      // e.g., "InteractEvent"
     private final String fullName;        // e.g., "IPlayerEvent.InteractEvent"
     private final String namespace;       // e.g., "IPlayerEvent" (parent namespace, null for top-level)
+
+    // Java fully-qualified name (e.g., "noppes.npcs.api.entity.IPlayer")
+    private String javaFqn;
     
     // Type parameters (generics)
     private final List<TypeParamInfo> typeParams = new ArrayList<>();
@@ -51,6 +54,11 @@ public class JSTypeInfo {
     
     public JSTypeInfo setJsDocInfo(JSDocInfo jsDocInfo) {
         this.jsDocInfo = jsDocInfo;
+        return this;
+    }
+
+    public JSTypeInfo setJavaFqn(String javaFqn) {
+        this.javaFqn = javaFqn;
         return this;
     }
     
@@ -88,6 +96,7 @@ public class JSTypeInfo {
     public String getSimpleName() { return simpleName; }
     public String getFullName() { return fullName; }
     public String getNamespace() { return namespace; }
+    public String getJavaFqn() { return javaFqn; }
     public String getExtendsType() { return extendsType; }
     public JSTypeInfo getResolvedParent() { return resolvedParent; }
     public JSDocInfo getJsDocInfo() { return jsDocInfo; }
