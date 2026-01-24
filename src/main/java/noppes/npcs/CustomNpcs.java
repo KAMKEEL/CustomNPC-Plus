@@ -55,6 +55,7 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
 import noppes.npcs.config.legacy.LegacyConfig;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.BankController;
 import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.controllers.CustomEffectController;
@@ -110,7 +111,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.3")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11-beta1")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -369,6 +370,7 @@ public class CustomNpcs {
     public void started(FMLServerStartedEvent event) {
         RecipeController.Instance.load();
         new BankController();
+        new AuctionController();
         DialogController.Instance.load();
         QuestController.Instance.load();
         ScriptController.HasStart = true;
@@ -389,6 +391,12 @@ public class CustomNpcs {
         ScriptController.Instance.saveForgeScripts();
         ScriptController.Instance.savePlayerScripts();
         ScriptController.Instance.saveGlobalNpcScripts();
+
+        // Save auction data synchronously on shutdown
+        if (AuctionController.Instance != null) {
+            AuctionController.Instance.save();
+        }
+
         if (FMLCommonHandler.instance().getSide().isClient())
             clientJaninoCompiler = null;
         globalJaninoCompiler = null;

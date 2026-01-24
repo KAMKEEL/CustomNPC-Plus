@@ -14,6 +14,11 @@ import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.containers.ContainerAuction;
+import noppes.npcs.containers.ContainerAuctionBidding;
+import noppes.npcs.containers.ContainerAuctionTrades;
+import noppes.npcs.containers.ContainerAuctionListing;
+import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.containers.ContainerAnvilRepair;
 import noppes.npcs.containers.ContainerCarpentryBench;
 import noppes.npcs.containers.ContainerCrate;
@@ -91,6 +96,18 @@ public class CommonProxy implements IGuiHandler {
 
         if (gui == EnumGuiType.PlayerTrader)
             return new ContainerNPCTrader(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuction)
+            return new ContainerAuctionListing(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuctionSell)
+            return new ContainerAuctionSell(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuctionTrades)
+            return new ContainerAuctionTrades(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuctionBidding)
+            return new ContainerAuctionBidding(npc, player);
 
         if (gui == EnumGuiType.PlayerCarpentryBench)
             return new ContainerCarpentryBench(player.inventory, player.worldObj, x, y, z);
