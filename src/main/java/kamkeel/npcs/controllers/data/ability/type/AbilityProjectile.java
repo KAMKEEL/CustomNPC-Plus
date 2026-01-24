@@ -23,7 +23,7 @@ import java.util.List;
 public class AbilityProjectile extends Ability {
 
     // Type-specific parameters
-    private float damage = 8.0f;
+    private float damage = 6.0f;
     private float speed = 1.5f;
     private float knockback = 0.5f;
     private String projectileType = "fireball";
@@ -179,7 +179,7 @@ public class AbilityProjectile extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 6.0f;
         this.speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 1.5f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
         this.projectileType = nbt.hasKey("projectileType") ? nbt.getString("projectileType") : "fireball";

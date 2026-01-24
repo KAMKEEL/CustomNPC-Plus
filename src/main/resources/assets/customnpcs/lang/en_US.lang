@@ -157,6 +157,9 @@ gui.create=Create
 gui.rename=Rename
 gui.playerMap=Regen PlayerMap
 gui.unused=Unused
+gui.apply=Apply
+gui.cancel=Cancel
+gui.yes=Yes
 
 gui.lineColor1=Upper line color
 gui.lineColor2=Middle line color
@@ -1647,7 +1650,7 @@ ability.healSelf=Heal Self
 ability.healAllies=Heal Allies
 
 # Hazard Settings
-ability.dmgPerTick=Dmg/Tick
+ability.dmgPerSec=Dmg/Sec
 ability.debuffDur=Debuff Dur
 ability.shape=Shape
 ability.placement=Placement
@@ -1737,17 +1740,6 @@ auction.notify.claim=You have items to claim.
 
 # Main GUI
 auction.title=Auction House
-auction.browse=Browse
-auction.sell=Sell
-auction.trades=My Trades
-auction.filter=Filter
-
-# Browse
-auction.nextPage=Next >
-auction.prevPage=< Prev
-auction.page=Page %d of %d
-auction.noResults=No auctions found
-auction.refresh=Refresh
 
 # Listing Display
 auction.seller=Seller: %s
@@ -1758,50 +1750,25 @@ auction.bids=%d bids
 auction.noBids=No bids
 auction.startingPrice=Starting: %s
 
-# Create Listing
-auction.sell.title=Create Listing
+# Sell Page
 auction.sell.startingPrice=Starting Price
 auction.sell.buyoutPrice=Buyout Price
-auction.sell.noBuyout=(0 = no buyout)
 auction.sell.fee=Listing Fee: %s
-auction.sell.create=Create Listing
 auction.sell.noItem=Place an item to sell
 
-# Trades
-auction.trades.title=My Trades
-auction.trades.active=Active Listings
-auction.trades.activeBids=Active Bids
-auction.trades.pending=Pending Claims
-auction.trades.claimAll=Claim All
-auction.trades.cancel=Cancel Listing
-auction.trades.empty=No active trades
-
 # Filter
-auction.filter.title=Filter Auctions
 auction.filter.search=Search
-auction.filter.minPrice=Min Price
-auction.filter.maxPrice=Max Price
-auction.filter.myOnly=My Listings Only
-auction.filter.apply=Apply
-auction.filter.reset=Reset
 
 # Bid Dialog
-auction.bid.title=Place Bid
-auction.bid.current=Current Bid: %s
 auction.bid.minimum=Minimum Bid: %s
 auction.bid.yourBid=Your Bid:
 auction.bid.place=Place Bid
+auction.bid.placeBid=Place Bid
 auction.bid.buyout=Buyout Now
 
 # Errors
 auction.error.notEnoughCurrency=Not enough currency!
-auction.error.auctionEnded=This auction has ended.
 auction.error.bidTooLow=Bid must be at least %s.
-auction.error.maxListings=You have reached your maximum listings.
-auction.error.blacklisted=This item cannot be auctioned.
-auction.error.noAuctioneer=You must visit an Auctioneer NPC.
-auction.error.inventoryFull=Your inventory is full.
-auction.error.cannotAfford=You cannot afford this.
 
 # Navigation
 auction.nav.listings=Browse Auctions
@@ -1815,9 +1782,6 @@ auction.claim.expires=Expires in %s days
 auction.claim.expiresSoon=Expires soon!
 auction.claim.clickToClaim=Click to claim
 
-# Create Listing
-auction.createListing=Create Listing
-
 # Filter
 auction.filter.sort=Sort By
 auction.filter.none=(none)
@@ -1827,7 +1791,6 @@ auction.filter.rightClick=Right-click: Cycle Sort
 # Pagination
 auction.page.prev=Previous Page
 auction.page.next=Next Page
-auction.listings.count=%d Listings
 
 # Sell Page
 auction.sell.confirm=Confirm Listing
@@ -1846,9 +1809,12 @@ auction.trades.activeBid=Active Bid
 auction.trades.unavailable=Slot Unavailable
 auction.trades.rightClickToCancel=Right-click to cancel
 auction.trades.leftClickToClaim=Left-click to claim
+auction.trades.leftClickToIncrease=Left-click to increase bid
 auction.trades.winningBid=You are the highest bidder
-auction.trades.pendingClaim=Pending Claim
-auction.trades.refundClaim=Bid Refund
+auction.trades.soldClaim=Item Sold!
+auction.trades.wonClaim=Auction Won!
+auction.trades.expiredClaim=Auction Expired
+auction.trades.refundClaim=Outbid - Refund Available
 auction.trades.confirmCancel=Cancel Listing?
 auction.trades.confirmClaim=Claim Item?
 auction.trades.rightClickConfirm=Right-click again to confirm

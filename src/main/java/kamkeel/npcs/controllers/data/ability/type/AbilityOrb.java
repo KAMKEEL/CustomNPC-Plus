@@ -27,7 +27,7 @@ public class AbilityOrb extends Ability {
 
     private float orbSpeed = 0.5f;
     private float orbSize = 1.0f;
-    private float damage = 15.0f;
+    private float damage = 7.0f;
     private float knockback = 1.0f;
     private float maxDistance = 30.0f;
     private int maxLifetime = 200;
@@ -301,7 +301,7 @@ public class AbilityOrb extends Ability {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.orbSpeed = nbt.hasKey("orbSpeed") ? nbt.getFloat("orbSpeed") : 0.5f;
         this.orbSize = nbt.hasKey("orbSize") ? nbt.getFloat("orbSize") : 1.0f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 15.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 7.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.0f;
         this.maxDistance = nbt.hasKey("maxDistance") ? nbt.getFloat("maxDistance") : 30.0f;
         this.maxLifetime = nbt.hasKey("maxLifetime") ? nbt.getInteger("maxLifetime") : 200;

@@ -27,7 +27,7 @@ public class AbilityShockwave extends Ability {
 
     private float pushRadius = 8.0f;
     private float pushStrength = 1.5f;
-    private float damage = 10.0f;
+    private float damage = 8.0f;
     private int stunDuration = 0;
     private int maxTargets = 10;
 
@@ -153,7 +153,7 @@ public class AbilityShockwave extends Ability {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.pushRadius = nbt.hasKey("pushRadius") ? nbt.getFloat("pushRadius") : 8.0f;
         this.pushStrength = nbt.hasKey("pushStrength") ? nbt.getFloat("pushStrength") : 1.5f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 10.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
         this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
         this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 10;
     }

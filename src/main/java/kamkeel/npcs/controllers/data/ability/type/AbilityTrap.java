@@ -42,7 +42,7 @@ public class AbilityTrap extends Ability {
     private int armTime = 20;
     private int maxTriggers = 1;
     private int triggerCooldown = 20;
-    private float damage = 10.0f;
+    private float damage = 6.0f;
     private float damageRadius = 0.0f;
     private float knockback = 0.5f;
     private int stunDuration = 0;
@@ -352,7 +352,7 @@ public class AbilityTrap extends Ability {
         this.armTime = nbt.hasKey("armTime") ? nbt.getInteger("armTime") : 20;
         this.maxTriggers = nbt.hasKey("maxTriggers") ? nbt.getInteger("maxTriggers") : 1;
         this.triggerCooldown = nbt.hasKey("triggerCooldown") ? nbt.getInteger("triggerCooldown") : 20;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 10.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 6.0f;
         this.damageRadius = nbt.hasKey("damageRadius") ? nbt.getFloat("damageRadius") : 0.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
         this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;

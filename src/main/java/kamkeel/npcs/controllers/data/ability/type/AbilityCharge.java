@@ -29,7 +29,7 @@ public class AbilityCharge extends Ability {
 
     // Type-specific parameters
     private float chargeSpeed = 0.8f;
-    private float damage = 15.0f;
+    private float damage = 8.0f;
     private float knockback = 3.0f;
     private float hitWidth = 1.5f;
 
@@ -296,7 +296,7 @@ public class AbilityCharge extends Ability {
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         this.chargeSpeed = nbt.hasKey("chargeSpeed") ? nbt.getFloat("chargeSpeed") : 0.8f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 15.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 3.0f;
         if (nbt.hasKey("hitWidth")) {
             this.hitWidth = nbt.getFloat("hitWidth");

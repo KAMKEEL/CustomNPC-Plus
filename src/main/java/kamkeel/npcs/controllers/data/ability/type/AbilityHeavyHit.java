@@ -21,7 +21,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  */
 public class AbilityHeavyHit extends Ability {
 
-    private float damage = 15.0f;
+    private float damage = 8.0f;
     private float knockback = 2.0f;
     private int slownessLevel = 1;
     private int weaknessLevel = 0;
@@ -100,7 +100,7 @@ public class AbilityHeavyHit extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 15.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 2.0f;
         this.slownessLevel = nbt.hasKey("slownessLevel") ? nbt.getInteger("slownessLevel") : 1;
         this.weaknessLevel = nbt.hasKey("weaknessLevel") ? nbt.getInteger("weaknessLevel") : 0;
