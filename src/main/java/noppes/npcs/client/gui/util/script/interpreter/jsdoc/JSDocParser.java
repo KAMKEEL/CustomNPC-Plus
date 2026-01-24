@@ -18,16 +18,16 @@ public class JSDocParser {
             "/\\*\\*([\\s\\S]*?)\\*/", Pattern.MULTILINE);
 
     private static final Pattern TYPE_TAG_PATTERN = Pattern.compile(
-            "@(type)\\s*\\{([^}]+)\\}(?:\\s*-?\\s*([^@\\n]*))?", Pattern.CASE_INSENSITIVE);
+            "^@(type)\\s*(?:\\{([^}]+)\\})?(?:\\s*-?\\s*(.*))?$", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern PARAM_TAG_PATTERN = Pattern.compile(
-            "@(param)\\s*(?:\\{([^}]+)\\})?\\s*(\\w+)(?:\\s*-?\\s*([^@\\n]*))?", Pattern.CASE_INSENSITIVE);
+            "^@param\\s*(?:\\{([^}]+)\\})?\\s*(\\w+)?(?:\\s*-?\\s*(.*))?$", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern RETURN_TAG_PATTERN = Pattern.compile(
-            "@(returns?)\\s*(?:\\{([^}]+)\\})?(?:\\s*-?\\s*([^@\\n]*))?", Pattern.CASE_INSENSITIVE);
+            "^@(returns?)\\s*(?:\\{([^}]+)\\})?(?:\\s*-?\\s*(.*))?$", Pattern.CASE_INSENSITIVE);
 
-    private static final Pattern ANY_TAG_PATTERN = Pattern.compile(
-            "@(\\w+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern GENERIC_TAG_PATTERN = Pattern.compile(
+            "^@(\\w+)(?:\\s*\\{([^}]+)\\})?(?:\\s*-?\\s*(.*))?$", Pattern.CASE_INSENSITIVE);
 
     private final ScriptDocument document;
 
@@ -50,10 +50,53 @@ public class JSDocParser {
 
         int contentOffset = commentStart + 3;
 
-        parseTypeTag(content, contentOffset, info);
-        parseParamTags(content, contentOffset, info);
-        parseReturnTag(content, contentOffset, info);
-        extractDescription(content, info);
+        StringBuilder descriptionBuilder = new StringBuilder();
+        boolean foundFirstTag = false;
+        JSDocTag lastTag = null;
+
+        int position = 0;
+        while (position <= content.length()) {
+            int lineEnd = content.indexOf('\n', position);
+            if (lineEnd == -1) {
+                lineEnd = content.length();
+            }
+
+            String rawLine = content.substring(position, lineEnd);
+            if (rawLine.endsWith("\r")) {
+                rawLine = rawLine.substring(0, rawLine.length() - 1);
+            }
+
+            CleanLine cleanLine = cleanLine(rawLine, contentOffset + position);
+            String line = cleanLine.text;
+
+            if (!line.isEmpty()) {
+                if (line.startsWith("@")) {
+                    foundFirstTag = true;
+                    lastTag = parseTagLine(line, cleanLine.offset, info);
+                } else if (!foundFirstTag) {
+                    if (descriptionBuilder.length() > 0) {
+                        descriptionBuilder.append(" ");
+                    }
+                    descriptionBuilder.append(line);
+                } else if (lastTag != null) {
+                    String existing = lastTag.getDescription();
+                    if (existing == null || existing.isEmpty()) {
+                        lastTag.setDescription(line);
+                    } else {
+                        lastTag.setDescription(existing + " " + line);
+                    }
+                }
+            }
+
+            if (lineEnd == content.length()) {
+                break;
+            }
+            position = lineEnd + 1;
+        }
+
+        if (descriptionBuilder.length() > 0) {
+            info.setDescription(descriptionBuilder.toString().trim());
+        }
 
         return info;
     }
@@ -97,39 +140,16 @@ public class JSDocParser {
         return parse(comment, startCommentPos);
     }
 
-    private void parseTypeTag(String content, int contentOffset, JSDocInfo info) {
-        Matcher m = TYPE_TAG_PATTERN.matcher(content);
-        if (m.find()) {
-            int atSignOffset = contentOffset + m.start();
-            int tagNameStart = contentOffset + m.start(1);
-            int tagNameEnd = contentOffset + m.end(1);
+    private JSDocTag parseTagLine(String line, int lineOffset, JSDocInfo info) {
+        Matcher paramMatcher = PARAM_TAG_PATTERN.matcher(line);
+        if (paramMatcher.matches()) {
+            String typeName = paramMatcher.group(1);
+            String paramName = paramMatcher.group(2);
+            String description = normalizeDescription(paramMatcher.group(3));
 
-            String typeName = m.group(2).trim();
-            String description = m.group(3);
-
-            int braceStart = content.indexOf('{', m.start());
-            int braceEnd = content.indexOf('}', braceStart);
-            int typeStart = contentOffset + braceStart + 1;
-            int typeEnd = contentOffset + braceEnd;
-
-            TypeInfo typeInfo = resolveType(typeName);
-
-            JSDocTypeTag tag = JSDocTypeTag.create(atSignOffset, tagNameStart, tagNameEnd,
-                    typeName, typeInfo, typeStart, typeEnd, description != null ? description.trim() : null);
-            info.setTypeTag(tag);
-        }
-    }
-
-    private void parseParamTags(String content, int contentOffset, JSDocInfo info) {
-        Matcher m = PARAM_TAG_PATTERN.matcher(content);
-        while (m.find()) {
-            int atSignOffset = contentOffset + m.start();
-            int tagNameStart = contentOffset + m.start(1);
-            int tagNameEnd = contentOffset + m.end(1);
-
-            String typeName = m.group(2);
-            String paramName = m.group(3);
-            String description = m.group(4);
+            int atSignOffset = lineOffset + paramMatcher.start();
+            int tagNameStart = lineOffset + 1;
+            int tagNameEnd = tagNameStart + "param".length();
 
             int typeStart = -1;
             int typeEnd = -1;
@@ -137,34 +157,35 @@ public class JSDocParser {
 
             if (typeName != null) {
                 typeName = typeName.trim();
-                int braceStart = content.indexOf('{', m.start());
-                int braceEnd = content.indexOf('}', braceStart);
-                typeStart = contentOffset + braceStart + 1;
-                typeEnd = contentOffset + braceEnd;
+                typeStart = lineOffset + paramMatcher.start(1);
+                typeEnd = lineOffset + paramMatcher.end(1);
                 typeInfo = resolveType(typeName);
             }
 
-            int paramNameStart = contentOffset + m.start(3);
-            int paramNameEnd = contentOffset + m.end(3);
+            int paramNameStart = -1;
+            int paramNameEnd = -1;
+            if (paramName != null) {
+                paramNameStart = lineOffset + paramMatcher.start(2);
+                paramNameEnd = lineOffset + paramMatcher.end(2);
+            }
 
             JSDocParamTag tag = JSDocParamTag.create(atSignOffset, tagNameStart, tagNameEnd,
                     typeName, typeInfo, typeStart, typeEnd,
                     paramName, paramNameStart, paramNameEnd,
-                    description != null ? description.trim() : null);
+                    description);
             info.addParamTag(tag);
+            return tag;
         }
-    }
 
-    private void parseReturnTag(String content, int contentOffset, JSDocInfo info) {
-        Matcher m = RETURN_TAG_PATTERN.matcher(content);
-        if (m.find()) {
-            String tagName = m.group(1);
-            int atSignOffset = contentOffset + m.start();
-            int tagNameStart = contentOffset + m.start(1);
-            int tagNameEnd = contentOffset + m.end(1);
+        Matcher returnMatcher = RETURN_TAG_PATTERN.matcher(line);
+        if (returnMatcher.matches()) {
+            String tagName = returnMatcher.group(1);
+            String typeName = returnMatcher.group(2);
+            String description = normalizeDescription(returnMatcher.group(3));
 
-            String typeName = m.group(2);
-            String description = m.group(3);
+            int atSignOffset = lineOffset + returnMatcher.start();
+            int tagNameStart = lineOffset + returnMatcher.start(1);
+            int tagNameEnd = lineOffset + returnMatcher.end(1);
 
             int typeStart = -1;
             int typeEnd = -1;
@@ -172,39 +193,125 @@ public class JSDocParser {
 
             if (typeName != null) {
                 typeName = typeName.trim();
-                int braceStart = content.indexOf('{', m.start());
-                int braceEnd = content.indexOf('}', braceStart);
-                typeStart = contentOffset + braceStart + 1;
-                typeEnd = contentOffset + braceEnd;
+                typeStart = lineOffset + returnMatcher.start(2);
+                typeEnd = lineOffset + returnMatcher.end(2);
                 typeInfo = resolveType(typeName);
             }
 
             JSDocReturnTag tag = JSDocReturnTag.create(tagName, atSignOffset, tagNameStart, tagNameEnd,
                     typeName, typeInfo, typeStart, typeEnd,
-                    description != null ? description.trim() : null);
+                    description);
             info.setReturnTag(tag);
+            return tag;
         }
+
+        Matcher typeMatcher = TYPE_TAG_PATTERN.matcher(line);
+        if (typeMatcher.matches()) {
+            String typeName = typeMatcher.group(2);
+            String description = normalizeDescription(typeMatcher.group(3));
+
+            int atSignOffset = lineOffset + typeMatcher.start();
+            int tagNameStart = lineOffset + typeMatcher.start(1);
+            int tagNameEnd = lineOffset + typeMatcher.end(1);
+
+            int typeStart = -1;
+            int typeEnd = -1;
+            TypeInfo typeInfo = null;
+
+            if (typeName != null) {
+                typeName = typeName.trim();
+                typeStart = lineOffset + typeMatcher.start(2);
+                typeEnd = lineOffset + typeMatcher.end(2);
+                typeInfo = resolveType(typeName);
+            }
+
+            JSDocTypeTag tag = JSDocTypeTag.create(atSignOffset, tagNameStart, tagNameEnd,
+                    typeName, typeInfo, typeStart, typeEnd, description);
+            info.setTypeTag(tag);
+            return tag;
+        }
+
+        Matcher genericMatcher = GENERIC_TAG_PATTERN.matcher(line);
+        if (genericMatcher.matches()) {
+            String tagName = genericMatcher.group(1);
+            String typeName = genericMatcher.group(2);
+            String description = normalizeDescription(genericMatcher.group(3));
+
+            int atSignOffset = lineOffset + genericMatcher.start();
+            int tagNameStart = lineOffset + genericMatcher.start(1);
+            int tagNameEnd = lineOffset + genericMatcher.end(1);
+
+            JSDocTag tag = new JSDocTag(tagName, atSignOffset, tagNameStart, tagNameEnd);
+
+            if (typeName != null) {
+                typeName = typeName.trim();
+                int typeStart = lineOffset + genericMatcher.start(2);
+                int typeEnd = lineOffset + genericMatcher.end(2);
+                TypeInfo typeInfo = resolveType(typeName);
+                tag.setType(typeName, typeInfo, typeStart, typeEnd);
+            }
+
+            if (description != null && !description.isEmpty()) {
+                tag.setDescription(description);
+            }
+
+            info.addTag(tag);
+            return tag;
+        }
+
+        return null;
     }
 
-    private void extractDescription(String content, JSDocInfo info) {
-        Matcher m = ANY_TAG_PATTERN.matcher(content);
-        String description;
+    private String normalizeDescription(String description) {
+        if (description == null) {
+            return null;
+        }
+        String trimmed = description.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
 
-        if (m.find()) {
-            description = content.substring(0, m.start());
-        } else {
-            description = content;
+    private CleanLine cleanLine(String line, int lineStartOffset) {
+        int index = 0;
+        while (index < line.length() && Character.isWhitespace(line.charAt(index))) {
+            index++;
         }
 
-        description = description.replaceAll("(?m)^\\s*\\*\\s?", "").trim();
-
-        if (!description.isEmpty()) {
-            info.setDescription(description);
+        if (index + 2 < line.length() && line.startsWith("/**", index)) {
+            index += 3;
+            while (index < line.length() && Character.isWhitespace(line.charAt(index))) {
+                index++;
+            }
         }
+
+        if (index < line.length() && line.charAt(index) == '*') {
+            index++;
+            if (index < line.length() && line.charAt(index) == ' ') {
+                index++;
+            }
+        }
+
+        String cleaned = line.substring(index);
+        int end = cleaned.length();
+        while (end > 0 && Character.isWhitespace(cleaned.charAt(end - 1))) {
+            end--;
+        }
+        cleaned = cleaned.substring(0, end);
+
+        return new CleanLine(cleaned, lineStartOffset + index);
     }
 
     private TypeInfo resolveType(String typeName) {
         return document.resolveType(typeName);
+    }
+
+    private static class CleanLine {
+        private final String text;
+        private final int offset;
+
+        private CleanLine(String text, int offset) {
+            this.text = text;
+            this.offset = offset;
+        }
     }
 
     public static List<int[]> findAllJSDocComments(String source) {

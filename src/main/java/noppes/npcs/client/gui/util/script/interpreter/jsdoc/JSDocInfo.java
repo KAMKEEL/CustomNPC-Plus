@@ -19,8 +19,6 @@ public class JSDocInfo {
     private JSDocTypeTag typeTag;
     private final List<JSDocParamTag> paramTags = new ArrayList<>();
     private JSDocReturnTag returnTag;
-    private JSDocDeprecatedTag deprecatedTag;
-    private JSDocSinceTag sinceTag;
     private final List<JSDocSeeTag> seeTags = new ArrayList<>();
     private String description;
     private final List<JSDocTag> allTags = new ArrayList<>();
@@ -46,15 +44,6 @@ public class JSDocInfo {
         allTags.add(returnTag);
     }
 
-    public void setDeprecatedTag(JSDocDeprecatedTag deprecatedTag) {
-        this.deprecatedTag = deprecatedTag;
-        allTags.add(deprecatedTag);
-    }
-
-    public void setSinceTag(JSDocSinceTag sinceTag) {
-        this.sinceTag = sinceTag;
-        allTags.add(sinceTag);
-    }
 
     public void addSeeTag(JSDocSeeTag seeTag) {
         this.seeTags.add(seeTag);
@@ -102,12 +91,6 @@ public class JSDocInfo {
         return returnTag != null ? returnTag.getTypeInfo() : null;
     }
 
-    public JSDocDeprecatedTag getDeprecatedTag() { return deprecatedTag; }
-    public boolean isDeprecated() { return deprecatedTag != null; }
-
-    public JSDocSinceTag getSinceTag() { return sinceTag; }
-    public boolean hasSince() { return sinceTag != null; }
-
     public List<JSDocSeeTag> getSeeTags() { return Collections.unmodifiableList(seeTags); }
     public boolean hasSeeTags() { return !seeTags.isEmpty(); }
 
@@ -120,8 +103,6 @@ public class JSDocInfo {
         if (typeTag != null) sb.append("type=").append(typeTag.getTypeName());
         if (!paramTags.isEmpty()) sb.append(", params=").append(paramTags.size());
         if (returnTag != null) sb.append(", return=").append(returnTag.getTypeName());
-        if (deprecatedTag != null) sb.append(", deprecated");
-        if (sinceTag != null) sb.append(", since=").append(sinceTag.getVersion());
         if (!seeTags.isEmpty()) sb.append(", see=").append(seeTags.size());
         sb.append("}");
         return sb.toString();

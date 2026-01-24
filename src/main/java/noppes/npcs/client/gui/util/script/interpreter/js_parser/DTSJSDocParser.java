@@ -13,7 +13,7 @@ public class DTSJSDocParser {
         "/\\*\\*\\s*(.*?)\\*/", Pattern.DOTALL);
     
     private static final Pattern TAG_PATTERN = Pattern.compile(
-        "@(\\w+)(?:\\s+(.*))?");
+        "@(\\w+)(?:\\s+\\{([^}]+)\\})?(?:\\s+(.*))?");
     
     private static final Pattern PARAM_PATTERN = Pattern.compile(
         "@param(?:\\s+\\{([^}]+)\\})?(?:\\s+(\\w+))?(?:\\s+(.*))?");
@@ -136,23 +136,20 @@ public class DTSJSDocParser {
         Matcher tagMatcher = TAG_PATTERN.matcher(line);
         if (tagMatcher.find()) {
             String tagName = tagMatcher.group(1);
-            String rest = tagMatcher.group(2);
+            String typeName = tagMatcher.group(2);
+            String rest = tagMatcher.group(3);
             
             switch (tagName) {
-                case "since":
-                    JSDocSinceTag sinceTag = JSDocSinceTag.createSimple(rest != null ? rest.trim() : "");
-                    info.setSinceTag(sinceTag);
-                    return sinceTag;
-                case "deprecated":
-                    JSDocDeprecatedTag deprecatedTag = JSDocDeprecatedTag.createSimple(rest != null ? rest.trim() : "");
-                    info.setDeprecatedTag(deprecatedTag);
-                    return deprecatedTag;
                 case "see":
                     JSDocSeeTag seeTag = JSDocSeeTag.createSimple(rest != null ? rest.trim() : "");
                     info.addSeeTag(seeTag);
                     return seeTag;
                 default:
                     JSDocTag genericTag = new JSDocTag(tagName, -1, -1, -1);
+                    if (typeName != null) {
+                        typeName = typeName.trim();
+                        genericTag.setType(typeName, null, -1, -1);
+                    }
                     genericTag.setDescription(rest != null ? rest.trim() : "");
                     info.addTag(genericTag);
                     return genericTag;
