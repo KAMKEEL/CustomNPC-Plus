@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.method;
 
 import noppes.npcs.client.gui.util.script.interpreter.*;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.bridge.DtsJavaBridge;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
@@ -144,15 +145,37 @@ public final class MethodInfo {
         String name = method.getName();
         TypeInfo returnType = TypeInfo.fromClass(method.getReturnType());
         int modifiers = method.getModifiers();
-        
+
+        // Try to find matching JSFieldInfo to bridge parameter names and docs
+        JSMethodInfo jsMethod = DtsJavaBridge.findMatchingMethod(method, containingType);
         List<FieldInfo> params = new ArrayList<>();
         Class<?>[] paramTypes = method.getParameterTypes();
+        List<JSMethodInfo.JSParameterInfo> jsParams = jsMethod != null ? jsMethod.getParameters() : null;
         for (int i = 0; i < paramTypes.length; i++) {
             TypeInfo paramType = TypeInfo.fromClass(paramTypes[i]);
-            params.add(FieldInfo.reflectionParam("arg" + i, paramType));
+            String paramName = "arg" + i;
+            if (jsParams != null && i < jsParams.size()) {
+                String jsName = jsParams.get(i).getName();
+                if (jsName != null && !jsName.isEmpty()) {
+                    paramName = jsName;
+                }
+            }
+            params.add(FieldInfo.reflectionParam(paramName, paramType));
         }
-        
-        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, null, method);
+
+        String documentation = null;
+        JSDocInfo jsDocInfo = null;
+        if (jsMethod != null) {
+            jsDocInfo = jsMethod.getJsDocInfo();
+            String jsDocDesc = jsDocInfo != null ? jsDocInfo.getDescription() : null;
+            documentation = jsDocDesc != null ? jsDocDesc : jsMethod.getDocumentation();
+        }
+
+        MethodInfo methodInfo = new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, documentation, method);
+        if (jsDocInfo != null) {
+            methodInfo.setJSDocInfo(jsDocInfo);
+        }
+        return methodInfo;
     }
 
     /**

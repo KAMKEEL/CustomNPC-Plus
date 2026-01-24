@@ -736,6 +736,10 @@ public class TokenHoverInfo {
         }
         
         // Try to get actual Java method for more details
+        if (methodInfo != null && shouldPreferMethodInfo(methodInfo)) {
+            buildBasicMethodDeclaration(methodInfo, containingType);
+            return;
+        }
         if (methodInfo != null && methodInfo.getJavaMethod() != null) {
             buildMethodDeclaration(methodInfo.getJavaMethod(), containingType);
             extractJavadoc(methodInfo.getJavaMethod());
@@ -1108,6 +1112,20 @@ public class TokenHoverInfo {
             }
         }
 
+    }
+
+    private boolean shouldPreferMethodInfo(MethodInfo methodInfo) {
+        if (methodInfo.getJSDocInfo() != null) return true;
+        String doc = methodInfo.getDocumentation();
+        if (doc != null && !doc.isEmpty()) return true;
+
+        for (FieldInfo param : methodInfo.getParameters()) {
+            String name = param.getName();
+            if (name != null && !name.matches("arg\\d+")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

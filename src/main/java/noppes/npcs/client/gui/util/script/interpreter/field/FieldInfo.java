@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.interpreter.field;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.bridge.DtsJavaBridge;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
@@ -158,7 +159,21 @@ public final class FieldInfo {
                 return constantInfo.getFieldInfo();
         }
         
-        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null, -1, -1, field.getModifiers(), field);
+        // Try to find matching JSFieldInfo to bridge over documentation
+        JSFieldInfo jsField = DtsJavaBridge.findMatchingField(field, containingType);
+        String documentation = null;
+        JSDocInfo jsDocInfo = null;
+        if (jsField != null) {
+            jsDocInfo = jsField.getJsDocInfo();
+            String jsDocDesc = jsDocInfo != null ? jsDocInfo.getDescription() : null;
+            documentation = jsDocDesc != null ? jsDocDesc : jsField.getDocumentation();
+        }
+
+        FieldInfo fieldInfo = new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, documentation, -1, -1, field.getModifiers(), field);
+        if (jsDocInfo != null) {
+            fieldInfo.setJSDocInfo(jsDocInfo);
+        }
+        return fieldInfo;
     }
 
     /**
