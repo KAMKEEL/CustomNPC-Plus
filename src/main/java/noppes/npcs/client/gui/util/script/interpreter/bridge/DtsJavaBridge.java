@@ -10,12 +10,20 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class DtsJavaBridge {
+
+    private static final Map<Method, JSMethodInfo> METHOD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Field, JSFieldInfo> FIELD_CACHE = new ConcurrentHashMap<>();
 
     private DtsJavaBridge() {}
 
     public static JSMethodInfo findMatchingMethod(Method method, TypeInfo containingType) {
+        JSMethodInfo cached = METHOD_CACHE.get(method);
+        if (cached != null) return cached;
+
         JSTypeInfo jsType = findJSTypeInfo(method, containingType);
         if (jsType == null) return null;
 
@@ -28,34 +36,45 @@ public final class DtsJavaBridge {
 
         for (JSMethodInfo candidate : overloads) {
             if (candidate.getParameterCount() != paramTypes.length) continue;
-            int score = scoreOverload(candidate, paramTypes, containingType);
+            int score = scoreOverload(candidate, paramTypes, containingType, method.isVarArgs());
             if (score > bestScore) {
                 bestScore = score;
                 best = candidate;
             }
         }
 
-        return bestScore >= 0 ? best : null;
+        if (bestScore >= 0 && best != null) {
+            METHOD_CACHE.put(method, best);
+            return best;
+        }
+        return null;
     }
 
     public static JSFieldInfo findMatchingField(Field field, TypeInfo containingType) {
+        JSFieldInfo cached = FIELD_CACHE.get(field);
+        if (cached != null) return cached;
+
         JSTypeInfo jsType = findJSTypeInfo(field, containingType);
         if (jsType == null) return null;
-        return jsType.getField(field.getName());
+        JSFieldInfo match = jsType.getField(field.getName());
+        if (match != null) {
+            FIELD_CACHE.put(field, match);
+        }
+        return match;
     }
 
-    private static int scoreOverload(JSMethodInfo method, Class<?>[] paramTypes, TypeInfo containingType) {
+    private static int scoreOverload(JSMethodInfo method, Class<?>[] paramTypes, TypeInfo containingType, boolean isVarArgs) {
         int score = 0;
         List<JSMethodInfo.JSParameterInfo> jsParams = method.getParameters();
         for (int i = 0; i < paramTypes.length; i++) {
-            int paramScore = scoreParam(paramTypes[i], jsParams.get(i), containingType);
+            int paramScore = scoreParam(paramTypes[i], jsParams.get(i), containingType, isVarArgs, i == paramTypes.length - 1);
             if (paramScore < 0) return -1;
             score += paramScore;
         }
         return score;
     }
 
-    private static int scoreParam(Class<?> javaParam, JSMethodInfo.JSParameterInfo jsParam, TypeInfo containingType) {
+    private static int scoreParam(Class<?> javaParam, JSMethodInfo.JSParameterInfo jsParam, TypeInfo containingType, boolean isVarArgs, boolean isLastParam) {
         if (javaParam == null || jsParam == null) return -1;
 
         TypeInfo resolved = jsParam.getResolvedType(containingType);
@@ -68,6 +87,12 @@ public final class DtsJavaBridge {
 
         String jsTypeName = jsParam.getType();
         if (jsTypeName == null || jsTypeName.isEmpty()) return -1;
+
+        if (isVarArgs && isLastParam && javaParam.isArray()) {
+            if (matchesArrayElement(javaParam.getComponentType(), jsTypeName, containingType)) {
+                return 2;
+            }
+        }
 
         if (matchesPrimitive(jsTypeName, javaParam)) {
             return 3;
@@ -133,7 +158,7 @@ public final class DtsJavaBridge {
         }
 
         Class<?> javaClass = containingType != null ? containingType.getJavaClass() : method.getDeclaringClass();
-        return resolveJSTypeInfo(javaClass != null ? javaClass.getName() : null);
+        return resolveJSTypeInfo(javaClass);
     }
 
     private static JSTypeInfo findJSTypeInfo(Field field, TypeInfo containingType) {
@@ -142,7 +167,26 @@ public final class DtsJavaBridge {
         }
 
         Class<?> javaClass = containingType != null ? containingType.getJavaClass() : field.getDeclaringClass();
-        return resolveJSTypeInfo(javaClass != null ? javaClass.getName() : null);
+        return resolveJSTypeInfo(javaClass);
+    }
+
+    private static JSTypeInfo resolveJSTypeInfo(Class<?> javaClass) {
+        if (javaClass == null) return null;
+
+        JSTypeInfo direct = resolveJSTypeInfo(javaClass.getName());
+        if (direct != null) return direct;
+
+        for (Class<?> iface : javaClass.getInterfaces()) {
+            JSTypeInfo ifaceType = resolveJSTypeInfo(iface.getName());
+            if (ifaceType != null) return ifaceType;
+        }
+
+        Class<?> superClass = javaClass.getSuperclass();
+        if (superClass != null && superClass != Object.class) {
+            return resolveJSTypeInfo(superClass);
+        }
+
+        return null;
     }
 
     private static JSTypeInfo resolveJSTypeInfo(String javaFqnOrType) {
