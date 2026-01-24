@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.client.gui.util.script.interpreter.bridge.DtsJavaBridge;
 
 import java.io.*;
 import java.net.URL;
@@ -817,6 +818,7 @@ public class JSTypeRegistry {
         hooks.clear();
         contextHooks.clear();
         globalEngineObjects.clear();
+        DtsJavaBridge.clearCache();
         initialized = false;
     }
 

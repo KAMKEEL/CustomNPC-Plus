@@ -20,6 +20,11 @@ public final class DtsJavaBridge {
 
     private DtsJavaBridge() {}
 
+    public static void clearCache() {
+        METHOD_CACHE.clear();
+        FIELD_CACHE.clear();
+    }
+
     public static JSMethodInfo findMatchingMethod(Method method, TypeInfo containingType) {
         JSMethodInfo cached = METHOD_CACHE.get(method);
         if (cached != null) return cached;
@@ -191,6 +196,9 @@ public final class DtsJavaBridge {
 
     private static JSTypeInfo resolveJSTypeInfo(String javaFqnOrType) {
         if (javaFqnOrType == null || javaFqnOrType.isEmpty()) return null;
+        if (javaFqnOrType.startsWith("Java.")) {
+            javaFqnOrType = javaFqnOrType.substring(5);
+        }
         JSTypeRegistry registry = TypeResolver.getInstance().getJSTypeRegistry();
         JSTypeInfo direct = registry.getTypeByJavaFqn(javaFqnOrType);
         if (direct != null) return direct;
