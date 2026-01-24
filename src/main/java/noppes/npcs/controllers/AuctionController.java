@@ -164,9 +164,12 @@ public class AuctionController {
             removeFromPlayerBids(listing.highBidderUUID, listing.id);
         }
 
+        // Get item display name safely
+        String itemDisplayName = listing.item != null ? listing.item.getDisplayName() : "Unknown Item";
+
         if (listing.hasBids()) {
             // Auction sold - create claims
-            AuctionClaim itemClaim = AuctionClaim.createItemClaim(
+            AuctionClaim itemClaim = AuctionClaim.createItemWonClaim(
                 listing.highBidderUUID, listing.highBidderName, listing.id, listing.item);
             addClaim(itemClaim);
 
@@ -175,27 +178,28 @@ public class AuctionController {
             long sellerReceives = saleAmount - tax;
 
             AuctionClaim currencyClaim = AuctionClaim.createCurrencyClaim(
-                listing.sellerUUID, listing.sellerName, listing.id, sellerReceives);
+                listing.sellerUUID, listing.sellerName, listing.id, sellerReceives,
+                itemDisplayName, listing.highBidderName);
             addClaim(currencyClaim);
 
             // Notifications
             queueNotification(listing.highBidderUUID, EnumNotificationType.AUCTION_WON, listing.id,
-                "You won the auction for " + listing.item.getDisplayName() + "!");
+                "You won the auction for " + itemDisplayName + "!");
             queueNotification(listing.sellerUUID, EnumNotificationType.AUCTION_SOLD, listing.id,
-                "Your " + listing.item.getDisplayName() + " sold for " + saleAmount + " " + ConfigMarket.CurrencyName + "!");
+                "Your " + itemDisplayName + " sold for " + saleAmount + " " + ConfigMarket.CurrencyName + "!");
 
-            logAuction("SOLD", listing.sellerName, listing.item.getDisplayName(), saleAmount,
+            logAuction("SOLD", listing.sellerName, itemDisplayName, saleAmount,
                 "Winner: " + listing.highBidderName + ", Tax: " + tax);
         } else {
             // No bids - return item to seller
-            AuctionClaim returnClaim = AuctionClaim.createItemClaim(
+            AuctionClaim returnClaim = AuctionClaim.createItemReturnedClaim(
                 listing.sellerUUID, listing.sellerName, listing.id, listing.item);
             addClaim(returnClaim);
 
             queueNotification(listing.sellerUUID, EnumNotificationType.AUCTION_EXPIRED, listing.id,
-                "Your auction for " + listing.item.getDisplayName() + " expired with no bids.");
+                "Your auction for " + itemDisplayName + " expired with no bids.");
 
-            logAuction("EXPIRED", listing.sellerName, listing.item.getDisplayName(), listing.startingPrice, "No bids");
+            logAuction("EXPIRED", listing.sellerName, itemDisplayName, listing.startingPrice, "No bids");
         }
     }
 
@@ -361,7 +365,8 @@ public class AuctionController {
 
                 // Refund bidder
                 AuctionClaim refundClaim = AuctionClaim.createRefundClaim(
-                    listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid);
+                    listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid,
+                    listing.item.getDisplayName(), listing.sellerName);
                 addClaim(refundClaim);
 
                 // Remove from bidder's active bids
@@ -371,7 +376,7 @@ public class AuctionController {
                     "The auction for " + listing.item.getDisplayName() + " was cancelled. Your bid has been refunded.");
 
                 // Return item to seller
-                AuctionClaim itemClaim = AuctionClaim.createItemClaim(
+                AuctionClaim itemClaim = AuctionClaim.createItemReturnedClaim(
                     listing.sellerUUID, listing.sellerName, listing.id, listing.item);
                 addClaim(itemClaim);
 
@@ -380,7 +385,7 @@ public class AuctionController {
                     (isAdmin ? ", Cancelled by admin: " + player.getCommandSenderName() : ""));
             } else {
                 // No bids - just return item
-                AuctionClaim itemClaim = AuctionClaim.createItemClaim(
+                AuctionClaim itemClaim = AuctionClaim.createItemReturnedClaim(
                     listing.sellerUUID, listing.sellerName, listing.id, listing.item);
                 addClaim(itemClaim);
 
@@ -462,7 +467,8 @@ public class AuctionController {
             // Refund previous bidder if any
             if (listing.hasBids() && previousBidder != null) {
                 AuctionClaim refundClaim = AuctionClaim.createRefundClaim(
-                    previousBidder, listing.highBidderName, listing.id, previousBid);
+                    previousBidder, listing.highBidderName, listing.id, previousBid,
+                    listing.item.getDisplayName(), playerName);
                 addClaim(refundClaim);
 
                 // Remove from previous bidder's active bids
@@ -547,7 +553,8 @@ public class AuctionController {
             // Refund previous bidder if any
             if (listing.hasBids() && listing.highBidderUUID != null) {
                 AuctionClaim refundClaim = AuctionClaim.createRefundClaim(
-                    listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid);
+                    listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid,
+                    listing.item.getDisplayName(), playerName);
                 addClaim(refundClaim);
 
                 // Remove from previous bidder's active bids
@@ -558,7 +565,7 @@ public class AuctionController {
             }
 
             // Create claims
-            AuctionClaim itemClaim = AuctionClaim.createItemClaim(playerUUID, playerName, listing.id, listing.item);
+            AuctionClaim itemClaim = AuctionClaim.createItemWonClaim(playerUUID, playerName, listing.id, listing.item);
             addClaim(itemClaim);
 
             long saleAmount = listing.buyoutPrice;
@@ -566,7 +573,8 @@ public class AuctionController {
             long sellerReceives = saleAmount - tax;
 
             AuctionClaim currencyClaim = AuctionClaim.createCurrencyClaim(
-                listing.sellerUUID, listing.sellerName, listing.id, sellerReceives);
+                listing.sellerUUID, listing.sellerName, listing.id, sellerReceives,
+                listing.item.getDisplayName(), playerName);
             addClaim(currencyClaim);
 
             // Notifications

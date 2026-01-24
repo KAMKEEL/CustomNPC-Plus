@@ -30,18 +30,18 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
     private static final ResourceLocation ICON_COIN = new ResourceLocation("customnpcs", "textures/items/npcCoinBronze.png");
     private static final ResourceLocation ICON_BAG = new ResourceLocation("customnpcs", "textures/items/npcBag.png");
 
-    // Layout - non-final for testing/positioning
-    protected int contentX = 50;
-    protected int contentY = 50;
-    protected int confirmBtnX = 180;
-    protected int confirmBtnY = 120;
-    protected int navYBuyout = 109;
+    // Layout
+    private int contentX = 58;
+    private int contentY = 50;
+    private int confirmBtnX = 200;
+    private int confirmBtnY = 118;
+    private int navYBuyout = 109;
 
     // Component IDs
-    private static final int TXT_STARTING_PRICE = 1;
-    private static final int TXT_BUYOUT_PRICE = 2;
-    private static final int BTN_CONFIRM = 10;
-    private static final int BTN_ALLOW_BUYOUT = 11;
+    private int txtStartingPriceId = 1;
+    private int txtBuyoutPriceId = 2;
+    private int btnConfirmId = 10;
+    private int btnAllowBuyoutId = 11;
 
     private final ContainerAuctionSell sellContainer;
     private long startingPrice = 0;
@@ -67,7 +67,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
 
         // Starting Price label and field
         addLabel(new GuiNpcLabel(1, "auction.sell.startingPrice", guiLeft + contentX, y + 5, 0xFFFFFF));
-        GuiNpcTextField startingField = new GuiNpcTextField(TXT_STARTING_PRICE, this, fontRendererObj,
+        GuiNpcTextField startingField = new GuiNpcTextField(txtStartingPriceId, this, fontRendererObj,
             guiLeft + contentX + 80, y, 80, 18, startingPrice > 0 ? String.valueOf(startingPrice) : "");
         startingField.setIntegersOnly();
         addTextField(startingField);
@@ -78,20 +78,20 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         lblBuyout = new GuiNpcLabel(2, "auction.sell.buyoutPrice", guiLeft + contentX, y + 5, 0xFFFFFF);
         addLabel(lblBuyout);
 
-        txtBuyout = new GuiNpcTextField(TXT_BUYOUT_PRICE, this, fontRendererObj,
+        txtBuyout = new GuiNpcTextField(txtBuyoutPriceId, this, fontRendererObj,
             guiLeft + contentX + 80, y, 80, 18, buyoutPrice > 0 ? String.valueOf(buyoutPrice) : "");
         txtBuyout.setIntegersOnly();
         addTextField(txtBuyout);
 
         // Allow Buyout toggle button (18x18 with bag icon)
-        btnAllowBuyout = new GuiAuctionNavButton(BTN_ALLOW_BUYOUT, guiLeft + navX, guiTop + navYBuyout,
+        btnAllowBuyout = new GuiAuctionNavButton(btnAllowBuyoutId, guiLeft + navX, guiTop + navYBuyout,
             "auction.sell.allowBuyout", ICON_BAG);
         btnAllowBuyout.setToggle(true); // This is a toggle, not a nav button
         btnAllowBuyout.setSelected(allowBuyout);
         addButton(btnAllowBuyout);
 
         // Confirm button (custom textured button - using GuiAuctionNavButton)
-        GuiAuctionNavButton btnConfirm = new GuiAuctionNavButton(BTN_CONFIRM, guiLeft + confirmBtnX, guiTop + confirmBtnY,
+        GuiAuctionNavButton btnConfirm = new GuiAuctionNavButton(btnConfirmId, guiLeft + confirmBtnX - 20, guiTop + confirmBtnY - 10,
             "auction.sell.confirm", ICON_COIN);
         addButton(btnConfirm);
 
@@ -141,13 +141,13 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
 
     @Override
     public void unFocused(GuiNpcTextField textfield) {
-        if (textfield.id == TXT_STARTING_PRICE) {
+        if (textfield.id == txtStartingPriceId) {
             try {
                 startingPrice = Long.parseLong(textfield.getText());
             } catch (NumberFormatException e) {
                 startingPrice = 0;
             }
-        } else if (textfield.id == TXT_BUYOUT_PRICE) {
+        } else if (textfield.id == txtBuyoutPriceId) {
             try {
                 String text = textfield.getText().trim();
                 buyoutPrice = text.isEmpty() ? 0 : Long.parseLong(text);
@@ -162,9 +162,9 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
     public void actionPerformed(GuiButton button) {
         super.actionPerformed(button);
 
-        if (button.id == BTN_CONFIRM) {
+        if (button.id == btnConfirmId) {
             createListing();
-        } else if (button.id == BTN_ALLOW_BUYOUT) {
+        } else if (button.id == btnAllowBuyoutId) {
             allowBuyout = !allowBuyout;
             btnAllowBuyout.setSelected(allowBuyout);
             updateBuyoutVisibility();
@@ -175,8 +175,8 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
 
     private void createListing() {
         // Get latest values from text fields
-        GuiNpcTextField startingField = getTextField(TXT_STARTING_PRICE);
-        GuiNpcTextField buyoutField = getTextField(TXT_BUYOUT_PRICE);
+        GuiNpcTextField startingField = getTextField(txtStartingPriceId);
+        GuiNpcTextField buyoutField = getTextField(txtBuyoutPriceId);
 
         if (startingField != null) {
             try {
@@ -234,21 +234,20 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
     @Override
     protected void drawAuctionContent(float partialTicks, int mouseX, int mouseY) {
         // Draw sell slot background (centered in content area)
-        int slotX = guiLeft + contentX + 30;
-        int slotY = guiTop + contentY + 55;
+        int slotX = guiLeft + contentX;
+        int slotY = guiTop + contentY + 50;
         drawAuctionSlot(slotX, slotY);
 
         // Draw listing fee info (uses cached config from server)
         String feeText = StatCollector.translateToLocal("auction.sell.fee")
             .replace("%s", formatCurrency(AuctionClientConfig.getListingFee()) + " " + AuctionClientConfig.getCurrencyName());
-        fontRendererObj.drawString(EnumChatFormatting.GRAY + feeText, guiLeft + contentX, guiTop + contentY + 80, 0xFFFFFF);
+        fontRendererObj.drawString(EnumChatFormatting.GRAY + feeText, guiLeft + contentX, guiTop + contentY + 77, 0xFFFFFF);
 
         // Draw error message if any
         if (errorMessage != null) {
             fontRendererObj.drawString(EnumChatFormatting.RED + errorMessage, guiLeft + contentX, guiTop + contentY + 95, 0xFFFFFF);
         }
 
-        // Draw item count indicator for sell slot
         drawSellSlotIndicator(slotX, slotY);
     }
 
@@ -261,14 +260,11 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
 
             // Color: green if valid, red if over limit
             int color = sellItem.stackSize <= inventoryCount ? 0x55FF55 : 0xFF5555;
-
-            int textWidth = fontRendererObj.getStringWidth(countText);
             fontRendererObj.drawStringWithShadow(countText, slotX + 18 + 4, slotY + 5, color);
         } else {
             // Draw "Place item here" hint
             String hint = StatCollector.translateToLocal("auction.sell.placeItem");
-            int hintWidth = fontRendererObj.getStringWidth(hint);
-            fontRendererObj.drawString(EnumChatFormatting.GRAY + hint, slotX + 9 - hintWidth / 2 + 20, slotY + 5, 0xFFFFFF);
+            fontRendererObj.drawString(EnumChatFormatting.GRAY + hint, slotX + 20, slotY + 5, 0xFFFFFF);
         }
     }
 
@@ -324,7 +320,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         List<String> tooltip = null;
 
         // Check all buttons
-        GuiNpcButton confirmBtn = getButton(BTN_CONFIRM);
+        GuiNpcButton confirmBtn = getButton(btnConfirmId);
         if (confirmBtn instanceof GuiAuctionNavButton) {
             GuiAuctionNavButton btn = (GuiAuctionNavButton) confirmBtn;
             if (btn.isHovered()) {

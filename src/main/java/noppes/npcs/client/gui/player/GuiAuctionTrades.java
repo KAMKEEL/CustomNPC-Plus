@@ -28,6 +28,7 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
     // Icon textures
     private static final ResourceLocation ICON_X = new ResourceLocation("customnpcs", "textures/gui/auction/x_icon.png");
     private static final ResourceLocation ICON_CHECK = new ResourceLocation("customnpcs", "textures/gui/auction/check_icon.png");
+    private static final ResourceLocation ICON_COIN = new ResourceLocation("customnpcs", "textures/items/npcCoinGold.png");
 
     // Grid layout
     private static final int GRID_X = 56;
@@ -37,9 +38,10 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
     private static final int TOTAL_SLOTS = COLS * ROWS;
 
     // Slot tint colors (ARGB)
-    private static final int TINT_BLUE = 0x303060FF;   // Active listing/bid
-    private static final int TINT_GREEN = 0x3030FF60;  // Claimable
-    private static final int TINT_RED = 0x30FF4040;    // Refund
+    private static final int TINT_BLUE = 0x303060FF;   // Active listing/bid (selling)
+    private static final int TINT_GREEN = 0x3030FF30;  // Sold (currency claim) or Won (item claim)
+    private static final int TINT_YELLOW = 0x30FFFF30; // Outbid (refund claim)
+    private static final int TINT_RED = 0x30FF3030;    // Expired/Returned (item returned to seller)
 
     private final ContainerAuctionTrades tradesContainer;
     private int maxTradeSlots;
@@ -88,6 +90,10 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         if (listing != null && tradesContainer.isSellingAt(slot) && mouseButton == 1) {
             // Right-click on own listing = show cancel
             setPending(slot, PendingOp.CANCEL);
+            NoppesUtil.clickSound();
+        } else if (listing != null && tradesContainer.isBiddingAt(slot) && mouseButton == 0) {
+            // Left-click on active bid = open bidding GUI to increase bid
+            AuctionActionPacket.openBidding(listing.id);
             NoppesUtil.clickSound();
         } else if (claim != null && mouseButton == 0) {
             // Left-click on claim = show claim
@@ -156,7 +162,6 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         int col = relX / 18;
         int row = relY / 18;
         if (col >= COLS || row >= ROWS) return -1;
-        if (relX % 18 >= 18 || relY % 18 >= 18) return -1;
 
         return col + row * COLS;
     }
@@ -184,12 +189,18 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
                     drawDarkenedOverlay(x, y);
                 }
 
-                // Pending operation icon
+                // Pending operation icon or currency claim coin
                 if (slot == pendingSlot) {
                     if (pendingOp == PendingOp.CANCEL) {
                         drawIconOverlay(x, y, ICON_X);
                     } else if (pendingOp == PendingOp.CLAIM) {
                         drawIconOverlay(x, y, ICON_CHECK);
+                    }
+                } else {
+                    // Draw coin icon for currency/refund claims (no item in slot)
+                    AuctionClaim claim = tradesContainer.getClaimAt(slot);
+                    if (claim != null && (claim.type == EnumClaimType.CURRENCY || claim.type == EnumClaimType.REFUND)) {
+                        drawIconOverlay(x, y, ICON_COIN);
                     }
                 }
             }
@@ -202,9 +213,22 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         AuctionClaim claim = tradesContainer.getClaimAt(slot);
 
         if (listing != null) {
+            // Active listing or bid - Blue
             return TINT_BLUE;
         } else if (claim != null) {
-            return (claim.type == EnumClaimType.REFUND) ? TINT_RED : TINT_GREEN;
+            switch (claim.type) {
+                case CURRENCY:
+                    // Sold item - Green
+                    return TINT_GREEN;
+                case REFUND:
+                    // Outbid - Yellow
+                    return TINT_YELLOW;
+                case ITEM:
+                    // Won item (green) or Returned/Expired (red)
+                    return claim.isReturned ? TINT_RED : TINT_GREEN;
+                default:
+                    return TINT_GREEN;
+            }
         }
         return 0;
     }
@@ -247,12 +271,37 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
                 } else if (tradesContainer.isBiddingAt(slot)) {
                     tooltip.add(EnumChatFormatting.AQUA + StatCollector.translateToLocal("auction.trades.activeBid"));
                     tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.winningBid"));
+                    tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.leftClickToIncrease"));
                 }
             } else if (claim != null) {
-                if (claim.type == EnumClaimType.REFUND) {
-                    tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocal("auction.trades.refundClaim"));
-                } else {
-                    tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.pendingClaim"));
+                switch (claim.type) {
+                    case CURRENCY:
+                        tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.soldClaim"));
+                        if (!claim.itemName.isEmpty()) {
+                            tooltip.add(EnumChatFormatting.WHITE + claim.itemName);
+                        }
+                        if (!claim.otherPlayerName.isEmpty()) {
+                            tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.buyer") + ": " + EnumChatFormatting.AQUA + claim.otherPlayerName);
+                        }
+                        tooltip.add(EnumChatFormatting.GOLD + String.format("%,d", claim.currency) + " " + AuctionClientConfig.getCurrencyName());
+                        break;
+                    case REFUND:
+                        tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.refundClaim"));
+                        if (!claim.itemName.isEmpty()) {
+                            tooltip.add(EnumChatFormatting.WHITE + claim.itemName);
+                        }
+                        if (!claim.otherPlayerName.isEmpty()) {
+                            tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.outbidBy") + ": " + EnumChatFormatting.AQUA + claim.otherPlayerName);
+                        }
+                        tooltip.add(EnumChatFormatting.GOLD + String.format("%,d", claim.currency) + " " + AuctionClientConfig.getCurrencyName());
+                        break;
+                    case ITEM:
+                        if (claim.isReturned) {
+                            tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocal("auction.trades.expiredClaim"));
+                        } else {
+                            tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.wonClaim"));
+                        }
+                        break;
                 }
                 tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.leftClickToClaim"));
             } else if (slot >= maxTradeSlots) {
@@ -280,7 +329,12 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
-        if (compound.hasKey("TradesUpdate")) {
+        if (compound.hasKey("TradesData")) {
+            // Full trades data received from server
+            tradesContainer.setTradesData(compound);
+            clearPending();
+        } else if (compound.hasKey("TradesUpdate")) {
+            // Legacy flag - should not happen now but keep for safety
             tradesContainer.refreshData();
         }
     }

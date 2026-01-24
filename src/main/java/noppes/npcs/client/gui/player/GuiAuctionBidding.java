@@ -29,20 +29,19 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
     private static final ResourceLocation ICON_BID = new ResourceLocation("customnpcs", "textures/items/npcCoinDiamond.png");
     private static final ResourceLocation ICON_BUYOUT = new ResourceLocation("customnpcs", "textures/items/npcCoinEmerald.png");
 
-    // Layout - non-final for testing/positioning
-    protected int itemSlotX = 56;
-    protected int itemSlotY = 52;
-    protected int btnBidX = 56;
-    protected int btnBidY = 80;
-    protected int btnBuyoutX = 80;
-    protected int btnBuyoutY = 80;
-    protected int infoX = 110;
-    protected int infoY = 50;
-    protected int infoWidth = 130;
+    // Layout
+    private int itemSlotX = 70;
+    private int itemSlotY = 75;
+    private int btnBidX = 58;
+    private int btnBidY = 110;
+    private int btnBuyoutX = 82;
+    private int btnBuyoutY = 110;
+    private int infoX = 110;
+    private int infoY = 50;
 
     // Button IDs
-    private static final int BTN_BID = 200;
-    private static final int BTN_BUYOUT = 201;
+    private int btnBidId = 200;
+    private int btnBuyoutId = 201;
 
     private final ContainerAuctionBidding biddingContainer;
     private AuctionListing listing;
@@ -64,12 +63,12 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         super.initGui();
 
         // Bid button (diamond coin)
-        btnBid = new GuiAuctionNavButton(BTN_BID, guiLeft + btnBidX, guiTop + btnBidY,
+        btnBid = new GuiAuctionNavButton(btnBidId, guiLeft + btnBidX, guiTop + btnBidY,
             "auction.bid.place", ICON_BID);
         addButton(btnBid);
 
         // Buy Now button (emerald coin) - only visible if listing has buyout
-        btnBuyout = new GuiAuctionNavButton(BTN_BUYOUT, guiLeft + btnBuyoutX, guiTop + btnBuyoutY,
+        btnBuyout = new GuiAuctionNavButton(btnBuyoutId, guiLeft + btnBuyoutX, guiTop + btnBuyoutY,
             "auction.bid.buyout", ICON_BUYOUT);
         addButton(btnBuyout);
 
@@ -112,15 +111,12 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
 
         if (listing == null) return;
 
-        switch (button.id) {
-            case BTN_BID:
-                openBidSubGui();
-                break;
-            case BTN_BUYOUT:
-                if (listing.hasBuyout()) {
-                    openBuyNowSubGui();
-                }
-                break;
+        if (button.id == btnBidId) {
+            openBidSubGui();
+        } else if (button.id == btnBuyoutId) {
+            if (listing.hasBuyout()) {
+                openBuyNowSubGui();
+            }
         }
     }
 
@@ -190,38 +186,46 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
 
     /** Draw auction listing information on the right side */
     private void drawAuctionInfo() {
-        int x = guiLeft + infoX;
+        int x = guiLeft + 105;
         int y = guiTop + infoY;
-        int lineHeight = 12;
-        String currencyName = AuctionClientConfig.getCurrencyName();
+        int xRight = guiLeft + 215;
+
+        int lineHeight = 9;
 
         // Seller
         String sellerLabel = StatCollector.translateToLocal("auction.seller").replace("%s", "");
         fontRendererObj.drawString(EnumChatFormatting.GRAY + sellerLabel, x, y, 0xFFFFFF);
-        y += lineHeight;
-        fontRendererObj.drawString(EnumChatFormatting.WHITE + listing.sellerName, x + 10, y, 0xFFFFFF);
+
+        String label = listing.sellerName;
+        int length = fontRendererObj.getStringWidth(label);
+        fontRendererObj.drawString(EnumChatFormatting.WHITE + listing.sellerName, xRight - length, y, 0xFFFFFF);
         y += lineHeight + 4;
 
         // Current Bid or Starting Price
         if (listing.hasBids()) {
-            String bidLabel = StatCollector.translateToLocal("auction.info.currentBid");
+            String bidLabel = StatCollector.translateToLocal("auction.info.currentBid") + ":";
             fontRendererObj.drawString(EnumChatFormatting.YELLOW + bidLabel, x, y, 0xFFFFFF);
-            y += lineHeight;
-            fontRendererObj.drawString(EnumChatFormatting.GOLD + formatCurrency(listing.currentBid) + " " + currencyName, x + 10, y, 0xFFFFFF);
+
+            label = formatCurrency(listing.currentBid);
+            length = fontRendererObj.getStringWidth(label);
+            fontRendererObj.drawString(EnumChatFormatting.GOLD + label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
 
             // Current Bidder
             String bidderLabel = StatCollector.translateToLocal("auction.info.highBidder");
             fontRendererObj.drawString(EnumChatFormatting.GRAY + bidderLabel, x, y, 0xFFFFFF);
-            y += lineHeight;
-            String bidderName = listing.highBidderName != null ? listing.highBidderName : "???";
-            fontRendererObj.drawString(EnumChatFormatting.WHITE + bidderName, x + 10, y, 0xFFFFFF);
+
+            label = listing.highBidderName != null ? listing.highBidderName : "???";
+            length = fontRendererObj.getStringWidth(label);
+            fontRendererObj.drawString(EnumChatFormatting.WHITE + label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
         } else {
             String startLabel = StatCollector.translateToLocal("auction.info.startingPrice");
             fontRendererObj.drawString(EnumChatFormatting.YELLOW + startLabel, x, y, 0xFFFFFF);
-            y += lineHeight;
-            fontRendererObj.drawString(EnumChatFormatting.GOLD + formatCurrency(listing.startingPrice) + " " + currencyName, x + 10, y, 0xFFFFFF);
+
+            label = formatCurrency(listing.startingPrice);
+            length = fontRendererObj.getStringWidth(label);
+            fontRendererObj.drawString(EnumChatFormatting.GOLD +  label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
         }
 
@@ -229,25 +233,31 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         if (listing.hasBuyout()) {
             String buyoutLabel = StatCollector.translateToLocal("auction.info.buyoutPrice");
             fontRendererObj.drawString(EnumChatFormatting.GREEN + buyoutLabel, x, y, 0xFFFFFF);
-            y += lineHeight;
-            fontRendererObj.drawString(EnumChatFormatting.GREEN + formatCurrency(listing.buyoutPrice) + " " + currencyName, x + 10, y, 0xFFFFFF);
+
+            label = formatCurrency(listing.buyoutPrice);
+            length = fontRendererObj.getStringWidth(label);
+            fontRendererObj.drawString(EnumChatFormatting.GREEN +  label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
         }
 
         // Time Remaining
         String timeLabel = StatCollector.translateToLocal("auction.info.timeLeft");
         fontRendererObj.drawString(EnumChatFormatting.GRAY + timeLabel, x, y, 0xFFFFFF);
-        y += lineHeight;
         long timeRemaining = listing.getTimeRemaining();
         EnumChatFormatting timeColor = timeRemaining < 3600000 ? EnumChatFormatting.RED : EnumChatFormatting.WHITE;
-        fontRendererObj.drawString(timeColor + formatTimeRemaining(timeRemaining), x + 10, y, 0xFFFFFF);
+
+        label = timeColor + formatTimeRemaining(timeRemaining);
+        length = fontRendererObj.getStringWidth(label);
+        fontRendererObj.drawString(label, xRight - length, y, 0xFFFFFF);
         y += lineHeight + 4;
 
         // Bid Count
         String bidCountLabel = StatCollector.translateToLocal("auction.info.bidCount");
         fontRendererObj.drawString(EnumChatFormatting.GRAY + bidCountLabel, x, y, 0xFFFFFF);
-        y += lineHeight;
-        fontRendererObj.drawString(EnumChatFormatting.WHITE + String.valueOf(listing.bidCount), x + 10, y, 0xFFFFFF);
+
+        label =  String.valueOf(listing.bidCount);
+        length = fontRendererObj.getStringWidth(label);
+        fontRendererObj.drawString(EnumChatFormatting.WHITE + label, xRight - length, y, 0xFFFFFF);
     }
 
     @Override

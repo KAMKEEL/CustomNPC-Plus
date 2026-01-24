@@ -1820,6 +1820,8 @@ auction.trades.confirmClaim=Claim Item?
 auction.trades.rightClickConfirm=Right-click again to confirm
 auction.trades.leftClickConfirm=Left-click again to confirm
 auction.trades.otherClickCancel=Any other click to cancel
+auction.trades.buyer=Buyer
+auction.trades.outbidBy=Outbid by
 
 # Sell Page - Buyout Toggle
 auction.sell.allowBuyout=Allow Buy Now

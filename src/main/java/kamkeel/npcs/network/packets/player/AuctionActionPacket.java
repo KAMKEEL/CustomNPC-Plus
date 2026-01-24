@@ -20,6 +20,7 @@ import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.AuctionController;
+import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
 
@@ -176,8 +177,18 @@ public class AuctionActionPacket extends AbstractPacket {
         if (npc.advanced.role != EnumRoleType.Auctioneer) return;
         if (!ConfigMarket.AuctionEnabled) return;
 
-        Action requestedAction = Action.values()[in.readInt()];
+        int actionOrdinal = in.readInt();
+        if (actionOrdinal < 0 || actionOrdinal >= Action.values().length) {
+            return; // Invalid action
+        }
+        Action requestedAction = Action.values()[actionOrdinal];
+
         AuctionController controller = AuctionController.getInstance();
+        if (controller == null) {
+            sendError(playerMP, "Auction system is not available.");
+            return;
+        }
+
         String result = null;
 
         switch (requestedAction) {
@@ -292,8 +303,10 @@ public class AuctionActionPacket extends AbstractPacket {
 
         String result = controller.createListing(player, item, startingPrice, buyoutPrice);
         if (result != null) {
-            // Failed - return item
-            player.inventory.addItemStackToInventory(item);
+            // Failed - return item (drop if inventory full to prevent item loss)
+            if (!player.inventory.addItemStackToInventory(item)) {
+                player.entityDropItem(item, 0.5f);
+            }
         }
         return result;
     }
@@ -308,6 +321,46 @@ public class AuctionActionPacket extends AbstractPacket {
             default: guiType = EnumGuiType.PlayerAuction; break;
         }
         NoppesUtilServer.sendOpenGui(player, guiType, npc);
+
+        // Send trades data when opening the trades page
+        if (page == 2) {
+            AuctionController controller = AuctionController.getInstance();
+            if (controller != null) {
+                sendTradesData(player, controller);
+            }
+        }
+    }
+
+    /** Send full trades data to player (listings, bids, claims) */
+    private void sendTradesData(EntityPlayerMP player, AuctionController controller) {
+        NBTTagCompound response = new NBTTagCompound();
+        response.setBoolean("TradesData", true);
+
+        // Active listings (items player is selling)
+        List<AuctionListing> listings = controller.getPlayerActiveListings(player.getUniqueID());
+        NBTTagList listingsNBT = new NBTTagList();
+        for (AuctionListing listing : listings) {
+            listingsNBT.appendTag(listing.writeToNBT(new NBTTagCompound()));
+        }
+        response.setTag("ActiveListings", listingsNBT);
+
+        // Active bids (items player is bidding on)
+        List<AuctionListing> bids = controller.getPlayerActiveBids(player.getUniqueID());
+        NBTTagList bidsNBT = new NBTTagList();
+        for (AuctionListing bid : bids) {
+            bidsNBT.appendTag(bid.writeToNBT(new NBTTagCompound()));
+        }
+        response.setTag("ActiveBids", bidsNBT);
+
+        // Claims (items/currency to claim)
+        List<AuctionClaim> claims = controller.getPlayerClaims(player.getUniqueID());
+        NBTTagList claimsNBT = new NBTTagList();
+        for (AuctionClaim claim : claims) {
+            claimsNBT.appendTag(claim.writeToNBT(new NBTTagCompound()));
+        }
+        response.setTag("Claims", claimsNBT);
+
+        GuiDataPacket.sendGuiData(player, response);
     }
 
     private void handleOpenBidding(ByteBuf in, EntityPlayerMP player, AuctionController controller) throws IOException {
@@ -368,15 +421,67 @@ public class AuctionActionPacket extends AbstractPacket {
     // Helpers
     // =========================================
 
-    private boolean removeItemFromInventory(EntityPlayerMP player, ItemStack target) {
-        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-            ItemStack stack = player.inventory.getStackInSlot(i);
-            if (stack != null && ItemStack.areItemStacksEqual(stack, target)) {
-                player.inventory.setInventorySlotContents(i, null);
-                return true;
+    /**
+     * Checks if two ItemStacks are the same type (item, damage, NBT) ignoring stack size.
+     */
+    private boolean areItemsSameType(ItemStack item1, ItemStack item2) {
+        if (item1 == null || item2 == null)
+            return item1 == item2;
+        if (item1.getItem() != item2.getItem())
+            return false;
+        if (item1.getItemDamage() != item2.getItemDamage())
+            return false;
+        return ItemStack.areItemStackTagsEqual(item1, item2);
+    }
+
+    /**
+     * Counts total matching items across all inventory stacks.
+     */
+    private int countItemsInInventory(EntityPlayerMP player, ItemStack target) {
+        int count = 0;
+        for (int i = 0; i < player.inventory.mainInventory.length; i++) {
+            ItemStack stack = player.inventory.mainInventory[i];
+            if (stack != null && areItemsSameType(stack, target)) {
+                count += stack.stackSize;
             }
         }
-        return false;
+        return count;
+    }
+
+    /**
+     * Removes items from inventory, consuming from multiple stacks if needed.
+     * Returns true if successful, false if not enough items.
+     */
+    private boolean removeItemFromInventory(EntityPlayerMP player, ItemStack target) {
+        if (target == null) return false;
+
+        int needed = target.stackSize;
+
+        // First verify player has enough total items
+        int available = countItemsInInventory(player, target);
+        if (available < needed) {
+            return false;
+        }
+
+        // Consume items from matching stacks
+        for (int i = 0; i < player.inventory.mainInventory.length && needed > 0; i++) {
+            ItemStack stack = player.inventory.mainInventory[i];
+            if (stack == null || !areItemsSameType(stack, target))
+                continue;
+
+            if (needed >= stack.stackSize) {
+                // Need entire stack
+                needed -= stack.stackSize;
+                player.inventory.mainInventory[i] = null;
+            } else {
+                // Need only part of stack
+                stack.splitStack(needed);
+                needed = 0;
+            }
+        }
+
+        player.inventory.markDirty();
+        return true;
     }
 
     private void sendError(EntityPlayerMP player, String message) {
@@ -385,9 +490,11 @@ public class AuctionActionPacket extends AbstractPacket {
     }
 
     private void sendTradesUpdate(EntityPlayerMP player) {
-        NBTTagCompound compound = new NBTTagCompound();
-        compound.setBoolean("TradesUpdate", true);
-        GuiDataPacket.sendGuiData(player, compound);
+        // Send full trades data to refresh the client
+        AuctionController controller = AuctionController.getInstance();
+        if (controller != null) {
+            sendTradesData(player, controller);
+        }
     }
 
     private void sendListingsUpdate(EntityPlayerMP player) {
