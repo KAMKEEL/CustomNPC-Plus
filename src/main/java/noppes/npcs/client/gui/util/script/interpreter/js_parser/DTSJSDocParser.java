@@ -16,13 +16,13 @@ public class DTSJSDocParser {
         "@(\\w+)(?:\\s+(.*))?");
     
     private static final Pattern PARAM_PATTERN = Pattern.compile(
-        "@param\\s+(?:\\{([^}]+)\\}\\s+)?(\\w+)(?:\\s+(.*))?");
+        "@param(?:\\s+\\{([^}]+)\\})?(?:\\s+(\\w+))?(?:\\s+(.*))?");
     
     private static final Pattern RETURN_PATTERN = Pattern.compile(
         "@returns?\\s+(?:\\{([^}]+)\\}\\s*)?(.*)");
     
     private static final Pattern TYPE_PATTERN = Pattern.compile(
-        "@type\\s+\\{([^}]+)\\}(?:\\s+(.*))?");
+        "@type(?:\\s+\\{([^}]+)\\})?(?:\\s+(.*))?");
     
     public static JSDocInfo parseJSDocBlock(String jsDocContent) {
         if (jsDocContent == null || jsDocContent.isEmpty()) {
@@ -85,8 +85,18 @@ public class DTSJSDocParser {
             String type = paramMatcher.group(1);
             String name = paramMatcher.group(2);
             String desc = paramMatcher.group(3);
+            if (desc == null && type == null && name != null) {
+                desc = name;
+                name = null;
+            }
+            if (desc != null) {
+                desc = desc.trim();
+                if (desc.isEmpty()) {
+                    desc = null;
+                }
+            }
             JSDocParamTag tag = JSDocParamTag.create(-1, -1, -1,
-                type, null, -1, -1, name, -1, -1, desc != null ? desc.trim() : null);
+                type, null, -1, -1, name, -1, -1, desc);
             info.addParamTag(tag);
             return tag;
         }
@@ -111,8 +121,14 @@ public class DTSJSDocParser {
         if (typeMatcher.find()) {
             String type = typeMatcher.group(1);
             String desc = typeMatcher.group(2);
+            if (desc != null) {
+                desc = desc.trim();
+                if (desc.isEmpty()) {
+                    desc = null;
+                }
+            }
             JSDocTypeTag tag = JSDocTypeTag.create(-1, -1, -1,
-                type, null, -1, -1, desc != null ? desc.trim() : null);
+                type, null, -1, -1, desc);
             info.setTypeTag(tag);
             return tag;
         }

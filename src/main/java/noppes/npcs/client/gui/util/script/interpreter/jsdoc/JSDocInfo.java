@@ -87,7 +87,8 @@ public class JSDocInfo {
 
     public JSDocParamTag getParamTag(String paramName) {
         for (JSDocParamTag tag : paramTags) {
-            if (tag.getParamName().equals(paramName)) {
+            String tagName = tag.getParamName();
+            if (tagName != null && tagName.equals(paramName)) {
                 return tag;
             }
         }

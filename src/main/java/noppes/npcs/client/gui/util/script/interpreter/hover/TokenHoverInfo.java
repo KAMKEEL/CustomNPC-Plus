@@ -1166,10 +1166,14 @@ public class TokenHoverInfo {
 
                 // Indent and parameter name
                 String paramName = paramTag.getParamName();
-                boolean paramExists = methodParams != null && methodParams.stream()
+                if (paramName == null || paramName.isEmpty()) {
+                    paramLine.addSegment("param", TokenType.JSDOC_TAG.getHexColor());
+                } else {
+                    boolean paramExists = methodParams != null && methodParams.stream()
                                                                           .anyMatch(p -> p.getName().equals(paramName));
-                paramLine.addSegment(paramName,
-                        paramExists ? TokenType.PARAMETER.getHexColor() : TokenType.UNDEFINED_VAR.getHexColor());
+                    paramLine.addSegment(paramName,
+                            paramExists ? TokenType.PARAMETER.getHexColor() : TokenType.UNDEFINED_VAR.getHexColor());
+                }
 
                 // Type if available
                 if (paramTag.hasType()) {
