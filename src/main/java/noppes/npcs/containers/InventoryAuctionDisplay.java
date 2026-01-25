@@ -3,7 +3,6 @@ package noppes.npcs.containers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import noppes.npcs.CustomItems;
 import noppes.npcs.constants.EnumClaimType;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionListing;
@@ -49,19 +48,26 @@ public class InventoryAuctionDisplay implements IInventory {
 
     /**
      * Set a claim item in the inventory.
-     * For ITEM claims, shows the item.
-     * For CURRENCY/REFUND claims, shows a gold coin as visual representation.
+     * Shows actual item for ITEM claims.
+     * For CURRENCY claims, shows coin icon (null item).
+     * For REFUND claims, shows item if present (for rebid option), otherwise coin icon.
      */
     public void setClaimItem(int slot, AuctionClaim claim) {
         if (slot >= 0 && slot < size) {
             claims.set(slot, claim);
             listings.set(slot, null);
             if (claim != null) {
-                if (claim.type == EnumClaimType.ITEM && claim.item != null) {
-                    items[slot] = claim.item;
+                if (claim.type == EnumClaimType.CURRENCY) {
+                    // Sold - gold coin icon drawn by GUI
+                    items[slot] = null;
+                } else if (claim.type == EnumClaimType.REFUND) {
+                    // Outbid - show item if present (for rebid), otherwise coin
+                    items[slot] = claim.item != null ? claim.item.copy() : null;
+                } else if (claim.item != null) {
+                    // Show actual item for ITEM claims
+                    items[slot] = claim.item.copy();
                 } else {
-                    // For currency claims, show a gold coin
-                    items[slot] = new ItemStack(CustomItems.coinGold);
+                    items[slot] = null;
                 }
             } else {
                 items[slot] = null;

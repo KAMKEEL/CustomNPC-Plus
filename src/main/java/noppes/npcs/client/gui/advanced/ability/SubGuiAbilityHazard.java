@@ -47,9 +47,9 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Damage Per Tick + Damage Interval
-        addLabel(new GuiNpcLabel(104, "ability.dmgPerTick", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, hazard.getDamagePerTick()));
+        // Row 3: Damage Per Second + Damage Interval
+        addLabel(new GuiNpcLabel(104, "ability.dmgPerSec", labelX, y + 5));
+        addTextField(createFloatField(104, fieldX, y, 50, hazard.getDamagePerSecond()));
 
         addLabel(new GuiNpcLabel(105, "ability.dmgInterval", col2LabelX, y + 5));
         addTextField(createIntField(105, col2FieldX, y, 50, hazard.getDamageInterval()));
@@ -99,7 +99,7 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
                 hazard.setInnerRadius(parseFloat(field, hazard.getInnerRadius()));
                 break;
             case 104:
-                hazard.setDamagePerTick(parseFloat(field, hazard.getDamagePerTick()));
+                hazard.setDamagePerSecond(parseFloat(field, hazard.getDamagePerSecond()));
                 break;
             case 105:
                 hazard.setDamageInterval(field.getInteger());

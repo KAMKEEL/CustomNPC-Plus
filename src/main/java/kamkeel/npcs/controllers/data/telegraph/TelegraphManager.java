@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.telegraph;
+package kamkeel.npcs.controllers.data.telegraph;
 
 import net.minecraft.world.World;
 
@@ -95,7 +95,7 @@ public class TelegraphManager {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // HELPER METHODS FOR ABILITIES
+    // HELPER METHODS FOR SPAWNING
     // ═══════════════════════════════════════════════════════════════════
 
     /**

@@ -13,10 +13,10 @@ import noppes.npcs.entity.EntityNPCInterface;
  * Items are cloned from inventory, not moved. Validation happens on submit.
  */
 public class ContainerAuctionSell extends ContainerAuction {
-    public static final int SELL_SLOT_X = 101;
-    public static final int SELL_SLOT_Y = 106;
-    public static final int SELL_SLOT_INDEX = PLAYER_INV_SLOT_COUNT;
-    private static final int MAX_STACK = 64;
+    private int sellSlotX = 59;
+    private int sellSlotY = 101;
+    private int sellSlotIndex = PLAYER_INV_SLOT_COUNT;
+    private int maxStack = 64;
 
     private final IInventory sellInventory;
 
@@ -25,7 +25,7 @@ public class ContainerAuctionSell extends ContainerAuction {
         sellInventory = new InventoryBasic("Sell", false, 1);
 
         // Sell slot blocks direct interaction
-        addSlotToContainer(new Slot(sellInventory, 0, SELL_SLOT_X, SELL_SLOT_Y) {
+        addSlotToContainer(new Slot(sellInventory, 0, sellSlotX, sellSlotY) {
             @Override
             public boolean isItemValid(ItemStack stack) { return false; }
             @Override
@@ -59,11 +59,11 @@ public class ContainerAuctionSell extends ContainerAuction {
         if (sellStack == null) {
             // Empty slot - create new stack
             ItemStack newStack = source.copy();
-            newStack.stackSize = Math.min(toAdd, MAX_STACK);
+            newStack.stackSize = Math.min(toAdd, maxStack);
             sellInventory.setInventorySlotContents(0, newStack);
         } else if (itemsMatch(sellStack, source)) {
             // Same item - add to existing (capped at 64)
-            int space = MAX_STACK - sellStack.stackSize;
+            int space = maxStack - sellStack.stackSize;
             int add = Math.min(toAdd, space);
             if (add > 0) {
                 sellStack.stackSize += add;
@@ -71,7 +71,7 @@ public class ContainerAuctionSell extends ContainerAuction {
         } else {
             // Different item - replace
             ItemStack newStack = source.copy();
-            newStack.stackSize = Math.min(toAdd, MAX_STACK);
+            newStack.stackSize = Math.min(toAdd, maxStack);
             sellInventory.setInventorySlotContents(0, newStack);
         }
     }
@@ -93,7 +93,7 @@ public class ContainerAuctionSell extends ContainerAuction {
 
     /** Check if sell slot is this container slot index */
     public boolean isSellSlot(int slotIndex) {
-        return slotIndex == SELL_SLOT_INDEX;
+        return slotIndex == sellSlotIndex;
     }
 
     /** Check if two stacks match using NoppesUtilPlayer.compareItems (same item, damage, and NBT) */

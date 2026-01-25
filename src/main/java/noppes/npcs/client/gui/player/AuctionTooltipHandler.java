@@ -8,7 +8,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.AuctionClientConfig;
+import noppes.npcs.constants.EnumClaimType;
 import noppes.npcs.containers.ContainerAuctionListing;
+import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.containers.ContainerAuctionTrades;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionListing;
@@ -41,6 +43,10 @@ public class AuctionTooltipHandler {
         else if (screen instanceof GuiAuctionTrades) {
             addTradesTooltip((GuiAuctionTrades) screen, stack, tooltip);
         }
+        // Check if we're in the sell GUI
+        else if (screen instanceof GuiAuctionSell) {
+            addSellTooltip((GuiAuctionSell) screen, stack, tooltip);
+        }
     }
 
     /**
@@ -54,10 +60,7 @@ public class AuctionTooltipHandler {
         AuctionListing listing = container.getListingForItem(stack);
         if (listing == null) return;
 
-        // Add separator
         tooltip.add("");
-        tooltip.add(EnumChatFormatting.DARK_GRAY + "--- " + EnumChatFormatting.GOLD +
-            StatCollector.translateToLocal("auction.title") + EnumChatFormatting.DARK_GRAY + " ---");
 
         // Seller
         tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.seller")
@@ -94,22 +97,21 @@ public class AuctionTooltipHandler {
         ContainerAuctionTrades container = (ContainerAuctionTrades) gui.inventorySlots;
         if (container == null) return;
 
-        // Check if it's an active listing
-        AuctionListing listing = container.getListingForItem(stack);
-        if (listing != null) {
+        // Check if it's an item I'm selling
+        AuctionListing sellingListing = container.getSellingListingForItem(stack);
+        if (sellingListing != null) {
             tooltip.add("");
-            tooltip.add(EnumChatFormatting.DARK_GRAY + "--- " + EnumChatFormatting.GOLD +
-                StatCollector.translateToLocal("auction.trades.activeListing") + EnumChatFormatting.DARK_GRAY + " ---");
+            tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.selling"));
 
-            if (listing.hasBids()) {
+            if (sellingListing.hasBids()) {
                 tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.currentBid")
-                    .replace("%s", EnumChatFormatting.GOLD + formatCurrency(listing.currentBid)));
-                tooltip.add(EnumChatFormatting.GRAY + String.format(StatCollector.translateToLocal("auction.bids"), listing.bidCount));
+                    .replace("%s", EnumChatFormatting.GOLD + formatCurrency(sellingListing.currentBid)));
+                tooltip.add(EnumChatFormatting.GRAY + String.format(StatCollector.translateToLocal("auction.bids"), sellingListing.bidCount));
             } else {
                 tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.noBids"));
             }
 
-            long timeRemaining = listing.getTimeRemaining();
+            long timeRemaining = sellingListing.getTimeRemaining();
             String timeText = StatCollector.translateToLocal("auction.timeLeft")
                 .replace("%s", formatTimeRemaining(timeRemaining));
             tooltip.add((timeRemaining < 3600000 ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
@@ -119,29 +121,65 @@ public class AuctionTooltipHandler {
             return;
         }
 
+        // Check if it's an item I'm bidding on
+        AuctionListing biddingListing = container.getBiddingListingForItem(stack);
+        if (biddingListing != null) {
+            tooltip.add("");
+            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.bidding"));
+
+            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.currentBid")
+                .replace("%s", EnumChatFormatting.GOLD + formatCurrency(biddingListing.currentBid)));
+            tooltip.add(EnumChatFormatting.GRAY + String.format(StatCollector.translateToLocal("auction.bids"), biddingListing.bidCount));
+
+            long timeRemaining = biddingListing.getTimeRemaining();
+            String timeText = StatCollector.translateToLocal("auction.timeLeft")
+                .replace("%s", formatTimeRemaining(timeRemaining));
+            tooltip.add((timeRemaining < 3600000 ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
+
+            tooltip.add("");
+            tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.clickToRebid"));
+            return;
+        }
+
         // Check if it's a claim
         AuctionClaim claim = container.getClaimForItem(stack);
         if (claim != null) {
             tooltip.add("");
 
-            String claimTitle;
+            // Title based on claim type
             switch (claim.type) {
                 case ITEM:
-                    claimTitle = StatCollector.translateToLocal("auction.claim.item");
+                    if (claim.isReturned) {
+                        // Expired - returned to seller
+                        tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocal("auction.trades.expired"));
+                    } else {
+                        // Won item
+                        tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.won"));
+                    }
                     break;
                 case CURRENCY:
-                    claimTitle = StatCollector.translateToLocal("auction.claim.currency");
+                    // Sold - money to claim
+                    tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.sold"));
+                    if (claim.itemName != null && !claim.itemName.isEmpty()) {
+                        tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.claim.soldItem")
+                            .replace("%s", EnumChatFormatting.WHITE + claim.itemName));
+                    }
+                    if (claim.otherPlayerName != null && !claim.otherPlayerName.isEmpty()) {
+                        tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.claim.buyer")
+                            .replace("%s", EnumChatFormatting.WHITE + claim.otherPlayerName));
+                    }
                     break;
                 case REFUND:
-                    claimTitle = StatCollector.translateToLocal("auction.claim.refund");
+                    // Outbid - refund available
+                    tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocal("auction.trades.outbid"));
+                    if (claim.otherPlayerName != null && !claim.otherPlayerName.isEmpty()) {
+                        tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.claim.outbidBy")
+                            .replace("%s", EnumChatFormatting.WHITE + claim.otherPlayerName));
+                    }
                     break;
-                default:
-                    claimTitle = "Claim";
             }
 
-            tooltip.add(EnumChatFormatting.DARK_GRAY + "--- " + EnumChatFormatting.GOLD +
-                claimTitle + EnumChatFormatting.DARK_GRAY + " ---");
-
+            // Amount for currency claims (including REFUND)
             if (claim.type.isCurrency()) {
                 tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.claim.amount")
                     .replace("%s", EnumChatFormatting.GOLD + formatCurrency(claim.currency)));
@@ -158,8 +196,38 @@ public class AuctionTooltipHandler {
             }
 
             tooltip.add("");
-            tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.claim.clickToClaim"));
+
+            // Show rebid option for REFUND claims with item (active auction)
+            if (claim.type == EnumClaimType.REFUND && claim.item != null) {
+                tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.leftClickRebid"));
+                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.rightClickRefund"));
+            } else {
+                tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.claim.clickToClaim"));
+            }
         }
+    }
+
+    /**
+     * Add sell page tooltip info.
+     */
+    private static void addSellTooltip(GuiAuctionSell gui, ItemStack stack, List<String> tooltip) {
+        ContainerAuctionSell container = (ContainerAuctionSell) gui.inventorySlots;
+        if (container == null) return;
+
+        // Check if this is the sell slot item
+        ItemStack sellItem = container.getItemToSell();
+        if (sellItem != null && ItemStack.areItemStacksEqual(stack, sellItem)) {
+            // This is the item in the sell slot
+            tooltip.add("");
+            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.sell.leftClear"));
+            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.sell.rightRemove"));
+            return;
+        }
+
+        // This is an inventory item - show add controls
+        tooltip.add("");
+        tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.leftAdd"));
+        tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.rightAddOne"));
     }
 
     /**

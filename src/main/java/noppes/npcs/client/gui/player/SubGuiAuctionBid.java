@@ -16,9 +16,9 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
  * Shows minimum bid, player balance, and input field.
  */
 public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListener {
-    private static final int TXT_BID = 1;
-    private static final int BTN_BID = 10;
-    private static final int BTN_CANCEL = 11;
+    private int txtBidId = 1;
+    private int btnBidId = 10;
+    private int btnCancelId = 11;
 
     private final String listingId;
     private final long minimumBid;
@@ -47,25 +47,21 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
         int y = guiTop + 15;
         String currencyName = AuctionClientConfig.getCurrencyName();
 
-        // Title
-        addLabel(new GuiNpcLabel(0, "auction.bid.title", centerX - 50, y, 0xFFFFFF));
-        y += 18;
-
         // Minimum bid info
         String minText = StatCollector.translateToLocal("auction.bid.minimum")
-            .replace("%s", EnumChatFormatting.GOLD + formatCurrency(minimumBid) + " " + currencyName);
-        addLabel(new GuiNpcLabel(1, minText, guiLeft + 15, y, 0xAAAAAA));
+            .replace("%s", EnumChatFormatting.DARK_RED + formatCurrency(minimumBid) + " " + currencyName);
+        addLabel(new GuiNpcLabel(1, minText, guiLeft + 15, y));
         y += 14;
 
         // Your balance
         String balanceText = StatCollector.translateToLocal("auction.bid.yourBalance")
-            .replace("%s", EnumChatFormatting.WHITE + formatCurrency(playerBalance) + " " + currencyName);
-        addLabel(new GuiNpcLabel(2, balanceText, guiLeft + 15, y, 0xAAAAAA));
+            .replace("%s", EnumChatFormatting.DARK_GREEN + formatCurrency(playerBalance) + " " + currencyName);
+        addLabel(new GuiNpcLabel(2, balanceText, guiLeft + 15, y));
         y += 18;
 
         // Bid amount field
-        addLabel(new GuiNpcLabel(3, "auction.bid.yourBid", guiLeft + 15, y + 4, 0xFFFFFF));
-        GuiNpcTextField bidField = new GuiNpcTextField(TXT_BID, this, fontRendererObj,
+        addLabel(new GuiNpcLabel(3, "auction.bid.yourBid", guiLeft + 15, y + 4));
+        GuiNpcTextField bidField = new GuiNpcTextField(txtBidId, this, fontRendererObj,
             guiLeft + 80, y, 100, 18, String.valueOf(minimumBid));
         bidField.setIntegersOnly();
         addTextField(bidField);
@@ -81,13 +77,13 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
         int totalBtnWidth = btnWidth * 2 + btnSpacing;
         int btnX = centerX - totalBtnWidth / 2;
 
-        addButton(new GuiNpcButton(BTN_BID, btnX, y, btnWidth, 20, "auction.bid.placeBid"));
-        addButton(new GuiNpcButton(BTN_CANCEL, btnX + btnWidth + btnSpacing, y, btnWidth, 20, "gui.cancel"));
+        addButton(new GuiNpcButton(btnBidId, btnX, y, btnWidth, 20, "auction.bid.placeBid"));
+        addButton(new GuiNpcButton(btnCancelId, btnX + btnWidth + btnSpacing, y, btnWidth, 20, "gui.cancel"));
     }
 
     @Override
     public void unFocused(GuiNpcTextField textfield) {
-        if (textfield.id == TXT_BID) {
+        if (textfield.id == txtBidId) {
             try {
                 bidAmount = Long.parseLong(textfield.getText());
             } catch (NumberFormatException e) {
@@ -100,19 +96,16 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
 
     @Override
     public void buttonEvent(GuiButton button) {
-        switch (button.id) {
-            case BTN_BID:
-                placeBid();
-                break;
-            case BTN_CANCEL:
-                close();
-                break;
+        if (button.id == btnBidId) {
+            placeBid();
+        } else if (button.id == btnCancelId) {
+            close();
         }
     }
 
     private void placeBid() {
         // Get latest value from text field
-        GuiNpcTextField bidField = getTextField(TXT_BID);
+        GuiNpcTextField bidField = getTextField(txtBidId);
         if (bidField != null) {
             try {
                 bidAmount = Long.parseLong(bidField.getText());

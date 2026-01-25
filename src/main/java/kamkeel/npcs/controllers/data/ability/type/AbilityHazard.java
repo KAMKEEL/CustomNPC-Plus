@@ -4,8 +4,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
@@ -48,7 +48,7 @@ public class AbilityHazard extends Ability {
     private HazardShape shape = HazardShape.CIRCLE;
     private PlacementMode placement = PlacementMode.AT_TARGET;
 
-    private float damagePerTick = 1.0f;
+    private float damagePerSecond = 1.0f;
     private int damageInterval = 20;
     private boolean ignoreInvulnFrames = false;
 
@@ -290,12 +290,12 @@ public class AbilityHazard extends Ability {
                 if (damagedThisTick.contains(entity.getEntityId())) continue;
                 if (!isInZone(entity, npc)) continue;
 
-                if (damagePerTick > 0) {
+                if (damagePerSecond > 0) {
                     if (ignoreInvulnFrames) {
                         entity.hurtResistantTime = 0;
                     }
-                    // Apply damage with scripted event support (no knockback for hazard ticks)
-                    boolean wasHit = applyAbilityDamage(npc, entity, damagePerTick, 0);
+                    // Apply damage with scripted event support (no knockback for hazard)
+                    boolean wasHit = applyAbilityDamage(npc, entity, damagePerSecond, 0);
                     if (!wasHit) continue; // Skip debuffs if hit was cancelled
                 }
 
@@ -369,7 +369,7 @@ public class AbilityHazard extends Ability {
         nbt.setFloat("coneAngle", coneAngle);
         nbt.setString("shape", shape.name());
         nbt.setString("placement", placement.name());
-        nbt.setFloat("damagePerTick", damagePerTick);
+        nbt.setFloat("damagePerSecond", damagePerSecond);
         nbt.setInteger("damageInterval", damageInterval);
         nbt.setBoolean("ignoreInvulnFrames", ignoreInvulnFrames);
         nbt.setInteger("slownessLevel", slownessLevel);
@@ -401,7 +401,14 @@ public class AbilityHazard extends Ability {
         } catch (Exception e) {
             this.placement = PlacementMode.AT_TARGET;
         }
-        this.damagePerTick = nbt.hasKey("damagePerTick") ? nbt.getFloat("damagePerTick") : 1.0f;
+        // Support legacy "damagePerTick" key for backwards compatibility
+        if (nbt.hasKey("damagePerSecond")) {
+            this.damagePerSecond = nbt.getFloat("damagePerSecond");
+        } else if (nbt.hasKey("damagePerTick")) {
+            this.damagePerSecond = nbt.getFloat("damagePerTick");
+        } else {
+            this.damagePerSecond = 1.0f;
+        }
         this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 20;
         this.ignoreInvulnFrames = nbt.hasKey("ignoreInvulnFrames") && nbt.getBoolean("ignoreInvulnFrames");
         this.slownessLevel = nbt.hasKey("slownessLevel") ? nbt.getInteger("slownessLevel") : -1;
@@ -459,12 +466,24 @@ public class AbilityHazard extends Ability {
         this.placement = placement;
     }
 
-    public float getDamagePerTick() {
-        return damagePerTick;
+    public float getDamagePerSecond() {
+        return damagePerSecond;
     }
 
-    public void setDamagePerTick(float damagePerTick) {
-        this.damagePerTick = damagePerTick;
+    public void setDamagePerSecond(float damagePerSecond) {
+        this.damagePerSecond = damagePerSecond;
+    }
+
+    /** @deprecated Use {@link #getDamagePerSecond()} instead */
+    @Deprecated
+    public float getDamagePerTick() {
+        return damagePerSecond;
+    }
+
+    /** @deprecated Use {@link #setDamagePerSecond(float)} instead */
+    @Deprecated
+    public void setDamagePerTick(float damage) {
+        this.damagePerSecond = damage;
     }
 
     public int getDamageInterval() {

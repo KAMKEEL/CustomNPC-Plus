@@ -110,6 +110,9 @@ public class CustomNpcsPermissions {
     public static final Permission PROFILE_REGION_BYPASS = new Permission("customnpcs.profile.region-bypass");
     public static final Permission PROFILE_MAX = new Permission("customnpcs.profile.max.*");
 
+    // Auction
+    public static final Permission AUCTION_TRADES_MAX = new Permission("customnpcs.auction.trades.*");
+
     public static CustomNpcsPermissions Instance;
     private Method hasPermission;
 

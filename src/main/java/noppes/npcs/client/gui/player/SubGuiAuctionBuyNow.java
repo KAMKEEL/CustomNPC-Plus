@@ -14,8 +14,8 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
  * Shows buyout price, player balance, and confirmation buttons.
  */
 public class SubGuiAuctionBuyNow extends SubGuiInterface {
-    private static final int BTN_CONFIRM = 10;
-    private static final int BTN_CANCEL = 11;
+    private int btnConfirmId = 10;
+    private int btnCancelId = 11;
 
     private final String listingId;
     private final long buyoutPrice;
@@ -44,25 +44,25 @@ public class SubGuiAuctionBuyNow extends SubGuiInterface {
         // Title
         String title = StatCollector.translateToLocal("auction.buyout.title");
         int titleWidth = fontRendererObj.getStringWidth(title);
-        addLabel(new GuiNpcLabel(0, title, centerX - titleWidth / 2, y, 0xFFFFFF));
+        addLabel(new GuiNpcLabel(0, title, centerX - titleWidth / 2, y));
         y += 20;
 
         // Confirmation message
         String confirmMsg = StatCollector.translateToLocal("auction.buyout.confirm");
         int confirmWidth = fontRendererObj.getStringWidth(confirmMsg);
-        addLabel(new GuiNpcLabel(1, confirmMsg, centerX - confirmWidth / 2, y, 0xAAAAAA));
+        addLabel(new GuiNpcLabel(1, confirmMsg, centerX - confirmWidth / 2, y));
         y += 16;
 
         // Buyout price
-        String priceText = EnumChatFormatting.GREEN + formatCurrency(buyoutPrice) + " " + currencyName;
+        String priceText = EnumChatFormatting.DARK_RED + formatCurrency(buyoutPrice) + " " + currencyName;
         int priceWidth = fontRendererObj.getStringWidth(priceText);
-        addLabel(new GuiNpcLabel(2, priceText, centerX - priceWidth / 2, y, 0xFFFFFF));
+        addLabel(new GuiNpcLabel(2, priceText, centerX - priceWidth / 2, y));
         y += 20;
 
         // Your balance
         String balanceLabel = StatCollector.translateToLocal("auction.bid.yourBalance");
-        String balanceText = balanceLabel.replace("%s", EnumChatFormatting.WHITE + formatCurrency(playerBalance) + " " + currencyName);
-        addLabel(new GuiNpcLabel(3, balanceText, guiLeft + 20, y, 0xAAAAAA));
+        String balanceText = balanceLabel.replace("%s", EnumChatFormatting.DARK_GREEN + formatCurrency(playerBalance) + " " + currencyName);
+        addLabel(new GuiNpcLabel(3, balanceText, guiLeft + 20, y));
         y += 14;
 
         // Insufficient funds warning
@@ -78,23 +78,20 @@ public class SubGuiAuctionBuyNow extends SubGuiInterface {
         int totalBtnWidth = btnWidth * 2 + btnSpacing;
         int btnX = centerX - totalBtnWidth / 2;
 
-        GuiNpcButton confirmBtn = new GuiNpcButton(BTN_CONFIRM, btnX, y, btnWidth, 20, "gui.yes");
+        GuiNpcButton confirmBtn = new GuiNpcButton(btnConfirmId, btnX, y, btnWidth, 20, "gui.yes");
         confirmBtn.enabled = playerBalance >= buyoutPrice;
         addButton(confirmBtn);
-        addButton(new GuiNpcButton(BTN_CANCEL, btnX + btnWidth + btnSpacing, y, btnWidth, 20, "gui.cancel"));
+        addButton(new GuiNpcButton(btnCancelId, btnX + btnWidth + btnSpacing, y, btnWidth, 20, "gui.cancel"));
     }
 
     @Override
     public void buttonEvent(GuiButton button) {
-        switch (button.id) {
-            case BTN_CONFIRM:
-                if (playerBalance >= buyoutPrice) {
-                    confirmPurchase();
-                }
-                break;
-            case BTN_CANCEL:
-                close();
-                break;
+        if (button.id == btnConfirmId) {
+            if (playerBalance >= buyoutPrice) {
+                confirmPurchase();
+            }
+        } else if (button.id == btnCancelId) {
+            close();
         }
     }
 

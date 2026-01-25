@@ -1,10 +1,10 @@
 package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;

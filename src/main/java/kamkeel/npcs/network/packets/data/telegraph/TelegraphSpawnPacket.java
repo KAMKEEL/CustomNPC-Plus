@@ -1,10 +1,10 @@
-package kamkeel.npcs.network.packets.data.ability;
+package kamkeel.npcs.network.packets.data.telegraph;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -18,7 +18,7 @@ import java.io.IOException;
 
 /**
  * Packet to spawn a telegraph on the client.
- * Sent from server to client when an ability creates a telegraph.
+ * Sent from server to client when a telegraph is created.
  */
 public final class TelegraphSpawnPacket extends AbstractPacket {
     public static final String packetName = "Data|TelegraphSpawn";
@@ -77,5 +77,12 @@ public final class TelegraphSpawnPacket extends AbstractPacket {
      */
     public static void sendToDimension(TelegraphInstance instance, int dimensionId) {
         PacketHandler.Instance.sendToDimension(new TelegraphSpawnPacket(instance), dimensionId);
+    }
+
+    /**
+     * Send telegraph to all players on the server.
+     */
+    public static void sendToAll(TelegraphInstance instance) {
+        PacketHandler.Instance.sendToAll(new TelegraphSpawnPacket(instance));
     }
 }

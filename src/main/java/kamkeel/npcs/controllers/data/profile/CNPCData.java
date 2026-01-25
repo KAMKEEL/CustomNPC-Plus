@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerTradeData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,10 @@ public class CNPCData implements IProfileData {
     @Override
     public NBTTagCompound getCurrentNBT(EntityPlayer player) {
         PlayerData customNPCData = PlayerData.get(player);
-        return customNPCData.getNBT();
+        NBTTagCompound compound = customNPCData.getNBT();
+        compound.removeTag(PlayerTradeData.NBT_KEY);
+
+        return compound;
     }
 
     @Override
@@ -32,6 +36,10 @@ public class CNPCData implements IProfileData {
     @Override
     public void setNBT(EntityPlayer player, NBTTagCompound replace) {
         PlayerData customNPCData = PlayerData.get(player);
+
+        NBTTagCompound sharedData = new NBTTagCompound();
+        customNPCData.tradeData.writeToNBT(sharedData);
+
         if (replace.hasNoTags()) {
             PlayerData newData = new PlayerData();
             newData.player = player;
@@ -39,6 +47,8 @@ public class CNPCData implements IProfileData {
         } else {
             customNPCData.setNBT(replace);
         }
+
+        customNPCData.tradeData.readFromNBT(sharedData);
         customNPCData.updateClient = true;
     }
 

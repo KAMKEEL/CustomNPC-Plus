@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -28,7 +28,7 @@ public class AbilityGuard extends Ability {
     private float damageReduction = 0.5f;
     private boolean canCounter = false;
     private CounterType counterType = CounterType.FLAT;
-    private float counterValue = 10.0f;
+    private float counterValue = 6.0f;
     private float counterChance = 0.3f;
     private String counterSound = "random.wood_click";
     private int counterAnimationId = -1;
@@ -207,7 +207,7 @@ public class AbilityGuard extends Ability {
         } else if (nbt.hasKey("counterDamage")) {
             this.counterValue = nbt.getFloat("counterDamage");
         } else {
-            this.counterValue = 10.0f;
+            this.counterValue = 6.0f;
         }
         this.counterChance = nbt.hasKey("counterChance") ? nbt.getFloat("counterChance") : 0.3f;
         this.counterSound = nbt.hasKey("counterSound") ? nbt.getString("counterSound") : "random.wood_click";

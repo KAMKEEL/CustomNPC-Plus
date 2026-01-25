@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.telegraph;
+package kamkeel.npcs.controllers.data.telegraph;
 
 /**
  * Types of telegraph shapes for visual attack warnings.

@@ -4,9 +4,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -31,7 +31,7 @@ import java.util.List;
 public class AbilitySlam extends Ability {
 
     // Type-specific config
-    private float damage = 20.0f;
+    private float damage = 10.0f;
     private float radius = 5.0f;
     private float knockbackStrength = 1.5f;
     private float leapSpeed = 1.0f;
@@ -420,7 +420,7 @@ public class AbilitySlam extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 20.0f;
+        damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 10.0f;
         radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 5.0f;
         knockbackStrength = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
         leapSpeed = nbt.hasKey("leapSpeed") ? nbt.getFloat("leapSpeed") : 1.0f;

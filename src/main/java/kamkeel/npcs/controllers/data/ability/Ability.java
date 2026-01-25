@@ -2,9 +2,9 @@ package kamkeel.npcs.controllers.data.ability;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;

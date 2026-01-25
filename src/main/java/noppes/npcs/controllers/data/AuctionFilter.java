@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 /**
  * Filter for auction listings.
- * Supports search by item name and sorting options.
+ * Supports search by item name or seller name and sorting options.
  */
 public class AuctionFilter {
     private static final Pattern COLOR_CODE_PATTERN = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
@@ -37,24 +37,40 @@ public class AuctionFilter {
         return stripped.toLowerCase().trim();
     }
 
-    /** Check if item name matches search text */
-    public boolean matchesSearch(String itemName) {
+    /** Check if item name or seller name matches search text */
+    public boolean matchesSearch(String itemName, String sellerName) {
         if (!hasSearchText()) return true;
-        String normalized = normalizeForSearch(itemName);
-        return normalized.contains(normalizedSearch);
+        String normalizedItem = normalizeForSearch(itemName);
+        String normalizedSeller = normalizeForSearch(sellerName);
+        // Match if search text is found in either item name or seller name
+        return normalizedItem.contains(normalizedSearch) || normalizedSeller.contains(normalizedSearch);
     }
 
-    /** Advanced search - all words must be present */
-    public boolean matchesSearchAdvanced(String itemName) {
+    /** Legacy method - only checks item name */
+    public boolean matchesSearch(String itemName) {
+        return matchesSearch(itemName, "");
+    }
+
+    /** Advanced search - all words must be present in item name OR seller name */
+    public boolean matchesSearchAdvanced(String itemName, String sellerName) {
         if (!hasSearchText()) return true;
-        String normalized = normalizeForSearch(itemName);
+        String normalizedItem = normalizeForSearch(itemName);
+        String normalizedSeller = normalizeForSearch(sellerName);
         String[] words = normalizedSearch.split("\\s+");
         for (String word : words) {
-            if (!word.isEmpty() && !normalized.contains(word)) {
-                return false;
+            if (!word.isEmpty()) {
+                // Word must be in item name OR seller name
+                if (!normalizedItem.contains(word) && !normalizedSeller.contains(word)) {
+                    return false;
+                }
             }
         }
         return true;
+    }
+
+    /** Legacy method - only checks item name */
+    public boolean matchesSearchAdvanced(String itemName) {
+        return matchesSearchAdvanced(itemName, "");
     }
 
     public void reset() {

@@ -11,13 +11,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class CommandKamkeelBase extends CommandBase {
     public Map<String, Method> subcommands = new HashMap<String, Method>();
+    public Map<String, CommandKamkeelBase> nestedCommands = new HashMap<String, CommandKamkeelBase>();
 
     public CommandKamkeelBase() {
         for (Method m : this.getClass().getDeclaredMethods()) {
@@ -29,6 +27,14 @@ public abstract class CommandKamkeelBase extends CommandBase {
                 subcommands.put(name.toLowerCase(), m);
             }
         }
+    }
+
+    /**
+     * Register a nested command class as a subcommand.
+     * The nested command's getCommandName() becomes the subcommand name.
+     */
+    public void registerNestedCommand(CommandKamkeelBase command) {
+        nestedCommands.put(command.getCommandName().toLowerCase(), command);
     }
 
     @Override
@@ -51,7 +57,7 @@ public abstract class CommandKamkeelBase extends CommandBase {
     }
 
     public boolean runSubCommands() {
-        return !subcommands.isEmpty();
+        return !subcommands.isEmpty() || !nestedCommands.isEmpty();
     }
 
     @Retention(value = RetentionPolicy.RUNTIME)
@@ -71,6 +77,22 @@ public abstract class CommandKamkeelBase extends CommandBase {
     }
 
     public void processSubCommand(ICommandSender sender, String command, String[] args) throws CommandException {
+        // Check nested commands first
+        CommandKamkeelBase nested = nestedCommands.get(command.toLowerCase());
+        if (nested != null) {
+            if (!canSendNestedCommand(sender, nested)) {
+                throw new CommandException("You are not allowed to use this command: " + command);
+            }
+
+            if (args.length == 0 || !nested.runSubCommands()) {
+                nested.processCommand(sender, args);
+            } else {
+                nested.processSubCommand(sender, args[0], Arrays.copyOfRange(args, 1, args.length));
+            }
+            return;
+        }
+
+        // Fall back to method subcommands
         Method m = subcommands.get(command.toLowerCase());
         if (m == null)
             throw new CommandException("Unknown subcommand " + command);
@@ -131,5 +153,56 @@ public abstract class CommandKamkeelBase extends CommandBase {
         }
 
         return false;
+    }
+
+    public boolean canSendNestedCommand(ICommandSender sender, CommandKamkeelBase nested) {
+        int permission = nested.getRequiredPermissionLevel();
+        String subCommand = nested.getCommandName();
+
+        if (sender.canCommandSenderUseCommand(permission, getSubUniversalPermission())) {
+            return true;
+        }
+
+        if (sender.canCommandSenderUseCommand(permission, getSubCommandPermission(subCommand))) {
+            return true;
+        }
+
+        if (sender instanceof EntityPlayer) {
+            return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getSubCommandPermission(subCommand));
+        }
+
+        return false;
+    }
+
+    // =========================================
+    // Tab Completion Helpers
+    // =========================================
+
+    /**
+     * Get all subcommand names (both method-based and nested)
+     */
+    public String[] getAllSubCommandNames() {
+        Set<String> names = new HashSet<>();
+        names.addAll(subcommands.keySet());
+        names.addAll(nestedCommands.keySet());
+        return names.toArray(new String[0]);
+    }
+
+    /**
+     * Get tab completions for nested command at given depth
+     */
+    public List getNestedTabCompletions(ICommandSender sender, String[] args) {
+        if (args.length == 0) return null;
+
+        String subCmd = args[0].toLowerCase();
+        CommandKamkeelBase nested = nestedCommands.get(subCmd);
+
+        if (nested != null && args.length > 1) {
+            // Delegate to nested command
+            String[] nestedArgs = Arrays.copyOfRange(args, 1, args.length);
+            return nested.addTabCompletionOptions(sender, nestedArgs);
+        }
+
+        return null;
     }
 }

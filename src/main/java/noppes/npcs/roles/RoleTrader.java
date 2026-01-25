@@ -426,7 +426,7 @@ public class RoleTrader extends RoleInterface {
 
         // Player balance
         PlayerData data = PlayerData.get(player);
-        compound.setLong("Balance", data.currencyData.getBalance());
+        compound.setLong("Balance", data.tradeData.getBalance());
 
         // Stock info
         compound.setBoolean("StockEnabled", stock.enableStock);

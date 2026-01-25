@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
@@ -35,7 +35,7 @@ public class AbilityCutter extends Ability {
 
     private float arcAngle = 90.0f;
     private float range = 6.0f;
-    private float damage = 12.0f;
+    private float damage = 7.0f;
     private float knockback = 1.5f;
 
     private SweepMode sweepMode = SweepMode.SWIPE;
@@ -217,7 +217,7 @@ public class AbilityCutter extends Ability {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.arcAngle = nbt.hasKey("arcAngle") ? nbt.getFloat("arcAngle") : 90.0f;
         this.range = nbt.hasKey("range") ? nbt.getFloat("range") : 6.0f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 12.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 7.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
         try {
             this.sweepMode = SweepMode.valueOf(nbt.getString("sweepMode"));

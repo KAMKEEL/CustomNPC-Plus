@@ -901,36 +901,36 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
     @Override
     public long getCurrencyBalance() {
-        return getData().currencyData.getBalance();
+        return getData().tradeData.getBalance();
     }
 
     @Override
     public void setCurrencyBalance(long amount) {
-        getData().currencyData.setBalance(amount);
+        getData().tradeData.setBalance(amount);
     }
 
     @Override
     public boolean depositCurrency(long amount) {
-        return getData().currencyData.deposit(amount);
+        return getData().tradeData.deposit(amount);
     }
 
     @Override
     public boolean withdrawCurrency(long amount) {
-        return getData().currencyData.withdraw(amount);
+        return getData().tradeData.withdraw(amount);
     }
 
     @Override
     public boolean canAffordCurrency(long amount) {
-        return getData().currencyData.canAfford(amount);
+        return getData().tradeData.canAfford(amount);
     }
 
     @Override
     public boolean isUsingVaultCurrency() {
-        return getData().currencyData.isUsingVault();
+        return getData().tradeData.isUsingVault();
     }
 
     @Override
     public String getFormattedCurrencyBalance() {
-        return getData().currencyData.formatBalance();
+        return getData().tradeData.formatBalance();
     }
 }
