@@ -315,17 +315,30 @@ public class JSTypeRegistry {
     
     /**
      * Register a type.
+     * If a type with matching javaFqn or fullName already exists, merges instead of discarding.
      */
     public void registerType(JSTypeInfo type) {
         String fullName = type.getFullName();
-        if (types.containsKey(fullName)) {
-            logTypeCollision(fullName, getCurrentSource());
+        String javaFqn = type.getJavaFqn();
+        
+        JSTypeInfo existingType = null;
+        
+        if (javaFqn != null && !javaFqn.isEmpty()) {
+            existingType = typesByJavaFqn.get(javaFqn);
+        }
+        
+        if (existingType == null && types.containsKey(fullName)) {
+            existingType = types.get(fullName);
+        }
+        
+        if (existingType != null) {
+            mergeType(existingType, type, getCurrentSource());
             return;
         }
+        
         types.put(fullName, type);
         typeOrigins.put(fullName, getCurrentSource());
-        if (type.getJavaFqn() != null && !type.getJavaFqn().isEmpty()) {
-            String javaFqn = type.getJavaFqn();
+        if (javaFqn != null && !javaFqn.isEmpty()) {
             if (!typesByJavaFqn.containsKey(javaFqn)) {
                 typesByJavaFqn.put(javaFqn, type);
             } else {
@@ -839,6 +852,97 @@ public class JSTypeRegistry {
         String existingSource = aliasOrigins.getOrDefault(alias, "unknown");
         System.out.println("[JSTypeRegistry] Duplicate alias " + alias + " from " + incomingSource + " (kept " + existingSource + ")");
         System.out.println("[JSTypeRegistry] Alias " + alias + " existing=" + existingType + " incoming=" + incomingType);
+    }
+
+    /**
+     * Find the method key in a type's methods map that matches the given method name and parameter count.
+     * This handles overload keys (methodName, methodName$1, methodName$2, etc.)
+     *
+     * @param type The type to search in
+     * @param methodName The method name to search for
+     * @param paramCount The parameter count to match
+     * @return The method key if found, or null if no match
+     */
+    private String findOwnMethodKeyByParamCount(JSTypeInfo type, String methodName, int paramCount) {
+        Map<String, JSMethodInfo> methods = type.getMethods();
+        
+        // Check direct key first
+        JSMethodInfo direct = methods.get(methodName);
+        if (direct != null && direct.getParameterCount() == paramCount) {
+            return methodName;
+        }
+        
+        // Check overload keys: methodName$1, methodName$2, etc.
+        int index = 1;
+        String overloadKey = methodName + "$" + index;
+        while (methods.containsKey(overloadKey)) {
+            JSMethodInfo overload = methods.get(overloadKey);
+            if (overload.getParameterCount() == paramCount) {
+                return overloadKey;
+            }
+            index++;
+            overloadKey = methodName + "$" + index;
+        }
+        
+        return null; // No match found
+    }
+
+    /**
+     * Merge an incoming type into an existing type.
+     * This allows addon mods to patch base mod types via .d.ts files.
+     *
+     * @param existing The existing type to merge into
+     * @param incoming The incoming type to merge from
+     * @param incomingSource The source of the incoming type (for logging)
+     */
+    private void mergeType(JSTypeInfo existing, JSTypeInfo incoming, String incomingSource) {
+        int methodsMerged = 0;
+        int fieldsMerged = 0;
+        
+        // Merge methods (replace matching overloads by param count)
+        for (Map.Entry<String, JSMethodInfo> entry : incoming.getMethods().entrySet()) {
+            JSMethodInfo incomingMethod = entry.getValue();
+            String methodName = incomingMethod.getName();
+            int paramCount = incomingMethod.getParameterCount();
+            
+            // Find existing method with same param count
+            String existingKey = findOwnMethodKeyByParamCount(existing, methodName, paramCount);
+            if (existingKey != null) {
+                // Replace existing overload
+                existing.getMethods().put(existingKey, incomingMethod);
+                incomingMethod.setContainingType(existing);
+                methodsMerged++;
+            } else {
+                // Add as new overload
+                existing.addMethod(incomingMethod);
+                methodsMerged++;
+            }
+        }
+        
+        // Merge fields (replace by name)
+        for (Map.Entry<String, JSFieldInfo> entry : incoming.getFields().entrySet()) {
+            String fieldName = entry.getKey();
+            JSFieldInfo incomingField = entry.getValue();
+            existing.getFields().put(fieldName, incomingField);
+            incomingField.setContainingType(existing);
+            fieldsMerged++;
+        }
+        
+        // Merge metadata (fill gaps only - preserve existing non-null values)
+        if (existing.getJavaFqn() == null && incoming.getJavaFqn() != null) {
+            existing.setJavaFqn(incoming.getJavaFqn());
+        }
+        if (existing.getJsDocInfo() == null && incoming.getJsDocInfo() != null) {
+            existing.setJsDocInfo(incoming.getJsDocInfo());
+        }
+        if (existing.getExtendsType() == null && incoming.getExtendsType() != null) {
+            existing.setExtends(incoming.getExtendsType());
+        }
+        
+        // Log merge details
+        System.out.println("[JSTypeRegistry] Merged type " + existing.getFullName() + 
+                           " with " + methodsMerged + " methods, " + fieldsMerged + 
+                           " fields from " + incomingSource);
     }
 
     /**
