@@ -11,18 +11,97 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class DtsJavaBridge {
 
+    /** Cache of reflection Method -> matching JS method info (for docs/param names). */
     private static final Map<Method, JSMethodInfo> METHOD_CACHE = new ConcurrentHashMap<>();
+    /** Cache of reflection Field -> matching JS field info (for docs/typing). */
     private static final Map<Field, JSFieldInfo> FIELD_CACHE = new ConcurrentHashMap<>();
+    /** Cache of reflection Method -> resolved Java TypeInfo override from .d.ts. */
+    private static final Map<Method, TypeInfo> RETURN_OVERRIDE_CACHE = new ConcurrentHashMap<>();
+    /** Negative cache for methods with no usable override. */
+    private static final Set<Method> RETURN_OVERRIDE_MISSES = ConcurrentHashMap.newKeySet();
 
     private DtsJavaBridge() {}
 
     public static void clearCache() {
         METHOD_CACHE.clear();
         FIELD_CACHE.clear();
+        RETURN_OVERRIDE_CACHE.clear();
+        RETURN_OVERRIDE_MISSES.clear();
+    }
+
+    /**
+     * Resolve a Java return type override for a reflected method using its .d.ts twin.
+     *
+     * The override is used only for editor typing (e.g., Janino hover/autocomplete) and
+     * never changes runtime reflection. This returns a Java-resolved TypeInfo when the
+     * .d.ts return type can be mapped to a concrete Java class.
+     */
+    public static TypeInfo resolveReturnTypeOverride(Method method, TypeInfo containingType, JSMethodInfo jsMethod) {
+        if (method == null || jsMethod == null) return null;
+
+        TypeInfo cached = RETURN_OVERRIDE_CACHE.get(method);
+        if (cached != null) return cached;
+        if (RETURN_OVERRIDE_MISSES.contains(method)) return null;
+
+        String jsReturnType = jsMethod.getReturnType();
+        if (jsReturnType == null || jsReturnType.isEmpty()) {
+            RETURN_OVERRIDE_MISSES.add(method);
+            return null;
+        }
+
+        String normalizedJsReturn = jsReturnType;
+        if (normalizedJsReturn.contains("|")) {
+            normalizedJsReturn = normalizedJsReturn.split("\\|")[0].trim();
+        }
+        normalizedJsReturn = normalizedJsReturn.replace("?", "").trim();
+
+        // Fast-path: skip resolver if the .d.ts return matches reflection (common case).
+        Class<?> reflectedReturn = method.getReturnType();
+        if (reflectedReturn != null) {
+            if (normalizedJsReturn.equals(reflectedReturn.getName())
+                    || normalizedJsReturn.equals(reflectedReturn.getSimpleName())
+                    || normalizedJsReturn.equals("Java." + reflectedReturn.getName())) {
+                RETURN_OVERRIDE_MISSES.add(method);
+                return null;
+            }
+
+            String lower = normalizedJsReturn.toLowerCase();
+            if (("void".equals(lower) && (reflectedReturn == void.class || reflectedReturn == Void.class))
+                    || ("boolean".equals(lower) && (reflectedReturn == boolean.class || reflectedReturn == Boolean.class))
+                    || ("string".equals(lower) && reflectedReturn == String.class)
+                    || ("number".equals(lower) && (reflectedReturn == double.class || reflectedReturn == Double.class))) {
+                RETURN_OVERRIDE_MISSES.add(method);
+                return null;
+            }
+        }
+
+        TypeResolver resolver = TypeResolver.getInstance();
+        TypeInfo resolved = resolver.resolveJSType(normalizedJsReturn);
+        TypeInfo javaResolved = null;
+
+        if (resolved != null) {
+            if (resolved.getJavaClass() != null) {
+                javaResolved = resolved;
+            } else if (resolved.isJSType() && resolved.getJSTypeInfo() != null) {
+                String javaFqn = resolved.getJSTypeInfo().getJavaFqn();
+                if (javaFqn != null && !javaFqn.isEmpty()) {
+                    javaResolved = resolver.resolveFullName(javaFqn);
+                }
+            }
+        }
+
+        if (javaResolved == null || javaResolved.getJavaClass() == null) {
+            RETURN_OVERRIDE_MISSES.add(method);
+            return null;
+        }
+
+        RETURN_OVERRIDE_CACHE.put(method, javaResolved);
+        return javaResolved;
     }
 
     public static JSMethodInfo findMatchingMethod(Method method, TypeInfo containingType) {

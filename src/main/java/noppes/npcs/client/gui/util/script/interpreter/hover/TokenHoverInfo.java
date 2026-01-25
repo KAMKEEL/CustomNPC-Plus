@@ -741,6 +741,14 @@ public class TokenHoverInfo {
             return;
         }
         if (methodInfo != null && methodInfo.getJavaMethod() != null) {
+            TypeInfo methodReturnType = methodInfo.getReturnType();
+            Class<?> reflectedReturnType = methodInfo.getJavaMethod().getReturnType();
+            if (methodReturnType != null && methodReturnType.getJavaClass() != null
+                    && methodReturnType.getJavaClass() != reflectedReturnType) {
+                // Use MethodInfo when its return type differs from reflection (e.g., .d.ts override like IDBCPlayer -> IDBCAddon in npcdbc).
+                buildBasicMethodDeclaration(methodInfo, containingType);
+                return;
+            }
             buildMethodDeclaration(methodInfo.getJavaMethod(), containingType);
             extractJavadoc(methodInfo.getJavaMethod());
             return;

@@ -146,8 +146,26 @@ public final class MethodInfo {
         TypeInfo returnType = TypeInfo.fromClass(method.getReturnType());
         int modifiers = method.getModifiers();
 
-        // Try to find matching JSFieldInfo to bridge parameter names and docs
+        // Try to find matching JSMethodInfo to bridge parameter names/docs and allow return overrides
         JSMethodInfo jsMethod = DtsJavaBridge.findMatchingMethod(method, containingType);
+        if (jsMethod != null) {
+            // If .d.ts provides a more specific return type, use it for editor typing.
+            // (e.g., .d.ts override like IDBCPlayer -> IDBCAddon in npcdbc).
+            TypeInfo overrideReturnType = DtsJavaBridge.resolveReturnTypeOverride(method, containingType, jsMethod);
+            if (overrideReturnType != null && overrideReturnType.getJavaClass() != null) {
+                Class<?> reflectedReturn = method.getReturnType();
+                Class<?> overrideClass = overrideReturnType.getJavaClass();
+                if (reflectedReturn.isAssignableFrom(overrideClass)) {
+                    if (reflectedReturn != overrideClass) {
+                        returnType = overrideReturnType;
+                        System.out.println("[DtsJavaBridge] Overrode return type for "
+                                + method.getDeclaringClass().getName() + "." + name
+                                + "(" + method.getParameterCount() + ") from "
+                                + reflectedReturn.getName() + " to " + overrideClass.getName());
+                    }
+                }
+            }
+        }
         List<FieldInfo> params = new ArrayList<>();
         Class<?>[] paramTypes = method.getParameterTypes();
         List<JSMethodInfo.JSParameterInfo> jsParams = jsMethod != null ? jsMethod.getParameters() : null;
