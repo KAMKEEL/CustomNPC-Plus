@@ -22,14 +22,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -50,7 +43,9 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     private final JaninoHookResolver hookResolver = new JaninoHookResolver();
     private final String[] defaultImports;
-
+    // Cache of imports used in the last compilation
+    private String[] cachedImports;
+    
     private Map<String, IHookDefinition> hookDefCache;
     private int lastHookRevision = -1;
     private int lastSeenGlobalRevision;
@@ -129,8 +124,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     public void compileScript(String code) {
         try {
-            String[] imports = collectImportsForCode(code);
-            builder.setDefaultImports(imports);
+            builder.setDefaultImports(cachedImports = collectImportsForCode(code));
             this.scriptBody = builder.build();
             scriptBody.setScript(code);
         } catch (InternalCompilerException e) {
@@ -397,6 +391,56 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         return sb.toString();
     }
 
+    /**
+     * Get the default imports configured for this script type.
+     * These are packages/classes that are automatically available without explicit import statements.
+     *
+     * @return Array of default import patterns (e.g., "noppes.npcs.api.*")
+     */
+    public String[] getDefaultImports() {
+        return defaultImports;
+    }
+
+    private String[] getCachedImports() {
+        if (cachedImports == null) {
+            cachedImports = collectImportsForCode(getFullCode());
+        }
+        return cachedImports;
+    }
+
+    /**
+     * Get all types used in hook method signatures (parameters and return types).
+     * This includes event types like INpcEvent.InitEvent, INpcEvent.DamagedEvent, etc.,
+     * as well as return types like Color, String, etc.
+     * Useful for syntax highlighting to know what types are implicitly available.
+     *
+     * @return Set of fully qualified class names for all hook parameter and return types
+     */
+    public Set<String> getHookTypes() {
+        Set<String> types = new HashSet<>();
+        Collections.addAll(types, getCachedImports());
+        return types;
+    }
+
+    /**
+     * Add a type and all its enclosing types to the set.
+     * For nested classes like INpcEvent.InitEvent, this adds both INpcEvent and INpcEvent$InitEvent.
+     */
+    private void addTypeAndEnclosingTypes(Set<String> types, Class<?> clazz) {
+        if (clazz == null || clazz.isPrimitive())
+            return;
+
+        // Add the type itself
+        types.add(clazz.getName());
+
+        // Add enclosing/declaring class if it's a nested type
+        Class<?> enclosing = clazz.getDeclaringClass();
+        while (enclosing != null) {
+            types.add(enclosing.getName());
+            enclosing = enclosing.getDeclaringClass();
+        }
+    }
+
     // ==================== IScriptUnit ====================
 
     @Override
@@ -408,6 +452,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void setScript(String script) {
         this.script = script;
         this.evaluated = false;
+        this.cachedImports = null;
         hookResolver.clearResolutionCaches();
     }
 
@@ -420,6 +465,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public void setExternalScripts(List<String> scripts) {
         this.externalScripts = scripts;
         this.evaluated = false;
+        this.cachedImports = null;
         hookResolver.clearResolutionCaches();
     }
 

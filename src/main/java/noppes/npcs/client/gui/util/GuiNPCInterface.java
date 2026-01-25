@@ -378,9 +378,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
         for (GuiNpcLabel label : labels.values())
             label.drawLabel(this, fontRendererObj);
-        for (GuiNpcTextField tf : textfields.values()) {
-            tf.drawTextBox(i, j);
-        }
         for (GuiCustomScroll scroll : scrolls.values()) {
             scroll.updateSubGUI(subGui);
             scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
@@ -403,7 +400,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 button.drawHover(i, j, subGui);
             }
         }
-
+        for (GuiNpcTextField tf : textfields.values()) {
+            tf.drawTextBox(i, j);
+        }
+        
         for (GuiScreen gui : extra.values())
             gui.drawScreen(i, j, f);
 

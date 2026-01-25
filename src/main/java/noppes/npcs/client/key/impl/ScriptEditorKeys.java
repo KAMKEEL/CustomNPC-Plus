@@ -30,6 +30,9 @@ public class ScriptEditorKeys extends KeyPresetManager {
 
     // View
     public final KeyPreset FULLSCREEN = add("Toggle Fullscreen").setDefaultState(Keyboard.KEY_F11, false, false, false);
+    
+    // Autocomplete
+    public final KeyPreset AUTOCOMPLETE = add("Autocomplete").setDefaultState(Keyboard.KEY_SPACE, true, false, false);
 
     public ScriptEditorKeys() {
         super("script_editor");

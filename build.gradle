@@ -3,6 +3,7 @@
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
     id 'idea'
+    id "dts.typescript-generator"
 }
 
 version = "1.11-beta1"
@@ -41,5 +42,16 @@ sourceSets.main.java {
     srcDirs += apiDir
 }
 
-// Modify the existing 'build' task to depend on 'updateAPI'
-//tasks.apiClasses.dependsOn 'updateAPI'
+// ============================================================================
+// TypeScript Definition Generation Task
+// Generates .d.ts files from Java API sources for scripting IDE support
+// ============================================================================
+// TypeScript plugin is applied above in the main plugins block
+
+tasks.named("generateTypeScriptDefinitions").configure {
+    sourceDirectories = ['src/api/java']
+    outputDirectory = "src/main/resources/assets/${project.property("modId")}/api"
+    apiPackages = ['noppes.npcs.api', 'net.minecraft'] as Set
+    cleanOutputFirst = true  // Clean old generated files before regenerating
+}
+

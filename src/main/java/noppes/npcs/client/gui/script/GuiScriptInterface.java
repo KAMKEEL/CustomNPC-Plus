@@ -32,15 +32,11 @@ import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.controllers.data.IScriptUnit;
+import noppes.npcs.janino.JaninoScript;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener, ITextfieldListener {
@@ -277,6 +273,24 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());
+        activeArea.enableCodeHighlighting();
+
+        // For JaninoScripts, add implicit imports (default imports + hook signature types)
+        // These allow the syntax highlighter to resolve types without explicit import statements
+        if (container instanceof JaninoScript) {
+            JaninoScript<?> janinoScript = (JaninoScript<?>) container;
+
+            // Add default imports (e.g., noppes.npcs.api.*, noppes.npcs.api.entity.*, etc.)
+            activeArea.addImplicitImports(janinoScript.getDefaultImports());
+
+            // Add hook types from signatures (parameters + return types)
+            // e.g., INpcEvent.InitEvent, Color, String, IOverlayContext, etc.
+            Set<String> hookTypes = janinoScript.getHookTypes();
+            activeArea.addImplicitImports(hookTypes.toArray(new String[0]));
+
+            // Format to update which implicit imports are actually used
+            activeArea.formatCodeText();
+        }
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -384,6 +398,15 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+        // Check if click is within autocomplete menu bounds and consume it if so
+        GuiScriptTextArea activeArea = getActiveScriptArea();
+        boolean isOverAutocomplete = activeArea != null
+                && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
+        if (isOverAutocomplete) {
+            activeArea.mouseClicked(mouseX, mouseY, mouseButton);
+            return;
+        }
+
         // Check fullscreen button first when on script editor tab
         // Skip for useSettingsToggle GUIs (like GuiScript) - they handle this themselves
         if (this.activeTab > 0 && !useSettingsToggle && !handler.isSingleContainer() && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {

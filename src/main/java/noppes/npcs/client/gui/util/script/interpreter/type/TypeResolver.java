@@ -1,0 +1,894 @@
+package noppes.npcs.client.gui.util.script.interpreter.type;
+
+import noppes.npcs.client.gui.util.script.PackageFinder;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticType;
+
+import java.util.*;
+
+/**
+ * Unified type resolver for both Java and JavaScript/TypeScript types.
+ * Serves as the single front-end for all type resolution needs.
+ * 
+ * For Java: Uses reflection and import resolution
+ * For JavaScript: Delegates to JSTypeRegistry for .d.ts defined types
+ * 
+ * This is the ONLY class that should be used for type resolution.
+ */
+public class TypeResolver {
+
+    // Cache: fully-qualified class name -> TypeInfo
+    private final Map<String, TypeInfo> typeCache = new HashMap<>();
+
+    // Cache: validated package paths
+    private final Set<String> validPackages = new HashSet<>();
+    
+    // JavaScript type registry (lazily initialized)
+    private JSTypeRegistry jsTypeRegistry;
+
+    // Synthetic type registry (e.g., Nashorn built-ins)
+    private final Map<String, SyntheticType> syntheticTypes = new LinkedHashMap<>();
+
+    // Auto-imported java.lang classes
+    public static final Set<String> JAVA_LANG_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "Object", "String", "Class", "System", "Math", "Integer", "Double", "Float", "Long", "Short", "Byte",
+            "Character", "Boolean", "Number", "Void", "Thread", "Runnable", "Exception", "RuntimeException",
+            "Error", "Throwable", "StringBuilder", "StringBuffer", "Enum", "Comparable", "Iterable",
+            "CharSequence", "Cloneable", "Process", "ProcessBuilder", "Runtime", "SecurityManager",
+            "ClassLoader", "Package", "ArithmeticException", "ArrayIndexOutOfBoundsException",
+            "ClassCastException", "IllegalArgumentException", "IllegalStateException",
+            "IndexOutOfBoundsException", "NullPointerException", "NumberFormatException",
+            "UnsupportedOperationException", "AssertionError", "OutOfMemoryError", "StackOverflowError"
+    )));
+    
+    // JavaScript primitive type mappings
+    private static final Map<String, String> JS_PRIMITIVE_TO_JAVA = new HashMap<>();
+    static {
+        JS_PRIMITIVE_TO_JAVA.put("string", "String");
+        JS_PRIMITIVE_TO_JAVA.put("number", "double");
+        JS_PRIMITIVE_TO_JAVA.put("boolean", "boolean");
+        JS_PRIMITIVE_TO_JAVA.put("any", "Object");
+        JS_PRIMITIVE_TO_JAVA.put("void", "void");
+        JS_PRIMITIVE_TO_JAVA.put("null", "null");
+        JS_PRIMITIVE_TO_JAVA.put("undefined", "void");
+        JS_PRIMITIVE_TO_JAVA.put("object", "Object");
+    }
+
+    // Singleton instance for global caching (optional - can also use per-document instances)
+    private static TypeResolver instance;
+
+    public static TypeResolver getInstance() {
+        if (instance == null) {
+            instance = new TypeResolver();
+        }
+        return instance;
+    }
+
+    public TypeResolver() {
+        // Pre-register common packages
+        validPackages.add("java");
+        validPackages.add("java.lang");
+        validPackages.add("java.util");
+        validPackages.add("java.io");
+
+        // Initialize built-in synthetic types
+        initializeSyntheticTypes();
+    }
+
+    /**
+     * Initialize built-in synthetic types (e.g., Nashorn built-ins).
+     */
+    private void initializeSyntheticTypes() {
+        // Register all Nashorn built-in types (Java, etc.)
+        for (SyntheticType type : NashornBuiltins.getInstance().getAllBuiltinTypes()) {
+            syntheticTypes.put(type.getName(), type);
+        }
+
+        // Register all Nashorn global functions (print, load, etc.)
+        Map<String, SyntheticType> nashornGlobals = NashornBuiltins.getInstance().getAllGlobalFunctions();
+        syntheticTypes.putAll(nashornGlobals);
+    }
+
+    // ==================== SYNTHETIC TYPE REGISTRY ====================
+
+    /**
+     * Register a synthetic type for use in scripts.
+     * @param name The type name (e.g., "Java", "MyCustomType")
+     * @param type The synthetic type definition
+     */
+    public void registerSyntheticType(String name, SyntheticType type) {
+        syntheticTypes.put(name, type);
+    }
+
+    /**
+     * Check if a name is a known synthetic type.
+     * @param name The type name to check
+     * @return true if the name is a registered synthetic type
+     */
+    public boolean isSyntheticType(String name) {
+        return syntheticTypes.containsKey(name);
+    }
+
+    /**
+     * Get a synthetic type by name.
+     * @param name The type name
+     * @return The synthetic type, or null if not found
+     */
+    public SyntheticType getSyntheticType(String name) {
+        return syntheticTypes.get(name);
+    }
+
+    /**
+     * Get all registered synthetic types.
+     * @return Collection of all synthetic types
+     */
+    public Collection<SyntheticType> getAllSyntheticTypes() {
+        return syntheticTypes.values();
+    }
+    
+    // ==================== JS TYPE REGISTRY ACCESS ====================
+    
+    /**
+     * Get the JS type registry, initializing it if needed.
+     */
+    public JSTypeRegistry getJSTypeRegistry() {
+        if (jsTypeRegistry == null) {
+            jsTypeRegistry = JSTypeRegistry.getInstance();
+            if (!jsTypeRegistry.isInitialized()) {
+                jsTypeRegistry.initializeFromResources();
+            }
+        }
+        return jsTypeRegistry;
+    }
+    
+    /**
+     * Check if a function name is a known JS hook.
+     */
+    public boolean isJSHook(String functionName) {
+        return getJSTypeRegistry().isHook(functionName);
+    }
+    
+    /**
+     * Get the parameter type for a JS hook function.
+     */
+    public String getJSHookParameterType(String functionName) {
+        return getJSTypeRegistry().getHookParameterType(functionName);
+    }
+    
+    /**
+     * Get hook signatures for a JS function.
+     */
+    public List<JSTypeRegistry.HookSignature> getJSHookSignatures(String functionName) {
+        return getJSTypeRegistry().getHookSignatures(functionName);
+    }
+
+    // ==================== CONTEXT-AWARE HOOK METHODS ====================
+
+    /**
+     * Check if a function name is a known JS hook in a specific script context.
+     * Falls back to GLOBAL context if not found in the specified context.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The function name to check
+     * @return true if it's a known hook in this namespace
+     */
+    public boolean isJSHook(String namespace, String functionName) {
+        return getJSTypeRegistry().isHook(namespace, functionName);
+    }
+
+    /**
+     * Get the parameter type for a JS hook function in a specific namespace.
+     * Falls back to "Global" namespace if not found in the specified namespace.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The hook function name
+     * @return The parameter type, or null if not a hook
+     */
+    public String getJSHookParameterType(String namespace, String functionName) {
+        return getJSTypeRegistry().getHookParameterType(namespace, functionName);
+    }
+
+    /**
+     * Get hook signatures for a JS function in a specific namespace.
+     * Falls back to "Global" namespace if not found in the specified namespace.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The hook function name
+     * @return List of hook signatures
+     */
+    public List<JSTypeRegistry.HookSignature> getJSHookSignatures(String namespace, String functionName) {
+        return getJSTypeRegistry().getHookSignatures(namespace, functionName);
+    }
+
+    /**
+     * Get all hook names available in a specific namespace.
+     *
+     * @param namespace The event interface namespace
+     * @return Set of hook function names
+     */
+    public Set<String> getJSHookNames(String namespace) {
+        return getJSTypeRegistry().getHookNames(namespace);
+    }
+
+    // ==================== MULTI-NAMESPACE HOOK METHODS ====================
+
+    /**
+     * Check if a function name is a known JS hook in any of the provided namespaces.
+     * Checks namespaces in order, returning true on first match.
+     * Falls back to GLOBAL namespace if not found in any specified namespace.
+     *
+     * @param namespaces The list of event interface namespaces to search (e.g., ["IPlayerEvent", "IAnimationEvent"])
+     * @param functionName The function name to check
+     * @return true if it's a known hook in any of the namespaces
+     */
+    public boolean isJSHook(List<String> namespaces, String functionName) {
+        return getJSTypeRegistry().isHook(namespaces, functionName);
+    }
+
+    /**
+     * Get the parameter type for a JS hook function, searching multiple namespaces.
+     * Checks namespaces in order, returning the first match found.
+     * Falls back to "Global" namespace if not found in any specified namespace.
+     *
+     * @param namespaces The list of event interface namespaces to search
+     * @param functionName The hook function name
+     * @return The parameter type, or null if not a hook
+     */
+    public String getJSHookParameterType(List<String> namespaces, String functionName) {
+        return getJSTypeRegistry().getHookParameterType(namespaces, functionName);
+    }
+
+    /**
+     * Get hook signatures for a JS function, searching multiple namespaces.
+     * Checks namespaces in order, returning signatures from the first matching namespace.
+     * Falls back to "Global" namespace if not found in any specified namespace.
+     *
+     * @param namespaces The list of event interface namespaces to search
+     * @param functionName The hook function name
+     * @return List of hook signatures
+     */
+    public List<JSTypeRegistry.HookSignature> getJSHookSignatures(List<String> namespaces, String functionName) {
+        return getJSTypeRegistry().getHookSignatures(namespaces, functionName);
+    }
+
+    /**
+     * Get all hook names available in any of the provided namespaces.
+     * Combines hook names from all specified namespaces.
+     *
+     * @param namespaces The list of event interface namespaces
+     * @return Combined set of hook function names from all namespaces
+     */
+    public Set<String> getJSHookNames(List<String> namespaces) {
+        return getJSTypeRegistry().getHookNames(namespaces);
+    }
+
+    // ==================== CACHE MANAGEMENT ====================
+
+    /**
+     * Clear all caches. Call when imports change significantly.
+     */
+    public void clearCache() {
+        typeCache.clear();
+        validPackages.clear();
+        // Re-add common packages
+        validPackages.add("java");
+        validPackages.add("java.lang");
+        validPackages.add("java.util");
+        validPackages.add("java.io");
+    }
+    
+    // ==================== UNIFIED TYPE RESOLUTION ====================
+
+    /**
+     * General-purpose type resolution.
+     * Tries JS types first, then falls back to Java types.
+     *
+     * @param typeName The type name (can be simple or fully-qualified)
+     * @return TypeInfo for the resolved type, or null if not found
+     */
+    public TypeInfo resolve(String typeName) {
+        if (typeName == null || typeName.isEmpty()) {
+            return null;
+        }
+
+        // Try JS resolution first (handles primitives, .d.ts types)
+        TypeInfo jsType = resolveJSType(typeName);
+        if (jsType != null && jsType.isResolved()) {
+            return jsType;
+        }
+
+        // Try full name resolution
+        TypeInfo fullType = resolveFullName(typeName);
+        if (fullType != null && fullType.isResolved()) {
+            return fullType;
+        }
+
+        // Return unresolved or null
+        return jsType; // Will be unresolved TypeInfo or null
+    }
+    
+    /**
+     * Resolve a type name for JavaScript context.
+     * Handles JS primitives, .d.ts types, and falls back to Java types.
+     * 
+     * @param jsTypeName The JS type name (e.g., "IPlayer", "string", "number", "Java.java.io.File")
+     * @return TypeInfo for the resolved type, or unresolved TypeInfo if not found
+     */
+    public TypeInfo resolveJSType(String jsTypeName) {
+        if (jsTypeName == null || jsTypeName.isEmpty()) {
+            return TypeInfo.fromPrimitive("void");
+        }
+
+        // Handle union types - use first type
+        if (jsTypeName.contains("|")) {
+            jsTypeName = jsTypeName.split("\\|")[0].trim();
+        }
+
+        // Handle nullable
+        jsTypeName = jsTypeName.replace("?", "").trim();
+        
+        // Strip array brackets for base type resolution
+        boolean isArray = jsTypeName.endsWith("[]");
+        String baseName = isArray ? jsTypeName.substring(0, jsTypeName.length() - 2) : jsTypeName;
+
+        // Check synthetic types (Nashorn built-ins, custom types, etc.)
+        if (isSyntheticType(baseName)) {
+            SyntheticType syntheticType = getSyntheticType(baseName);
+            return syntheticType.getTypeInfo();
+        }
+        
+        // Handle "Java." prefix - convert to actual Java type
+        // e.g., "Java.java.io.File" -> "java.io.File"
+        if (baseName.startsWith("Java.")) {
+            String javaFullName = baseName.substring(5); // Remove "Java."
+            TypeInfo javaType = resolveFullName(javaFullName);
+            if (javaType != null && javaType.isResolved()) {
+                return isArray ? TypeInfo.arrayOf(javaType) : javaType;
+            }
+            // Still return unresolved with the cleaned-up name
+            return TypeInfo.unresolved(javaFullName.substring(javaFullName.lastIndexOf('.') + 1), javaFullName);
+        }
+
+        switch (baseName.toLowerCase()) {
+            case "string":
+                return TypeInfo.STRING;
+            case "number":
+            case "int":
+            case "integer":
+                return  TypeInfo.NUMBER;
+            case "boolean":
+            case "bool":
+                return TypeInfo.BOOLEAN;
+            case "void":
+                return TypeInfo.VOID;
+            case "any":
+            case "object":
+            case "*":
+                return TypeInfo.ANY;
+        }
+        
+        // Check JS type registry
+        JSTypeInfo jsTypeInfo = getJSTypeRegistry().getType(baseName);
+        if (jsTypeInfo != null) {
+            TypeInfo baseType = TypeInfo.fromJSTypeInfo(jsTypeInfo);
+            return isArray ? TypeInfo.arrayOf(baseType) : baseType;
+        }
+        
+        // Fall back to Java type resolution
+        TypeInfo javaType = resolveFullName(baseName);
+        if (javaType != null && javaType.isResolved()) {
+            return isArray ? TypeInfo.arrayOf(javaType) : javaType;
+        }
+        
+        // Unresolved
+        return TypeInfo.unresolved(jsTypeName, jsTypeName);
+    }
+    
+    /**
+     * Check if a JS type name is a primitive.
+     */
+    public boolean isJSPrimitive(String typeName) {
+        return JS_PRIMITIVE_TO_JAVA.containsKey(typeName);
+    }
+
+    // ==================== TYPE RESOLUTION ====================
+
+    /**
+     * Resolve a fully-qualified class name.
+     * Handles inner classes with both dot and dollar notation.
+     */
+    public TypeInfo resolveFullName(String fullName) {
+        if (fullName == null || fullName.isEmpty()) {
+            return null;
+        }
+
+        // Normalize: remove whitespace around dots
+        String normalized = fullName.replaceAll("\\s*\\.\\s*", ".").trim();
+
+        // Check cache first
+        if (typeCache.containsKey(normalized)) {
+            return typeCache.get(normalized);
+        }
+
+        // Try direct resolution
+        TypeInfo result = tryResolveClass(normalized);
+        if (result != null) {
+            return result;
+        }
+
+        // Try converting dots to $ for inner classes
+        // Work backwards from the end, trying each segment as an inner class
+        String[] segments = normalized.split("\\.");
+        for (int i = segments.length - 1; i > 0; i--) {
+            StringBuilder candidate = new StringBuilder();
+            // Package portion
+            for (int j = 0; j < i; j++) {
+                if (j > 0) candidate.append('.');
+                candidate.append(segments[j]);
+            }
+            // Class portion with $
+            for (int j = i; j < segments.length; j++) {
+                candidate.append(j == i ? '.' : '$');
+                candidate.append(segments[j]);
+            }
+
+            result = tryResolveClass(candidate.toString());
+            if (result != null) {
+                // Cache the original lookup
+                typeCache.put(normalized, result);
+                return result;
+            }
+        }
+
+        // Not found - cache the miss
+        typeCache.put(normalized, null);
+        return null;
+    }
+
+    /**
+     * Resolve a simple class name using provided import context.
+     */
+    public TypeInfo resolveSimpleName(String simpleName, 
+                                      Map<String, ImportData> imports,
+                                      Set<String> wildcardPackages) {
+        if (simpleName == null || simpleName.isEmpty()) {
+            return TypeInfo.unresolved(simpleName,simpleName);
+        }
+
+        // 1. Check explicit imports
+        ImportData importData = imports.get(simpleName);
+        if (importData != null && importData.getResolvedType() != null) {
+            return importData.getResolvedType();
+        }
+        if (importData != null) {
+            TypeInfo resolved = resolveFullName(importData.getFullPath());
+            if (resolved != null) {
+                importData.setResolvedType(resolved);
+                return resolved;
+            }
+        }
+
+        // 2. Check java.lang
+        if (JAVA_LANG_CLASSES.contains(simpleName)) {
+            TypeInfo langType = resolveFullName("java.lang." + simpleName);
+            if (langType != null) {
+                return langType;
+            }
+        }
+
+        // 3. Check wildcard packages
+        if (wildcardPackages != null) {
+            for (String pkg : wildcardPackages) {
+                // Try as package.ClassName
+                TypeInfo fromPkg = resolveFullName(pkg + "." + simpleName);
+                if (fromPkg != null) {
+                    return fromPkg;
+                }
+
+                // Try as OuterClass$InnerClass (for class-level wildcards like IOverlay.*)
+                TypeInfo fromInner = resolveFullName(pkg + "$" + simpleName);
+                if (fromInner != null) {
+                    return fromInner;
+                }
+            }
+        }
+
+        return TypeInfo.unresolved(simpleName,simpleName);
+    }
+
+    /**
+     * Try to load a class and create TypeInfo for it.
+     */
+    private TypeInfo tryResolveClass(String className) {
+        if (className == null || className.isEmpty()) {
+            return null;
+        }
+
+        // Check cache
+        if (typeCache.containsKey(className)) {
+            return typeCache.get(className);
+        }
+
+        try {
+            Class<?> clazz = Class.forName(className);
+            TypeInfo info = TypeInfo.fromClass(clazz);
+            typeCache.put(className, info);
+
+            // Register the package as valid
+            registerPackage(info.getPackageName());
+
+            return info;
+        } catch (ClassNotFoundException e) {
+            // Cache the miss
+            typeCache.put(className, null);
+            return null;
+        } catch (LinkageError e) {
+            // NoClassDefFoundError is a subclass of LinkageError
+            typeCache.put(className, null);
+            return null;
+        }
+    }
+
+    // ==================== PACKAGE VALIDATION ====================
+
+    /**
+     * Check if a package path is valid.
+     */
+    public boolean isValidPackage(String packagePath) {
+        if (packagePath == null || packagePath.isEmpty()) {
+            return false;
+        }
+
+        if (validPackages.contains(packagePath)) {
+            return true;
+        }
+
+        if (PackageFinder.find(packagePath)) {
+            registerPackage(packagePath);
+            return true;
+        }
+
+        // Try to find a class in this package to validate it
+        String[] testClasses = getTestClassesForPackage(packagePath);
+        for (String testClass : testClasses) {
+            try {
+                Class.forName(testClass);
+                registerPackage(packagePath);
+                return true;
+            } catch (ClassNotFoundException | LinkageError ignored) {
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Register a package path as valid (and all parent packages).
+     */
+    private void registerPackage(String packagePath) {
+        if (packagePath == null || packagePath.isEmpty()) {
+            return;
+        }
+        validPackages.add(packagePath);
+
+        // Also register parent packages
+        int lastDot;
+        String current = packagePath;
+        while ((lastDot = current.lastIndexOf('.')) > 0) {
+            current = current.substring(0, lastDot);
+            validPackages.add(current);
+        }
+    }
+
+    private String[] getTestClassesForPackage(String packagePath) {
+        switch (packagePath) {
+            case "java":
+                return new String[]{"java.lang.Object"};
+            case "java.util":
+                return new String[]{"java.util.List", "java.util.Map"};
+            case "java.io":
+                return new String[]{"java.io.File", "java.io.InputStream"};
+            case "java.net":
+                return new String[]{"java.net.URL", "java.net.Socket"};
+            case "java.lang":
+                return new String[]{"java.lang.Object", "java.lang.String"};
+            default:
+                return new String[]{};
+        }
+    }
+
+    // ==================== IMPORT RESOLUTION ====================
+
+    /**
+     * Resolve all imports and return a map of simple name -> ImportData.
+     */
+    public Map<String, ImportData> resolveImports(List<ImportData> imports) {
+        Map<String, ImportData> resolved = new HashMap<>();
+
+        for (ImportData imp : imports) {
+            if (imp.isWildcard()) {
+                // Wildcard imports: validate the package exists
+                imp.markResolved(isValidPackage(imp.getFullPath()) || 
+                                resolveFullName(imp.getFullPath()) != null);
+            } else {
+                // Specific import: resolve the class
+                TypeInfo typeInfo = resolveFullName(imp.getFullPath());
+                imp.setResolvedType(typeInfo);
+                if (imp.getSimpleName() != null) {
+                    resolved.put(imp.getSimpleName(), imp);
+                }
+            }
+        }
+
+        return resolved;
+    }
+
+    // ==================== GENERIC TYPE PARSING ====================
+
+    /**
+     * Parse type names from generic content like "Map<String, List<Integer>>".
+     * Returns TypeInfo for each type found.
+     */
+    public List<GenericTypeOccurrence> parseGenericTypes(String content, 
+                                                         Map<String, ImportData> imports,
+                                                         Set<String> wildcardPackages) {
+        List<GenericTypeOccurrence> results = new ArrayList<>();
+        parseGenericTypesRecursive(content, 0, imports, wildcardPackages, results);
+        return results;
+    }
+
+    private void parseGenericTypesRecursive(String content, int baseOffset,
+                                            Map<String, ImportData> imports,
+                                            Set<String> wildcardPackages,
+                                            List<GenericTypeOccurrence> results) {
+        if (content == null || content.isEmpty()) return;
+
+        int i = 0;
+        while (i < content.length()) {
+            char c = content.charAt(i);
+
+            // Skip non-identifier characters
+            if (!Character.isJavaIdentifierStart(c)) {
+                i++;
+                continue;
+            }
+
+            // Found start of identifier
+            int start = i;
+            while (i < content.length() && Character.isJavaIdentifierPart(content.charAt(i))) {
+                i++;
+            }
+            String typeName = content.substring(start, i);
+
+            // Only process uppercase-starting identifiers as types
+            if (Character.isUpperCase(typeName.charAt(0))) {
+                TypeInfo info = resolveSimpleName(typeName, imports, wildcardPackages);
+                results.add(new GenericTypeOccurrence(
+                    baseOffset + start, 
+                    baseOffset + i, 
+                    typeName, 
+                    info
+                ));
+            }
+
+            // Skip whitespace
+            while (i < content.length() && Character.isWhitespace(content.charAt(i))) {
+                i++;
+            }
+
+            // Check for nested generic
+            if (i < content.length() && content.charAt(i) == '<') {
+                int nestedStart = i + 1;
+                int depth = 1;
+                i++;
+
+                while (i < content.length() && depth > 0) {
+                    if (content.charAt(i) == '<') depth++;
+                    else if (content.charAt(i) == '>') depth--;
+                    i++;
+                }
+
+                // Recursively parse nested content
+                if (nestedStart < i - 1) {
+                    String nestedContent = content.substring(nestedStart, i - 1);
+                    parseGenericTypesRecursive(nestedContent, baseOffset + nestedStart, 
+                                               imports, wildcardPackages, results);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Check if a type name is a primitive type.
+     */
+    public static boolean isPrimitiveType(String typeName) {
+        return typeName.equals("boolean") || typeName.equals("byte") || typeName.equals("char") ||
+                typeName.equals("short") || typeName.equals("int") || typeName.equals("long") ||
+                typeName.equals("float") || typeName.equals("double") || typeName.equals("void");
+    }
+
+    /**
+     * Check if a word is a Java modifier keyword.
+     */
+    public static boolean isModifier(String word) {
+        return word.equals("public") || word.equals("private") || word.equals("protected") ||
+                word.equals("static") || word.equals("final") || word.equals("abstract") ||
+                word.equals("synchronized") || word.equals("volatile") || word.equals("transient") ||
+                word.equals("native") || word.equals("strictfp");
+    }
+    
+    // ==================== CLASS SEARCH ====================
+    
+    /**
+     * Search for classes matching the given prefix.
+     * Uses ClassIndex for O(n) lookup where n is the number of indexed classes.
+     * 
+     * @param prefix The prefix to match (case-sensitive for class names)
+     * @param maxResults Maximum number of results to return
+     * @return List of fully-qualified class names that match
+     */
+    public List<String> findClassesByPrefix(String prefix, int maxResults) {
+        return ClassIndex.getInstance().findByPrefix(prefix, maxResults);
+    }
+    
+    /**
+     * @deprecated Use findClassesByPrefix instead for prefix matching
+     */
+    @Deprecated
+    public List<String> findClassesBySimpleName(String simpleName, int maxResults) {
+        // Redirect to prefix matching for backwards compatibility
+        return findClassesByPrefix(simpleName, maxResults);
+    }
+    
+    /**
+     * Represents a type occurrence within generic content.
+     */
+    public static class GenericTypeOccurrence {
+        public final int startOffset;
+        public final int endOffset;
+        public final String typeName;
+        public final TypeInfo typeInfo;
+
+        public GenericTypeOccurrence(int startOffset, int endOffset, String typeName, TypeInfo typeInfo) {
+            this.startOffset = startOffset;
+            this.endOffset = endOffset;
+            this.typeName = typeName;
+            this.typeInfo = typeInfo;
+        }
+
+        public TokenType getTokenType() {
+            if (typeInfo == null || !typeInfo.isResolved()) {
+                return TokenType.UNDEFINED_VAR;
+            }
+            return typeInfo.getTokenType();
+        }
+    }
+
+    /**
+     * Check if an expression represents static access (accessing a Class, not an instance).
+     * This checks if the expression STRING resolves to a TYPE name.
+     *
+     * Examples:
+     * - "String" -> true (it's a class name)
+     * - "myVar" -> false (it's a variable, even if myVar holds a ClassTypeInfo)
+     * - "Java" -> true (it's a synthetic type)
+     *
+     * Note: This is different from checking if a variable's TYPE is ClassTypeInfo.
+     * For variables holding ClassTypeInfo (like `var File = Java.type("File")`),
+     * the receiver type itself should be checked separately.
+     *
+     * @param typeInfo The resolved TypeInfo (can be null)
+     * @param wasResolvedAsType true if this was resolved as a type name (not a variable)
+     * @return true if this represents static access (direct class reference)
+     */
+    public static boolean isStaticAccess(TypeInfo typeInfo, boolean wasResolvedAsType) {
+        // If explicitly resolved as a type name, it's static access
+        if (wasResolvedAsType)
+            return true;
+
+        if (typeInfo == null)
+            return false;
+
+        // If the typeInfo itself is a ClassTypeInfo (e.g., result of Java.type()),
+        // then accessing members on it should be static
+        if (typeInfo.isClassReference())
+            return true;
+
+        return false;
+    }
+
+    /**
+     * Unified static access checker for expressions.
+     * Determines if an identifier represents static access (type name) or instance access (variable).
+     *
+     * This method is used by ScriptDocument, JavaAutocompleteProvider, and FieldChainMarker.
+     *
+     * @param identifier The identifier to check (e.g., "String", "myVar", "Java")
+     * @param position The position in the document for context
+     * @param document The script document for resolution
+     * @return true if this represents static access
+     */
+    public static boolean isStaticAccessExpression(String identifier, int position, ScriptDocument document) {
+        if (identifier == null || identifier.isEmpty() || document == null) {
+            return false;
+        }
+
+        // If the identifier contains dots, parentheses, brackets, or operators, it's a complex expression
+        // Complex expressions (method calls, field chains, arithmetic) are instance access by default
+        if (identifier.contains(".") || identifier.contains("(") || identifier.contains("[") || 
+            document.containsOperators(identifier)) {
+            // For complex expressions, resolve as expression and check the result type
+            TypeInfo exprType = document.resolveExpressionType(identifier, position);
+            // Only static if the expression result is itself a ClassTypeInfo (e.g., Java.type("File"))
+            return isStaticAccess(exprType, false);
+        }
+
+        // Simple identifier - check if it's a variable/field (instance access)
+        FieldInfo fieldInfo = document.resolveVariable(identifier, position);
+        if (fieldInfo != null && fieldInfo.isResolved()) {
+            // It's a variable - check if its type is a ClassTypeInfo
+            return isStaticAccess(fieldInfo.getTypeInfo(), false);
+        }
+
+        // Not a variable - check if it's a type name by trying to resolve as type
+        TypeInfo typeCheck = document.resolveType(identifier);
+        boolean isType = typeCheck != null && typeCheck.isResolved();
+        return isStaticAccess(typeCheck, isType);
+    }
+
+    /**
+     * Parse string literal arguments from a method call.
+     * Used for resolving dynamic return types like Java.type("className").
+     *
+     * @param argumentsStr The arguments string (e.g., "\"java.io.File\", 123")
+     * @return Array of parsed arguments
+     */
+    public static String[] parseStringArguments(String argumentsStr) {
+        if (argumentsStr == null || argumentsStr.isEmpty()) {
+            return new String[0];
+        }
+
+        List<String> args = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int depth = 0;
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = 0; i < argumentsStr.length(); i++) {
+            char c = argumentsStr.charAt(i);
+
+            if (inString) {
+                current.append(c);
+                if (c == stringChar && (i == 0 || argumentsStr.charAt(i - 1) != '\\')) {
+                    inString = false;
+                }
+            } else if (c == '"' || c == '\'') {
+                current.append(c);
+                inString = true;
+                stringChar = c;
+            } else if (c == '(' || c == '[' || c == '{') {
+                depth++;
+                current.append(c);
+            } else if (c == ')' || c == ']' || c == '}') {
+                depth--;
+                current.append(c);
+            } else if (c == ',' && depth == 0) {
+                args.add(current.toString().trim());
+                current = new StringBuilder();
+            } else {
+                current.append(c);
+            }
+        }
+
+        if (current.length() > 0) {
+            args.add(current.toString().trim());
+        }
+
+        return args.toArray(new String[0]);
+    }
+}

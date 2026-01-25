@@ -159,6 +159,32 @@ public class GuiUtil {
         tessellator.draw();
     }
 
+    /**
+     * Draw a scaled textured rectangle (for rendering icons).
+     */
+    public static void drawScaledTexturedRect(int x, int y, int u, int v, int srcWidth, int srcHeight,
+                                              int destWidth, int destHeight, int textureWidth, int textureHeight) {
+        float uScale = 1.0f / textureWidth;
+        float vScale = 1.0f / textureHeight;
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2f(u * uScale, v * vScale);
+        GL11.glVertex2f(x, y);
+        GL11.glTexCoord2f(u * uScale, (v + srcHeight) * vScale);
+        GL11.glVertex2f(x, y + destHeight);
+        GL11.glTexCoord2f((u + srcWidth) * uScale, (v + srcHeight) * vScale);
+        GL11.glVertex2f(x + destWidth, y + destHeight);
+        GL11.glTexCoord2f((u + srcWidth) * uScale, v * vScale);
+        GL11.glVertex2f(x + destWidth, y);
+        GL11.glEnd();
+
+        GL11.glDisable(GL11.GL_BLEND);
+    }
+
+
     public static void setMouse(int guiX, int guiY) {
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
