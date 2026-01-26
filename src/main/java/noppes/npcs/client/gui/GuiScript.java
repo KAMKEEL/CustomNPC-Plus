@@ -370,13 +370,4 @@ public class GuiScript extends GuiScriptInterface {
             initGui();
         }
     }
-
-    @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check fullscreen button first when in script view
-        if (showScript && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return;
-        }
-        super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
 }

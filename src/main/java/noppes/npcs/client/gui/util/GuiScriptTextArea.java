@@ -2429,6 +2429,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (autocompleteManager.isVisible()) {
             autocompleteManager.dismiss();
         }
+
+        if (parent != null && parent.fullscreenButton.mouseClicked(xMouse, yMouse, mouseButton))
+            return;
+        
         
         // Check go to line dialog clicks first
         if (goToLineDialog.isVisible() && goToLineDialog.mouseClicked(xMouse, yMouse, mouseButton)) {

@@ -394,12 +394,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             return;
         }
 
-        // Check fullscreen button first when on script editor tab
-        // Skip for useSettingsToggle GUIs (like GuiScript) - they handle this themselves
-        if (this.activeTab > 0 && !useSettingsToggle && !handler.isSingleContainer() && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return;
-        }
-
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
