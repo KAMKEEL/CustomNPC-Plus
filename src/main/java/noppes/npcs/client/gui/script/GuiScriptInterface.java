@@ -380,20 +380,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected ScriptContext getScriptContext() {
         return handler.getContext();
     }
-
-    // ==================== RENDERING ====================
-
-    @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawScreen(mouseX, mouseY, partialTicks);
-
-        // Draw fullscreen button on top of everything when on script editor tab
-        // Skip for useSettingsToggle GUIs (like GuiScript) - they handle this themselves
-        if (this.activeTab > 0 && !useSettingsToggle && !handler.isSingleContainer()) {
-            fullscreenButton.draw(mouseX, mouseY);
-        }
-    }
-
+    
     // ==================== MOUSE HANDLING ====================
 
     @Override

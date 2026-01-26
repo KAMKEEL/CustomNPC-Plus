@@ -372,16 +372,6 @@ public class GuiScript extends GuiScriptInterface {
     }
 
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawScreen(mouseX, mouseY, partialTicks);
-
-        // Draw fullscreen button when in script view (GuiScript uses 0-based activeTab)
-        if (showScript) {
-            fullscreenButton.draw(mouseX, mouseY);
-        }
-    }
-
-    @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         // Check fullscreen button first when in script view
         if (showScript && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
