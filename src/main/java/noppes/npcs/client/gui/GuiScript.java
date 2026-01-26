@@ -90,17 +90,24 @@ public class GuiScript extends GuiScriptInterface {
         super.initGui();
         this.guiTop += 10;
 
-        // ==================== TOP BUTTONS (hidden in fullscreen) ====================
-        if (!isFullscreen) {
-            GuiMenuTopButton top;
-            addTopButton(top = new GuiMenuTopButton(13, guiLeft + 4, guiTop - 17, "script.scripts"));
-            addTopButton(new GuiMenuTopButton(16, guiLeft + (xSize - 102), guiTop - 17, "eventscript.eventScripts"));
-            addTopButton(new GuiMenuTopButton(17, guiLeft + (xSize - 22), guiTop - 17, "X"));
-            top.active = showScript;
-            addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
-            top.active = !showScript;
-            addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
+        if (isFullscreen) {
+            FullscreenConfig.paddingTop = 30;
         }
+
+        // ==================== TOP BUTTONS ====================
+        boolean isFullscreenView = isFullscreen && showScript;
+        int menuX = isFullscreenView ? FullscreenConfig.paddingLeft : guiLeft + 4;
+        int menuY = isFullscreenView ? FullscreenConfig.paddingTop - 20 : guiTop - 17;
+        int rightX = isFullscreenView ? width - FullscreenConfig.paddingRight : guiLeft + xSize;
+
+        GuiMenuTopButton top;
+        addTopButton(top = new GuiMenuTopButton(13, menuX, menuY, "script.scripts"));
+        addTopButton(new GuiMenuTopButton(16, rightX - 102, menuY, "eventscript.eventScripts"));
+        addTopButton(new GuiMenuTopButton(17, rightX - 22, menuY, "X"));
+        top.active = showScript;
+        addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
+        top.active = !showScript;
+        addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
 
         if (showScript) {
             initScriptView();
