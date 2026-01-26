@@ -86,6 +86,11 @@ import noppes.npcs.entity.EntityNpcDragon;
 import noppes.npcs.entity.EntityNpcPony;
 import noppes.npcs.entity.EntityNpcSlime;
 import noppes.npcs.entity.EntityProjectile;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilitySweeper;
 import noppes.npcs.entity.old.EntityNPCDwarfFemale;
 import noppes.npcs.entity.old.EntityNPCDwarfMale;
 import noppes.npcs.entity.old.EntityNPCElfFemale;
@@ -276,6 +281,11 @@ public class CustomNpcs {
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
         registerNewEntity(EntityMagicProjectile.class, "magicprojectile", 64, 3, true);
+        registerNewEntity(EntityAbilityOrb.class, "abilityorb", 64, 3, true);
+        registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 3, true);
+        registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 3, true);
+        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 3, true);
+        registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
 
         new RecipeController();
 

@@ -146,34 +146,6 @@ public class AbilityHazard extends Ability {
         return instance;
     }
 
-    /**
-     * Calculates offset position near the given coordinates.
-     * Used to place hazard near target rather than exactly on them.
-     */
-    private double[] calculateOffsetPosition(double baseX, double baseY, double baseZ) {
-        if (maxOffset <= 0) {
-            return new double[]{baseX, baseY, baseZ};
-        }
-
-        double offsetDist;
-        double offsetAngle;
-
-        if (randomOffset) {
-            // Random offset within min-max range
-            offsetDist = minOffset + RANDOM.nextDouble() * (maxOffset - minOffset);
-            offsetAngle = RANDOM.nextDouble() * Math.PI * 2;
-        } else {
-            // Fixed offset (use max, random angle)
-            offsetDist = maxOffset;
-            offsetAngle = RANDOM.nextDouble() * Math.PI * 2;
-        }
-
-        double offsetX = Math.cos(offsetAngle) * offsetDist;
-        double offsetZ = Math.sin(offsetAngle) * offsetDist;
-
-        return new double[]{baseX + offsetX, baseY, baseZ + offsetZ};
-    }
-
     @Override
     public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         // AT_CASTER locks immediately, AT_TARGET follows during windup and locks on execute
@@ -214,12 +186,18 @@ public class AbilityHazard extends Ability {
             case AT_TARGET:
                 // Use telegraph position if available, apply offset
                 if (telegraph != null) {
-                    double[] pos = calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ());
+                    double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
+                        minOffset, maxOffset, randomOffset, RANDOM);
                     zoneX = pos[0];
                     zoneY = pos[1];
                     zoneZ = pos[2];
+                    // Update telegraph to show actual hazard position
+                    telegraph.setX(zoneX);
+                    telegraph.setY(zoneY);
+                    telegraph.setZ(zoneZ);
                 } else if (target != null) {
-                    double[] pos = calculateOffsetPosition(target.posX, target.posY, target.posZ);
+                    double[] pos = Ability.calculateOffsetPosition(target.posX, target.posY, target.posZ,
+                        minOffset, maxOffset, randomOffset, RANDOM);
                     zoneX = pos[0];
                     zoneY = pos[1];
                     zoneZ = pos[2];
@@ -472,18 +450,6 @@ public class AbilityHazard extends Ability {
 
     public void setDamagePerSecond(float damagePerSecond) {
         this.damagePerSecond = damagePerSecond;
-    }
-
-    /** @deprecated Use {@link #getDamagePerSecond()} instead */
-    @Deprecated
-    public float getDamagePerTick() {
-        return damagePerSecond;
-    }
-
-    /** @deprecated Use {@link #setDamagePerSecond(float)} instead */
-    @Deprecated
-    public void setDamagePerTick(float damage) {
-        this.damagePerSecond = damage;
     }
 
     public int getDamageInterval() {

@@ -53,7 +53,7 @@ public class AbilityVortex extends Ability {
         this.cooldownTicks = 120;
         this.windUpTicks = 30;
         this.activeTicks = 40;
-        this.recoveryTicks = 20;
+        this.recoveryTicks = 5;
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "mob.ghast.charge";
         this.activeSound = "mob.ghast.fireball";

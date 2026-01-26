@@ -51,7 +51,7 @@ public class AbilityGuard extends Ability {
         this.cooldownTicks = 120;
         this.windUpTicks = 10;
         this.activeTicks = 60;
-        this.recoveryTicks = 20;
+        this.recoveryTicks = 10;
         this.interruptible = false; // Hard to interrupt while guarding
         // No telegraph for guard - it's a defensive stance
         this.telegraphType = TelegraphType.NONE;

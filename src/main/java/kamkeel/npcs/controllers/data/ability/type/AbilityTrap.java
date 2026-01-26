@@ -137,31 +137,6 @@ public class AbilityTrap extends Ability {
         return instance;
     }
 
-    /**
-     * Calculates offset position near the given coordinates.
-     */
-    private double[] calculateOffsetPosition(double baseX, double baseY, double baseZ) {
-        if (maxOffset <= 0) {
-            return new double[]{baseX, baseY, baseZ};
-        }
-
-        double offsetDist;
-        double offsetAngle;
-
-        if (randomOffset) {
-            offsetDist = minOffset + RANDOM.nextDouble() * (maxOffset - minOffset);
-            offsetAngle = RANDOM.nextDouble() * Math.PI * 2;
-        } else {
-            offsetDist = maxOffset;
-            offsetAngle = RANDOM.nextDouble() * Math.PI * 2;
-        }
-
-        double offsetX = Math.cos(offsetAngle) * offsetDist;
-        double offsetZ = Math.sin(offsetAngle) * offsetDist;
-
-        return new double[]{baseX + offsetX, baseY, baseZ + offsetZ};
-    }
-
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
         armed = false;
@@ -181,12 +156,18 @@ public class AbilityTrap extends Ability {
             case AT_TARGET:
                 // Use telegraph position with offset
                 if (telegraph != null) {
-                    double[] pos = calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ());
+                    double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
+                        minOffset, maxOffset, randomOffset, RANDOM);
                     trapX = pos[0];
                     trapY = pos[1];
                     trapZ = pos[2];
+                    // Update telegraph to show actual trap position
+                    telegraph.setX(trapX);
+                    telegraph.setY(trapY);
+                    telegraph.setZ(trapZ);
                 } else if (target != null) {
-                    double[] pos = calculateOffsetPosition(target.posX, target.posY, target.posZ);
+                    double[] pos = Ability.calculateOffsetPosition(target.posX, target.posY, target.posZ,
+                        minOffset, maxOffset, randomOffset, RANDOM);
                     trapX = pos[0];
                     trapY = pos[1];
                     trapZ = pos[2];

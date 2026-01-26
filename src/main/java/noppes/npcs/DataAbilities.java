@@ -3,6 +3,7 @@ package noppes.npcs;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
@@ -444,7 +445,7 @@ public class DataAbilities {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Handle damage taken - may interrupt current ability.
+     * Handle damage taken - may interrupt current ability or trigger guard counter.
      *
      * @param source The damage source
      * @param amount The damage amount
@@ -453,6 +454,14 @@ public class DataAbilities {
     public boolean onDamage(DamageSource source, float amount) {
         // Track hit for hit count condition
         recordHit();
+
+        // Check if currently executing a Guard ability and notify it of damage taken
+        if (currentAbility instanceof AbilityGuard) {
+            AbilityGuard guard = (AbilityGuard) currentAbility;
+            if (guard.isGuarding() && source.getEntity() instanceof EntityLivingBase) {
+                guard.onDamageTaken(npc, (EntityLivingBase) source.getEntity(), source, amount);
+            }
+        }
 
         if (currentAbility == null || !currentAbility.isExecuting()) {
             return false;
@@ -464,6 +473,18 @@ public class DataAbilities {
         }
 
         return false;
+    }
+
+    /**
+     * Get the damage reduction factor if a Guard ability is currently active.
+     *
+     * @return The damage reduction factor (0.0 = no reduction, 1.0 = full immunity), or 0 if not guarding
+     */
+    public float getGuardDamageReduction() {
+        if (currentAbility instanceof AbilityGuard) {
+            return ((AbilityGuard) currentAbility).getDamageReductionFactor();
+        }
+        return 0.0f;
     }
 
     /**
@@ -553,7 +574,7 @@ public class DataAbilities {
      * @param hitEntity   The entity being hit
      * @param damage      The damage amount
      * @param knockback   The horizontal knockback
-     * @param knockbackUp The vertical knockback (deprecated, ignored)
+     * @param knockbackUp The vertical knockback
      * @return The event (with possibly modified values), or null if cancelled
      */
     public AbilityEvent.HitEvent fireHitEvent(Ability ability, EntityLivingBase target,
@@ -684,16 +705,6 @@ public class DataAbilities {
             default:
                 return false;
         }
-    }
-
-    /**
-     * Check if NPC movement should be blocked due to ability execution.
-     *
-     * @deprecated Use isAbilityControllingMovement() instead
-     */
-    @Deprecated
-    public boolean isMovementBlocked() {
-        return isAbilityControllingMovement();
     }
 
     /**

@@ -42,6 +42,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     protected static final int TAB_TYPE = 1;
     protected static final int TAB_TARGET = 2;
     protected static final int TAB_EFFECTS = 3;
+    protected static final int TAB_VISUAL = 4;
 
     // Core references
     protected final Ability ability;
@@ -98,6 +99,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     protected final boolean supportsTelegraph;
     protected final boolean targetingModeLocked;
     protected final boolean hasTypeSettings;
+    protected final boolean hasVisualSettings;
 
     public SubGuiAbilityConfig(Ability ability, IAbilityConfigCallback callback) {
         this.ability = ability;
@@ -138,6 +140,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.supportsTelegraph = defaultType != null && defaultType != TelegraphType.NONE;
         this.targetingModeLocked = ability.isTargetingModeLocked();
         this.hasTypeSettings = ability.hasTypeSettings();
+        this.hasVisualSettings = hasVisualSettings();
 
         setBackground("menubg.png");
         xSize = 356;
@@ -172,6 +175,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         GuiMenuTopButton effectsTab = new GuiMenuTopButton(93, lastTab, "ability.tab.effects");
         effectsTab.active = (activeTab == TAB_EFFECTS);
         addTopButton(effectsTab);
+        lastTab = effectsTab;
+
+        if (hasVisualSettings) {
+            GuiMenuTopButton visualTab = new GuiMenuTopButton(94, lastTab, "ability.tab.visual");
+            visualTab.active = (activeTab == TAB_VISUAL);
+            addTopButton(visualTab);
+        }
 
         // Close button (X) in top menu bar - use -1000 to avoid any ID conflicts
         GuiMenuTopButton closeBtn = new GuiMenuTopButton(-1000, guiLeft + xSize - 22, guiTop - 17, "X");
@@ -195,15 +205,20 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             case TAB_EFFECTS:
                 initEffectsTab(contentY);
                 break;
+            case TAB_VISUAL:
+                initVisualTab(contentY);
+                break;
         }
 
         // ═══════════════════════════════════════════════════════════════════════
-        // BOTTOM ROW - Enabled toggle
+        // BOTTOM ROW - Enabled toggle (only on General tab)
         // ═══════════════════════════════════════════════════════════════════════
-        addLabel(new GuiNpcLabel(99, "gui.enabled", guiLeft + 8, guiTop + ySize - 18));
-        GuiNpcButton enabledBtn = new GuiNpcButton(2, guiLeft + 55, guiTop + ySize - 24, 40, 20, new String[]{"gui.no", "gui.yes"}, enabled ? 1 : 0);
-        enabledBtn.setTextColor(enabled ? 0x00FF00 : 0xFF0000);
-        addButton(enabledBtn);
+        if (activeTab == TAB_GENERAL) {
+            addLabel(new GuiNpcLabel(99, "gui.enabled", guiLeft + 8, guiTop + ySize - 18));
+            GuiNpcButton enabledBtn = new GuiNpcButton(2, guiLeft + 55, guiTop + ySize - 24, 40, 20, new String[]{"gui.no", "gui.yes"}, enabled ? 1 : 0);
+            enabledBtn.setTextColor(enabled ? 0x00FF00 : 0xFF0000);
+            addButton(enabledBtn);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -307,6 +322,45 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
      * Field IDs 100+ are reserved for type-specific use.
      */
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
+        // Default: no-op
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // VISUAL TAB - Override in subclasses for visual settings (colors, etc.)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Override to return true if this ability has visual settings (colors, glow, etc.).
+     * When true, a Visual tab will be shown in the GUI.
+     */
+    protected boolean hasVisualSettings() {
+        return false;
+    }
+
+    /**
+     * Override this method to render visual settings in the Visual tab.
+     * Use button/text field IDs starting at 200 for visual settings.
+     *
+     * @param startY The Y position to start rendering from
+     */
+    protected void initVisualTab(int startY) {
+        // Default: show message that no visual settings are available
+        addLabel(new GuiNpcLabel(200, "ability.noVisualSettings", guiLeft + 8, startY + 5));
+    }
+
+    /**
+     * Override this method to handle button clicks for visual-specific buttons.
+     * Button IDs 200+ are reserved for visual-specific use.
+     */
+    protected void handleVisualButton(int id, GuiNpcButton button) {
+        // Default: no-op
+    }
+
+    /**
+     * Override this method to handle text field changes for visual-specific fields.
+     * Field IDs 200+ are reserved for visual-specific use.
+     */
+    protected void handleVisualTextField(int id, GuiNpcTextField field) {
         // Default: no-op
     }
 
@@ -563,6 +617,11 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             initGui();
             return;
         }
+        if (id == 94 && hasVisualSettings) {
+            activeTab = TAB_VISUAL;
+            initGui();
+            return;
+        }
 
         // Enabled button (bottom left)
         if (id == 2) {
@@ -668,7 +727,11 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             initGui();
         }
 
-        // Type-specific buttons (100+) - delegate to subclass
+        // Visual-specific buttons (200+) - delegate to subclass
+        else if (id >= 200) {
+            handleVisualButton(id, (GuiNpcButton) guibutton);
+        }
+        // Type-specific buttons (100-199) - delegate to subclass
         else if (id >= 100) {
             handleTypeButton(id, (GuiNpcButton) guibutton);
         }
@@ -707,7 +770,11 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             recoveryTicks = textField.getInteger();
         }
 
-        // Type-specific fields (100+) - delegate to subclass
+        // Visual-specific fields (200+) - delegate to subclass
+        else if (id >= 200) {
+            handleVisualTextField(id, textField);
+        }
+        // Type-specific fields (100-199) - delegate to subclass
         else if (id >= 100) {
             handleTypeTextField(id, textField);
         }

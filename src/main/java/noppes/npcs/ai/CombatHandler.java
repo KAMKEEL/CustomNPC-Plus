@@ -179,10 +179,10 @@ public class CombatHandler {
     }
 
     /**
-     * Check if NPC movement should be blocked due to ability execution.
+     * Check if ability is controlling NPC movement (AI pathfinding should be blocked).
      */
-    public boolean isMovementBlocked() {
-        return npc.abilities.isMovementBlocked();
+    public boolean isAbilityControllingMovement() {
+        return npc.abilities.isAbilityControllingMovement();
     }
 
     /**

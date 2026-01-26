@@ -1534,6 +1534,7 @@ telegraph.point=Point
 ability.tab.timing=Timing
 ability.tab.effects=Effects
 ability.tab.telegraph=Telegraph
+ability.tab.visual=Visual
 ability.showTelegraph=Show Telegraph
 ability.telegraphColor=Color
 ability.telegraphSizeNote=Size is based on ability parameters
@@ -1559,6 +1560,9 @@ ability.cnpc.guard=Guard
 ability.cnpc.heal=Heal
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
+ability.cnpc.disc=Disc
+ability.cnpc.laser_shot=Laser Shot
+ability.cnpc.sweeper=Sweeper
 
 # Ability GUI - Type Tab
 
@@ -1627,10 +1631,12 @@ ability.explRadius=Expl Rad
 # Beam Settings
 ability.beamLength=Length
 ability.beamWidth=Width
+ability.beamHeight=Height
 ability.dmgInterval=Interval
 ability.sweepAngle=Sweep Ang
 ability.sweepSpeed=Sweep Spd
 ability.lockTarget=Lock Tgt
+ability.rotations=Rotations
 
 # Guard Settings
 ability.dmgReduce=Dmg Reduce
@@ -1666,6 +1672,30 @@ ability.place.ahead=Ahead
 ability.triggerRadius=Trig Rad
 ability.armTime=Arm Time
 ability.maxTriggers=Max Trig
+
+# Disc Settings
+ability.discRadius=Disc Rad
+ability.discThickness=Thickness
+ability.boomerang=Boomerang
+ability.boomerangDelay=Return Delay
+ability.homingStr=Homing Str
+ability.homingRange=Homing Rng
+ability.explosionRad=Expl Rad
+ability.rotationSpeed=Rot Speed
+ability.innerColor=Inner Color
+ability.outerColor=Outer Color
+ability.outerEnabled=Outer Glow
+ability.outerWidth=Outer Width
+ability.noVisualSettings=No visual settings for this ability type
+
+# Laser Shot Settings
+ability.laserWidth=Laser Width
+ability.expansionSpeed=Expansion Spd
+ability.lingerTicks=Linger Ticks
+
+# Energy Beam Settings
+ability.headSize=Head Size
+ability.attachedToOwner=Attached
 
 # Ability Save/Load
 ability.save.confirm=Save ability preset

@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.ability;
 
-import kamkeel.npcs.controllers.data.ability.type.AbilityBeam;
+import kamkeel.npcs.controllers.data.ability.type.AbilitySweeper;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
@@ -9,6 +9,9 @@ import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHeal;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
 import kamkeel.npcs.controllers.data.ability.type.AbilityOrb;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDisc;
+import kamkeel.npcs.controllers.data.ability.type.AbilityLaserShot;
+import kamkeel.npcs.controllers.data.ability.type.AbilityEnergyBeam;
 import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
 import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
 import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
@@ -296,9 +299,12 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:cutter", AbilityCutter::new);
 
         // Ranged/Projectile abilities
-        registerType("cnpc:beam", AbilityBeam::new);
+        registerType("cnpc:sweeper", AbilitySweeper::new);
         registerType("cnpc:projectile", AbilityProjectile::new);
         registerType("cnpc:orb", AbilityOrb::new);
+        registerType("cnpc:disc", AbilityDisc::new);
+        registerType("cnpc:laser_shot", AbilityLaserShot::new);
+        registerType("cnpc:beam", AbilityEnergyBeam::new);
 
         // Movement abilities
         registerType("cnpc:charge", AbilityCharge::new);
