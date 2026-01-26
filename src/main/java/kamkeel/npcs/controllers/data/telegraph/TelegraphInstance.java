@@ -17,11 +17,17 @@ public class TelegraphInstance {
     private String instanceId;
     private Telegraph telegraph;
 
-    // Position
+    // Position (current)
     private double x;
     private double y;
     private double z;
     private float yaw;
+
+    // Position (previous tick - for interpolation)
+    private double prevX;
+    private double prevY;
+    private double prevZ;
+    private float prevYaw;
 
     // Entity tracking
     private int entityIdToFollow = -1;
@@ -50,6 +56,11 @@ public class TelegraphInstance {
         this.y = y;
         this.z = z;
         this.yaw = yaw;
+        // Initialize prev positions to current for first frame
+        this.prevX = x;
+        this.prevY = y;
+        this.prevZ = z;
+        this.prevYaw = yaw;
         this.remainingTicks = telegraph.getDurationTicks();
         this.totalTicks = telegraph.getDurationTicks();
     }
@@ -68,6 +79,12 @@ public class TelegraphInstance {
         if (remainingTicks <= 0) {
             return false;
         }
+
+        // Save previous position for interpolation
+        this.prevX = this.x;
+        this.prevY = this.y;
+        this.prevZ = this.z;
+        this.prevYaw = this.yaw;
 
         remainingTicks--;
 
@@ -142,6 +159,43 @@ public class TelegraphInstance {
         alpha = (int) (alpha * pulse);
 
         return (alpha << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // INTERPOLATED POSITION (for smooth rendering)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Get interpolated X position for smooth rendering.
+     */
+    public double getInterpolatedX(float partialTicks) {
+        return prevX + (x - prevX) * partialTicks;
+    }
+
+    /**
+     * Get interpolated Y position for smooth rendering.
+     */
+    public double getInterpolatedY(float partialTicks) {
+        return prevY + (y - prevY) * partialTicks;
+    }
+
+    /**
+     * Get interpolated Z position for smooth rendering.
+     */
+    public double getInterpolatedZ(float partialTicks) {
+        return prevZ + (z - prevZ) * partialTicks;
+    }
+
+    /**
+     * Get interpolated yaw for smooth rendering.
+     * Handles angle wrapping for smooth rotation.
+     */
+    public float getInterpolatedYaw(float partialTicks) {
+        // Handle angle wrapping to prevent spinning the wrong way
+        float diff = yaw - prevYaw;
+        while (diff > 180.0f) diff -= 360.0f;
+        while (diff < -180.0f) diff += 360.0f;
+        return prevYaw + diff * partialTicks;
     }
 
     // ═══════════════════════════════════════════════════════════════════

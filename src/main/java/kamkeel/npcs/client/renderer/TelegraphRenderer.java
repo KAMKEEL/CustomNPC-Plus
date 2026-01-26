@@ -76,10 +76,10 @@ public class TelegraphRenderer {
             return;
         }
 
-        // Calculate render position relative to camera
-        double renderX = instance.getX() - playerX;
-        double renderY = instance.getY() - playerY + telegraph.getHeightOffset();
-        double renderZ = instance.getZ() - playerZ;
+        // Calculate render position relative to camera using interpolated positions for smooth movement
+        double renderX = instance.getInterpolatedX(partialTicks) - playerX;
+        double renderY = instance.getInterpolatedY(partialTicks) - playerY + telegraph.getHeightOffset();
+        double renderZ = instance.getInterpolatedZ(partialTicks) - playerZ;
 
         // Get animated color
         int color = instance.getAnimatedColor(partialTicks);
@@ -91,8 +91,8 @@ public class TelegraphRenderer {
         GL11.glPushMatrix();
         GL11.glTranslated(renderX, renderY, renderZ);
 
-        // Rotate for directional shapes
-        GL11.glRotatef(-instance.getYaw(), 0, 1, 0);
+        // Rotate for directional shapes using interpolated yaw for smooth rotation
+        GL11.glRotatef(-instance.getInterpolatedYaw(partialTicks), 0, 1, 0);
 
         switch (telegraph.getType()) {
             case CIRCLE:

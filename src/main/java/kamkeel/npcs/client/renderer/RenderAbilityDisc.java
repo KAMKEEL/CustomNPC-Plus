@@ -2,6 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -21,6 +22,7 @@ public class RenderAbilityDisc extends RenderAbilityProjectile {
 
         setupRenderState();
 
+        GL11.glPushMatrix();
         GL11.glTranslated(x, y, z);
 
         // Get interpolated values
@@ -33,27 +35,64 @@ public class RenderAbilityDisc extends RenderAbilityProjectile {
         float scaleModifier = (float) Math.sin(pulseTime * 0.1f) * 0.03f;
         float scale = 1.0f + scaleModifier;
 
+        // Render lightning BEFORE rotation so it crackles in all directions
+        if (disc.hasLightningEffect()) {
+            renderAttachedLightning(disc, radius * scale);
+        }
+
         GL11.glPushMatrix();
         GL11.glScalef(scale, scale, scale);
 
         // Apply ONLY Y-axis rotation for flat spin
         GL11.glRotatef(disc.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);
 
+        // Inner scale defines the core size
+        float innerScale = 0.6f;
+
         // Render outer square (translucent) - only if enabled
+        // outerColorWidth is an additive offset from inner size
         if (disc.isOuterColorEnabled()) {
-            float outerScale = disc.getOuterColorWidth() / 1.8f; // Normalize to default width
+            float outerScale = innerScale + disc.getOuterColorWidth();
             GL11.glDepthMask(false);
             renderFlatSquare(disc.getOuterColor(), 0.5f, radius * outerScale, thickness);
             GL11.glDepthMask(true);
         }
 
-        // Render inner square (solid, smaller)
-        float innerScale = 0.6f;
+        // Render inner square (solid)
         renderFlatSquare(disc.getInnerColor(), 1.0f, radius * innerScale, thickness * 1.2f);
 
         GL11.glPopMatrix();
+        GL11.glPopMatrix();
 
         restoreRenderState();
+    }
+
+    /**
+     * Render fading lightning arcs attached to the disc (in local space).
+     */
+    private void renderAttachedLightning(EntityAbilityDisc disc, float discSize) {
+        AttachedLightningRenderer.LightningState state = getLightningState(disc);
+
+        float density = disc.getLightningDensity();
+        // Lightning radius extends outward from inner surface (innerScale = 0.6)
+        float innerRadius = 0.6f * discSize * 0.5f;
+        float radius = innerRadius + disc.getLightningRadius() * discSize;
+        int outerColor = disc.getOuterColor();
+        int innerColor = disc.getInnerColor();
+        int fadeTime = disc.getLightningFadeTime();
+
+        state.update(density, radius, outerColor, innerColor, fadeTime);
+        state.render();
+    }
+
+    /**
+     * Get or create the lightning state for an entity.
+     */
+    private AttachedLightningRenderer.LightningState getLightningState(EntityAbilityDisc disc) {
+        if (disc.lightningState == null) {
+            disc.lightningState = new AttachedLightningRenderer.LightningState();
+        }
+        return (AttachedLightningRenderer.LightningState) disc.lightningState;
     }
 
     /**

@@ -111,6 +111,28 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
         GuiNpcTextField widthField = createFloatField(203, col2FieldX, y, 55, laser.getOuterColorWidth());
         widthField.setEnabled(laser.isOuterColorEnabled());
         addTextField(widthField);
+
+        y += 24;
+
+        // Row 3: Lightning Effect Enabled
+        addLabel(new GuiNpcLabel(204, "ability.lightning", labelX, y + 5));
+        addButton(new GuiNpcButton(204, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.hasLightningEffect() ? 1 : 0));
+
+        // Only show Lightning settings if Lightning is enabled
+        if (laser.hasLightningEffect()) {
+            y += 24;
+
+            // Row 4: Density + Radius
+            addLabel(new GuiNpcLabel(205, "ability.lightningDensity", labelX, y + 5));
+            GuiNpcTextField densityField = new GuiNpcTextField(205, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(laser.getLightningDensity()));
+            densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
+            addTextField(densityField);
+
+            addLabel(new GuiNpcLabel(206, "ability.lightningRadius", col2LabelX, y + 5));
+            GuiNpcTextField radiusField = new GuiNpcTextField(206, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(laser.getLightningRadius()));
+            radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
+            addTextField(radiusField);
+        }
     }
 
     @Override
@@ -139,6 +161,10 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
                 laser.setOuterColorEnabled(value == 1);
                 initGui();
                 break;
+            case 204:
+                laser.setLightningEffect(value == 1);
+                initGui();
+                break;
         }
     }
 
@@ -164,6 +190,12 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
         switch (id) {
             case 203:
                 laser.setOuterColorWidth(parseFloat(field, laser.getOuterColorWidth()));
+                break;
+            case 205:
+                laser.setLightningDensity(parseFloat(field, laser.getLightningDensity()));
+                break;
+            case 206:
+                laser.setLightningRadius(parseFloat(field, laser.getLightningRadius()));
                 break;
         }
     }

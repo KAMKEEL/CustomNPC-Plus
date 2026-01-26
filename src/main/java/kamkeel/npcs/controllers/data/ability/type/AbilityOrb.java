@@ -53,9 +53,15 @@ public class AbilityOrb extends Ability {
     // Visual properties
     private int innerColor = 0xFFFFFF;  // White core
     private int outerColor = 0x8888FF;  // Light blue glow
-    private float outerColorWidth = 1.8f; // Multiplier for outer glow size
+    private float outerColorWidth = 0.4f; // Additive offset from inner size
     private boolean outerColorEnabled = true; // Whether to render outer glow
     private float rotationSpeed = 4.0f; // Degrees per tick
+
+    // Lightning effect properties
+    private boolean lightningEffect = false;
+    private float lightningDensity = 0.15f;  // Bolts spawned per tick (0.15 = ~15% chance per frame)
+    private float lightningRadius = 0.5f;    // Max distance lightning arcs - scales with orbSize
+    private int lightningFadeTime = 6;       // Ticks before lightning fades out
 
     public AbilityOrb() {
         this.typeId = "ability.cnpc.orb";
@@ -110,7 +116,8 @@ public class AbilityOrb extends Ability {
             orbSpeed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime
+            maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime
         );
 
         world.spawnEntityInWorld(orb);
@@ -181,6 +188,10 @@ public class AbilityOrb extends Ability {
         nbt.setFloat("outerColorWidth", outerColorWidth);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
+        nbt.setBoolean("lightningEffect", lightningEffect);
+        nbt.setFloat("lightningDensity", lightningDensity);
+        nbt.setFloat("lightningRadius", lightningRadius);
+        nbt.setInteger("lightningFadeTime", lightningFadeTime);
     }
 
     @Override
@@ -203,9 +214,13 @@ public class AbilityOrb extends Ability {
         this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
-        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
+        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
+        this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
+        this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
+        this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
+        this.lightningFadeTime = nbt.hasKey("lightningFadeTime") ? nbt.getInteger("lightningFadeTime") : 6;
     }
 
     // Getters & Setters
@@ -375,5 +390,37 @@ public class AbilityOrb extends Ability {
 
     public void setRotationSpeed(float rotationSpeed) {
         this.rotationSpeed = rotationSpeed;
+    }
+
+    public boolean hasLightningEffect() {
+        return lightningEffect;
+    }
+
+    public void setLightningEffect(boolean lightningEffect) {
+        this.lightningEffect = lightningEffect;
+    }
+
+    public float getLightningDensity() {
+        return lightningDensity;
+    }
+
+    public void setLightningDensity(float lightningDensity) {
+        this.lightningDensity = lightningDensity;
+    }
+
+    public float getLightningRadius() {
+        return lightningRadius;
+    }
+
+    public void setLightningRadius(float lightningRadius) {
+        this.lightningRadius = lightningRadius;
+    }
+
+    public int getLightningFadeTime() {
+        return lightningFadeTime;
+    }
+
+    public void setLightningFadeTime(int lightningFadeTime) {
+        this.lightningFadeTime = lightningFadeTime;
     }
 }

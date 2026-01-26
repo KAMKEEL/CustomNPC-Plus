@@ -41,15 +41,39 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
                             boolean explosive, float explosionRadius, float explosionDamageFalloff,
                             int stunDuration, int slowDuration, int slowLevel,
                             float maxDistance, int maxLifetime) {
+        this(world, owner, target, x, y, z,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            damage, knockback, knockbackUp,
+            speed, homing, homingStrength, homingRange,
+            explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel,
+            maxDistance, maxLifetime,
+            false, 0.15f, 0.5f, 6); // Default: no lightning, low density, small radius, 6 tick fade
+    }
+
+    /**
+     * Full constructor with lightning effect support.
+     */
+    public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
+                            double x, double y, double z,
+                            float orbSize, int innerColor, int outerColor,
+                            boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                            float damage, float knockback, float knockbackUp,
+                            float speed, boolean homing, float homingStrength, float homingRange,
+                            boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                            int stunDuration, int slowDuration, int slowLevel,
+                            float maxDistance, int maxLifetime,
+                            boolean lightningEffect, float lightningDensity, float lightningRadius, int lightningFadeTime) {
         super(world);
 
-        // Initialize base properties
+        // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
             orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime);
+            maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime);
 
         // Orb-specific properties
         this.speed = speed;

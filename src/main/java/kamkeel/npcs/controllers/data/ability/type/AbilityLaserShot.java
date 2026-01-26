@@ -46,8 +46,13 @@ public class AbilityLaserShot extends Ability {
     // Visual properties
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0xFF0000;
-    private float outerColorWidth = 1.8f;
+    private float outerColorWidth = 0.4f; // Additive offset from inner width
     private boolean outerColorEnabled = true;
+
+    // Lightning effect properties
+    private boolean lightningEffect = false;
+    private float lightningDensity = 0.15f;
+    private float lightningRadius = 0.5f;
 
     public AbilityLaserShot() {
         this.typeId = "ability.cnpc.laser_shot";
@@ -110,7 +115,8 @@ public class AbilityLaserShot extends Ability {
             expansionSpeed, lingerTicks,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime
+            maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius
         );
 
         world.spawnEntityInWorld(laser);
@@ -148,6 +154,9 @@ public class AbilityLaserShot extends Ability {
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
+        nbt.setBoolean("lightningEffect", lightningEffect);
+        nbt.setFloat("lightningDensity", lightningDensity);
+        nbt.setFloat("lightningRadius", lightningRadius);
     }
 
     @Override
@@ -168,8 +177,11 @@ public class AbilityLaserShot extends Ability {
         this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF0000;
-        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
+        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
+        this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
+        this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
+        this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
     }
 
     // Getters & Setters
@@ -209,4 +221,10 @@ public class AbilityLaserShot extends Ability {
     public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
     public boolean isOuterColorEnabled() { return outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
+    public boolean hasLightningEffect() { return lightningEffect; }
+    public void setLightningEffect(boolean lightningEffect) { this.lightningEffect = lightningEffect; }
+    public float getLightningDensity() { return lightningDensity; }
+    public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
+    public float getLightningRadius() { return lightningRadius; }
+    public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
 }

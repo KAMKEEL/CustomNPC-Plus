@@ -87,36 +87,58 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 180;
         int col2FieldX = guiLeft + 260;
 
-        // Row 1: Inner Color + Outer Color
+        // Row 1: Inner Color + Rotation Speed
         addLabel(new GuiNpcLabel(200, "ability.innerColor", labelX, y + 5));
         String innerHex = String.format("%06X", orb.getInnerColor() & 0xFFFFFF);
         GuiNpcButton innerColorBtn = new GuiNpcButton(200, fieldX, y, 55, 20, innerHex);
         innerColorBtn.setTextColor(orb.getInnerColor() & 0xFFFFFF);
         addButton(innerColorBtn);
 
-        addLabel(new GuiNpcLabel(201, "ability.outerColor", col2LabelX, y + 5));
-        String outerHex = String.format("%06X", orb.getOuterColor() & 0xFFFFFF);
-        GuiNpcButton outerColorBtn = new GuiNpcButton(201, col2FieldX, y, 55, 20, outerHex);
-        outerColorBtn.setTextColor(orb.getOuterColor() & 0xFFFFFF);
-        outerColorBtn.setEnabled(orb.isOuterColorEnabled());
-        addButton(outerColorBtn);
+        addLabel(new GuiNpcLabel(204, "ability.rotationSpeed", col2LabelX, y + 5));
+        addTextField(createFloatField(204, col2FieldX, y, 55, orb.getRotationSpeed()));
 
         y += 24;
 
-        // Row 2: Outer Color Enabled + Outer Color Width
+        // Row 2: Outer Glow Enabled
         addLabel(new GuiNpcLabel(202, "ability.outerEnabled", labelX, y + 5));
         addButton(new GuiNpcButton(202, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, orb.isOuterColorEnabled() ? 1 : 0));
 
-        addLabel(new GuiNpcLabel(203, "ability.outerWidth", col2LabelX, y + 5));
-        GuiNpcTextField widthField = createFloatField(203, col2FieldX, y, 55, orb.getOuterColorWidth());
-        widthField.setEnabled(orb.isOuterColorEnabled());
-        addTextField(widthField);
+        // Only show Outer Color and Width if Outer Glow is enabled
+        if (orb.isOuterColorEnabled()) {
+            y += 24;
+
+            // Row 3: Outer Color + Outer Width
+            addLabel(new GuiNpcLabel(201, "ability.outerColor", labelX, y + 5));
+            String outerHex = String.format("%06X", orb.getOuterColor() & 0xFFFFFF);
+            GuiNpcButton outerColorBtn = new GuiNpcButton(201, fieldX, y, 55, 20, outerHex);
+            outerColorBtn.setTextColor(orb.getOuterColor() & 0xFFFFFF);
+            addButton(outerColorBtn);
+
+            addLabel(new GuiNpcLabel(203, "ability.outerWidth", col2LabelX, y + 5));
+            addTextField(createFloatField(203, col2FieldX, y, 55, orb.getOuterColorWidth()));
+        }
 
         y += 24;
 
-        // Row 3: Rotation Speed
-        addLabel(new GuiNpcLabel(204, "ability.rotationSpeed", labelX, y + 5));
-        addTextField(createFloatField(204, fieldX, y, 50, orb.getRotationSpeed()));
+        // Row 4: Lightning Effect Enabled
+        addLabel(new GuiNpcLabel(205, "ability.lightning", labelX, y + 5));
+        addButton(new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, orb.hasLightningEffect() ? 1 : 0));
+
+        // Only show Lightning settings if Lightning is enabled
+        if (orb.hasLightningEffect()) {
+            y += 24;
+
+            // Row 5: Density + Radius
+            addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
+            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(orb.getLightningDensity()));
+            densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
+            addTextField(densityField);
+
+            addLabel(new GuiNpcLabel(207, "ability.lightningRadius", col2LabelX, y + 5));
+            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(orb.getLightningRadius()));
+            radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
+            addTextField(radiusField);
+        }
     }
 
     @Override
@@ -146,6 +168,10 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
                 break;
             case 202:
                 orb.setOuterColorEnabled(value == 1);
+                initGui();
+                break;
+            case 205:
+                orb.setLightningEffect(value == 1);
                 initGui();
                 break;
         }
@@ -206,6 +232,12 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
                 break;
             case 204:
                 orb.setRotationSpeed(parseFloat(field, orb.getRotationSpeed()));
+                break;
+            case 206:
+                orb.setLightningDensity(parseFloat(field, orb.getLightningDensity()));
+                break;
+            case 207:
+                orb.setLightningRadius(parseFloat(field, orb.getLightningRadius()));
                 break;
         }
     }

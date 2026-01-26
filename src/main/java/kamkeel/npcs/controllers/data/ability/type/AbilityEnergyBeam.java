@@ -8,6 +8,7 @@ import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityBeam;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -56,9 +57,17 @@ public class AbilityEnergyBeam extends Ability {
     // Visual properties
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0x00AAFF;
-    private float outerColorWidth = 1.8f;
+    private float outerColorWidth = 0.4f; // Additive offset from inner size
     private boolean outerColorEnabled = true;
     private float rotationSpeed = 6.0f;
+
+    // Lightning effect properties (only on head)
+    private boolean lightningEffect = false;
+    private float lightningDensity = 0.15f;
+    private float lightningRadius = 0.5f;
+
+    // Transient state for beam entity (used during windup charging)
+    private transient int beamEntityId = -1;
 
     public AbilityEnergyBeam() {
         this.typeId = "ability.cnpc.beam";
@@ -99,22 +108,43 @@ public class AbilityEnergyBeam extends Ability {
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
         if (world.isRemote) return;
 
-        double spawnX = npc.posX;
-        double spawnY = npc.posY + npc.getEyeHeight() * 0.7;
-        double spawnZ = npc.posZ;
+        // Find and start firing the beam that was spawned during windup
+        if (beamEntityId != -1) {
+            Entity entity = world.getEntityByID(beamEntityId);
+            if (entity instanceof EntityAbilityBeam) {
+                EntityAbilityBeam beam = (EntityAbilityBeam) entity;
+                beam.startFiring(target);
+            }
+            beamEntityId = -1;
+        }
+    }
 
-        EntityAbilityBeam beam = new EntityAbilityBeam(
-            world, npc, target,
-            spawnX, spawnY, spawnZ,
-            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
-            damage, knockback, knockbackUp,
-            speed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime
-        );
+    @Override
+    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        if (world.isRemote) return;
 
-        world.spawnEntityInWorld(beam);
+        // Spawn beam in charging mode on first tick of windup
+        if (tick == 1) {
+            float offsetDist = 1.0f;
+
+            // Create beam in charging mode - follows NPC's look direction during windup
+            EntityAbilityBeam beam = EntityAbilityBeam.createCharging(
+                world, npc, target,
+                beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                damage, knockback, knockbackUp,
+                speed, homing, homingStrength, homingRange,
+                explosive, explosionRadius, explosionDamageFalloff,
+                stunDuration, slowDuration, slowLevel,
+                maxDistance, maxLifetime,
+                lightningEffect, lightningDensity, lightningRadius,
+                lockMovement, // Anchored mode
+                windUpTicks,  // Charge duration = windup duration
+                offsetDist    // Offset distance in front of NPC
+            );
+
+            world.spawnEntityInWorld(beam);
+            beamEntityId = beam.getEntityId();
+        }
     }
 
     @Override
@@ -127,6 +157,14 @@ public class AbilityEnergyBeam extends Ability {
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+        // Despawn charging beam if interrupted during windup
+        if (beamEntityId != -1) {
+            Entity entity = npc.worldObj.getEntityByID(beamEntityId);
+            if (entity != null) {
+                entity.setDead();
+            }
+            beamEntityId = -1;
+        }
     }
 
     @Override
@@ -180,6 +218,9 @@ public class AbilityEnergyBeam extends Ability {
         nbt.setFloat("outerColorWidth", outerColorWidth);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
+        nbt.setBoolean("lightningEffect", lightningEffect);
+        nbt.setFloat("lightningDensity", lightningDensity);
+        nbt.setFloat("lightningRadius", lightningRadius);
     }
 
     @Override
@@ -203,9 +244,12 @@ public class AbilityEnergyBeam extends Ability {
         this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x00AAFF;
-        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
+        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 6.0f;
+        this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
+        this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
+        this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
     }
 
     // Getters & Setters
@@ -253,4 +297,10 @@ public class AbilityEnergyBeam extends Ability {
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
     public float getRotationSpeed() { return rotationSpeed; }
     public void setRotationSpeed(float rotationSpeed) { this.rotationSpeed = rotationSpeed; }
+    public boolean hasLightningEffect() { return lightningEffect; }
+    public void setLightningEffect(boolean lightningEffect) { this.lightningEffect = lightningEffect; }
+    public float getLightningDensity() { return lightningDensity; }
+    public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
+    public float getLightningRadius() { return lightningRadius; }
+    public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
 }

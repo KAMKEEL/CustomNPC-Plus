@@ -40,7 +40,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     }
 
     /**
-     * Full constructor with all parameters.
+     * Full constructor with all parameters (no lightning).
      */
     public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
@@ -52,15 +52,38 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
                               int stunDuration, int slowDuration, int slowLevel,
                               float maxDistance, int maxLifetime) {
+        this(world, owner, target, x, y, z,
+            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
+            boomerang, boomerangDelay, explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
+            false, 0.15f, 0.5f);
+    }
+
+    /**
+     * Full constructor with all parameters including lightning.
+     */
+    public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
+                              double x, double y, double z,
+                              float discRadius, float discThickness, int innerColor, int outerColor,
+                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              float damage, float knockback, float knockbackUp,
+                              float speed, boolean homing, float homingStrength, float homingRange,
+                              boolean boomerang, int boomerangDelay,
+                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                              int stunDuration, int slowDuration, int slowLevel,
+                              float maxDistance, int maxLifetime,
+                              boolean lightningEffect, float lightningDensity, float lightningRadius) {
         super(world);
 
-        // Initialize base properties (use discRadius as size for base)
+        // Initialize base properties with lightning (use discRadius as size for base)
         initProjectile(owner, target, x, y, z,
             discRadius, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime);
+            maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius, 6);
 
         // Disc-specific properties
         this.speed = speed;

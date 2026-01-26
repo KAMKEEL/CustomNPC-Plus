@@ -30,7 +30,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected int innerColor = 0xFFFFFF;
     protected int outerColor = 0x8888FF;
     protected boolean outerColorEnabled = true;
-    protected float outerColorWidth = 1.8f;
+    protected float outerColorWidth = 0.4f; // Additive offset from inner size
     protected float rotationSpeed = 4.0f;
 
     // ==================== COMBAT PROPERTIES ====================
@@ -47,6 +47,16 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected boolean explosive = false;
     protected float explosionRadius = 3.0f;
     protected float explosionDamageFalloff = 0.5f;
+
+    // ==================== LIGHTNING EFFECT PROPERTIES ====================
+    protected boolean lightningEffect = false;
+    protected float lightningDensity = 0.15f;     // Bolts spawned per tick (0.15 = ~15% chance per frame)
+    protected float lightningRadius = 0.5f;       // Max distance lightning can arc from center
+    protected int lightningFadeTime = 6;          // Ticks before lightning fades out
+
+    // Client-side lightning state (not saved to NBT)
+    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
+    public transient Object lightningState; // Actually AttachedLightningRenderer.LightningState
 
     // ==================== LIFESPAN ====================
     protected float maxDistance = 30.0f;
@@ -93,6 +103,27 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                    int stunDuration, int slowDuration, int slowLevel,
                                    float maxDistance, int maxLifetime) {
+        initProjectile(owner, target, x, y, z,
+            size, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            damage, knockback, knockbackUp,
+            explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel,
+            maxDistance, maxLifetime,
+            false, 0.15f, 0.5f, 6); // Default: no lightning, low density, small radius, 6 tick fade
+    }
+
+    /**
+     * Initialize common properties with lightning effect support.
+     */
+    protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
+                                   double x, double y, double z,
+                                   float size, int innerColor, int outerColor,
+                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                   float damage, float knockback, float knockbackUp,
+                                   boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                                   int stunDuration, int slowDuration, int slowLevel,
+                                   float maxDistance, int maxLifetime,
+                                   boolean lightningEffect, float lightningDensity, float lightningRadius, int lightningFadeTime) {
         this.setPosition(x, y, z);
         this.startX = x;
         this.startY = y;
@@ -128,6 +159,12 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.maxDistance = maxDistance;
         this.maxLifetime = maxLifetime;
         // deathWorldTime will be set on first tick when world is available
+
+        // Lightning
+        this.lightningEffect = lightningEffect;
+        this.lightningDensity = lightningDensity;
+        this.lightningRadius = lightningRadius;
+        this.lightningFadeTime = lightningFadeTime;
 
         // Initialize render size
         this.renderCurrentSize = size;
@@ -417,6 +454,24 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         return this.prevRenderSize + (this.renderCurrentSize - this.prevRenderSize) * partialTicks;
     }
 
+    // ==================== LIGHTNING GETTERS ====================
+
+    public boolean hasLightningEffect() {
+        return lightningEffect;
+    }
+
+    public float getLightningDensity() {
+        return lightningDensity;
+    }
+
+    public float getLightningRadius() {
+        return lightningRadius;
+    }
+
+    public int getLightningFadeTime() {
+        return lightningFadeTime;
+    }
+
     // ==================== BRIGHTNESS ====================
 
     @Override
@@ -452,7 +507,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.innerColor = nbt.getInteger("InnerColor");
         this.outerColor = nbt.getInteger("OuterColor");
         this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
-        this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 1.8f;
+        this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 0.4f;
         this.rotationSpeed = nbt.hasKey("RotationSpeed") ? nbt.getFloat("RotationSpeed") : 4.0f;
 
         this.damage = nbt.getFloat("Damage");
@@ -481,6 +536,12 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.motionX = nbt.getDouble("MotionX");
         this.motionY = nbt.getDouble("MotionY");
         this.motionZ = nbt.getDouble("MotionZ");
+
+        // Lightning
+        this.lightningEffect = nbt.getBoolean("LightningEffect");
+        this.lightningDensity = nbt.hasKey("LightningDensity") ? nbt.getFloat("LightningDensity") : 0.15f;
+        this.lightningRadius = nbt.hasKey("LightningRadius") ? nbt.getFloat("LightningRadius") : 0.5f;
+        this.lightningFadeTime = nbt.hasKey("LightningFadeTime") ? nbt.getInteger("LightningFadeTime") : 6;
 
         if (this.worldObj != null && this.worldObj.isRemote) {
             this.renderCurrentSize = this.size;
@@ -525,6 +586,12 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         nbt.setDouble("MotionX", motionX);
         nbt.setDouble("MotionY", motionY);
         nbt.setDouble("MotionZ", motionZ);
+
+        // Lightning
+        nbt.setBoolean("LightningEffect", lightningEffect);
+        nbt.setFloat("LightningDensity", lightningDensity);
+        nbt.setFloat("LightningRadius", lightningRadius);
+        nbt.setInteger("LightningFadeTime", lightningFadeTime);
     }
 
     /**

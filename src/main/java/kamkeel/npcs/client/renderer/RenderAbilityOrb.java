@@ -2,56 +2,28 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.client.renderer.quadric.SphereRenderer;
+import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityAbilityOrb;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
 /**
- * Renders the AbilityOrb entity as a glowing sphere with inner and outer layers.
- *
- * Design inspired by LouisXIV's energy rendering system.
+ * Renders the AbilityOrb entity as a cube with inner and outer layers.
+ * Minecraft-style blocky appearance using Tessellator.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityOrb extends Render {
+public class RenderAbilityOrb extends RenderAbilityProjectile {
 
-    // White texture for solid color rendering
-    private static final ResourceLocation WHITE_TEXTURE = new ResourceLocation("customnpcs", "textures/entity/white.png");
-
-    // Static sphere renderer - shared across all orb renders
-    private static final SphereRenderer sphere = new SphereRenderer(0.5f, 16);
-
-    public RenderAbilityOrb() {
-        this.shadowSize = 0.0f;
-    }
+    private static final int LIGHTNING_FADE_TICKS = 6;
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         EntityAbilityOrb orb = (EntityAbilityOrb) entity;
 
+        setupRenderState();
+
         GL11.glPushMatrix();
-
-        // Disable culling, enable rescale normal
-        GL11.glDisable(GL11.GL_CULL_FACE);
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        GL11.glEnable(GL11.GL_ALPHA_TEST);
-
-        // Enable blending for transparency
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
-
-        // Disable lighting for self-illumination
-        GL11.glDisable(GL11.GL_LIGHTING);
-
-        // Translate to render position
         GL11.glTranslated(x, y, z);
-
-        // Bind texture
-        this.bindTexture(WHITE_TEXTURE);
 
         // Get interpolated size for smooth rendering
         float size = orb.getInterpolatedSize(partialTicks);
@@ -61,51 +33,74 @@ public class RenderAbilityOrb extends Render {
         float scaleModifier = (float) Math.sin(pulseTime * 0.15f) * 0.05f;
         float scale = size * (1.0f + scaleModifier);
 
-        GL11.glPushMatrix();
-        GL11.glScalef(scale, scale, scale);
+        // Render lightning BEFORE rotation so it crackles in all directions
+        if (orb.hasLightningEffect()) {
+            renderAttachedLightning(orb, scale);
+        }
 
         // Use entity's interpolated rotation for smooth spinning
         GL11.glRotatef(orb.getInterpolatedRotationX(partialTicks), 1.0f, 0.0f, 0.0f);
         GL11.glRotatef(orb.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);
         GL11.glRotatef(orb.getInterpolatedRotationZ(partialTicks), 0.0f, 0.0f, 1.0f);
 
-        // Render outer sphere (translucent) - only if enabled
+        GL11.glPushMatrix();
+        GL11.glScalef(scale, scale, scale);
+
+        // Inner scale defines the core size
+        float innerScale = 0.6f;
+
+        // Render outer cube (translucent) - only if enabled
+        // outerColorWidth is an additive offset from inner size
         if (orb.isOuterColorEnabled()) {
+            float outerScale = innerScale + orb.getOuterColorWidth();
             GL11.glDepthMask(false);
-            this.bindTexture(WHITE_TEXTURE);
-            float outerScale = orb.getOuterColorWidth() / 1.8f; // Normalize to default width
             GL11.glPushMatrix();
             GL11.glScalef(outerScale, outerScale, outerScale);
-            renderSphere(orb.getOuterColor(), 0.6f);
+            renderCube(orb.getOuterColor(), 0.5f, 0.5f);
             GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
 
-        // Render inner sphere (more opaque)
-        float innerScale = 0.75f;
-        GL11.glPushMatrix();
+        // Render inner cube (solid)
         GL11.glScalef(innerScale, innerScale, innerScale);
-        this.bindTexture(WHITE_TEXTURE);
-        renderSphere(orb.getInnerColor(), 1.0f);
-        GL11.glPopMatrix();
+        renderCube(orb.getInnerColor(), 1.0f, 0.5f);
 
         GL11.glPopMatrix();
-
-        // Restore GL state
-        GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glPopMatrix();
+
+        restoreRenderState();
     }
 
-    private void renderSphere(int color, float alpha) {
-        // Set sphere properties and render (rotation already applied to matrix)
-        sphere.setScale(1.0f);
-        sphere.setAlpha(alpha);
-        sphere.setColor(color);
-        sphere.render(0);
+    /**
+     * Render fading lightning arcs attached to the orb (in local space).
+     * Arcs persist for a few ticks and fade out, while staying attached to the orb.
+     */
+    private void renderAttachedLightning(EntityAbilityOrb orb, float orbScale) {
+        // Get or create the lightning state for this entity
+        AttachedLightningRenderer.LightningState state = getLightningState(orb);
+
+        float density = orb.getLightningDensity();
+        // Lightning radius extends outward from inner surface (innerScale = 0.6)
+        float innerRadius = 0.6f * orbScale * 0.5f; // Half size of inner cube
+        float radius = innerRadius + orb.getLightningRadius() * orbScale;
+        int outerColor = orb.getOuterColor();
+        int innerColor = orb.getInnerColor();
+        int fadeTime = orb.getLightningFadeTime();
+
+        // Update: age existing arcs, spawn new ones based on density
+        state.update(density, radius, outerColor, innerColor, fadeTime);
+
+        // Render all active arcs in local space (they move with the orb)
+        state.render();
     }
 
-    @Override
-    protected ResourceLocation getEntityTexture(Entity entity) {
-        return WHITE_TEXTURE;
+    /**
+     * Get or create the lightning state for an entity.
+     */
+    private AttachedLightningRenderer.LightningState getLightningState(EntityAbilityOrb orb) {
+        if (orb.lightningState == null) {
+            orb.lightningState = new AttachedLightningRenderer.LightningState();
+        }
+        return (AttachedLightningRenderer.LightningState) orb.lightningState;
     }
 }

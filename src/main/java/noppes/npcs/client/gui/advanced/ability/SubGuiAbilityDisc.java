@@ -126,6 +126,28 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
         // Row 3: Rotation Speed
         addLabel(new GuiNpcLabel(204, "ability.rotationSpeed", labelX, y + 5));
         addTextField(createFloatField(204, fieldX, y, 50, disc.getRotationSpeed()));
+
+        y += 24;
+
+        // Row 4: Lightning Effect Enabled
+        addLabel(new GuiNpcLabel(205, "ability.lightning", labelX, y + 5));
+        addButton(new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.hasLightningEffect() ? 1 : 0));
+
+        // Only show Lightning settings if Lightning is enabled
+        if (disc.hasLightningEffect()) {
+            y += 24;
+
+            // Row 5: Density + Radius
+            addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
+            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(disc.getLightningDensity()));
+            densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
+            addTextField(densityField);
+
+            addLabel(new GuiNpcLabel(207, "ability.lightningRadius", col2LabelX, y + 5));
+            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(disc.getLightningRadius()));
+            radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
+            addTextField(radiusField);
+        }
     }
 
     @Override
@@ -158,6 +180,10 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
                 break;
             case 202:
                 disc.setOuterColorEnabled(value == 1);
+                initGui();
+                break;
+            case 205:
+                disc.setLightningEffect(value == 1);
                 initGui();
                 break;
         }
@@ -221,6 +247,12 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
                 break;
             case 204:
                 disc.setRotationSpeed(parseFloat(field, disc.getRotationSpeed()));
+                break;
+            case 206:
+                disc.setLightningDensity(parseFloat(field, disc.getLightningDensity()));
+                break;
+            case 207:
+                disc.setLightningRadius(parseFloat(field, disc.getLightningRadius()));
                 break;
         }
     }

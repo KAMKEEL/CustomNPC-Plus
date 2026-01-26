@@ -2,6 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -30,6 +31,13 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         EntityAbilityBeam beam = (EntityAbilityBeam) entity;
 
         setupRenderState();
+
+        // Handle charging state (windup phase) - render only growing orb
+        if (beam.isCharging()) {
+            renderChargingOrb(beam, x, y, z, partialTicks);
+            restoreRenderState();
+            return;
+        }
 
         // Get trail points (these are RELATIVE to origin)
         List<Vec3> trail = beam.getTrailPoints();
@@ -60,11 +68,17 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         GL11.glPushMatrix();
         GL11.glTranslated(renderOriginX, renderOriginY, renderOriginZ);
 
-        // Render tail orb at origin (0,0,0) - static, no rotation
-        renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled());
+        // Render tail orb at origin (0,0,0) - only in anchored mode
+        if (beam.shouldRenderTailOrb()) {
+            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
+        }
 
-        // Render trail segments with smooth connections
-        renderSmoothTrail(trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
+        // Render trail segments with smooth connections (with fading for non-anchored)
+        if (beam.hasFadingTrail()) {
+            renderFadingTrail(beam, trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
+        } else {
+            renderSmoothTrail(trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
+        }
 
         // Render head at interpolated offset position
         renderHead(beam, headOffsetX, headOffsetY, headOffsetZ, headSize, innerColor, outerColor, partialTicks);
@@ -75,26 +89,83 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
     }
 
     /**
+     * Render the charging orb during windup phase.
+     * Grows from 0 to headSize based on charge progress.
+     */
+    private void renderChargingOrb(EntityAbilityBeam beam, double x, double y, double z, float partialTicks) {
+        float headSize = beam.getHeadSize();
+        float chargeProgress = beam.getInterpolatedChargeProgress(partialTicks);
+        float size = headSize * chargeProgress;
+
+        if (size <= 0.01f) return;
+
+        int innerColor = beam.getInnerColor();
+        int outerColor = beam.getOuterColor();
+
+        GL11.glPushMatrix();
+        GL11.glTranslated(x, y, z);
+
+        // Pulsing effect
+        float pulseTime = beam.ticksExisted + partialTicks;
+        float scaleModifier = (float) Math.sin(pulseTime * 0.2f) * 0.08f;
+        float scale = size * (1.0f + scaleModifier);
+
+        // Render lightning during charging if enabled
+        if (beam.hasLightningEffect()) {
+            renderAttachedLightning(beam, scale);
+        }
+
+        GL11.glPushMatrix();
+        GL11.glScalef(scale, scale, scale);
+
+        // Inner scale defines the core size
+        float innerScale = 0.6f;
+
+        // Render outer glow only if enabled
+        if (beam.isOuterColorEnabled()) {
+            float outerScale = innerScale + beam.getOuterColorWidth();
+            GL11.glDepthMask(false);
+            GL11.glPushMatrix();
+            GL11.glScalef(outerScale, outerScale, outerScale);
+            renderCube(outerColor, 0.5f, 0.5f);
+            GL11.glPopMatrix();
+            GL11.glDepthMask(true);
+        }
+
+        // Render inner core
+        GL11.glScalef(innerScale, innerScale, innerScale);
+        renderCube(innerColor, 1.0f, 0.5f);
+
+        GL11.glPopMatrix();
+        GL11.glPopMatrix();
+    }
+
+    /**
      * Render the tail orb at the origin (where the beam emanates from).
      * This orb does not rotate - it's a stable anchor point.
      */
-    private void renderTailOrb(float size, int innerColor, int outerColor, boolean outerColorEnabled) {
+    private void renderTailOrb(float size, int innerColor, int outerColor, boolean outerColorEnabled, float outerColorWidth) {
         GL11.glPushMatrix();
         // Already at origin (0,0,0)
 
+        // Inner scale defines the core size
+        float innerScale = 0.6f;
+
         // Render outer glow only if enabled
+        // outerColorWidth is an additive offset from inner size
         if (outerColorEnabled) {
+            float outerScale = innerScale + outerColorWidth;
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
-            GL11.glScalef(size, size, size);
+            GL11.glScalef(size * outerScale, size * outerScale, size * outerScale);
             renderCube(outerColor, 0.4f, 0.5f);
             GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
 
-        // Render inner core (smaller, solid)
+        // Render inner core (solid)
         GL11.glPushMatrix();
-        GL11.glScalef(size * 0.6f, size * 0.6f, size * 0.6f);
+        GL11.glScalef(size * innerScale, size * innerScale, size * innerScale);
         renderCube(innerColor, 1.0f, 0.5f);
         GL11.glPopMatrix();
 
@@ -115,15 +186,153 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         // At connection points, average the perpendiculars for smooth transitions
         List<double[]> perpFrames = computePerpendiculars(trail);
 
+        // Inner scale defines the core width
+        float innerScale = 0.6f;
+        float innerWidth = width * innerScale;
+
         // Render outer glow trail (wider, translucent) - only if enabled
+        // outerColorWidth is an additive offset from inner width
         if (outerColorEnabled) {
+            float outerWidth = innerWidth + outerColorWidth * width;
             GL11.glDepthMask(false);
-            renderTrailTube(trail, perpFrames, width * outerColorWidth, outerColor, 0.3f, true);
+            renderTrailTube(trail, perpFrames, outerWidth, outerColor, 0.3f, true);
             GL11.glDepthMask(true);
         }
 
         // Render inner core trail
-        renderTrailTube(trail, perpFrames, width * 0.6f, innerColor, 0.9f, false);
+        renderTrailTube(trail, perpFrames, innerWidth, innerColor, 0.9f, false);
+    }
+
+    /**
+     * Render trail with fading effect (comet style) for non-anchored beams.
+     * Older trail points fade out based on their age.
+     */
+    private void renderFadingTrail(EntityAbilityBeam beam, List<Vec3> trail, float width, int innerColor, int outerColor,
+                                    boolean outerColorEnabled, float outerColorWidth) {
+        if (trail.size() < 2) return;
+
+        List<Integer> ages = beam.getTrailPointAges();
+        int fadeTime = beam.getTrailFadeTime();
+
+        // Pre-compute perpendicular frames
+        List<double[]> perpFrames = computePerpendiculars(trail);
+
+        // Inner scale defines the core width
+        float innerScale = 0.6f;
+        float innerWidth = width * innerScale;
+
+        // Render outer glow trail with fading
+        if (outerColorEnabled) {
+            float outerWidth = innerWidth + outerColorWidth * width;
+            GL11.glDepthMask(false);
+            renderFadingTrailTube(trail, perpFrames, ages, fadeTime, outerWidth, outerColor, 0.3f);
+            GL11.glDepthMask(true);
+        }
+
+        // Render inner core trail with fading
+        renderFadingTrailTube(trail, perpFrames, ages, fadeTime, innerWidth, innerColor, 0.9f);
+    }
+
+    /**
+     * Render trail tube with age-based fading.
+     */
+    private void renderFadingTrailTube(List<Vec3> trail, List<double[]> perpFrames, List<Integer> ages,
+                                        int fadeTime, float width, int color, float baseAlpha) {
+        float[] rgb = extractRGB(color);
+        float r = rgb[0], g = rgb[1], b = rgb[2];
+        float halfWidth = width * 0.5f;
+        int size = trail.size();
+
+        Tessellator tess = Tessellator.instance;
+        tess.startDrawingQuads();
+
+        for (int i = 0; i < size - 1; i++) {
+            Vec3 p1 = trail.get(i);
+            Vec3 p2 = trail.get(i + 1);
+            double[] frame1 = perpFrames.get(i);
+            double[] frame2 = perpFrames.get(i + 1);
+
+            // Calculate alpha based on age (older = more faded)
+            float age1 = i < ages.size() ? ages.get(i) : 0;
+            float age2 = (i + 1) < ages.size() ? ages.get(i + 1) : 0;
+            float fade1 = 1.0f - Math.min(1.0f, age1 / fadeTime);
+            float fade2 = 1.0f - Math.min(1.0f, age2 / fadeTime);
+            float alpha1 = baseAlpha * fade1;
+            float alpha2 = baseAlpha * fade2;
+
+            // Skip fully faded segments
+            if (alpha1 <= 0.01f && alpha2 <= 0.01f) continue;
+
+            // Calculate 4 corners at start
+            double s1x = p1.xCoord - frame1[0] * halfWidth - frame1[3] * halfWidth;
+            double s1y = p1.yCoord - frame1[1] * halfWidth - frame1[4] * halfWidth;
+            double s1z = p1.zCoord - frame1[2] * halfWidth - frame1[5] * halfWidth;
+
+            double s2x = p1.xCoord + frame1[0] * halfWidth - frame1[3] * halfWidth;
+            double s2y = p1.yCoord + frame1[1] * halfWidth - frame1[4] * halfWidth;
+            double s2z = p1.zCoord + frame1[2] * halfWidth - frame1[5] * halfWidth;
+
+            double s3x = p1.xCoord + frame1[0] * halfWidth + frame1[3] * halfWidth;
+            double s3y = p1.yCoord + frame1[1] * halfWidth + frame1[4] * halfWidth;
+            double s3z = p1.zCoord + frame1[2] * halfWidth + frame1[5] * halfWidth;
+
+            double s4x = p1.xCoord - frame1[0] * halfWidth + frame1[3] * halfWidth;
+            double s4y = p1.yCoord - frame1[1] * halfWidth + frame1[4] * halfWidth;
+            double s4z = p1.zCoord - frame1[2] * halfWidth + frame1[5] * halfWidth;
+
+            // Calculate 4 corners at end
+            double e1x = p2.xCoord - frame2[0] * halfWidth - frame2[3] * halfWidth;
+            double e1y = p2.yCoord - frame2[1] * halfWidth - frame2[4] * halfWidth;
+            double e1z = p2.zCoord - frame2[2] * halfWidth - frame2[5] * halfWidth;
+
+            double e2x = p2.xCoord + frame2[0] * halfWidth - frame2[3] * halfWidth;
+            double e2y = p2.yCoord + frame2[1] * halfWidth - frame2[4] * halfWidth;
+            double e2z = p2.zCoord + frame2[2] * halfWidth - frame2[5] * halfWidth;
+
+            double e3x = p2.xCoord + frame2[0] * halfWidth + frame2[3] * halfWidth;
+            double e3y = p2.yCoord + frame2[1] * halfWidth + frame2[4] * halfWidth;
+            double e3z = p2.zCoord + frame2[2] * halfWidth + frame2[5] * halfWidth;
+
+            double e4x = p2.xCoord - frame2[0] * halfWidth + frame2[3] * halfWidth;
+            double e4y = p2.yCoord - frame2[1] * halfWidth + frame2[4] * halfWidth;
+            double e4z = p2.zCoord - frame2[2] * halfWidth + frame2[5] * halfWidth;
+
+            // Bottom face
+            tess.setColorRGBA_F(r, g, b, alpha1);
+            tess.addVertex(s1x, s1y, s1z);
+            tess.addVertex(s2x, s2y, s2z);
+            tess.setColorRGBA_F(r, g, b, alpha2);
+            tess.addVertex(e2x, e2y, e2z);
+            tess.addVertex(e1x, e1y, e1z);
+
+            // Top face
+            tess.setColorRGBA_F(r, g, b, alpha1);
+            tess.addVertex(s4x, s4y, s4z);
+            tess.setColorRGBA_F(r, g, b, alpha2);
+            tess.addVertex(e4x, e4y, e4z);
+            tess.addVertex(e3x, e3y, e3z);
+            tess.setColorRGBA_F(r, g, b, alpha1);
+            tess.addVertex(s3x, s3y, s3z);
+
+            // Left face
+            tess.setColorRGBA_F(r, g, b, alpha1);
+            tess.addVertex(s1x, s1y, s1z);
+            tess.setColorRGBA_F(r, g, b, alpha2);
+            tess.addVertex(e1x, e1y, e1z);
+            tess.addVertex(e4x, e4y, e4z);
+            tess.setColorRGBA_F(r, g, b, alpha1);
+            tess.addVertex(s4x, s4y, s4z);
+
+            // Right face
+            tess.setColorRGBA_F(r, g, b, alpha1);
+            tess.addVertex(s2x, s2y, s2z);
+            tess.addVertex(s3x, s3y, s3z);
+            tess.setColorRGBA_F(r, g, b, alpha2);
+            tess.addVertex(e3x, e3y, e3z);
+            tess.addVertex(e2x, e2y, e2z);
+        }
+
+        tess.draw();
     }
 
     /**
@@ -328,6 +537,11 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         float scaleModifier = (float) Math.sin(pulseTime * 0.2f) * 0.1f;
         float scale = size * (1.0f + scaleModifier);
 
+        // Render lightning BEFORE rotation so it crackles in all directions (only on head)
+        if (beam.hasLightningEffect()) {
+            renderAttachedLightning(beam, scale);
+        }
+
         // Rotation
         GL11.glRotatef(beam.getInterpolatedRotationX(partialTicks), 1.0f, 0.0f, 0.0f);
         GL11.glRotatef(beam.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);
@@ -336,19 +550,54 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         GL11.glPushMatrix();
         GL11.glScalef(scale, scale, scale);
 
+        // Inner scale defines the core size
+        float innerScale = 0.6f;
+
         // Render outer glow only if enabled
+        // outerColorWidth is an additive offset from inner size
         if (beam.isOuterColorEnabled()) {
+            float outerScale = innerScale + beam.getOuterColorWidth();
             GL11.glDepthMask(false);
+            GL11.glPushMatrix();
+            GL11.glScalef(outerScale, outerScale, outerScale);
             renderCube(outerColor, 0.5f, 0.5f);
+            GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
 
         // Render inner core
-        float innerScale = 0.6f;
         GL11.glScalef(innerScale, innerScale, innerScale);
         renderCube(innerColor, 1.0f, 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();
+    }
+
+    /**
+     * Render fading lightning arcs attached to the beam head (in local space).
+     */
+    private void renderAttachedLightning(EntityAbilityBeam beam, float headScale) {
+        AttachedLightningRenderer.LightningState state = getLightningState(beam);
+
+        float density = beam.getLightningDensity();
+        // Lightning radius extends outward from inner surface (innerScale = 0.6)
+        float innerRadius = 0.6f * headScale * 0.5f;
+        float radius = innerRadius + beam.getLightningRadius() * headScale;
+        int outerColor = beam.getOuterColor();
+        int innerColor = beam.getInnerColor();
+        int fadeTime = beam.getLightningFadeTime();
+
+        state.update(density, radius, outerColor, innerColor, fadeTime);
+        state.render();
+    }
+
+    /**
+     * Get or create the lightning state for an entity.
+     */
+    private AttachedLightningRenderer.LightningState getLightningState(EntityAbilityBeam beam) {
+        if (beam.lightningState == null) {
+            beam.lightningState = new AttachedLightningRenderer.LightningState();
+        }
+        return (AttachedLightningRenderer.LightningState) beam.lightningState;
     }
 }

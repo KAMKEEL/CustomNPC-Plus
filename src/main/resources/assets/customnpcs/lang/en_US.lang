@@ -1686,6 +1686,9 @@ ability.innerColor=Inner Color
 ability.outerColor=Outer Color
 ability.outerEnabled=Outer Glow
 ability.outerWidth=Outer Width
+ability.lightning=Enable Lightning
+ability.lightningDensity=Density
+ability.lightningRadius=Radius
 ability.noVisualSettings=No visual settings for this ability type
 
 # Laser Shot Settings
