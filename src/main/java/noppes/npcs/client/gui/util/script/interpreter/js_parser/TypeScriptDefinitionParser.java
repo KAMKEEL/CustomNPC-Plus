@@ -211,8 +211,20 @@ public class TypeScriptDefinitionParser {
      * Parse interface and class definitions from content.
      */
     private void parseInterfaceFile(String content, String parentNamespace, String packageName) {
+        // IMPORTANT:
+        // Many generated .d.ts files declare nested exported interfaces inside `namespace X { ... }` blocks.
+        // If we scan `content` directly for `export interface` / `export class`, we'll accidentally treat
+        // those nested exports as top-level for the current `parentNamespace`.
+        // That pollutes the registry with incorrectly-scoped type names (e.g. "DamagedEvent" instead of
+        // "INpcEvent.DamagedEvent"), and later registry merges (by @javaFqn) can prevent the correctly
+        // namespaced key from ever being registered.
+        //
+        // To avoid this, we strip namespace blocks out of the scan input and then parse namespaces
+        // explicitly via the NAMESPACE_PATTERN recursion further below.
+        String scanContent = stripNamespaceBlocks(content);
+
         // Find exported interfaces
-        Matcher interfaceMatcher = INTERFACE_PATTERN.matcher(content);
+        Matcher interfaceMatcher = INTERFACE_PATTERN.matcher(scanContent);
         while (interfaceMatcher.find()) {
             String interfaceName = interfaceMatcher.group(1);
             String typeParamsStr = interfaceMatcher.group(2);  // e.g., "T extends EntityPlayerMP /* net.minecraft.entity.player.EntityPlayerMP */"
@@ -267,7 +279,7 @@ public class TypeScriptDefinitionParser {
         }
         
         // Find nested interfaces (without export keyword)
-        Matcher nestedInterfaceMatcher = NESTED_INTERFACE_PATTERN.matcher(content);
+        Matcher nestedInterfaceMatcher = NESTED_INTERFACE_PATTERN.matcher(scanContent);
         while (nestedInterfaceMatcher.find()) {
             String interfaceName = nestedInterfaceMatcher.group(1);
             String typeParamsStr = nestedInterfaceMatcher.group(2);
@@ -307,7 +319,7 @@ public class TypeScriptDefinitionParser {
         }
         
         // Find classes (same logic as interfaces)
-        Matcher classMatcher = CLASS_PATTERN.matcher(content);
+        Matcher classMatcher = CLASS_PATTERN.matcher(scanContent);
         while (classMatcher.find()) {
             String className = classMatcher.group(1);
             String typeParamsStr = classMatcher.group(2);
@@ -361,7 +373,7 @@ public class TypeScriptDefinitionParser {
                 // Namespaces contain exported types, so use parseInterfaceFile
                 String fullNamespace = parentNamespace != null ? 
                     parentNamespace + "." + namespaceName : namespaceName;
-            parseInterfaceFile(body, fullNamespace, packageName);
+                parseInterfaceFile(body, fullNamespace, packageName);
                 // Don't call parseNestedTypes here - namespace members are all exported
                 // and will be caught by parseInterfaceFile's INTERFACE_PATTERN
             }
@@ -371,6 +383,46 @@ public class TypeScriptDefinitionParser {
         if (parentNamespace == null) {
             parseTypeAliases(content, null);
         }
+    }
+
+    /**
+     * Strip namespace blocks from a file-level scan to avoid incorrectly capturing nested exports.
+     *
+     * This replaces the entire `namespace X { ... }` span (including braces) with whitespace so that
+     * match indices remain stable when we later slice `content` for bodies.
+     */
+    private String stripNamespaceBlocks(String content) {
+        if (content == null || content.isEmpty()) {
+            return content;
+        }
+
+        Matcher m = NAMESPACE_PATTERN.matcher(content);
+        if (!m.find()) {
+            return content;
+        }
+
+        char[] chars = content.toCharArray();
+
+        int searchFrom = 0;
+        m.reset();
+        while (m.find(searchFrom)) {
+            int start = m.start();
+            int bodyStart = m.end();
+            int bodyEnd = findMatchingBrace(content, bodyStart - 1);
+            if (bodyEnd <= start) {
+                searchFrom = Math.max(m.end(), searchFrom + 1);
+                continue;
+            }
+
+            int endExclusive = Math.min(chars.length, bodyEnd + 1);
+            for (int i = start; i < endExclusive; i++) {
+                chars[i] = ' ';
+            }
+
+            searchFrom = endExclusive;
+        }
+
+        return new String(chars);
     }
     
     /**

@@ -333,6 +333,15 @@ public class JSTypeRegistry {
         
         if (existingType != null) {
             mergeType(existingType, type, getCurrentSource());
+
+            // Preserve an addressable key for the incoming declared name.
+            // Some .d.ts parsing paths can encounter the same Java type via multiple textual names
+            // (e.g., due to nested namespaces). Even if we merge by @javaFqn, callers still expect
+            // lookups like "INpcEvent.DamagedEvent" to work.
+            if (!types.containsKey(fullName)) {
+                types.put(fullName, existingType);
+                typeOrigins.put(fullName, getCurrentSource());
+            }
             return;
         }
         
