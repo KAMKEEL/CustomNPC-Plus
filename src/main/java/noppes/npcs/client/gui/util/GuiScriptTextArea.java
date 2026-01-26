@@ -2652,6 +2652,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return this.container != null ? this.container.getScriptContext() : ScriptContext.GLOBAL;
     }
 
+    public ScriptTextContainer getContainer() {
+        return this.container;
+    }
+
     /**
      * Add implicit imports that should be resolved without explicit import statements.
      * Used for JaninoScript default imports and hook parameter types.

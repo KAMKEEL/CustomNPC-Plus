@@ -2,12 +2,10 @@ package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.JavaTextContainer;
-import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
-import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.constants.ScriptContext;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * New interpreter-based text container that replaces JavaTextContainer.
@@ -38,6 +36,9 @@ public class ScriptTextContainer extends JavaTextContainer {
 
     /** The script context: NPC, PLAYER, BLOCK, ITEM, etc. */
     private ScriptContext scriptContext = ScriptContext.GLOBAL;
+
+    /** Editor-injected globals (name -> type name) */
+    private Map<String, String> editorGlobals = Collections.emptyMap();
 
     public ScriptTextContainer(String text) {
         super(text);
@@ -95,6 +96,16 @@ public class ScriptTextContainer extends JavaTextContainer {
     }
 
     /**
+     * Set editor-injected globals (name -> type name).
+     */
+    public void setEditorGlobalsMap(java.util.Map<String, String> globals) {
+        this.editorGlobals = globals != null ? globals : java.util.Collections.emptyMap();
+        if (document != null) {
+            document.setEditorGlobals(this.editorGlobals);
+        }
+    }
+    
+    /**
      * Add implicit imports that should be resolved without explicit import statements.
      * Used for JaninoScript default imports and hook parameter types.
      *
@@ -143,6 +154,7 @@ public class ScriptTextContainer extends JavaTextContainer {
         if (document == null) {
             document = new ScriptDocument(this.text, this.language);
             document.setScriptContext(this.scriptContext);
+            document.setEditorGlobals(this.editorGlobals);
         }
         
         init(width, height);

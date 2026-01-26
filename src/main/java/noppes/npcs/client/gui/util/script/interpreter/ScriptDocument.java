@@ -24,6 +24,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticFi
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticMethod;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticType;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.controllers.data.DataScript;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -130,6 +131,9 @@ public class ScriptDocument {
     // Determines which hooks and event types are available
     private ScriptContext scriptContext = ScriptContext.GLOBAL;
 
+    // Editor-injected globals (name -> type name) provided by the handler
+    private Map<String, String> editorGlobals = Collections.emptyMap();
+
     // Implicit imports from JaninoScript default imports and hook parameter types
     // These are types that should be resolved even without explicit import statements
     private final Set<String> implicitImports = new HashSet<>();
@@ -196,6 +200,26 @@ public class ScriptDocument {
      */
     public ScriptContext getScriptContext() {
         return scriptContext;
+    }
+
+    /**
+     * Set editor-injected globals (name -> type name).
+     * i.e. DataScript global definitions {@link DataScript#getEditorGlobals(String)}
+     * This is provided by the script handler at editor init time.
+     */
+    public void setEditorGlobals(Map<String, String> globals) {
+        if (globals == null || globals.isEmpty()) {
+            this.editorGlobals = Collections.emptyMap();
+            return;
+        }
+        this.editorGlobals = new LinkedHashMap<>(globals);
+    }
+
+    /**
+     * Get editor-injected globals (name -> type name).
+     */
+    public Map<String, String> getEditorGlobals() {
+        return Collections.unmodifiableMap(editorGlobals);
     }
 
     /**
@@ -4688,6 +4712,16 @@ public class ScriptDocument {
                         continue;
                     }
                 }
+
+                // Mark DataScript global variable definitions
+                if (!editorGlobals.isEmpty() && editorGlobals.containsKey(name)) {
+                    FieldInfo fieldInfo = resolveVariable(name, position);
+                    if (fieldInfo != null) {
+                        Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
+                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
+                        continue;
+                    }
+                }
             }
 
             // Skip uppercase if not a known field - type handling will deal with it
@@ -5663,6 +5697,16 @@ public class ScriptDocument {
                     // Create a global field for this object with GLOBAL scope
                     return FieldInfo.globalField(name, typeInfo, -1);
                 }
+            }
+
+            // Check if is DataScript global variable definition
+            String editorGlobalType = editorGlobals.get(name);
+            if (editorGlobalType != null) {
+                TypeInfo typeInfo = resolveType(editorGlobalType);
+                if (typeInfo == null || !typeInfo.isResolved()) {
+                    typeInfo = TypeInfo.ANY;
+                }
+                return FieldInfo.globalField(name, typeInfo, -1);
             }
         }
         

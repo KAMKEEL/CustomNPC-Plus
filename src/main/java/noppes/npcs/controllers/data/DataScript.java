@@ -20,6 +20,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.janino.EventJaninoScript;
 import noppes.npcs.scripted.NpcAPI;
@@ -28,15 +29,10 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.entity.ScriptNpc;
+import noppes.npcs.api.handler.IHookDefinition;
 
 import javax.script.ScriptEngine;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class DataScript implements IScriptHandlerPacket {
     public List<IScriptUnit> eventScripts = new ArrayList<>();
@@ -55,6 +51,17 @@ public class DataScript implements IScriptHandlerPacket {
     public boolean clientNeedsUpdate = false;
     public boolean aiNeedsUpdate = false;
     public boolean hasInited = false;
+
+    // Editor/runtime globals descriptor used for a single source of truth.
+    private static final class GlobalDefinition {
+        private final String typeName;
+        private final Object value;
+
+        private GlobalDefinition(String typeName, Object value) {
+            this.typeName = typeName;
+            this.value = value;
+        }
+    }
 
     public DataScript(EntityNPCInterface npc) {
         for (int i = 0; i < 15; i++) {
@@ -180,21 +187,12 @@ public class DataScript implements IScriptHandlerPacket {
                 LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String) type.function).toUpperCase(), npc.display.name, (int) npc.posX, (int) npc.posY, (int) npc.posZ, Arrays.toString(obs)));
             }
         }
-        return callScript(script, event);
+        return callScript(script, type.function, event);
     }
 
-    private boolean callScript(ScriptContainer script, Event event) {
+    private boolean callScript(ScriptContainer script, String hookName, Event event) {
         ScriptEngine engine = script.engine;
-        engine.put("npc", dummyNpc);
-        engine.put("world", dummyWorld);
-        engine.put("event", event);
-        engine.put("API", NpcAPI.Instance());
-        engine.put("EntityType", entities);
-        engine.put("RoleType", roles);
-        engine.put("JobType", jobs);
-        for (Map.Entry<String, Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
-            engine.put(engineObjects.getKey(), engineObjects.getValue());
-        }
+        applyGlobalsToEngine(engine, hookName, event);
         script.run(engine);
 
         if (clientNeedsUpdate) {
@@ -252,6 +250,61 @@ public class DataScript implements IScriptHandlerPacket {
             this.callScript(enumScriptType, event);
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    public Map<String, String> getEditorGlobals(String hookName) {
+        Map<String, GlobalDefinition> definitions = getGlobalDefinitions(hookName, null);
+        Map<String, String> globals = new LinkedHashMap<>();
+        for (Map.Entry<String, GlobalDefinition> entry : definitions.entrySet()) {
+            String typeName = entry.getValue().typeName;
+            if (typeName != null && !typeName.isEmpty()) {
+                globals.put(entry.getKey(), typeName);
+            }
+        }
+        return globals;
+    }
+
+    // Apply runtime globals plus engine-only bindings.
+    private void applyGlobalsToEngine(ScriptEngine engine, String hookName, Event event) {
+        Map<String, GlobalDefinition> definitions = getGlobalDefinitions(hookName, event);
+        for (Map.Entry<String, GlobalDefinition> entry : definitions.entrySet()) {
+            engine.put(entry.getKey(), entry.getValue().value);
+        }
+
+        engine.put("API", NpcAPI.Instance());
+        for (Map.Entry<String, Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
+            engine.put(engineObjects.getKey(), engineObjects.getValue());
+        }
+    }
+
+    // Build shared globals (editor types + runtime values).
+    private Map<String, GlobalDefinition> getGlobalDefinitions(String hookName, Event event) {
+        Map<String, GlobalDefinition> globals = new LinkedHashMap<>();
+        globals.put("npc", new GlobalDefinition("ICustomNpc", dummyNpc));
+        globals.put("world", new GlobalDefinition("IWorld", dummyWorld));
+        globals.put("event", new GlobalDefinition(resolveEditorEventTypeName(hookName), event));
+        globals.put("EntityType", new GlobalDefinition("noppes.npcs.scripted.constants.EntityType", entities));
+        globals.put("RoleType", new GlobalDefinition("noppes.npcs.scripted.constants.RoleType", roles));
+        globals.put("JobType", new GlobalDefinition("noppes.npcs.scripted.constants.JobType", jobs));
+
+        return globals;
+    }
+
+    // Resolve editor-only event type from hook name with a single fallback.
+    private String resolveEditorEventTypeName(String hookName) {
+        final String fallback = "INpcEvent";
+        if (hookName == null || hookName.isEmpty()) 
+            return fallback;
+
+        IHookDefinition definition = ScriptHookController.Instance.getHookDefinition(getContext().hookContext, hookName);
+        if (definition == null) 
+            return fallback;
+        
+        String typeName = definition.getUsableTypeName();
+        if (typeName == null || typeName.isEmpty()) 
+            return fallback;
+        
+        return typeName;
     }
 
     public boolean isClient() {

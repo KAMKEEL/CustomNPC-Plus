@@ -16,6 +16,8 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextArea;
 import noppes.npcs.client.gui.util.GuiScriptTextArea;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -160,6 +162,10 @@ public class GuiScript extends GuiScriptInterface {
 
         activeArea.setLanguage(script.getLanguage());
         activeArea.setScriptContext(getScriptContext());
+        
+        // Set editor globals based on the active NPC hook
+        String hookName = EnumScriptType.values()[activeTab].function;
+        applyEditorGlobals(activeArea, hookName);
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -223,6 +229,19 @@ public class GuiScript extends GuiScriptInterface {
 
         if (MinecraftServer.getServer() != null)
             addButton(new GuiNpcButton(106, guiLeft + 232, guiTop + 71, 150, 20, "script.openfolder"));
+    }
+
+    // Apply editor globals for the active NPC hook.
+    private void applyEditorGlobals(GuiScriptTextArea activeArea, String hookName) {
+        if (activeArea == null) 
+            return;
+        
+        ScriptTextContainer textContainer = activeArea.getContainer();
+        if (textContainer == null) 
+            return;
+        
+        if (script != null) 
+            textContainer.setEditorGlobalsMap(script.getEditorGlobals(hookName));
     }
 
     @Override
@@ -371,4 +390,3 @@ public class GuiScript extends GuiScriptInterface {
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 }
-
