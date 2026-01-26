@@ -37,7 +37,7 @@ public class AbilityHeavyHit extends Ability {
         this.cooldownTicks = 80;
         this.windUpTicks = 30;
         this.activeTicks = 5;
-        this.recoveryTicks = 20;
+        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.POINT;
         this.showTelegraph = false;
         this.windUpSound = "random.anvil_use";

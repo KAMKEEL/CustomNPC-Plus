@@ -50,7 +50,7 @@ public class AbilitySlam extends Ability {
         this.targetingMode = TargetingMode.AOE_SELF; // Can also be AOE_TARGET to leap to target
         this.windUpTicks = 30;
         this.activeTicks = 60; // Max time in air + landing
-        this.recoveryTicks = 20;
+        this.recoveryTicks = 10;
         this.cooldownTicks = 100;
         this.lockMovement = true;
         this.minRange = 2.0f;

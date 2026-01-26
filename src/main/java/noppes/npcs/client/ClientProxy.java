@@ -144,6 +144,16 @@ import noppes.npcs.client.renderer.RenderNpcCrystal;
 import noppes.npcs.client.renderer.RenderNpcDragon;
 import noppes.npcs.client.renderer.RenderNpcSlime;
 import noppes.npcs.client.renderer.RenderProjectile;
+import kamkeel.npcs.client.renderer.RenderAbilityOrbCube;
+import kamkeel.npcs.client.renderer.RenderAbilityDisc;
+import kamkeel.npcs.client.renderer.RenderAbilityLaser;
+import kamkeel.npcs.client.renderer.RenderAbilityBeam;
+import kamkeel.npcs.client.renderer.RenderAbilitySweeper;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilitySweeper;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -251,6 +261,12 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityNpcDragon.class, new RenderNpcDragon(new ModelNpcDragon(0.0F), 0.5F));
         RenderingRegistry.registerEntityRenderingHandler(EntityNpcSlime.class, new RenderNpcSlime(new ModelNpcSlime(16), new ModelNpcSlime(0), 0.25F));
         RenderingRegistry.registerEntityRenderingHandler(EntityProjectile.class, new RenderProjectile());
+        // RenderingRegistry.registerEntityRenderingHandler(EntityAbilityOrb.class, new RenderAbilityOrb());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityOrb.class, new RenderAbilityOrbCube());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityDisc.class, new RenderAbilityDisc());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityLaser.class, new RenderAbilityLaser());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityBeam.class, new RenderAbilityBeam());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilitySweeper.class, new RenderAbilitySweeper());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 

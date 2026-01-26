@@ -22,20 +22,5 @@ public enum TargetingMode {
     /**
      * AOE centered on target
      */
-    AOE_TARGET,
-
-    /**
-     * Random nearby enemy
-     */
-    RANDOM_ENEMY,
-
-    /**
-     * Lowest HP enemy in range
-     */
-    LOWEST_HP,
-
-    /**
-     * Highest threat enemy
-     */
-    HIGHEST_THREAT
+    AOE_TARGET
 }

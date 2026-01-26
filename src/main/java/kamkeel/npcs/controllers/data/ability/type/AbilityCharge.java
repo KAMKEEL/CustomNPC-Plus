@@ -49,7 +49,7 @@ public class AbilityCharge extends Ability {
         this.cooldownTicks = 80;
         this.windUpTicks = 20;
         this.activeTicks = 40;
-        this.recoveryTicks = 20;
+        this.recoveryTicks = 10;
         // LINE telegraph showing charge path
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;

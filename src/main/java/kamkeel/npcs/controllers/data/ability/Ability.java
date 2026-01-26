@@ -80,7 +80,6 @@ public abstract class Ability implements IAbility {
 
     protected transient AbilityPhase phase = AbilityPhase.IDLE;
     protected transient int currentTick = 0;
-    protected transient long cooldownEndTime = 0;
     protected transient EntityLivingBase currentTarget;
     protected transient long executionStartTime;
     protected transient TelegraphInstance telegraphInstance;
@@ -138,7 +137,15 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Backward-compatible signature (vertical knockback is ignored).
+     * Apply damage to an entity with ability hit event support and vertical knockback.
+     * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
+     *
+     * @param npc         The NPC executing the ability
+     * @param hitEntity   The entity being hit
+     * @param damage      The damage amount
+     * @param knockback   The horizontal knockback
+     * @param knockbackUp The vertical knockback
+     * @return true if damage was applied (not cancelled), false if cancelled
      */
     protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
                                          float damage, float knockback, float knockbackUp) {
@@ -153,6 +160,7 @@ public abstract class Ability implements IAbility {
         // Apply damage with potentially modified values
         float finalDamage = event.getDamage();
         float finalKnockback = event.getKnockback();
+        float finalKnockbackUp = event.getKnockbackUp();
 
         // Apply damage
         if (finalDamage > 0) {
@@ -160,10 +168,10 @@ public abstract class Ability implements IAbility {
         }
 
         // Apply knockback if any
-        if (finalKnockback > 0) {
+        if (finalKnockback > 0 || finalKnockbackUp > 0) {
             double dx = hitEntity.posX - npc.posX;
             double dz = hitEntity.posZ - npc.posZ;
-            applyNpcKnockback(hitEntity, dx, dz, finalKnockback);
+            applyNpcKnockback(hitEntity, dx, dz, finalKnockback, finalKnockbackUp);
         }
 
         return true;
@@ -195,28 +203,31 @@ public abstract class Ability implements IAbility {
         // Apply damage with potentially modified values
         float finalDamage = event.getDamage();
         float finalKnockback = event.getKnockback();
+        float finalKnockbackUp = event.getKnockbackUp();
 
-        // Apply damage
+        // Apply damage - use NpcDamageSource for consistency
         if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(DamageSource.causeMobDamage(npc), finalDamage);
+            hitEntity.attackEntityFrom(new NpcDamageSource("mob", npc), finalDamage);
         }
 
         // Apply knockback in specified direction
-        if (finalKnockback > 0) {
-            applyNpcKnockback(hitEntity, knockbackDirX, knockbackDirZ, finalKnockback);
+        if (finalKnockback > 0 || finalKnockbackUp > 0) {
+            applyNpcKnockback(hitEntity, knockbackDirX, knockbackDirZ, finalKnockback, finalKnockbackUp);
         }
 
         return true;
     }
 
-    private void applyNpcKnockback(EntityLivingBase hitEntity, double dirX, double dirZ, float knockback) {
+    private void applyNpcKnockback(EntityLivingBase hitEntity, double dirX, double dirZ, float knockback, float knockbackUp) {
         double len = Math.sqrt(dirX * dirX + dirZ * dirZ);
-        if (len <= 0) {
-            return;
+        double x = 0;
+        double z = 0;
+        if (len > 0) {
+            x = (dirX / len) * knockback * 0.5;
+            z = (dirZ / len) * knockback * 0.5;
         }
-        double x = (dirX / len) * knockback * 0.5;
-        double z = (dirZ / len) * knockback * 0.5;
-        hitEntity.addVelocity(x, 0.1D, z);
+        double y = knockbackUp > 0 ? knockbackUp : 0.1D;
+        hitEntity.addVelocity(x, y, z);
         hitEntity.velocityChanged = true;
     }
 
@@ -390,7 +401,7 @@ public abstract class Ability implements IAbility {
      * @param z      Z coordinate
      * @return The Y coordinate of the ground surface
      */
-    protected double findGroundLevel(World world, double x, double startY, double z) {
+    public static double findGroundLevel(World world, double x, double startY, double z) {
         if (world == null) return startY;
 
         int blockX = (int) Math.floor(x);
@@ -408,6 +419,43 @@ public abstract class Ability implements IAbility {
 
         // No ground found, use original position
         return startY;
+    }
+
+    /**
+     * Calculates offset position near the given coordinates.
+     * Used to place effects near a target rather than exactly on them.
+     *
+     * @param baseX        Base X coordinate
+     * @param baseY        Base Y coordinate
+     * @param baseZ        Base Z coordinate
+     * @param minOffset    Minimum offset distance
+     * @param maxOffset    Maximum offset distance
+     * @param randomOffset Whether to use random offset within range, or fixed at max
+     * @param random       Random instance to use
+     * @return Array of [x, y, z] with offset applied
+     */
+    public static double[] calculateOffsetPosition(double baseX, double baseY, double baseZ,
+                                                   float minOffset, float maxOffset,
+                                                   boolean randomOffset, java.util.Random random) {
+        if (maxOffset <= 0) {
+            return new double[]{baseX, baseY, baseZ};
+        }
+
+        double offsetDist;
+        double offsetAngle;
+
+        if (randomOffset) {
+            offsetDist = minOffset + random.nextDouble() * (maxOffset - minOffset);
+            offsetAngle = random.nextDouble() * Math.PI * 2;
+        } else {
+            offsetDist = maxOffset;
+            offsetAngle = random.nextDouble() * Math.PI * 2;
+        }
+
+        double offsetX = Math.cos(offsetAngle) * offsetDist;
+        double offsetZ = Math.sin(offsetAngle) * offsetDist;
+
+        return new double[]{baseX + offsetX, baseY, baseZ + offsetZ};
     }
 
     /**
@@ -440,12 +488,12 @@ public abstract class Ability implements IAbility {
 
     /**
      * Tick the ability. Returns true if phase changed.
+     * Note: Cooldown is managed by DataAbilities when the ability completes.
      */
     public boolean tick() {
         if (phase == AbilityPhase.IDLE) return false;
 
         currentTick++;
-        AbilityPhase oldPhase = phase;
 
         switch (phase) {
             case WINDUP:
@@ -465,7 +513,7 @@ public abstract class Ability implements IAbility {
             case RECOVERY:
                 if (currentTick >= recoveryTicks) {
                     phase = AbilityPhase.IDLE;
-                    startCooldown();
+                    // Cooldown is managed by DataAbilities.onAbilityComplete()
                     return true;
                 }
                 break;
@@ -481,20 +529,6 @@ public abstract class Ability implements IAbility {
         currentTick = 0;
         currentTarget = null;
         telegraphInstance = null;
-    }
-
-    /**
-     * Start cooldown timer
-     */
-    public void startCooldown() {
-        cooldownEndTime = System.currentTimeMillis() + (cooldownTicks * 50L);
-    }
-
-    /**
-     * Check if on cooldown
-     */
-    public boolean isOnCooldown() {
-        return System.currentTimeMillis() < cooldownEndTime;
     }
 
     /**
@@ -543,7 +577,6 @@ public abstract class Ability implements IAbility {
         phase = AbilityPhase.IDLE;
         currentTick = 0;
         currentTarget = null;
-        cooldownEndTime = 0;
         telegraphInstance = null;
     }
 
@@ -558,19 +591,6 @@ public abstract class Ability implements IAbility {
         return true;
     }
 
-    /**
-     * Full eligibility check
-     */
-    public boolean canUse(EntityNPCInterface npc, EntityLivingBase target) {
-        if (!enabled) return false;
-        if (isOnCooldown()) return false;
-        if (isExecuting()) return false;
-
-        float distance = npc.getDistanceToEntity(target);
-        if (distance < minRange || distance > maxRange) return false;
-
-        return checkConditions(npc, target);
-    }
 
     // ═══════════════════════════════════════════════════════════════════
     // NBT (config only, execution state is transient)
@@ -811,22 +831,6 @@ public abstract class Ability implements IAbility {
         this.activeColor = activeColor;
     }
 
-    /**
-     * @deprecated Use getWindUpColor() instead
-     */
-    @Deprecated
-    public int getTelegraphColor() {
-        return windUpColor;
-    }
-
-    /**
-     * @deprecated Use setWindUpColor() instead
-     */
-    @Deprecated
-    public void setTelegraphColor(int telegraphColor) {
-        this.windUpColor = telegraphColor;
-    }
-
     public String getWindUpSound() {
         return windUpSound;
     }
@@ -857,38 +861,6 @@ public abstract class Ability implements IAbility {
 
     public void setActiveAnimationId(int activeAnimationId) {
         this.activeAnimationId = activeAnimationId;
-    }
-
-    /**
-     * @deprecated Use getWindUpSound() instead
-     */
-    @Deprecated
-    public String getCastSound() {
-        return windUpSound;
-    }
-
-    /**
-     * @deprecated Use setWindUpSound() instead
-     */
-    @Deprecated
-    public void setCastSound(String castSound) {
-        this.windUpSound = castSound;
-    }
-
-    /**
-     * @deprecated Use getWindUpAnimationId() instead
-     */
-    @Deprecated
-    public int getAnimationId() {
-        return windUpAnimationId;
-    }
-
-    /**
-     * @deprecated Use setWindUpAnimationId() instead
-     */
-    @Deprecated
-    public void setAnimationId(int animationId) {
-        this.windUpAnimationId = animationId;
     }
 
     public boolean isShowTelegraph() {

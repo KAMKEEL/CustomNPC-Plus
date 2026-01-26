@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.telegraph;
 
-import net.minecraft.block.Block;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -77,7 +77,7 @@ public class TelegraphInstance {
                 this.x = entity.posX;
                 this.z = entity.posZ;
                 // Find ground level below the entity for proper telegraph placement
-                this.y = findGroundLevel(world, entity.posX, entity.posY, entity.posZ);
+                this.y = Ability.findGroundLevel(world, entity.posX, entity.posY, entity.posZ);
             }
         }
 
@@ -89,34 +89,6 @@ public class TelegraphInstance {
         }
 
         return true;
-    }
-
-    /**
-     * Find the ground level at a given position.
-     * Searches downward from the given Y to find a solid block.
-     *
-     * @param world  The world
-     * @param x      X coordinate
-     * @param startY Starting Y coordinate (entity feet position)
-     * @param z      Z coordinate
-     * @return The Y coordinate of the ground surface
-     */
-    private double findGroundLevel(World world, double x, double startY, double z) {
-        int blockX = (int) Math.floor(x);
-        int blockZ = (int) Math.floor(z);
-        int startBlockY = (int) Math.floor(startY);
-
-        // Search downward for solid ground (max 10 blocks down)
-        for (int checkY = startBlockY; checkY >= startBlockY - 10 && checkY >= 0; checkY--) {
-            Block block = world.getBlock(blockX, checkY, blockZ);
-            if (block != null && block.getMaterial().isSolid()) {
-                // Found solid block, telegraph goes on top of it
-                return checkY + 1;
-            }
-        }
-
-        // No ground found, use original position
-        return startY;
     }
 
     /**

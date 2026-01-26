@@ -43,7 +43,7 @@ public class AbilityShockwave extends Ability {
         this.cooldownTicks = 100;
         this.windUpTicks = 25;
         this.activeTicks = 5;
-        this.recoveryTicks = 20;
+        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "random.explode";
         this.activeSound = "random.explode";

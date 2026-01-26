@@ -76,16 +76,24 @@ public class AbilityHeal extends Ability {
 
         healedAllies.clear();
 
+        // Always find allies if we're healing them (needed for both instant and HoT)
+        if (healAllies && healRadius > 0) {
+            findAlliesInRadius(npc, world);
+        }
+
         if (instantHeal) {
+            // Instant heal - apply all healing now
             if (healSelf) {
                 healEntity(npc);
                 spawnHealParticles(world, npc);
             }
 
-            if (healAllies && healRadius > 0) {
-                healAlliesInRadius(npc, world);
+            for (EntityLivingBase ally : healedAllies) {
+                healEntity(ally);
+                spawnHealParticles(world, ally);
             }
         }
+        // If not instant, HoT healing is applied in onActiveTick
     }
 
     @Override
@@ -104,6 +112,9 @@ public class AbilityHeal extends Ability {
                     selfTickHeal += (npc.getMaxHealth() * healPercent / (float) activeTicks) * 10;
                 }
                 npc.heal(selfTickHeal);
+                if (tick % 20 == 0) {
+                    spawnHealParticles(world, npc);
+                }
             }
 
             if (healAllies && healRadius > 0) {
@@ -115,21 +126,19 @@ public class AbilityHeal extends Ability {
                             allyTickHeal += (ally.getMaxHealth() * healPercent / (float) activeTicks) * 10;
                         }
                         ally.heal(allyTickHeal);
+                        if (tick % 20 == 0) {
+                            spawnHealParticles(world, ally);
+                        }
                     }
                 }
             }
         }
     }
 
-    private void healEntity(EntityLivingBase entity) {
-        float totalHeal = healAmount;
-        if (healPercent > 0) {
-            totalHeal += entity.getMaxHealth() * healPercent;
-        }
-        entity.heal(totalHeal);
-    }
-
-    private void healAlliesInRadius(EntityNPCInterface npc, World world) {
+    /**
+     * Find all allies in radius and add them to healedAllies list.
+     */
+    private void findAlliesInRadius(EntityNPCInterface npc, World world) {
         AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(
             npc.posX - healRadius, npc.posY - 2, npc.posZ - healRadius,
             npc.posX + healRadius, npc.posY + 3, npc.posZ + healRadius
@@ -148,12 +157,18 @@ public class AbilityHeal extends Ability {
             if (living instanceof EntityNPCInterface) {
                 float dist = npc.getDistanceToEntity(living);
                 if (dist <= healRadius) {
-                    healEntity(living);
                     healedAllies.add(living);
-                    spawnHealParticles(world, living);
                 }
             }
         }
+    }
+
+    private void healEntity(EntityLivingBase entity) {
+        float totalHeal = healAmount;
+        if (healPercent > 0) {
+            totalHeal += entity.getMaxHealth() * healPercent;
+        }
+        entity.heal(totalHeal);
     }
 
     private void spawnHealParticles(World world, EntityLivingBase entity) {
