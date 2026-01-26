@@ -558,6 +558,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             return ((MethodInfo) sourceData).getParameterCount();
         } else if (sourceData instanceof JSMethodInfo) {
             return ((JSMethodInfo) sourceData).getParameterCount();
+        } else if (sourceData instanceof SyntheticMethod) {
+            return ((SyntheticMethod) sourceData).parameters.size();
         }
         return 0;
     }
