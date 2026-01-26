@@ -111,6 +111,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public List<UndoData> redoList = new ArrayList<>();
     public boolean undoing = false;
 
+    // Clipboard tracking for line-copy paste behavior
+    private boolean lastCopyWasLine = false;
+    private String lastCopiedLineText = null;
+
     // ==================== KEYS ====================
     public static final ScriptEditorKeys KEYS = new ScriptEditorKeys();
     public OverlayKeyPresetViewer KEYS_OVERLAY = new OverlayKeyPresetViewer(KEYS);
@@ -1263,13 +1267,35 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         });
 
-        // COPY: Copy selection to clipboard
+        // COPY: Copy selection to clipboard (or entire line if no selection)
         KEYS.COPY.setTask(e -> {
             if (!e.isPress() || !isActive.get())
                 return;
 
-            if (selection.hasSelection())
+            if (selection.hasSelection()) {
                 NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
+                lastCopyWasLine = false;
+                lastCopiedLineText = null;
+            } else {
+                // Copy entire current line (including newline)
+                int cursor = selection.getCursorPosition();
+                LineData targetLine = null;
+                for (LineData line : container.lines) {
+                    if (cursor >= line.start && cursor <= line.end) {
+                        targetLine = line;
+                        break;
+                    }
+                }
+                
+                if (targetLine != null) {
+                    int safeStart = Math.max(0, Math.min(targetLine.start, text.length()));
+                    int safeEnd = Math.max(safeStart, Math.min(targetLine.end, text.length()));
+                    String lineText = text.substring(safeStart, safeEnd);
+                    NoppesStringUtils.setClipboardContents(lineText);
+                    lastCopyWasLine = true;
+                    lastCopiedLineText = lineText;
+                }
+            }
         });
 
         // PASTE: Insert clipboard contents at caret
@@ -1277,7 +1303,46 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (!e.isPress() || !isActive.get())
                 return;
 
-            addText(NoppesStringUtils.getClipboardContents());
+            String clipboard = NoppesStringUtils.getClipboardContents();
+            if (clipboard == null)
+                clipboard = "";
+
+            if (selection.hasSelection()) {
+                addText(clipboard);
+                lastCopyWasLine = false;
+                lastCopiedLineText = null;
+                scrollToCursor();
+                return;
+            }
+
+            boolean isLinePaste = lastCopyWasLine && lastCopiedLineText != null && clipboard.equals(lastCopiedLineText);
+            if (isLinePaste && container != null && container.lines != null) {
+                LineData currentLine = selection.findCurrentLine(container.lines);
+                if (currentLine != null) {
+                    int insertPos = Math.max(0, Math.min(currentLine.end, text.length()));
+                    String insertText = clipboard;
+
+                    // Ensure insertion happens on the line below
+                    if (insertPos > 0 && text.charAt(insertPos - 1) != '\n') {
+                        insertText = "\n" + insertText;
+                    }
+
+                    // Ensure the inserted line doesn't merge with the following line
+                    if (insertPos < text.length() && !insertText.endsWith("\n")) {
+                        insertText = insertText + "\n";
+                    }
+
+                    String newText = text.substring(0, insertPos) + insertText + text.substring(insertPos);
+                    setText(newText);
+
+                    int newCursor = insertPos + (insertText.startsWith("\n") ? 1 : 0);
+                    selection.reset(Math.min(newCursor, newText.length()));
+                    scrollToCursor();
+                    return;
+                }
+            }
+
+            addText(clipboard);
             scrollToCursor();
         });
 
