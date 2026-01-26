@@ -1390,6 +1390,142 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         });
 
+        // DELETE_LINE: Delete the current line
+        KEYS.DELETE_LINE.setTask(e -> {
+            if (!e.isPress() || !isActive.get())
+                return;
+
+            if (text == null || text.isEmpty())
+                return;
+
+            int cursor = selection.getCursorPosition();
+            
+            LineData targetLine = null;
+            int targetIndex = -1;
+            for (LineData line : container.lines) {
+                if (cursor >= line.start && cursor <= line.end) {
+                    targetLine = line;
+                    targetIndex = container.lines.indexOf(line);
+                    break;
+                }
+            }
+            
+            if (targetLine == null)
+                return;
+            
+            int start = Math.max(0, Math.min(targetLine.start, text.length()));
+            int end = Math.max(start, Math.min(targetLine.end, text.length()));
+            
+            String newText = text.substring(0, start) + text.substring(end);
+            setText(newText);
+
+            int newCursor = 0;
+            if (targetIndex > 0 && targetIndex <= container.lines.size() - 1) {
+                LineData previousLine = container.lines.get(targetIndex - 1);
+                int prevStart = Math.max(0, Math.min(previousLine.start, newText.length()));
+                int prevEnd = Math.max(prevStart, Math.min(previousLine.end, newText.length()));
+                int prevLen = Math.max(0, prevEnd - prevStart);
+                int offsetInLine = Math.max(0, Math.min(cursor - targetLine.start, prevLen));
+                newCursor = Math.min(prevStart + offsetInLine, newText.length());
+            }
+
+            selection.reset(Math.min(newCursor, newText.length()));
+            scrollToCursor();
+        });
+
+        // MOVE_LINE_UP: Move current line up
+        KEYS.MOVE_LINE_UP.setThrottleInterval(50).setTask(e -> {
+            if ((!e.isPress() && !e.isHold()) || !isActive.get())
+                return;
+
+            if (text == null || text.isEmpty())
+                return;
+
+            int tLen = text.length();
+            int cursor = Math.max(0, Math.min(selection.getCursorPosition(), tLen));
+
+            // Work on real newline-delimited lines, not wrapped LineData.
+            int currStart = text.lastIndexOf('\n', Math.max(0, cursor - 1));
+            currStart = currStart == -1 ? 0 : (currStart + 1);
+            if (currStart == 0)
+                return; // Can't move first line up
+
+            int currEnd = text.indexOf('\n', cursor);
+            currEnd = currEnd == -1 ? tLen : (currEnd + 1);
+
+            int prevEnd = currStart;
+            int prevStart = text.lastIndexOf('\n', Math.max(0, prevEnd - 2));
+            prevStart = prevStart == -1 ? 0 : (prevStart + 1);
+
+            String previousText = text.substring(prevStart, prevEnd);
+            String currentText = text.substring(currStart, currEnd);
+
+            // If current line is the last line without a trailing newline, but it is being moved
+            // into the middle, ensure it ends with '\n' by transferring the '\n' from the previous line.
+            if (!currentText.endsWith("\n") && previousText.endsWith("\n") && !previousText.isEmpty()) {
+                currentText = currentText + "\n";
+                previousText = previousText.substring(0, previousText.length() - 1);
+            }
+
+            String before = text.substring(0, prevStart);
+            String after = text.substring(currEnd);
+            String newText = before + currentText + previousText + after;
+            setText(newText);
+
+            int currentContentLen = currentText.endsWith("\n") ? Math.max(0, currentText.length() - 1) : currentText.length();
+            int offsetInLine = Math.max(0, Math.min(cursor - currStart, currentContentLen));
+            int newCursor = Math.min(prevStart + offsetInLine, newText.length());
+            selection.reset(newCursor);
+            scrollToCursor();
+        });
+
+        // MOVE_LINE_DOWN: Move current line down
+        KEYS.MOVE_LINE_DOWN.setThrottleInterval(50).setTask(e -> {
+            if ((!e.isPress() && !e.isHold()) || !isActive.get())
+                return;
+
+            if (text == null || text.isEmpty())
+                return;
+
+            int tLen = text.length();
+            int cursor = Math.max(0, Math.min(selection.getCursorPosition(), tLen));
+
+            // Work on real newline-delimited lines, not wrapped LineData.
+            int currStart = text.lastIndexOf('\n', Math.max(0, cursor - 1));
+            currStart = currStart == -1 ? 0 : (currStart + 1);
+
+            int currEnd = text.indexOf('\n', cursor);
+            currEnd = currEnd == -1 ? tLen : (currEnd + 1);
+            if (currEnd >= tLen)
+                return; // Can't move last line down
+
+            int nextStart = currEnd;
+            int nextEnd = text.indexOf('\n', nextStart);
+            nextEnd = nextEnd == -1 ? tLen : (nextEnd + 1);
+
+            String currentText = text.substring(currStart, currEnd);
+            String nextText = text.substring(nextStart, nextEnd);
+
+            // If the next line is the last line and doesn't end with '\n' (common when it contains
+            // only indentation spaces), swapping can merge whitespace onto the moved line.
+            // Fix by transferring the '\n' from currentText to nextText.
+            if (!nextText.endsWith("\n") && currentText.endsWith("\n") && !currentText.isEmpty()) {
+                currentText = currentText.substring(0, currentText.length() - 1);
+                nextText = nextText + "\n";
+            }
+
+            String before = text.substring(0, currStart);
+            String after = text.substring(nextEnd);
+            String newText = before + nextText + currentText + after;
+            setText(newText);
+
+            int currentContentLen = currentText.endsWith("\n") ? Math.max(0, currentText.length() - 1) : currentText.length();
+            int offsetInLine = Math.max(0, Math.min(cursor - currStart, currentContentLen));
+            int newCursor = Math.min(currStart + nextText.length() + offsetInLine, newText.length());
+            selection.reset(newCursor);
+            scrollToCursor();
+        });
+
 
         // Check if can open just for SearchReplaceBar and GoToLine
 
