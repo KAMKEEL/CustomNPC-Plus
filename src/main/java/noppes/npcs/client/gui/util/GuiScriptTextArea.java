@@ -2375,7 +2375,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // Auto-pair insertion: when opening a quote/brace/bracket is typed,
             // insert a matching closer and place caret between the pair.
             // But only if the current position is not excluded (e.g., inside a comment or string)
-            if (!container.getDocument().isExcluded(cursorPos)) {
+            if (!container.getDocument().isExcludedInclusive(cursorPos)) {
                 if (c == '"') {
                     setText(before + "\"\"" + after, true);
                     selection.reset(before.length() + 1);

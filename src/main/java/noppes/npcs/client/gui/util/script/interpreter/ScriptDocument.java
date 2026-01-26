@@ -445,6 +445,17 @@ public class ScriptDocument {
     
     public boolean isExcluded(int position) {
         for (int[] range : excludedRanges) {
+            if (position >= range[0] && position < range[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Inclusive version for precision with end offset
+     Check GuiScriptTextArea#handleCharacterInput */
+    public boolean isExcludedInclusive(int position) {
+        for (int[] range : excludedRanges) {
             if (position >= range[0] && position <= range[1]) {
                 return true;
             }
@@ -4739,7 +4750,7 @@ public class ScriptDocument {
     /**
      * Mark chained field accesses like: mc.player.world, array.length, this.field, etc.
      * This handles dot-separated access chains and colors each segment appropriately.
-     * Does NOT mark method calls (identifiers followed by parentheses) - those are handled by markMethodCalls.
+     * Does NOT mark method calls (identifiers followed by parentheses) - those are handled by {@link #markMethodCalls}.
      */
     private void markChainedFieldAccesses(List<ScriptLine.Mark> marks) {
         FieldChainMarker marker = new FieldChainMarker(this, text);
