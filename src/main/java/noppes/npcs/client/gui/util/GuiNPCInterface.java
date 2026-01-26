@@ -153,9 +153,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         if (subgui != null)
             subgui.mouseClicked(i, j, k);
         else {
-            for (GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
-                if (tf.enabled)
-                    tf.mouseClicked(i, j, k);
+            mouseEvent(i, j, k);
+            vanillaMouseClicked(i, j, k);
 
             for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
                 guiScrollableComponent.mouseClicked(i, j, k);
@@ -173,8 +172,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
                         return;
                 }
             }
-            mouseEvent(i, j, k);
-            vanillaMouseClicked(i, j, k);
+            
+            for (GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
+                if (tf.enabled)
+                    tf.mouseClicked(i, j, k);
+
         }
     }
 
