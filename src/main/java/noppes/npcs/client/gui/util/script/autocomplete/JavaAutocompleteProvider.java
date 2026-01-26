@@ -368,6 +368,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 applyUsageBoost(item, tracker, ownerFullName);
                 applyStaticPenalty(item, isMemberAccess, isStaticContext);
                 applyObjectMethodPenalty(item);
+                applyKeywordPenalty(item, prefix);
             }
             return;
         }
@@ -387,6 +388,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 applyUsageBoost(item, tracker, ownerFullName);
                 applyStaticPenalty(item, isMemberAccess, isStaticContext);
                 applyObjectMethodPenalty(item);
+                applyKeywordPenalty(item, prefix);
             }
         }
     }
@@ -451,6 +453,19 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             item.addScoreBoost(-500);
         } else {
             // Weak match - heavy penalty to push to bottom
+            item.addScoreBoost(-10000);
+        }
+    }
+
+    /**
+     * Push keywords below non-keywords unless user typed a longer prefix.
+     */
+    protected void applyKeywordPenalty(AutocompleteItem item, String prefix) {
+        if (item.getKind() != AutocompleteItem.Kind.KEYWORD) {
+            return;
+        }
+
+        if (prefix == null || prefix.length() < 2) {
             item.addScoreBoost(-10000);
         }
     }
