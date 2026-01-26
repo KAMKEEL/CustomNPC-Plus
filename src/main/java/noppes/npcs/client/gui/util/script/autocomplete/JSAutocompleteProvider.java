@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.*;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.*;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
@@ -153,6 +154,24 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         // For JavaScript, we typically don't suggest unimported classes
         // as imports are handled differently. This can be customized
         // if needed to suggest global JS types.
+    }
+
+    @Override
+    protected void addLanguageUniqueSuggestions(Context context, List<AutocompleteItem> items) {
+        super.addLanguageUniqueSuggestions(context, items);
+
+        // Add global variables from both global engine objects and document editor/DataScript globals
+        List<String> globalNames = new ArrayList<>();
+        globalNames.addAll(registry.getGlobalEngineObjects().keySet());
+        globalNames.addAll(document.getEditorGlobals().keySet());
+
+        for (String name : globalNames) {
+            FieldInfo fieldInfo = document.resolveVariable(name, context.cursorPosition);
+            if (fieldInfo == null || !fieldInfo.isResolved())
+                continue;
+
+            items.add(AutocompleteItem.fromField(fieldInfo));
+        }
     }
 
     protected UsageTracker getUsageTracker() {
