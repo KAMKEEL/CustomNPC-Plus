@@ -92,6 +92,12 @@ public class AutocompleteManager {
         int getCursorPosition();
         
         /**
+         * Set cursor position.
+         * @param position New cursor position
+         */
+        void setCursorPosition(int position);
+        
+        /**
          * Get current document text.
          */
         String getText();
@@ -542,6 +548,12 @@ public class AutocompleteManager {
         // IMPORTANT: Do the text replacement FIRST, then add import
         // This prevents position corruption since import adds text at the TOP
         insertCallback.replaceTextRange(insertText, prefixStartPosition, endPos);
+        
+        // If the inserted text ends with (), move cursor inside only when parameters exist
+        if (insertText.endsWith("()") && item.getParameterCount() > 0) {
+            int currentCursor = insertCallback.getCursorPosition();
+            insertCallback.setCursorPosition(currentCursor - 1);
+        }
         
         // If this item requires an import, add it AFTER the text replacement
         if (item.requiresImport() && item.getImportPath() != null) {

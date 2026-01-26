@@ -524,6 +524,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
             
             @Override
+            public void setCursorPosition(int position) {
+                selection.reset(Math.max(0, Math.min(position, GuiScriptTextArea.this.text.length())));
+                scrollToCursor();
+            }
+            
+            @Override
             public String getText() {
                 return GuiScriptTextArea.this.text;
             }
