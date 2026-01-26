@@ -14,6 +14,9 @@ import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.gui.util.script.autocomplete.AutocompleteMenu;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
@@ -21,6 +24,7 @@ import noppes.npcs.client.gui.util.script.interpreter.hover.GutterIconRenderer;
 import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
 import noppes.npcs.client.gui.util.script.interpreter.hover.TokenHoverRenderer;
 import noppes.npcs.client.gui.util.script.autocomplete.AutocompleteManager;
+import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.util.ValueUtil;
@@ -110,6 +114,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public List<UndoData> undoList = new ArrayList<>();
     public List<UndoData> redoList = new ArrayList<>();
     public boolean undoing = false;
+    
+    // Atomic undo: group typing into word-based undo steps
+    private long lastTypingTime = 0;
+    private int lastTypingPos = -1;
 
     // Clipboard tracking for line-copy paste behavior
     private boolean lastCopyWasLine = false;
@@ -2036,7 +2044,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (!s.isEmpty() && !selection.hasSelection())
                 // remove single character after caret when nothing is selected
                 s = s.substring(1);
-            setText(getSelectionBeforeText() + s);
+            setText(getSelectionBeforeText() + s, true); // Use atomic undo
             // Keep caret at same start selection
             selection.reset(selection.getStartSelection());
             return true;
@@ -2070,7 +2078,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 before = before.substring(0, g);
                 selection.setStartSelection(selection.getStartSelection() - (pos - g));
             }
-            setText(before + getSelectionAfterText());
+            setText(before + getSelectionAfterText(), true); // Use atomic undo
             selection.reset(selection.getStartSelection());
             return true;
         }
@@ -2085,7 +2093,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // 1) selection deletion
             if (selection.hasSelection()) {
                 String s = getSelectionBeforeText();
-                setText(s + getSelectionAfterText());
+                setText(s + getSelectionAfterText(), true); // Use atomic undo
                 selection.reset(selection.getStartSelection());
                 scrollToCursor();
                 return true;
@@ -2109,7 +2117,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
                 String before = text.substring(0, ValueUtil.clamp(currCheck.start - 1, 0, text.length()));
                 String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
-                setText(before + after);
+                setText(before + after, true); // Use atomic undo
                 int newCursor = Math.max(0, currCheck.start - 1);
                 selection.reset(newCursor);
                 scrollToCursor();
@@ -2138,7 +2146,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         }
                         String before = text.substring(0, curr.start);
                         String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
-                        setText(before + after);
+                        setText(before + after, true); // Use atomic undo
                         // Place caret at end of previous line
                         int newCursor = Math.max(0, curr.start - 1);
                         selection.reset(newCursor);
@@ -2165,7 +2173,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             }
                         }
 
-                        setText(before + spacer + content);
+                        setText(before + spacer + content, true); // Use atomic undo
                         int newCursor = before.length() + spacer.length();
                         selection.reset(newCursor);
                         scrollToCursor();
@@ -2187,7 +2195,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     String before = text.substring(0, selection.getStartSelection() - 1);
                     String after = selection.getStartSelection() + 1 < text.length() ? text.substring(
                             selection.getStartSelection() + 1) : "";
-                    setText(before + after);
+                    setText(before + after, true); // Use atomic undo
                     selection.setStartSelection(selection.getStartSelection() - 1);
                     selection.reset(selection.getStartSelection());
                     scrollToCursor();
@@ -2199,7 +2207,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             String s = getSelectionBeforeText();
             s = s.substring(0, s.length() - 1);
             selection.setStartSelection(selection.getStartSelection() - 1);
-            setText(s + getSelectionAfterText());
+            setText(s + getSelectionAfterText(), true); // Use atomic undo
             selection.reset(selection.getStartSelection());
             scrollToCursor();
             // Notify autocomplete of deletion
@@ -2366,7 +2374,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // Auto-pair insertion: when opening a quote/brace/bracket is typed,
             // insert a matching closer and place caret between the pair.
             if (c == '"') {
-                setText(before + "\"\"" + after);
+                setText(before + "\"\"" + after, true);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
                 // Notify autocomplete of the character
@@ -2374,7 +2382,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return true;
             }
             if (c == '\'') {
-                setText(before + "''" + after);
+                setText(before + "''" + after, true);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
                 // Notify autocomplete of the character
@@ -2382,7 +2390,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return true;
             }
             if (c == '[') {
-                setText(before + "[]" + after);
+                setText(before + "[]" + after, true);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
                 // Notify autocomplete of the character
@@ -2390,7 +2398,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return true;
             }
             if (c == '(') {
-                setText(before + "()" + after);
+                setText(before + "()" + after, true);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
                 // Notify autocomplete of the character
@@ -2604,7 +2612,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private void addText(String s) {
         int insertPos = selection.getStartSelection();
-        this.setText(this.getSelectionBeforeText() + s + this.getSelectionAfterText());
+        this.setText(this.getSelectionBeforeText() + s + this.getSelectionAfterText(), true); // Use atomic undo for typing
         selection.afterTextInsert(insertPos + s.length());
     }
 
@@ -2761,6 +2769,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== TEXT MANAGEMENT ====================
 
     public void setText(String text) {
+        setText(text, false);
+    }
+    
+    /**
+     * Set text with optional atomic undo support.
+     * 
+     * @param text The new text content
+     * @param allowAtomic If true, allows grouping consecutive typing into single undo steps
+     */
+    private void setText(String text, boolean allowAtomic) {
         if (text == null) {
             return;
         }
@@ -2774,9 +2792,43 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 this.listener.textUpdate(text);
             }
 
-            if (!this.undoing) {
+            // Atomic undo logic: group consecutive typing into word-based undo steps
+            if (!this.undoing && allowAtomic && !undoList.isEmpty()) {
+                long now = System.currentTimeMillis();
+                int cursorPos = selection.getCursorPosition();
+                
+                // Check if we should merge with the previous undo entry
+                boolean shouldMerge = 
+                    (now - lastTypingTime < 2000) &&  // Within 2 seconds
+                    Math.abs(cursorPos - lastTypingPos) <= 1; // Contiguous edit
+                
+                // If typing a space or newline, break the undo group
+                if (shouldMerge && text.length() > 0 && cursorPos > 0 && cursorPos <= text.length()) {
+                    char lastChar = text.charAt(cursorPos - 1);
+                    if (Character.isWhitespace(lastChar)) {
+                        shouldMerge = false;
+                    }
+                }
+                
+                if (shouldMerge) {
+                    // Don't add a new undo entry - just update the text
+                    // The existing undo entry will remain unchanged
+                } else {
+                    // Add new undo entry
+                    this.undoList.add(new GuiScriptTextArea.UndoData(this.text, selection.getCursorPosition()));
+                    this.redoList.clear();
+                }
+                
+                lastTypingTime = now;
+                lastTypingPos = cursorPos;
+            } else if (!this.undoing) {
+                // Normal undo entry (non-atomic)
                 this.undoList.add(new GuiScriptTextArea.UndoData(this.text, selection.getCursorPosition()));
                 this.redoList.clear();
+                
+                // Reset atomic undo tracking
+                lastTypingTime = System.currentTimeMillis();
+                lastTypingPos = selection.getCursorPosition();
             }
 
             this.text = text;
