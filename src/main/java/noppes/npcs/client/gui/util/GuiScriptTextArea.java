@@ -2671,6 +2671,63 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
         if (this.active) {
+            // Ctrl+Click: Go to definition
+            if (mouseButton == 0 && isCtrlKeyDown()) {
+                Object[] tokenInfo = getTokenAtScreenPosition(xMouse, yMouse);
+                if (tokenInfo != null) {
+                    Token token = (Token) tokenInfo[0];
+                    int targetOffset = -1;
+                    
+                    // Check if token has method info with declaration
+                    if (token.getMethodInfo() != null) {
+                        MethodInfo methodInfo = token.getMethodInfo();
+                        if (methodInfo.getNameOffset() >= 0) {
+                            targetOffset = methodInfo.getNameOffset();
+                        }
+                    }
+                    // Check if token has method call info with resolved declaration
+                    else if (token.getMethodCallInfo() != null) {
+                        MethodCallInfo callInfo = token.getMethodCallInfo();
+                        MethodInfo resolvedMethod = callInfo.getResolvedMethod();
+                        if (resolvedMethod != null && resolvedMethod.getNameOffset() >= 0) {
+                            targetOffset = resolvedMethod.getNameOffset();
+                        }
+                    }
+                    // Check if token has field info with declaration
+                    else if (token.getFieldInfo() != null) {
+                        FieldInfo fieldInfo = token.getFieldInfo();
+                        if (fieldInfo.getDeclarationOffset() >= 0) {
+                            targetOffset = fieldInfo.getDeclarationOffset();
+                        }
+                    }
+                    // Check if token has field access info with resolved declaration
+                    else if (token.getFieldAccessInfo() != null) {
+                        FieldAccessInfo accessInfo = token.getFieldAccessInfo();
+                        FieldInfo resolvedField = accessInfo.getResolvedField();
+                        if (resolvedField != null && resolvedField.getDeclarationOffset() >= 0) {
+                            targetOffset = resolvedField.getDeclarationOffset();
+                        }
+                    }
+                    // Check if token is a script-defined type
+                    else if (token.getTypeInfo() != null && token.getTypeInfo() instanceof ScriptTypeInfo) {
+                       ScriptTypeInfo scriptType = 
+                            (ScriptTypeInfo) token.getTypeInfo();
+                        if (scriptType.getDeclarationOffset() >= 0) {
+                            targetOffset = scriptType.getDeclarationOffset();
+                        }
+                    }
+                    
+                    // Jump to definition if found
+                    if (targetOffset >= 0) {
+                        selection.reset(targetOffset);
+                        scrollToCursor();
+                        this.clicked = false;
+                        activeTextfield = this;
+                        return; // Consume the event
+                    }
+                }
+            }
+            
             // Compute logical click position in text
             int clickPos = this.getSelectionPos(xMouse, yMouse);
 
