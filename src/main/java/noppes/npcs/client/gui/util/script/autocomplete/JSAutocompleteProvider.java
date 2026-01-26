@@ -98,19 +98,35 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
     
     /**
      * Recursively add methods from a type and its parents with inheritance depth tracking.
+     * Shows all overloads - one autocomplete item per overload.
      * @param type The current JS type in inheritance chain
      * @param contextType The original TypeInfo context for resolving type parameters (e.g., IPlayer with T → EntityPlayerMP)
      */
     private void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth) {
-        for (JSMethodInfo method : type.getMethods().values()) {
-            String name = method.getName();
-            // Skip overload markers (name$1, name$2, etc.)
-            if (name.contains("$")) {
-                name = name.substring(0, name.indexOf('$'));
+        // Collect base method names (without $N suffix) that we haven't processed yet
+        Set<String> baseNames = new HashSet<>();
+        for (String key : type.getMethods().keySet()) {
+            String baseName = key.contains("$") ? key.substring(0, key.indexOf('$')) : key;
+            if (!added.contains(baseName)) {
+                baseNames.add(baseName);
             }
-            if (!added.contains(name)) {
-                added.add(name);
-                // Pass contextType (original receiver) for type parameter resolution, not current type
+        }
+        
+        // For each base method name, add all overloads
+        for (String baseName : baseNames) {
+            added.add(baseName);
+            // Use getMethodOverloads to get all overloads for this method (excluding inherited)
+            List<JSMethodInfo> overloads = new ArrayList<>();
+            if (type.getMethods().containsKey(baseName)) {
+                overloads.add(type.getMethods().get(baseName));
+            }
+            int index = 1;
+            while (type.getMethods().containsKey(baseName + "$" + index)) {
+                overloads.add(type.getMethods().get(baseName + "$" + index));
+                index++;
+            }
+            // Add one autocomplete item per overload
+            for (JSMethodInfo method : overloads) {
                 items.add(AutocompleteItem.fromJSMethod(method, contextType, depth));
             }
         }
@@ -161,7 +177,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         super.addLanguageUniqueSuggestions(context, items);
 
         // Add global variables from both global engine objects and document editor/DataScript globals
-        List<String> globalNames = new ArrayList<>();
+        List<String> globalNames = new ArrayList<>(); 
         globalNames.addAll(registry.getGlobalEngineObjects().keySet());
         globalNames.addAll(document.getEditorGlobals().keySet());
 
