@@ -84,19 +84,22 @@ public class RenderAbilityLaser extends RenderAbilityProjectile {
         double vertY = dz * horzX - dx * horzZ;
         double vertZ = dx * horzY - dy * horzX;
 
-        // Render outer rectangle (larger, outer color, translucent)
-        GL11.glDepthMask(false);
-        renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
-                            renderEndX, renderEndY, renderEndZ,
-                            horzX, horzY, horzZ, vertX, vertY, vertZ,
-                            width * 1.8f, laser.getOuterColor(), alpha * 0.4f);
+        // Render outer rectangle (larger, outer color, translucent) - only if enabled
+        if (laser.isOuterColorEnabled()) {
+            float outerScale = laser.getOuterColorWidth();
+            GL11.glDepthMask(false);
+            renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
+                                renderEndX, renderEndY, renderEndZ,
+                                horzX, horzY, horzZ, vertX, vertY, vertZ,
+                                width * outerScale, laser.getOuterColor(), alpha * 0.4f);
 
-        // Render middle layer
-        renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
-                            renderEndX, renderEndY, renderEndZ,
-                            horzX, horzY, horzZ, vertX, vertY, vertZ,
-                            width * 1.3f, laser.getOuterColor(), alpha * 0.7f);
-        GL11.glDepthMask(true);
+            // Render middle layer
+            renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
+                                renderEndX, renderEndY, renderEndZ,
+                                horzX, horzY, horzZ, vertX, vertY, vertZ,
+                                width * 1.3f, laser.getOuterColor(), alpha * 0.7f);
+            GL11.glDepthMask(true);
+        }
 
         // Render inner core (smaller, inner color, solid)
         renderBeamRectangle(renderStartX, renderStartY, renderStartZ,

@@ -69,11 +69,17 @@ public class RenderAbilityOrb extends Render {
         GL11.glRotatef(orb.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);
         GL11.glRotatef(orb.getInterpolatedRotationZ(partialTicks), 0.0f, 0.0f, 1.0f);
 
-        // Render outer sphere (translucent)
-        GL11.glDepthMask(false);
-        this.bindTexture(WHITE_TEXTURE);
-        renderSphere(orb.getOuterColor(), 0.6f);
-        GL11.glDepthMask(true);
+        // Render outer sphere (translucent) - only if enabled
+        if (orb.isOuterColorEnabled()) {
+            GL11.glDepthMask(false);
+            this.bindTexture(WHITE_TEXTURE);
+            float outerScale = orb.getOuterColorWidth() / 1.8f; // Normalize to default width
+            GL11.glPushMatrix();
+            GL11.glScalef(outerScale, outerScale, outerScale);
+            renderSphere(orb.getOuterColor(), 0.6f);
+            GL11.glPopMatrix();
+            GL11.glDepthMask(true);
+        }
 
         // Render inner sphere (more opaque)
         float innerScale = 0.75f;

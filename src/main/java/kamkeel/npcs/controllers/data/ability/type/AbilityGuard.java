@@ -128,17 +128,8 @@ public class AbilityGuard extends Ability {
         if (wasHit && counterSound != null && !counterSound.isEmpty()) {
             world.playSoundAtEntity(npc, counterSound, 1.0f, 1.2f);
         }
-        if (counterAnimationId >= 0) {
-            if (noppes.npcs.controllers.AnimationController.Instance != null) {
-                noppes.npcs.controllers.data.Animation animation =
-                    noppes.npcs.controllers.AnimationController.Instance.animations.get(counterAnimationId);
-                if (animation != null) {
-                    npc.display.animationData.setEnabled(true);
-                    npc.display.animationData.setAnimation(animation);
-                    npc.display.animationData.updateClient();
-                }
-            }
-        }
+        // Use shared animation utility
+        npc.abilities.playAbilityAnimation(counterAnimationId);
 
         counterTriggered = false;
         lastAttacker = null;

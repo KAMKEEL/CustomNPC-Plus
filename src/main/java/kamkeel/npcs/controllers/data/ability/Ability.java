@@ -53,6 +53,10 @@ public abstract class Ability implements IAbility {
     // Interruption
     protected boolean interruptible = true;
 
+    // Wait for completion - if true, ability controls when active phase ends (ignores activeTicks)
+    // Used for abilities like Slam that need to wait for landing, or Beam that runs until entity dies
+    protected boolean waitForCompletion = false;
+
     // Feedback
     protected boolean lockMovement = true;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
@@ -133,7 +137,9 @@ public abstract class Ability implements IAbility {
      */
     protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
                                          float damage, float knockback) {
-        return applyAbilityDamage(npc, hitEntity, damage, knockback, 0.0f);
+        double dx = hitEntity.posX - npc.posX;
+        double dz = hitEntity.posZ - npc.posZ;
+        return applyAbilityDamageInternal(npc, hitEntity, damage, knockback, 0.0f, dx, dz);
     }
 
     /**
@@ -149,6 +155,36 @@ public abstract class Ability implements IAbility {
      */
     protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
                                          float damage, float knockback, float knockbackUp) {
+        double dx = hitEntity.posX - npc.posX;
+        double dz = hitEntity.posZ - npc.posZ;
+        return applyAbilityDamageInternal(npc, hitEntity, damage, knockback, knockbackUp, dx, dz);
+    }
+
+    /**
+     * Apply damage to an entity with ability hit event support and custom knockback direction.
+     * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
+     *
+     * @param npc           The NPC executing the ability
+     * @param hitEntity     The entity being hit
+     * @param damage        The damage amount
+     * @param knockback     The horizontal knockback
+     * @param knockbackDirX The X component of knockback direction
+     * @param knockbackDirZ The Z component of knockback direction
+     * @return true if damage was applied (not cancelled), false if cancelled
+     */
+    protected boolean applyAbilityDamageWithDirection(EntityNPCInterface npc, EntityLivingBase hitEntity,
+                                                      float damage, float knockback,
+                                                      double knockbackDirX, double knockbackDirZ) {
+        return applyAbilityDamageInternal(npc, hitEntity, damage, knockback, 0.0f, knockbackDirX, knockbackDirZ);
+    }
+
+    /**
+     * Internal unified damage application method.
+     * All public damage methods delegate to this.
+     */
+    private boolean applyAbilityDamageInternal(EntityNPCInterface npc, EntityLivingBase hitEntity,
+                                               float damage, float knockback, float knockbackUp,
+                                               double knockbackDirX, double knockbackDirZ) {
         DataAbilities dataAbilities = npc.abilities;
         AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
             this, currentTarget, hitEntity, damage, knockback, knockbackUp);
@@ -168,49 +204,6 @@ public abstract class Ability implements IAbility {
         }
 
         // Apply knockback if any
-        if (finalKnockback > 0 || finalKnockbackUp > 0) {
-            double dx = hitEntity.posX - npc.posX;
-            double dz = hitEntity.posZ - npc.posZ;
-            applyNpcKnockback(hitEntity, dx, dz, finalKnockback, finalKnockbackUp);
-        }
-
-        return true;
-    }
-
-    /**
-     * Apply damage to an entity with ability hit event support and custom knockback direction.
-     * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
-     *
-     * @param npc           The NPC executing the ability
-     * @param hitEntity     The entity being hit
-     * @param damage        The damage amount
-     * @param knockback     The horizontal knockback
-     * @param knockbackDirX The X component of knockback direction (normalized)
-     * @param knockbackDirZ The Z component of knockback direction (normalized)
-     * @return true if damage was applied (not cancelled), false if cancelled
-     */
-    protected boolean applyAbilityDamageWithDirection(EntityNPCInterface npc, EntityLivingBase hitEntity,
-                                                      float damage, float knockback,
-                                                      double knockbackDirX, double knockbackDirZ) {
-        DataAbilities dataAbilities = npc.abilities;
-        AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
-            this, currentTarget, hitEntity, damage, knockback, 0.0f);
-
-        if (event == null) {
-            return false; // Cancelled
-        }
-
-        // Apply damage with potentially modified values
-        float finalDamage = event.getDamage();
-        float finalKnockback = event.getKnockback();
-        float finalKnockbackUp = event.getKnockbackUp();
-
-        // Apply damage - use NpcDamageSource for consistency
-        if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(new NpcDamageSource("mob", npc), finalDamage);
-        }
-
-        // Apply knockback in specified direction
         if (finalKnockback > 0 || finalKnockbackUp > 0) {
             applyNpcKnockback(hitEntity, knockbackDirX, knockbackDirZ, finalKnockback, finalKnockbackUp);
         }
@@ -383,6 +376,11 @@ public abstract class Ability implements IAbility {
         if (positionAtNpc) {
             // AOE_SELF abilities: telegraph follows NPC during windup
             instance.setEntityIdToFollow(npc.getEntityId());
+
+            // For LINE/CONE telegraphs: track target direction during windup
+            if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
+                instance.setTargetEntityId(target.getEntityId());
+            }
         } else if (target != null) {
             // AOE_TARGET abilities: telegraph follows target during windup
             instance.setEntityIdToFollow(target.getEntityId());
@@ -487,8 +485,15 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Tick the ability. Returns true if phase changed.
-     * Note: Cooldown is managed by DataAbilities when the ability completes.
+     * Tick the ability forward. Called every game tick while executing.
+     * <p>
+     * Normal flow: WINDUP -> ACTIVE -> IDLE (no recovery in normal completion)
+     * Interrupted flow: WINDUP -> RECOVERY -> IDLE (recovery only on interrupt)
+     * <p>
+     * If waitForCompletion is true, the ability controls when active ends
+     * by calling signalCompletion() instead of using activeTicks.
+     *
+     * @return true if phase changed this tick
      */
     public boolean tick() {
         if (phase == AbilityPhase.IDLE) return false;
@@ -504,16 +509,20 @@ public abstract class Ability implements IAbility {
                 }
                 break;
             case ACTIVE:
-                if (currentTick >= activeTicks) {
-                    phase = AbilityPhase.RECOVERY;
+                // If waitForCompletion is true, ability must call signalCompletion()
+                // Otherwise, auto-complete when activeTicks is reached
+                if (!waitForCompletion && currentTick >= activeTicks) {
+                    phase = AbilityPhase.IDLE;
                     currentTick = 0;
                     return true;
                 }
                 break;
             case RECOVERY:
+                // Recovery phase is only entered on interrupt
+                // Count down recoveryTicks then go to IDLE
                 if (currentTick >= recoveryTicks) {
                     phase = AbilityPhase.IDLE;
-                    // Cooldown is managed by DataAbilities.onAbilityComplete()
+                    currentTick = 0;
                     return true;
                 }
                 break;
@@ -522,11 +531,35 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Interrupt this ability
+     * Signal that the ability has completed its active phase.
+     * Called by abilities with waitForCompletion=true when they are done.
+     * For example, AbilitySlam calls this when the NPC lands.
+     *
+     * @return true if phase changed to IDLE
+     */
+    public boolean signalCompletion() {
+        if (phase == AbilityPhase.ACTIVE) {
+            phase = AbilityPhase.IDLE;
+            currentTick = 0;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Interrupt this ability. Transitions to RECOVERY phase if interruptible.
+     * Called when NPC takes direct damage during WINDUP.
      */
     public void interrupt() {
-        phase = AbilityPhase.IDLE;
-        currentTick = 0;
+        if (interruptible && phase == AbilityPhase.WINDUP) {
+            // Interrupted during windup - go to recovery (dazed state)
+            phase = AbilityPhase.RECOVERY;
+            currentTick = 0;
+        } else {
+            // Force stop - go directly to IDLE
+            phase = AbilityPhase.IDLE;
+            currentTick = 0;
+        }
         currentTarget = null;
         telegraphInstance = null;
     }
@@ -611,6 +644,7 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("active", activeTicks);
         nbt.setInteger("recovery", recoveryTicks);
         nbt.setBoolean("interruptible", interruptible);
+        nbt.setBoolean("waitForCompletion", waitForCompletion);
         nbt.setBoolean("lockMovement", lockMovement);
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
@@ -650,6 +684,7 @@ public abstract class Ability implements IAbility {
         activeTicks = nbt.getInteger("active");
         recoveryTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
+        waitForCompletion = nbt.getBoolean("waitForCompletion");
         lockMovement = nbt.getBoolean("lockMovement");
         // Support old telegraphColor key for backwards compatibility
         if (nbt.hasKey("windUpColor")) {
@@ -805,6 +840,14 @@ public abstract class Ability implements IAbility {
 
     public void setInterruptible(boolean interruptible) {
         this.interruptible = interruptible;
+    }
+
+    public boolean isWaitForCompletion() {
+        return waitForCompletion;
+    }
+
+    public void setWaitForCompletion(boolean waitForCompletion) {
+        this.waitForCompletion = waitForCompletion;
     }
 
     public boolean isLockMovement() {

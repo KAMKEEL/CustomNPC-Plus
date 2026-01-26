@@ -61,10 +61,10 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         GL11.glTranslated(renderOriginX, renderOriginY, renderOriginZ);
 
         // Render tail orb at origin (0,0,0) - static, no rotation
-        renderTailOrb(headSize * 0.8f, innerColor, outerColor);
+        renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled());
 
         // Render trail segments with smooth connections
-        renderSmoothTrail(trail, beamWidth, innerColor, outerColor);
+        renderSmoothTrail(trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
 
         // Render head at interpolated offset position
         renderHead(beam, headOffsetX, headOffsetY, headOffsetZ, headSize, innerColor, outerColor, partialTicks);
@@ -78,17 +78,19 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
      * Render the tail orb at the origin (where the beam emanates from).
      * This orb does not rotate - it's a stable anchor point.
      */
-    private void renderTailOrb(float size, int innerColor, int outerColor) {
+    private void renderTailOrb(float size, int innerColor, int outerColor, boolean outerColorEnabled) {
         GL11.glPushMatrix();
         // Already at origin (0,0,0)
 
-        // Render outer glow
-        GL11.glDepthMask(false);
-        GL11.glPushMatrix();
-        GL11.glScalef(size, size, size);
-        renderCube(outerColor, 0.4f, 0.5f);
-        GL11.glPopMatrix();
-        GL11.glDepthMask(true);
+        // Render outer glow only if enabled
+        if (outerColorEnabled) {
+            GL11.glDepthMask(false);
+            GL11.glPushMatrix();
+            GL11.glScalef(size, size, size);
+            renderCube(outerColor, 0.4f, 0.5f);
+            GL11.glPopMatrix();
+            GL11.glDepthMask(true);
+        }
 
         // Render inner core (smaller, solid)
         GL11.glPushMatrix();
@@ -103,7 +105,8 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
      * Render the beam trail with smooth connections between segments.
      * Uses averaged perpendicular vectors at connection points to prevent gaps.
      */
-    private void renderSmoothTrail(List<Vec3> trail, float width, int innerColor, int outerColor) {
+    private void renderSmoothTrail(List<Vec3> trail, float width, int innerColor, int outerColor,
+                                    boolean outerColorEnabled, float outerColorWidth) {
         if (trail.size() < 2) return;
 
         int trailSize = trail.size();
@@ -112,10 +115,12 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         // At connection points, average the perpendiculars for smooth transitions
         List<double[]> perpFrames = computePerpendiculars(trail);
 
-        // Render outer glow trail (wider, translucent)
-        GL11.glDepthMask(false);
-        renderTrailTube(trail, perpFrames, width * 1.8f, outerColor, 0.3f, true);
-        GL11.glDepthMask(true);
+        // Render outer glow trail (wider, translucent) - only if enabled
+        if (outerColorEnabled) {
+            GL11.glDepthMask(false);
+            renderTrailTube(trail, perpFrames, width * outerColorWidth, outerColor, 0.3f, true);
+            GL11.glDepthMask(true);
+        }
 
         // Render inner core trail
         renderTrailTube(trail, perpFrames, width * 0.6f, innerColor, 0.9f, false);
@@ -331,10 +336,12 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         GL11.glPushMatrix();
         GL11.glScalef(scale, scale, scale);
 
-        // Render outer glow
-        GL11.glDepthMask(false);
-        renderCube(outerColor, 0.5f, 0.5f);
-        GL11.glDepthMask(true);
+        // Render outer glow only if enabled
+        if (beam.isOuterColorEnabled()) {
+            GL11.glDepthMask(false);
+            renderCube(outerColor, 0.5f, 0.5f);
+            GL11.glDepthMask(true);
+        }
 
         // Render inner core
         float innerScale = 0.6f;

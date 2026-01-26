@@ -18,9 +18,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -47,9 +45,14 @@ public class DataAbilities {
     public boolean enabled = false;
 
     /**
-     * Minimum ticks between ability selections (global cooldown)
+     * Minimum cooldown ticks between abilities (global minimum)
      */
-    public int globalCooldown = 20;
+    public int minCooldown = 80;
+
+    /**
+     * Maximum cooldown ticks between abilities (global maximum)
+     */
+    public int maxCooldown = 200;
 
     // ═══════════════════════════════════════════════════════════════════
     // RUNTIME STATE (not saved)
@@ -61,14 +64,9 @@ public class DataAbilities {
     private transient Ability currentAbility;
 
     /**
-     * Per-ability cooldown timers (ability ID -> world time when cooldown ends)
+     * World time when NPC cooldown ends (can select next ability)
      */
-    private transient Map<String, Long> cooldowns = new HashMap<>();
-
-    /**
-     * Ticks until next ability can be selected (global cooldown timer)
-     */
-    private transient int globalCooldownTimer = 0;
+    private transient long cooldownEndTime = 0;
 
     /**
      * Last target used for ability execution
@@ -99,11 +97,6 @@ public class DataAbilities {
     public void tick() {
         if (!enabled || npc.worldObj.isRemote || npc.isKilled()) {
             return;
-        }
-
-        // Tick global cooldown
-        if (globalCooldownTimer > 0) {
-            globalCooldownTimer--;
         }
 
         // Tick current ability if executing
@@ -192,24 +185,33 @@ public class DataAbilities {
                     npc.motionZ = 0;
                 }
             }
+
+            // Lock look direction at target during ACTIVE phase only
+            if (shouldLockLookDirection() && target != null && target.isEntityAlive()) {
+                npc.getLookHelper().setLookPositionWithEntity(target, 30.0F, 30.0F);
+            }
         }
     }
 
     /**
      * Called when an ability completes.
+     * Calculates cooldown as: random(minCooldown, maxCooldown) + ability's cooldown offset
      */
     private void onAbilityComplete() {
         if (currentAbility != null) {
             // Stop any ability animation
             stopAbilityAnimation();
 
-            // Start per-ability cooldown
-            startCooldown(currentAbility);
+            // Calculate cooldown: random(min, max) + ability offset
+            int baseCooldown = minCooldown;
+            if (maxCooldown > minCooldown) {
+                baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
+            }
+            int totalCooldown = baseCooldown + currentAbility.getCooldownTicks();
+            cooldownEndTime = npc.worldObj.getTotalWorldTime() + totalCooldown;
+
             currentAbility = null;
             lastTarget = null;
-
-            // Start global cooldown
-            globalCooldownTimer = globalCooldown;
         }
     }
 
@@ -247,7 +249,8 @@ public class DataAbilities {
         if (currentAbility != null && currentAbility.isExecuting()) {
             return false;
         }
-        if (globalCooldownTimer > 0) {
+        // Check if still on cooldown
+        if (npc.worldObj.getTotalWorldTime() < cooldownEndTime) {
             return false;
         }
         return true;
@@ -290,11 +293,6 @@ public class DataAbilities {
     private boolean isAbilityEligible(Ability ability, EntityLivingBase target) {
         // Check enabled
         if (!ability.isEnabled()) {
-            return false;
-        }
-
-        // Check cooldown
-        if (isOnCooldown(ability)) {
             return false;
         }
 
@@ -358,8 +356,11 @@ public class DataAbilities {
 
     /**
      * Play an animation on the NPC by ID.
+     * Public so abilities can trigger animations directly if needed.
+     *
+     * @param animationId The global animation ID to play, or -1 for none
      */
-    private void playAbilityAnimation(int animationId) {
+    public void playAbilityAnimation(int animationId) {
         if (animationId < 0) return;
         if (AnimationController.Instance == null) return;
 
@@ -407,37 +408,25 @@ public class DataAbilities {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Check if an ability is on cooldown.
+     * Check if NPC is on cooldown (cannot use any ability).
      */
-    public boolean isOnCooldown(Ability ability) {
-        Long endTime = cooldowns.get(ability.getId());
-        if (endTime == null) {
-            return false;
-        }
-        return npc.worldObj.getTotalWorldTime() < endTime;
+    public boolean isOnCooldown() {
+        return npc.worldObj.getTotalWorldTime() < cooldownEndTime;
     }
 
     /**
-     * Start cooldown for an ability.
+     * Get remaining cooldown ticks.
      */
-    private void startCooldown(Ability ability) {
-        long endTime = npc.worldObj.getTotalWorldTime() + ability.getCooldownTicks();
-        cooldowns.put(ability.getId(), endTime);
+    public long getRemainingCooldown() {
+        long remaining = cooldownEndTime - npc.worldObj.getTotalWorldTime();
+        return remaining > 0 ? remaining : 0;
     }
 
     /**
-     * Reset cooldown for a specific ability.
+     * Reset cooldown (allow immediate ability use).
      */
-    public void resetCooldown(String abilityId) {
-        cooldowns.remove(abilityId);
-    }
-
-    /**
-     * Reset all cooldowns.
-     */
-    public void resetAllCooldowns() {
-        cooldowns.clear();
-        globalCooldownTimer = 0;
+    public void resetCooldown() {
+        cooldownEndTime = 0;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -489,9 +478,18 @@ public class DataAbilities {
 
     /**
      * Record a hit for the hit count condition.
+     * Includes periodic cleanup to prevent memory leak.
      */
     private void recordHit() {
-        recentHitTimes.add(npc.worldObj.getTotalWorldTime());
+        long currentTime = npc.worldObj.getTotalWorldTime();
+        recentHitTimes.add(currentTime);
+
+        // Cleanup old entries periodically to prevent unbounded growth
+        // Keep only hits from last 5 minutes (6000 ticks) max
+        if (recentHitTimes.size() > 50) {
+            long cutoff = currentTime - 6000;
+            recentHitTimes.removeIf(time -> time < cutoff);
+        }
     }
 
     /**
@@ -517,6 +515,8 @@ public class DataAbilities {
 
     /**
      * Interrupt the currently executing ability.
+     * The ability will transition to RECOVERY phase (dazed state) and continue ticking.
+     * When RECOVERY completes, the ability will move to IDLE and onAbilityComplete() is called.
      */
     public void interruptCurrentAbility(DamageSource source, float damage) {
         if (currentAbility != null) {
@@ -532,9 +532,10 @@ public class DataAbilities {
             NpcAPI.EVENT_BUS.post(interruptEvent);
 
             currentAbility.onInterrupt(npc, source, damage);
-            currentAbility.interrupt();
-            currentAbility = null;
-            lastTarget = null;
+            currentAbility.interrupt(); // This now transitions to RECOVERY, not IDLE
+
+            // Don't clear currentAbility - let it tick through RECOVERY phase
+            // When RECOVERY ends and phase becomes IDLE, onAbilityComplete() will be called
         }
     }
 
@@ -605,7 +606,7 @@ public class DataAbilities {
      */
     public void reset() {
         stopCurrentAbility();
-        resetAllCooldowns();
+        resetCooldown();
 
         // Reset execution state on all abilities
         for (Ability ability : abilities) {
@@ -708,6 +709,24 @@ public class DataAbilities {
     }
 
     /**
+     * Check if NPC's look direction should be locked to target.
+     * Only locks during ACTIVE phase when lockMovement is true.
+     * This allows the NPC to freely track target during WINDUP and RECOVERY.
+     */
+    public boolean shouldLockLookDirection() {
+        if (currentAbility == null || !currentAbility.isExecuting()) {
+            return false;
+        }
+
+        // Only lock look direction during ACTIVE phase
+        if (currentAbility.getPhase() != AbilityPhase.ACTIVE) {
+            return false;
+        }
+
+        return currentAbility.isLockMovement();
+    }
+
+    /**
      * Check if NPC should skip normal attacks during ability execution.
      */
     public boolean shouldBlockAttack() {
@@ -724,7 +743,8 @@ public class DataAbilities {
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setBoolean("AbilitiesEnabled", enabled);
-        compound.setInteger("AbilityGlobalCooldown", globalCooldown);
+        compound.setInteger("AbilityMinCooldown", minCooldown);
+        compound.setInteger("AbilityMaxCooldown", maxCooldown);
 
         NBTTagList abilityList = new NBTTagList();
         for (Ability ability : abilities) {
@@ -737,8 +757,20 @@ public class DataAbilities {
 
     public void readFromNBT(NBTTagCompound compound) {
         enabled = compound.getBoolean("AbilitiesEnabled");
-        globalCooldown = compound.hasKey("AbilityGlobalCooldown") ?
-            compound.getInteger("AbilityGlobalCooldown") : 20;
+
+        // Support old globalCooldown for backwards compatibility
+        if (compound.hasKey("AbilityMinCooldown")) {
+            minCooldown = compound.getInteger("AbilityMinCooldown");
+            maxCooldown = compound.getInteger("AbilityMaxCooldown");
+        } else if (compound.hasKey("AbilityGlobalCooldown")) {
+            // Migrate old single cooldown to min/max range
+            int oldCooldown = compound.getInteger("AbilityGlobalCooldown");
+            minCooldown = oldCooldown;
+            maxCooldown = oldCooldown * 2; // Give some range
+        } else {
+            minCooldown = 20;
+            maxCooldown = 60;
+        }
 
         abilities.clear();
         NBTTagList abilityList = compound.getTagList("Abilities", 10);

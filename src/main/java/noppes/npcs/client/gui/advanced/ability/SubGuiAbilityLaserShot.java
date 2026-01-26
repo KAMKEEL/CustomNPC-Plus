@@ -15,11 +15,16 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
     private final AbilityLaserShot laser;
-    private int editingTypeColorId = 0;
+    private int editingVisualColorId = 0;
 
     public SubGuiAbilityLaserShot(AbilityLaserShot ability, IAbilityConfigCallback callback) {
         super(ability, callback);
         this.laser = ability;
+    }
+
+    @Override
+    protected boolean hasVisualSettings() {
+        return true;
     }
 
     @Override
@@ -72,21 +77,40 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(109, "ability.knockbackUp", col2LabelX, y + 5));
         addTextField(createFloatField(109, col2FieldX, y, 50, laser.getKnockbackUp()));
+    }
 
-        y += 24;
+    @Override
+    protected void initVisualTab(int startY) {
+        int y = startY;
+        int labelX = guiLeft + 8;
+        int fieldX = guiLeft + 85;
+        int col2LabelX = guiLeft + 180;
+        int col2FieldX = guiLeft + 260;
 
-        // Row 6: Inner Color + Outer Color
-        addLabel(new GuiNpcLabel(120, "ability.innerColor", labelX, y + 5));
+        // Row 1: Inner Color + Outer Color
+        addLabel(new GuiNpcLabel(200, "ability.innerColor", labelX, y + 5));
         String innerHex = String.format("%06X", laser.getInnerColor() & 0xFFFFFF);
-        GuiNpcButton innerColorBtn = new GuiNpcButton(120, fieldX, y, 50, 20, innerHex);
+        GuiNpcButton innerColorBtn = new GuiNpcButton(200, fieldX, y, 55, 20, innerHex);
         innerColorBtn.setTextColor(laser.getInnerColor() & 0xFFFFFF);
         addButton(innerColorBtn);
 
-        addLabel(new GuiNpcLabel(121, "ability.outerColor", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(201, "ability.outerColor", col2LabelX, y + 5));
         String outerHex = String.format("%06X", laser.getOuterColor() & 0xFFFFFF);
-        GuiNpcButton outerColorBtn = new GuiNpcButton(121, col2FieldX, y, 50, 20, outerHex);
+        GuiNpcButton outerColorBtn = new GuiNpcButton(201, col2FieldX, y, 55, 20, outerHex);
         outerColorBtn.setTextColor(laser.getOuterColor() & 0xFFFFFF);
+        outerColorBtn.setEnabled(laser.isOuterColorEnabled());
         addButton(outerColorBtn);
+
+        y += 24;
+
+        // Row 2: Outer Color Enabled + Outer Color Width
+        addLabel(new GuiNpcLabel(202, "ability.outerEnabled", labelX, y + 5));
+        addButton(new GuiNpcButton(202, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.isOuterColorEnabled() ? 1 : 0));
+
+        addLabel(new GuiNpcLabel(203, "ability.outerWidth", col2LabelX, y + 5));
+        GuiNpcTextField widthField = createFloatField(203, col2FieldX, y, 55, laser.getOuterColorWidth());
+        widthField.setEnabled(laser.isOuterColorEnabled());
+        addTextField(widthField);
     }
 
     @Override
@@ -96,31 +120,51 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
             case 106:
                 laser.setExplosive(value == 1);
                 break;
-            case 120:
-                editingTypeColorId = 120;
+        }
+    }
+
+    @Override
+    protected void handleVisualButton(int id, GuiNpcButton button) {
+        int value = button.getValue();
+        switch (id) {
+            case 200:
+                editingVisualColorId = 200;
                 setSubGui(new SubGuiColorSelector(laser.getInnerColor()));
                 break;
-            case 121:
-                editingTypeColorId = 121;
+            case 201:
+                editingVisualColorId = 201;
                 setSubGui(new SubGuiColorSelector(laser.getOuterColor()));
+                break;
+            case 202:
+                laser.setOuterColorEnabled(value == 1);
+                initGui();
                 break;
         }
     }
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if (subgui instanceof SubGuiColorSelector && editingTypeColorId != 0) {
+        if (subgui instanceof SubGuiColorSelector && editingVisualColorId != 0) {
             SubGuiColorSelector colorSelector = (SubGuiColorSelector) subgui;
             int rgb = colorSelector.color & 0x00FFFFFF;
-            if (editingTypeColorId == 120) {
+            if (editingVisualColorId == 200) {
                 laser.setInnerColor(rgb);
-            } else if (editingTypeColorId == 121) {
+            } else if (editingVisualColorId == 201) {
                 laser.setOuterColor(rgb);
             }
-            editingTypeColorId = 0;
+            editingVisualColorId = 0;
             initGui();
         } else {
             super.subGuiClosed(subgui);
+        }
+    }
+
+    @Override
+    protected void handleVisualTextField(int id, GuiNpcTextField field) {
+        switch (id) {
+            case 203:
+                laser.setOuterColorWidth(parseFloat(field, laser.getOuterColorWidth()));
+                break;
         }
     }
 

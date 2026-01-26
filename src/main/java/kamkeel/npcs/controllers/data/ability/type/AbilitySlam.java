@@ -49,10 +49,11 @@ public class AbilitySlam extends Ability {
         this.name = "Slam";
         this.targetingMode = TargetingMode.AOE_SELF; // Can also be AOE_TARGET to leap to target
         this.windUpTicks = 30;
-        this.activeTicks = 60; // Max time in air + landing
+        this.activeTicks = 60; // Max time in air (used as timeout if waitForCompletion fails)
         this.recoveryTicks = 10;
         this.cooldownTicks = 100;
         this.lockMovement = true;
+        this.waitForCompletion = true; // Ability completes when NPC lands, not by activeTicks
         this.minRange = 2.0f;
         this.maxRange = 15.0f;
         this.telegraphType = TelegraphType.CIRCLE;
@@ -258,11 +259,14 @@ public class AbilitySlam extends Ability {
     }
 
     /**
-     * Called when NPC lands - deal AOE damage.
+     * Called when NPC lands - deal AOE damage and signal completion.
      */
     private void onLanding(EntityNPCInterface npc, World world) {
         hasLanded = true;
         npc.setNpcJumpingState(false);
+
+        // Signal that the ability has completed its active phase
+        signalCompletion();
 
         // Reset fall distance to prevent fall damage on landing
         npc.fallDistance = 0;

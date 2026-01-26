@@ -185,6 +185,11 @@ public class AbilityHeal extends Ability {
     }
 
     @Override
+    public void onInterrupt(EntityNPCInterface npc, net.minecraft.util.DamageSource source, float damage) {
+        healedAllies.clear();
+    }
+
+    @Override
     public void reset() {
         super.reset();
         healedAllies.clear();

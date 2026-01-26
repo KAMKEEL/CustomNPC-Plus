@@ -46,6 +46,8 @@ public class AbilityLaserShot extends Ability {
     // Visual properties
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0xFF0000;
+    private float outerColorWidth = 1.8f;
+    private boolean outerColorEnabled = true;
 
     public AbilityLaserShot() {
         this.typeId = "ability.cnpc.laser_shot";
@@ -103,7 +105,7 @@ public class AbilityLaserShot extends Ability {
         EntityAbilityLaser laser = new EntityAbilityLaser(
             world, npc, target,
             spawnX, spawnY, spawnZ,
-            laserWidth, innerColor, outerColor,
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth,
             damage, knockback, knockbackUp,
             expansionSpeed, lingerTicks,
             explosive, explosionRadius, explosionDamageFalloff,
@@ -144,6 +146,8 @@ public class AbilityLaserShot extends Ability {
         nbt.setInteger("slowLevel", slowLevel);
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
+        nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setBoolean("outerColorEnabled", outerColorEnabled);
     }
 
     @Override
@@ -164,6 +168,8 @@ public class AbilityLaserShot extends Ability {
         this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF0000;
+        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
+        this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
     }
 
     // Getters & Setters
@@ -199,4 +205,8 @@ public class AbilityLaserShot extends Ability {
     public void setInnerColor(int innerColor) { this.innerColor = innerColor; }
     public int getOuterColor() { return outerColor; }
     public void setOuterColor(int outerColor) { this.outerColor = outerColor; }
+    public float getOuterColorWidth() { return outerColorWidth; }
+    public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
+    public boolean isOuterColorEnabled() { return outerColorEnabled; }
+    public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
 }

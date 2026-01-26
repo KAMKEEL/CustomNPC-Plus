@@ -32,6 +32,8 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
     private float beamHeight = 0.8f;
     private int innerColor = 0xFF6600;
     private int outerColor = 0xFF0000;
+    private boolean outerColorEnabled = true;
+    private float outerColorWidth = 1.8f;
 
     // Combat properties
     private float damage = 5.0f;
@@ -70,6 +72,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
     public EntityAbilitySweeper(World world, EntityNPCInterface owner, EntityLivingBase target,
                                  float beamLength, float beamWidth, float beamHeight,
                                  int innerColor, int outerColor,
+                                 boolean outerColorEnabled, float outerColorWidth,
                                  float sweepSpeed, int numberOfRotations,
                                  float damage, int damageInterval, boolean piercing,
                                  boolean lockOnTarget) {
@@ -82,6 +85,8 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.beamHeight = beamHeight;
         this.innerColor = innerColor;
         this.outerColor = outerColor;
+        this.outerColorEnabled = outerColorEnabled;
+        this.outerColorWidth = outerColorWidth;
         this.sweepSpeed = sweepSpeed;
         this.numberOfRotations = numberOfRotations;
         this.damage = damage;
@@ -323,6 +328,14 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         return outerColor;
     }
 
+    public boolean isOuterColorEnabled() {
+        return outerColorEnabled;
+    }
+
+    public float getOuterColorWidth() {
+        return outerColorWidth;
+    }
+
     /**
      * Get the full interpolated angle INCLUDING base yaw for rendering.
      */
@@ -353,6 +366,8 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.beamHeight = nbt.getFloat("BeamHeight");
         this.innerColor = nbt.getInteger("InnerColor");
         this.outerColor = nbt.getInteger("OuterColor");
+        this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
+        this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 1.8f;
         this.sweepSpeed = nbt.getFloat("SweepSpeed");
         this.numberOfRotations = nbt.getInteger("NumRotations");
         this.completedRotations = nbt.getInteger("CompletedRotations");
@@ -375,6 +390,8 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         nbt.setFloat("BeamHeight", beamHeight);
         nbt.setInteger("InnerColor", innerColor);
         nbt.setInteger("OuterColor", outerColor);
+        nbt.setBoolean("OuterColorEnabled", outerColorEnabled);
+        nbt.setFloat("OuterColorWidth", outerColorWidth);
         nbt.setFloat("SweepSpeed", sweepSpeed);
         nbt.setInteger("NumRotations", numberOfRotations);
         nbt.setInteger("CompletedRotations", completedRotations);
@@ -399,6 +416,8 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         buffer.writeFloat(beamHeight);
         buffer.writeInt(innerColor);
         buffer.writeInt(outerColor);
+        buffer.writeBoolean(outerColorEnabled);
+        buffer.writeFloat(outerColorWidth);
         buffer.writeFloat(sweepSpeed);
         buffer.writeInt(numberOfRotations);
         buffer.writeInt(completedRotations);
@@ -420,6 +439,8 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.beamHeight = buffer.readFloat();
         this.innerColor = buffer.readInt();
         this.outerColor = buffer.readInt();
+        this.outerColorEnabled = buffer.readBoolean();
+        this.outerColorWidth = buffer.readFloat();
         this.sweepSpeed = buffer.readFloat();
         this.numberOfRotations = buffer.readInt();
         this.completedRotations = buffer.readInt();

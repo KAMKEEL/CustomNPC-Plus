@@ -4,6 +4,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import net.minecraft.entity.EntityLivingBase;
@@ -69,8 +71,8 @@ public class AbilityDisc extends Ability {
         this.windUpTicks = 20;
         this.activeTicks = 1;
         this.recoveryTicks = 10;
-        this.telegraphType = TelegraphType.POINT;
-        this.showTelegraph = false;
+        this.telegraphType = TelegraphType.CIRCLE;
+        this.showTelegraph = true;
     }
 
     @Override
@@ -105,7 +107,7 @@ public class AbilityDisc extends Ability {
         EntityAbilityDisc disc = new EntityAbilityDisc(
             world, npc, target,
             spawnX, spawnY, spawnZ,
-            discRadius, discThickness, innerColor, outerColor, rotationSpeed,
+            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             speed, homing, homingStrength, homingRange,
             boomerang, boomerangDelay,
@@ -127,6 +129,33 @@ public class AbilityDisc extends Ability {
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    }
+
+    @Override
+    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
+            return null;
+        }
+
+        // Create circle telegraph at target position
+        Telegraph telegraph = Telegraph.circle(discRadius * 1.5f);
+        telegraph.setDurationTicks(windUpTicks);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        // Position at target and follow target during windup
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, npc.rotationYaw);
+        instance.setCasterEntityId(npc.getEntityId());
+        instance.setEntityIdToFollow(target.getEntityId());
+
+        return instance;
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return discRadius * 1.5f;
     }
 
     @Override
@@ -182,7 +211,7 @@ public class AbilityDisc extends Ability {
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF8800;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
-        this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 8.0f;
+        this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 5.0f;
     }
 
     // Getters & Setters
