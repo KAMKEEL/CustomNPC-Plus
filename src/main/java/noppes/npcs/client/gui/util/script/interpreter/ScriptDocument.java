@@ -442,9 +442,10 @@ public class ScriptDocument {
         excludedRanges.addAll(merged);
     }
 
+    
     public boolean isExcluded(int position) {
         for (int[] range : excludedRanges) {
-            if (position >= range[0] && position < range[1]) {
+            if (position >= range[0] && position <= range[1]) {
                 return true;
             }
         }

@@ -2357,6 +2357,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
             String before = getSelectionBeforeText();
             String after = getSelectionAfterText();
+            int cursorPos = selection.getCursorPosition();
 
             // If the user types a closing character and that same closer is
             // already immediately after the caret, move caret past it instead
@@ -2367,50 +2368,52 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 selection.reset(before.length() + 1);
                 scrollToCursor();
                 // Notify autocomplete of the character
-                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
+                autocompleteManager.onCharTyped(c, text, cursorPos);
                 return true;
             }
 
             // Auto-pair insertion: when opening a quote/brace/bracket is typed,
             // insert a matching closer and place caret between the pair.
-            if (c == '"') {
-                setText(before + "\"\"" + after, true);
-                selection.reset(before.length() + 1);
-                scrollToCursor();
-                // Notify autocomplete of the character
-                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
-                return true;
+            // But only if the current position is not excluded (e.g., inside a comment or string)
+            if (!container.getDocument().isExcluded(cursorPos)) {
+                if (c == '"') {
+                    setText(before + "\"\"" + after, true);
+                    selection.reset(before.length() + 1);
+                    scrollToCursor();
+                    // Notify autocomplete of the character
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
+                if (c == '\'') {
+                    setText(before + "''" + after, true);
+                    selection.reset(before.length() + 1);
+                    scrollToCursor();
+                    // Notify autocomplete of the character
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
+                if (c == '[') {
+                    setText(before + "[]" + after, true);
+                    selection.reset(before.length() + 1);
+                    scrollToCursor();
+                    // Notify autocomplete of the character
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
+                if (c == '(') {
+                    setText(before + "()" + after, true);
+                    selection.reset(before.length() + 1);
+                    scrollToCursor();
+                    // Notify autocomplete of the character
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
             }
-            if (c == '\'') {
-                setText(before + "''" + after, true);
-                selection.reset(before.length() + 1);
-                scrollToCursor();
-                // Notify autocomplete of the character
-                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
-                return true;
-            }
-            if (c == '[') {
-                setText(before + "[]" + after, true);
-                selection.reset(before.length() + 1);
-                scrollToCursor();
-                // Notify autocomplete of the character
-                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
-                return true;
-            }
-            if (c == '(') {
-                setText(before + "()" + after, true);
-                selection.reset(before.length() + 1);
-                scrollToCursor();
-                // Notify autocomplete of the character
-                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
-                return true;
-            }
-
             // Default insertion for printable characters: insert at caret (replacing selection)
             addText(Character.toString(c));
             scrollToCursor();
             // Notify autocomplete of the character
-            autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
+            autocompleteManager.onCharTyped(c, text, cursorPos);
             return true;
         }
         return false;
