@@ -44,7 +44,8 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      */
     public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
-                              float discRadius, float discThickness, int innerColor, int outerColor, float rotationSpeed,
+                              float discRadius, float discThickness, int innerColor, int outerColor,
+                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
                               float damage, float knockback, float knockbackUp,
                               float speed, boolean homing, float homingStrength, float homingRange,
                               boolean boomerang, int boomerangDelay,
@@ -55,7 +56,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Initialize base properties (use discRadius as size for base)
         initProjectile(owner, target, x, y, z,
-            discRadius, innerColor, outerColor, rotationSpeed,
+            discRadius, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,

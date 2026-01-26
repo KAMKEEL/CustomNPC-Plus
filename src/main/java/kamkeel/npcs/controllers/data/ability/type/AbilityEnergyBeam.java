@@ -4,6 +4,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.entity.EntityLivingBase;
@@ -68,8 +70,8 @@ public class AbilityEnergyBeam extends Ability {
         this.windUpTicks = 40;
         this.activeTicks = 200;  // Match maxLifetime to keep NPC locked while beam is active
         this.recoveryTicks = 5;
-        this.telegraphType = TelegraphType.POINT;
-        this.showTelegraph = false;
+        this.telegraphType = TelegraphType.CIRCLE;
+        this.showTelegraph = true;
     }
 
     @Override
@@ -104,7 +106,7 @@ public class AbilityEnergyBeam extends Ability {
         EntityAbilityBeam beam = new EntityAbilityBeam(
             world, npc, target,
             spawnX, spawnY, spawnZ,
-            beamWidth, headSize, innerColor, outerColor, rotationSpeed,
+            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
@@ -125,6 +127,33 @@ public class AbilityEnergyBeam extends Ability {
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    }
+
+    @Override
+    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
+            return null;
+        }
+
+        // Create circle telegraph at target position
+        Telegraph telegraph = Telegraph.circle(headSize * 2.0f);
+        telegraph.setDurationTicks(windUpTicks);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        // Position at target and follow target during windup
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, npc.rotationYaw);
+        instance.setCasterEntityId(npc.getEntityId());
+        instance.setEntityIdToFollow(target.getEntityId());
+
+        return instance;
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return headSize * 2.0f;
     }
 
     @Override

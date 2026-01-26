@@ -4,6 +4,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import net.minecraft.entity.EntityLivingBase;
@@ -65,8 +67,8 @@ public class AbilityOrb extends Ability {
         this.windUpTicks = 30;
         this.activeTicks = 1; // Minimal - just spawn and done
         this.recoveryTicks = 10;
-        this.telegraphType = TelegraphType.POINT;
-        this.showTelegraph = false;
+        this.telegraphType = TelegraphType.CIRCLE;
+        this.showTelegraph = true;
     }
 
     @Override
@@ -103,7 +105,7 @@ public class AbilityOrb extends Ability {
         EntityAbilityOrb orb = new EntityAbilityOrb(
             world, npc, target,
             spawnX, spawnY, spawnZ,
-            orbSize, innerColor, outerColor, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             orbSpeed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
@@ -127,6 +129,33 @@ public class AbilityOrb extends Ability {
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
         // Nothing to clean up - entity manages itself
+    }
+
+    @Override
+    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
+            return null;
+        }
+
+        // Create small circle telegraph at target position
+        Telegraph telegraph = Telegraph.circle(orbSize * 1.5f);
+        telegraph.setDurationTicks(windUpTicks);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        // Position at target and follow target during windup
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, npc.rotationYaw);
+        instance.setCasterEntityId(npc.getEntityId());
+        instance.setEntityIdToFollow(target.getEntityId());
+
+        return instance;
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return orbSize * 1.5f;
     }
 
     @Override

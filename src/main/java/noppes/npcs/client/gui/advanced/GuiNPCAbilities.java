@@ -51,7 +51,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     // Settings
     private boolean abilitiesEnabled = false;
-    private int globalCooldown = 20;
+    private int minCooldown = 20;
+    private int maxCooldown = 60;
 
     private String search = "";
     private int selectedAbilityIndex = -1;
@@ -72,12 +73,18 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         addLabel(new GuiNpcLabel(100, "gui.enabled", guiLeft + 5, y + 5));
         addButton(new GuiNpcButton(100, guiLeft + 55, y, 50, 20, new String[]{"gui.no", "gui.yes"}, abilitiesEnabled ? 1 : 0));
 
-        // Global cooldown (spaced out since combat only is removed)
-        addLabel(new GuiNpcLabel(101, "ability.globalCooldown", guiLeft + 140, y + 5));
-        GuiNpcTextField cooldownField = new GuiNpcTextField(101, this, fontRendererObj, guiLeft + 230, y, 50, 20, String.valueOf(globalCooldown));
-        cooldownField.setIntegersOnly();
-        cooldownField.setMinMaxDefault(0, 10000, 20);
-        addTextField(cooldownField);
+        // Cooldown range: Min Cooldown and Max Cooldown
+        addLabel(new GuiNpcLabel(101, "ability.minCooldown", guiLeft + 115, y + 5));
+        GuiNpcTextField minField = new GuiNpcTextField(101, this, fontRendererObj, guiLeft + 185, y, 40, 20, String.valueOf(minCooldown));
+        minField.setIntegersOnly();
+        minField.setMinMaxDefault(0, 10000, 20);
+        addTextField(minField);
+
+        addLabel(new GuiNpcLabel(102, "ability.maxCooldown", guiLeft + 235, y + 5));
+        GuiNpcTextField maxField = new GuiNpcTextField(102, this, fontRendererObj, guiLeft + 305, y, 40, 20, String.valueOf(maxCooldown));
+        maxField.setIntegersOnly();
+        maxField.setMinMaxDefault(0, 10000, 60);
+        addTextField(maxField);
 
         y += 28;
 
@@ -254,7 +261,19 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     @Override
     public void setGuiData(NBTTagCompound compound) {
         abilitiesEnabled = compound.getBoolean("AbilitiesEnabled");
-        globalCooldown = compound.hasKey("AbilityGlobalCooldown") ? compound.getInteger("AbilityGlobalCooldown") : 20;
+
+        // Support old globalCooldown for backwards compatibility
+        if (compound.hasKey("AbilityMinCooldown")) {
+            minCooldown = compound.getInteger("AbilityMinCooldown");
+            maxCooldown = compound.getInteger("AbilityMaxCooldown");
+        } else if (compound.hasKey("AbilityGlobalCooldown")) {
+            int oldCooldown = compound.getInteger("AbilityGlobalCooldown");
+            minCooldown = oldCooldown;
+            maxCooldown = oldCooldown * 2;
+        } else {
+            minCooldown = 20;
+            maxCooldown = 60;
+        }
 
         npcAbilities.clear();
         NBTTagList abilityList = compound.getTagList("Abilities", 10);
@@ -352,7 +371,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     public void save() {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("AbilitiesEnabled", abilitiesEnabled);
-        compound.setInteger("AbilityGlobalCooldown", globalCooldown);
+        compound.setInteger("AbilityMinCooldown", minCooldown);
+        compound.setInteger("AbilityMaxCooldown", maxCooldown);
 
         NBTTagList abilityList = new NBTTagList();
         for (Ability ability : npcAbilities) {
@@ -421,7 +441,20 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     @Override
     public void unFocused(GuiNpcTextField textField) {
         if (textField.id == 101) {
-            globalCooldown = textField.getInteger();
+            minCooldown = textField.getInteger();
+            // Ensure min <= max
+            if (minCooldown > maxCooldown) {
+                maxCooldown = minCooldown;
+                initGui();
+            }
+            save();
+        } else if (textField.id == 102) {
+            maxCooldown = textField.getInteger();
+            // Ensure min <= max
+            if (maxCooldown < minCooldown) {
+                minCooldown = maxCooldown;
+                initGui();
+            }
             save();
         }
     }

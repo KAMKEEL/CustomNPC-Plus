@@ -29,6 +29,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected float size = 1.0f;
     protected int innerColor = 0xFFFFFF;
     protected int outerColor = 0x8888FF;
+    protected boolean outerColorEnabled = true;
+    protected float outerColorWidth = 1.8f;
     protected float rotationSpeed = 4.0f;
 
     // ==================== COMBAT PROPERTIES ====================
@@ -85,7 +87,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      */
     protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
                                    double x, double y, double z,
-                                   float size, int innerColor, int outerColor, float rotationSpeed,
+                                   float size, int innerColor, int outerColor,
+                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
                                    float damage, float knockback, float knockbackUp,
                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                    int stunDuration, int slowDuration, int slowLevel,
@@ -102,6 +105,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.size = size;
         this.innerColor = innerColor;
         this.outerColor = outerColor;
+        this.outerColorEnabled = outerColorEnabled;
+        this.outerColorWidth = outerColorWidth;
         this.rotationSpeed = rotationSpeed;
 
         // Combat
@@ -384,6 +389,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         return outerColor;
     }
 
+    public boolean isOuterColorEnabled() {
+        return outerColorEnabled;
+    }
+
+    public float getOuterColorWidth() {
+        return outerColorWidth;
+    }
+
     public float getRotationSpeed() {
         return rotationSpeed;
     }
@@ -438,6 +451,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.size = nbt.getFloat("Size");
         this.innerColor = nbt.getInteger("InnerColor");
         this.outerColor = nbt.getInteger("OuterColor");
+        this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
+        this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 1.8f;
         this.rotationSpeed = nbt.hasKey("RotationSpeed") ? nbt.getFloat("RotationSpeed") : 4.0f;
 
         this.damage = nbt.getFloat("Damage");
@@ -480,6 +495,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         nbt.setFloat("Size", size);
         nbt.setInteger("InnerColor", innerColor);
         nbt.setInteger("OuterColor", outerColor);
+        nbt.setBoolean("OuterColorEnabled", outerColorEnabled);
+        nbt.setFloat("OuterColorWidth", outerColorWidth);
         nbt.setFloat("RotationSpeed", rotationSpeed);
 
         nbt.setFloat("Damage", damage);

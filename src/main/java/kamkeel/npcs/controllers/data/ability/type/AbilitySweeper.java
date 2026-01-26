@@ -92,7 +92,7 @@ public class AbilitySweeper extends Ability {
             // Spawn the entity that handles BOTH visuals AND damage
             activeEntity = new EntityAbilitySweeper(world, npc, target,
                 beamLength, beamWidth, beamHeight,
-                innerColor, outerColor,
+                innerColor, outerColor, outerColorEnabled, outerColorWidth,
                 sweepSpeed, numberOfRotations,
                 damage, damageInterval, piercing,
                 lockOnTarget);

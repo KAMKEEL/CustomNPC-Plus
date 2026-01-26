@@ -39,10 +39,13 @@ public class RenderAbilityDisc extends RenderAbilityProjectile {
         // Apply ONLY Y-axis rotation for flat spin
         GL11.glRotatef(disc.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);
 
-        // Render outer square (translucent)
-        GL11.glDepthMask(false);
-        renderFlatSquare(disc.getOuterColor(), 0.5f, radius, thickness);
-        GL11.glDepthMask(true);
+        // Render outer square (translucent) - only if enabled
+        if (disc.isOuterColorEnabled()) {
+            float outerScale = disc.getOuterColorWidth() / 1.8f; // Normalize to default width
+            GL11.glDepthMask(false);
+            renderFlatSquare(disc.getOuterColor(), 0.5f, radius * outerScale, thickness);
+            GL11.glDepthMask(true);
+        }
 
         // Render inner square (solid, smaller)
         float innerScale = 0.6f;

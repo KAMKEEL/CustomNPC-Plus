@@ -26,6 +26,7 @@ public class TelegraphInstance {
     // Entity tracking
     private int entityIdToFollow = -1;
     private int casterEntityId = -1;
+    private int targetEntityId = -1;  // For LINE telegraphs: entity to face (yaw tracking)
 
     // Timing
     private int remainingTicks;
@@ -81,6 +82,16 @@ public class TelegraphInstance {
             }
         }
 
+        // Update yaw to face target entity (for LINE telegraphs)
+        if (targetEntityId >= 0 && world != null) {
+            Entity target = world.getEntityByID(targetEntityId);
+            if (target != null) {
+                double dx = target.posX - this.x;
+                double dz = target.posZ - this.z;
+                this.yaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
+            }
+        }
+
         // Check for warning phase transition
         if (!isWarning && telegraph != null) {
             if (remainingTicks <= telegraph.getWarningStartTick()) {
@@ -108,7 +119,7 @@ public class TelegraphInstance {
     }
 
     /**
-     * Get alpha-modulated color for pulsing animation.
+     * Get alpha-modulated color for breathing animation.
      */
     public int getAnimatedColor(float partialTicks) {
         int baseColor = getCurrentColor();
@@ -116,9 +127,12 @@ public class TelegraphInstance {
             return baseColor;
         }
 
-        // Pulsing animation: modulate alpha based on time
+        // Breathing animation: slow, smooth modulation of alpha
         float time = (totalTicks - remainingTicks) + partialTicks;
-        float pulse = (float) (Math.sin(time * 0.3) * 0.3 + 0.7); // 0.4 to 1.0 range
+        // Slower breathing: 0.08 for ~4 second cycle, smoother sine curve
+        float breathPhase = (float) Math.sin(time * 0.08);
+        // Smooth easing: square the sine for more organic feel, range 0.5 to 1.0
+        float pulse = 0.5f + (breathPhase * breathPhase * 0.5f * Math.signum(breathPhase));
 
         int alpha = (baseColor >> 24) & 0xFF;
         int r = (baseColor >> 16) & 0xFF;
@@ -149,6 +163,7 @@ public class TelegraphInstance {
 
         nbt.setInteger("entityIdToFollow", entityIdToFollow);
         nbt.setInteger("casterEntityId", casterEntityId);
+        nbt.setInteger("targetEntityId", targetEntityId);
 
         nbt.setInteger("remainingTicks", remainingTicks);
         nbt.setInteger("totalTicks", totalTicks);
@@ -173,6 +188,7 @@ public class TelegraphInstance {
 
         this.entityIdToFollow = nbt.getInteger("entityIdToFollow");
         this.casterEntityId = nbt.getInteger("casterEntityId");
+        this.targetEntityId = nbt.getInteger("targetEntityId");
 
         this.remainingTicks = nbt.getInteger("remainingTicks");
         this.totalTicks = nbt.getInteger("totalTicks");
@@ -241,11 +257,12 @@ public class TelegraphInstance {
     }
 
     /**
-     * Locks the telegraph at its current position.
+     * Locks the telegraph at its current position and direction.
      * Stops following any entity - used when ability commits to action.
      */
     public void lockPosition() {
         this.entityIdToFollow = -1;
+        this.targetEntityId = -1;
     }
 
     public int getCasterEntityId() {
@@ -254,6 +271,14 @@ public class TelegraphInstance {
 
     public void setCasterEntityId(int casterEntityId) {
         this.casterEntityId = casterEntityId;
+    }
+
+    public int getTargetEntityId() {
+        return targetEntityId;
+    }
+
+    public void setTargetEntityId(int targetEntityId) {
+        this.targetEntityId = targetEntityId;
     }
 
     public int getRemainingTicks() {

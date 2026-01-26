@@ -26,6 +26,8 @@ public class RenderAbilitySweeper extends Render {
         float beamWidth = sweeper.getBeamWidth();
         int innerColor = sweeper.getInnerColor();
         int outerColor = sweeper.getOuterColor();
+        boolean outerColorEnabled = sweeper.isOuterColorEnabled();
+        float outerColorWidth = sweeper.getOuterColorWidth();
         float angle = sweeper.getInterpolatedAngle(partialTicks);
 
         GL11.glPushMatrix();
@@ -35,7 +37,7 @@ public class RenderAbilitySweeper extends Render {
         GL11.glRotatef(-angle, 0, 1, 0);  // Negative for correct direction
 
         // Render the beam extending in the +Z direction (like beam trail segments)
-        renderBeam(beamLength, beamWidth, innerColor, outerColor);
+        renderBeam(beamLength, beamWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth);
 
         GL11.glPopMatrix();
 
@@ -65,7 +67,8 @@ public class RenderAbilitySweeper extends Render {
      * Render beam using the same style as the Beam entity trail.
      * Three layers: outer glow, middle, inner core.
      */
-    private void renderBeam(float length, float width, int innerColor, int outerColor) {
+    private void renderBeam(float length, float width, int innerColor, int outerColor,
+                            boolean outerColorEnabled, float outerColorWidth) {
         // Extract colors
         float outerR = ((outerColor >> 16) & 0xFF) / 255.0f;
         float outerG = ((outerColor >> 8) & 0xFF) / 255.0f;
@@ -78,13 +81,15 @@ public class RenderAbilitySweeper extends Render {
         // Render from origin (0,0,0) to (0,0,length) in local coords
         // After rotation this extends in the correct world direction
 
-        // Outer glow (wider, translucent) - like beam trail
-        GL11.glDepthMask(false);
-        renderBeamSegment(0, 0, 0, 0, 0, length, width * 1.8f, outerR, outerG, outerB, 0.3f);
-        GL11.glDepthMask(true);
+        // Outer glow (wider, translucent) - like beam trail - only if enabled
+        if (outerColorEnabled) {
+            GL11.glDepthMask(false);
+            renderBeamSegment(0, 0, 0, 0, 0, length, width * outerColorWidth, outerR, outerG, outerB, 0.3f);
+            GL11.glDepthMask(true);
 
-        // Middle layer
-        renderBeamSegment(0, 0, 0, 0, 0, length, width * 1.3f, outerR, outerG, outerB, 0.6f);
+            // Middle layer
+            renderBeamSegment(0, 0, 0, 0, 0, length, width * 1.3f, outerR, outerG, outerB, 0.6f);
+        }
 
         // Inner core (solid) - like beam trail inner
         renderBeamSegment(0, 0, 0, 0, 0, length, width * 0.6f, innerR, innerG, innerB, 1.0f);

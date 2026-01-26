@@ -34,7 +34,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      */
     public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
                             double x, double y, double z,
-                            float orbSize, int innerColor, int outerColor, float rotationSpeed,
+                            float orbSize, int innerColor, int outerColor,
+                            boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
                             float damage, float knockback, float knockbackUp,
                             float speed, boolean homing, float homingStrength, float homingRange,
                             boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -44,7 +45,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
         // Initialize base properties
         initProjectile(owner, target, x, y, z,
-            orbSize, innerColor, outerColor, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
