@@ -115,6 +115,7 @@ gui.play=Play
 gui.selectSound=Select Sound
 gui.selectnpc=Select NPC
 gui.select=Select
+gui.sync=Sync
 gui.range=Range
 gui.partly=Partially
 gui.copy=Copy
@@ -1504,6 +1505,8 @@ menu.abilities=Abilities
 ability.availableTypes=Available Types
 ability.npcAbilities=NPC Abilities
 ability.globalCooldown=Global Cooldown
+ability.minCooldown=Min CD
+ability.maxCooldown=Max CD
 ability.edit=Edit Ability
 ability.weight=Weight
 ability.targeting=Targeting
@@ -1679,7 +1682,7 @@ ability.innerColor=Inner Color
 ability.outerColor=Outer Color
 ability.outerEnabled=Outer Glow
 ability.outerWidth=Outer Width
-ability.lightning=Enable Lightning
+ability.lightning=Lightning
 ability.lightningDensity=Density
 ability.lightningRadius=Radius
 ability.anchorPoint=Anchor Point
@@ -1724,6 +1727,50 @@ ability.shockwaveFalloff=Damage/knockback drop off with distance
 ability.typeId=Type ID
 ability.conditions=Conditions
 ability.noTypeSettings=No type-specific settings
+
+ability.hover.weight=Higher weight = more likely to be chosen when multiple abilities available
+ability.hover.lockMove=Prevents NPC from moving while ability is charging or active
+ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
+ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)
+ability.hover.windup=Charge-up time before ability activates (20 ticks = 1 second)
+ability.hover.cooldown=Time before ability can be used again (20 ticks = 1 second)
+ability.hover.sync=Set windup ticks to match animation duration
+ability.hover.minRange=Target must be at least this far away
+ability.hover.maxRange=Target must be within this distance
+ability.hover.targeting=How the ability selects its target
+ability.hover.conditions=Requirements that must be met for ability to activate
+ability.hover.showTelegraph=Show visual warning indicator during windup
+ability.hover.windUpColor=Color of telegraph during charge-up phase
+ability.hover.activeColor=Color of telegraph when ability is active
+ability.hover.homing=Projectile tracks toward target
+ability.hover.homingStr=How aggressively the projectile tracks (higher = tighter turns)
+ability.hover.explosive=Creates explosion on impact
+ability.hover.explosionRad=Size of explosion radius
+ability.hover.piercing=Hits multiple targets instead of stopping on first hit
+ability.hover.lightning=Add electrical effect to visuals
+ability.hover.outerGlow=Enable outer glow layer around projectile
+ability.hover.anchorPoint=Where on the NPC the ability spawns from
+ability.hover.damage=Base damage dealt to targets
+ability.hover.speed=Movement speed of projectile
+ability.hover.lifetime=Maximum ticks before despawning
+ability.hover.knockback=Push force applied to targets
+ability.hover.boomerang=Projectile returns to caster after reaching max distance
+ability.hover.dashMode=Aggressive dashes toward target, Defensive dashes away
+ability.hover.aoe=Affects all valid targets in range instead of just one
+ability.hover.dmgOnPull=Deal damage continuously while pulling targets
+ability.hover.lineOfSight=Requires clear line of sight to the target
+ability.hover.dmgAtStart=Deal damage at the teleport origin location
+ability.hover.dmgAtEnd=Deal damage at the teleport destination
+ability.hover.instant=Heals instantly instead of over time
+ability.hover.healSelf=Ability can heal the casting NPC
+ability.hover.healAllies=Ability can heal nearby allied NPCs
+ability.hover.placement=Where the ability effect is placed (Caster, Target, etc.)
+ability.hover.lockTarget=Sweeper beam tracks the target's position
+ability.hover.canCounter=Enable counterattack when blocking damage
+ability.hover.counterType=Flat = fixed damage, Percent = % of blocked damage
+ability.hover.shape=Shape of the hazard zone (Circle, Ring, Cone)
+ability.hover.affectsCaster=Hazard can damage the NPC that created it
+ability.hover.sweepMode=Swipe = single arc attack, Spin = continuous rotation
 
 # Conditions
 condition.edit=Edit Condition

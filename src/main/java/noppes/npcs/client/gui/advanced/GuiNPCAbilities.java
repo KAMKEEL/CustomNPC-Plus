@@ -73,15 +73,15 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         addLabel(new GuiNpcLabel(100, "gui.enabled", guiLeft + 5, y + 5));
         addButton(new GuiNpcButton(100, guiLeft + 55, y, 50, 20, new String[]{"gui.no", "gui.yes"}, abilitiesEnabled ? 1 : 0));
 
-        // Cooldown range: Min Cooldown and Max Cooldown
+        // Cooldown range: Min Cooldown and Max Cooldown (spaced apart more)
         addLabel(new GuiNpcLabel(101, "ability.minCooldown", guiLeft + 115, y + 5));
-        GuiNpcTextField minField = new GuiNpcTextField(101, this, fontRendererObj, guiLeft + 185, y, 40, 20, String.valueOf(minCooldown));
+        GuiNpcTextField minField = new GuiNpcTextField(101, this, fontRendererObj, guiLeft + 165, y, 40, 20, String.valueOf(minCooldown));
         minField.setIntegersOnly();
         minField.setMinMaxDefault(0, 10000, 20);
         addTextField(minField);
 
-        addLabel(new GuiNpcLabel(102, "ability.maxCooldown", guiLeft + 235, y + 5));
-        GuiNpcTextField maxField = new GuiNpcTextField(102, this, fontRendererObj, guiLeft + 305, y, 40, 20, String.valueOf(maxCooldown));
+        addLabel(new GuiNpcLabel(102, "ability.maxCooldown", guiLeft + 260, y + 5));
+        GuiNpcTextField maxField = new GuiNpcTextField(102, this, fontRendererObj, guiLeft + 310, y, 40, 20, String.valueOf(maxCooldown));
         maxField.setIntegersOnly();
         maxField.setMinMaxDefault(0, 10000, 60);
         addTextField(maxField);
@@ -122,6 +122,14 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         // Load button (under the add/remove arrows)
         addButton(new GuiNpcButton(75, centerX, y + 90, 40, 20, "gui.load"));
+
+        // On/Off toggle for selected ability (under Load button)
+        if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
+            Ability selectedAbility = npcAbilities.get(selectedAbilityIndex);
+            GuiNpcButton toggleBtn = new GuiNpcButton(77, centerX, y + 112, 40, 20,
+                new String[]{"gui.off", "gui.on"}, selectedAbility.isEnabled() ? 1 : 0);
+            addButton(toggleBtn);
+        }
 
         // Right side buttons: Edit and Up/Down carrots with Save button
         addButton(new GuiNpcButton(72, guiLeft + 210, y + 145, 55, 20, "gui.edit"));
@@ -239,6 +247,19 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 } else {
                     setSubGui(new SubGuiAbilitySaveConfirm(abilityToSave));
                 }
+            }
+            return;
+        }
+
+        // Toggle selected ability on/off
+        if (id == 77) {
+            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
+                Ability ability = npcAbilities.get(selectedAbilityIndex);
+                ability.setEnabled(((GuiNpcButton) guibutton).getValue() == 1);
+                updateNpcAbilitiesList();
+                selectAbilityByIndex(selectedAbilityIndex);
+                initGui();
+                save();
             }
             return;
         }

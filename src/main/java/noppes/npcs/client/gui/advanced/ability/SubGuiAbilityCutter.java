@@ -61,10 +61,14 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         // Row 4: Sweep Mode + Piercing
         addLabel(new GuiNpcLabel(106, "ability.sweepMode", labelX, y + 5));
         String[] sweepModes = {"Swipe", "Spin"};
-        addButton(new GuiNpcButton(106, fieldX, y, 70, 20, sweepModes, cutter.getSweepMode().ordinal()));
+        GuiNpcButton sweepModeBtn = new GuiNpcButton(106, fieldX, y, 70, 20, sweepModes, cutter.getSweepMode().ordinal());
+        sweepModeBtn.setHoverText("ability.hover.sweepMode");
+        addButton(sweepModeBtn);
 
         addLabel(new GuiNpcLabel(107, "ability.piercing", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, cutter.isPiercing() ? 1 : 0));
+        GuiNpcButton piercingBtn = new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, cutter.isPiercing() ? 1 : 0);
+        piercingBtn.setHoverText("ability.hover.piercing");
+        addButton(piercingBtn);
 
         y += 24;
 

@@ -58,30 +58,40 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Homing + Homing Strength
+        // Row 3: Homing + Homing Strength (only show strength if homing)
         addLabel(new GuiNpcLabel(104, "ability.homing", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isHoming() ? 1 : 0));
+        GuiNpcButton homingBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isHoming() ? 1 : 0);
+        homingBtn.setHoverText("ability.hover.homing");
+        addButton(homingBtn);
 
-        addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, beam.getHomingStrength()));
-
-        y += 24;
-
-        // Row 4: Homing Range + Max Distance
-        addLabel(new GuiNpcLabel(106, "ability.homingRange", labelX, y + 5));
-        addTextField(createFloatField(106, fieldX, y, 50, beam.getHomingRange()));
-
-        addLabel(new GuiNpcLabel(107, "ability.maxDist", col2LabelX, y + 5));
-        addTextField(createFloatField(107, col2FieldX, y, 50, beam.getMaxDistance()));
+        if (beam.isHoming()) {
+            addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
+            addTextField(createFloatField(105, col2FieldX, y, 50, beam.getHomingStrength()));
+        }
 
         y += 24;
 
-        // Row 5: Explosive + Explosion Radius
+        // Row 4: Max Distance (+ Homing Range only if homing)
+        if (beam.isHoming()) {
+            addLabel(new GuiNpcLabel(106, "ability.homingRange", labelX, y + 5));
+            addTextField(createFloatField(106, fieldX, y, 50, beam.getHomingRange()));
+        }
+
+        addLabel(new GuiNpcLabel(107, "ability.maxDist", beam.isHoming() ? col2LabelX : labelX, y + 5));
+        addTextField(createFloatField(107, beam.isHoming() ? col2FieldX : fieldX, y, 50, beam.getMaxDistance()));
+
+        y += 24;
+
+        // Row 5: Explosive + Explosion Radius (only show radius if explosive)
         addLabel(new GuiNpcLabel(108, "ability.explosive", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isExplosive() ? 1 : 0));
+        GuiNpcButton explosiveBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isExplosive() ? 1 : 0);
+        explosiveBtn.setHoverText("ability.hover.explosive");
+        addButton(explosiveBtn);
 
-        addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
-        addTextField(createFloatField(109, col2FieldX, y, 50, beam.getExplosionRadius()));
+        if (beam.isExplosive()) {
+            addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
+            addTextField(createFloatField(109, col2FieldX, y, 50, beam.getExplosionRadius()));
+        }
 
         y += 24;
 
@@ -108,7 +118,9 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
 
         // Row 1: Anchor Point
         addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
-        addButton(new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), beam.getAnchorPoint().getId()));
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), beam.getAnchorPoint().getId());
+        anchorBtn.setHoverText("ability.hover.anchorPoint");
+        addButton(anchorBtn);
 
         y += 24;
 
@@ -147,7 +159,9 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
 
         // Row 4: Lightning Effect Enabled (only affects head)
         addLabel(new GuiNpcLabel(205, "ability.lightning", labelX, y + 5));
-        addButton(new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.hasLightningEffect() ? 1 : 0));
+        GuiNpcButton lightningBtn = new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.hasLightningEffect() ? 1 : 0);
+        lightningBtn.setHoverText("ability.hover.lightning");
+        addButton(lightningBtn);
 
         // Only show Lightning settings if Lightning is enabled
         if (beam.hasLightningEffect()) {
@@ -172,9 +186,11 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
         switch (id) {
             case 104:
                 beam.setHoming(value == 1);
+                initGui();
                 break;
             case 108:
                 beam.setExplosive(value == 1);
+                initGui();
                 break;
             case 150:
                 setSubGui(new SubGuiAbilityEffects(beam.getEffects()));

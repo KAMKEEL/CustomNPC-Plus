@@ -57,30 +57,42 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Homing + Homing Strength
+        // Row 3: Homing + Homing Strength (only show strength if homing)
         addLabel(new GuiNpcLabel(104, "ability.homing", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isHoming() ? 1 : 0));
+        GuiNpcButton homingBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isHoming() ? 1 : 0);
+        homingBtn.setHoverText("ability.hover.homing");
+        addButton(homingBtn);
 
-        addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, disc.getHomingStrength()));
+        if (disc.isHoming()) {
+            addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
+            addTextField(createFloatField(105, col2FieldX, y, 50, disc.getHomingStrength()));
+        }
 
         y += 24;
 
-        // Row 4: Boomerang + Boomerang Delay
+        // Row 4: Boomerang + Boomerang Delay (only show delay if boomerang)
         addLabel(new GuiNpcLabel(106, "ability.boomerang", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isBoomerang() ? 1 : 0));
+        GuiNpcButton boomerangBtn = new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isBoomerang() ? 1 : 0);
+        boomerangBtn.setHoverText("ability.hover.boomerang");
+        addButton(boomerangBtn);
 
-        addLabel(new GuiNpcLabel(107, "ability.boomerangDelay", col2LabelX, y + 5));
-        addTextField(createIntField(107, col2FieldX, y, 50, disc.getBoomerangDelay()));
+        if (disc.isBoomerang()) {
+            addLabel(new GuiNpcLabel(107, "ability.boomerangDelay", col2LabelX, y + 5));
+            addTextField(createIntField(107, col2FieldX, y, 50, disc.getBoomerangDelay()));
+        }
 
         y += 24;
 
-        // Row 5: Explosive + Explosion Radius
+        // Row 5: Explosive + Explosion Radius (only show radius if explosive)
         addLabel(new GuiNpcLabel(108, "ability.explosive", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isExplosive() ? 1 : 0));
+        GuiNpcButton explosiveBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isExplosive() ? 1 : 0);
+        explosiveBtn.setHoverText("ability.hover.explosive");
+        addButton(explosiveBtn);
 
-        addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
-        addTextField(createFloatField(109, col2FieldX, y, 50, disc.getExplosionRadius()));
+        if (disc.isExplosive()) {
+            addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
+            addTextField(createFloatField(109, col2FieldX, y, 50, disc.getExplosionRadius()));
+        }
 
         y += 24;
 
@@ -110,7 +122,9 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         // Row 1: Anchor Point
         addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
-        addButton(new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), disc.getAnchorPoint().getId()));
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), disc.getAnchorPoint().getId());
+        anchorBtn.setHoverText("ability.hover.anchorPoint");
+        addButton(anchorBtn);
 
         y += 24;
 
@@ -149,7 +163,9 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         // Row 4: Lightning Effect Enabled
         addLabel(new GuiNpcLabel(205, "ability.lightning", labelX, y + 5));
-        addButton(new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.hasLightningEffect() ? 1 : 0));
+        GuiNpcButton lightningBtn = new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.hasLightningEffect() ? 1 : 0);
+        lightningBtn.setHoverText("ability.hover.lightning");
+        addButton(lightningBtn);
 
         // Only show Lightning settings if Lightning is enabled
         if (disc.hasLightningEffect()) {
@@ -174,12 +190,15 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
         switch (id) {
             case 104:
                 disc.setHoming(value == 1);
+                initGui();
                 break;
             case 106:
                 disc.setBoomerang(value == 1);
+                initGui();
                 break;
             case 108:
                 disc.setExplosive(value == 1);
+                initGui();
                 break;
             case 150:
                 setSubGui(new SubGuiAbilityEffects(disc.getEffects()));

@@ -4,6 +4,9 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.AnimationController;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -140,7 +143,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.hasTypeSettings = ability.hasTypeSettings();
         this.hasVisualSettings = hasVisualSettings();
 
-        setBackground("menubg.png");
+        setBackground("menubg.png", 217);
         xSize = 356;
         ySize = 200;
     }
@@ -248,13 +251,17 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         addTextField(weightField);
 
         addLabel(new GuiNpcLabel(5, "ability.lockMove", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(16, col2FieldX, y, 40, 20, new String[]{"gui.no", "gui.yes"}, lockMovement ? 1 : 0));
+        GuiNpcButton lockMoveBtn = new GuiNpcButton(16, col2FieldX, y, 40, 20, new String[]{"gui.no", "gui.yes"}, lockMovement ? 1 : 0);
+        lockMoveBtn.setHoverText("ability.hover.lockMove");
+        addButton(lockMoveBtn);
 
         y += 24;
 
         // Row 3: Interruptible + Dazed Ticks (only if interruptible)
         addLabel(new GuiNpcLabel(6, "ability.interruptible", col1LabelX, y + 5));
-        addButton(new GuiNpcButton(14, guiLeft + 85, y, 40, 20, new String[]{"gui.no", "gui.yes"}, interruptible ? 1 : 0));
+        GuiNpcButton interruptBtn = new GuiNpcButton(14, guiLeft + 85, y, 40, 20, new String[]{"gui.no", "gui.yes"}, interruptible ? 1 : 0);
+        interruptBtn.setHoverText("ability.hover.interruptible");
+        addButton(interruptBtn);
 
         // Only show dazed ticks if interruptible is enabled
         if (interruptible) {
@@ -277,6 +284,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         windupField.setIntegersOnly();
         windupField.setMinMaxDefault(0, 1000, 20);
         addTextField(windupField);
+
+        // Sync button - only show if windup animation is selected
+        if (windUpAnimationId >= 0) {
+            GuiNpcButton syncBtn = new GuiNpcButton(17, guiLeft + 115, y, 40, 20, "gui.sync");
+            syncBtn.setHoverText("ability.hover.sync");
+            addButton(syncBtn);
+        }
 
         addLabel(new GuiNpcLabel(13, "ability.cooldown", col2LabelX, y + 5));
         GuiNpcTextField cooldownField = new GuiNpcTextField(10, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(cooldownTicks));
@@ -387,7 +401,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         if (!targetingModeLocked) {
             String[] targetingModes = getAvailableTargetingModes();
             int selectedIndex = getTargetingModeIndex(targetingMode);
-            addButton(new GuiNpcButton(4, col1FieldX, y, 90, 20, targetingModes, selectedIndex));
+            GuiNpcButton targetBtn = new GuiNpcButton(4, col1FieldX, y, 90, 20, targetingModes, selectedIndex);
+            targetBtn.setHoverText("ability.hover.targeting");
+            addButton(targetBtn);
         } else {
             String modeName = "ability.target." + targetingMode.name().toLowerCase();
             addLabel(new GuiNpcLabel(23, modeName, col1FieldX, y + 5));
@@ -534,7 +550,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
             // Show Telegraph
             addLabel(new GuiNpcLabel(41, "ability.showTelegraph", col1LabelX, y + 5));
-            addButton(new GuiNpcButton(20, guiLeft + 95, y, 40, 20, new String[]{"gui.no", "gui.yes"}, showTelegraph ? 1 : 0));
+            GuiNpcButton telegraphBtn = new GuiNpcButton(20, guiLeft + 95, y, 40, 20, new String[]{"gui.no", "gui.yes"}, showTelegraph ? 1 : 0);
+            telegraphBtn.setHoverText("ability.hover.showTelegraph");
+            addButton(telegraphBtn);
 
             // Telegraph Type (separate column)
             String typeKey = ability.getTelegraphType().name().toLowerCase();
@@ -544,20 +562,20 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
             y += 24;
 
-            // Colors
-            addLabel(new GuiNpcLabel(44, "ability.windUpColor", col1LabelX, y + 5));
-            String windUpHex = String.format("%06X", windUpColor & 0xFFFFFF);
-            GuiNpcButton windUpColorBtn = new GuiNpcButton(22, guiLeft + 95, y, 55, 20, windUpHex);
-            windUpColorBtn.setEnabled(showTelegraph);
-            windUpColorBtn.setTextColor(windUpColor & 0xFFFFFF);
-            addButton(windUpColorBtn);
+            // Colors - only show when telegraph is enabled
+            if (showTelegraph) {
+                addLabel(new GuiNpcLabel(44, "ability.windUpColor", col1LabelX, y + 5));
+                String windUpHex = String.format("%06X", windUpColor & 0xFFFFFF);
+                GuiNpcButton windUpColorBtn = new GuiNpcButton(22, guiLeft + 95, y, 55, 20, windUpHex);
+                windUpColorBtn.setTextColor(windUpColor & 0xFFFFFF);
+                addButton(windUpColorBtn);
 
-            addLabel(new GuiNpcLabel(45, "ability.activeColor", guiLeft + 200, y + 5));
-            String activeHex = String.format("%06X", activeColor & 0xFFFFFF);
-            GuiNpcButton activeColorBtn = new GuiNpcButton(24, guiLeft + 280, y, 55, 20, activeHex);
-            activeColorBtn.setEnabled(showTelegraph);
-            activeColorBtn.setTextColor(activeColor & 0xFFFFFF);
-            addButton(activeColorBtn);
+                addLabel(new GuiNpcLabel(45, "ability.activeColor", guiLeft + 200, y + 5));
+                String activeHex = String.format("%06X", activeColor & 0xFFFFFF);
+                GuiNpcButton activeColorBtn = new GuiNpcButton(24, guiLeft + 280, y, 55, 20, activeHex);
+                activeColorBtn.setTextColor(activeColor & 0xFFFFFF);
+                addButton(activeColorBtn);
+            }
         }
     }
 
@@ -627,6 +645,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             initGui(); // Refresh to show/hide dazed ticks field
         } else if (id == 16) {
             lockMovement = ((GuiNpcButton) guibutton).getValue() == 1;
+        } else if (id == 17) {
+            // Sync windup ticks with animation duration
+            syncWindupWithAnimation();
         }
 
         // Target tab - Targeting mode
@@ -915,6 +936,34 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.windUpColor = ability.getWindUpColor();
         this.activeColor = ability.getActiveColor();
 
+        initGui();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SYNC ANIMATION
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Syncs windup ticks with the selected windup animation's total duration.
+     */
+    private void syncWindupWithAnimation() {
+        if (windUpAnimationId < 0 || AnimationController.Instance == null) {
+            return;
+        }
+
+        Animation animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        if (animation == null || animation.frames.isEmpty()) {
+            return;
+        }
+
+        // Calculate total duration by summing all frame durations
+        int totalDuration = 0;
+        for (Frame frame : animation.frames) {
+            totalDuration += frame.getDuration();
+        }
+
+        // Update the cached value and refresh GUI
+        windUpTicks = totalDuration;
         initGui();
     }
 

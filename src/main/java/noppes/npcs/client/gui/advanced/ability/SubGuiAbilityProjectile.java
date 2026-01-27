@@ -58,21 +58,29 @@ public class SubGuiAbilityProjectile extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Explosive + Explosion Radius
+        // Row 3: Explosive + Explosion Radius (only show radius if explosive)
         addLabel(new GuiNpcLabel(104, "ability.explosive", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isExplosive() ? 1 : 0));
+        GuiNpcButton explosiveBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isExplosive() ? 1 : 0);
+        explosiveBtn.setHoverText("ability.hover.explosive");
+        addButton(explosiveBtn);
 
-        addLabel(new GuiNpcLabel(105, "ability.explosionRad", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, projectile.getExplosionRadius()));
+        if (projectile.isExplosive()) {
+            addLabel(new GuiNpcLabel(105, "ability.explosionRad", col2LabelX, y + 5));
+            addTextField(createFloatField(105, col2FieldX, y, 50, projectile.getExplosionRadius()));
+        }
 
         y += 24;
 
-        // Row 4: Homing + Homing Strength
+        // Row 4: Homing + Homing Strength (only show strength if homing)
         addLabel(new GuiNpcLabel(106, "ability.homing", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isHoming() ? 1 : 0));
+        GuiNpcButton homingBtn = new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isHoming() ? 1 : 0);
+        homingBtn.setHoverText("ability.hover.homing");
+        addButton(homingBtn);
 
-        addLabel(new GuiNpcLabel(107, "ability.homingStr", col2LabelX, y + 5));
-        addTextField(createFloatField(107, col2FieldX, y, 50, projectile.getHomingStrength()));
+        if (projectile.isHoming()) {
+            addLabel(new GuiNpcLabel(107, "ability.homingStr", col2LabelX, y + 5));
+            addTextField(createFloatField(107, col2FieldX, y, 50, projectile.getHomingStrength()));
+        }
 
         y += 24;
 
@@ -90,9 +98,11 @@ public class SubGuiAbilityProjectile extends SubGuiAbilityConfig {
                 break;
             case 104:
                 projectile.setExplosive(value == 1);
+                initGui();
                 break;
             case 106:
                 projectile.setHoming(value == 1);
+                initGui();
                 break;
             case 150:
                 setSubGui(new SubGuiAbilityEffects(projectile.getEffects()));

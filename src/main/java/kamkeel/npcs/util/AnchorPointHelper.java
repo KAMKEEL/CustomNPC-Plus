@@ -40,9 +40,10 @@ public class AnchorPointHelper {
     // Distance in front for FRONT anchor
     private static final float DEFAULT_FRONT_DISTANCE = 1.0f;
 
-    // Fallback arm positioning (when no animation)
-    private static final float FALLBACK_LATERAL = 0.35f;
-    private static final float FALLBACK_FORWARD = 0.3f;
+    // Fallback arm positioning (when no animation, arms hang at sides)
+    private static final float FALLBACK_LATERAL = 0.35f;   // Distance from body center to arm
+    private static final float FALLBACK_FORWARD = 0.1f;    // Slight forward offset
+    private static final float FALLBACK_ARM_HEIGHT = 0.45f; // Hand height when arms hang down (near hip)
 
     /**
      * Calculate world position for an anchor point on an entity.
@@ -274,6 +275,7 @@ public class AnchorPointHelper {
 
     /**
      * Calculate fallback hand position when no animation is active.
+     * Represents arms hanging at sides in default idle pose.
      */
     private static Vec3 calculateFallbackHandPosition(EntityLivingBase entity, boolean rightHand, float scale) {
         float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
@@ -281,20 +283,23 @@ public class AnchorPointHelper {
         // Get arm scale for EntityCustomNpc
         ModelScalePart armScale = getArmScale(entity);
 
-        // Perpendicular direction for lateral offset
+        // Perpendicular direction for lateral offset (right = +90°, left = -90° from body facing)
         float perpYaw = bodyYaw + (rightHand ? (float) (Math.PI / 2) : (float) (-Math.PI / 2));
 
-        // Calculate offsets scaled by model size and arm scale
-        double lateralX = -Math.sin(perpYaw) * FALLBACK_LATERAL * scale * armScale.scaleX;
-        double lateralZ = Math.cos(perpYaw) * FALLBACK_LATERAL * scale * armScale.scaleX;
-        double forwardX = -Math.sin(bodyYaw) * FALLBACK_FORWARD * scale * armScale.scaleZ;
-        double forwardZ = Math.cos(bodyYaw) * FALLBACK_FORWARD * scale * armScale.scaleZ;
+        // Calculate lateral offset - arms hang at sides
+        // Scale by model size, but not by arm scale (lateral distance is fixed by skeleton)
+        double lateralX = -Math.sin(perpYaw) * FALLBACK_LATERAL * scale;
+        double lateralZ = Math.cos(perpYaw) * FALLBACK_LATERAL * scale;
 
-        // Arm length affects vertical position
-        double armLengthOffset = (1 - armScale.scaleY) * 0.3;
+        // Small forward offset
+        double forwardX = -Math.sin(bodyYaw) * FALLBACK_FORWARD * scale;
+        double forwardZ = Math.cos(bodyYaw) * FALLBACK_FORWARD * scale;
+
+        // Arm length affects vertical position - longer arms = lower hands
+        double armLengthOffset = armScale.scaleY * 0.3 * scale;
 
         double x = entity.posX + lateralX + forwardX;
-        double y = entity.posY + entity.height * ARM_HEIGHT - armLengthOffset;
+        double y = entity.posY + entity.height * FALLBACK_ARM_HEIGHT + armLengthOffset;
         double z = entity.posZ + lateralZ + forwardZ;
 
         return Vec3.createVectorHelper(x, y, z);

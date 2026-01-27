@@ -58,7 +58,7 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
 
         if (scrollAnimations == null) {
             scrollAnimations = new GuiCustomScroll(this, 0, 0);
-            scrollAnimations.setSize(212, 163);
+            scrollAnimations.setSize(212, 150);
         }
         scrollAnimations.setList(getSearchList());
         if (selectedName != null) {
@@ -68,7 +68,8 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
         scrollAnimations.guiTop = guiTop + 14;
         this.addScroll(scrollAnimations);
 
-        addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 4, guiTop + 179, 212, 20, search));
+        // Search textbox - moved up to avoid overlapping with buttons
+        addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 4, guiTop + 166, 212, 20, search));
     }
 
     @Override

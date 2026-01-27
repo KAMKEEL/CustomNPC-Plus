@@ -51,7 +51,9 @@ public class SubGuiAbilityVortex extends SubGuiAbilityConfig {
 
         // Row 3: AOE + Max Targets
         addLabel(new GuiNpcLabel(104, "ability.aoe", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, vortex.isAoe() ? 1 : 0));
+        GuiNpcButton aoeBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, vortex.isAoe() ? 1 : 0);
+        aoeBtn.setHoverText("ability.hover.aoe");
+        addButton(aoeBtn);
 
         addLabel(new GuiNpcLabel(105, "ability.maxTargets", col2LabelX, y + 5));
         addTextField(createIntField(105, col2FieldX, y, 50, vortex.getMaxTargets()));
@@ -65,7 +67,9 @@ public class SubGuiAbilityVortex extends SubGuiAbilityConfig {
 
         // Row 5: Damage on Pull + Pull Damage
         addLabel(new GuiNpcLabel(108, "ability.dmgOnPull", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, vortex.isDamageOnPull() ? 1 : 0));
+        GuiNpcButton dmgOnPullBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, vortex.isDamageOnPull() ? 1 : 0);
+        dmgOnPullBtn.setHoverText("ability.hover.dmgOnPull");
+        addButton(dmgOnPullBtn);
 
         addLabel(new GuiNpcLabel(109, "ability.pullDamage", col2LabelX, y + 5));
         addTextField(createFloatField(109, col2FieldX, y, 50, vortex.getPullDamage()));

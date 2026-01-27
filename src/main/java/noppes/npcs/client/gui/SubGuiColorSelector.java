@@ -25,10 +25,10 @@ public class SubGuiColorSelector extends SubGuiInterface implements ITextfieldLi
     public int color;
 
     public SubGuiColorSelector(int color) {
-        xSize = 176;
+        xSize = 182;
         ySize = 222;
         this.color = color;
-        setBackground("smallbg.png");
+        setBackground("menubg.png");
     }
 
     @Override
@@ -40,7 +40,7 @@ public class SubGuiColorSelector extends SubGuiInterface implements ITextfieldLi
         this.addTextField(textfield = new GuiNpcTextField(0, this, guiLeft + 53, guiTop + 20, 70, 20, getColor()));
         textfield.setTextColor(color);
 
-        addButton(new GuiNpcButton(66, guiLeft + 112, guiTop + 198, 60, 20, "gui.done"));
+        addButton(new GuiNpcButton(66, guiLeft + 112, guiTop + 175, 60, 20, "gui.done"));
     }
 
     public String getColor() {

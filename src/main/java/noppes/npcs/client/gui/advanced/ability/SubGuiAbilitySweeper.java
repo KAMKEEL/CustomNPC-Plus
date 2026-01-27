@@ -71,13 +71,17 @@ public class SubGuiAbilitySweeper extends SubGuiAbilityConfig {
         addTextField(createIntField(106, fieldX, y, 50, sweeper.getNumberOfRotations()));
 
         addLabel(new GuiNpcLabel(107, "ability.piercing", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, sweeper.isPiercing() ? 1 : 0));
+        GuiNpcButton piercingBtn = new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, sweeper.isPiercing() ? 1 : 0);
+        piercingBtn.setHoverText("ability.hover.piercing");
+        addButton(piercingBtn);
 
         y += 24;
 
         // Row 5: Lock On Target
         addLabel(new GuiNpcLabel(108, "ability.lockTarget", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, sweeper.isLockOnTarget() ? 1 : 0));
+        GuiNpcButton lockTargetBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, sweeper.isLockOnTarget() ? 1 : 0);
+        lockTargetBtn.setHoverText("ability.hover.lockTarget");
+        addButton(lockTargetBtn);
 
         y += 24;
 

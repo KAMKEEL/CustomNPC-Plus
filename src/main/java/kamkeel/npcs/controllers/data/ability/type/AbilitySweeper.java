@@ -30,7 +30,7 @@ public class AbilitySweeper extends Ability {
     // Type-specific parameters
     private float beamLength = 10.0f;
     private float beamWidth = 0.3f;  // Thin like beam trail
-    private float beamHeight = 0.8f;  // Height above ground (low enough to jump over)
+    private float beamHeight = 0.5f;  // Height above ground (low enough to jump over)
     private float damage = 5.0f;
     private int damageInterval = 5;
     private boolean piercing = true;
@@ -172,7 +172,7 @@ public class AbilitySweeper extends Ability {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.beamLength = nbt.hasKey("beamLength") ? nbt.getFloat("beamLength") : 10.0f;
         this.beamWidth = nbt.hasKey("beamWidth") ? nbt.getFloat("beamWidth") : 0.3f;
-        this.beamHeight = nbt.hasKey("beamHeight") ? nbt.getFloat("beamHeight") : 0.8f;
+        this.beamHeight = nbt.hasKey("beamHeight") ? nbt.getFloat("beamHeight") : 0.5f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 5.0f;
         this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 5;
         this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");

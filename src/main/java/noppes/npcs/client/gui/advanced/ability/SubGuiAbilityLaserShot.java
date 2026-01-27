@@ -65,12 +65,16 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 4: Explosive + Explosion Radius
+        // Row 4: Explosive + Explosion Radius (only show radius if explosive)
         addLabel(new GuiNpcLabel(106, "ability.explosive", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.isExplosive() ? 1 : 0));
+        GuiNpcButton explosiveBtn = new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.isExplosive() ? 1 : 0);
+        explosiveBtn.setHoverText("ability.hover.explosive");
+        addButton(explosiveBtn);
 
-        addLabel(new GuiNpcLabel(107, "ability.explosionRad", col2LabelX, y + 5));
-        addTextField(createFloatField(107, col2FieldX, y, 50, laser.getExplosionRadius()));
+        if (laser.isExplosive()) {
+            addLabel(new GuiNpcLabel(107, "ability.explosionRad", col2LabelX, y + 5));
+            addTextField(createFloatField(107, col2FieldX, y, 50, laser.getExplosionRadius()));
+        }
 
         y += 24;
 
@@ -124,7 +128,9 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
         // Row 3: Lightning Effect Enabled
         addLabel(new GuiNpcLabel(204, "ability.lightning", labelX, y + 5));
-        addButton(new GuiNpcButton(204, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.hasLightningEffect() ? 1 : 0));
+        GuiNpcButton lightningBtn = new GuiNpcButton(204, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.hasLightningEffect() ? 1 : 0);
+        lightningBtn.setHoverText("ability.hover.lightning");
+        addButton(lightningBtn);
 
         // Only show Lightning settings if Lightning is enabled
         if (laser.hasLightningEffect()) {
@@ -149,6 +155,7 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
         switch (id) {
             case 106:
                 laser.setExplosive(value == 1);
+                initGui();
                 break;
             case 150:
                 setSubGui(new SubGuiAbilityEffects(laser.getEffects()));

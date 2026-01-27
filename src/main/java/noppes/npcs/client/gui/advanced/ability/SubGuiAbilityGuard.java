@@ -44,11 +44,14 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
 
         // Row 2: Can Counter + Counter Type
         addLabel(new GuiNpcLabel(101, "ability.canCounter", labelX, y + 5));
-        addButton(new GuiNpcButton(101, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, guard.isCanCounter() ? 1 : 0));
+        GuiNpcButton canCounterBtn = new GuiNpcButton(101, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, guard.isCanCounter() ? 1 : 0);
+        canCounterBtn.setHoverText("ability.hover.canCounter");
+        addButton(canCounterBtn);
 
         addLabel(new GuiNpcLabel(102, "ability.counterType", col2LabelX, y + 5));
         String[] types = {"Flat", "Percent"};
         GuiNpcButton counterTypeButton = new GuiNpcButton(102, col2FieldX, y, 60, 20, types, guard.getCounterType().ordinal());
+        counterTypeButton.setHoverText("ability.hover.counterType");
         counterTypeButton.setEnabled(guard.isCanCounter());
         addButton(counterTypeButton);
 

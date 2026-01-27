@@ -39,14 +39,18 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(100, "ability.shape", col2LabelX, y + 5));
         String[] shapes = {"Circle", "Ring", "Cone"};
-        addButton(new GuiNpcButton(100, col2FieldX, y, 55, 20, shapes, hazard.getShape().ordinal()));
+        GuiNpcButton shapeBtn = new GuiNpcButton(100, col2FieldX, y, 55, 20, shapes, hazard.getShape().ordinal());
+        shapeBtn.setHoverText("ability.hover.shape");
+        addButton(shapeBtn);
 
         y += 24;
 
         // Row 2: Placement
         addLabel(new GuiNpcLabel(101, "ability.placement", labelX, y + 5));
         String[] placements = {"Caster", "Target", "FollowCast", "FollowTgt"};
-        addButton(new GuiNpcButton(101, fieldX, y, 70, 20, placements, hazard.getPlacement().ordinal()));
+        GuiNpcButton placementBtn = new GuiNpcButton(101, fieldX, y, 70, 20, placements, hazard.getPlacement().ordinal());
+        placementBtn.setHoverText("ability.hover.placement");
+        addButton(placementBtn);
 
         y += 24;
 
@@ -82,7 +86,9 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
         addTextField(createIntField(108, fieldX, y, 50, hazard.getPoisonLevel()));
 
         addLabel(new GuiNpcLabel(109, "ability.affectsCaster", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, hazard.isAffectsCaster() ? 1 : 0));
+        GuiNpcButton affectsCasterBtn = new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, hazard.isAffectsCaster() ? 1 : 0);
+        affectsCasterBtn.setHoverText("ability.hover.affectsCaster");
+        addButton(affectsCasterBtn);
 
         y += 24;
 

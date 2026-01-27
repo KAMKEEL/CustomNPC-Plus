@@ -54,7 +54,9 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
                 addTextField(createIntField(103, fieldX, y, 50, teleport.getBlinkDelayTicks()));
 
                 addLabel(new GuiNpcLabel(105, "ability.lineOfSight", col2LabelX, y + 5));
-                addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0));
+                GuiNpcButton losBtn1 = new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0);
+                losBtn1.setHoverText("ability.hover.lineOfSight");
+                addButton(losBtn1);
                 y += 24;
                 break;
             case SINGLE:
@@ -63,7 +65,9 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
                 addTextField(createFloatField(101, fieldX, y, 50, teleport.getBlinkRadius()));
 
                 addLabel(new GuiNpcLabel(105, "ability.lineOfSight", col2LabelX, y + 5));
-                addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0));
+                GuiNpcButton losBtn2 = new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0);
+                losBtn2.setHoverText("ability.hover.lineOfSight");
+                addButton(losBtn2);
                 y += 24;
                 break;
             case BEHIND:
@@ -85,10 +89,14 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
 
         // Damage at Start/End
         addLabel(new GuiNpcLabel(108, "ability.dmgAtStart", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtStart() ? 1 : 0));
+        GuiNpcButton dmgStartBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtStart() ? 1 : 0);
+        dmgStartBtn.setHoverText("ability.hover.dmgAtStart");
+        addButton(dmgStartBtn);
 
         addLabel(new GuiNpcLabel(109, "ability.dmgAtEnd", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtEnd() ? 1 : 0));
+        GuiNpcButton dmgEndBtn = new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtEnd() ? 1 : 0);
+        dmgEndBtn.setHoverText("ability.hover.dmgAtEnd");
+        addButton(dmgEndBtn);
 
         y += 24;
 

@@ -39,7 +39,9 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(100, "ability.placement", col2LabelX, y + 5));
         String[] placements = {"Caster", "Target", "Ahead"};
-        addButton(new GuiNpcButton(100, col2FieldX, y, 55, 20, placements, trap.getPlacement().ordinal()));
+        GuiNpcButton placementBtn = new GuiNpcButton(100, col2FieldX, y, 55, 20, placements, trap.getPlacement().ordinal());
+        placementBtn.setHoverText("ability.hover.placement");
+        addButton(placementBtn);
 
         y += 24;
 

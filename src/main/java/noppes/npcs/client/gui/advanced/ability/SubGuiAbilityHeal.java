@@ -29,7 +29,9 @@ public class SubGuiAbilityHeal extends SubGuiAbilityConfig {
 
         // Row 1: Instant Heal + Duration (only shown if not instant)
         addLabel(new GuiNpcLabel(103, "dialog.instant", labelX, y + 5));
-        addButton(new GuiNpcButton(103, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isInstantHeal() ? 1 : 0));
+        GuiNpcButton instantBtn = new GuiNpcButton(103, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isInstantHeal() ? 1 : 0);
+        instantBtn.setHoverText("ability.hover.instant");
+        addButton(instantBtn);
 
         if (!heal.isInstantHeal()) {
             addLabel(new GuiNpcLabel(99, "ability.duration", col2LabelX, y + 5));
@@ -57,10 +59,14 @@ public class SubGuiAbilityHeal extends SubGuiAbilityConfig {
 
         // Row 4: Heal Self + Heal Allies
         addLabel(new GuiNpcLabel(104, "ability.healSelf", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isHealSelf() ? 1 : 0));
+        GuiNpcButton healSelfBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isHealSelf() ? 1 : 0);
+        healSelfBtn.setHoverText("ability.hover.healSelf");
+        addButton(healSelfBtn);
 
         addLabel(new GuiNpcLabel(105, "ability.healAllies", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isHealAllies() ? 1 : 0));
+        GuiNpcButton healAlliesBtn = new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isHealAllies() ? 1 : 0);
+        healAlliesBtn.setHoverText("ability.hover.healAllies");
+        addButton(healAlliesBtn);
     }
 
     @Override
