@@ -116,11 +116,7 @@ public class AbilityGuard extends Ability {
         lastAttacker = attacker;
         lastDamageTaken = damage;
         counterTriggered = true;
-
-        if (interruptible) {
-            performCounter(npc, npc.worldObj);
-            npc.abilities.interruptCurrentAbility(source, damage);
-        }
+        // Counter will be performed in onActiveTick - don't self-interrupt
     }
 
     private void performCounter(EntityNPCInterface npc, World world) {

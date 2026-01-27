@@ -374,7 +374,10 @@ public class AbilityTeleport extends Ability {
             double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
             if (dist <= damageRadius) {
                 // Apply damage with scripted event support (no knockback for teleport damage)
-                applyAbilityDamage(npc, living, damage, 0);
+                boolean wasHit = applyAbilityDamage(npc, living, damage, 0);
+                if (wasHit) {
+                    applyEffects(living);
+                }
             }
         }
     }

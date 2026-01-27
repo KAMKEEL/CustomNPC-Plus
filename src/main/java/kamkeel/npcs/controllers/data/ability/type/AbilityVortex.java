@@ -8,7 +8,6 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
@@ -36,9 +35,16 @@ public class AbilityVortex extends Ability {
     private float pullDamage = 0.0f;
 
     // Runtime state
-    private transient Set<UUID> pulledEntities = new HashSet<>();
+    private transient Set<UUID> pulledEntities;
     private transient boolean pullComplete = false;
     private transient int ticksSincePullDamage = 0;
+
+    private Set<UUID> getPulledEntities() {
+        if (pulledEntities == null) {
+            pulledEntities = new HashSet<>();
+        }
+        return pulledEntities;
+    }
 
     public AbilityVortex() {
         this.typeId = "ability.cnpc.vortex";
@@ -82,7 +88,7 @@ public class AbilityVortex extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        pulledEntities.clear();
+        getPulledEntities().clear();
         pullComplete = false;
         ticksSincePullDamage = 0;
 
@@ -98,7 +104,7 @@ public class AbilityVortex extends Ability {
 
                 double dist = npc.getDistanceToEntity(entity);
                 if (dist <= pullRadius) {
-                    pulledEntities.add(entity.getUniqueID());
+                    getPulledEntities().add(entity.getUniqueID());
                     count++;
                     if (count >= maxTargets) break;
                 }
@@ -108,7 +114,7 @@ public class AbilityVortex extends Ability {
             if (target != null && !target.isDead) {
                 double dist = npc.getDistanceToEntity(target);
                 if (dist <= pullRadius) {
-                    pulledEntities.add(target.getUniqueID());
+                    getPulledEntities().add(target.getUniqueID());
                 }
             }
         }
@@ -116,7 +122,7 @@ public class AbilityVortex extends Ability {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        if (pullComplete || pulledEntities.isEmpty()) {
+        if (pullComplete || getPulledEntities().isEmpty()) {
             signalCompletion();
             return;
         }
@@ -128,10 +134,10 @@ public class AbilityVortex extends Ability {
         boolean anyStillPulling = false;
         ticksSincePullDamage++;
 
-        for (UUID uuid : new HashSet<>(pulledEntities)) {
+        for (UUID uuid : new HashSet<>(getPulledEntities())) {
             EntityLivingBase entity = findEntity(npc, world, uuid);
             if (entity == null || entity.isDead) {
-                pulledEntities.remove(uuid);
+                getPulledEntities().remove(uuid);
                 continue;
             }
 
@@ -141,7 +147,7 @@ public class AbilityVortex extends Ability {
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
             if (dist <= 1.0f) {
-                pulledEntities.remove(uuid);
+                getPulledEntities().remove(uuid);
                 onTargetArrived(npc, entity, world);
                 continue;
             }
@@ -155,7 +161,7 @@ public class AbilityVortex extends Ability {
 
             AxisAlignedBB nextBox = entity.boundingBox.copy().offset(nextX, nextY, nextZ);
             if (!world.getCollidingBoundingBoxes(entity, nextBox).isEmpty()) {
-                pulledEntities.remove(uuid);
+                getPulledEntities().remove(uuid);
                 continue;
             }
 
@@ -171,7 +177,7 @@ public class AbilityVortex extends Ability {
             }
         }
 
-        if (!anyStillPulling && pulledEntities.isEmpty()) {
+        if (!anyStillPulling && getPulledEntities().isEmpty()) {
             pullComplete = true;
             signalCompletion();
         }
@@ -206,15 +212,8 @@ public class AbilityVortex extends Ability {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        pulledEntities.clear();
-        pullComplete = false;
-        ticksSincePullDamage = 0;
-    }
-
-    @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        pulledEntities.clear();
+    public void cleanup() {
+        getPulledEntities().clear();
         pullComplete = false;
         ticksSincePullDamage = 0;
     }

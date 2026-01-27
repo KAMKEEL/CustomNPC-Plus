@@ -34,7 +34,14 @@ public class AbilityHeal extends Ability {
     private boolean instantHeal = true;
 
     // Runtime state
-    private transient List<EntityLivingBase> healedAllies = new ArrayList<>();
+    private transient List<EntityLivingBase> healedAllies;
+
+    private List<EntityLivingBase> getHealedAllies() {
+        if (healedAllies == null) {
+            healedAllies = new ArrayList<>();
+        }
+        return healedAllies;
+    }
 
     public AbilityHeal() {
         this.typeId = "ability.cnpc.heal";
@@ -73,7 +80,7 @@ public class AbilityHeal extends Ability {
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
         if (world.isRemote) return;
 
-        healedAllies.clear();
+        getHealedAllies().clear();
 
         // Always find allies if we're healing them (needed for both instant and HoT)
         if (healAllies && healRadius > 0) {
@@ -87,7 +94,7 @@ public class AbilityHeal extends Ability {
                 spawnHealParticles(world, npc);
             }
 
-            for (EntityLivingBase ally : healedAllies) {
+            for (EntityLivingBase ally : getHealedAllies()) {
                 healEntity(ally);
                 spawnHealParticles(world, ally);
             }
@@ -120,7 +127,7 @@ public class AbilityHeal extends Ability {
             }
 
             if (healAllies && healRadius > 0) {
-                for (EntityLivingBase ally : healedAllies) {
+                for (EntityLivingBase ally : getHealedAllies()) {
                     if (!ally.isDead) {
                         float allyTickHeal = tickHeal;
                         // Add percentage-based heal portion for each ally
@@ -164,7 +171,7 @@ public class AbilityHeal extends Ability {
             if (living instanceof EntityNPCInterface) {
                 float dist = npc.getDistanceToEntity(living);
                 if (dist <= healRadius) {
-                    healedAllies.add(living);
+                    getHealedAllies().add(living);
                 }
             }
         }
@@ -192,14 +199,8 @@ public class AbilityHeal extends Ability {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, net.minecraft.util.DamageSource source, float damage) {
-        healedAllies.clear();
-    }
-
-    @Override
-    public void reset() {
-        super.reset();
-        healedAllies.clear();
+    public void cleanup() {
+        getHealedAllies().clear();
     }
 
     @Override

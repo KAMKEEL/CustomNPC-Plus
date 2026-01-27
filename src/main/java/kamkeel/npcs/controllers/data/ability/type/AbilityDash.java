@@ -199,8 +199,6 @@ public class AbilityDash extends Ability {
         npc.motionX = 0;
         npc.motionZ = 0;
         npc.velocityChanged = true;
-        dashDirection = null;
-        chosenDirection = null;
     }
 
     @Override
@@ -208,21 +206,19 @@ public class AbilityDash extends Ability {
         npc.motionX = 0;
         npc.motionZ = 0;
         npc.velocityChanged = true;
+    }
+
+    @Override
+    public void cleanup() {
         dashDirection = null;
         chosenDirection = null;
     }
 
     private boolean isDashBlocked(EntityNPCInterface npc) {
+        if (dashDirection == null) return true;
         double nextX = dashDirection.xCoord * dashSpeed;
         double nextZ = dashDirection.zCoord * dashSpeed;
         return !npc.worldObj.getCollidingBoundingBoxes(npc, npc.boundingBox.copy().offset(nextX, 0, nextZ)).isEmpty();
-    }
-
-    @Override
-    public void reset() {
-        super.reset();
-        dashDirection = null;
-        chosenDirection = null;
     }
 
     @Override
