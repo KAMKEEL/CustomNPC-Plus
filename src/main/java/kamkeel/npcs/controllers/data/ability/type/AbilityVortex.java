@@ -46,10 +46,8 @@ public class AbilityVortex extends Ability {
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 120;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 40;
-        this.recoveryTicks = 5;
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "mob.ghast.charge";
         this.activeSound = "mob.ghast.fireball";
@@ -119,6 +117,7 @@ public class AbilityVortex extends Ability {
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         if (pullComplete || pulledEntities.isEmpty()) {
+            signalCompletion();
             return;
         }
 
@@ -174,6 +173,7 @@ public class AbilityVortex extends Ability {
 
         if (!anyStillPulling && pulledEntities.isEmpty()) {
             pullComplete = true;
+            signalCompletion();
         }
     }
 

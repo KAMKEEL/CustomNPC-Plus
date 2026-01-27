@@ -170,8 +170,8 @@ public class DataAbilities {
                 currentAbility.onActiveTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
                 break;
 
-            case RECOVERY:
-                // Recovery phase - just wait
+            case DAZED:
+                // Dazed phase - NPC cannot attack, just wait for daze to end
                 break;
 
             case IDLE:
@@ -222,12 +222,10 @@ public class DataAbilities {
             releaseLockedRotation();
 
             // Calculate cooldown: random(min, max) + ability offset
-            int baseCooldown = minCooldown;
-            if (maxCooldown > minCooldown) {
-                baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
-            }
-            int totalCooldown = baseCooldown + currentAbility.getCooldownTicks();
-            cooldownEndTime = npc.worldObj.getTotalWorldTime() + totalCooldown;
+            int abilityCooldownOffset = currentAbility.getCooldownTicks();
+            rollCooldown();
+            // Add ability-specific cooldown offset
+            cooldownEndTime += abilityCooldownOffset;
 
             currentAbility = null;
             lastTarget = null;
@@ -539,8 +537,8 @@ public class DataAbilities {
 
     /**
      * Interrupt the currently executing ability.
-     * The ability will transition to RECOVERY phase (dazed state) and continue ticking.
-     * When RECOVERY completes, the ability will move to IDLE and onAbilityComplete() is called.
+     * If interrupted during WINDUP, the ability will transition to DAZED phase.
+     * When DAZED completes, the ability will move to IDLE and onAbilityComplete() is called.
      */
     public void interruptCurrentAbility(DamageSource source, float damage) {
         if (currentAbility != null) {
@@ -559,10 +557,10 @@ public class DataAbilities {
             NpcAPI.EVENT_BUS.post(interruptEvent);
 
             currentAbility.onInterrupt(npc, source, damage);
-            currentAbility.interrupt(); // This now transitions to RECOVERY, not IDLE
+            currentAbility.interrupt(); // Transitions to DAZED if interrupted during WINDUP
 
-            // Don't clear currentAbility - let it tick through RECOVERY phase
-            // When RECOVERY ends and phase becomes IDLE, onAbilityComplete() will be called
+            // Don't clear currentAbility - let it tick through DAZED phase
+            // When DAZED ends and phase becomes IDLE, onAbilityComplete() will be called
         }
     }
 
@@ -631,15 +629,30 @@ public class DataAbilities {
     /**
      * Reset all runtime state (cooldowns, current ability).
      * Called when NPC respawns or combat ends.
+     * Rolls cooldown so NPC doesn't immediately use an ability.
      */
     public void reset() {
         stopCurrentAbility();
-        resetCooldown();
+
+        // Roll cooldown so NPC doesn't immediately attack after reset
+        rollCooldown();
 
         // Reset execution state on all abilities
         for (Ability ability : abilities) {
             ability.reset();
         }
+    }
+
+    /**
+     * Roll a new cooldown using the min/max range.
+     * Called after ability completes and on reset.
+     */
+    private void rollCooldown() {
+        int baseCooldown = minCooldown;
+        if (maxCooldown > minCooldown) {
+            baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
+        }
+        cooldownEndTime = npc.worldObj.getTotalWorldTime() + baseCooldown;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -706,7 +719,7 @@ public class DataAbilities {
      * Rules:
      * - WINDUP phase: Block AI if lockMovement is true
      * - ACTIVE phase: Block AI if lockMovement OR hasAbilityMovement is true
-     * - RECOVERY phase: Block AI if lockMovement is true
+     * - DAZED phase: Always block AI (NPC is stunned)
      */
     public boolean isAbilityControllingMovement() {
         if (currentAbility == null || !currentAbility.isExecuting()) {
@@ -727,9 +740,9 @@ public class DataAbilities {
                 // - hasAbilityMovement is true (ability is moving the NPC itself)
                 return currentAbility.isLockMovement() || currentAbility.hasAbilityMovement();
 
-            case RECOVERY:
-                // During recovery, block if lockMovement is set
-                return currentAbility.isLockMovement();
+            case DAZED:
+                // During dazed phase, always block - NPC is stunned from interrupt
+                return true;
 
             default:
                 return false;
@@ -739,7 +752,7 @@ public class DataAbilities {
     /**
      * Check if NPC's look direction should be locked to target.
      * Only locks during ACTIVE phase when lockMovement is true.
-     * This allows the NPC to freely track target during WINDUP and RECOVERY.
+     * This allows the NPC to freely track target during WINDUP and DAZED.
      */
     public boolean shouldLockLookDirection() {
         if (currentAbility == null || !currentAbility.isExecuting()) {

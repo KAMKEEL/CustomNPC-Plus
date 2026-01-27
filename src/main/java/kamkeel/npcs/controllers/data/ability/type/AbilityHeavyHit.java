@@ -29,10 +29,8 @@ public class AbilityHeavyHit extends Ability {
         this.maxRange = 3.0f;
         this.minRange = 0.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 80;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 5;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.POINT;
         this.showTelegraph = false;
         this.windUpSound = "random.anvil_use";
@@ -63,7 +61,10 @@ public class AbilityHeavyHit extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (world.isRemote || target == null) return;
+        if (world.isRemote || target == null) {
+            signalCompletion();
+            return;
+        }
 
         // Apply damage with scripted event support
         boolean wasHit = applyAbilityDamage(npc, target, damage, knockback);
@@ -72,6 +73,9 @@ public class AbilityHeavyHit extends Ability {
         if (wasHit) {
             applyEffects(target);
         }
+
+        // Heavy Hit is instant
+        signalCompletion();
     }
 
     @Override

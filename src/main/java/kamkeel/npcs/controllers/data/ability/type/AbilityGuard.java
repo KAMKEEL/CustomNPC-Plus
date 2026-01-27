@@ -25,6 +25,7 @@ public class AbilityGuard extends Ability {
     private static final Random RANDOM = new Random();
 
     // Type-specific parameters
+    private int durationTicks = 60;
     private float damageReduction = 0.5f;
     private boolean canCounter = false;
     private CounterType counterType = CounterType.FLAT;
@@ -48,10 +49,8 @@ public class AbilityGuard extends Ability {
         this.name = "Guard";
         this.targetingMode = TargetingMode.SELF;
         this.lockMovement = true;
-        this.cooldownTicks = 120;
+        this.cooldownTicks = 0;
         this.windUpTicks = 10;
-        this.activeTicks = 60;
-        this.recoveryTicks = 10;
         this.interruptible = false; // Hard to interrupt while guarding
         // No telegraph for guard - it's a defensive stance
         this.telegraphType = TelegraphType.NONE;
@@ -94,6 +93,11 @@ public class AbilityGuard extends Ability {
         // Counter attack logic if triggered
         if (canCounter && counterTriggered && lastAttacker != null && !world.isRemote) {
             performCounter(npc, world);
+        }
+
+        // Check if guard duration has ended
+        if (tick >= durationTicks) {
+            signalCompletion();
         }
     }
 
@@ -175,6 +179,7 @@ public class AbilityGuard extends Ability {
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("durationTicks", durationTicks);
         nbt.setFloat("damageReduction", damageReduction);
         nbt.setBoolean("canCounter", canCounter);
         nbt.setString("counterType", counterType.name());
@@ -186,6 +191,7 @@ public class AbilityGuard extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
+        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
         this.damageReduction = nbt.hasKey("damageReduction") ? nbt.getFloat("damageReduction") : 0.5f;
         this.canCounter = nbt.hasKey("canCounter") && nbt.getBoolean("canCounter");
         try {
@@ -206,6 +212,14 @@ public class AbilityGuard extends Ability {
     }
 
     // Getters & Setters
+    public int getDurationTicks() {
+        return durationTicks;
+    }
+
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = Math.max(1, durationTicks);
+    }
+
     public float getDamageReduction() {
         return damageReduction;
     }

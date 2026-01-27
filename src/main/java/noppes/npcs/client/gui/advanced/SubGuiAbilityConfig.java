@@ -61,8 +61,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     // Timing
     protected int cooldownTicks;
     protected int windUpTicks;
-    protected int activeTicks;
-    protected int recoveryTicks;
+    protected int dazedTicks;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // CACHED VALUES - Target Tab
@@ -115,8 +114,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Timing
         this.cooldownTicks = ability.getCooldownTicks();
         this.windUpTicks = ability.getWindUpTicks();
-        this.activeTicks = ability.getActiveTicks();
-        this.recoveryTicks = ability.getRecoveryTicks();
+        this.dazedTicks = ability.getDazedTicks();
 
         // Target
         this.minRange = ability.getMinRange();
@@ -254,9 +252,18 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         y += 24;
 
-        // Row 3: Interruptible
+        // Row 3: Interruptible + Dazed Ticks (only if interruptible)
         addLabel(new GuiNpcLabel(6, "ability.interruptible", col1LabelX, y + 5));
         addButton(new GuiNpcButton(14, guiLeft + 85, y, 40, 20, new String[]{"gui.no", "gui.yes"}, interruptible ? 1 : 0));
+
+        // Only show dazed ticks if interruptible is enabled
+        if (interruptible) {
+            addLabel(new GuiNpcLabel(12, "ability.dazed", col2LabelX, y + 5));
+            GuiNpcTextField dazedField = new GuiNpcTextField(13, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(dazedTicks));
+            dazedField.setIntegersOnly();
+            dazedField.setMinMaxDefault(0, 1000, 80);
+            addTextField(dazedField);
+        }
 
         y += 28;
 
@@ -264,32 +271,17 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         addLabel(new GuiNpcLabel(7, "ability.timing", col1LabelX, y));
         y += 14;
 
-        // Row 4: Windup Ticks + Active Ticks
+        // Row 4: Windup Ticks + Cooldown Ticks
         addLabel(new GuiNpcLabel(10, "ability.windup", col1LabelX, y + 5));
         GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(windUpTicks));
         windupField.setIntegersOnly();
         windupField.setMinMaxDefault(0, 1000, 20);
         addTextField(windupField);
 
-        addLabel(new GuiNpcLabel(11, "ability.active", col2LabelX, y + 5));
-        GuiNpcTextField activeField = new GuiNpcTextField(12, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(activeTicks));
-        activeField.setIntegersOnly();
-        activeField.setMinMaxDefault(1, 1000, 10);
-        addTextField(activeField);
-
-        y += 24;
-
-        // Row 5: Recovery Ticks + Cooldown Ticks
-        addLabel(new GuiNpcLabel(12, "ability.recovery", col1LabelX, y + 5));
-        GuiNpcTextField recoveryField = new GuiNpcTextField(13, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(recoveryTicks));
-        recoveryField.setIntegersOnly();
-        recoveryField.setMinMaxDefault(0, 1000, 20);
-        addTextField(recoveryField);
-
         addLabel(new GuiNpcLabel(13, "ability.cooldown", col2LabelX, y + 5));
         GuiNpcTextField cooldownField = new GuiNpcTextField(10, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(cooldownTicks));
         cooldownField.setIntegersOnly();
-        cooldownField.setMinMaxDefault(0, 10000, 100);
+        cooldownField.setMinMaxDefault(0, 10000, 0);
         addTextField(cooldownField);
     }
 
@@ -632,6 +624,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // General tab buttons
         else if (id == 14) {
             interruptible = ((GuiNpcButton) guibutton).getValue() == 1;
+            initGui(); // Refresh to show/hide dazed ticks field
         } else if (id == 16) {
             lockMovement = ((GuiNpcButton) guibutton).getValue() == 1;
         }
@@ -764,10 +757,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             cooldownTicks = textField.getInteger();
         } else if (id == 11) {
             windUpTicks = textField.getInteger();
-        } else if (id == 12) {
-            activeTicks = textField.getInteger();
         } else if (id == 13) {
-            recoveryTicks = textField.getInteger();
+            dazedTicks = textField.getInteger();
         }
 
         // Visual-specific fields (200+) - delegate to subclass
@@ -865,8 +856,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Timing
         ability.setCooldownTicks(cooldownTicks);
         ability.setWindUpTicks(windUpTicks);
-        ability.setActiveTicks(activeTicks);
-        ability.setRecoveryTicks(recoveryTicks);
+        ability.setDazedTicks(dazedTicks);
 
         // Target
         ability.setMinRange(minRange);
@@ -914,8 +904,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         this.cooldownTicks = ability.getCooldownTicks();
         this.windUpTicks = ability.getWindUpTicks();
-        this.activeTicks = ability.getActiveTicks();
-        this.recoveryTicks = ability.getRecoveryTicks();
+        this.dazedTicks = ability.getDazedTicks();
 
         this.minRange = ability.getMinRange();
         this.maxRange = ability.getMaxRange();

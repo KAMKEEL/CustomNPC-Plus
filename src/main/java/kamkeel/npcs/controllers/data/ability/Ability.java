@@ -47,17 +47,12 @@ public abstract class Ability implements IAbility {
     protected float maxRange = 20;
 
     // Timing (ticks)
-    protected int cooldownTicks = 100;
+    protected int cooldownTicks = 0;      // Added to global cooldown after ability completes
     protected int windUpTicks = 20;
-    protected int activeTicks = 10;
-    protected int recoveryTicks = 20;
+    protected int dazedTicks = 80;        // Only used when interrupted during WINDUP (if interruptible)
 
     // Interruption
     protected boolean interruptible = true;
-
-    // Wait for completion - if true, ability controls when active phase ends (ignores activeTicks)
-    // Used for abilities like Slam that need to wait for landing, or Beam that runs until entity dies
-    protected boolean waitForCompletion = false;
 
     // Feedback
     protected boolean lockMovement = true;
@@ -507,11 +502,8 @@ public abstract class Ability implements IAbility {
     /**
      * Tick the ability forward. Called every game tick while executing.
      * <p>
-     * Normal flow: WINDUP -> ACTIVE -> IDLE (no recovery in normal completion)
-     * Interrupted flow: WINDUP -> RECOVERY -> IDLE (recovery only on interrupt)
-     * <p>
-     * If waitForCompletion is true, the ability controls when active ends
-     * by calling signalCompletion() instead of using activeTicks.
+     * Normal flow: WINDUP -> ACTIVE -> IDLE
+     * Interrupted flow: WINDUP -> DAZED -> IDLE (dazed only on interrupt during WINDUP)
      *
      * @return true if phase changed this tick
      */
@@ -529,18 +521,13 @@ public abstract class Ability implements IAbility {
                 }
                 break;
             case ACTIVE:
-                // If waitForCompletion is true, ability must call signalCompletion()
-                // Otherwise, auto-complete when activeTicks is reached
-                if (!waitForCompletion && currentTick >= activeTicks) {
-                    phase = AbilityPhase.IDLE;
-                    currentTick = 0;
-                    return true;
-                }
+                // Abilities control their own completion by calling signalCompletion()
+                // No auto-complete - each ability determines when it's done
                 break;
-            case RECOVERY:
-                // Recovery phase is only entered on interrupt
-                // Count down recoveryTicks then go to IDLE
-                if (currentTick >= recoveryTicks) {
+            case DAZED:
+                // Dazed phase is only entered on interrupt during WINDUP
+                // NPC cannot attack during this time
+                if (currentTick >= dazedTicks) {
                     phase = AbilityPhase.IDLE;
                     currentTick = 0;
                     return true;
@@ -552,13 +539,14 @@ public abstract class Ability implements IAbility {
 
     /**
      * Signal that the ability has completed its active phase.
-     * Called by abilities with waitForCompletion=true when they are done.
+     * Called by abilities when they are done.
      * For example, AbilitySlam calls this when the NPC lands.
      *
      * @return true if phase changed to IDLE
      */
     public boolean signalCompletion() {
         if (phase == AbilityPhase.ACTIVE) {
+            cleanup();
             phase = AbilityPhase.IDLE;
             currentTick = 0;
             return true;
@@ -567,13 +555,14 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Interrupt this ability. Transitions to RECOVERY phase if interruptible.
+     * Interrupt this ability. Transitions to DAZED phase if interruptible during WINDUP.
      * Called when NPC takes direct damage during WINDUP.
      */
     public void interrupt() {
+        cleanup();
         if (interruptible && phase == AbilityPhase.WINDUP) {
-            // Interrupted during windup - go to recovery (dazed state)
-            phase = AbilityPhase.RECOVERY;
+            // Interrupted during windup - go to dazed state
+            phase = AbilityPhase.DAZED;
             currentTick = 0;
         } else {
             // Force stop - go directly to IDLE
@@ -624,13 +613,23 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Reset all execution state (called on combat end)
+     * Reset all execution state (called on combat end, NPC death, target lost, etc.)
      */
     public void reset() {
+        cleanup();
         phase = AbilityPhase.IDLE;
         currentTick = 0;
         currentTarget = null;
         telegraphInstance = null;
+    }
+
+    /**
+     * Cleanup any resources created by this ability.
+     * Override this to kill spawned entities, cancel telegraphs, etc.
+     * Called when ability ends for any reason (completion, interrupt, reset, NPC death).
+     */
+    public void cleanup() {
+        // Override in subclasses to clean up spawned entities, etc.
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -661,10 +660,8 @@ public abstract class Ability implements IAbility {
         nbt.setFloat("maxRange", maxRange);
         nbt.setInteger("cooldown", cooldownTicks);
         nbt.setInteger("windUp", windUpTicks);
-        nbt.setInteger("active", activeTicks);
-        nbt.setInteger("recovery", recoveryTicks);
+        nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
-        nbt.setBoolean("waitForCompletion", waitForCompletion);
         nbt.setBoolean("lockMovement", lockMovement);
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
@@ -708,10 +705,8 @@ public abstract class Ability implements IAbility {
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
-        activeTicks = nbt.getInteger("active");
-        recoveryTicks = nbt.getInteger("recovery");
+        dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
-        waitForCompletion = nbt.getBoolean("waitForCompletion");
         lockMovement = nbt.getBoolean("lockMovement");
         // Support old telegraphColor key for backwards compatibility
         if (nbt.hasKey("windUpColor")) {
@@ -857,20 +852,12 @@ public abstract class Ability implements IAbility {
         this.windUpTicks = Math.max(0, windUpTicks);
     }
 
-    public int getActiveTicks() {
-        return activeTicks;
+    public int getDazedTicks() {
+        return dazedTicks;
     }
 
-    public void setActiveTicks(int activeTicks) {
-        this.activeTicks = Math.max(1, activeTicks);
-    }
-
-    public int getRecoveryTicks() {
-        return recoveryTicks;
-    }
-
-    public void setRecoveryTicks(int recoveryTicks) {
-        this.recoveryTicks = Math.max(0, recoveryTicks);
+    public void setDazedTicks(int dazedTicks) {
+        this.dazedTicks = Math.max(0, dazedTicks);
     }
 
     public boolean isInterruptible() {
@@ -879,14 +866,6 @@ public abstract class Ability implements IAbility {
 
     public void setInterruptible(boolean interruptible) {
         this.interruptible = interruptible;
-    }
-
-    public boolean isWaitForCompletion() {
-        return waitForCompletion;
-    }
-
-    public void setWaitForCompletion(boolean waitForCompletion) {
-        this.waitForCompletion = waitForCompletion;
     }
 
     public boolean isLockMovement() {
@@ -978,7 +957,7 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Get the current execution phase as int (0=IDLE, 1=WINDUP, 2=ACTIVE, 3=RECOVERY).
+     * Get the current execution phase as int (0=IDLE, 1=WINDUP, 2=ACTIVE, 3=DAZED).
      * Required for IAbility interface.
      */
     @Override

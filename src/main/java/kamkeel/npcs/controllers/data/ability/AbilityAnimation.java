@@ -20,7 +20,7 @@ public enum AbilityAnimation {;
         animationNames.put(IDLE, idle);
         animationNames.put(WINDUP, windUp);
         animationNames.put(ACTIVE, active);
-        animationNames.put(RECOVERY, recovery);
+        animationNames.put(DAZED, recovery);
     }
 
     AbilityAnimation(String idle, String windUp, String active) {
@@ -80,8 +80,8 @@ public enum AbilityAnimation {;
         return getAnimation(ACTIVE);
     }
 
-    public IAnimation recovery() {
-        return getAnimation(RECOVERY);
+    public IAnimation dazed() {
+        return getAnimation(DAZED);
     }
 
     private File getFileFromName(String fileName) {

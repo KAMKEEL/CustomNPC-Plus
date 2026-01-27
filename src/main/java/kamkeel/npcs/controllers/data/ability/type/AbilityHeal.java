@@ -25,6 +25,7 @@ import java.util.List;
 public class AbilityHeal extends Ability {
 
     // Type-specific parameters
+    private int durationTicks = 60;
     private float healAmount = 10.0f;
     private float healPercent = 0.0f;
     private boolean healSelf = true;
@@ -40,10 +41,8 @@ public class AbilityHeal extends Ability {
         this.name = "Heal";
         this.targetingMode = TargetingMode.SELF;
         this.lockMovement = true;
-        this.cooldownTicks = 200;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 10;
-        this.recoveryTicks = 10;
         // No telegraph for heal - it's a self/ally buff
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
@@ -92,6 +91,9 @@ public class AbilityHeal extends Ability {
                 healEntity(ally);
                 spawnHealParticles(world, ally);
             }
+
+            // Instant heal completes immediately
+            signalCompletion();
         }
         // If not instant, HoT healing is applied in onActiveTick
     }
@@ -100,16 +102,16 @@ public class AbilityHeal extends Ability {
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         if (world.isRemote || instantHeal) return;
 
-        // Heal over time - distribute heal across active ticks
+        // Heal over time - distribute heal across duration ticks
         if (tick % 10 == 0) {
             // Calculate tick-based heal for fixed amount
-            float tickHeal = (healAmount / (float) activeTicks) * 10;
+            float tickHeal = (healAmount / (float) durationTicks) * 10;
 
             if (healSelf) {
                 float selfTickHeal = tickHeal;
                 // Add percentage-based heal portion
                 if (healPercent > 0) {
-                    selfTickHeal += (npc.getMaxHealth() * healPercent / (float) activeTicks) * 10;
+                    selfTickHeal += (npc.getMaxHealth() * healPercent / (float) durationTicks) * 10;
                 }
                 npc.heal(selfTickHeal);
                 if (tick % 20 == 0) {
@@ -123,7 +125,7 @@ public class AbilityHeal extends Ability {
                         float allyTickHeal = tickHeal;
                         // Add percentage-based heal portion for each ally
                         if (healPercent > 0) {
-                            allyTickHeal += (ally.getMaxHealth() * healPercent / (float) activeTicks) * 10;
+                            allyTickHeal += (ally.getMaxHealth() * healPercent / (float) durationTicks) * 10;
                         }
                         ally.heal(allyTickHeal);
                         if (tick % 20 == 0) {
@@ -132,6 +134,11 @@ public class AbilityHeal extends Ability {
                     }
                 }
             }
+        }
+
+        // Check if heal duration has ended
+        if (tick >= durationTicks) {
+            signalCompletion();
         }
     }
 
@@ -202,6 +209,7 @@ public class AbilityHeal extends Ability {
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("durationTicks", durationTicks);
         nbt.setFloat("healAmount", healAmount);
         nbt.setFloat("healPercent", healPercent);
         nbt.setBoolean("healSelf", healSelf);
@@ -212,6 +220,7 @@ public class AbilityHeal extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
+        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
         this.healAmount = nbt.hasKey("healAmount") ? nbt.getFloat("healAmount") : 10.0f;
         this.healPercent = nbt.hasKey("healPercent") ? nbt.getFloat("healPercent") : 0.0f;
         this.healSelf = !nbt.hasKey("healSelf") || nbt.getBoolean("healSelf");
@@ -221,6 +230,14 @@ public class AbilityHeal extends Ability {
     }
 
     // Getters & Setters
+    public int getDurationTicks() {
+        return durationTicks;
+    }
+
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = Math.max(1, durationTicks);
+    }
+
     public float getHealAmount() {
         return healAmount;
     }

@@ -31,14 +31,22 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 145;
         int col2FieldX = guiLeft + 205;
 
-        // Row 1: Shape + Placement
-        addLabel(new GuiNpcLabel(100, "ability.shape", labelX, y + 5));
-        String[] shapes = {"Circle", "Ring", "Cone"};
-        addButton(new GuiNpcButton(100, fieldX, y, 55, 20, shapes, hazard.getShape().ordinal()));
+        // Row 1: Duration + Shape
+        addLabel(new GuiNpcLabel(99, "ability.duration", labelX, y + 5));
+        GuiNpcTextField durationField = createIntField(99, fieldX, y, 50, hazard.getDurationTicks());
+        durationField.setMinMaxDefault(1, 2000, 100);
+        addTextField(durationField);
 
-        addLabel(new GuiNpcLabel(101, "ability.placement", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "ability.shape", col2LabelX, y + 5));
+        String[] shapes = {"Circle", "Ring", "Cone"};
+        addButton(new GuiNpcButton(100, col2FieldX, y, 55, 20, shapes, hazard.getShape().ordinal()));
+
+        y += 24;
+
+        // Row 2: Placement
+        addLabel(new GuiNpcLabel(101, "ability.placement", labelX, y + 5));
         String[] placements = {"Caster", "Target", "FollowCast", "FollowTgt"};
-        addButton(new GuiNpcButton(101, col2FieldX, y, 60, 20, placements, hazard.getPlacement().ordinal()));
+        addButton(new GuiNpcButton(101, fieldX, y, 70, 20, placements, hazard.getPlacement().ordinal()));
 
         y += 24;
 
@@ -116,6 +124,9 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
+            case 99:
+                hazard.setDurationTicks(field.getInteger());
+                break;
             case 102:
                 hazard.setRadius(parseFloat(field, hazard.getRadius()));
                 break;

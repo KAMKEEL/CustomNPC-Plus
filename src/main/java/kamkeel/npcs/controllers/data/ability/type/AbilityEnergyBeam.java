@@ -71,7 +71,7 @@ public class AbilityEnergyBeam extends Ability {
     private AnchorPoint anchorPoint = AnchorPoint.FRONT;
 
     // Transient state for beam entity (used during windup charging)
-    private transient int beamEntityId = -1;
+    private transient EntityAbilityBeam beamEntity = null;
 
     public AbilityEnergyBeam() {
         this.typeId = "ability.cnpc.beam";
@@ -79,10 +79,8 @@ public class AbilityEnergyBeam extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 150;
+        this.cooldownTicks = 0;
         this.windUpTicks = 40;
-        this.activeTicks = 200;  // Match maxLifetime to keep NPC locked while beam is active
-        this.recoveryTicks = 5;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
     }
@@ -110,17 +108,19 @@ public class AbilityEnergyBeam extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
-
-        // Find and start firing the beam that was spawned during windup
-        if (beamEntityId != -1) {
-            Entity entity = world.getEntityByID(beamEntityId);
-            if (entity instanceof EntityAbilityBeam) {
-                EntityAbilityBeam beam = (EntityAbilityBeam) entity;
-                beam.startFiring(target);
-            }
-            beamEntityId = -1;
+        if (world.isRemote) {
+            signalCompletion();
+            return;
         }
+
+        // Start firing the beam that was spawned during windup
+        if (beamEntity != null && !beamEntity.isDead) {
+            beamEntity.startFiring(target);
+        }
+        beamEntity = null;
+
+        // Beam entity manages itself - ability is done
+        signalCompletion();
     }
 
     @Override
@@ -132,7 +132,7 @@ public class AbilityEnergyBeam extends Ability {
             float offsetDist = 1.0f;
 
             // Create beam in charging mode - follows NPC based on anchor point during windup
-            EntityAbilityBeam beam = EntityAbilityBeam.createCharging(
+            beamEntity = EntityAbilityBeam.createCharging(
                 world, npc, target,
                 beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
                 damage, knockback, knockbackUp,
@@ -147,8 +147,7 @@ public class AbilityEnergyBeam extends Ability {
                 anchorPoint   // Anchor point for charging position
             );
 
-            world.spawnEntityInWorld(beam);
-            beamEntityId = beam.getEntityId();
+            world.spawnEntityInWorld(beamEntity);
         }
     }
 
@@ -161,15 +160,12 @@ public class AbilityEnergyBeam extends Ability {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        // Despawn charging beam if interrupted during windup
-        if (beamEntityId != -1) {
-            Entity entity = npc.worldObj.getEntityByID(beamEntityId);
-            if (entity != null) {
-                entity.setDead();
-            }
-            beamEntityId = -1;
+    public void cleanup() {
+        // Despawn beam entity if still alive
+        if (beamEntity != null && !beamEntity.isDead) {
+            beamEntity.setDead();
         }
+        beamEntity = null;
     }
 
     @Override

@@ -31,13 +31,21 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 145;
         int col2FieldX = guiLeft + 205;
 
-        // Row 1: Placement + Trigger Radius
-        addLabel(new GuiNpcLabel(100, "ability.placement", labelX, y + 5));
-        String[] placements = {"Caster", "Target", "Ahead"};
-        addButton(new GuiNpcButton(100, fieldX, y, 55, 20, placements, trap.getPlacement().ordinal()));
+        // Row 1: Duration + Placement
+        addLabel(new GuiNpcLabel(99, "ability.duration", labelX, y + 5));
+        GuiNpcTextField durationField = createIntField(99, fieldX, y, 50, trap.getDurationTicks());
+        durationField.setMinMaxDefault(1, 2000, 200);
+        addTextField(durationField);
 
-        addLabel(new GuiNpcLabel(101, "ability.triggerRad", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, trap.getTriggerRadius()));
+        addLabel(new GuiNpcLabel(100, "ability.placement", col2LabelX, y + 5));
+        String[] placements = {"Caster", "Target", "Ahead"};
+        addButton(new GuiNpcButton(100, col2FieldX, y, 55, 20, placements, trap.getPlacement().ordinal()));
+
+        y += 24;
+
+        // Row 2: Trigger Radius
+        addLabel(new GuiNpcLabel(101, "ability.triggerRad", labelX, y + 5));
+        addTextField(createFloatField(101, fieldX, y, 50, trap.getTriggerRadius()));
 
         y += 24;
 
@@ -90,6 +98,9 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
+            case 99:
+                trap.setDurationTicks(field.getInteger());
+                break;
             case 101:
                 trap.setTriggerRadius(parseFloat(field, trap.getTriggerRadius()));
                 break;

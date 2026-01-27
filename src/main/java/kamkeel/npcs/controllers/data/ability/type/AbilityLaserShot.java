@@ -60,10 +60,8 @@ public class AbilityLaserShot extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 35.0f;
         this.minRange = 3.0f;
-        this.cooldownTicks = 60;
+        this.cooldownTicks = 0;
         this.windUpTicks = 15;
-        this.activeTicks = 1;
-        this.recoveryTicks = 5;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
     }
@@ -101,7 +99,10 @@ public class AbilityLaserShot extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
+        if (world.isRemote) {
+            signalCompletion();
+            return;
+        }
 
         double spawnX = npc.posX;
         double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
@@ -120,10 +121,14 @@ public class AbilityLaserShot extends Ability {
         );
 
         world.spawnEntityInWorld(laser);
+
+        // Laser entity manages itself - ability is done
+        signalCompletion();
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        // Laser entity manages itself
     }
 
     @Override

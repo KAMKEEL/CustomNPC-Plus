@@ -49,11 +49,8 @@ public class AbilitySlam extends Ability {
         this.name = "Slam";
         this.targetingMode = TargetingMode.AOE_SELF; // Can also be AOE_TARGET to leap to target
         this.windUpTicks = 30;
-        this.activeTicks = 60; // Max time in air (used as timeout if waitForCompletion fails)
-        this.recoveryTicks = 10;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.lockMovement = true;
-        this.waitForCompletion = true; // Ability completes when NPC lands, not by activeTicks
         this.minRange = 2.0f;
         this.maxRange = 15.0f;
         this.telegraphType = TelegraphType.CIRCLE;

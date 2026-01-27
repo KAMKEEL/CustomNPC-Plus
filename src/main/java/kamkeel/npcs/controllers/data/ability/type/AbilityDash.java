@@ -87,10 +87,8 @@ public class AbilityDash extends Ability {
         this.maxRange = 20.0f;
         this.minRange = 0.0f;
         this.lockMovement = false;
-        this.cooldownTicks = 40;
+        this.cooldownTicks = 0;
         this.windUpTicks = 5;
-        this.activeTicks = 8;
-        this.recoveryTicks = 10;
         // No telegraph for dash - it's a quick evasive move
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
@@ -174,6 +172,7 @@ public class AbilityDash extends Ability {
             npc.motionX = 0;
             npc.motionZ = 0;
             npc.velocityChanged = true;
+            signalCompletion();
             return;
         }
 
@@ -181,6 +180,7 @@ public class AbilityDash extends Ability {
             npc.motionX = 0;
             npc.motionZ = 0;
             npc.velocityChanged = true;
+            signalCompletion();
             return;
         }
 

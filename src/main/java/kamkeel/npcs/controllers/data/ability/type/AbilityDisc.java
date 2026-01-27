@@ -72,7 +72,7 @@ public class AbilityDisc extends Ability {
     private AnchorPoint anchorPoint = AnchorPoint.FRONT;
 
     // Transient state for disc entity (used during windup charging)
-    private transient int discEntityId = -1;
+    private transient EntityAbilityDisc discEntity = null;
 
     public AbilityDisc() {
         this.typeId = "ability.cnpc.disc";
@@ -80,10 +80,8 @@ public class AbilityDisc extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 80;
+        this.cooldownTicks = 0;
         this.windUpTicks = 20;
-        this.activeTicks = 1;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
     }
@@ -111,17 +109,19 @@ public class AbilityDisc extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
-
-        // Find and start moving the disc that was spawned during windup
-        if (discEntityId != -1) {
-            Entity entity = world.getEntityByID(discEntityId);
-            if (entity instanceof EntityAbilityDisc) {
-                EntityAbilityDisc disc = (EntityAbilityDisc) entity;
-                disc.startMoving(target);
-            }
-            discEntityId = -1;
+        if (world.isRemote) {
+            signalCompletion();
+            return;
         }
+
+        // Start moving the disc that was spawned during windup
+        if (discEntity != null && !discEntity.isDead) {
+            discEntity.startMoving(target);
+        }
+        discEntity = null;
+
+        // Disc entity manages itself - ability is done
+        signalCompletion();
     }
 
     @Override
@@ -131,7 +131,7 @@ public class AbilityDisc extends Ability {
         // Spawn disc in charging mode on first tick of windup
         if (tick == 1) {
             // Create disc in charging mode - follows NPC based on anchor point during windup
-            EntityAbilityDisc disc = EntityAbilityDisc.createCharging(
+            discEntity = EntityAbilityDisc.createCharging(
                 world, npc, target,
                 discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
                 damage, knockback, knockbackUp,
@@ -145,8 +145,7 @@ public class AbilityDisc extends Ability {
                 windUpTicks   // Charge duration = windup duration
             );
 
-            world.spawnEntityInWorld(disc);
-            discEntityId = disc.getEntityId();
+            world.spawnEntityInWorld(discEntity);
         }
     }
 
@@ -159,15 +158,12 @@ public class AbilityDisc extends Ability {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        // Despawn charging disc if interrupted during windup
-        if (discEntityId != -1) {
-            Entity entity = npc.worldObj.getEntityByID(discEntityId);
-            if (entity != null) {
-                entity.setDead();
-            }
-            discEntityId = -1;
+    public void cleanup() {
+        // Despawn disc entity if still alive
+        if (discEntity != null && !discEntity.isDead) {
+            discEntity.setDead();
         }
+        discEntity = null;
     }
 
     @Override

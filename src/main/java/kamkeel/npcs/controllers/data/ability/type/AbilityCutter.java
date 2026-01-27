@@ -38,6 +38,7 @@ public class AbilityCutter extends Ability {
 
     private SweepMode sweepMode = SweepMode.SWIPE;
     private float sweepSpeed = 6.0f;
+    private int spinDurationTicks = 60; // Duration for SPIN mode
 
     private boolean piercing = true;
     private float innerRadius = 0.0f;
@@ -52,10 +53,8 @@ public class AbilityCutter extends Ability {
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 8.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 80;
+        this.cooldownTicks = 0;
         this.windUpTicks = 20;
-        this.activeTicks = 15;
-        this.recoveryTicks = 15;
         this.telegraphType = TelegraphType.CONE;
         this.windUpSound = "random.bow";
         this.activeSound = "random.break";
@@ -110,6 +109,7 @@ public class AbilityCutter extends Ability {
         switch (sweepMode) {
             case SWIPE:
                 if (currentRotation > arcAngle / 2.0f) {
+                    signalCompletion(); // Swipe arc complete
                     return;
                 }
                 performSweepDamage(npc, world, innerRadius, range, currentRotation);
@@ -117,6 +117,10 @@ public class AbilityCutter extends Ability {
                 break;
 
             case SPIN:
+                if (tick >= spinDurationTicks) {
+                    signalCompletion(); // Spin duration complete
+                    return;
+                }
                 currentRotation = (currentRotation + sweepSpeed) % 360.0f;
                 hitEntities.clear();
                 performSweepDamage(npc, world, innerRadius, range, currentRotation);
@@ -195,6 +199,7 @@ public class AbilityCutter extends Ability {
         nbt.setFloat("knockback", knockback);
         nbt.setString("sweepMode", sweepMode.name());
         nbt.setFloat("sweepSpeed", sweepSpeed);
+        nbt.setInteger("spinDurationTicks", spinDurationTicks);
         nbt.setBoolean("piercing", piercing);
         nbt.setFloat("innerRadius", innerRadius);
     }
@@ -211,6 +216,7 @@ public class AbilityCutter extends Ability {
             this.sweepMode = SweepMode.SWIPE;
         }
         this.sweepSpeed = nbt.hasKey("sweepSpeed") ? nbt.getFloat("sweepSpeed") : 6.0f;
+        this.spinDurationTicks = nbt.hasKey("spinDurationTicks") ? nbt.getInteger("spinDurationTicks") : 60;
         this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");
         this.innerRadius = nbt.hasKey("innerRadius") ? nbt.getFloat("innerRadius") : 0.0f;
     }
@@ -262,6 +268,14 @@ public class AbilityCutter extends Ability {
 
     public void setSweepSpeed(float sweepSpeed) {
         this.sweepSpeed = sweepSpeed;
+    }
+
+    public int getSpinDurationTicks() {
+        return spinDurationTicks;
+    }
+
+    public void setSpinDurationTicks(int spinDurationTicks) {
+        this.spinDurationTicks = Math.max(1, spinDurationTicks);
     }
 
     public boolean isPiercing() {

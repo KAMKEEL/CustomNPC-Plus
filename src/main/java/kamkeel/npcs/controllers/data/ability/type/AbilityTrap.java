@@ -34,6 +34,7 @@ public class AbilityTrap extends Ability {
         AHEAD_OF_CASTER
     }
 
+    private int durationTicks = 200;
     private TrapPlacement placement = TrapPlacement.AT_TARGET;
     private float placementDistance = 5.0f;
     private float triggerRadius = 2.0f;
@@ -64,10 +65,8 @@ public class AbilityTrap extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 150;
+        this.cooldownTicks = 0;
         this.windUpTicks = 20;
-        this.activeTicks = 200;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
     }
 
@@ -180,6 +179,12 @@ public class AbilityTrap extends Ability {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        // Check if trap duration has ended
+        if (tick >= durationTicks) {
+            signalCompletion();
+            return;
+        }
+
         if (!armed) {
             if (tick >= armTime) {
                 armed = true;
@@ -190,6 +195,7 @@ public class AbilityTrap extends Ability {
         ticksSinceLastTrigger++;
 
         if (maxTriggers > 0 && triggerCount >= maxTriggers) {
+            signalCompletion(); // All triggers used, trap is done
             return;
         }
 
@@ -277,6 +283,7 @@ public class AbilityTrap extends Ability {
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("durationTicks", durationTicks);
         nbt.setString("placement", placement.name());
         nbt.setFloat("placementDistance", placementDistance);
         nbt.setFloat("triggerRadius", triggerRadius);
@@ -294,6 +301,7 @@ public class AbilityTrap extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
+        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 200;
         try {
             this.placement = TrapPlacement.valueOf(nbt.getString("placement"));
         } catch (Exception e) {
@@ -314,6 +322,14 @@ public class AbilityTrap extends Ability {
     }
 
     // Getters & Setters
+    public int getDurationTicks() {
+        return durationTicks;
+    }
+
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = Math.max(1, durationTicks);
+    }
+
     public TrapPlacement getPlacement() {
         return placement;
     }

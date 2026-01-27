@@ -28,19 +28,14 @@ public class AbilityShockwave extends Ability {
     private float damage = 8.0f;
     private int maxTargets = 10;
 
-    // Runtime state
-    private transient boolean executed = false;
-
     public AbilityShockwave() {
         this.typeId = "ability.cnpc.shockwave";
         this.name = "Shockwave";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 25;
-        this.activeTicks = 5;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "random.explode";
         this.activeSound = "random.explode";
@@ -74,13 +69,7 @@ public class AbilityShockwave extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        executed = false;
-    }
-
-    @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        if (executed) return;
-        executed = true;
+        // Shockwave is instant - apply effect immediately after windup
 
         // Get all entities in radius
         AxisAlignedBB box = npc.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
@@ -124,16 +113,14 @@ public class AbilityShockwave extends Ability {
                 applyEffects(entity);
             }
         }
+
+        // Shockwave completes instantly
+        signalCompletion();
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        executed = false;
-    }
-
-    @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        executed = false;
+    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        // Shockwave is instant - nothing to do per-tick
     }
 
     @Override

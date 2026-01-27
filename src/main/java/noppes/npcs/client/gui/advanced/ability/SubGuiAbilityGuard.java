@@ -31,9 +31,14 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 165;
         int col2FieldX = guiLeft + 225;
 
-        // Row 1: Damage Reduction
-        addLabel(new GuiNpcLabel(100, "ability.dmgReduce", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, guard.getDamageReduction()));
+        // Row 1: Duration + Damage Reduction
+        addLabel(new GuiNpcLabel(99, "ability.duration", labelX, y + 5));
+        GuiNpcTextField durationField = createIntField(99, fieldX, y, 50, guard.getDurationTicks());
+        durationField.setMinMaxDefault(1, 1000, 60);
+        addTextField(durationField);
+
+        addLabel(new GuiNpcLabel(100, "ability.dmgReduce", col2LabelX, y + 5));
+        addTextField(createFloatField(100, col2FieldX, y, 50, guard.getDamageReduction()));
 
         y += 24;
 
@@ -112,6 +117,9 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
+            case 99:
+                guard.setDurationTicks(field.getInteger());
+                break;
             case 100:
                 guard.setDamageReduction(parseFloat(field, guard.getDamageReduction()));
                 break;

@@ -7,104 +7,87 @@ import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.data.ModelScalePart;
 
 /**
  * Utility class for calculating world positions based on anchor points.
- * Used for positioning charging effects on different body parts.
- * Animation-aware: reads arm positions from NPC animation data when available.
+ * Supports both EntityNPCInterface and EntityPlayer with animation and model size awareness.
  */
 public class AnchorPointHelper {
 
-    // ==================== TUNABLE CONSTANTS ====================
-    // These can be adjusted to fine-tune positioning
+    // Default biped model constants (in model units, 1 unit = 1/16 block)
+    private static final float MODEL_SCALE = 1f / 16f;
 
-    // Shoulder position in model units (default biped arm rotation points)
-    private static final float SHOULDER_X_RIGHT = -5.0f;  // Right arm is on the right side (-X in model space)
-    private static final float SHOULDER_X_LEFT = 5.0f;    // Left arm is on the left side (+X in model space)
-    private static final float SHOULDER_Y = 2.0f;         // Shoulder height from model origin
-    private static final float SHOULDER_Z = 0.0f;         // Shoulder depth
+    // Shoulder position relative to model origin
+    private static final float SHOULDER_Y = 2f;
+    private static final float SHOULDER_X_OFFSET = 5f;  // Distance from center to shoulder
 
-    // Hand offset in model units (where items are held, relative to shoulder after rotation)
-    // In arm's local space: X = toward/away from body, Y = down the arm, Z = forward/back
-    private static float HAND_OFFSET_X_RIGHT = -2.0f;  // Slightly toward body for right
-    private static float HAND_OFFSET_X_LEFT = 2.0f;    // Slightly toward body for left
-    private static float HAND_OFFSET_Y = 14.0f;        // Down the arm (arm is ~12 units long)
-    private static float HAND_OFFSET_Z = 0.0f;         // Forward from arm
+    // Palm position (in arm's local space, relative to shoulder)
+    // Arm is 12 units long; palm is near the end
+    private static final float PALM_DOWN = 11f;      // Distance down the arm to palm center
+    private static final float PALM_FORWARD = 2f;    // Forward offset to palm surface (not center of hand)
+    private static final float PALM_INWARD = 0f;     // Lateral offset (0 = centered on arm)
 
-    // Height of shoulder relative to entity position (feet)
-    private static final float SHOULDER_HEIGHT_BLOCKS = 1.35f;
+    // Default height offsets as fraction of entity height
+    private static final float FRONT_HEIGHT = 0.7f;
+    private static final float CENTER_HEIGHT = 0.5f;
+    private static final float ARM_HEIGHT = 0.75f;
+    private static final float ABOVE_HEAD_HEIGHT = 1.2f;
+    private static final float CHEST_HEIGHT = 0.65f;
 
-    // Model scale factor (1/16 - converts model units to blocks)
-    private static final float MODEL_SCALE = 0.0625f;
+    // Distance in front for FRONT anchor
+    private static final float DEFAULT_FRONT_DISTANCE = 1.0f;
 
-    // Fallback offsets (in blocks) when no animation
-    private static final float ARM_LATERAL_OFFSET = 0.35f;
-    private static final float ARM_FORWARD_OFFSET = 0.3f;
-    private static final float FRONT_OFFSET = 1.0f;
-
-    // Height multipliers relative to eye height
-    private static final float FRONT_HEIGHT_MULT = 0.7f;
-    private static final float CENTER_HEIGHT_MULT = 0.5f;
-    private static final float ARM_HEIGHT_MULT = 0.75f;
-    private static final float ABOVE_HEAD_HEIGHT_MULT = 1.3f;
-    private static final float CHEST_HEIGHT_MULT = 0.5f;
+    // Fallback arm positioning (when no animation)
+    private static final float FALLBACK_LATERAL = 0.35f;
+    private static final float FALLBACK_FORWARD = 0.3f;
 
     /**
-     * Calculate the world position for a given anchor point on an entity.
+     * Calculate world position for an anchor point on an entity.
      */
     public static Vec3 calculateAnchorPosition(EntityLivingBase entity, AnchorPoint anchor) {
-        return calculateAnchorPosition(entity, anchor, FRONT_OFFSET);
+        return calculateAnchorPosition(entity, anchor, DEFAULT_FRONT_DISTANCE);
     }
 
     /**
-     * Calculate the world position for a given anchor point on an entity.
+     * Calculate world position for an anchor point with custom front offset.
      */
     public static Vec3 calculateAnchorPosition(EntityLivingBase entity, AnchorPoint anchor, float frontOffset) {
+        float scale = getModelScale(entity);
+        float height = entity.height;
+
         double x = entity.posX;
         double y = entity.posY;
         double z = entity.posZ;
-        float eyeHeight = entity.getEyeHeight();
 
-        // Body yaw in radians (used for arm positioning)
-        // Minecraft: yaw 0 = south (+Z), 90 = west (-X), 180 = north (-Z), 270 = east (+X)
-        float bodyYawRad = (float) Math.toRadians(entity.renderYawOffset);
-        float headYawRad = (float) Math.toRadians(entity.rotationYawHead);
+        float headYaw = (float) Math.toRadians(entity.rotationYawHead);
+        float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
 
         switch (anchor) {
             case FRONT:
-                // In front of entity face (use head yaw)
-                x -= Math.sin(headYawRad) * frontOffset;
-                y += eyeHeight * FRONT_HEIGHT_MULT;
-                z += Math.cos(headYawRad) * frontOffset;
+                x -= Math.sin(headYaw) * frontOffset * scale;
+                y += height * FRONT_HEIGHT;
+                z += Math.cos(headYaw) * frontOffset * scale;
                 break;
 
             case CENTER:
-                y += eyeHeight * CENTER_HEIGHT_MULT;
+                y += height * CENTER_HEIGHT;
                 break;
 
             case RIGHT_HAND:
-                Vec3 rightPos = getAnimatedHandPosition(entity, true);
-                if (rightPos != null) {
-                    return rightPos;
-                }
-                // Fallback
-                return calculateFallbackHandPosition(entity, bodyYawRad, true);
+                return calculateHandPosition(entity, true, scale);
 
             case LEFT_HAND:
-                Vec3 leftPos = getAnimatedHandPosition(entity, false);
-                if (leftPos != null) {
-                    return leftPos;
-                }
-                // Fallback
-                return calculateFallbackHandPosition(entity, bodyYawRad, false);
+                return calculateHandPosition(entity, false, scale);
 
             case ABOVE_HEAD:
-                y += eyeHeight * ABOVE_HEAD_HEIGHT_MULT;
+                y += height * ABOVE_HEAD_HEIGHT;
                 break;
 
             case CHEST:
-                y += eyeHeight * CHEST_HEIGHT_MULT;
+                y += height * CHEST_HEIGHT;
                 break;
         }
 
@@ -112,17 +95,51 @@ public class AnchorPointHelper {
     }
 
     /**
-     * Calculate hand position using NPC animation data.
-     * Uses the same transformation logic as the renderer.
+     * Get model scale factor for an entity.
+     * NPCs have configurable model size, players use default scale.
      */
-    private static Vec3 getAnimatedHandPosition(EntityLivingBase entity, boolean rightArm) {
-        if (!(entity instanceof EntityNPCInterface)) {
-            return null;
+    private static float getModelScale(EntityLivingBase entity) {
+        if (entity instanceof EntityNPCInterface) {
+            int modelSize = ((EntityNPCInterface) entity).display.modelSize;
+            return modelSize / 5f;  // modelSize 5 = 100% scale
+        }
+        return 1f;
+    }
+
+    // Default arm scale (no scaling)
+    private static final ModelScalePart DEFAULT_ARM_SCALE = new ModelScalePart();
+
+    /**
+     * Get arm scale for an entity.
+     * EntityCustomNpc has per-part scaling, others use default (1,1,1).
+     */
+    private static ModelScalePart getArmScale(EntityLivingBase entity) {
+        if (entity instanceof EntityCustomNpc) {
+            return ((EntityCustomNpc) entity).modelData.modelScale.arms;
+        }
+        return DEFAULT_ARM_SCALE;
+    }
+
+    /**
+     * Calculate hand position using animation data if available.
+     */
+    private static Vec3 calculateHandPosition(EntityLivingBase entity, boolean rightHand, float scale) {
+        // Try to get animated position first
+        Vec3 animatedPos = getAnimatedHandPosition(entity, rightHand, scale);
+        if (animatedPos != null) {
+            return animatedPos;
         }
 
-        EntityNPCInterface npc = (EntityNPCInterface) entity;
-        AnimationData animData = npc.display.animationData;
+        // Fallback to static position
+        return calculateFallbackHandPosition(entity, rightHand, scale);
+    }
 
+    /**
+     * Calculate hand position from animation data.
+     * Works for both NPCs and Players.
+     */
+    private static Vec3 getAnimatedHandPosition(EntityLivingBase entity, boolean rightHand, float scale) {
+        AnimationData animData = AnimationData.getData(entity);
         if (animData == null || !animData.isActive() || animData.animation == null) {
             return null;
         }
@@ -132,146 +149,172 @@ public class AnchorPointHelper {
             return null;
         }
 
-        EnumAnimationPart armPart = rightArm ? EnumAnimationPart.RIGHT_ARM : EnumAnimationPart.LEFT_ARM;
-        if (!frame.frameParts.containsKey(armPart)) {
-            return null;
-        }
-
+        EnumAnimationPart armPart = rightHand ? EnumAnimationPart.RIGHT_ARM : EnumAnimationPart.LEFT_ARM;
         FramePart part = frame.frameParts.get(armPart);
         if (part == null) {
             return null;
         }
 
-        // Ensure interpolation is up to date
-        part.interpolateOffset();
-        part.interpolateAngles();
+        // Get arm scale for EntityCustomNpc
+        ModelScalePart armScale = getArmScale(entity);
 
-        // === STEP 1: Get shoulder position in model space ===
-        float shoulderX = rightArm ? SHOULDER_X_RIGHT : SHOULDER_X_LEFT;
+        // Get rotation and pivot values
+        float[] rotations = getRotations(part, entity);
+        float[] pivots = getPivots(part, entity);
+
+        // Shoulder position in model space
+        float shoulderX = rightHand ? -SHOULDER_X_OFFSET : SHOULDER_X_OFFSET;
         float shoulderY = SHOULDER_Y;
-        float shoulderZ = SHOULDER_Z;
+        float shoulderZ = 0f;
 
-        // Add animation pivot offsets
-        if (part.prevPivots != null) {
-            shoulderX += part.prevPivots[0];
-            shoulderY += part.prevPivots[1];
-            shoulderZ += part.prevPivots[2];
-        }
+        // Add pivot offsets
+        shoulderX += pivots[0];
+        shoulderY += pivots[1];
+        shoulderZ += pivots[2];
 
-        // === STEP 2: Get hand offset in arm's local space ===
-        float handX = rightArm ? HAND_OFFSET_X_RIGHT : HAND_OFFSET_X_LEFT;
-        float handY = HAND_OFFSET_Y;
-        float handZ = HAND_OFFSET_Z;
+        // Palm offset in arm's local space (before rotation)
+        // Apply arm scaling to the palm position
+        float palmX = (rightHand ? -PALM_INWARD : PALM_INWARD) * armScale.scaleX;
+        float palmY = PALM_DOWN * armScale.scaleY;
+        float palmZ = PALM_FORWARD * armScale.scaleZ;
 
-        // === STEP 3: Apply arm rotations to hand offset (Z → Y → X order) ===
-        // Rotations are in radians (already converted by interpolateAngles)
-        float rotX = part.prevRotations != null ? part.prevRotations[0] : 0;
-        float rotY = part.prevRotations != null ? part.prevRotations[1] : 0;
-        float rotZ = part.prevRotations != null ? part.prevRotations[2] : 0;
+        // Apply arm rotations (order: Z -> Y -> X)
+        double hx = palmX, hy = palmY, hz = palmZ;
 
-        // Start with hand offset
-        double hx = handX;
-        double hy = handY;
-        double hz = handZ;
-
-        // Apply Z rotation first
-        double cosZ = Math.cos(rotZ);
-        double sinZ = Math.sin(rotZ);
+        // Z rotation
+        double cosZ = Math.cos(rotations[2]);
+        double sinZ = Math.sin(rotations[2]);
         double newX = hx * cosZ - hy * sinZ;
         double newY = hx * sinZ + hy * cosZ;
         hx = newX;
         hy = newY;
 
-        // Apply Y rotation
-        double cosY = Math.cos(rotY);
-        double sinY = Math.sin(rotY);
+        // Y rotation
+        double cosY = Math.cos(rotations[1]);
+        double sinY = Math.sin(rotations[1]);
         newX = hx * cosY + hz * sinY;
         double newZ = -hx * sinY + hz * cosY;
         hx = newX;
         hz = newZ;
 
-        // Apply X rotation
-        double cosX = Math.cos(rotX);
-        double sinX = Math.sin(rotX);
+        // X rotation
+        double cosX = Math.cos(rotations[0]);
+        double sinX = Math.sin(rotations[0]);
         newY = hy * cosX - hz * sinX;
         newZ = hy * sinX + hz * cosX;
         hy = newY;
         hz = newZ;
 
-        // === STEP 4: Combine shoulder + rotated hand offset (in model units) ===
+        // Combine shoulder + rotated hand offset
         double modelX = shoulderX + hx;
         double modelY = shoulderY + hy;
         double modelZ = shoulderZ + hz;
 
-        // === STEP 5: Convert to blocks ===
-        double blockX = modelX * MODEL_SCALE;
-        double blockY = modelY * MODEL_SCALE;
-        double blockZ = modelZ * MODEL_SCALE;
+        // Convert to blocks and apply model scale
+        double blockX = modelX * MODEL_SCALE * scale;
+        double blockY = modelY * MODEL_SCALE * scale;
+        double blockZ = modelZ * MODEL_SCALE * scale;
 
-        // === STEP 6: Apply body yaw rotation ===
-        // In model space: +X = left, -X = right, +Z = back, -Z = front
-        // Need to rotate to align with entity's facing direction
+        // Apply body yaw rotation
         float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
         double cosYaw = Math.cos(bodyYaw);
         double sinYaw = Math.sin(bodyYaw);
 
-        // Rotate around Y axis (body rotation)
         double worldOffsetX = blockX * cosYaw + blockZ * sinYaw;
         double worldOffsetZ = -blockX * sinYaw + blockZ * cosYaw;
 
-        // === STEP 7: Final world position ===
+        // Calculate shoulder height based on entity and scale
+        float shoulderHeight = entity.height * ARM_HEIGHT;
+
+        // Final world position
         double worldX = entity.posX + worldOffsetX;
-        double worldY = entity.posY + SHOULDER_HEIGHT_BLOCKS - blockY;  // Subtract because +Y in model is down
+        double worldY = entity.posY + shoulderHeight - blockY;
         double worldZ = entity.posZ + worldOffsetZ;
 
         return Vec3.createVectorHelper(worldX, worldY, worldZ);
     }
 
     /**
+     * Get rotation values from FramePart.
+     * Uses interpolated values on client, raw values on server.
+     */
+    private static float[] getRotations(FramePart part, EntityLivingBase entity) {
+        if (entity.worldObj.isRemote) {
+            // Client side - use interpolated values (already in radians)
+            part.interpolateAngles();
+            return part.prevRotations;
+        } else {
+            // Server side - convert raw degrees to radians
+            float pi = (float) Math.PI / 180f;
+            return new float[]{
+                part.rotation[0] * pi,
+                part.rotation[1] * pi,
+                part.rotation[2] * pi
+            };
+        }
+    }
+
+    /**
+     * Get pivot values from FramePart.
+     * Uses interpolated values on client, raw values on server.
+     */
+    private static float[] getPivots(FramePart part, EntityLivingBase entity) {
+        if (entity.worldObj.isRemote) {
+            // Client side - use interpolated values
+            part.interpolateOffset();
+            return part.prevPivots;
+        } else {
+            // Server side - use raw values
+            return part.pivot;
+        }
+    }
+
+    /**
      * Calculate fallback hand position when no animation is active.
      */
-    private static Vec3 calculateFallbackHandPosition(EntityLivingBase entity, float bodyYawRad, boolean rightHand) {
-        double x = entity.posX;
-        double y = entity.posY;
-        double z = entity.posZ;
-        float eyeHeight = entity.getEyeHeight();
+    private static Vec3 calculateFallbackHandPosition(EntityLivingBase entity, boolean rightHand, float scale) {
+        float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
+
+        // Get arm scale for EntityCustomNpc
+        ModelScalePart armScale = getArmScale(entity);
 
         // Perpendicular direction for lateral offset
-        float perpYaw = bodyYawRad + (float) (rightHand ? Math.PI / 2 : -Math.PI / 2);
+        float perpYaw = bodyYaw + (rightHand ? (float) (Math.PI / 2) : (float) (-Math.PI / 2));
 
-        // Lateral offset (perpendicular to body facing)
-        double lateralX = -Math.sin(perpYaw) * ARM_LATERAL_OFFSET;
-        double lateralZ = Math.cos(perpYaw) * ARM_LATERAL_OFFSET;
+        // Calculate offsets scaled by model size and arm scale
+        double lateralX = -Math.sin(perpYaw) * FALLBACK_LATERAL * scale * armScale.scaleX;
+        double lateralZ = Math.cos(perpYaw) * FALLBACK_LATERAL * scale * armScale.scaleX;
+        double forwardX = -Math.sin(bodyYaw) * FALLBACK_FORWARD * scale * armScale.scaleZ;
+        double forwardZ = Math.cos(bodyYaw) * FALLBACK_FORWARD * scale * armScale.scaleZ;
 
-        // Forward offset (in facing direction)
-        double forwardX = -Math.sin(bodyYawRad) * ARM_FORWARD_OFFSET;
-        double forwardZ = Math.cos(bodyYawRad) * ARM_FORWARD_OFFSET;
+        // Arm length affects vertical position
+        double armLengthOffset = (1 - armScale.scaleY) * 0.3;
 
-        x += lateralX + forwardX;
-        y += eyeHeight * ARM_HEIGHT_MULT;
-        z += lateralZ + forwardZ;
+        double x = entity.posX + lateralX + forwardX;
+        double y = entity.posY + entity.height * ARM_HEIGHT - armLengthOffset;
+        double z = entity.posZ + lateralZ + forwardZ;
 
         return Vec3.createVectorHelper(x, y, z);
     }
 
     /**
-     * Get the height multiplier for a given anchor point.
+     * Get default height multiplier for an anchor point.
      */
     public static float getHeightMultiplier(AnchorPoint anchor) {
         switch (anchor) {
             case FRONT:
-                return FRONT_HEIGHT_MULT;
+                return FRONT_HEIGHT;
             case CENTER:
-                return CENTER_HEIGHT_MULT;
+                return CENTER_HEIGHT;
             case RIGHT_HAND:
             case LEFT_HAND:
-                return ARM_HEIGHT_MULT;
+                return ARM_HEIGHT;
             case ABOVE_HEAD:
-                return ABOVE_HEAD_HEIGHT_MULT;
+                return ABOVE_HEAD_HEIGHT;
             case CHEST:
-                return CHEST_HEIGHT_MULT;
+                return CHEST_HEIGHT;
             default:
-                return FRONT_HEIGHT_MULT;
+                return FRONT_HEIGHT;
         }
     }
 }

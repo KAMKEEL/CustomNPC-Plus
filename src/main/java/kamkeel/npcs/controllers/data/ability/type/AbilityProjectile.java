@@ -38,10 +38,8 @@ public class AbilityProjectile extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.minRange = 5.0f;
         this.maxRange = 20.0f;
-        this.cooldownTicks = 60;
+        this.cooldownTicks = 0;
         this.windUpTicks = 15;
-        this.activeTicks = 5;
-        this.recoveryTicks = 10;
         // No telegraph for projectile - it's a ranged attack
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
@@ -122,6 +120,9 @@ public class AbilityProjectile extends Ability {
 
         // Spawn projectile particles (visual trail)
         spawnProjectileParticles(world, npc, target);
+
+        // Projectile is instant
+        signalCompletion();
     }
 
     private void spawnProjectileParticles(World world, EntityNPCInterface npc, EntityLivingBase target) {

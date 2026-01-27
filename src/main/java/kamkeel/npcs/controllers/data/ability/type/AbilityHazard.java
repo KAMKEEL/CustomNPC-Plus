@@ -42,6 +42,7 @@ public class AbilityHazard extends Ability {
         FOLLOW_TARGET
     }
 
+    private int durationTicks = 100;
     private float radius = 4.0f;
     private float innerRadius = 0.0f;
     private float coneAngle = 45.0f;
@@ -81,10 +82,8 @@ public class AbilityHazard extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 200;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 100;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
     }
 
@@ -232,6 +231,12 @@ public class AbilityHazard extends Ability {
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
+        // Check if hazard duration has ended
+        if (tick >= durationTicks) {
+            signalCompletion();
+            return;
+        }
+
         damagedThisTick.clear();
         ticksSinceDamage++;
 
@@ -342,6 +347,7 @@ public class AbilityHazard extends Ability {
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("durationTicks", durationTicks);
         nbt.setFloat("radius", radius);
         nbt.setFloat("innerRadius", innerRadius);
         nbt.setFloat("coneAngle", coneAngle);
@@ -366,6 +372,7 @@ public class AbilityHazard extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
+        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 100;
         this.radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 4.0f;
         this.innerRadius = nbt.hasKey("innerRadius") ? nbt.getFloat("innerRadius") : 0.0f;
         this.coneAngle = nbt.hasKey("coneAngle") ? nbt.getFloat("coneAngle") : 45.0f;
@@ -404,6 +411,14 @@ public class AbilityHazard extends Ability {
     }
 
     // Getters & Setters
+    public int getDurationTicks() {
+        return durationTicks;
+    }
+
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = Math.max(1, durationTicks);
+    }
+
     public float getRadius() {
         return radius;
     }

@@ -68,8 +68,15 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 5: Effects button
-        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
+        // Row 5: Spin Duration (only for SPIN mode) + Effects button
+        if (cutter.getSweepMode() == AbilityCutter.SweepMode.SPIN) {
+            addLabel(new GuiNpcLabel(108, "ability.duration", labelX, y + 5));
+            GuiNpcTextField durationField = createIntField(108, fieldX, y, 50, cutter.getSpinDurationTicks());
+            durationField.setMinMaxDefault(1, 1000, 60);
+            addTextField(durationField);
+        }
+
+        addButton(new GuiNpcButton(150, col2LabelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -78,6 +85,7 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         switch (id) {
             case 106:
                 cutter.setSweepMode(AbilityCutter.SweepMode.values()[value]);
+                initGui(); // Refresh to show/hide duration field
                 break;
             case 107:
                 cutter.setPiercing(value == 1);
@@ -120,6 +128,9 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
                 break;
             case 105:
                 cutter.setSweepSpeed(parseFloat(field, cutter.getSweepSpeed()));
+                break;
+            case 108:
+                cutter.setSpinDurationTicks(field.getInteger());
                 break;
         }
     }

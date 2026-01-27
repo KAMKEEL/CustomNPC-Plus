@@ -69,7 +69,7 @@ public class AbilityOrb extends Ability {
     private AnchorPoint anchorPoint = AnchorPoint.FRONT;
 
     // Transient state for orb entity (used during windup charging)
-    private transient int orbEntityId = -1;
+    private transient EntityAbilityOrb orbEntity = null;
 
     public AbilityOrb() {
         this.typeId = "ability.cnpc.orb";
@@ -77,10 +77,8 @@ public class AbilityOrb extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 25.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 1; // Minimal - just spawn and done
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
     }
@@ -108,17 +106,19 @@ public class AbilityOrb extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
-
-        // Find and start moving the orb that was spawned during windup
-        if (orbEntityId != -1) {
-            Entity entity = world.getEntityByID(orbEntityId);
-            if (entity instanceof EntityAbilityOrb) {
-                EntityAbilityOrb orb = (EntityAbilityOrb) entity;
-                orb.startMoving(target);
-            }
-            orbEntityId = -1;
+        if (world.isRemote) {
+            signalCompletion();
+            return;
         }
+
+        // Start moving the orb that was spawned during windup
+        if (orbEntity != null && !orbEntity.isDead) {
+            orbEntity.startMoving(target);
+        }
+        orbEntity = null;
+
+        // Orb entity manages itself - ability is done
+        signalCompletion();
     }
 
     @Override
@@ -128,7 +128,7 @@ public class AbilityOrb extends Ability {
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
             // Create orb in charging mode - follows NPC based on anchor point during windup
-            EntityAbilityOrb orb = EntityAbilityOrb.createCharging(
+            orbEntity = EntityAbilityOrb.createCharging(
                 world, npc, target,
                 orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
                 damage, knockback, knockbackUp,
@@ -141,8 +141,7 @@ public class AbilityOrb extends Ability {
                 windUpTicks   // Charge duration = windup duration
             );
 
-            world.spawnEntityInWorld(orb);
-            orbEntityId = orb.getEntityId();
+            world.spawnEntityInWorld(orbEntity);
         }
     }
 
@@ -157,15 +156,12 @@ public class AbilityOrb extends Ability {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        // Despawn charging orb if interrupted during windup
-        if (orbEntityId != -1) {
-            Entity entity = npc.worldObj.getEntityByID(orbEntityId);
-            if (entity != null) {
-                entity.setDead();
-            }
-            orbEntityId = -1;
+    public void cleanup() {
+        // Despawn orb entity if still alive
+        if (orbEntity != null && !orbEntity.isDead) {
+            orbEntity.setDead();
         }
+        orbEntity = null;
     }
 
     @Override

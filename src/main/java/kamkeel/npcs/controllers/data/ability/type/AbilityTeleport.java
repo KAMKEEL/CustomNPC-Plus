@@ -59,10 +59,8 @@ public class AbilityTeleport extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 10;
-        this.activeTicks = 40;
-        this.recoveryTicks = 10;
         // No telegraph for teleport - it's instant repositioning
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
@@ -101,7 +99,10 @@ public class AbilityTeleport extends Ability {
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
-        if (currentBlink >= blinkLimit) return;
+        if (currentBlink >= blinkLimit) {
+            signalCompletion();
+            return;
+        }
 
         ticksSinceLastBlink++;
 
@@ -109,6 +110,11 @@ public class AbilityTeleport extends Ability {
             performBlink(npc, target, world);
             currentBlink++;
             ticksSinceLastBlink = 0;
+
+            // Check if this was the last blink
+            if (currentBlink >= blinkLimit) {
+                signalCompletion();
+            }
         }
     }
 
