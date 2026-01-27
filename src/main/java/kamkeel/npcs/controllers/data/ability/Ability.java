@@ -47,6 +47,7 @@ public abstract class Ability implements IAbility {
     // Timing (ticks)
     protected int cooldownTicks = 100;
     protected int windUpTicks = 20;
+    protected int dazedTicks = 0;
     protected int activeTicks = 10;
     protected int recoveryTicks = 20;
 
@@ -588,6 +589,7 @@ public abstract class Ability implements IAbility {
         nbt.setFloat("maxRange", maxRange);
         nbt.setInteger("cooldown", cooldownTicks);
         nbt.setInteger("windUp", windUpTicks);
+        nbt.setInteger("dazed", dazedTicks);
         nbt.setInteger("active", activeTicks);
         nbt.setInteger("recovery", recoveryTicks);
         nbt.setBoolean("interruptible", interruptible);
@@ -627,6 +629,7 @@ public abstract class Ability implements IAbility {
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
+        dazedTicks = nbt.hasKey("dazed") ? nbt.getInteger("dazed") : 0;
         activeTicks = nbt.getInteger("active");
         recoveryTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
@@ -761,6 +764,16 @@ public abstract class Ability implements IAbility {
 
     public void setWindUpTicks(int windUpTicks) {
         this.windUpTicks = windUpTicks;
+    }
+
+    @Override
+    public int getDazedTicks() {
+        return dazedTicks;
+    }
+
+    @Override
+    public void setDazedTicks(int ticks) {
+        this.dazedTicks = ticks;
     }
 
     public int getActiveTicks() {

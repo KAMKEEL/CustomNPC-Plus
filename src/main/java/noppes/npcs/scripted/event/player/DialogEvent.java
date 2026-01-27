@@ -8,14 +8,30 @@ import noppes.npcs.constants.EnumScriptType;
 
 public class DialogEvent extends PlayerEvent implements IDialogEvent {
     public final IDialog dialog;
+    private final int optionId;
 
     public DialogEvent(IPlayer player, IDialog dialog) {
+        this(player, dialog, -1);
+    }
+
+    public DialogEvent(IPlayer player, IDialog dialog, int optionId) {
         super(player);
         this.dialog = dialog;
+        this.optionId = optionId;
     }
 
     public IDialog getDialog() {
         return dialog;
+    }
+
+    @Override
+    public int getDialogId() {
+        return dialog != null ? dialog.getId() : -1;
+    }
+
+    @Override
+    public int getOptionId() {
+        return optionId;
     }
 
     public String getHookName() {
@@ -37,6 +53,10 @@ public class DialogEvent extends PlayerEvent implements IDialogEvent {
     public static class DialogOption extends DialogEvent implements IDialogEvent.DialogOption {
         public DialogOption(IPlayer player, IDialog dialog) {
             super(player, dialog);
+        }
+
+        public DialogOption(IPlayer player, IDialog dialog, int optionId) {
+            super(player, dialog, optionId);
         }
 
         public String getHookName() {

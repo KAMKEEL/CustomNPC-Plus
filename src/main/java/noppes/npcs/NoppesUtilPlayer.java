@@ -306,7 +306,7 @@ public class NoppesUtilPlayer {
         if (dialog == null)
             return;
         DialogOption option = dialog.options.get(optionId);
-        if (EventHooks.onDialogOption(player, new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
+        if (EventHooks.onDialogOption(player, new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog, optionId)))
             return;
 
         if (!npc.isRemote()) {
