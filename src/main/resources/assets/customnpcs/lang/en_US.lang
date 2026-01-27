@@ -1783,6 +1783,22 @@ condition.percent=Threshold
 condition.hits=Required Hits
 condition.within=Within (ticks)
 
+# Condition Hover Tooltips
+condition.hover.type=Condition type that must be met for ability to activate
+condition.hover.hpAbove=Activates when NPC health is above this percentage
+condition.hover.hpBelow=Activates when NPC health is below this percentage
+condition.hover.targetHpAbove=Activates when target's health is above this percentage
+condition.hover.targetHpBelow=Activates when target's health is below this percentage
+condition.hover.hitCount=Activates after receiving X hits within the time window
+condition.hover.hits=Number of hits required to trigger condition
+condition.hover.within=Time window in ticks (20 ticks = 1 second)
+condition.hover.threshold=Health percentage threshold (1-99%)
+
+# Effect Hover Tooltips
+effect.hover.type=Potion effect type to apply to targets
+effect.hover.duration=Effect duration in ticks (20 ticks = 1 second)
+effect.hover.amplifier=Effect strength level (higher = stronger)
+
 # =========================================
 # Auction House
 # =========================================

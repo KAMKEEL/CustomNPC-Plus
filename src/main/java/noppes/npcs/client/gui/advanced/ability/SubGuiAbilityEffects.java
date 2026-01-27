@@ -74,13 +74,16 @@ public class SubGuiAbilityEffects extends SubGuiInterface implements ITextfieldL
 
             // Type selector button
             int typeIndex = effect.getType().ordinal();
-            addButton(new GuiNpcButton(baseId, guiLeft + 8, y, 100, 20, EFFECT_TYPE_NAMES, typeIndex));
+            GuiNpcButton typeBtn = new GuiNpcButton(baseId, guiLeft + 8, y, 100, 20, EFFECT_TYPE_NAMES, typeIndex);
+            typeBtn.setHoverText("effect.hover.type");
+            addButton(typeBtn);
 
             // Duration text field
             GuiNpcTextField durField = new GuiNpcTextField(baseId + 1, this, fontRendererObj,
                 guiLeft + 112, y, 50, 20, String.valueOf(effect.getDurationTicks()));
             durField.setIntegersOnly();
             durField.setMinMaxDefault(1, 12000, 60);
+            durField.setHoverText("effect.hover.duration");
             addTextField(durField);
 
             // Amplifier selector (0-10)
@@ -88,7 +91,9 @@ public class SubGuiAbilityEffects extends SubGuiInterface implements ITextfieldL
             for (int a = 0; a <= 10; a++) {
                 ampValues[a] = String.valueOf(a);
             }
-            addButton(new GuiNpcButton(baseId + 2, guiLeft + 168, y, 40, 20, ampValues, effect.getAmplifier()));
+            GuiNpcButton ampBtn = new GuiNpcButton(baseId + 2, guiLeft + 168, y, 40, 20, ampValues, effect.getAmplifier());
+            ampBtn.setHoverText("effect.hover.amplifier");
+            addButton(ampBtn);
 
             // Delete button
             addButton(new GuiNpcButton(baseId + 3, guiLeft + 215, y, 20, 20, "X"));
