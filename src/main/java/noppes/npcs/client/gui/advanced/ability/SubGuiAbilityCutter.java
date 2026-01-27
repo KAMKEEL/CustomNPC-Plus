@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Cutter ability type-specific settings.
@@ -64,18 +68,8 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 5: Stun Duration + Poison Time
-        addLabel(new GuiNpcLabel(108, "ability.stunDuration", labelX, y + 5));
-        addTextField(createIntField(108, fieldX, y, 50, cutter.getStunDuration()));
-
-        addLabel(new GuiNpcLabel(109, "ability.poisonTime", col2LabelX, y + 5));
-        addTextField(createIntField(109, col2FieldX, y, 50, cutter.getPoisonDurationSeconds()));
-
-        y += 24;
-
-        // Row 6: Poison Level
-        addLabel(new GuiNpcLabel(110, "ability.poisonLvl", labelX, y + 5));
-        addTextField(createIntField(110, fieldX, y, 50, cutter.getPoisonLevel()));
+        // Row 5: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -88,6 +82,21 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
             case 107:
                 cutter.setPiercing(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(cutter.getEffects()));
+                break;
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                cutter.setEffects(result);
+            }
         }
     }
 
@@ -111,15 +120,6 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
                 break;
             case 105:
                 cutter.setSweepSpeed(parseFloat(field, cutter.getSweepSpeed()));
-                break;
-            case 108:
-                cutter.setStunDuration(field.getInteger());
-                break;
-            case 109:
-                cutter.setPoisonDurationSeconds(field.getInteger());
-                break;
-            case 110:
-                cutter.setPoisonLevel(field.getInteger());
                 break;
         }
     }

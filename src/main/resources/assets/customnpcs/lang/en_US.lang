@@ -1575,17 +1575,11 @@ ability.minDist=Min Dist
 ability.distance=Distance
 ability.lifetime=Lifetime
 ability.stunTicks=Stun
-ability.stunDur=Stun Dur
-ability.rootDur=Root Dur
-ability.rootDuration=Root Duration
-ability.stunDuration=Stun Duration
 ability.leapHeight=Leap Height
 ability.hitWidth=Hit Width
-ability.potionTime=Potion Time (s)
-ability.weaknessLvl=Weakness Lvl
-ability.poisonTime=Poison Time (s)
-ability.slownessLvl=Slowness Lvl
-ability.poisonLvl=Poison Lvl
+ability.effects=Effects
+gui.duration=Duration
+gui.amp=Amp
 
 # Slam Settings
 ability.leapSpeed=Leap Speed

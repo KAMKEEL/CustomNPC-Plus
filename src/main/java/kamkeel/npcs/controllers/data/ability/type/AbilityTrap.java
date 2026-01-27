@@ -8,8 +8,6 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -45,12 +43,6 @@ public class AbilityTrap extends Ability {
     private float damage = 6.0f;
     private float damageRadius = 0.0f;
     private float knockback = 0.5f;
-    private int stunDuration = 0;
-    private int rootDuration = 40;
-    private int slowDuration = 0;
-    private int slowLevel = 1;
-    private int poisonDuration = 0;
-    private int poisonLevel = 0;
     private boolean visible = true;
 
     // Offset parameters - trap spawns near target, not exactly on them
@@ -262,24 +254,9 @@ public class AbilityTrap extends Ability {
             // Apply damage with scripted event support
             boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback);
 
-            // Only apply effects if the hit wasn't cancelled
+            // Apply effects if the hit wasn't cancelled
             if (wasHit) {
-                if (stunDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                    entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
-                }
-
-                if (rootDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, rootDuration, 127));
-                }
-
-                if (slowDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, slowDuration, slowLevel));
-                }
-
-                if (poisonDuration > 0 && poisonLevel >= 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.poison.id, poisonDuration, poisonLevel));
-                }
+                applyEffects(entity);
             }
         }
     }
@@ -309,12 +286,6 @@ public class AbilityTrap extends Ability {
         nbt.setFloat("damage", damage);
         nbt.setFloat("damageRadius", damageRadius);
         nbt.setFloat("knockback", knockback);
-        nbt.setInteger("stunDuration", stunDuration);
-        nbt.setInteger("rootDuration", rootDuration);
-        nbt.setInteger("slowDuration", slowDuration);
-        nbt.setInteger("slowLevel", slowLevel);
-        nbt.setInteger("poisonDuration", poisonDuration);
-        nbt.setInteger("poisonLevel", poisonLevel);
         nbt.setBoolean("visible", visible);
         nbt.setFloat("minOffset", minOffset);
         nbt.setFloat("maxOffset", maxOffset);
@@ -336,12 +307,6 @@ public class AbilityTrap extends Ability {
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 6.0f;
         this.damageRadius = nbt.hasKey("damageRadius") ? nbt.getFloat("damageRadius") : 0.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
-        this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
-        this.rootDuration = nbt.hasKey("rootDuration") ? nbt.getInteger("rootDuration") : 40;
-        this.slowDuration = nbt.hasKey("slowDuration") ? nbt.getInteger("slowDuration") : 0;
-        this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 1;
-        this.poisonDuration = nbt.hasKey("poisonDuration") ? nbt.getInteger("poisonDuration") : 0;
-        this.poisonLevel = nbt.hasKey("poisonLevel") ? nbt.getInteger("poisonLevel") : 0;
         this.visible = !nbt.hasKey("visible") || nbt.getBoolean("visible");
         this.minOffset = nbt.hasKey("minOffset") ? nbt.getFloat("minOffset") : 0.0f;
         this.maxOffset = nbt.hasKey("maxOffset") ? nbt.getFloat("maxOffset") : 1.5f;
@@ -419,54 +384,6 @@ public class AbilityTrap extends Ability {
 
     public void setKnockback(float knockback) {
         this.knockback = knockback;
-    }
-
-    public int getStunDuration() {
-        return stunDuration;
-    }
-
-    public void setStunDuration(int stunDuration) {
-        this.stunDuration = stunDuration;
-    }
-
-    public int getRootDuration() {
-        return rootDuration;
-    }
-
-    public void setRootDuration(int rootDuration) {
-        this.rootDuration = rootDuration;
-    }
-
-    public int getSlowDuration() {
-        return slowDuration;
-    }
-
-    public void setSlowDuration(int slowDuration) {
-        this.slowDuration = slowDuration;
-    }
-
-    public int getSlowLevel() {
-        return slowLevel;
-    }
-
-    public void setSlowLevel(int slowLevel) {
-        this.slowLevel = slowLevel;
-    }
-
-    public int getPoisonDuration() {
-        return poisonDuration;
-    }
-
-    public void setPoisonDuration(int poisonDuration) {
-        this.poisonDuration = poisonDuration;
-    }
-
-    public int getPoisonLevel() {
-        return poisonLevel;
-    }
-
-    public void setPoisonLevel(int poisonLevel) {
-        this.poisonLevel = poisonLevel;
     }
 
     public boolean isVisible() {

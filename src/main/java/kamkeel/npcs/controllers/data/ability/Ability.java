@@ -78,6 +78,9 @@ public abstract class Ability implements IAbility {
     // Custom data for external mods
     protected NBTTagCompound customData = new NBTTagCompound();
 
+    // Configurable potion effects
+    protected List<AbilityEffect> effects = new ArrayList<>();
+
     // ═══════════════════════════════════════════════════════════════════
     // EXECUTION STATE (not saved, reset each combat)
     // ═══════════════════════════════════════════════════════════════════
@@ -222,6 +225,21 @@ public abstract class Ability implements IAbility {
         double y = knockbackUp > 0 ? knockbackUp : 0.1D;
         hitEntity.addVelocity(x, y, z);
         hitEntity.velocityChanged = true;
+    }
+
+    /**
+     * Applies all configured effects to the given entity.
+     * Call this after damage is applied to the target.
+     *
+     * @param entity The entity to apply effects to
+     */
+    protected void applyEffects(EntityLivingBase entity) {
+        if (entity == null || effects.isEmpty()) {
+            return;
+        }
+        for (AbilityEffect effect : effects) {
+            effect.apply(entity);
+        }
     }
 
     public float getTelegraphRadius() {
@@ -662,6 +680,13 @@ public abstract class Ability implements IAbility {
         for (Condition c : conditions) condList.appendTag(c.writeNBT());
         nbt.setTag("conditions", condList);
 
+        // Effects
+        NBTTagList effectList = new NBTTagList();
+        for (AbilityEffect effect : effects) {
+            effectList.appendTag(effect.writeNBT());
+        }
+        nbt.setTag("effects", effectList);
+
         // Type-specific
         NBTTagCompound typeNBT = new NBTTagCompound();
         writeTypeNBT(typeNBT);
@@ -733,6 +758,18 @@ public abstract class Ability implements IAbility {
         for (int i = 0; i < condList.tagCount(); i++) {
             Condition c = Condition.fromNBT(condList.getCompoundTagAt(i));
             if (c != null) conditions.add(c);
+        }
+
+        // Effects
+        effects.clear();
+        if (nbt.hasKey("effects")) {
+            NBTTagList effectList = nbt.getTagList("effects", 10);
+            for (int i = 0; i < effectList.tagCount(); i++) {
+                AbilityEffect effect = AbilityEffect.fromNBT(effectList.getCompoundTagAt(i));
+                if (effect != null && effect.isValid()) {
+                    effects.add(effect);
+                }
+            }
         }
 
         readTypeNBT(nbt.getCompoundTag("typeData"));
@@ -807,7 +844,7 @@ public abstract class Ability implements IAbility {
     }
 
     public void setCooldownTicks(int cooldownTicks) {
-        this.cooldownTicks = cooldownTicks;
+        this.cooldownTicks = Math.max(0, cooldownTicks);
     }
 
     public int getWindUpTicks() {
@@ -815,7 +852,7 @@ public abstract class Ability implements IAbility {
     }
 
     public void setWindUpTicks(int windUpTicks) {
-        this.windUpTicks = windUpTicks;
+        this.windUpTicks = Math.max(0, windUpTicks);
     }
 
     public int getActiveTicks() {
@@ -823,7 +860,7 @@ public abstract class Ability implements IAbility {
     }
 
     public void setActiveTicks(int activeTicks) {
-        this.activeTicks = activeTicks;
+        this.activeTicks = Math.max(1, activeTicks);
     }
 
     public int getRecoveryTicks() {
@@ -831,7 +868,7 @@ public abstract class Ability implements IAbility {
     }
 
     public void setRecoveryTicks(int recoveryTicks) {
-        this.recoveryTicks = recoveryTicks;
+        this.recoveryTicks = Math.max(0, recoveryTicks);
     }
 
     public boolean isInterruptible() {
@@ -961,6 +998,24 @@ public abstract class Ability implements IAbility {
 
     public void addCondition(Condition c) {
         conditions.add(c);
+    }
+
+    public List<AbilityEffect> getEffects() {
+        return effects;
+    }
+
+    public void setEffects(List<AbilityEffect> effects) {
+        this.effects = effects != null ? effects : new ArrayList<>();
+    }
+
+    public void addEffect(AbilityEffect effect) {
+        if (effect != null && effect.isValid()) {
+            effects.add(effect);
+        }
+    }
+
+    public void clearEffects() {
+        effects.clear();
     }
 
     // ═══════════════════════════════════════════════════════════════════

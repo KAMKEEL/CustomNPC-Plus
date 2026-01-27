@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityTrap;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Trap ability type-specific settings.
@@ -55,24 +59,31 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 4: Root Duration + Stun Duration
-        addLabel(new GuiNpcLabel(106, "ability.rootDuration", labelX, y + 5));
-        addTextField(createIntField(106, fieldX, y, 50, trap.getRootDuration()));
-
-        addLabel(new GuiNpcLabel(107, "ability.stunDuration", col2LabelX, y + 5));
-        addTextField(createIntField(107, col2FieldX, y, 50, trap.getStunDuration()));
-
-        y += 24;
-
-        // Row 5: Knockback
+        // Row 4: Knockback + Effects button
         addLabel(new GuiNpcLabel(108, "ability.knockback", labelX, y + 5));
         addTextField(createFloatField(108, fieldX, y, 50, trap.getKnockback()));
+
+        addButton(new GuiNpcButton(150, col2LabelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
     protected void handleTypeButton(int id, GuiNpcButton button) {
         if (id == 100) {
             trap.setPlacement(AbilityTrap.TrapPlacement.values()[button.getValue()]);
+        } else if (id == 150) {
+            setSubGui(new SubGuiAbilityEffects(trap.getEffects()));
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                trap.setEffects(result);
+            }
         }
     }
 
@@ -93,12 +104,6 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
                 break;
             case 105:
                 trap.setMaxTriggers(field.getInteger());
-                break;
-            case 106:
-                trap.setRootDuration(field.getInteger());
-                break;
-            case 107:
-                trap.setStunDuration(field.getInteger());
                 break;
             case 108:
                 trap.setKnockback(parseFloat(field, trap.getKnockback()));

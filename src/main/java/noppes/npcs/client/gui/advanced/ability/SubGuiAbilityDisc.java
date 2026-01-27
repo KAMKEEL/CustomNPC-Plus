@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDisc;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -8,6 +9,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Disc ability type-specific settings.
@@ -86,6 +89,11 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(111, "ability.maxDist", col2LabelX, y + 5));
         addTextField(createFloatField(111, col2FieldX, y, 50, disc.getMaxDistance()));
+
+        y += 24;
+
+        // Row 7: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -163,6 +171,9 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
             case 108:
                 disc.setExplosive(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(disc.getEffects()));
+                break;
         }
     }
 
@@ -201,6 +212,12 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
             }
             editingVisualColorId = 0;
             initGui();
+        } else if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                disc.setEffects(result);
+            }
         } else {
             super.subGuiClosed(subgui);
         }

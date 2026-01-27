@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityLaserShot;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -8,6 +9,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Laser Shot ability type-specific settings.
@@ -77,6 +80,11 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(109, "ability.knockbackUp", col2LabelX, y + 5));
         addTextField(createFloatField(109, col2FieldX, y, 50, laser.getKnockbackUp()));
+
+        y += 24;
+
+        // Row 6: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -142,6 +150,9 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
             case 106:
                 laser.setExplosive(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(laser.getEffects()));
+                break;
         }
     }
 
@@ -180,6 +191,12 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
             }
             editingVisualColorId = 0;
             initGui();
+        } else if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                laser.setEffects(result);
+            }
         } else {
             super.subGuiClosed(subgui);
         }

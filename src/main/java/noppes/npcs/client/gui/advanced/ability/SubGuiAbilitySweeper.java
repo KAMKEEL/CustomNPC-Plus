@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilitySweeper;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -8,6 +9,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Sweeper ability type-specific settings.
@@ -75,6 +78,11 @@ public class SubGuiAbilitySweeper extends SubGuiAbilityConfig {
         // Row 5: Lock On Target
         addLabel(new GuiNpcLabel(108, "ability.lockTarget", labelX, y + 5));
         addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, sweeper.isLockOnTarget() ? 1 : 0));
+
+        y += 24;
+
+        // Row 6: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -121,6 +129,9 @@ public class SubGuiAbilitySweeper extends SubGuiAbilityConfig {
             case 108:
                 sweeper.setLockOnTarget(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(sweeper.getEffects()));
+                break;
         }
     }
 
@@ -155,6 +166,12 @@ public class SubGuiAbilitySweeper extends SubGuiAbilityConfig {
             }
             editingVisualColorId = 0;
             initGui();
+        } else if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                sweeper.setEffects(result);
+            }
         } else {
             super.subGuiClosed(subgui);
         }

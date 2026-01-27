@@ -261,8 +261,13 @@ public class AbilityTeleport extends Ability {
             int blockY = MathHelper.floor_double(checkY);
             int blockZ = MathHelper.floor_double(checkZ);
 
+            // Skip out-of-world coordinates
+            if (blockY < 0 || blockY >= 256) {
+                continue;
+            }
+
             Block block = world.getBlock(blockX, blockY, blockZ);
-            if (block.getMaterial().isSolid() && block.isOpaqueCube()) {
+            if (block != null && block.getMaterial().isSolid() && block.isOpaqueCube()) {
                 return false;
             }
         }
@@ -327,9 +332,19 @@ public class AbilityTeleport extends Ability {
     }
 
     private boolean isSafeLocation(World world, int x, int y, int z) {
+        // Bounds check - ensure we're within valid world coordinates
+        if (y < 1 || y >= 255) {
+            return false;
+        }
+
         Block groundBlock = world.getBlock(x, y - 1, z);
         Block feetBlock = world.getBlock(x, y, z);
         Block headBlock = world.getBlock(x, y + 1, z);
+
+        // Defensive null checks (shouldn't happen in MC 1.7.10, but safe)
+        if (groundBlock == null || feetBlock == null || headBlock == null) {
+            return false;
+        }
 
         return groundBlock.getMaterial().isSolid() &&
             !feetBlock.getMaterial().isSolid() &&

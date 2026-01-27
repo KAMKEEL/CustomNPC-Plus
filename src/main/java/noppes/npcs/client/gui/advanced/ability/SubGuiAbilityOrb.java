@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityOrb;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -8,6 +9,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Orb ability type-specific settings.
@@ -77,6 +80,11 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(109, "ability.lifetime", col2LabelX, y + 5));
         addTextField(createIntField(109, col2FieldX, y, 50, orb.getMaxLifetime()));
+
+        y += 24;
+
+        // Row 6: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -151,6 +159,9 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
             case 106:
                 orb.setExplosive(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(orb.getEffects()));
+                break;
         }
     }
 
@@ -189,6 +200,12 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
             }
             editingVisualColorId = 0;
             initGui();
+        } else if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                orb.setEffects(result);
+            }
         } else {
             super.subGuiClosed(subgui);
         }

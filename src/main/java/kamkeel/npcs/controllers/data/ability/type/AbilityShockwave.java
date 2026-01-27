@@ -7,8 +7,6 @@ import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -28,7 +26,6 @@ public class AbilityShockwave extends Ability {
     private float pushRadius = 8.0f;
     private float pushStrength = 1.5f;
     private float damage = 8.0f;
-    private int stunDuration = 0;
     private int maxTargets = 10;
 
     // Runtime state
@@ -122,10 +119,9 @@ public class AbilityShockwave extends Ability {
             // Apply damage with custom knockback direction
             boolean wasHit = applyAbilityDamageWithDirection(npc, entity, damage * distFactor, finalPush, dx, dz);
 
-            // Apply stun if hit connected
-            if (wasHit && stunDuration > 0) {
-                entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
+            // Apply effects if hit connected
+            if (wasHit) {
+                applyEffects(entity);
             }
         }
     }
@@ -145,7 +141,6 @@ public class AbilityShockwave extends Ability {
         nbt.setFloat("pushRadius", pushRadius);
         nbt.setFloat("pushStrength", pushStrength);
         nbt.setFloat("damage", damage);
-        nbt.setInteger("stunDuration", stunDuration);
         nbt.setInteger("maxTargets", maxTargets);
     }
 
@@ -154,7 +149,6 @@ public class AbilityShockwave extends Ability {
         this.pushRadius = nbt.hasKey("pushRadius") ? nbt.getFloat("pushRadius") : 8.0f;
         this.pushStrength = nbt.hasKey("pushStrength") ? nbt.getFloat("pushStrength") : 1.5f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
-        this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
         this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 10;
     }
 
@@ -181,14 +175,6 @@ public class AbilityShockwave extends Ability {
 
     public void setDamage(float damage) {
         this.damage = damage;
-    }
-
-    public int getStunDuration() {
-        return stunDuration;
-    }
-
-    public void setStunDuration(int stunDuration) {
-        this.stunDuration = stunDuration;
     }
 
     public int getMaxTargets() {

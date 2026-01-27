@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Guard ability type-specific settings.
@@ -68,6 +72,13 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
         GuiNpcTextField counterAnimField = createIntField(106, col2FieldX, y, 50, guard.getCounterAnimationId());
         counterAnimField.setEnabled(guard.isCanCounter());
         addTextField(counterAnimField);
+
+        y += 24;
+
+        // Row 5: Effects button (applies on counter)
+        GuiNpcButton effectsBtn = new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects");
+        effectsBtn.setEnabled(guard.isCanCounter());
+        addButton(effectsBtn);
     }
 
     @Override
@@ -80,6 +91,21 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
             case 102:
                 guard.setCounterType(AbilityGuard.CounterType.values()[button.getValue()]);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(guard.getEffects()));
+                break;
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                guard.setEffects(result);
+            }
         }
     }
 

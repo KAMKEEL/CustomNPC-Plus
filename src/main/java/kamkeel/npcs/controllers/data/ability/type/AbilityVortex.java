@@ -7,8 +7,6 @@ import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -32,8 +30,6 @@ public class AbilityVortex extends Ability {
     private float pullStrength = 0.8f;
     private float damage = 0.0f;
     private float knockback = 0.0f;
-    private int stunDuration = 0;
-    private int rootDuration = 0;
     private boolean aoe = false;
     private int maxTargets = 5;
     private boolean damageOnPull = false;
@@ -134,7 +130,7 @@ public class AbilityVortex extends Ability {
         ticksSincePullDamage++;
 
         for (UUID uuid : new HashSet<>(pulledEntities)) {
-            EntityLivingBase entity = findEntity(world, uuid);
+            EntityLivingBase entity = findEntity(npc, world, uuid);
             if (entity == null || entity.isDead) {
                 pulledEntities.remove(uuid);
                 continue;
@@ -187,25 +183,23 @@ public class AbilityVortex extends Ability {
 
         // Only apply effects if hit wasn't cancelled
         if (wasHit) {
-            if (stunDuration > 0) {
-                entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
-            }
-
-            if (rootDuration > 0) {
-                entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, rootDuration, 127));
-            }
+            applyEffects(entity);
         }
     }
 
+    /**
+     * Find an entity by UUID within the vortex pull area.
+     * Uses AABB search instead of iterating all loaded entities.
+     */
     @SuppressWarnings("unchecked")
-    private EntityLivingBase findEntity(World world, UUID uuid) {
-        for (Object obj : world.loadedEntityList) {
-            if (obj instanceof EntityLivingBase) {
-                EntityLivingBase entity = (EntityLivingBase) obj;
-                if (entity.getUniqueID().equals(uuid)) {
-                    return entity;
-                }
+    private EntityLivingBase findEntity(EntityNPCInterface npc, World world, UUID uuid) {
+        // Search within pull radius (entities being pulled should be within this area)
+        AxisAlignedBB searchBox = npc.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+        List<EntityLivingBase> nearbyEntities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
+
+        for (EntityLivingBase entity : nearbyEntities) {
+            if (entity.getUniqueID().equals(uuid)) {
+                return entity;
             }
         }
         return null;
@@ -231,8 +225,6 @@ public class AbilityVortex extends Ability {
         nbt.setFloat("pullStrength", pullStrength);
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
-        nbt.setInteger("stunDuration", stunDuration);
-        nbt.setInteger("rootDuration", rootDuration);
         nbt.setBoolean("aoe", aoe);
         nbt.setInteger("maxTargets", maxTargets);
         nbt.setBoolean("damageOnPull", damageOnPull);
@@ -245,8 +237,6 @@ public class AbilityVortex extends Ability {
         this.pullStrength = nbt.hasKey("pullStrength") ? nbt.getFloat("pullStrength") : 0.8f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 0.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.0f;
-        this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
-        this.rootDuration = nbt.hasKey("rootDuration") ? nbt.getInteger("rootDuration") : 0;
         this.aoe = nbt.hasKey("aoe") && nbt.getBoolean("aoe");
         this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 5;
         this.damageOnPull = nbt.hasKey("damageOnPull") && nbt.getBoolean("damageOnPull");
@@ -284,22 +274,6 @@ public class AbilityVortex extends Ability {
 
     public void setKnockback(float knockback) {
         this.knockback = knockback;
-    }
-
-    public int getStunDuration() {
-        return stunDuration;
-    }
-
-    public void setStunDuration(int stunDuration) {
-        this.stunDuration = stunDuration;
-    }
-
-    public int getRootDuration() {
-        return rootDuration;
-    }
-
-    public void setRootDuration(int rootDuration) {
-        this.rootDuration = rootDuration;
     }
 
     public boolean isAoe() {

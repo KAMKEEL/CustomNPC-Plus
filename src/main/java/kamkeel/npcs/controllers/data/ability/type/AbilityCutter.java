@@ -7,8 +7,6 @@ import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -41,9 +39,6 @@ public class AbilityCutter extends Ability {
     private SweepMode sweepMode = SweepMode.SWIPE;
     private float sweepSpeed = 6.0f;
 
-    private int stunDuration = 0;
-    private int poisonDurationSeconds = 0;
-    private int poisonLevel = 0;
     private boolean piercing = true;
     private float innerRadius = 0.0f;
 
@@ -161,15 +156,9 @@ public class AbilityCutter extends Ability {
             // Apply damage with scripted event support
             boolean wasHit = applyAbilityDamage(npc, entity, actualDamage, knockback);
 
-            // Only apply effects if hit wasn't cancelled
+            // Apply effects if hit wasn't cancelled
             if (wasHit) {
-                if (stunDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                    entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
-                }
-                if (poisonDurationSeconds > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.poison.id, poisonDurationSeconds * 20, poisonLevel));
-                }
+                applyEffects(entity);
             }
         }
     }
@@ -206,9 +195,6 @@ public class AbilityCutter extends Ability {
         nbt.setFloat("knockback", knockback);
         nbt.setString("sweepMode", sweepMode.name());
         nbt.setFloat("sweepSpeed", sweepSpeed);
-        nbt.setInteger("stunDuration", stunDuration);
-        nbt.setInteger("poisonDurationSeconds", poisonDurationSeconds);
-        nbt.setInteger("poisonLevel", poisonLevel);
         nbt.setBoolean("piercing", piercing);
         nbt.setFloat("innerRadius", innerRadius);
     }
@@ -225,9 +211,6 @@ public class AbilityCutter extends Ability {
             this.sweepMode = SweepMode.SWIPE;
         }
         this.sweepSpeed = nbt.hasKey("sweepSpeed") ? nbt.getFloat("sweepSpeed") : 6.0f;
-        this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
-        this.poisonDurationSeconds = nbt.hasKey("poisonDurationSeconds") ? nbt.getInteger("poisonDurationSeconds") : 0;
-        this.poisonLevel = nbt.hasKey("poisonLevel") ? nbt.getInteger("poisonLevel") : 0;
         this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");
         this.innerRadius = nbt.hasKey("innerRadius") ? nbt.getFloat("innerRadius") : 0.0f;
     }
@@ -279,30 +262,6 @@ public class AbilityCutter extends Ability {
 
     public void setSweepSpeed(float sweepSpeed) {
         this.sweepSpeed = sweepSpeed;
-    }
-
-    public int getStunDuration() {
-        return stunDuration;
-    }
-
-    public void setStunDuration(int stunDuration) {
-        this.stunDuration = stunDuration;
-    }
-
-    public int getPoisonDurationSeconds() {
-        return poisonDurationSeconds;
-    }
-
-    public void setPoisonDurationSeconds(int poisonDurationSeconds) {
-        this.poisonDurationSeconds = poisonDurationSeconds;
-    }
-
-    public int getPoisonLevel() {
-        return poisonLevel;
-    }
-
-    public void setPoisonLevel(int poisonLevel) {
-        this.poisonLevel = poisonLevel;
     }
 
     public boolean isPiercing() {

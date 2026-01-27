@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Hazard ability type-specific settings.
@@ -71,6 +75,11 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(109, "ability.affectsCaster", col2LabelX, y + 5));
         addButton(new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, hazard.isAffectsCaster() ? 1 : 0));
+
+        y += 24;
+
+        // Row 6: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -86,6 +95,21 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
             case 109:
                 hazard.setAffectsCaster(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(hazard.getEffects()));
+                break;
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                hazard.setEffects(result);
+            }
         }
     }
 
