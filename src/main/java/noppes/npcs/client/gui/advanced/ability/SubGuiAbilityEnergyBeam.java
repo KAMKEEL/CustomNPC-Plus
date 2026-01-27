@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.type.AbilityEnergyBeam;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -105,7 +106,13 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 180;
         int col2FieldX = guiLeft + 260;
 
-        // Row 1: Inner Color + Outer Color
+        // Row 1: Anchor Point
+        addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
+        addButton(new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), beam.getAnchorPoint().getId()));
+
+        y += 24;
+
+        // Row 2: Inner Color + Outer Color
         addLabel(new GuiNpcLabel(200, "ability.innerColor", labelX, y + 5));
         String innerHex = String.format("%06X", beam.getInnerColor() & 0xFFFFFF);
         GuiNpcButton innerColorBtn = new GuiNpcButton(200, fieldX, y, 55, 20, innerHex);
@@ -194,6 +201,9 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
             case 205:
                 beam.setLightningEffect(value == 1);
                 initGui();
+                break;
+            case 210:
+                beam.setAnchorPoint(AnchorPoint.fromId(value));
                 break;
         }
     }

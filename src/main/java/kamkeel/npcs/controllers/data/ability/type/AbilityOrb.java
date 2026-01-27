@@ -3,11 +3,13 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityOrb;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -63,6 +65,12 @@ public class AbilityOrb extends Ability {
     private float lightningRadius = 0.5f;    // Max distance lightning arcs - scales with orbSize
     private int lightningFadeTime = 6;       // Ticks before lightning fades out
 
+    // Anchor point for charging position
+    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+
+    // Transient state for orb entity (used during windup charging)
+    private transient int orbEntityId = -1;
+
     public AbilityOrb() {
         this.typeId = "ability.cnpc.orb";
         this.name = "Orb";
@@ -102,25 +110,40 @@ public class AbilityOrb extends Ability {
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
         if (world.isRemote) return;
 
-        // Spawn position at NPC's eye level
-        double spawnX = npc.posX;
-        double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
-        double spawnZ = npc.posZ;
+        // Find and start moving the orb that was spawned during windup
+        if (orbEntityId != -1) {
+            Entity entity = world.getEntityByID(orbEntityId);
+            if (entity instanceof EntityAbilityOrb) {
+                EntityAbilityOrb orb = (EntityAbilityOrb) entity;
+                orb.startMoving(target);
+            }
+            orbEntityId = -1;
+        }
+    }
 
-        // Create and spawn the self-managing orb entity
-        EntityAbilityOrb orb = new EntityAbilityOrb(
-            world, npc, target,
-            spawnX, spawnY, spawnZ,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
-            damage, knockback, knockbackUp,
-            orbSpeed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime
-        );
+    @Override
+    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        if (world.isRemote) return;
 
-        world.spawnEntityInWorld(orb);
+        // Spawn orb in charging mode on first tick of windup
+        if (tick == 1) {
+            // Create orb in charging mode - follows NPC based on anchor point during windup
+            EntityAbilityOrb orb = EntityAbilityOrb.createCharging(
+                world, npc, target,
+                orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                damage, knockback, knockbackUp,
+                orbSpeed, homing, homingStrength, homingRange,
+                explosive, explosionRadius, explosionDamageFalloff,
+                stunDuration, slowDuration, slowLevel,
+                maxDistance, maxLifetime,
+                lightningEffect, lightningDensity, lightningRadius, lightningFadeTime,
+                anchorPoint,  // Anchor point for charging position
+                windUpTicks   // Charge duration = windup duration
+            );
+
+            world.spawnEntityInWorld(orb);
+            orbEntityId = orb.getEntityId();
+        }
     }
 
     @Override
@@ -135,7 +158,14 @@ public class AbilityOrb extends Ability {
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        // Nothing to clean up - entity manages itself
+        // Despawn charging orb if interrupted during windup
+        if (orbEntityId != -1) {
+            Entity entity = npc.worldObj.getEntityByID(orbEntityId);
+            if (entity != null) {
+                entity.setDead();
+            }
+            orbEntityId = -1;
+        }
     }
 
     @Override
@@ -192,6 +222,7 @@ public class AbilityOrb extends Ability {
         nbt.setFloat("lightningDensity", lightningDensity);
         nbt.setFloat("lightningRadius", lightningRadius);
         nbt.setInteger("lightningFadeTime", lightningFadeTime);
+        nbt.setInteger("anchorPoint", anchorPoint.getId());
     }
 
     @Override
@@ -221,6 +252,7 @@ public class AbilityOrb extends Ability {
         this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
         this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
         this.lightningFadeTime = nbt.hasKey("lightningFadeTime") ? nbt.getInteger("lightningFadeTime") : 6;
+        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
     }
 
     // Getters & Setters
@@ -422,5 +454,13 @@ public class AbilityOrb extends Ability {
 
     public void setLightningFadeTime(int lightningFadeTime) {
         this.lightningFadeTime = lightningFadeTime;
+    }
+
+    public AnchorPoint getAnchorPoint() {
+        return anchorPoint;
+    }
+
+    public void setAnchorPoint(AnchorPoint anchorPoint) {
+        this.anchorPoint = anchorPoint;
     }
 }

@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDisc;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -92,8 +93,11 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 7: Effects button
-        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
+        // Row 7: Max Lifetime + Effects button
+        addLabel(new GuiNpcLabel(112, "ability.lifetime", labelX, y + 5));
+        addTextField(createIntField(112, fieldX, y, 50, disc.getMaxLifetime()));
+
+        addButton(new GuiNpcButton(150, col2LabelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -104,7 +108,13 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 180;
         int col2FieldX = guiLeft + 260;
 
-        // Row 1: Inner Color + Outer Color
+        // Row 1: Anchor Point
+        addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
+        addButton(new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), disc.getAnchorPoint().getId()));
+
+        y += 24;
+
+        // Row 2: Inner Color + Outer Color
         addLabel(new GuiNpcLabel(200, "ability.innerColor", labelX, y + 5));
         String innerHex = String.format("%06X", disc.getInnerColor() & 0xFFFFFF);
         GuiNpcButton innerColorBtn = new GuiNpcButton(200, fieldX, y, 55, 20, innerHex);
@@ -197,6 +207,9 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
                 disc.setLightningEffect(value == 1);
                 initGui();
                 break;
+            case 210:
+                disc.setAnchorPoint(AnchorPoint.fromId(value));
+                break;
         }
     }
 
@@ -252,6 +265,9 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
                 break;
             case 111:
                 disc.setMaxDistance(parseFloat(field, disc.getMaxDistance()));
+                break;
+            case 112:
+                disc.setMaxLifetime(field.getInteger());
                 break;
         }
     }

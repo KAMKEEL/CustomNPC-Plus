@@ -1683,6 +1683,7 @@ ability.outerWidth=Outer Width
 ability.lightning=Enable Lightning
 ability.lightningDensity=Density
 ability.lightningRadius=Radius
+ability.anchorPoint=Anchor Point
 ability.noVisualSettings=No visual settings for this ability type
 
 # Laser Shot Settings

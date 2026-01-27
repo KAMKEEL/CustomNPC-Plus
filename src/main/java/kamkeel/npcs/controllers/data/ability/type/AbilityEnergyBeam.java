@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -66,6 +67,9 @@ public class AbilityEnergyBeam extends Ability {
     private float lightningDensity = 0.15f;
     private float lightningRadius = 0.5f;
 
+    // Anchor point for charging position
+    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+
     // Transient state for beam entity (used during windup charging)
     private transient int beamEntityId = -1;
 
@@ -127,7 +131,7 @@ public class AbilityEnergyBeam extends Ability {
         if (tick == 1) {
             float offsetDist = 1.0f;
 
-            // Create beam in charging mode - follows NPC's look direction during windup
+            // Create beam in charging mode - follows NPC based on anchor point during windup
             EntityAbilityBeam beam = EntityAbilityBeam.createCharging(
                 world, npc, target,
                 beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
@@ -139,7 +143,8 @@ public class AbilityEnergyBeam extends Ability {
                 lightningEffect, lightningDensity, lightningRadius,
                 lockMovement, // Anchored mode
                 windUpTicks,  // Charge duration = windup duration
-                offsetDist    // Offset distance in front of NPC
+                offsetDist,   // Offset distance (used by FRONT anchor)
+                anchorPoint   // Anchor point for charging position
             );
 
             world.spawnEntityInWorld(beam);
@@ -221,6 +226,7 @@ public class AbilityEnergyBeam extends Ability {
         nbt.setBoolean("lightningEffect", lightningEffect);
         nbt.setFloat("lightningDensity", lightningDensity);
         nbt.setFloat("lightningRadius", lightningRadius);
+        nbt.setInteger("anchorPoint", anchorPoint.getId());
     }
 
     @Override
@@ -250,6 +256,7 @@ public class AbilityEnergyBeam extends Ability {
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
         this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
         this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
+        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
     }
 
     // Getters & Setters
@@ -303,4 +310,6 @@ public class AbilityEnergyBeam extends Ability {
     public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
+    public AnchorPoint getAnchorPoint() { return anchorPoint; }
+    public void setAnchorPoint(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
 }

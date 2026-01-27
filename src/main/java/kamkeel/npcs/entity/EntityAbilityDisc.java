@@ -1,5 +1,7 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -35,8 +37,43 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     private float discRadius = 1.0f; // Width of disc
     private float discThickness = 0.2f; // Height of disc
 
+    // Charging state (during windup)
+    private boolean charging = false;
+    private int chargeDuration = 40;
+    private int chargeTick = 0;
+    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+    private float targetDiscRadius = 1.0f; // Full radius to grow to during charging
+    private float targetDiscThickness = 0.2f; // Full thickness to grow to during charging
+
+    // Data watcher index for charging state (synced to clients)
+    private static final int DW_CHARGING = 20;
+
     public EntityAbilityDisc(World world) {
         super(world);
+    }
+
+    @Override
+    protected void entityInit() {
+        super.entityInit();
+        // Register data watcher for charging state
+        this.dataWatcher.addObject(DW_CHARGING, (byte) 0);
+    }
+
+    /**
+     * Check if disc is in charging state (synced via data watcher).
+     */
+    public boolean isCharging() {
+        return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
+    }
+
+    /**
+     * Set charging state (server only, synced to clients via data watcher).
+     */
+    private void setCharging(boolean value) {
+        this.charging = value;
+        if (!worldObj.isRemote) {
+            this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));
+        }
     }
 
     /**
@@ -117,6 +154,97 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         }
     }
 
+    /**
+     * Create a disc in charging mode (for windup phase).
+     * The disc will grow from 0 to discRadius over chargeDuration ticks.
+     * Position follows the owner based on anchor point.
+     */
+    public static EntityAbilityDisc createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
+                                                    float discRadius, float discThickness, int innerColor, int outerColor,
+                                                    boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                    float damage, float knockback, float knockbackUp,
+                                                    float speed, boolean homing, float homingStrength, float homingRange,
+                                                    boolean boomerang, int boomerangDelay,
+                                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                                                    int stunDuration, int slowDuration, int slowLevel,
+                                                    float maxDistance, int maxLifetime,
+                                                    boolean lightningEffect, float lightningDensity, float lightningRadius,
+                                                    AnchorPoint anchorPoint, int chargeDuration) {
+        // Calculate initial position based on anchor point
+        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
+        double spawnX = spawnPos.xCoord;
+        double spawnY = spawnPos.yCoord;
+        double spawnZ = spawnPos.zCoord;
+
+        EntityAbilityDisc disc = new EntityAbilityDisc(
+            world, owner, target,
+            spawnX, spawnY, spawnZ,
+            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
+            boomerang, boomerangDelay,
+            explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius);
+
+        // Set charging state (uses data watcher for client sync)
+        disc.setCharging(true);
+        disc.chargeDuration = chargeDuration;
+        disc.chargeTick = 0;
+        disc.anchorPoint = anchorPoint;
+
+        // Store target size and start at 0 for grow effect
+        disc.targetDiscRadius = disc.discRadius;
+        disc.targetDiscThickness = disc.discThickness;
+        disc.discRadius = 0.01f; // Start very small
+        disc.discThickness = 0.01f;
+        disc.size = 0.01f; // Base size used for rendering
+        disc.renderCurrentSize = 0.01f;
+        disc.prevRenderSize = 0.01f;
+
+        // Clear motion while charging
+        disc.motionX = 0;
+        disc.motionY = 0;
+        disc.motionZ = 0;
+
+        return disc;
+    }
+
+    /**
+     * Start the disc moving (exit charging mode).
+     * Called by ability when windup ends.
+     */
+    public void startMoving(EntityLivingBase target) {
+        if (!isCharging()) return;
+
+        setCharging(false);
+
+        // Update start position to current position
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+
+        // Calculate velocity toward target
+        Entity owner = getOwner();
+
+        if (target != null) {
+            double dx = target.posX - posX;
+            double dy = (target.posY + target.height * 0.5) - posY;
+            double dz = target.posZ - posZ;
+            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (len > 0) {
+                motionX = (dx / len) * speed;
+                motionY = (dy / len) * speed;
+                motionZ = (dz / len) * speed;
+            }
+        } else if (owner != null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = (float) Math.toRadians(owner.rotationPitch);
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
+            motionY = -Math.sin(pitch) * speed;
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+        }
+    }
+
     @Override
     protected void updateRotation() {
         // Disc spins ONLY on Y axis (flat spin like a saw blade)
@@ -127,6 +255,12 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     @Override
     protected void updateProjectile() {
+        // Handle charging state (windup phase)
+        if (isCharging()) {
+            updateCharging();
+            return;
+        }
+
         if (worldObj.isRemote) {
             handleClientInterpolation();
         } else {
@@ -141,17 +275,8 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
             checkEntityCollision();
             this.moveEntity(motionX, motionY, motionZ);
 
-            // Boomerang: if we've traveled far without hitting, start returning
+            // Track ticks for boomerang delay (checkMaxDistance handles the actual return trigger)
             if (boomerang && !returning && !hasHit) {
-                double distTraveled = Math.sqrt(
-                    (posX - startX) * (posX - startX) +
-                    (posY - startY) * (posY - startY) +
-                    (posZ - startZ) * (posZ - startZ)
-                );
-                // Start returning at 80% of max distance or after delay
-                if (distTraveled >= maxDistance * 0.8 || ticksSinceMiss >= boomerangDelay) {
-                    returning = true;
-                }
                 ticksSinceMiss++;
             }
         }
@@ -170,20 +295,41 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     @Override
     protected boolean checkMaxDistance() {
-        // If boomerang and returning, don't die from max distance
-        if (boomerang && returning) {
-            // Die if we get close to owner
-            Entity owner = getOwner();
-            if (owner != null) {
-                double distToOwner = Math.sqrt(
-                    (posX - owner.posX) * (posX - owner.posX) +
-                    (posY - owner.posY) * (posY - owner.posY) +
-                    (posZ - owner.posZ) * (posZ - owner.posZ)
-                );
-                return distToOwner < 1.0;
+        double distTraveled = Math.sqrt(
+            (posX - startX) * (posX - startX) +
+            (posY - startY) * (posY - startY) +
+            (posZ - startZ) * (posZ - startZ)
+        );
+
+        if (boomerang) {
+            // If not returning yet, check if we should start returning
+            if (!returning && !hasHit) {
+                if (distTraveled >= maxDistance * 0.8 || ticksSinceMiss >= boomerangDelay) {
+                    returning = true;
+                }
             }
+
+            // If returning, only die when close to owner
+            if (returning) {
+                Entity owner = getOwner();
+                if (owner != null) {
+                    double distToOwner = Math.sqrt(
+                        (posX - owner.posX) * (posX - owner.posX) +
+                        (posY - owner.posY) * (posY - owner.posY) +
+                        (posZ - owner.posZ) * (posZ - owner.posZ)
+                    );
+                    return distToOwner < 1.5;
+                }
+                // Owner gone but returning - keep going toward last known position
+                return false;
+            }
+
+            // Not returning yet - don't die from distance (we'll trigger return above)
+            return false;
         }
-        return super.checkMaxDistance();
+
+        // Non-boomerang: standard max distance check
+        return distTraveled >= maxDistance;
     }
 
     private void updateHoming() {
@@ -225,19 +371,28 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     private void updateReturnToOwner() {
         Entity owner = getOwner();
-        if (owner == null) {
-            this.setDead();
-            return;
+
+        // If owner is gone (unloaded/dead), head back toward start position
+        double targetX, targetY, targetZ;
+        if (owner != null) {
+            targetX = owner.posX;
+            targetY = owner.posY + owner.height * 0.5;
+            targetZ = owner.posZ;
+        } else {
+            // Return to start position if owner not available
+            targetX = startX;
+            targetY = startY;
+            targetZ = startZ;
         }
 
-        double dx = owner.posX - posX;
-        double dy = (owner.posY + owner.height * 0.5) - posY;
-        double dz = owner.posZ - posZ;
+        double dx = targetX - posX;
+        double dy = targetY - posY;
+        double dz = targetZ - posZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
         if (dist > 0) {
             // Stronger homing when returning
-            double returnStrength = homingStrength * 2.0;
+            double returnStrength = Math.min(1.0, homingStrength * 2.5);
             double desiredVX = (dx / dist) * speed;
             double desiredVY = (dy / dist) * speed;
             double desiredVZ = (dz / dist) * speed;
@@ -297,6 +452,52 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         }
     }
 
+    /**
+     * Update during charging state - follow owner based on anchor point.
+     */
+    private void updateCharging() {
+        chargeTick++;
+
+        Entity owner = getOwner();
+        if (owner == null || owner.isDead) {
+            setDead();
+            return;
+        }
+
+        // Grow size based on charge progress
+        float progress = getChargeProgress();
+        this.discRadius = targetDiscRadius * progress;
+        this.discThickness = targetDiscThickness * progress;
+        this.size = this.discRadius; // Base size for interpolation
+
+        // Calculate position based on anchor point
+        if (owner instanceof EntityLivingBase) {
+            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorPoint);
+            setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        }
+
+        // Update rotation during charging (disc still spins)
+        updateRotation();
+    }
+
+    /**
+     * Get the charge progress (0-1).
+     */
+    public float getChargeProgress() {
+        if (chargeDuration <= 0) return 1.0f;
+        return Math.min(1.0f, (float) chargeTick / chargeDuration);
+    }
+
+    /**
+     * Get interpolated charge progress for smooth rendering.
+     */
+    public float getInterpolatedChargeProgress(float partialTicks) {
+        if (chargeDuration <= 0) return 1.0f;
+        float prevProgress = Math.max(0, (float) (chargeTick - 1) / chargeDuration);
+        float currProgress = Math.min(1.0f, (float) chargeTick / chargeDuration);
+        return prevProgress + (currProgress - prevProgress) * partialTicks;
+    }
+
     // ==================== GETTERS ====================
 
     public float getSpeed() {
@@ -336,6 +537,15 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.discRadius = nbt.hasKey("DiscRadius") ? nbt.getFloat("DiscRadius") : 1.0f;
         this.discThickness = nbt.hasKey("DiscThickness") ? nbt.getFloat("DiscThickness") : 0.2f;
         this.returning = nbt.hasKey("Returning") && nbt.getBoolean("Returning");
+        // Charging state
+        boolean isCharging = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
+        this.charging = isCharging;
+        this.dataWatcher.updateObject(DW_CHARGING, (byte) (isCharging ? 1 : 0));
+        this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
+        this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
+        this.anchorPoint = nbt.hasKey("AnchorPoint") ? AnchorPoint.fromId(nbt.getInteger("AnchorPoint")) : AnchorPoint.FRONT;
+        this.targetDiscRadius = nbt.hasKey("TargetDiscRadius") ? nbt.getFloat("TargetDiscRadius") : this.discRadius;
+        this.targetDiscThickness = nbt.hasKey("TargetDiscThickness") ? nbt.getFloat("TargetDiscThickness") : this.discThickness;
     }
 
     @Override
@@ -349,5 +559,12 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         nbt.setFloat("DiscRadius", discRadius);
         nbt.setFloat("DiscThickness", discThickness);
         nbt.setBoolean("Returning", returning);
+        // Charging state
+        nbt.setBoolean("Charging", isCharging());
+        nbt.setInteger("ChargeDuration", chargeDuration);
+        nbt.setInteger("ChargeTick", chargeTick);
+        nbt.setInteger("AnchorPoint", anchorPoint.getId());
+        nbt.setFloat("TargetDiscRadius", targetDiscRadius);
+        nbt.setFloat("TargetDiscThickness", targetDiscThickness);
     }
 }

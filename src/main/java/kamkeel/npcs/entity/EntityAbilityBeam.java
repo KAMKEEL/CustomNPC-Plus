@@ -1,5 +1,7 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -55,6 +57,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     private int chargeDuration = 40;
     private int chargeTick = 0;
     private float chargeOffsetDistance = 1.0f;
+    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
 
     // Trail fading for non-anchored beams (comet effect)
     private boolean fadeTrail = false;
@@ -214,7 +217,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     /**
      * Create a beam in charging mode (for windup phase).
      * The beam will grow from 0 to headSize over chargeDuration ticks.
-     * Position follows the owner's look direction.
+     * Position follows the owner based on anchor point.
      */
     public static EntityAbilityBeam createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
                                                     float beamWidth, float headSize, int innerColor, int outerColor,
@@ -225,12 +228,13 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                                                     int stunDuration, int slowDuration, int slowLevel,
                                                     float maxDistance, int maxLifetime,
                                                     boolean lightningEffect, float lightningDensity, float lightningRadius,
-                                                    boolean anchoredMode, int chargeDuration, float chargeOffsetDistance) {
-        // Calculate initial position in front of owner's look direction
-        float yaw = (float) Math.toRadians(owner.rotationYawHead);
-        double spawnX = owner.posX - Math.sin(yaw) * chargeOffsetDistance;
-        double spawnY = owner.posY + owner.getEyeHeight() * 0.7;
-        double spawnZ = owner.posZ + Math.cos(yaw) * chargeOffsetDistance;
+                                                    boolean anchoredMode, int chargeDuration, float chargeOffsetDistance,
+                                                    AnchorPoint anchorPoint) {
+        // Calculate initial position based on anchor point
+        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint, chargeOffsetDistance);
+        double spawnX = spawnPos.xCoord;
+        double spawnY = spawnPos.yCoord;
+        double spawnZ = spawnPos.zCoord;
 
         EntityAbilityBeam beam = new EntityAbilityBeam(
             world, owner, target,
@@ -247,6 +251,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         beam.chargeDuration = chargeDuration;
         beam.chargeTick = 0;
         beam.chargeOffsetDistance = chargeOffsetDistance;
+        beam.anchorPoint = anchorPoint;
 
         // Non-anchored beams have fading trail (comet effect)
         beam.fadeTrail = !anchoredMode;
@@ -420,7 +425,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     }
 
     /**
-     * Update during charging state - follow owner's look direction.
+     * Update during charging state - follow owner based on anchor point.
      */
     private void updateCharging() {
         chargeTick++;
@@ -431,27 +436,28 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             return;
         }
 
-        // Follow owner's head/look direction (rotationYawHead for NPCs/players)
-        float yaw;
+        // Calculate position based on anchor point
+        Vec3 pos;
         if (owner instanceof EntityLivingBase) {
-            yaw = (float) Math.toRadians(((EntityLivingBase) owner).rotationYawHead);
+            pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorPoint, chargeOffsetDistance);
         } else {
-            yaw = (float) Math.toRadians(owner.rotationYaw);
+            // Fallback for non-living entities (shouldn't happen normally)
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            double offsetX = -Math.sin(yaw) * chargeOffsetDistance;
+            double offsetZ = Math.cos(yaw) * chargeOffsetDistance;
+            pos = Vec3.createVectorHelper(
+                owner.posX + offsetX,
+                owner.posY + owner.getEyeHeight() * 0.7,
+                owner.posZ + offsetZ
+            );
         }
 
-        double offsetX = -Math.sin(yaw) * chargeOffsetDistance;
-        double offsetZ = Math.cos(yaw) * chargeOffsetDistance;
-
-        double newX = owner.posX + offsetX;
-        double newY = owner.posY + owner.getEyeHeight() * 0.7;
-        double newZ = owner.posZ + offsetZ;
-
-        setPosition(newX, newY, newZ);
+        setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 
         // Also update origin for when firing starts
-        startX = newX;
-        startY = newY;
-        startZ = newZ;
+        startX = pos.xCoord;
+        startY = pos.yCoord;
+        startZ = pos.zCoord;
     }
 
     /**
@@ -726,6 +732,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
         this.chargeOffsetDistance = nbt.hasKey("ChargeOffsetDistance") ? nbt.getFloat("ChargeOffsetDistance") : 1.0f;
+        this.anchorPoint = nbt.hasKey("AnchorPoint") ? AnchorPoint.fromId(nbt.getInteger("AnchorPoint")) : AnchorPoint.FRONT;
         this.fadeTrail = nbt.hasKey("FadeTrail") && nbt.getBoolean("FadeTrail");
         this.trailFadeTime = nbt.hasKey("TrailFadeTime") ? nbt.getInteger("TrailFadeTime") : 20;
 
@@ -761,6 +768,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
         nbt.setFloat("ChargeOffsetDistance", chargeOffsetDistance);
+        nbt.setInteger("AnchorPoint", anchorPoint.getId());
         nbt.setBoolean("FadeTrail", fadeTrail);
         nbt.setInteger("TrailFadeTime", trailFadeTime);
 
