@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityTeleport;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Teleport ability type-specific settings.
@@ -50,7 +54,9 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
                 addTextField(createIntField(103, fieldX, y, 50, teleport.getBlinkDelayTicks()));
 
                 addLabel(new GuiNpcLabel(105, "ability.lineOfSight", col2LabelX, y + 5));
-                addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0));
+                GuiNpcButton losBtn1 = new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0);
+                losBtn1.setHoverText("ability.hover.lineOfSight");
+                addButton(losBtn1);
                 y += 24;
                 break;
             case SINGLE:
@@ -59,7 +65,9 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
                 addTextField(createFloatField(101, fieldX, y, 50, teleport.getBlinkRadius()));
 
                 addLabel(new GuiNpcLabel(105, "ability.lineOfSight", col2LabelX, y + 5));
-                addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0));
+                GuiNpcButton losBtn2 = new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0);
+                losBtn2.setHoverText("ability.hover.lineOfSight");
+                addButton(losBtn2);
                 y += 24;
                 break;
             case BEHIND:
@@ -81,10 +89,19 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
 
         // Damage at Start/End
         addLabel(new GuiNpcLabel(108, "ability.dmgAtStart", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtStart() ? 1 : 0));
+        GuiNpcButton dmgStartBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtStart() ? 1 : 0);
+        dmgStartBtn.setHoverText("ability.hover.dmgAtStart");
+        addButton(dmgStartBtn);
 
         addLabel(new GuiNpcLabel(109, "ability.dmgAtEnd", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtEnd() ? 1 : 0));
+        GuiNpcButton dmgEndBtn = new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtEnd() ? 1 : 0);
+        dmgEndBtn.setHoverText("ability.hover.dmgAtEnd");
+        addButton(dmgEndBtn);
+
+        y += 24;
+
+        // Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -104,6 +121,21 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
             case 109:
                 teleport.setDamageAtEnd(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(teleport.getEffects()));
+                break;
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                teleport.setEffects(result);
+            }
         }
     }
 

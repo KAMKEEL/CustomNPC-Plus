@@ -7,8 +7,6 @@ import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -28,11 +26,7 @@ public class AbilityShockwave extends Ability {
     private float pushRadius = 8.0f;
     private float pushStrength = 1.5f;
     private float damage = 8.0f;
-    private int stunDuration = 0;
     private int maxTargets = 10;
-
-    // Runtime state
-    private transient boolean executed = false;
 
     public AbilityShockwave() {
         this.typeId = "ability.cnpc.shockwave";
@@ -40,10 +34,8 @@ public class AbilityShockwave extends Ability {
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 25;
-        this.activeTicks = 5;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "random.explode";
         this.activeSound = "random.explode";
@@ -77,13 +69,7 @@ public class AbilityShockwave extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        executed = false;
-    }
-
-    @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        if (executed) return;
-        executed = true;
+        // Shockwave is instant - apply effect immediately after windup
 
         // Get all entities in radius
         AxisAlignedBB box = npc.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
@@ -122,22 +108,19 @@ public class AbilityShockwave extends Ability {
             // Apply damage with custom knockback direction
             boolean wasHit = applyAbilityDamageWithDirection(npc, entity, damage * distFactor, finalPush, dx, dz);
 
-            // Apply stun if hit connected
-            if (wasHit && stunDuration > 0) {
-                entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
+            // Apply effects if hit connected
+            if (wasHit) {
+                applyEffects(entity);
             }
         }
+
+        // Shockwave completes instantly
+        signalCompletion();
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        executed = false;
-    }
-
-    @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        executed = false;
+    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        // Shockwave is instant - nothing to do per-tick
     }
 
     @Override
@@ -145,7 +128,6 @@ public class AbilityShockwave extends Ability {
         nbt.setFloat("pushRadius", pushRadius);
         nbt.setFloat("pushStrength", pushStrength);
         nbt.setFloat("damage", damage);
-        nbt.setInteger("stunDuration", stunDuration);
         nbt.setInteger("maxTargets", maxTargets);
     }
 
@@ -154,7 +136,6 @@ public class AbilityShockwave extends Ability {
         this.pushRadius = nbt.hasKey("pushRadius") ? nbt.getFloat("pushRadius") : 8.0f;
         this.pushStrength = nbt.hasKey("pushStrength") ? nbt.getFloat("pushStrength") : 1.5f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
-        this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
         this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 10;
     }
 
@@ -181,14 +162,6 @@ public class AbilityShockwave extends Ability {
 
     public void setDamage(float damage) {
         this.damage = damage;
-    }
-
-    public int getStunDuration() {
-        return stunDuration;
-    }
-
-    public void setStunDuration(int stunDuration) {
-        this.stunDuration = stunDuration;
     }
 
     public int getMaxTargets() {

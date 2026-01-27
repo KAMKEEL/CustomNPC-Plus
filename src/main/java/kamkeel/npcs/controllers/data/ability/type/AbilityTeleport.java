@@ -59,10 +59,8 @@ public class AbilityTeleport extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 10;
-        this.activeTicks = 40;
-        this.recoveryTicks = 10;
         // No telegraph for teleport - it's instant repositioning
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
@@ -101,7 +99,10 @@ public class AbilityTeleport extends Ability {
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
-        if (currentBlink >= blinkLimit) return;
+        if (currentBlink >= blinkLimit) {
+            signalCompletion();
+            return;
+        }
 
         ticksSinceLastBlink++;
 
@@ -109,6 +110,11 @@ public class AbilityTeleport extends Ability {
             performBlink(npc, target, world);
             currentBlink++;
             ticksSinceLastBlink = 0;
+
+            // Check if this was the last blink
+            if (currentBlink >= blinkLimit) {
+                signalCompletion();
+            }
         }
     }
 
@@ -261,8 +267,13 @@ public class AbilityTeleport extends Ability {
             int blockY = MathHelper.floor_double(checkY);
             int blockZ = MathHelper.floor_double(checkZ);
 
+            // Skip out-of-world coordinates
+            if (blockY < 0 || blockY >= 256) {
+                continue;
+            }
+
             Block block = world.getBlock(blockX, blockY, blockZ);
-            if (block.getMaterial().isSolid() && block.isOpaqueCube()) {
+            if (block != null && block.getMaterial().isSolid() && block.isOpaqueCube()) {
                 return false;
             }
         }
@@ -327,9 +338,19 @@ public class AbilityTeleport extends Ability {
     }
 
     private boolean isSafeLocation(World world, int x, int y, int z) {
+        // Bounds check - ensure we're within valid world coordinates
+        if (y < 1 || y >= 255) {
+            return false;
+        }
+
         Block groundBlock = world.getBlock(x, y - 1, z);
         Block feetBlock = world.getBlock(x, y, z);
         Block headBlock = world.getBlock(x, y + 1, z);
+
+        // Defensive null checks (shouldn't happen in MC 1.7.10, but safe)
+        if (groundBlock == null || feetBlock == null || headBlock == null) {
+            return false;
+        }
 
         return groundBlock.getMaterial().isSolid() &&
             !feetBlock.getMaterial().isSolid() &&
@@ -353,7 +374,10 @@ public class AbilityTeleport extends Ability {
             double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
             if (dist <= damageRadius) {
                 // Apply damage with scripted event support (no knockback for teleport damage)
-                applyAbilityDamage(npc, living, damage, 0);
+                boolean wasHit = applyAbilityDamage(npc, living, damage, 0);
+                if (wasHit) {
+                    applyEffects(living);
+                }
             }
         }
     }

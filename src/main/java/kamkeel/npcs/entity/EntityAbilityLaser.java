@@ -45,7 +45,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     }
 
     /**
-     * Full constructor with all parameters.
+     * Full constructor with all parameters (no lightning).
      */
     public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
                                double x, double y, double z,
@@ -56,15 +56,37 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
                                boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                int stunDuration, int slowDuration, int slowLevel,
                                float maxDistance, int maxLifetime) {
+        this(world, owner, target, x, y, z,
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth,
+            damage, knockback, knockbackUp, expansionSpeed, lingerTicks,
+            explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
+            false, 0.15f, 0.5f);
+    }
+
+    /**
+     * Full constructor with all parameters including lightning.
+     */
+    public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
+                               double x, double y, double z,
+                               float laserWidth, int innerColor, int outerColor,
+                               boolean outerColorEnabled, float outerColorWidth,
+                               float damage, float knockback, float knockbackUp,
+                               float expansionSpeed, int lingerTicks,
+                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                               int stunDuration, int slowDuration, int slowLevel,
+                               float maxDistance, int maxLifetime,
+                               boolean lightningEffect, float lightningDensity, float lightningRadius) {
         super(world);
 
-        // Initialize base properties
+        // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
             laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, 0.0f, // No rotation for laser
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime);
+            maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius, 6);
 
         // Laser-specific properties
         this.laserWidth = laserWidth;

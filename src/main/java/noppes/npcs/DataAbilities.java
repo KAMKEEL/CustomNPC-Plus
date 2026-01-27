@@ -78,6 +78,16 @@ public class DataAbilities {
      */
     private transient List<Long> recentHitTimes = new ArrayList<>();
 
+    /**
+     * Locked rotation values for ACTIVE phase with lockMovement.
+     * Stored when entering ACTIVE phase, applied every tick to prevent rotation changes.
+     */
+    private transient boolean rotationLocked = false;
+    private transient float lockedYaw = 0;
+    private transient float lockedYawHead = 0;
+    private transient float lockedRenderYawOffset = 0;
+    private transient float lockedPitch = 0;
+
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
     // ═══════════════════════════════════════════════════════════════════
@@ -136,9 +146,15 @@ public class DataAbilities {
                     // Remove telegraph - it has served its purpose
                     removeTelegraph(currentAbility);
 
+                    // Lock rotation if lockMovement is true
+                    // Capture current rotation values to force them every tick
+                    if (currentAbility.isLockMovement()) {
+                        captureLockedRotation();
+                    }
+
                     // Play active sound and animation
                     playAbilitySound(currentAbility.getActiveSound());
-                    playAbilityAnimation(currentAbility.getActiveAnimationId());
+                    playAbilityAnimation(currentAbility.getActiveAnimation());
 
                     // Fire execute event (cancelable)
                     AbilityEvent.ExecuteEvent executeEvent = new AbilityEvent.ExecuteEvent(
@@ -150,26 +166,52 @@ public class DataAbilities {
 
                     // Call onExecute
                     currentAbility.onExecute(npc, target, npc.worldObj);
+
+                    // Check if ability completed during onExecute (signalCompletion was called)
+                    if (currentAbility.getPhase() == AbilityPhase.IDLE) {
+                        handleAbilityCompletion(target);
+                        return;
+                    }
                 }
                 currentAbility.onActiveTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
+
+                // Check if ability completed during onActiveTick (signalCompletion was called)
+                if (currentAbility.getPhase() == AbilityPhase.IDLE) {
+                    handleAbilityCompletion(target);
+                    return;
+                }
                 break;
 
-            case RECOVERY:
-                // Recovery phase - just wait
+            case DAZED:
+                // Dazed phase - NPC cannot attack, just wait for daze to end
                 break;
 
             case IDLE:
-                // Ability completed
-                currentAbility.onComplete(npc, target);
-
-                // Fire complete event
-                AbilityEvent.CompleteEvent completeEvent = new AbilityEvent.CompleteEvent(
-                    npc.wrappedNPC, currentAbility, target);
-                NpcAPI.EVENT_BUS.post(completeEvent);
-
-                onAbilityComplete();
+                // Ability completed (reached via tick() phase transition from DAZED)
+                handleAbilityCompletion(target);
                 break;
         }
+    }
+
+    /**
+     * Handle ability completion - called when ability phase becomes IDLE.
+     * This can happen from:
+     * - signalCompletion() called in onExecute() or onActiveTick()
+     * - tick() transitioning from DAZED to IDLE
+     */
+    private void handleAbilityCompletion(EntityLivingBase target) {
+        if (currentAbility == null) return;
+
+        // Call onComplete callback
+        currentAbility.onComplete(npc, target);
+
+        // Fire complete event
+        AbilityEvent.CompleteEvent completeEvent = new AbilityEvent.CompleteEvent(
+            npc.wrappedNPC, currentAbility, target);
+        NpcAPI.EVENT_BUS.post(completeEvent);
+
+        // Clean up and roll cooldown
+        onAbilityComplete();
 
         // Clear AI pathfinding if ability is controlling movement
         // But DON'T zero motion - let the ability set it if needed
@@ -186,9 +228,9 @@ public class DataAbilities {
                 }
             }
 
-            // Lock look direction at target during ACTIVE phase only
-            if (shouldLockLookDirection() && target != null && target.isEntityAlive()) {
-                npc.getLookHelper().setLookPositionWithEntity(target, 30.0F, 30.0F);
+            // Unlock rotation when leaving ACTIVE phase
+            if (rotationLocked && currentAbility.getPhase() != AbilityPhase.ACTIVE) {
+                releaseLockedRotation();
             }
         }
     }
@@ -202,13 +244,14 @@ public class DataAbilities {
             // Stop any ability animation
             stopAbilityAnimation();
 
+            // Release rotation lock
+            releaseLockedRotation();
+
             // Calculate cooldown: random(min, max) + ability offset
-            int baseCooldown = minCooldown;
-            if (maxCooldown > minCooldown) {
-                baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
-            }
-            int totalCooldown = baseCooldown + currentAbility.getCooldownTicks();
-            cooldownEndTime = npc.worldObj.getTotalWorldTime() + totalCooldown;
+            int abilityCooldownOffset = currentAbility.getCooldownTicks();
+            rollCooldown();
+            // Add ability-specific cooldown offset
+            cooldownEndTime += abilityCooldownOffset;
 
             currentAbility = null;
             lastTarget = null;
@@ -340,7 +383,7 @@ public class DataAbilities {
         playAbilitySound(ability.getWindUpSound());
 
         // Play wind up animation if configured
-        playAbilityAnimation(ability.getWindUpAnimationId());
+        playAbilityAnimation(ability.getWindUpAnimation());
 
         return true;
     }
@@ -358,18 +401,23 @@ public class DataAbilities {
      * Play an animation on the NPC by ID.
      * Public so abilities can trigger animations directly if needed.
      *
-     * @param animationId The global animation ID to play, or -1 for none
+     * @param animation The animation to play, or null if none
      */
-    public void playAbilityAnimation(int animationId) {
-        if (animationId < 0) return;
+    public void playAbilityAnimation(Animation animation) {
+        if (animation == null || animation.id < 0) return;
         if (AnimationController.Instance == null) return;
 
-        Animation animation = AnimationController.Instance.animations.get(animationId);
-        if (animation != null) {
-            npc.display.animationData.setEnabled(true);
-            npc.display.animationData.setAnimation(animation);
-            npc.display.animationData.updateClient();
-        }
+        npc.display.animationData.setEnabled(true);
+        npc.display.animationData.setAnimation(animation);
+        npc.display.animationData.updateClient();
+    }
+
+    public void playAbilityAnimation(int animation) {
+        if (animation < 0) return;
+        if (AnimationController.Instance == null) return;
+        if (AnimationController.Instance.get(animation) == null) return;
+
+        playAbilityAnimation((Animation) AnimationController.Instance.get(animation));
     }
 
     /**
@@ -515,8 +563,8 @@ public class DataAbilities {
 
     /**
      * Interrupt the currently executing ability.
-     * The ability will transition to RECOVERY phase (dazed state) and continue ticking.
-     * When RECOVERY completes, the ability will move to IDLE and onAbilityComplete() is called.
+     * If interrupted during WINDUP, the ability will transition to DAZED phase.
+     * When DAZED completes, the ability will move to IDLE and onAbilityComplete() is called.
      */
     public void interruptCurrentAbility(DamageSource source, float damage) {
         if (currentAbility != null) {
@@ -526,16 +574,19 @@ public class DataAbilities {
             // Stop any ability animation
             stopAbilityAnimation();
 
+            // Release rotation lock
+            releaseLockedRotation();
+
             // Fire interrupt event
             AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(
                 npc.wrappedNPC, currentAbility, lastTarget, source, damage);
             NpcAPI.EVENT_BUS.post(interruptEvent);
 
             currentAbility.onInterrupt(npc, source, damage);
-            currentAbility.interrupt(); // This now transitions to RECOVERY, not IDLE
+            currentAbility.interrupt(); // Transitions to DAZED if interrupted during WINDUP
 
-            // Don't clear currentAbility - let it tick through RECOVERY phase
-            // When RECOVERY ends and phase becomes IDLE, onAbilityComplete() will be called
+            // Don't clear currentAbility - let it tick through DAZED phase
+            // When DAZED ends and phase becomes IDLE, onAbilityComplete() will be called
         }
     }
 
@@ -546,6 +597,7 @@ public class DataAbilities {
         if (currentAbility != null) {
             removeTelegraph(currentAbility);
             stopAbilityAnimation();
+            releaseLockedRotation();
             currentAbility.interrupt();
             currentAbility = null;
             lastTarget = null;
@@ -603,15 +655,30 @@ public class DataAbilities {
     /**
      * Reset all runtime state (cooldowns, current ability).
      * Called when NPC respawns or combat ends.
+     * Rolls cooldown so NPC doesn't immediately use an ability.
      */
     public void reset() {
         stopCurrentAbility();
-        resetCooldown();
+
+        // Roll cooldown so NPC doesn't immediately attack after reset
+        rollCooldown();
 
         // Reset execution state on all abilities
         for (Ability ability : abilities) {
             ability.reset();
         }
+    }
+
+    /**
+     * Roll a new cooldown using the min/max range.
+     * Called after ability completes and on reset.
+     */
+    private void rollCooldown() {
+        int baseCooldown = minCooldown;
+        if (maxCooldown > minCooldown) {
+            baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
+        }
+        cooldownEndTime = npc.worldObj.getTotalWorldTime() + baseCooldown;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -678,7 +745,7 @@ public class DataAbilities {
      * Rules:
      * - WINDUP phase: Block AI if lockMovement is true
      * - ACTIVE phase: Block AI if lockMovement OR hasAbilityMovement is true
-     * - RECOVERY phase: Block AI if lockMovement is true
+     * - DAZED phase: Always block AI (NPC is stunned)
      */
     public boolean isAbilityControllingMovement() {
         if (currentAbility == null || !currentAbility.isExecuting()) {
@@ -699,9 +766,9 @@ public class DataAbilities {
                 // - hasAbilityMovement is true (ability is moving the NPC itself)
                 return currentAbility.isLockMovement() || currentAbility.hasAbilityMovement();
 
-            case RECOVERY:
-                // During recovery, block if lockMovement is set
-                return currentAbility.isLockMovement();
+            case DAZED:
+                // During dazed phase, always block - NPC is stunned from interrupt
+                return true;
 
             default:
                 return false;
@@ -711,7 +778,7 @@ public class DataAbilities {
     /**
      * Check if NPC's look direction should be locked to target.
      * Only locks during ACTIVE phase when lockMovement is true.
-     * This allows the NPC to freely track target during WINDUP and RECOVERY.
+     * This allows the NPC to freely track target during WINDUP and DAZED.
      */
     public boolean shouldLockLookDirection() {
         if (currentAbility == null || !currentAbility.isExecuting()) {
@@ -735,6 +802,60 @@ public class DataAbilities {
         }
         AbilityPhase phase = currentAbility.getPhase();
         return phase == AbilityPhase.WINDUP || phase == AbilityPhase.ACTIVE;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ROTATION LOCKING
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Capture current rotation values to lock NPC's look direction.
+     * Called when entering ACTIVE phase with lockMovement enabled.
+     */
+    private void captureLockedRotation() {
+        lockedYaw = npc.rotationYaw;
+        lockedYawHead = npc.rotationYawHead;
+        lockedRenderYawOffset = npc.renderYawOffset;
+        lockedPitch = npc.rotationPitch;
+        rotationLocked = true;
+    }
+
+    /**
+     * Release the rotation lock.
+     * Called when leaving ACTIVE phase or ability completes.
+     */
+    private void releaseLockedRotation() {
+        rotationLocked = false;
+    }
+
+    /**
+     * Apply locked rotation values to the NPC.
+     * Called AFTER super.onLivingUpdate() in EntityNPCInterface to override
+     * any rotation changes made by the look helper or AI tasks.
+     */
+    public void applyLockedRotation() {
+        if (!rotationLocked) {
+            return;
+        }
+
+        // Force rotation back to locked values
+        npc.rotationYaw = lockedYaw;
+        npc.rotationYawHead = lockedYawHead;
+        npc.renderYawOffset = lockedRenderYawOffset;
+        npc.rotationPitch = lockedPitch;
+
+        // Also set prev values to prevent interpolation jitter
+        npc.prevRotationYaw = lockedYaw;
+        npc.prevRotationYawHead = lockedYawHead;
+        npc.prevRenderYawOffset = lockedRenderYawOffset;
+        npc.prevRotationPitch = lockedPitch;
+    }
+
+    /**
+     * Check if rotation is currently locked.
+     */
+    public boolean isRotationLocked() {
+        return rotationLocked;
     }
 
     // ═══════════════════════════════════════════════════════════════════

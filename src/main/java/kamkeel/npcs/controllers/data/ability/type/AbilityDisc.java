@@ -3,11 +3,13 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityDisc;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -28,7 +30,7 @@ public class AbilityDisc extends Ability {
     private float discRadius = 1.0f;
     private float discThickness = 0.2f;
     private float maxDistance = 35.0f;
-    private int maxLifetime = 250;
+    private int maxLifetime = 200;
 
     // Combat properties
     private float damage = 8.0f;
@@ -57,9 +59,20 @@ public class AbilityDisc extends Ability {
     // Visual properties
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0xFF8800;
-    private float outerColorWidth = 1.8f;
+    private float outerColorWidth = 0.4f; // Additive offset from inner size
     private boolean outerColorEnabled = true;
     private float rotationSpeed = 5.0f;
+
+    // Lightning effect properties
+    private boolean lightningEffect = false;
+    private float lightningDensity = 0.15f;
+    private float lightningRadius = 0.5f;
+
+    // Anchor point for charging position
+    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+
+    // Transient state for disc entity (used during windup charging)
+    private transient EntityAbilityDisc discEntity = null;
 
     public AbilityDisc() {
         this.typeId = "ability.cnpc.disc";
@@ -67,10 +80,8 @@ public class AbilityDisc extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 80;
+        this.cooldownTicks = 0;
         this.windUpTicks = 20;
-        this.activeTicks = 1;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
     }
@@ -98,25 +109,44 @@ public class AbilityDisc extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+        if (world.isRemote) {
+            signalCompletion();
+            return;
+        }
+
+        // Start moving the disc that was spawned during windup
+        if (discEntity != null && !discEntity.isDead) {
+            discEntity.startMoving(target);
+        }
+        discEntity = null;
+
+        // Disc entity manages itself - ability is done
+        signalCompletion();
+    }
+
+    @Override
+    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
-        double spawnX = npc.posX;
-        double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
-        double spawnZ = npc.posZ;
+        // Spawn disc in charging mode on first tick of windup
+        if (tick == 1) {
+            // Create disc in charging mode - follows NPC based on anchor point during windup
+            discEntity = EntityAbilityDisc.createCharging(
+                world, npc, target,
+                discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                damage, knockback, knockbackUp,
+                speed, homing, homingStrength, homingRange,
+                boomerang, boomerangDelay,
+                explosive, explosionRadius, explosionDamageFalloff,
+                stunDuration, slowDuration, slowLevel,
+                maxDistance, maxLifetime,
+                lightningEffect, lightningDensity, lightningRadius,
+                anchorPoint,  // Anchor point for charging position
+                windUpTicks   // Charge duration = windup duration
+            );
 
-        EntityAbilityDisc disc = new EntityAbilityDisc(
-            world, npc, target,
-            spawnX, spawnY, spawnZ,
-            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
-            damage, knockback, knockbackUp,
-            speed, homing, homingStrength, homingRange,
-            boomerang, boomerangDelay,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime
-        );
-
-        world.spawnEntityInWorld(disc);
+            world.spawnEntityInWorld(discEntity);
+        }
     }
 
     @Override
@@ -128,7 +158,12 @@ public class AbilityDisc extends Ability {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void cleanup() {
+        // Despawn disc entity if still alive
+        if (discEntity != null && !discEntity.isDead) {
+            discEntity.setDead();
+        }
+        discEntity = null;
     }
 
     @Override
@@ -184,6 +219,10 @@ public class AbilityDisc extends Ability {
         nbt.setFloat("outerColorWidth", outerColorWidth);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
+        nbt.setBoolean("lightningEffect", lightningEffect);
+        nbt.setFloat("lightningDensity", lightningDensity);
+        nbt.setFloat("lightningRadius", lightningRadius);
+        nbt.setInteger("anchorPoint", anchorPoint.getId());
     }
 
     @Override
@@ -192,7 +231,7 @@ public class AbilityDisc extends Ability {
         this.discRadius = nbt.hasKey("discRadius") ? nbt.getFloat("discRadius") : 1.0f;
         this.discThickness = nbt.hasKey("discThickness") ? nbt.getFloat("discThickness") : 0.2f;
         this.maxDistance = nbt.hasKey("maxDistance") ? nbt.getFloat("maxDistance") : 35.0f;
-        this.maxLifetime = nbt.hasKey("maxLifetime") ? nbt.getInteger("maxLifetime") : 250;
+        this.maxLifetime = nbt.hasKey("maxLifetime") ? nbt.getInteger("maxLifetime") : 200;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.2f;
         this.knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.15f;
@@ -209,9 +248,13 @@ public class AbilityDisc extends Ability {
         this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF8800;
-        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
+        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 5.0f;
+        this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
+        this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
+        this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
+        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
     }
 
     // Getters & Setters
@@ -263,4 +306,12 @@ public class AbilityDisc extends Ability {
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
     public float getRotationSpeed() { return rotationSpeed; }
     public void setRotationSpeed(float rotationSpeed) { this.rotationSpeed = rotationSpeed; }
+    public boolean hasLightningEffect() { return lightningEffect; }
+    public void setLightningEffect(boolean lightningEffect) { this.lightningEffect = lightningEffect; }
+    public float getLightningDensity() { return lightningDensity; }
+    public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
+    public float getLightningRadius() { return lightningRadius; }
+    public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
+    public AnchorPoint getAnchorPoint() { return anchorPoint; }
+    public void setAnchorPoint(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
 }

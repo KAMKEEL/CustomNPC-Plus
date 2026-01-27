@@ -4,6 +4,9 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.AnimationController;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -61,8 +64,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     // Timing
     protected int cooldownTicks;
     protected int windUpTicks;
-    protected int activeTicks;
-    protected int recoveryTicks;
+    protected int dazedTicks;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // CACHED VALUES - Target Tab
@@ -115,8 +117,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Timing
         this.cooldownTicks = ability.getCooldownTicks();
         this.windUpTicks = ability.getWindUpTicks();
-        this.activeTicks = ability.getActiveTicks();
-        this.recoveryTicks = ability.getRecoveryTicks();
+        this.dazedTicks = ability.getDazedTicks();
 
         // Target
         this.minRange = ability.getMinRange();
@@ -127,8 +128,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Effects
         this.windUpSound = ability.getWindUpSound();
         this.activeSound = ability.getActiveSound();
-        this.windUpAnimationId = ability.getWindUpAnimationId();
-        this.activeAnimationId = ability.getActiveAnimationId();
+        this.windUpAnimationId = ability.getWindUpAnimation() != null ? ability.getWindUpAnimation().getID() : -1;
+        this.activeAnimationId = ability.getActiveAnimation() != null ? ability.getActiveAnimation().getID() : -1;
 
         // Telegraph
         this.showTelegraph = ability.isShowTelegraph();
@@ -142,7 +143,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.hasTypeSettings = ability.hasTypeSettings();
         this.hasVisualSettings = hasVisualSettings();
 
-        setBackground("menubg.png");
+        setBackground("menubg.png", 217);
         xSize = 356;
         ySize = 200;
     }
@@ -250,13 +251,26 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         addTextField(weightField);
 
         addLabel(new GuiNpcLabel(5, "ability.lockMove", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(16, col2FieldX, y, 40, 20, new String[]{"gui.no", "gui.yes"}, lockMovement ? 1 : 0));
+        GuiNpcButton lockMoveBtn = new GuiNpcButton(16, col2FieldX, y, 40, 20, new String[]{"gui.no", "gui.yes"}, lockMovement ? 1 : 0);
+        lockMoveBtn.setHoverText("ability.hover.lockMove");
+        addButton(lockMoveBtn);
 
         y += 24;
 
-        // Row 3: Interruptible
+        // Row 3: Interruptible + Dazed Ticks (only if interruptible)
         addLabel(new GuiNpcLabel(6, "ability.interruptible", col1LabelX, y + 5));
-        addButton(new GuiNpcButton(14, guiLeft + 85, y, 40, 20, new String[]{"gui.no", "gui.yes"}, interruptible ? 1 : 0));
+        GuiNpcButton interruptBtn = new GuiNpcButton(14, guiLeft + 85, y, 40, 20, new String[]{"gui.no", "gui.yes"}, interruptible ? 1 : 0);
+        interruptBtn.setHoverText("ability.hover.interruptible");
+        addButton(interruptBtn);
+
+        // Only show dazed ticks if interruptible is enabled
+        if (interruptible) {
+            addLabel(new GuiNpcLabel(12, "ability.dazed", col2LabelX, y + 5));
+            GuiNpcTextField dazedField = new GuiNpcTextField(13, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(dazedTicks));
+            dazedField.setIntegersOnly();
+            dazedField.setMinMaxDefault(0, 1000, 80);
+            addTextField(dazedField);
+        }
 
         y += 28;
 
@@ -264,32 +278,24 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         addLabel(new GuiNpcLabel(7, "ability.timing", col1LabelX, y));
         y += 14;
 
-        // Row 4: Windup Ticks + Active Ticks
+        // Row 4: Windup Ticks + Cooldown Ticks
         addLabel(new GuiNpcLabel(10, "ability.windup", col1LabelX, y + 5));
         GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(windUpTicks));
         windupField.setIntegersOnly();
         windupField.setMinMaxDefault(0, 1000, 20);
         addTextField(windupField);
 
-        addLabel(new GuiNpcLabel(11, "ability.active", col2LabelX, y + 5));
-        GuiNpcTextField activeField = new GuiNpcTextField(12, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(activeTicks));
-        activeField.setIntegersOnly();
-        activeField.setMinMaxDefault(1, 1000, 10);
-        addTextField(activeField);
-
-        y += 24;
-
-        // Row 5: Recovery Ticks + Cooldown Ticks
-        addLabel(new GuiNpcLabel(12, "ability.recovery", col1LabelX, y + 5));
-        GuiNpcTextField recoveryField = new GuiNpcTextField(13, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(recoveryTicks));
-        recoveryField.setIntegersOnly();
-        recoveryField.setMinMaxDefault(0, 1000, 20);
-        addTextField(recoveryField);
+        // Sync button - only show if windup animation is selected
+        if (windUpAnimationId >= 0) {
+            GuiNpcButton syncBtn = new GuiNpcButton(17, guiLeft + 115, y, 40, 20, "gui.sync");
+            syncBtn.setHoverText("ability.hover.sync");
+            addButton(syncBtn);
+        }
 
         addLabel(new GuiNpcLabel(13, "ability.cooldown", col2LabelX, y + 5));
         GuiNpcTextField cooldownField = new GuiNpcTextField(10, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(cooldownTicks));
         cooldownField.setIntegersOnly();
-        cooldownField.setMinMaxDefault(0, 10000, 100);
+        cooldownField.setMinMaxDefault(0, 10000, 0);
         addTextField(cooldownField);
     }
 
@@ -395,7 +401,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         if (!targetingModeLocked) {
             String[] targetingModes = getAvailableTargetingModes();
             int selectedIndex = getTargetingModeIndex(targetingMode);
-            addButton(new GuiNpcButton(4, col1FieldX, y, 90, 20, targetingModes, selectedIndex));
+            GuiNpcButton targetBtn = new GuiNpcButton(4, col1FieldX, y, 90, 20, targetingModes, selectedIndex);
+            targetBtn.setHoverText("ability.hover.targeting");
+            addButton(targetBtn);
         } else {
             String modeName = "ability.target." + targetingMode.name().toLowerCase();
             addLabel(new GuiNpcLabel(23, modeName, col1FieldX, y + 5));
@@ -542,7 +550,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
             // Show Telegraph
             addLabel(new GuiNpcLabel(41, "ability.showTelegraph", col1LabelX, y + 5));
-            addButton(new GuiNpcButton(20, guiLeft + 95, y, 40, 20, new String[]{"gui.no", "gui.yes"}, showTelegraph ? 1 : 0));
+            GuiNpcButton telegraphBtn = new GuiNpcButton(20, guiLeft + 95, y, 40, 20, new String[]{"gui.no", "gui.yes"}, showTelegraph ? 1 : 0);
+            telegraphBtn.setHoverText("ability.hover.showTelegraph");
+            addButton(telegraphBtn);
 
             // Telegraph Type (separate column)
             String typeKey = ability.getTelegraphType().name().toLowerCase();
@@ -552,20 +562,20 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
             y += 24;
 
-            // Colors
-            addLabel(new GuiNpcLabel(44, "ability.windUpColor", col1LabelX, y + 5));
-            String windUpHex = String.format("%06X", windUpColor & 0xFFFFFF);
-            GuiNpcButton windUpColorBtn = new GuiNpcButton(22, guiLeft + 95, y, 55, 20, windUpHex);
-            windUpColorBtn.setEnabled(showTelegraph);
-            windUpColorBtn.setTextColor(windUpColor & 0xFFFFFF);
-            addButton(windUpColorBtn);
+            // Colors - only show when telegraph is enabled
+            if (showTelegraph) {
+                addLabel(new GuiNpcLabel(44, "ability.windUpColor", col1LabelX, y + 5));
+                String windUpHex = String.format("%06X", windUpColor & 0xFFFFFF);
+                GuiNpcButton windUpColorBtn = new GuiNpcButton(22, guiLeft + 95, y, 55, 20, windUpHex);
+                windUpColorBtn.setTextColor(windUpColor & 0xFFFFFF);
+                addButton(windUpColorBtn);
 
-            addLabel(new GuiNpcLabel(45, "ability.activeColor", guiLeft + 200, y + 5));
-            String activeHex = String.format("%06X", activeColor & 0xFFFFFF);
-            GuiNpcButton activeColorBtn = new GuiNpcButton(24, guiLeft + 280, y, 55, 20, activeHex);
-            activeColorBtn.setEnabled(showTelegraph);
-            activeColorBtn.setTextColor(activeColor & 0xFFFFFF);
-            addButton(activeColorBtn);
+                addLabel(new GuiNpcLabel(45, "ability.activeColor", guiLeft + 200, y + 5));
+                String activeHex = String.format("%06X", activeColor & 0xFFFFFF);
+                GuiNpcButton activeColorBtn = new GuiNpcButton(24, guiLeft + 280, y, 55, 20, activeHex);
+                activeColorBtn.setTextColor(activeColor & 0xFFFFFF);
+                addButton(activeColorBtn);
+            }
         }
     }
 
@@ -632,8 +642,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // General tab buttons
         else if (id == 14) {
             interruptible = ((GuiNpcButton) guibutton).getValue() == 1;
+            initGui(); // Refresh to show/hide dazed ticks field
         } else if (id == 16) {
             lockMovement = ((GuiNpcButton) guibutton).getValue() == 1;
+        } else if (id == 17) {
+            // Sync windup ticks with animation duration
+            syncWindupWithAnimation();
         }
 
         // Target tab - Targeting mode
@@ -764,10 +778,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             cooldownTicks = textField.getInteger();
         } else if (id == 11) {
             windUpTicks = textField.getInteger();
-        } else if (id == 12) {
-            activeTicks = textField.getInteger();
         } else if (id == 13) {
-            recoveryTicks = textField.getInteger();
+            dazedTicks = textField.getInteger();
         }
 
         // Visual-specific fields (200+) - delegate to subclass
@@ -865,8 +877,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Timing
         ability.setCooldownTicks(cooldownTicks);
         ability.setWindUpTicks(windUpTicks);
-        ability.setActiveTicks(activeTicks);
-        ability.setRecoveryTicks(recoveryTicks);
+        ability.setDazedTicks(dazedTicks);
 
         // Target
         ability.setMinRange(minRange);
@@ -914,8 +925,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         this.cooldownTicks = ability.getCooldownTicks();
         this.windUpTicks = ability.getWindUpTicks();
-        this.activeTicks = ability.getActiveTicks();
-        this.recoveryTicks = ability.getRecoveryTicks();
+        this.dazedTicks = ability.getDazedTicks();
 
         this.minRange = ability.getMinRange();
         this.maxRange = ability.getMaxRange();
@@ -926,6 +936,34 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.windUpColor = ability.getWindUpColor();
         this.activeColor = ability.getActiveColor();
 
+        initGui();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SYNC ANIMATION
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Syncs windup ticks with the selected windup animation's total duration.
+     */
+    private void syncWindupWithAnimation() {
+        if (windUpAnimationId < 0 || AnimationController.Instance == null) {
+            return;
+        }
+
+        Animation animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        if (animation == null || animation.frames.isEmpty()) {
+            return;
+        }
+
+        // Calculate total duration by summing all frame durations
+        int totalDuration = 0;
+        for (Frame frame : animation.frames) {
+            totalDuration += frame.getDuration();
+        }
+
+        // Update the cached value and refresh GUI
+        windUpTicks = totalDuration;
         initGui();
     }
 

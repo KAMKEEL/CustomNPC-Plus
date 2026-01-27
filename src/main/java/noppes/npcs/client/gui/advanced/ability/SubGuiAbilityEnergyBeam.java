@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.type.AbilityEnergyBeam;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -8,6 +10,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Energy Beam ability type-specific settings.
@@ -54,30 +58,40 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Homing + Homing Strength
+        // Row 3: Homing + Homing Strength (only show strength if homing)
         addLabel(new GuiNpcLabel(104, "ability.homing", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isHoming() ? 1 : 0));
+        GuiNpcButton homingBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isHoming() ? 1 : 0);
+        homingBtn.setHoverText("ability.hover.homing");
+        addButton(homingBtn);
 
-        addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, beam.getHomingStrength()));
-
-        y += 24;
-
-        // Row 4: Homing Range + Max Distance
-        addLabel(new GuiNpcLabel(106, "ability.homingRange", labelX, y + 5));
-        addTextField(createFloatField(106, fieldX, y, 50, beam.getHomingRange()));
-
-        addLabel(new GuiNpcLabel(107, "ability.maxDist", col2LabelX, y + 5));
-        addTextField(createFloatField(107, col2FieldX, y, 50, beam.getMaxDistance()));
+        if (beam.isHoming()) {
+            addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
+            addTextField(createFloatField(105, col2FieldX, y, 50, beam.getHomingStrength()));
+        }
 
         y += 24;
 
-        // Row 5: Explosive + Explosion Radius
+        // Row 4: Max Distance (+ Homing Range only if homing)
+        if (beam.isHoming()) {
+            addLabel(new GuiNpcLabel(106, "ability.homingRange", labelX, y + 5));
+            addTextField(createFloatField(106, fieldX, y, 50, beam.getHomingRange()));
+        }
+
+        addLabel(new GuiNpcLabel(107, "ability.maxDist", beam.isHoming() ? col2LabelX : labelX, y + 5));
+        addTextField(createFloatField(107, beam.isHoming() ? col2FieldX : fieldX, y, 50, beam.getMaxDistance()));
+
+        y += 24;
+
+        // Row 5: Explosive + Explosion Radius (only show radius if explosive)
         addLabel(new GuiNpcLabel(108, "ability.explosive", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isExplosive() ? 1 : 0));
+        GuiNpcButton explosiveBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isExplosive() ? 1 : 0);
+        explosiveBtn.setHoverText("ability.hover.explosive");
+        addButton(explosiveBtn);
 
-        addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
-        addTextField(createFloatField(109, col2FieldX, y, 50, beam.getExplosionRadius()));
+        if (beam.isExplosive()) {
+            addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
+            addTextField(createFloatField(109, col2FieldX, y, 50, beam.getExplosionRadius()));
+        }
 
         y += 24;
 
@@ -87,6 +101,11 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(111, "ability.lifetime", col2LabelX, y + 5));
         addTextField(createIntField(111, col2FieldX, y, 50, beam.getMaxLifetime()));
+
+        y += 24;
+
+        // Row 7: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -97,7 +116,15 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 180;
         int col2FieldX = guiLeft + 260;
 
-        // Row 1: Inner Color + Outer Color
+        // Row 1: Anchor Point
+        addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), beam.getAnchorPoint().getId());
+        anchorBtn.setHoverText("ability.hover.anchorPoint");
+        addButton(anchorBtn);
+
+        y += 24;
+
+        // Row 2: Inner Color + Outer Color
         addLabel(new GuiNpcLabel(200, "ability.innerColor", labelX, y + 5));
         String innerHex = String.format("%06X", beam.getInnerColor() & 0xFFFFFF);
         GuiNpcButton innerColorBtn = new GuiNpcButton(200, fieldX, y, 55, 20, innerHex);
@@ -127,6 +154,30 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
         // Row 3: Rotation Speed
         addLabel(new GuiNpcLabel(204, "ability.rotationSpeed", labelX, y + 5));
         addTextField(createFloatField(204, fieldX, y, 50, beam.getRotationSpeed()));
+
+        y += 24;
+
+        // Row 4: Lightning Effect Enabled (only affects head)
+        addLabel(new GuiNpcLabel(205, "ability.lightning", labelX, y + 5));
+        GuiNpcButton lightningBtn = new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.hasLightningEffect() ? 1 : 0);
+        lightningBtn.setHoverText("ability.hover.lightning");
+        addButton(lightningBtn);
+
+        // Only show Lightning settings if Lightning is enabled
+        if (beam.hasLightningEffect()) {
+            y += 24;
+
+            // Row 5: Density + Radius
+            addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
+            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(beam.getLightningDensity()));
+            densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
+            addTextField(densityField);
+
+            addLabel(new GuiNpcLabel(207, "ability.lightningRadius", col2LabelX, y + 5));
+            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(beam.getLightningRadius()));
+            radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
+            addTextField(radiusField);
+        }
     }
 
     @Override
@@ -135,9 +186,14 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
         switch (id) {
             case 104:
                 beam.setHoming(value == 1);
+                initGui();
                 break;
             case 108:
                 beam.setExplosive(value == 1);
+                initGui();
+                break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(beam.getEffects()));
                 break;
         }
     }
@@ -158,6 +214,13 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
                 beam.setOuterColorEnabled(value == 1);
                 initGui();
                 break;
+            case 205:
+                beam.setLightningEffect(value == 1);
+                initGui();
+                break;
+            case 210:
+                beam.setAnchorPoint(AnchorPoint.fromId(value));
+                break;
         }
     }
 
@@ -173,6 +236,12 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
             }
             editingVisualColorId = 0;
             initGui();
+        } else if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                beam.setEffects(result);
+            }
         } else {
             super.subGuiClosed(subgui);
         }
@@ -222,6 +291,12 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
                 break;
             case 204:
                 beam.setRotationSpeed(parseFloat(field, beam.getRotationSpeed()));
+                break;
+            case 206:
+                beam.setLightningDensity(parseFloat(field, beam.getLightningDensity()));
+                break;
+            case 207:
+                beam.setLightningRadius(parseFloat(field, beam.getLightningRadius()));
                 break;
         }
     }

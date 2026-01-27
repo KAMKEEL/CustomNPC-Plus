@@ -1,10 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Shockwave ability type-specific settings.
@@ -41,15 +46,33 @@ public class SubGuiAbilityShockwave extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Stun Duration + Max Targets
-        addLabel(new GuiNpcLabel(103, "ability.stunDuration", labelX, y + 5));
-        addTextField(createIntField(103, fieldX, y, 50, shockwave.getStunDuration()));
+        // Row 3: Max Targets + Effects button
+        addLabel(new GuiNpcLabel(104, "ability.maxTargets", labelX, y + 5));
+        addTextField(createIntField(104, fieldX, y, 50, shockwave.getMaxTargets()));
 
-        addLabel(new GuiNpcLabel(104, "ability.maxTargets", col2LabelX, y + 5));
-        addTextField(createIntField(104, col2FieldX, y, 50, shockwave.getMaxTargets()));
+        addButton(new GuiNpcButton(150, col2LabelX, y, 80, 20, "ability.effects"));
 
         y += 24;
         addLabel(new GuiNpcLabel(105, "ability.shockwaveFalloff", labelX, y + 5));
+    }
+
+    @Override
+    protected void handleTypeButton(int id, GuiNpcButton button) {
+        if (id == 150) {
+            setSubGui(new SubGuiAbilityEffects(shockwave.getEffects()));
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                shockwave.setEffects(result);
+            }
+        }
     }
 
     @Override
@@ -63,9 +86,6 @@ public class SubGuiAbilityShockwave extends SubGuiAbilityConfig {
                 break;
             case 102:
                 shockwave.setPushStrength(parseFloat(field, shockwave.getPushStrength()));
-                break;
-            case 103:
-                shockwave.setStunDuration(field.getInteger());
                 break;
             case 104:
                 shockwave.setMaxTargets(field.getInteger());

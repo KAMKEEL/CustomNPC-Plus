@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Cutter ability type-specific settings.
@@ -57,25 +61,26 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         // Row 4: Sweep Mode + Piercing
         addLabel(new GuiNpcLabel(106, "ability.sweepMode", labelX, y + 5));
         String[] sweepModes = {"Swipe", "Spin"};
-        addButton(new GuiNpcButton(106, fieldX, y, 70, 20, sweepModes, cutter.getSweepMode().ordinal()));
+        GuiNpcButton sweepModeBtn = new GuiNpcButton(106, fieldX, y, 70, 20, sweepModes, cutter.getSweepMode().ordinal());
+        sweepModeBtn.setHoverText("ability.hover.sweepMode");
+        addButton(sweepModeBtn);
 
         addLabel(new GuiNpcLabel(107, "ability.piercing", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, cutter.isPiercing() ? 1 : 0));
+        GuiNpcButton piercingBtn = new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, cutter.isPiercing() ? 1 : 0);
+        piercingBtn.setHoverText("ability.hover.piercing");
+        addButton(piercingBtn);
 
         y += 24;
 
-        // Row 5: Stun Duration + Poison Time
-        addLabel(new GuiNpcLabel(108, "ability.stunDuration", labelX, y + 5));
-        addTextField(createIntField(108, fieldX, y, 50, cutter.getStunDuration()));
+        // Row 5: Spin Duration (only for SPIN mode) + Effects button
+        if (cutter.getSweepMode() == AbilityCutter.SweepMode.SPIN) {
+            addLabel(new GuiNpcLabel(108, "ability.duration", labelX, y + 5));
+            GuiNpcTextField durationField = createIntField(108, fieldX, y, 50, cutter.getSpinDurationTicks());
+            durationField.setMinMaxDefault(1, 1000, 60);
+            addTextField(durationField);
+        }
 
-        addLabel(new GuiNpcLabel(109, "ability.poisonTime", col2LabelX, y + 5));
-        addTextField(createIntField(109, col2FieldX, y, 50, cutter.getPoisonDurationSeconds()));
-
-        y += 24;
-
-        // Row 6: Poison Level
-        addLabel(new GuiNpcLabel(110, "ability.poisonLvl", labelX, y + 5));
-        addTextField(createIntField(110, fieldX, y, 50, cutter.getPoisonLevel()));
+        addButton(new GuiNpcButton(150, col2LabelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -84,10 +89,26 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         switch (id) {
             case 106:
                 cutter.setSweepMode(AbilityCutter.SweepMode.values()[value]);
+                initGui(); // Refresh to show/hide duration field
                 break;
             case 107:
                 cutter.setPiercing(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(cutter.getEffects()));
+                break;
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                cutter.setEffects(result);
+            }
         }
     }
 
@@ -113,13 +134,7 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
                 cutter.setSweepSpeed(parseFloat(field, cutter.getSweepSpeed()));
                 break;
             case 108:
-                cutter.setStunDuration(field.getInteger());
-                break;
-            case 109:
-                cutter.setPoisonDurationSeconds(field.getInteger());
-                break;
-            case 110:
-                cutter.setPoisonLevel(field.getInteger());
+                cutter.setSpinDurationTicks(field.getInteger());
                 break;
         }
     }

@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Projectile ability type-specific settings.
@@ -54,21 +58,34 @@ public class SubGuiAbilityProjectile extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Explosive + Explosion Radius
+        // Row 3: Explosive + Explosion Radius (only show radius if explosive)
         addLabel(new GuiNpcLabel(104, "ability.explosive", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isExplosive() ? 1 : 0));
+        GuiNpcButton explosiveBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isExplosive() ? 1 : 0);
+        explosiveBtn.setHoverText("ability.hover.explosive");
+        addButton(explosiveBtn);
 
-        addLabel(new GuiNpcLabel(105, "ability.explosionRad", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, projectile.getExplosionRadius()));
+        if (projectile.isExplosive()) {
+            addLabel(new GuiNpcLabel(105, "ability.explosionRad", col2LabelX, y + 5));
+            addTextField(createFloatField(105, col2FieldX, y, 50, projectile.getExplosionRadius()));
+        }
 
         y += 24;
 
-        // Row 4: Homing + Homing Strength
+        // Row 4: Homing + Homing Strength (only show strength if homing)
         addLabel(new GuiNpcLabel(106, "ability.homing", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isHoming() ? 1 : 0));
+        GuiNpcButton homingBtn = new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, projectile.isHoming() ? 1 : 0);
+        homingBtn.setHoverText("ability.hover.homing");
+        addButton(homingBtn);
 
-        addLabel(new GuiNpcLabel(107, "ability.homingStr", col2LabelX, y + 5));
-        addTextField(createFloatField(107, col2FieldX, y, 50, projectile.getHomingStrength()));
+        if (projectile.isHoming()) {
+            addLabel(new GuiNpcLabel(107, "ability.homingStr", col2LabelX, y + 5));
+            addTextField(createFloatField(107, col2FieldX, y, 50, projectile.getHomingStrength()));
+        }
+
+        y += 24;
+
+        // Row 5: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -81,10 +98,27 @@ public class SubGuiAbilityProjectile extends SubGuiAbilityConfig {
                 break;
             case 104:
                 projectile.setExplosive(value == 1);
+                initGui();
                 break;
             case 106:
                 projectile.setHoming(value == 1);
+                initGui();
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(projectile.getEffects()));
+                break;
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                projectile.setEffects(result);
+            }
         }
     }
 

@@ -119,8 +119,9 @@ public class AbilityCommand extends CommandKamkeelBase {
         sendResult(sender, "  Type: \u00A7d" + ability.getTypeId());
         sendResult(sender, "  Cooldown: \u00A7e" + ability.getCooldownTicks() + " ticks");
         sendResult(sender, "  Wind Up: \u00A7e" + ability.getWindUpTicks() + " ticks");
-        sendResult(sender, "  Active: \u00A7e" + ability.getActiveTicks() + " ticks");
-        sendResult(sender, "  Recovery: \u00A7e" + ability.getRecoveryTicks() + " ticks");
+        if (ability.isInterruptible()) {
+            sendResult(sender, "  Dazed: \u00A7e" + ability.getDazedTicks() + " ticks");
+        }
         sendResult(sender, "  Range: \u00A7e" + ability.getMinRange() + " - " + ability.getMaxRange());
         sendResult(sender, "  Telegraph: \u00A7e" + (ability.isShowTelegraph() ? "Yes" : "No"));
     }

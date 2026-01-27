@@ -30,7 +30,7 @@ public class AbilitySweeper extends Ability {
     // Type-specific parameters
     private float beamLength = 10.0f;
     private float beamWidth = 0.3f;  // Thin like beam trail
-    private float beamHeight = 0.8f;  // Height above ground (low enough to jump over)
+    private float beamHeight = 0.5f;  // Height above ground (low enough to jump over)
     private float damage = 5.0f;
     private int damageInterval = 5;
     private boolean piercing = true;
@@ -54,10 +54,8 @@ public class AbilitySweeper extends Ability {
         this.maxRange = 15.0f;
         this.minRange = 0.0f;
         this.lockMovement = true;
-        this.cooldownTicks = 200;
+        this.cooldownTicks = 0;
         this.windUpTicks = 60;
-        this.activeTicks = 400;  // Long duration - entity controls actual end
-        this.recoveryTicks = 5;  // Short recovery
         // Circle telegraph to show range
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
@@ -86,36 +84,36 @@ public class AbilitySweeper extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (!world.isRemote) {
-            LogWriter.info("[Sweeper] onExecute called at NPC pos " + npc.posX + ", " + npc.posY + ", " + npc.posZ);
-
-            // Spawn the entity that handles BOTH visuals AND damage
-            activeEntity = new EntityAbilitySweeper(world, npc, target,
-                beamLength, beamWidth, beamHeight,
-                innerColor, outerColor, outerColorEnabled, outerColorWidth,
-                sweepSpeed, numberOfRotations,
-                damage, damageInterval, piercing,
-                lockOnTarget);
-            world.spawnEntityInWorld(activeEntity);
-
-            LogWriter.info("[Sweeper] Spawned sweeper entity");
+        if (world.isRemote) {
+            signalCompletion();
+            return;
         }
+
+        LogWriter.info("[Sweeper] onExecute called at NPC pos " + npc.posX + ", " + npc.posY + ", " + npc.posZ);
+
+        // Spawn the entity that handles BOTH visuals AND damage
+        activeEntity = new EntityAbilitySweeper(world, npc, target,
+            beamLength, beamWidth, beamHeight,
+            innerColor, outerColor, outerColorEnabled, outerColorWidth,
+            sweepSpeed, numberOfRotations,
+            damage, damageInterval, piercing,
+            lockOnTarget);
+        world.spawnEntityInWorld(activeEntity);
+
+        LogWriter.info("[Sweeper] Spawned sweeper entity");
+        // Entity manages itself - completion signaled from onActiveTick when entity dies
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // Entity handles everything - nothing to do here
-        // Check if entity died early (entity manages its own death based on rotations)
-        if (activeEntity != null && activeEntity.isDead) {
-            // Entity finished, ability can end early
-            // The ability system will handle the recovery phase
+        // Entity handles everything - check if entity finished its rotations
+        if (activeEntity == null || activeEntity.isDead) {
+            signalCompletion();
         }
     }
 
     @Override
-    public void reset() {
-        super.reset();
-
+    public void cleanup() {
         // Clean up entity if still alive
         if (activeEntity != null && !activeEntity.isDead) {
             activeEntity.setDead();
@@ -174,7 +172,7 @@ public class AbilitySweeper extends Ability {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.beamLength = nbt.hasKey("beamLength") ? nbt.getFloat("beamLength") : 10.0f;
         this.beamWidth = nbt.hasKey("beamWidth") ? nbt.getFloat("beamWidth") : 0.3f;
-        this.beamHeight = nbt.hasKey("beamHeight") ? nbt.getFloat("beamHeight") : 0.8f;
+        this.beamHeight = nbt.hasKey("beamHeight") ? nbt.getFloat("beamHeight") : 0.5f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 5.0f;
         this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 5;
         this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");

@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Hazard ability type-specific settings.
@@ -27,14 +31,26 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 145;
         int col2FieldX = guiLeft + 205;
 
-        // Row 1: Shape + Placement
-        addLabel(new GuiNpcLabel(100, "ability.shape", labelX, y + 5));
-        String[] shapes = {"Circle", "Ring", "Cone"};
-        addButton(new GuiNpcButton(100, fieldX, y, 55, 20, shapes, hazard.getShape().ordinal()));
+        // Row 1: Duration + Shape
+        addLabel(new GuiNpcLabel(99, "ability.duration", labelX, y + 5));
+        GuiNpcTextField durationField = createIntField(99, fieldX, y, 50, hazard.getDurationTicks());
+        durationField.setMinMaxDefault(1, 2000, 100);
+        addTextField(durationField);
 
-        addLabel(new GuiNpcLabel(101, "ability.placement", col2LabelX, y + 5));
+        addLabel(new GuiNpcLabel(100, "ability.shape", col2LabelX, y + 5));
+        String[] shapes = {"Circle", "Ring", "Cone"};
+        GuiNpcButton shapeBtn = new GuiNpcButton(100, col2FieldX, y, 55, 20, shapes, hazard.getShape().ordinal());
+        shapeBtn.setHoverText("ability.hover.shape");
+        addButton(shapeBtn);
+
+        y += 24;
+
+        // Row 2: Placement
+        addLabel(new GuiNpcLabel(101, "ability.placement", labelX, y + 5));
         String[] placements = {"Caster", "Target", "FollowCast", "FollowTgt"};
-        addButton(new GuiNpcButton(101, col2FieldX, y, 60, 20, placements, hazard.getPlacement().ordinal()));
+        GuiNpcButton placementBtn = new GuiNpcButton(101, fieldX, y, 70, 20, placements, hazard.getPlacement().ordinal());
+        placementBtn.setHoverText("ability.hover.placement");
+        addButton(placementBtn);
 
         y += 24;
 
@@ -70,7 +86,14 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
         addTextField(createIntField(108, fieldX, y, 50, hazard.getPoisonLevel()));
 
         addLabel(new GuiNpcLabel(109, "ability.affectsCaster", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, hazard.isAffectsCaster() ? 1 : 0));
+        GuiNpcButton affectsCasterBtn = new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, hazard.isAffectsCaster() ? 1 : 0);
+        affectsCasterBtn.setHoverText("ability.hover.affectsCaster");
+        addButton(affectsCasterBtn);
+
+        y += 24;
+
+        // Row 6: Effects button
+        addButton(new GuiNpcButton(150, labelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -86,12 +109,30 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
             case 109:
                 hazard.setAffectsCaster(value == 1);
                 break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(hazard.getEffects()));
+                break;
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        super.subGuiClosed(subgui);
+        if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                hazard.setEffects(result);
+            }
         }
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
+            case 99:
+                hazard.setDurationTicks(field.getInteger());
+                break;
             case 102:
                 hazard.setRadius(parseFloat(field, hazard.getRadius()));
                 break;

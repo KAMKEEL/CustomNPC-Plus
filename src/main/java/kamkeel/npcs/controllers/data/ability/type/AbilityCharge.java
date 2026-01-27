@@ -46,10 +46,8 @@ public class AbilityCharge extends Ability {
         this.maxRange = 20.0f;
         this.minRange = 4.0f;
         this.lockMovement = false; // Movement IS the ability
-        this.cooldownTicks = 80;
+        this.cooldownTicks = 0;
         this.windUpTicks = 20;
-        this.activeTicks = 40;
-        this.recoveryTicks = 10;
         // LINE telegraph showing charge path
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
@@ -161,11 +159,13 @@ public class AbilityCharge extends Ability {
             npc.motionX = 0;
             npc.motionZ = 0;
             npc.velocityChanged = true;
+            signalCompletion();
             return;
         }
 
         if (isChargeBlocked(npc)) {
             stopMomentum(npc);
+            signalCompletion();
             return;
         }
 

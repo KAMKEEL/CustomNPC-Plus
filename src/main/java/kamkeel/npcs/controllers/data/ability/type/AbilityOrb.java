@@ -3,11 +3,13 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityOrb;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -53,9 +55,21 @@ public class AbilityOrb extends Ability {
     // Visual properties
     private int innerColor = 0xFFFFFF;  // White core
     private int outerColor = 0x8888FF;  // Light blue glow
-    private float outerColorWidth = 1.8f; // Multiplier for outer glow size
+    private float outerColorWidth = 0.4f; // Additive offset from inner size
     private boolean outerColorEnabled = true; // Whether to render outer glow
     private float rotationSpeed = 4.0f; // Degrees per tick
+
+    // Lightning effect properties
+    private boolean lightningEffect = false;
+    private float lightningDensity = 0.15f;  // Bolts spawned per tick (0.15 = ~15% chance per frame)
+    private float lightningRadius = 0.5f;    // Max distance lightning arcs - scales with orbSize
+    private int lightningFadeTime = 6;       // Ticks before lightning fades out
+
+    // Anchor point for charging position
+    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+
+    // Transient state for orb entity (used during windup charging)
+    private transient EntityAbilityOrb orbEntity = null;
 
     public AbilityOrb() {
         this.typeId = "ability.cnpc.orb";
@@ -63,10 +77,8 @@ public class AbilityOrb extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 25.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 1; // Minimal - just spawn and done
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
     }
@@ -94,26 +106,43 @@ public class AbilityOrb extends Ability {
 
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+        if (world.isRemote) {
+            signalCompletion();
+            return;
+        }
+
+        // Start moving the orb that was spawned during windup
+        if (orbEntity != null && !orbEntity.isDead) {
+            orbEntity.startMoving(target);
+        }
+        orbEntity = null;
+
+        // Orb entity manages itself - ability is done
+        signalCompletion();
+    }
+
+    @Override
+    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
-        // Spawn position at NPC's eye level
-        double spawnX = npc.posX;
-        double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
-        double spawnZ = npc.posZ;
+        // Spawn orb in charging mode on first tick of windup
+        if (tick == 1) {
+            // Create orb in charging mode - follows NPC based on anchor point during windup
+            orbEntity = EntityAbilityOrb.createCharging(
+                world, npc, target,
+                orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                damage, knockback, knockbackUp,
+                orbSpeed, homing, homingStrength, homingRange,
+                explosive, explosionRadius, explosionDamageFalloff,
+                stunDuration, slowDuration, slowLevel,
+                maxDistance, maxLifetime,
+                lightningEffect, lightningDensity, lightningRadius, lightningFadeTime,
+                anchorPoint,  // Anchor point for charging position
+                windUpTicks   // Charge duration = windup duration
+            );
 
-        // Create and spawn the self-managing orb entity
-        EntityAbilityOrb orb = new EntityAbilityOrb(
-            world, npc, target,
-            spawnX, spawnY, spawnZ,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
-            damage, knockback, knockbackUp,
-            orbSpeed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime
-        );
-
-        world.spawnEntityInWorld(orb);
+            world.spawnEntityInWorld(orbEntity);
+        }
     }
 
     @Override
@@ -127,8 +156,12 @@ public class AbilityOrb extends Ability {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        // Nothing to clean up - entity manages itself
+    public void cleanup() {
+        // Despawn orb entity if still alive
+        if (orbEntity != null && !orbEntity.isDead) {
+            orbEntity.setDead();
+        }
+        orbEntity = null;
     }
 
     @Override
@@ -181,6 +214,11 @@ public class AbilityOrb extends Ability {
         nbt.setFloat("outerColorWidth", outerColorWidth);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
+        nbt.setBoolean("lightningEffect", lightningEffect);
+        nbt.setFloat("lightningDensity", lightningDensity);
+        nbt.setFloat("lightningRadius", lightningRadius);
+        nbt.setInteger("lightningFadeTime", lightningFadeTime);
+        nbt.setInteger("anchorPoint", anchorPoint.getId());
     }
 
     @Override
@@ -203,9 +241,14 @@ public class AbilityOrb extends Ability {
         this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
-        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
+        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
+        this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
+        this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
+        this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
+        this.lightningFadeTime = nbt.hasKey("lightningFadeTime") ? nbt.getInteger("lightningFadeTime") : 6;
+        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
     }
 
     // Getters & Setters
@@ -375,5 +418,45 @@ public class AbilityOrb extends Ability {
 
     public void setRotationSpeed(float rotationSpeed) {
         this.rotationSpeed = rotationSpeed;
+    }
+
+    public boolean hasLightningEffect() {
+        return lightningEffect;
+    }
+
+    public void setLightningEffect(boolean lightningEffect) {
+        this.lightningEffect = lightningEffect;
+    }
+
+    public float getLightningDensity() {
+        return lightningDensity;
+    }
+
+    public void setLightningDensity(float lightningDensity) {
+        this.lightningDensity = lightningDensity;
+    }
+
+    public float getLightningRadius() {
+        return lightningRadius;
+    }
+
+    public void setLightningRadius(float lightningRadius) {
+        this.lightningRadius = lightningRadius;
+    }
+
+    public int getLightningFadeTime() {
+        return lightningFadeTime;
+    }
+
+    public void setLightningFadeTime(int lightningFadeTime) {
+        this.lightningFadeTime = lightningFadeTime;
+    }
+
+    public AnchorPoint getAnchorPoint() {
+        return anchorPoint;
+    }
+
+    public void setAnchorPoint(AnchorPoint anchorPoint) {
+        this.anchorPoint = anchorPoint;
     }
 }

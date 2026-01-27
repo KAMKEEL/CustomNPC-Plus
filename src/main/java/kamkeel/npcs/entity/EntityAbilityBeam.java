@@ -1,5 +1,7 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -47,6 +49,24 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     // Origin stays fixed (or follows owner)
     private boolean attachedToOwner = true;
 
+    // Whether to render tail orb (only when anchored)
+    private boolean renderTailOrb = true;
+
+    // Charging state (during windup)
+    private boolean charging = false;
+    private int chargeDuration = 40;
+    private int chargeTick = 0;
+    private float chargeOffsetDistance = 1.0f;
+    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+
+    // Trail fading for non-anchored beams (comet effect)
+    private boolean fadeTrail = false;
+    private int trailFadeTime = 20; // Ticks for trail to fully fade
+    private List<Integer> trailPointAges = new ArrayList<>();
+
+    // Data watcher index for charging state (synced to clients)
+    private static final int DW_CHARGING = 20;
+
     // Debug logging
     private static final boolean DEBUG_LOGGING = true;
 
@@ -54,8 +74,32 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         super(world);
     }
 
+    @Override
+    protected void entityInit() {
+        super.entityInit();
+        // Register data watcher for charging state
+        this.dataWatcher.addObject(DW_CHARGING, (byte) 0);
+    }
+
     /**
-     * Full constructor with all parameters.
+     * Check if beam is in charging state (synced via data watcher).
+     */
+    public boolean isCharging() {
+        return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
+    }
+
+    /**
+     * Set charging state (server only, synced to clients via data watcher).
+     */
+    private void setCharging(boolean value) {
+        this.charging = value;
+        if (!worldObj.isRemote) {
+            this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));
+        }
+    }
+
+    /**
+     * Full constructor with all parameters (no lightning).
      */
     public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
@@ -66,15 +110,62 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
                               int stunDuration, int slowDuration, int slowLevel,
                               float maxDistance, int maxLifetime) {
+        this(world, owner, target, x, y, z,
+            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
+            explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
+            false, 0.15f, 0.5f);
+    }
+
+    /**
+     * Full constructor with all parameters including lightning.
+     */
+    public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
+                              double x, double y, double z,
+                              float beamWidth, float headSize, int innerColor, int outerColor,
+                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              float damage, float knockback, float knockbackUp,
+                              float speed, boolean homing, float homingStrength, float homingRange,
+                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                              int stunDuration, int slowDuration, int slowLevel,
+                              float maxDistance, int maxLifetime,
+                              boolean lightningEffect, float lightningDensity, float lightningRadius) {
+        this(world, owner, target, x, y, z,
+            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
+            explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius,
+            true); // Default to anchored mode
+    }
+
+    /**
+     * Full constructor with all parameters including lightning and anchored mode.
+     * @param anchoredMode If true, origin follows owner and tail orb is rendered.
+     *                     If false, beam is free-moving with trailing length (no tail orb).
+     */
+    public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
+                              double x, double y, double z,
+                              float beamWidth, float headSize, int innerColor, int outerColor,
+                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              float damage, float knockback, float knockbackUp,
+                              float speed, boolean homing, float homingStrength, float homingRange,
+                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                              int stunDuration, int slowDuration, int slowLevel,
+                              float maxDistance, int maxLifetime,
+                              boolean lightningEffect, float lightningDensity, float lightningRadius,
+                              boolean anchoredMode) {
         super(world);
 
-        // Initialize base properties
+        // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
             headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime);
+            maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius, 6);
 
         // Beam-specific properties
         this.speed = speed;
@@ -83,6 +174,10 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.homingRange = homingRange;
         this.beamWidth = beamWidth;
         this.headSize = headSize;
+
+        // Anchored mode controls whether origin follows owner and tail orb is rendered
+        this.attachedToOwner = anchoredMode;
+        this.renderTailOrb = anchoredMode;
 
         // Initialize head offset at origin (0,0,0 relative)
         this.headOffsetX = 0;
@@ -119,6 +214,120 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         }
     }
 
+    /**
+     * Create a beam in charging mode (for windup phase).
+     * The beam will grow from 0 to headSize over chargeDuration ticks.
+     * Position follows the owner based on anchor point.
+     */
+    public static EntityAbilityBeam createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
+                                                    float beamWidth, float headSize, int innerColor, int outerColor,
+                                                    boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                    float damage, float knockback, float knockbackUp,
+                                                    float speed, boolean homing, float homingStrength, float homingRange,
+                                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                                                    int stunDuration, int slowDuration, int slowLevel,
+                                                    float maxDistance, int maxLifetime,
+                                                    boolean lightningEffect, float lightningDensity, float lightningRadius,
+                                                    boolean anchoredMode, int chargeDuration, float chargeOffsetDistance,
+                                                    AnchorPoint anchorPoint) {
+        // Calculate initial position based on anchor point
+        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint, chargeOffsetDistance);
+        double spawnX = spawnPos.xCoord;
+        double spawnY = spawnPos.yCoord;
+        double spawnZ = spawnPos.zCoord;
+
+        EntityAbilityBeam beam = new EntityAbilityBeam(
+            world, owner, target,
+            spawnX, spawnY, spawnZ,
+            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
+            explosive, explosionRadius, explosionDamageFalloff,
+            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
+            lightningEffect, lightningDensity, lightningRadius,
+            anchoredMode);
+
+        // Set charging state (uses data watcher for client sync)
+        beam.setCharging(true);
+        beam.chargeDuration = chargeDuration;
+        beam.chargeTick = 0;
+        beam.chargeOffsetDistance = chargeOffsetDistance;
+        beam.anchorPoint = anchorPoint;
+
+        // Non-anchored beams have fading trail (comet effect)
+        beam.fadeTrail = !anchoredMode;
+
+        // Clear motion while charging
+        beam.motionX = 0;
+        beam.motionY = 0;
+        beam.motionZ = 0;
+
+        return beam;
+    }
+
+    /**
+     * Start the beam firing (exit charging mode).
+     * Called by ability when windup ends.
+     *
+     * For anchored beams: origin follows owner, head starts at charged position
+     * For non-anchored beams: origin fixed at charged position, head starts there
+     */
+    public void startFiring(EntityLivingBase target) {
+        if (!isCharging()) return;
+
+        setCharging(false);
+
+        // Origin (tail) stays at the charged position - where the orb was
+        // This is the same for both anchored and non-anchored modes
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+
+        // Head starts at the origin (tail position)
+        headOffsetX = 0;
+        headOffsetY = 0;
+        headOffsetZ = 0;
+        prevHeadOffsetX = 0;
+        prevHeadOffsetY = 0;
+        prevHeadOffsetZ = 0;
+
+        // Origin no longer follows owner after firing starts
+        // (for anchored mode, tail is fixed in space; for non-anchored, there's no tail)
+        attachedToOwner = false;
+
+        // Initialize trail with just the origin point
+        trailPoints.clear();
+        trailPointAges.clear();
+        trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
+        if (fadeTrail) trailPointAges.add(0);
+
+        // Calculate velocity toward target (head starts at origin = startX/Y/Z)
+        Entity owner = getOwner();
+
+        if (target != null) {
+            double dx = target.posX - startX;
+            double dy = (target.posY + target.height * 0.5) - startY;
+            double dz = target.posZ - startZ;
+            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (len > 0) {
+                motionX = (dx / len) * speed;
+                motionY = (dy / len) * speed;
+                motionZ = (dz / len) * speed;
+            }
+        } else if (owner != null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = (float) Math.toRadians(owner.rotationPitch);
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
+            motionY = -Math.sin(pitch) * speed;
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+        }
+
+        if (DEBUG_LOGGING && !worldObj.isRemote) {
+            LogWriter.info("[Beam] startFiring: origin=(" + startX + "," + startY + "," + startZ +
+                ") headOffset=(" + headOffsetX + "," + headOffsetY + "," + headOffsetZ +
+                ") motion=(" + motionX + "," + motionY + "," + motionZ + ")");
+        }
+    }
+
     @Override
     protected boolean checkMaxDistance() {
         // Check distance using head offset (distance from origin)
@@ -136,19 +345,33 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
     @Override
     protected void updateProjectile() {
+        // Handle charging state (windup phase) - use isCharging() for synced value
+        if (isCharging()) {
+            updateCharging();
+            return;
+        }
+
         // Store previous head offset for interpolation
         prevHeadOffsetX = headOffsetX;
         prevHeadOffsetY = headOffsetY;
         prevHeadOffsetZ = headOffsetZ;
 
+        // Age trail points for fading effect
+        if (fadeTrail) {
+            ageTrailPoints();
+        }
+
         if (worldObj.isRemote) {
-            // Client: interpolate entity position, derive head from offset
+            // Client: interpolate entity position
             handleClientInterpolation();
 
-            // Client also updates head offset to match motion for smooth movement
-            headOffsetX += motionX;
-            headOffsetY += motionY;
-            headOffsetZ += motionZ;
+            // Client: derive head offset from entity position and origin
+            // Entity position = head world position, so headOffset = pos - origin
+            // Note: During charging, updateCharging() handles origin positioning
+            // After firing, origin is fixed at the charged position
+            headOffsetX = posX - startX;
+            headOffsetY = posY - startY;
+            headOffsetZ = posZ - startZ;
 
             // Add trail point on client
             addTrailPoint();
@@ -166,7 +389,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                 Entity owner = getOwner();
                 if (owner != null) {
                     startX = owner.posX;
-                    startY = owner.posY + owner.height * 0.7;
+                    startY = owner.posY + owner.getEyeHeight() * 0.7;
                     startZ = owner.posZ;
                 }
             }
@@ -201,10 +424,67 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         }
     }
 
+    /**
+     * Update during charging state - follow owner based on anchor point.
+     */
+    private void updateCharging() {
+        chargeTick++;
+
+        Entity owner = getOwner();
+        if (owner == null || owner.isDead) {
+            setDead();
+            return;
+        }
+
+        // Calculate position based on anchor point
+        Vec3 pos;
+        if (owner instanceof EntityLivingBase) {
+            pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorPoint, chargeOffsetDistance);
+        } else {
+            // Fallback for non-living entities (shouldn't happen normally)
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            double offsetX = -Math.sin(yaw) * chargeOffsetDistance;
+            double offsetZ = Math.cos(yaw) * chargeOffsetDistance;
+            pos = Vec3.createVectorHelper(
+                owner.posX + offsetX,
+                owner.posY + owner.getEyeHeight() * 0.7,
+                owner.posZ + offsetZ
+            );
+        }
+
+        setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+
+        // Also update origin for when firing starts
+        startX = pos.xCoord;
+        startY = pos.yCoord;
+        startZ = pos.zCoord;
+    }
+
+    /**
+     * Age trail points and remove old ones (for comet effect).
+     */
+    private void ageTrailPoints() {
+        // Age all trail points
+        for (int i = 0; i < trailPointAges.size(); i++) {
+            trailPointAges.set(i, trailPointAges.get(i) + 1);
+        }
+
+        // Remove trail points that have fully faded
+        while (!trailPointAges.isEmpty() && trailPointAges.get(0) >= trailFadeTime) {
+            trailPointAges.remove(0);
+            if (!trailPoints.isEmpty()) {
+                trailPoints.remove(0);
+            }
+        }
+    }
+
     private void addTrailPoint() {
         // Trail points are RELATIVE to origin
         if (trailPoints.isEmpty()) {
             trailPoints.add(Vec3.createVectorHelper(headOffsetX, headOffsetY, headOffsetZ));
+            if (fadeTrail) {
+                trailPointAges.add(0);
+            }
             return;
         }
 
@@ -217,10 +497,15 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         if (dist >= MIN_POINT_DISTANCE) {
             trailPoints.add(Vec3.createVectorHelper(headOffsetX, headOffsetY, headOffsetZ));
+            if (fadeTrail) {
+                trailPointAges.add(0);
+            }
 
-            // Limit trail length
-            while (trailPoints.size() > MAX_TRAIL_POINTS) {
-                trailPoints.remove(0);
+            // Limit trail length (only if not using fading - fading handles its own cleanup)
+            if (!fadeTrail) {
+                while (trailPoints.size() > MAX_TRAIL_POINTS) {
+                    trailPoints.remove(0);
+                }
             }
         }
     }
@@ -369,6 +654,59 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         return startZ;
     }
 
+    /**
+     * Whether the tail orb should be rendered (only true in anchored mode).
+     */
+    public boolean shouldRenderTailOrb() {
+        return renderTailOrb;
+    }
+
+    /**
+     * Whether the beam is attached to its owner (anchored mode).
+     */
+    public boolean isAttachedToOwner() {
+        return attachedToOwner;
+    }
+
+    /**
+     * Get the charge progress (0-1).
+     */
+    public float getChargeProgress() {
+        if (chargeDuration <= 0) return 1.0f;
+        return Math.min(1.0f, (float) chargeTick / chargeDuration);
+    }
+
+    /**
+     * Get interpolated charge progress for smooth rendering.
+     */
+    public float getInterpolatedChargeProgress(float partialTicks) {
+        if (chargeDuration <= 0) return 1.0f;
+        float prevProgress = Math.max(0, (float) (chargeTick - 1) / chargeDuration);
+        float currProgress = Math.min(1.0f, (float) chargeTick / chargeDuration);
+        return prevProgress + (currProgress - prevProgress) * partialTicks;
+    }
+
+    /**
+     * Whether trail should fade (comet effect for non-anchored beams).
+     */
+    public boolean hasFadingTrail() {
+        return fadeTrail;
+    }
+
+    /**
+     * Get trail point ages for fading calculation.
+     */
+    public List<Integer> getTrailPointAges() {
+        return trailPointAges;
+    }
+
+    /**
+     * Get trail fade time in ticks.
+     */
+    public int getTrailFadeTime() {
+        return trailFadeTime;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -386,6 +724,17 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.prevHeadOffsetY = this.headOffsetY;
         this.prevHeadOffsetZ = this.headOffsetZ;
         this.attachedToOwner = !nbt.hasKey("AttachedToOwner") || nbt.getBoolean("AttachedToOwner");
+        this.renderTailOrb = !nbt.hasKey("RenderTailOrb") || nbt.getBoolean("RenderTailOrb");
+        // Read charging state and sync to data watcher
+        boolean isCharging = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
+        this.charging = isCharging;
+        this.dataWatcher.updateObject(DW_CHARGING, (byte) (isCharging ? 1 : 0));
+        this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
+        this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
+        this.chargeOffsetDistance = nbt.hasKey("ChargeOffsetDistance") ? nbt.getFloat("ChargeOffsetDistance") : 1.0f;
+        this.anchorPoint = nbt.hasKey("AnchorPoint") ? AnchorPoint.fromId(nbt.getInteger("AnchorPoint")) : AnchorPoint.FRONT;
+        this.fadeTrail = nbt.hasKey("FadeTrail") && nbt.getBoolean("FadeTrail");
+        this.trailFadeTime = nbt.hasKey("TrailFadeTime") ? nbt.getInteger("TrailFadeTime") : 20;
 
         // Read trail points (relative to origin)
         trailPoints.clear();
@@ -414,6 +763,14 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         nbt.setDouble("HeadOffsetY", headOffsetY);
         nbt.setDouble("HeadOffsetZ", headOffsetZ);
         nbt.setBoolean("AttachedToOwner", attachedToOwner);
+        nbt.setBoolean("RenderTailOrb", renderTailOrb);
+        nbt.setBoolean("Charging", isCharging());
+        nbt.setInteger("ChargeDuration", chargeDuration);
+        nbt.setInteger("ChargeTick", chargeTick);
+        nbt.setFloat("ChargeOffsetDistance", chargeOffsetDistance);
+        nbt.setInteger("AnchorPoint", anchorPoint.getId());
+        nbt.setBoolean("FadeTrail", fadeTrail);
+        nbt.setInteger("TrailFadeTime", trailFadeTime);
 
         // Write trail points
         NBTTagList trailList = new NBTTagList();

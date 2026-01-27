@@ -5,6 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import kamkeel.npcs.client.renderer.lightning.LightningBolt;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
@@ -115,6 +116,9 @@ public class ClientTickHandler {
         if (TelegraphManager.ClientInstance != null) {
             TelegraphManager.ClientInstance.tick(mc.theWorld);
         }
+
+        // Update lightning bolts for ability effects
+        LightningBolt.updateAll();
         if (Minecraft.getMinecraft().thePlayer != null && (prevWidth != mc.displayWidth || prevHeight != mc.displayHeight)) {
             prevWidth = mc.displayWidth;
             prevHeight = mc.displayHeight;

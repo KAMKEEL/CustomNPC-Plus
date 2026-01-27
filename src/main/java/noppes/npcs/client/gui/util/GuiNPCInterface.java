@@ -57,6 +57,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public float bgScaleX = 1;
     public float bgScaleY = 1;
     public float bgScaleZ = 1;
+    public int bgTextureHeight = 256;  // Actual content height in texture (for bottom border stitching)
 
     public GuiNPCInterface(EntityNPCInterface npc) {
         this.player = Minecraft.getMinecraft().thePlayer;
@@ -72,6 +73,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     public void setBackground(String texture) {
         background = new ResourceLocation("customnpcs", "textures/gui/" + texture);
+    }
+
+    public void setBackground(String texture, int textureHeight) {
+        background = new ResourceLocation("customnpcs", "textures/gui/" + texture);
+        bgTextureHeight = textureHeight;
     }
 
     public ResourceLocation getResource(String texture) {
@@ -421,23 +427,44 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GL11.glTranslatef(guiLeft, guiTop, 0);
         GL11.glScalef(bgScale * bgScaleX, bgScale * bgScaleY, bgScale * bgScaleZ);
         mc.renderEngine.bindTexture(background);
+
+        // Handle Y dimension: if ySize < texture content height, stitch bottom border
+        int topHeight = ySize;
+        int bottomHeight = 0;
+        int bottomTextureV = 0;
+        if (ySize < bgTextureHeight) {
+            // Keep bottom border from texture bottom (last 6 pixels of actual content)
+            bottomHeight = 6;
+            topHeight = ySize - bottomHeight;
+            bottomTextureV = bgTextureHeight - bottomHeight;
+        }
+
         if (xSize > 256) {
             // GUI wider than texture: draw left portion, then right portion from texture edge
-            drawTexturedModalRect(0, 0, 0, 0, 250, ySize);
-            drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, ySize);
+            drawTexturedModalRect(0, 0, 0, 0, 250, topHeight);
+            drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, topHeight);
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, 250, bottomHeight);
+                drawTexturedModalRect(250, topHeight, 256 - (xSize - 250), bottomTextureV, xSize - 250, bottomHeight);
+            }
         } else if (xSize < 256) {
             // GUI narrower than texture: stitch left and right edges together
-            // Left portion (first half of GUI)
             int leftWidth = xSize / 2;
-            // Right portion width (remaining)
             int rightWidth = xSize - leftWidth;
-            // Draw left side from texture start
-            drawTexturedModalRect(0, 0, 0, 0, leftWidth, ySize);
-            // Draw right side from texture end (256 - rightWidth)
-            drawTexturedModalRect(leftWidth, 0, 256 - rightWidth, 0, rightWidth, ySize);
+            // Draw top portion
+            drawTexturedModalRect(0, 0, 0, 0, leftWidth, topHeight);
+            drawTexturedModalRect(leftWidth, 0, 256 - rightWidth, 0, rightWidth, topHeight);
+            // Draw bottom border strip
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, leftWidth, bottomHeight);
+                drawTexturedModalRect(leftWidth, topHeight, 256 - rightWidth, bottomTextureV, rightWidth, bottomHeight);
+            }
         } else {
-            // GUI exactly 256px: draw full texture
-            drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
+            // GUI exactly 256px wide
+            drawTexturedModalRect(0, 0, 0, 0, xSize, topHeight);
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, xSize, bottomHeight);
+            }
         }
         GL11.glPopMatrix();
     }

@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.advanced.ability;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDisc;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -8,6 +10,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.List;
 
 /**
  * GUI for configuring Disc ability type-specific settings.
@@ -53,30 +57,42 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Homing + Homing Strength
+        // Row 3: Homing + Homing Strength (only show strength if homing)
         addLabel(new GuiNpcLabel(104, "ability.homing", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isHoming() ? 1 : 0));
+        GuiNpcButton homingBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isHoming() ? 1 : 0);
+        homingBtn.setHoverText("ability.hover.homing");
+        addButton(homingBtn);
 
-        addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, disc.getHomingStrength()));
+        if (disc.isHoming()) {
+            addLabel(new GuiNpcLabel(105, "ability.homingStr", col2LabelX, y + 5));
+            addTextField(createFloatField(105, col2FieldX, y, 50, disc.getHomingStrength()));
+        }
 
         y += 24;
 
-        // Row 4: Boomerang + Boomerang Delay
+        // Row 4: Boomerang + Boomerang Delay (only show delay if boomerang)
         addLabel(new GuiNpcLabel(106, "ability.boomerang", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isBoomerang() ? 1 : 0));
+        GuiNpcButton boomerangBtn = new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isBoomerang() ? 1 : 0);
+        boomerangBtn.setHoverText("ability.hover.boomerang");
+        addButton(boomerangBtn);
 
-        addLabel(new GuiNpcLabel(107, "ability.boomerangDelay", col2LabelX, y + 5));
-        addTextField(createIntField(107, col2FieldX, y, 50, disc.getBoomerangDelay()));
+        if (disc.isBoomerang()) {
+            addLabel(new GuiNpcLabel(107, "ability.boomerangDelay", col2LabelX, y + 5));
+            addTextField(createIntField(107, col2FieldX, y, 50, disc.getBoomerangDelay()));
+        }
 
         y += 24;
 
-        // Row 5: Explosive + Explosion Radius
+        // Row 5: Explosive + Explosion Radius (only show radius if explosive)
         addLabel(new GuiNpcLabel(108, "ability.explosive", labelX, y + 5));
-        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isExplosive() ? 1 : 0));
+        GuiNpcButton explosiveBtn = new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.isExplosive() ? 1 : 0);
+        explosiveBtn.setHoverText("ability.hover.explosive");
+        addButton(explosiveBtn);
 
-        addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
-        addTextField(createFloatField(109, col2FieldX, y, 50, disc.getExplosionRadius()));
+        if (disc.isExplosive()) {
+            addLabel(new GuiNpcLabel(109, "ability.explosionRad", col2LabelX, y + 5));
+            addTextField(createFloatField(109, col2FieldX, y, 50, disc.getExplosionRadius()));
+        }
 
         y += 24;
 
@@ -86,6 +102,14 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(111, "ability.maxDist", col2LabelX, y + 5));
         addTextField(createFloatField(111, col2FieldX, y, 50, disc.getMaxDistance()));
+
+        y += 24;
+
+        // Row 7: Max Lifetime + Effects button
+        addLabel(new GuiNpcLabel(112, "ability.lifetime", labelX, y + 5));
+        addTextField(createIntField(112, fieldX, y, 50, disc.getMaxLifetime()));
+
+        addButton(new GuiNpcButton(150, col2LabelX, y, 80, 20, "ability.effects"));
     }
 
     @Override
@@ -96,7 +120,15 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 180;
         int col2FieldX = guiLeft + 260;
 
-        // Row 1: Inner Color + Outer Color
+        // Row 1: Anchor Point
+        addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), disc.getAnchorPoint().getId());
+        anchorBtn.setHoverText("ability.hover.anchorPoint");
+        addButton(anchorBtn);
+
+        y += 24;
+
+        // Row 2: Inner Color + Outer Color
         addLabel(new GuiNpcLabel(200, "ability.innerColor", labelX, y + 5));
         String innerHex = String.format("%06X", disc.getInnerColor() & 0xFFFFFF);
         GuiNpcButton innerColorBtn = new GuiNpcButton(200, fieldX, y, 55, 20, innerHex);
@@ -126,6 +158,30 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
         // Row 3: Rotation Speed
         addLabel(new GuiNpcLabel(204, "ability.rotationSpeed", labelX, y + 5));
         addTextField(createFloatField(204, fieldX, y, 50, disc.getRotationSpeed()));
+
+        y += 24;
+
+        // Row 4: Lightning Effect Enabled
+        addLabel(new GuiNpcLabel(205, "ability.lightning", labelX, y + 5));
+        GuiNpcButton lightningBtn = new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, disc.hasLightningEffect() ? 1 : 0);
+        lightningBtn.setHoverText("ability.hover.lightning");
+        addButton(lightningBtn);
+
+        // Only show Lightning settings if Lightning is enabled
+        if (disc.hasLightningEffect()) {
+            y += 24;
+
+            // Row 5: Density + Radius
+            addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
+            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(disc.getLightningDensity()));
+            densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
+            addTextField(densityField);
+
+            addLabel(new GuiNpcLabel(207, "ability.lightningRadius", col2LabelX, y + 5));
+            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(disc.getLightningRadius()));
+            radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
+            addTextField(radiusField);
+        }
     }
 
     @Override
@@ -134,12 +190,18 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
         switch (id) {
             case 104:
                 disc.setHoming(value == 1);
+                initGui();
                 break;
             case 106:
                 disc.setBoomerang(value == 1);
+                initGui();
                 break;
             case 108:
                 disc.setExplosive(value == 1);
+                initGui();
+                break;
+            case 150:
+                setSubGui(new SubGuiAbilityEffects(disc.getEffects()));
                 break;
         }
     }
@@ -160,6 +222,13 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
                 disc.setOuterColorEnabled(value == 1);
                 initGui();
                 break;
+            case 205:
+                disc.setLightningEffect(value == 1);
+                initGui();
+                break;
+            case 210:
+                disc.setAnchorPoint(AnchorPoint.fromId(value));
+                break;
         }
     }
 
@@ -175,6 +244,12 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
             }
             editingVisualColorId = 0;
             initGui();
+        } else if (subgui instanceof SubGuiAbilityEffects) {
+            SubGuiAbilityEffects effectsGui = (SubGuiAbilityEffects) subgui;
+            List<AbilityEffect> result = effectsGui.getResult();
+            if (result != null) {
+                disc.setEffects(result);
+            }
         } else {
             super.subGuiClosed(subgui);
         }
@@ -210,6 +285,9 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
             case 111:
                 disc.setMaxDistance(parseFloat(field, disc.getMaxDistance()));
                 break;
+            case 112:
+                disc.setMaxLifetime(field.getInteger());
+                break;
         }
     }
 
@@ -221,6 +299,12 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
                 break;
             case 204:
                 disc.setRotationSpeed(parseFloat(field, disc.getRotationSpeed()));
+                break;
+            case 206:
+                disc.setLightningDensity(parseFloat(field, disc.getLightningDensity()));
+                break;
+            case 207:
+                disc.setLightningRadius(parseFloat(field, disc.getLightningRadius()));
                 break;
         }
     }
