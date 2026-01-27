@@ -178,32 +178,32 @@ public class AnchorPointHelper {
         float palmY = PALM_DOWN * armScale.scaleY;
         float palmZ = PALM_FORWARD * armScale.scaleZ;
 
-        // Apply arm rotations (order: Z -> Y -> X)
+        // Apply arm rotations (order: X -> Y -> Z, matching GL's reverse application)
         double hx = palmX, hy = palmY, hz = palmZ;
 
-        // Z rotation
-        double cosZ = Math.cos(rotations[2]);
-        double sinZ = Math.sin(rotations[2]);
-        double newX = hx * cosZ - hy * sinZ;
-        double newY = hx * sinZ + hy * cosZ;
-        hx = newX;
-        hy = newY;
-
-        // Y rotation
-        double cosY = Math.cos(rotations[1]);
-        double sinY = Math.sin(rotations[1]);
-        newX = hx * cosY + hz * sinY;
-        double newZ = -hx * sinY + hz * cosY;
-        hx = newX;
-        hz = newZ;
-
-        // X rotation
+        // X rotation first
         double cosX = Math.cos(rotations[0]);
         double sinX = Math.sin(rotations[0]);
-        newY = hy * cosX - hz * sinX;
-        newZ = hy * sinX + hz * cosX;
+        double newY = hy * cosX - hz * sinX;
+        double newZ = hy * sinX + hz * cosX;
         hy = newY;
         hz = newZ;
+
+        // Y rotation second
+        double cosY = Math.cos(rotations[1]);
+        double sinY = Math.sin(rotations[1]);
+        double newX = hx * cosY + hz * sinY;
+        newZ = -hx * sinY + hz * cosY;
+        hx = newX;
+        hz = newZ;
+
+        // Z rotation last
+        double cosZ = Math.cos(rotations[2]);
+        double sinZ = Math.sin(rotations[2]);
+        newX = hx * cosZ - hy * sinZ;
+        newY = hx * sinZ + hy * cosZ;
+        hx = newX;
+        hy = newY;
 
         // Combine shoulder + rotated hand offset
         double modelX = shoulderX + hx;
@@ -216,12 +216,15 @@ public class AnchorPointHelper {
         double blockZ = modelZ * MODEL_SCALE * scale;
 
         // Apply body yaw rotation
+        // Renderer uses glRotate(180 - yaw), so: cos(180-yaw) = -cos(yaw), sin(180-yaw) = sin(yaw)
+        // Y-axis rotation: x' = x*cos + z*sin, z' = -x*sin + z*cos
+        // Substituting: x' = -x*cos(yaw) + z*sin(yaw), z' = -x*sin(yaw) - z*cos(yaw)
         float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
         double cosYaw = Math.cos(bodyYaw);
         double sinYaw = Math.sin(bodyYaw);
 
         double worldOffsetX = blockX * cosYaw + blockZ * sinYaw;
-        double worldOffsetZ = -blockX * sinYaw + blockZ * cosYaw;
+        double worldOffsetZ = blockX * sinYaw - blockZ * cosYaw;
 
         // Calculate shoulder height based on entity and scale
         float shoulderHeight = entity.height * ARM_HEIGHT;
