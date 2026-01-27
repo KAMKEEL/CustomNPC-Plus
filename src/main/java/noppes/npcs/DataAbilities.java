@@ -166,8 +166,20 @@ public class DataAbilities {
 
                     // Call onExecute
                     currentAbility.onExecute(npc, target, npc.worldObj);
+
+                    // Check if ability completed during onExecute (signalCompletion was called)
+                    if (currentAbility.getPhase() == AbilityPhase.IDLE) {
+                        handleAbilityCompletion(target);
+                        return;
+                    }
                 }
                 currentAbility.onActiveTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
+
+                // Check if ability completed during onActiveTick (signalCompletion was called)
+                if (currentAbility.getPhase() == AbilityPhase.IDLE) {
+                    handleAbilityCompletion(target);
+                    return;
+                }
                 break;
 
             case DAZED:
@@ -175,17 +187,31 @@ public class DataAbilities {
                 break;
 
             case IDLE:
-                // Ability completed
-                currentAbility.onComplete(npc, target);
-
-                // Fire complete event
-                AbilityEvent.CompleteEvent completeEvent = new AbilityEvent.CompleteEvent(
-                    npc.wrappedNPC, currentAbility, target);
-                NpcAPI.EVENT_BUS.post(completeEvent);
-
-                onAbilityComplete();
+                // Ability completed (reached via tick() phase transition from DAZED)
+                handleAbilityCompletion(target);
                 break;
         }
+    }
+
+    /**
+     * Handle ability completion - called when ability phase becomes IDLE.
+     * This can happen from:
+     * - signalCompletion() called in onExecute() or onActiveTick()
+     * - tick() transitioning from DAZED to IDLE
+     */
+    private void handleAbilityCompletion(EntityLivingBase target) {
+        if (currentAbility == null) return;
+
+        // Call onComplete callback
+        currentAbility.onComplete(npc, target);
+
+        // Fire complete event
+        AbilityEvent.CompleteEvent completeEvent = new AbilityEvent.CompleteEvent(
+            npc.wrappedNPC, currentAbility, target);
+        NpcAPI.EVENT_BUS.post(completeEvent);
+
+        // Clean up and roll cooldown
+        onAbilityComplete();
 
         // Clear AI pathfinding if ability is controlling movement
         // But DON'T zero motion - let the ability set it if needed
