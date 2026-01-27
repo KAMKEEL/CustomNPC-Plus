@@ -22,14 +22,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAbilityHandler;
+import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -49,6 +48,7 @@ public class AbilityController implements IAbilityHandler {
     public AbilityController() {
         Instance = this;
         registerBuiltins();
+        new Animations();
     }
 
     /**
@@ -320,5 +320,68 @@ public class AbilityController implements IAbilityHandler {
         // Zone/Trap abilities
         registerType("cnpc:hazard", AbilityHazard::new);
         registerType("cnpc:trap", AbilityTrap::new);
+    }
+
+    public static class Animations {
+        public HashMap<Integer, Map<AbilityPhase, Animation>> animations;
+
+        public static Animations Instance;
+
+        public Animations() {
+            Instance = this;
+            animations = new HashMap<>();
+            load();
+        }
+
+        public void load() {
+            registerBuiltins();
+        }
+
+        private void registerBuiltins() {
+            animations.clear();
+
+            try {
+                for (AbilityPhase phase : AbilityPhase.values()) {
+                    for (AbilityAnimation anim : AbilityAnimation.values()) {
+                        File file = anim.get(phase);
+
+                        if (file == null) {
+//                            LogWriter.info("AnimationController: Ability Animations for " + anim.name() + " not found.");
+                            continue;
+                        }
+
+                        Animation animation = new Animation();
+                        animation.readFromNBT(NBTJsonUtil.LoadFile(file));
+
+                        animations
+                            .computeIfAbsent(anim.ordinal(), k -> new EnumMap<>(AbilityPhase.class))
+                            .put(phase, animation);
+                    }
+                }
+            } catch (Exception e) {
+                LogWriter.except(e);
+            }
+        }
+
+        public IAnimation get(AbilityAnimation ability, AbilityPhase phase) {
+            return get(ability.ordinal(), phase);
+        }
+
+        public IAnimation get(int id, AbilityPhase phase) {
+            return animations.get(id).get(phase);
+        }
+
+        public boolean has(AbilityAnimation ability, AbilityPhase phase) {
+            return get(ability.ordinal(), phase) != null;
+        }
+
+        public boolean has(int id, AbilityPhase phase) {
+            return get(id, phase) != null;
+        }
+
+        public IAnimation[] getAnimations(AbilityAnimation ability) {
+            ArrayList<IAnimation> animations = new ArrayList<>(this.animations.get(ability.ordinal()).values());
+            return animations.toArray(new IAnimation[0]);
+        }
     }
 }
