@@ -22,8 +22,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAbilityHandler;
-import noppes.npcs.api.handler.data.IAnimation;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;

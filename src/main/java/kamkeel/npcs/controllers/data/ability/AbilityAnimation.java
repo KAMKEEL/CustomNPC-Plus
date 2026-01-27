@@ -14,39 +14,39 @@ import java.util.HashMap;
 import static kamkeel.npcs.controllers.data.ability.AbilityPhase.*;
 
 public enum AbilityAnimation {;
-    private final HashMap<AbilityPhase, String> animations = new HashMap<>();
+    private final HashMap<AbilityPhase, String> animationNames = new HashMap<>();
 
     AbilityAnimation(String idle, String windUp, String active, String recovery) {
-        animations.put(IDLE, idle);
-        animations.put(WINDUP, windUp);
-        animations.put(ACTIVE, active);
-        animations.put(RECOVERY, recovery);
+        animationNames.put(IDLE, idle);
+        animationNames.put(WINDUP, windUp);
+        animationNames.put(ACTIVE, active);
+        animationNames.put(RECOVERY, recovery);
     }
 
     AbilityAnimation(String idle, String windUp, String active) {
-        animations.put(IDLE, idle);
-        animations.put(WINDUP, windUp);
-        animations.put(ACTIVE, active);
+        animationNames.put(IDLE, idle);
+        animationNames.put(WINDUP, windUp);
+        animationNames.put(ACTIVE, active);
     }
 
     AbilityAnimation(String windUp, String active) {
-        animations.put(WINDUP, windUp);
-        animations.put(ACTIVE, active);
+        animationNames.put(WINDUP, windUp);
+        animationNames.put(ACTIVE, active);
     }
 
     AbilityAnimation(String anim, AbilityPhase phase) {
-        animations.put(phase, anim);
+        animationNames.put(phase, anim);
     }
 
     public String fileName(AbilityPhase phase) {
-        return animations.get(phase);
+        return animationNames.get(phase);
     }
 
     public File getFile(AbilityPhase phase) {
-        if (animations.get(phase).isEmpty() || animations.get(phase).equals("N/A"))
+        if (animationNames.get(phase).isEmpty() || animationNames.get(phase).equals("N/A"))
             return null;
 
-        return getFileFromName(animations.get(phase));
+        return getFileFromName(animationNames.get(phase));
     }
 
     public IAnimation getAnimation(AbilityPhase phase) {
