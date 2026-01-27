@@ -2,6 +2,9 @@ package kamkeel.npcs.controllers.data.ability;
 
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.util.NBTJsonUtil;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -11,7 +14,6 @@ import java.util.HashMap;
 import static kamkeel.npcs.controllers.data.ability.AbilityPhase.*;
 
 public enum AbilityAnimation {;
-
     private final HashMap<AbilityPhase, String> animations = new HashMap<>();
 
     AbilityAnimation(String idle, String windUp, String active, String recovery) {
@@ -40,30 +42,49 @@ public enum AbilityAnimation {;
         return animations.get(phase);
     }
 
-    public File get(AbilityPhase phase) {
+    public File getFile(AbilityPhase phase) {
         if (animations.get(phase).isEmpty() || animations.get(phase).equals("N/A"))
             return null;
 
-        return getFile(animations.get(phase));
+        return getFileFromName(animations.get(phase));
     }
 
-    public File idle() {
-        return get(IDLE);
+    public IAnimation getAnimation(AbilityPhase phase) {
+        try {
+            File file = getFile(phase);
+
+            if (file == null) {
+                return null;
+            }
+
+            Animation animation = new Animation();
+            animation.readFromNBT(NBTJsonUtil.LoadFile(file));
+
+            return animation;
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+
+        return null;
     }
 
-    public File windUp() {
-        return get(WINDUP);
+    public IAnimation idle() {
+        return getAnimation(IDLE);
     }
 
-    public File active() {
-        return get(ACTIVE);
+    public IAnimation windUp() {
+        return getAnimation(WINDUP);
     }
 
-    public File recovery() {
-        return get(RECOVERY);
+    public IAnimation active() {
+        return getAnimation(ACTIVE);
     }
 
-    private File getFile(String fileName) {
+    public IAnimation recovery() {
+        return getAnimation(RECOVERY);
+    }
+
+    private File getFileFromName(String fileName) {
         try (InputStream stream = CustomNpcs.class.getResourceAsStream("/internal/data/animations/" + name() + "/" + fileName + ".json")) {
 
             File file = new File("temp");
