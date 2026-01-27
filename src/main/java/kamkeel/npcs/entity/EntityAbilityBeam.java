@@ -360,18 +360,10 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             // Client: interpolate entity position
             handleClientInterpolation();
 
-            // Client: update origin if attached to owner (mirrors server logic)
-            if (attachedToOwner) {
-                Entity owner = getOwner();
-                if (owner != null) {
-                    startX = owner.posX;
-                    startY = owner.posY + owner.getEyeHeight() * 0.7;
-                    startZ = owner.posZ;
-                }
-            }
-
             // Client: derive head offset from entity position and origin
             // Entity position = head world position, so headOffset = pos - origin
+            // Note: During charging, updateCharging() handles origin positioning
+            // After firing, origin is fixed at the charged position
             headOffsetX = posX - startX;
             headOffsetY = posY - startY;
             headOffsetZ = posZ - startZ;

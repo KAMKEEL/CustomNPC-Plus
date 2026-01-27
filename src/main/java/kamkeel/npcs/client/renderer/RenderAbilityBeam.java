@@ -68,8 +68,12 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         GL11.glPushMatrix();
         GL11.glTranslated(renderOriginX, renderOriginY, renderOriginZ);
 
+        // Calculate head distance from origin (for overlap check)
+        double headDistFromOrigin = Math.sqrt(headOffsetX * headOffsetX + headOffsetY * headOffsetY + headOffsetZ * headOffsetZ);
+
         // Render tail orb at origin (0,0,0) - only in anchored mode
-        if (beam.shouldRenderTailOrb()) {
+        // Don't render if head is too close to origin (would cause overlap/extra orb appearance)
+        if (beam.shouldRenderTailOrb() && headDistFromOrigin > headSize * 0.5) {
             renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
         }
 

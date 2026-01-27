@@ -78,6 +78,16 @@ public class DataAbilities {
      */
     private transient List<Long> recentHitTimes = new ArrayList<>();
 
+    /**
+     * Locked rotation values for ACTIVE phase with lockMovement.
+     * Stored when entering ACTIVE phase, applied every tick to prevent rotation changes.
+     */
+    private transient boolean rotationLocked = false;
+    private transient float lockedYaw = 0;
+    private transient float lockedYawHead = 0;
+    private transient float lockedRenderYawOffset = 0;
+    private transient float lockedPitch = 0;
+
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
     // ═══════════════════════════════════════════════════════════════════
@@ -136,6 +146,12 @@ public class DataAbilities {
                     // Remove telegraph - it has served its purpose
                     removeTelegraph(currentAbility);
 
+                    // Lock rotation if lockMovement is true
+                    // Capture current rotation values to force them every tick
+                    if (currentAbility.isLockMovement()) {
+                        captureLockedRotation();
+                    }
+
                     // Play active sound and animation
                     playAbilitySound(currentAbility.getActiveSound());
                     playAbilityAnimation(currentAbility.getActiveAnimationId());
@@ -186,9 +202,9 @@ public class DataAbilities {
                 }
             }
 
-            // Lock look direction at target during ACTIVE phase only
-            if (shouldLockLookDirection() && target != null && target.isEntityAlive()) {
-                npc.getLookHelper().setLookPositionWithEntity(target, 30.0F, 30.0F);
+            // Unlock rotation when leaving ACTIVE phase
+            if (rotationLocked && currentAbility.getPhase() != AbilityPhase.ACTIVE) {
+                releaseLockedRotation();
             }
         }
     }
@@ -201,6 +217,9 @@ public class DataAbilities {
         if (currentAbility != null) {
             // Stop any ability animation
             stopAbilityAnimation();
+
+            // Release rotation lock
+            releaseLockedRotation();
 
             // Calculate cooldown: random(min, max) + ability offset
             int baseCooldown = minCooldown;
@@ -526,6 +545,9 @@ public class DataAbilities {
             // Stop any ability animation
             stopAbilityAnimation();
 
+            // Release rotation lock
+            releaseLockedRotation();
+
             // Fire interrupt event
             AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(
                 npc.wrappedNPC, currentAbility, lastTarget, source, damage);
@@ -546,6 +568,7 @@ public class DataAbilities {
         if (currentAbility != null) {
             removeTelegraph(currentAbility);
             stopAbilityAnimation();
+            releaseLockedRotation();
             currentAbility.interrupt();
             currentAbility = null;
             lastTarget = null;
@@ -735,6 +758,60 @@ public class DataAbilities {
         }
         AbilityPhase phase = currentAbility.getPhase();
         return phase == AbilityPhase.WINDUP || phase == AbilityPhase.ACTIVE;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ROTATION LOCKING
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Capture current rotation values to lock NPC's look direction.
+     * Called when entering ACTIVE phase with lockMovement enabled.
+     */
+    private void captureLockedRotation() {
+        lockedYaw = npc.rotationYaw;
+        lockedYawHead = npc.rotationYawHead;
+        lockedRenderYawOffset = npc.renderYawOffset;
+        lockedPitch = npc.rotationPitch;
+        rotationLocked = true;
+    }
+
+    /**
+     * Release the rotation lock.
+     * Called when leaving ACTIVE phase or ability completes.
+     */
+    private void releaseLockedRotation() {
+        rotationLocked = false;
+    }
+
+    /**
+     * Apply locked rotation values to the NPC.
+     * Called AFTER super.onLivingUpdate() in EntityNPCInterface to override
+     * any rotation changes made by the look helper or AI tasks.
+     */
+    public void applyLockedRotation() {
+        if (!rotationLocked) {
+            return;
+        }
+
+        // Force rotation back to locked values
+        npc.rotationYaw = lockedYaw;
+        npc.rotationYawHead = lockedYawHead;
+        npc.renderYawOffset = lockedRenderYawOffset;
+        npc.rotationPitch = lockedPitch;
+
+        // Also set prev values to prevent interpolation jitter
+        npc.prevRotationYaw = lockedYaw;
+        npc.prevRotationYawHead = lockedYawHead;
+        npc.prevRenderYawOffset = lockedRenderYawOffset;
+        npc.prevRotationPitch = lockedPitch;
+    }
+
+    /**
+     * Check if rotation is currently locked.
+     */
+    public boolean isRotationLocked() {
+        return rotationLocked;
     }
 
     // ═══════════════════════════════════════════════════════════════════
