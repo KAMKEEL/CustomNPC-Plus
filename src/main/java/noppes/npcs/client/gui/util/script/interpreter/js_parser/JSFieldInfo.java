@@ -79,11 +79,12 @@ public class JSFieldInfo {
     }
     
     /**
-     * Get display name - uses resolved TypeInfo simple name if available.
+     * Get display name - uses resolved TypeInfo display name if available,
+     * including generic type arguments like List<String>.
      */
     public String getDisplayType() {
         if (typeInfo != null && typeInfo.isResolved()) {
-            return typeInfo.getSimpleName();
+            return typeInfo.getDisplayName();
         }
         return type;
     }

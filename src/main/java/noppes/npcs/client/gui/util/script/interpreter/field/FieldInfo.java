@@ -7,6 +7,7 @@ import noppes.npcs.client.gui.util.script.interpreter.bridge.DtsJavaBridge;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 
@@ -146,10 +147,21 @@ public final class FieldInfo {
 
     /**
      * Create a FieldInfo from reflection data for a class field.
+     * Preserves generic type information like List<String>.
      */
     public static FieldInfo fromReflection(Field field, TypeInfo containingType) {
         String name = field.getName();
-        TypeInfo type = TypeInfo.fromClass(field.getType());
+        // Use getGenericType() to preserve generic information
+        TypeInfo type = TypeInfo.fromGenericType(field.getGenericType());
+        if (type == null) {
+            type = TypeInfo.fromClass(field.getType());
+        }
+
+        // If the receiver is parameterized, substitute class type variables in the field type
+        java.util.Map<String, TypeInfo> receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
+        if (!receiverBindings.isEmpty()) {
+            type = TypeSubstitutor.substitute(type, receiverBindings);
+        }
 
         // Check if this is an enum constant
         if (field.isEnumConstant()) {

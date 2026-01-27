@@ -239,16 +239,16 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             if (i > 0) displayName.append(", ");
             JSMethodInfo.JSParameterInfo param = method.getParameters().get(i);
             
-            // Use resolved type
+            // Use resolved type with full generic display
             TypeInfo paramType = param.getResolvedType(contextType);
-            String paramTypeName = paramType.isResolved() ? paramType.getSimpleName() : param.getType();
+            String paramTypeName = paramType.isResolved() ? paramType.getDisplayName() : param.getType();
             displayName.append(paramTypeName).append(" ").append(param.getName());
         }
         displayName.append(")");
         
-        // Get return type using the new method
+        // Get return type using the new method with full generic display
         TypeInfo returnTypeInfo = method.getResolvedReturnType(contextType);
-        String returnType = returnTypeInfo.isResolved() ? returnTypeInfo.getSimpleName() : method.getReturnType();
+        String returnType = returnTypeInfo.isResolved() ? returnTypeInfo.getDisplayName() : method.getReturnType();
         
         return new AutocompleteItem(
             displayName.toString(),
@@ -290,9 +290,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
      */
     public static AutocompleteItem fromJSField(JSFieldInfo field, TypeInfo contextType, int inheritanceDepth) {
-        // Get field type using the new method
+        // Get field type using the new method with full generic display
         TypeInfo fieldTypeInfo = field.getResolvedType(contextType);
-        String fieldType = fieldTypeInfo.isResolved() ? fieldTypeInfo.getSimpleName() : field.getType();
+        String fieldType = fieldTypeInfo.isResolved() ? fieldTypeInfo.getDisplayName() : field.getType();
         
         return new AutocompleteItem(
             field.getName(),
@@ -549,8 +549,16 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public int getMatchScore() { return matchScore; }
     public int[] getMatchIndices() { return matchIndices; }
 
+    /**
+     * Get the display name for a type, including generic arguments.
+     * Uses the unified getDisplayName() method which handles:
+     * - Simple types: "String"
+     * - Parameterized types: "List<String>", "Map<String, Integer>"
+     * - Nested generics: "List<Map<String, Integer>>"
+     * - JS types with namespace: "IPlayerEvent.InteractEvent"
+     */
     public static String getName(TypeInfo type) {
-        return type.isJSType() ? type.getFullName() : type.getSimpleName();
+        return type.getDisplayName();
     }
     
     public int getParameterCount() {

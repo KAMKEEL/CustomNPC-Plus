@@ -1916,52 +1916,130 @@ public class ScriptDocument {
         if (typeName == null || typeName.isEmpty())
             return TypeInfo.unresolved(typeName, typeName);
 
-        // Strip generics for resolution
-        int genericStart = typeName.indexOf('<');
-        String baseName = genericStart > 0 ? typeName.substring(0, genericStart) : typeName;
+        String normalized = typeName.trim();
+        normalized = stripLeadingModifiers(normalized);
 
-        // Strip array brackets
-        baseName = baseName.replace("[]", "").trim();
+        // Preserve and resolve nested generics (e.g., List<Map<String, Integer>>)
+        GenericTypeParser.ParsedType parsed = GenericTypeParser.parse(normalized);
+        if (parsed == null) {
+            return TypeInfo.unresolved(normalized, normalized);
+        }
 
-        // Check primitive types first
+        TypeInfo result = resolveJavaFromParsedType(parsed);
+        return result != null ? result : TypeInfo.unresolved(parsed.baseName, normalized);
+    }
+
+    /**
+     * Strip only LEADING Java modifiers from a type expression.
+     * This avoids breaking generic argument lists which may contain whitespace.
+     */
+    private String stripLeadingModifiers(String typeExpr) {
+        if (typeExpr == null) {
+            return null;
+        }
+        int i = 0;
+        int len = typeExpr.length();
+        while (i < len) {
+            while (i < len && Character.isWhitespace(typeExpr.charAt(i))) i++;
+            int start = i;
+            while (i < len && Character.isJavaIdentifierPart(typeExpr.charAt(i))) i++;
+            if (start == i) {
+                break;
+            }
+            String word = typeExpr.substring(start, i);
+            if (TypeResolver.isModifier(word)) {
+                // Continue stripping modifiers
+                continue;
+            }
+            // Not a modifier; rewind to the start of this token
+            return typeExpr.substring(start).trim();
+        }
+        return typeExpr.trim();
+    }
+
+    /**
+     * Resolve a GenericTypeParser ParsedType for Java/Groovy scripts, preserving type arguments.
+     * Also tracks import usage for base types and nested type arguments.
+     */
+    private TypeInfo resolveJavaFromParsedType(GenericTypeParser.ParsedType parsed) {
+        if (parsed == null) {
+            return null;
+        }
+
+        String baseName = parsed.baseName;
+        if (baseName == null || baseName.isEmpty()) {
+            return null;
+        }
+
+        // Normalize whitespace around dots
+        baseName = baseName.replaceAll("\\s*\\.\\s*", ".").trim();
+
+        TypeInfo baseType;
+
+        // Primitives
         if (TypeResolver.isPrimitiveType(baseName)) {
-            return TypeInfo.fromPrimitive(baseName);
+            baseType = TypeInfo.fromPrimitive(baseName);
         }
+        // Common java.lang.String
+        else if ("String".equals(baseName)) {
+            baseType = typeResolver.resolveFullName("java.lang.String");
+        }
+        // Script-defined types (simple names only)
+        else if (!baseName.contains(".") && scriptTypes.containsKey(baseName)) {
+            baseType = scriptTypes.get(baseName);
+        }
+        // Fully-qualified
+        else if (baseName.contains(".")) {
+            baseType = typeResolver.resolveFullName(baseName);
+        }
+        // Imported/simple
+        else {
+            baseType = typeResolver.resolveSimpleName(baseName, importsBySimpleName, wildcardPackages);
 
-        // Check for String (common case)
-        if (baseName.equals("String")) {
-            return typeResolver.resolveFullName("java.lang.String");
-        }
+            // Track explicit import usage if present
+            ImportData usedImport = importsBySimpleName.get(baseName);
+            if (baseType != null && baseType.isResolved() && usedImport != null) {
+                usedImport.incrementUsage();
+            }
 
-        // Check script-defined types FIRST
-        if (scriptTypes.containsKey(baseName)) {
-            return scriptTypes.get(baseName);
-        }
-
-        // Check if there's an explicit import for this type
-        ImportData usedImport = importsBySimpleName.get(baseName);
-        
-        // Try to resolve through imports/classpath
-        TypeInfo result = typeResolver.resolveSimpleName(baseName, importsBySimpleName, wildcardPackages);
-        
-        // Track the import usage if we found one and the resolution succeeded
-        if (result != null && usedImport != null) {
-            usedImport.incrementUsage();
-        }
-        
-        // Also check wildcard imports if the type was resolved through one
-        if (result != null && usedImport == null && wildcardPackages != null) {
-            String resultPkg = result.getPackageName();
-            // Check if resolved through a wildcard
-            for (ImportData imp : imports) {
-                if (imp.isWildcard() && resultPkg != null && resultPkg.equals(imp.getFullPath())) {
-                    imp.incrementUsage();
-                    break;
+            // Track wildcard import usage if resolved through a wildcard
+            if (baseType != null && baseType.isResolved() && usedImport == null && wildcardPackages != null) {
+                String resultPkg = baseType.getPackageName();
+                for (ImportData imp : imports) {
+                    if (imp.isWildcard() && resultPkg != null && resultPkg.equals(imp.getFullPath())) {
+                        imp.incrementUsage();
+                        break;
+                    }
                 }
             }
         }
-        
-        return result;
+
+        if (baseType == null) {
+            baseType = TypeInfo.unresolved(baseName, baseName);
+        }
+
+        // Apply generic arguments
+        if (parsed.hasTypeArgs() && baseType.isResolved()) {
+            java.util.List<TypeInfo> resolvedArgs = new java.util.ArrayList<>();
+            for (GenericTypeParser.ParsedType argParsed : parsed.typeArgs) {
+                TypeInfo argType = resolveJavaFromParsedType(argParsed);
+                resolvedArgs.add(argType != null ? argType : TypeInfo.unresolved(argParsed.baseName, argParsed.baseName));
+            }
+            if (!resolvedArgs.isEmpty()) {
+                baseType = baseType.parameterize(resolvedArgs);
+            }
+        }
+
+        // Apply array dimensions
+        if (parsed.isArray) {
+            TypeInfo arrayType = baseType;
+            for (int i = 0; i < parsed.arrayDimensions; i++) {
+                arrayType = TypeInfo.arrayOf(arrayType);
+            }
+            baseType = arrayType;
+        }
+
+        return baseType;
     }
 
     // ==================== PHASE 4: BUILD MARKS ====================

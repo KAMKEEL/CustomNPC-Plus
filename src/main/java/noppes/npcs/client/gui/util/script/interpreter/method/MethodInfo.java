@@ -10,6 +10,7 @@ import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -140,10 +141,15 @@ public final class MethodInfo {
     /**
      * Create a MethodInfo from reflection data.
      * Used when resolving method calls on known types.
+     * Preserves generic type information from reflection.
      */
     public static MethodInfo fromReflection(Method method, TypeInfo containingType) {
         String name = method.getName();
-        TypeInfo returnType = TypeInfo.fromClass(method.getReturnType());
+        // Use getGenericReturnType() to preserve generic information like List<String>
+        TypeInfo returnType = TypeInfo.fromGenericType(method.getGenericReturnType());
+        if (returnType == null) {
+            returnType = TypeInfo.fromClass(method.getReturnType());
+        }
         int modifiers = method.getModifiers();
 
         // Try to find matching JSMethodInfo to bridge parameter names/docs and allow return overrides
@@ -166,11 +172,25 @@ public final class MethodInfo {
                 }
             }
         }
+
+        // If the receiver is parameterized (e.g., List<String>), substitute class type variables (E -> String)
+        java.util.Map<String, TypeInfo> receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
+        if (!receiverBindings.isEmpty()) {
+            returnType = TypeSubstitutor.substitute(returnType, receiverBindings);
+        }
         List<FieldInfo> params = new ArrayList<>();
-        Class<?>[] paramTypes = method.getParameterTypes();
+        // Use getGenericParameterTypes() to preserve generic information
+        java.lang.reflect.Type[] genericParamTypes = method.getGenericParameterTypes();
         List<JSMethodInfo.JSParameterInfo> jsParams = jsMethod != null ? jsMethod.getParameters() : null;
-        for (int i = 0; i < paramTypes.length; i++) {
-            TypeInfo paramType = TypeInfo.fromClass(paramTypes[i]);
+        for (int i = 0; i < genericParamTypes.length; i++) {
+            TypeInfo paramType = TypeInfo.fromGenericType(genericParamTypes[i]);
+            if (paramType == null) {
+                paramType = TypeInfo.fromClass(method.getParameterTypes()[i]);
+            }
+
+            if (!receiverBindings.isEmpty()) {
+                paramType = TypeSubstitutor.substitute(paramType, receiverBindings);
+            }
             String paramName = "arg" + i;
             if (jsParams != null && i < jsParams.size()) {
                 String jsName = jsParams.get(i).getName();
@@ -199,6 +219,7 @@ public final class MethodInfo {
     /**
      * Create a MethodInfo from a Constructor via reflection.
      * Used when resolving constructor calls on external types.
+     * Preserves generic type information for constructor parameters.
      */
     public static MethodInfo fromReflectionConstructor(Constructor<?> constructor, TypeInfo containingType) {
         String name = containingType.getSimpleName(); // Constructor name is the type name
@@ -206,9 +227,13 @@ public final class MethodInfo {
         int modifiers = constructor.getModifiers();
         
         List<FieldInfo> params = new ArrayList<>();
-        Class<?>[] paramTypes = constructor.getParameterTypes();
-        for (int i = 0; i < paramTypes.length; i++) {
-            TypeInfo paramType = TypeInfo.fromClass(paramTypes[i]);
+        // Use getGenericParameterTypes() to preserve generic information
+        java.lang.reflect.Type[] genericParamTypes = constructor.getGenericParameterTypes();
+        for (int i = 0; i < genericParamTypes.length; i++) {
+            TypeInfo paramType = TypeInfo.fromGenericType(genericParamTypes[i]);
+            if (paramType == null) {
+                paramType = TypeInfo.fromClass(constructor.getParameterTypes()[i]);
+            }
             params.add(FieldInfo.reflectionParam("arg" + i, paramType));
         }
         
@@ -605,7 +630,7 @@ public final class MethodInfo {
             // Check for unresolved parameter types
             TypeInfo paramType = param.getTypeInfo();
             if (paramType == null || !paramType.isResolved()) {
-                String typeName = paramType != null ? paramType.getSimpleName() : "unknown";
+                String typeName = paramType != null ? paramType.getDisplayName() : "unknown";
                 addParameterError(param, i, ErrorType.PARAMETER_UNDEFINED,
                         "Cannot resolve parameter type '" + typeName + "'");
             }
@@ -639,7 +664,7 @@ public final class MethodInfo {
         if (bodyText == null || bodyText.isEmpty()) return;
         
         boolean isVoid = TypeChecker.isVoidType(returnType);
-        String expectedTypeName = isVoid ? "void" : returnType.getSimpleName();
+        String expectedTypeName = isVoid ? "void" : returnType.getDisplayName();
         
         // Remove comments but keep strings (we need accurate positions)
         String cleanBody = CodeParser.removeComments(bodyText);

@@ -11,6 +11,11 @@ import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,20 +68,34 @@ public class TypeInfo {
     // JavaScript/TypeScript type info (for types from .d.ts files)
     private final JSTypeInfo jsTypeInfo;   // The JS type info (null if Java type)
     
-    // Type parameters (generics)
+    // Declared type parameters (generics definition, e.g., "T extends Entity" on interface List<T>)
     private final List<TypeParamInfo> typeParams = new ArrayList<>();
+    
+    // Applied type arguments (concrete types provided for generics, e.g., <String, Integer> in Map<String, Integer>)
+    // These are TypeInfo instances that can themselves be parameterized for nested generics
+    private final List<TypeInfo> appliedTypeArgs = new ArrayList<>();
+    
+    // For parameterized types, the raw/base type (e.g., List for List<String>)
+    // Null for non-parameterized types
+    private final TypeInfo rawType;
 
     // Documentation (script-defined types)
     private JSDocInfo jsDocInfo;
 
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
-        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, null);
+        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, null, null, null);
     }
     
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType,
                      JSTypeInfo jsTypeInfo) {
+        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, jsTypeInfo, null, null);
+    }
+    
+    private TypeInfo(String simpleName, String fullName, String packageName, 
+                     Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType,
+                     JSTypeInfo jsTypeInfo, TypeInfo rawType, List<TypeInfo> appliedTypeArgs) {
         this.simpleName = simpleName;
         this.fullName = fullName;
         this.packageName = packageName;
@@ -85,6 +104,10 @@ public class TypeInfo {
         this.resolved = resolved;
         this.enclosingType = enclosingType;
         this.jsTypeInfo = jsTypeInfo;
+        this.rawType = rawType;
+        if (appliedTypeArgs != null) {
+            this.appliedTypeArgs.addAll(appliedTypeArgs);
+        }
     }
     
     // Protected constructor for subclasses (like ScriptTypeInfo)
@@ -99,6 +122,7 @@ public class TypeInfo {
         this.resolved = resolved;
         this.enclosingType = enclosingType;
         this.jsTypeInfo = null;
+        this.rawType = null;
     }
 
     // Factory methods
@@ -152,6 +176,94 @@ public class TypeInfo {
     }
 
     /**
+     * Create a TypeInfo from a generic java.lang.reflect.Type.
+     * This preserves generic type arguments from reflection APIs like 
+     * Method.getGenericReturnType() and Field.getGenericType().
+     * 
+     * Examples:
+     * - List<String> -> TypeInfo(List) with appliedTypeArgs=[TypeInfo(String)]
+     * - Map<String, Integer> -> TypeInfo(Map) with appliedTypeArgs=[TypeInfo(String), TypeInfo(Integer)]
+     * - T (type variable) -> TypeInfo representing the type variable name
+     * 
+     * @param type The generic type from reflection
+     * @return A TypeInfo preserving the generic structure, or null if type is null
+     */
+    public static TypeInfo fromGenericType(Type type) {
+        if (type == null) return null;
+        
+        if (type instanceof Class<?>) {
+            // Plain class - no generic info
+            return fromClass((Class<?>) type);
+        }
+        
+        if (type instanceof ParameterizedType) {
+            // Generic type like List<String>
+            ParameterizedType paramType = (ParameterizedType) type;
+            Type rawType = paramType.getRawType();
+            
+            if (!(rawType instanceof Class<?>)) {
+                // Edge case - should not happen normally
+                return rawType != null ? fromGenericType(rawType) : null;
+            }
+            
+            // Get the raw type as TypeInfo
+            TypeInfo rawTypeInfo = fromClass((Class<?>) rawType);
+            
+            // Recursively convert type arguments
+            Type[] typeArgs = paramType.getActualTypeArguments();
+            List<TypeInfo> appliedArgs = new ArrayList<>(typeArgs.length);
+            for (Type arg : typeArgs) {
+                TypeInfo argInfo = fromGenericType(arg);
+                if (argInfo != null) {
+                    appliedArgs.add(argInfo);
+                }
+            }
+            
+            // Return a parameterized TypeInfo
+            if (!appliedArgs.isEmpty()) {
+                return rawTypeInfo.parameterize(appliedArgs);
+            }
+            return rawTypeInfo;
+        }
+        
+        if (type instanceof GenericArrayType) {
+            // Array of generic type, e.g. T[] or List<String>[]
+            GenericArrayType arrayType = (GenericArrayType) type;
+            TypeInfo elementType = fromGenericType(arrayType.getGenericComponentType());
+            if (elementType != null) {
+                return arrayOf(elementType);
+            }
+            return fromClass(Object[].class);
+        }
+        
+        if (type instanceof TypeVariable<?>) {
+            // Type variable like T, E, K, V
+            TypeVariable<?> typeVar = (TypeVariable<?>) type;
+            String varName = typeVar.getName();
+            // Create an unresolved type representing the type variable
+            // The substitution system will handle replacing this with the actual type
+            return TypeInfo.unresolved(varName, varName);
+        }
+        
+        if (type instanceof WildcardType) {
+            // Wildcard like ? or ? extends Number or ? super Integer
+            WildcardType wildcard = (WildcardType) type;
+            Type[] upperBounds = wildcard.getUpperBounds();
+            
+            // Use the upper bound if available (most useful for ? extends T)
+            if (upperBounds.length > 0 && upperBounds[0] != Object.class) {
+                return fromGenericType(upperBounds[0]);
+            }
+            
+            // For ? super T or plain ?, just use Object
+            return fromClass(Object.class);
+        }
+        
+        // Unknown type - shouldn't happen in practice
+        return null;
+    }
+
+    /**
      * Create a TypeInfo for a primitive type.
      */
     public static TypeInfo fromPrimitive(String typeName) {
@@ -199,9 +311,10 @@ public class TypeInfo {
         if (elementType == null) {
             return fromClass(Object[].class);
         }
-        
-        String simpleName = elementType.getSimpleName() + "[]";
-        String fullName = elementType.getFullName() + "[]";
+
+        // Preserve generic display in arrays (e.g., List<String>[]) and keep JS namespace display.
+        String simpleName = elementType.getDisplayName() + "[]";
+        String fullName = elementType.getDisplayNameFull() + "[]";
         String pkg = elementType.getPackageName();
         
         // Try to get the actual array class if we have a Java class
@@ -252,6 +365,125 @@ public class TypeInfo {
     public boolean isInterface() {return kind == Kind.INTERFACE;}
     public boolean isEnum() {return kind == Kind.ENUM;}
     public boolean isPrimitive() {return javaClass != null && javaClass.isPrimitive();}
+    
+    // ==================== Applied Type Arguments (Parameterized Types) ====================
+    
+    /**
+     * Check if this type is parameterized (has applied type arguments).
+     * For example, List<String> is parameterized, but List is not.
+     */
+    public boolean isParameterized() {
+        return !appliedTypeArgs.isEmpty();
+    }
+    
+    /**
+     * Get the raw/base type if this is parameterized.
+     * For List<String>, returns the TypeInfo for List.
+     * For non-parameterized types, returns this.
+     */
+    public TypeInfo getRawType() {
+        return rawType != null ? rawType : this;
+    }
+    
+    /**
+     * Get the applied type arguments.
+     * For List<String>, returns [TypeInfo(String)].
+     * For Map<String, Integer>, returns [TypeInfo(String), TypeInfo(Integer)].
+     * For nested generics like List<Map<String, Integer>>, the Map TypeInfo itself has appliedTypeArgs.
+     */
+    public List<TypeInfo> getAppliedTypeArgs() {
+        return appliedTypeArgs;
+    }
+    
+    /**
+     * Create a parameterized version of this type with the given type arguments.
+     * For example, calling parameterize([TypeInfo(String)]) on List returns List<String>.
+     * 
+     * @param typeArgs The type arguments to apply
+     * @return A new parameterized TypeInfo
+     */
+    public TypeInfo parameterize(List<TypeInfo> typeArgs) {
+        if (typeArgs == null || typeArgs.isEmpty()) {
+            return this;
+        }
+
+        // Keep base names stable for logic (constructor names, lookups, etc.).
+        // Generic arguments are tracked via appliedTypeArgs and rendered via getDisplayName*().
+        TypeInfo raw = getRawType();
+        return new TypeInfo(raw.simpleName, raw.fullName, raw.packageName, raw.kind, raw.javaClass,
+                           raw.resolved, raw.enclosingType, raw.jsTypeInfo, raw, typeArgs);
+    }
+    
+    /**
+     * Create a parameterized version of this type with a single type argument.
+     */
+    public TypeInfo parameterize(TypeInfo typeArg) {
+        if (typeArg == null) {
+            return this;
+        }
+        List<TypeInfo> args = new ArrayList<>();
+        args.add(typeArg);
+        return parameterize(args);
+    }
+    
+    /**
+     * Build the generic type arguments string like "<String, Integer>".
+     * @param typeArgs The type arguments
+     * @param useFullNames Whether to use full names (for fullName) or simple names (for simpleName)
+     */
+    private static String buildTypeArgsString(List<TypeInfo> typeArgs, boolean useFullNames) {
+        if (typeArgs == null || typeArgs.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder("<");
+        for (int i = 0; i < typeArgs.size(); i++) {
+            if (i > 0) sb.append(", ");
+            TypeInfo arg = typeArgs.get(i);
+            sb.append(useFullNames ? arg.getDisplayNameFull() : arg.getDisplayNameSimple());
+        }
+        sb.append(">");
+        return sb.toString();
+    }
+    
+    /**
+     * Get the canonical display name for this type, including generic arguments.
+     * This is the preferred method for UI display (hover, autocomplete, etc.).
+     * 
+     * For Java types: uses simple name + generics (e.g., "List<String>")
+     * For JS types: uses full name + generics (e.g., "IPlayerEvent.InteractEvent")
+     * For arrays: includes "[]" suffix
+     * For nested generics: recursively builds (e.g., "List<Map<String, Integer>>")
+     */
+    public String getDisplayName() {
+        // Use full name for JS types, simple name for Java
+        return isJSType() ? getDisplayNameFull() : getDisplayNameSimple();
+    }
+    
+    /**
+     * Get display name using simple names for all types.
+     * Example: "Map<String, Integer>" instead of "java.util.Map<java.lang.String, java.lang.Integer>"
+     */
+    public String getDisplayNameSimple() {
+        if (appliedTypeArgs.isEmpty()) {
+            return simpleName;
+        }
+
+        String baseName = rawType != null ? rawType.getSimpleName() : simpleName;
+        return baseName + buildTypeArgsString(appliedTypeArgs, false);
+    }
+    
+    /**
+     * Get display name using full qualified names.
+     * Example: "java.util.Map<java.lang.String, java.lang.Integer>"
+     */
+    public String getDisplayNameFull() {
+        if (appliedTypeArgs.isEmpty()) {
+            return fullName;
+        }
+        // For full display, use the raw type's full name + the args with their display names
+        String baseName = rawType != null ? rawType.getFullName() : fullName;
+        return baseName + buildTypeArgsString(appliedTypeArgs, true);
+    }
     
     /**
      * Returns true if this TypeInfo represents a Class reference (not an instance).
@@ -728,6 +960,21 @@ public class TypeInfo {
         // If this is a JS type, delegate to JSTypeInfo
         if (jsTypeInfo != null) {
             return jsTypeInfo.getTypeParams();
+        }
+
+        // For Java reflection types, lazily expose declared generic parameters (e.g., List<E>, Map<K,V>)
+        if (javaClass != null && typeParams.isEmpty()) {
+            try {
+                TypeVariable<?>[] vars = javaClass.getTypeParameters();
+                for (TypeVariable<?> v : vars) {
+                    if (v == null) continue;
+                    String n = v.getName();
+                    if (n == null || n.isEmpty()) continue;
+                    typeParams.add(new TypeParamInfo(n, null, null));
+                }
+            } catch (Exception ignored) {
+                // Best-effort only; leave typeParams empty.
+            }
         }
         return typeParams;
     }

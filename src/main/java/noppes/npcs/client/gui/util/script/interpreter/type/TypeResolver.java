@@ -314,8 +314,9 @@ public class TypeResolver {
     /**
      * Resolve a type name for JavaScript context.
      * Handles JS primitives, .d.ts types, and falls back to Java types.
+     * NOW preserves generic type arguments in the returned TypeInfo.
      * 
-     * @param jsTypeName The JS type name (e.g., "IPlayer", "string", "number", "Java.java.io.File")
+     * @param jsTypeName The JS type name (e.g., "IPlayer", "string", "List<String>", "Map<String, Integer>")
      * @return TypeInfo for the resolved type, or unresolved TypeInfo if not found
      */
     public TypeInfo resolveJSType(String jsTypeName) {
@@ -323,43 +324,79 @@ public class TypeResolver {
             return TypeInfo.fromPrimitive("void");
         }
 
-        // Handle union types - use first type
-        if (jsTypeName.contains("|")) {
-            jsTypeName = jsTypeName.split("\\|")[0].trim();
+        // Use the generic type parser for full handling
+        GenericTypeParser.ParsedType parsed = GenericTypeParser.parse(jsTypeName);
+        if (parsed == null) {
+            return TypeInfo.unresolved(jsTypeName, jsTypeName);
         }
-
-        // Handle nullable
-        jsTypeName = jsTypeName.replace("?", "").trim();
         
-        // Strip array brackets for base type resolution
-        boolean isArray = jsTypeName.endsWith("[]");
-        String baseName = isArray ? jsTypeName.substring(0, jsTypeName.length() - 2) : jsTypeName;
+        // Resolve the parsed type tree into a TypeInfo tree
+        return resolveFromParsedType(parsed);
+    }
+    
+    /**
+     * Resolve a ParsedType tree into a TypeInfo, preserving generic arguments.
+     * This is the core resolution method that handles nested generics.
+     */
+    private TypeInfo resolveFromParsedType(GenericTypeParser.ParsedType parsed) {
+        if (parsed == null) {
+            return null;
+        }
+        
+        String baseName = parsed.baseName;
+        
+        // Handle "Java." prefix - convert to actual Java type
+        if (baseName.startsWith("Java.")) {
+            baseName = baseName.substring(5); // Remove "Java."
+        }
+        
+        // Resolve the base type (without generics)
+        TypeInfo baseType = resolveBaseType(baseName);
+        
+        // If we have type arguments, recursively resolve them and create parameterized type
+        if (parsed.hasTypeArgs() && baseType != null && baseType.isResolved()) {
+            List<TypeInfo> resolvedArgs = new ArrayList<>();
+            for (GenericTypeParser.ParsedType argParsed : parsed.typeArgs) {
+                TypeInfo argType = resolveFromParsedType(argParsed);
+                resolvedArgs.add(argType != null ? argType : TypeInfo.unresolved(argParsed.baseName, argParsed.baseName));
+            }
+            baseType = baseType.parameterize(resolvedArgs);
+        }
+        
+        // Handle array
+        if (parsed.isArray && baseType != null) {
+            for (int i = 0; i < parsed.arrayDimensions; i++) {
+                baseType = TypeInfo.arrayOf(baseType);
+            }
+        }
+        
+        // Return the resolved (possibly parameterized) type
+        return baseType != null ? baseType : TypeInfo.unresolved(parsed.baseName, parsed.rawString);
+    }
+    
+    /**
+     * Resolve a base type name (without generics) to a TypeInfo.
+     * This handles primitives, synthetic types, JS registry types, and Java types.
+     */
+    private TypeInfo resolveBaseType(String baseName) {
+        if (baseName == null || baseName.isEmpty()) {
+            return null;
+        }
 
         // Check synthetic types (Nashorn built-ins, custom types, etc.)
         if (isSyntheticType(baseName)) {
             SyntheticType syntheticType = getSyntheticType(baseName);
             return syntheticType.getTypeInfo();
         }
-        
-        // Handle "Java." prefix - convert to actual Java type
-        // e.g., "Java.java.io.File" -> "java.io.File"
-        if (baseName.startsWith("Java.")) {
-            String javaFullName = baseName.substring(5); // Remove "Java."
-            TypeInfo javaType = resolveFullName(javaFullName);
-            if (javaType != null && javaType.isResolved()) {
-                return isArray ? TypeInfo.arrayOf(javaType) : javaType;
-            }
-            // Still return unresolved with the cleaned-up name
-            return TypeInfo.unresolved(javaFullName.substring(javaFullName.lastIndexOf('.') + 1), javaFullName);
-        }
 
+        // Check primitives and common types
         switch (baseName.toLowerCase()) {
             case "string":
                 return TypeInfo.STRING;
             case "number":
             case "int":
             case "integer":
-                return  TypeInfo.NUMBER;
+                return TypeInfo.NUMBER;
             case "boolean":
             case "bool":
                 return TypeInfo.BOOLEAN;
@@ -374,18 +411,17 @@ public class TypeResolver {
         // Check JS type registry
         JSTypeInfo jsTypeInfo = getJSTypeRegistry().getType(baseName);
         if (jsTypeInfo != null) {
-            TypeInfo baseType = TypeInfo.fromJSTypeInfo(jsTypeInfo);
-            return isArray ? TypeInfo.arrayOf(baseType) : baseType;
+            return TypeInfo.fromJSTypeInfo(jsTypeInfo);
         }
         
         // Fall back to Java type resolution
         TypeInfo javaType = resolveFullName(baseName);
         if (javaType != null && javaType.isResolved()) {
-            return isArray ? TypeInfo.arrayOf(javaType) : javaType;
+            return javaType;
         }
         
         // Unresolved
-        return TypeInfo.unresolved(jsTypeName, jsTypeName);
+        return TypeInfo.unresolved(baseName, baseName);
     }
     
     /**

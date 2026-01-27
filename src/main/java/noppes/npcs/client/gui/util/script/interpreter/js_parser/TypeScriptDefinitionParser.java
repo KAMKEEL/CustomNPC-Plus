@@ -40,13 +40,13 @@ public class TypeScriptDefinitionParser {
         "export\\s+type\\s+(\\w+)\\s*=\\s*([^;\\n]+);?");
     
     private static final Pattern METHOD_PATTERN = Pattern.compile(
-        "^\\s*(\\w+)\\s*\\(([^)]*)\\)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
+        "(?m)^\\s*(\\w+)\\s*\\((.*)\\)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
     
     private static final Pattern FIELD_PATTERN = Pattern.compile(
         "^\\s*(readonly\\s+)?(\\w+)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
     
     private static final Pattern GLOBAL_FUNCTION_PATTERN = Pattern.compile(
-        "function\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*:\\s*([^;]+);");
+        "function\\s+(\\w+)\\s*\\((.*)\\)\\s*:\\s*([^;]+);");
 
     private static final Pattern GLOBAL_TYPE_ALIAS_PATTERN = Pattern.compile(
         "type\\s+(\\w+)\\s*=\\s*import\\(['\"]([^'\"]+)['\"]\\)\\.([\\w.]+);");
@@ -666,19 +666,53 @@ public class TypeScriptDefinitionParser {
     private String cleanType(String type) {
         if (type == null) return "any";
         type = type.trim();
-        
-        // Handle import('./path').TypeName syntax
-        if (type.startsWith("import(")) {
-            // Extract the type name after the import
-            int dotIndex = type.lastIndexOf(").");
-            if (dotIndex > 0) {
-                type = type.substring(dotIndex + 2);
+
+        // Strip TypeScript import() type references anywhere in the string.
+        // Examples:
+        // - import('./data/IAction').IAction                -> IAction
+        // - Java.java.util.function.Consumer<import('./x').T> -> Java.java.util.function.Consumer<T>
+        // This is important because import() can appear nested inside generics.
+        int importIdx;
+        while ((importIdx = type.indexOf("import(")) >= 0) {
+            int i = importIdx + "import(".length();
+            int depth = 1;
+            boolean inString = false;
+            char stringChar = 0;
+
+            while (i < type.length() && depth > 0) {
+                char c = type.charAt(i);
+                if (inString) {
+                    if (c == stringChar && (i == 0 || type.charAt(i - 1) != '\\')) {
+                        inString = false;
+                    }
+                } else {
+                    if (c == '\'' || c == '"') {
+                        inString = true;
+                        stringChar = c;
+                    } else if (c == '(') {
+                        depth++;
+                    } else if (c == ')') {
+                        depth--;
+                    }
+                }
+                i++;
+            }
+
+            // i is positioned just after the matching ')', if found.
+            if (depth != 0) {
+                break; // Unbalanced import( ... ) - stop trying to clean.
+            }
+
+            // If immediately followed by ".", remove "import(...) ." prefix.
+            if (i < type.length() && type.charAt(i) == '.') {
+                int removeEnd = i + 1;
+                type = type.substring(0, importIdx) + type.substring(removeEnd);
+            } else {
+                // Remove just the import(...) portion.
+                type = type.substring(0, importIdx) + type.substring(i);
             }
         }
-        
-        // Handle arrays
-        type = type.replace("[]", "[]");
-        
+
         return type;
     }
     

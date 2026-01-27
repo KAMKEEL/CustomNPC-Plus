@@ -388,8 +388,8 @@ public class MethodCallInfo {
             TypeInfo paramType = para.getTypeInfo();
             if (argType != null && paramType != null) {
                 if (!TypeChecker.isTypeCompatible(paramType, argType)) {
-                    setArgTypeError(i, "Expected " + paramType.getSimpleName() +
-                            " but got " + argType.getSimpleName());
+                    setArgTypeError(i, "Expected " + paramType.getDisplayName() +
+                            " but got " + argType.getDisplayName());
                 }
             } else if (paramType == null) {
                 setArgTypeError(i, "Parameter type of '" + para.getName() + "' is unresolved");

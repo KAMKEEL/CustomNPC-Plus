@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
 
 import java.util.*;
 
@@ -47,24 +48,31 @@ public class JSMethodInfo {
     }
 
     /**
-     * Get the resolved return type, with fallback resolution using type parameters.
-     * @param contextType The TypeInfo context for resolving type parameters (e.g., IPlayer to resolve T → EntityPlayerMP)
-     * @return The resolved TypeInfo for the return type
+     * Get the resolved return type, with type parameter substitution based on receiver context.
+     * 
+     * For parameterized receivers like List<String>, this will substitute type variables:
+     * - If return type is "T" and receiver is List<String>, returns TypeInfo(String)
+     * - Handles nested generics like List<Map<K,V>> with proper substitution
+     * 
+     * @param contextType The TypeInfo context for resolving type parameters (e.g., List<String> to resolve E → String)
+     * @return The resolved TypeInfo for the return type, with type variables substituted
      */
     public TypeInfo getResolvedReturnType(TypeInfo contextType) {
-        // Use pre-resolved if available
-        if (returnTypeInfo != null && returnTypeInfo.isResolved()) 
-            return returnTypeInfo;
-
-        // Fall back to resolving from string
         TypeResolver resolver = TypeResolver.getInstance();
-        TypeInfo resolved = returnTypeInfo = resolver.resolveJSType(returnType);
-
-        // If not resolved and contextType has type parameters, try to resolve as type parameter
-        if (contextType != null && !resolved.isResolved()) {
+        
+        // First, resolve the return type string to a TypeInfo (now preserves generic args)
+        TypeInfo resolved = resolver.resolveJSType(returnType);
+        
+        // If we have a parameterized context, apply type variable substitution
+        if (contextType != null && contextType.isParameterized()) {
+            resolved = TypeSubstitutor.getSubstitutedReturnType(resolved, returnType, contextType, resolver);
+        }
+        // Fallback: if not resolved and contextType has declared type parameters, try direct resolution
+        else if (contextType != null && !resolved.isResolved()) {
             TypeInfo paramResolution = contextType.resolveTypeParamToTypeInfo(returnType);
-            if (paramResolution != null) 
-                resolved = returnTypeInfo = paramResolution; //cache it to returnTypeInfo
+            if (paramResolution != null) {
+                resolved = paramResolution;
+            }
         }
 
         return resolved;
@@ -150,24 +158,30 @@ public class JSMethodInfo {
         }
         
         /**
-         * Get the resolved type, with fallback resolution using type parameters.
+         * Get the resolved type, with type parameter substitution based on receiver context.
+         * 
+         * For parameterized receivers like Consumer<IAction>, this will substitute type variables:
+         * - If param type is "T" and receiver is Consumer<IAction>, returns TypeInfo(IAction)
+         * 
          * @param contextType The TypeInfo context for resolving type parameters
          * @return The resolved TypeInfo for the parameter type
          */
         public TypeInfo getResolvedType(TypeInfo contextType) {
-            // Use pre-resolved if available
-            if (typeInfo != null && typeInfo.isResolved()) 
-                return typeInfo;
-
-            // Fall back to resolving from string
             TypeResolver resolver = TypeResolver.getInstance();
-            TypeInfo resolved = typeInfo = resolver.resolveJSType(type);
-
-            // If not resolved and contextType has type parameters, try to resolve as type parameter
-            if (contextType != null && !resolved.isResolved()) {
+            
+            // First, resolve the type string to a TypeInfo (now preserves generic args)
+            TypeInfo resolved = resolver.resolveJSType(type);
+            
+            // If we have a parameterized context, apply type variable substitution
+            if (contextType != null && contextType.isParameterized()) {
+                resolved = TypeSubstitutor.getSubstitutedReturnType(resolved, type, contextType, resolver);
+            }
+            // Fallback: if not resolved and contextType has declared type parameters, try direct resolution
+            else if (contextType != null && !resolved.isResolved()) {
                 TypeInfo paramResolution = contextType.resolveTypeParamToTypeInfo(type);
-                if (paramResolution != null) 
-                    resolved = typeInfo = paramResolution; //cache it to typeInfo
+                if (paramResolution != null) {
+                    resolved = paramResolution;
+                }
             }
 
             return resolved;
@@ -179,11 +193,12 @@ public class JSMethodInfo {
         public JSMethodInfo getContainingMethod() {return containingMethod;}
 
         /**
-         * Get display name - uses resolved TypeInfo simple name if available.
+         * Get display name - uses resolved TypeInfo display name if available,
+         * including generic type arguments like List<String>.
          */
         public String getDisplayType() {
             if (typeInfo != null && typeInfo.isResolved()) {
-                return typeInfo.getSimpleName();
+                return typeInfo.getDisplayName();
             }
             return type;
         }

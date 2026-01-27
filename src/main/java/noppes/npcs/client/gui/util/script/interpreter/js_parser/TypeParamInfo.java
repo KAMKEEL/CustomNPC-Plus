@@ -48,18 +48,18 @@ public class TypeParamInfo {
     }
 
     /**
-     * Get simple display name for the bound type.
+     * Get display name for the bound type, including generic arguments.
      */
     public String getBoundTypeName() {
         if (boundTypeInfo == null)
             return null;
-        return boundTypeInfo.getSimpleName();
+        return boundTypeInfo.getDisplayName();
     }
     
     @Override
     public String toString() {
         if (boundTypeInfo != null) {
-            return name + " extends " + boundTypeInfo.getSimpleName();
+            return name + " extends " + boundTypeInfo.getDisplayName();
         } else if (boundType != null || fullBoundType != null) {
             return name + " extends " + (boundType != null ? boundType : fullBoundType);
         }

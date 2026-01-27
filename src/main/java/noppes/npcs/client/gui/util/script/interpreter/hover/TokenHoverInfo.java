@@ -545,7 +545,8 @@ public class TokenHoverInfo {
             int classColor = clazz.isInterface() ? TokenType.INTERFACE_DECL.getHexColor() 
                 : clazz.isEnum() ? TokenType.ENUM_DECL.getHexColor() 
                 : TokenType.IMPORTED_CLASS.getHexColor();
-            addSegment(getName(typeInfo), classColor);
+            // Render generics with correct segment colors if present
+            addTypeSegments(typeInfo);
             
             // Extends
             Class<?> superclass = clazz.getSuperclass();
@@ -604,7 +605,7 @@ public class TokenHoverInfo {
             int classColor = scriptType.getKind() == TypeInfo.Kind.INTERFACE ? TokenType.INTERFACE_DECL.getHexColor() 
                 : scriptType.getKind() == TypeInfo.Kind.ENUM ? TokenType.ENUM_DECL.getHexColor() 
                 : TokenType.IMPORTED_CLASS.getHexColor();
-            addSegment(getName(typeInfo), classColor);
+            addTypeSegments(typeInfo);
             
             // Extends clause for ScriptTypeInfo
             if (scriptType.hasSuperClass()) {
@@ -612,7 +613,7 @@ public class TokenHoverInfo {
                 TypeInfo superClass = scriptType.getSuperClass();
                 if (superClass != null && superClass.isResolved()) {
                     // Color based on resolved type
-                    addSegment(getName(superClass), getColorForTypeInfo(superClass));
+                    addTypeSegments(superClass);
                 } else {
                     // Unresolved - show the raw name in undefined color
                     String superName = scriptType.getSuperClassName();
@@ -642,7 +643,8 @@ public class TokenHoverInfo {
                     String ifaceName = (i < interfaceNames.size()) ? interfaceNames.get(i) : getName(ifaceType);
                     
                     if (ifaceType != null && ifaceType.isResolved()) {
-                        addSegment(ifaceName, getColorForTypeInfo(ifaceType));
+                        // Prefer rendering from the resolved TypeInfo so generics color correctly
+                        addTypeSegments(ifaceType);
                     } else {
                         addSegment(ifaceName, TokenType.UNDEFINED_VAR.getHexColor());
                     }
@@ -675,7 +677,7 @@ public class TokenHoverInfo {
             
             iconIndicator = "I";
             addSegment("interface ", TokenType.MODIFIER.getHexColor());
-            addSegment(getName(typeInfo), TokenType.INTERFACE_DECL.getHexColor());
+            addTypeSegments(typeInfo);
             
             if (jsType.getExtendsType() != null) {
                 addSegment(" extends ", TokenType.MODIFIER.getHexColor());
@@ -831,8 +833,7 @@ public class TokenHoverInfo {
                 packageName = pkg;
             
             // Type - check for actual type color
-            int typeColor = getColorForTypeInfo(declaredType);
-            addSegment(getName(declaredType), typeColor);
+            addTypeSegments(declaredType);
             addSegment(" ", TokenType.DEFAULT.getHexColor());
         }
         
@@ -872,8 +873,7 @@ public class TokenHoverInfo {
 
 
             // Type (enum type name)
-            int typeColor = getColorForTypeInfo(enumType);
-            addSegment(getName(enumType), typeColor);
+            addTypeSegments(enumType);
             addSegment(" ", TokenType.DEFAULT.getHexColor());
         }
 
@@ -900,8 +900,7 @@ public class TokenHoverInfo {
         
         TypeInfo declaredType = fieldInfo.getTypeInfo();
         if (declaredType != null) {
-            int typeColor = getColorForTypeInfo(declaredType);
-            addSegment(getName(declaredType), typeColor);
+            addTypeSegments(declaredType);
             addSegment(" ", TokenType.DEFAULT.getHexColor());
         }
         
@@ -948,8 +947,7 @@ public class TokenHoverInfo {
         
         TypeInfo declaredType = fieldInfo.getTypeInfo();
         if (declaredType != null) {
-            int typeColor = getColorForTypeInfo(declaredType);
-            addSegment(getName(declaredType), typeColor);
+            addTypeSegments(declaredType);
             addSegment(" ", TokenType.DEFAULT.getHexColor());
         }
         
@@ -963,8 +961,55 @@ public class TokenHoverInfo {
         //addSegment(token.getText(), TokenType.UNDEFINED_VAR.getHexColor());
     }
     
+    /**
+     * Get the display name for a type, including generic arguments.
+     * Uses the unified getDisplayName() method which handles:
+     * - Simple types: "String"
+     * - Parameterized types: "List<String>", "Map<String, Integer>"
+     * - Nested generics: "List<Map<String, Integer>>"
+     * - JS types with namespace: "IPlayerEvent.InteractEvent"
+     */
     public String getName(TypeInfo type){
-        return type.isJSType()? type.getFullName() : type.getSimpleName();
+        return type.getDisplayName();
+    }
+
+    /**
+     * Add a type name as multiple colored segments so generics render like the editor marks.
+     * Example: List<String> -> "List" (interface), "<" (default), "String" (class), ">" (default)
+     */
+    private void addTypeSegments(TypeInfo typeInfo) {
+        addTypeSegments(typeInfo, 0);
+    }
+
+    private void addTypeSegments(TypeInfo typeInfo, int depth) {
+        if (typeInfo == null) {
+            addSegment("any", TokenType.DEFAULT.getHexColor());
+            return;
+        }
+        if (depth > 25) {
+            // Safety guard against pathological recursive types
+            addSegment(getName(typeInfo), getColorForTypeInfo(typeInfo));
+            return;
+        }
+
+        if (typeInfo.isParameterized()) {
+            TypeInfo raw = typeInfo.getRawType();
+            addSegment(getName(raw), getColorForTypeInfo(raw));
+            addSegment("<", TokenType.DEFAULT.getHexColor());
+
+            java.util.List<TypeInfo> args = typeInfo.getAppliedTypeArgs();
+            for (int i = 0; i < args.size(); i++) {
+                if (i > 0) {
+                    addSegment(", ", TokenType.DEFAULT.getHexColor());
+                }
+                addTypeSegments(args.get(i), depth + 1);
+            }
+
+            addSegment(">", TokenType.DEFAULT.getHexColor());
+            return;
+        }
+
+        addSegment(getName(typeInfo), getColorForTypeInfo(typeInfo));
     }
 
     private void extractFieldInfoGeneric(Token token) {
@@ -1003,8 +1048,7 @@ public class TokenHoverInfo {
             FieldInfo param = params.get(i);
             TypeInfo paramType = param.getTypeInfo();
             if (paramType != null) {
-                int paramTypeColor = getColorForTypeInfo(paramType);
-                addSegment(getName(paramType), paramTypeColor);
+                addTypeSegments(paramType);
                 addSegment(" ", TokenType.DEFAULT.getHexColor());
             }
             addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
@@ -1082,8 +1126,7 @@ public class TokenHoverInfo {
         // Return type
         TypeInfo returnType = methodInfo.getReturnType();
         if (returnType != null) {
-            int returnTypeColor = getColorForTypeInfo(returnType);
-            addSegment(getName(returnType), returnTypeColor);
+            addTypeSegments(returnType);
             addSegment(" ", TokenType.DEFAULT.getHexColor());
         } else {
             addSegment("void ", TokenType.KEYWORD.getHexColor());
@@ -1100,8 +1143,7 @@ public class TokenHoverInfo {
             FieldInfo param = params.get(i);
             TypeInfo paramType = param.getTypeInfo();
             if (paramType != null) {
-                int paramTypeColor = getColorForTypeInfo(paramType);
-                addSegment(getName(paramType), paramTypeColor);
+                addTypeSegments(paramType);
                 addSegment(" ", TokenType.DEFAULT.getHexColor());
             }
             addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
