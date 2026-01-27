@@ -127,8 +127,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Effects
         this.windUpSound = ability.getWindUpSound();
         this.activeSound = ability.getActiveSound();
-        this.windUpAnimationId = ability.getWindUpAnimationId();
-        this.activeAnimationId = ability.getActiveAnimationId();
+        this.windUpAnimationId = ability.getWindUpAnimation() != null ? ability.getWindUpAnimation().getID() : -1;
+        this.activeAnimationId = ability.getActiveAnimation() != null ? ability.getActiveAnimation().getID() : -1;
 
         // Telegraph
         this.showTelegraph = ability.isShowTelegraph();

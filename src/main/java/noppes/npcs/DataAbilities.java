@@ -154,7 +154,7 @@ public class DataAbilities {
 
                     // Play active sound and animation
                     playAbilitySound(currentAbility.getActiveSound());
-                    playAbilityAnimation(currentAbility.getActiveAnimationId());
+                    playAbilityAnimation(currentAbility.getActiveAnimation());
 
                     // Fire execute event (cancelable)
                     AbilityEvent.ExecuteEvent executeEvent = new AbilityEvent.ExecuteEvent(
@@ -359,7 +359,7 @@ public class DataAbilities {
         playAbilitySound(ability.getWindUpSound());
 
         // Play wind up animation if configured
-        playAbilityAnimation(ability.getWindUpAnimationId());
+        playAbilityAnimation(ability.getWindUpAnimation());
 
         return true;
     }
@@ -377,18 +377,23 @@ public class DataAbilities {
      * Play an animation on the NPC by ID.
      * Public so abilities can trigger animations directly if needed.
      *
-     * @param animationId The global animation ID to play, or -1 for none
+     * @param animation The animation to play, or null if none
      */
-    public void playAbilityAnimation(int animationId) {
-        if (animationId < 0) return;
+    public void playAbilityAnimation(Animation animation) {
+        if (animation == null || animation.id < 0) return;
         if (AnimationController.Instance == null) return;
 
-        Animation animation = AnimationController.Instance.animations.get(animationId);
-        if (animation != null) {
-            npc.display.animationData.setEnabled(true);
-            npc.display.animationData.setAnimation(animation);
-            npc.display.animationData.updateClient();
-        }
+        npc.display.animationData.setEnabled(true);
+        npc.display.animationData.setAnimation(animation);
+        npc.display.animationData.updateClient();
+    }
+
+    public void playAbilityAnimation(int animation) {
+        if (animation < 0) return;
+        if (AnimationController.Instance == null) return;
+        if (AnimationController.Instance.get(animation) == null) return;
+
+        playAbilityAnimation((Animation) AnimationController.Instance.get(animation));
     }
 
     /**

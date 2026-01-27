@@ -17,6 +17,8 @@ import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
@@ -927,16 +929,20 @@ public abstract class Ability implements IAbility {
         this.activeSound = activeSound;
     }
 
-    public int getWindUpAnimationId() {
-        return windUpAnimationId;
+    public Animation getWindUpAnimation() {
+        if (AnimationController.Instance == null) return null;
+
+        return (Animation) AnimationController.Instance.get(windUpAnimationId);
     }
 
     public void setWindUpAnimationId(int windUpAnimationId) {
         this.windUpAnimationId = windUpAnimationId;
     }
 
-    public int getActiveAnimationId() {
-        return activeAnimationId;
+    public Animation getActiveAnimation() {
+        if (AnimationController.Instance == null) return null;
+
+        return (Animation) AnimationController.Instance.get(activeAnimationId);
     }
 
     public void setActiveAnimationId(int activeAnimationId) {
