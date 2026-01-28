@@ -18,13 +18,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityTeleport;
+
 import java.util.List;
 import java.util.Random;
 
 /**
  * Teleport ability: Instant reposition with wall/line-of-sight checks.
  */
-public class AbilityTeleport extends Ability {
+public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     /**
      * Teleport behavior mode.
@@ -440,12 +442,23 @@ public class AbilityTeleport extends Ability {
     }
 
     // Getters & Setters
-    public TeleportMode getMode() {
+    public TeleportMode getModeEnum() {
         return mode;
     }
 
-    public void setMode(TeleportMode mode) {
+    public void setModeEnum(TeleportMode mode) {
         this.mode = mode;
+    }
+
+    @Override
+    public int getMode() {
+        return mode.ordinal();
+    }
+
+    @Override
+    public void setMode(int mode) {
+        TeleportMode[] values = TeleportMode.values();
+        this.mode = mode >= 0 && mode < values.length ? values[mode] : TeleportMode.BLINK;
     }
 
     public int getBlinkCount() {

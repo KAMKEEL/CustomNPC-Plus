@@ -18,6 +18,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHazard;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityHazard;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -27,7 +29,7 @@ import java.util.Set;
  * Hazard ability: Creates persistent ground effect zones.
  * Deals damage and/or applies debuffs to entities in the zone over time.
  */
-public class AbilityHazard extends Ability {
+public class AbilityHazard extends Ability implements IAbilityHazard {
 
     public enum HazardShape {
         CIRCLE,
@@ -443,20 +445,42 @@ public class AbilityHazard extends Ability {
         this.coneAngle = coneAngle;
     }
 
-    public HazardShape getShape() {
+    public HazardShape getShapeEnum() {
         return shape;
     }
 
-    public void setShape(HazardShape shape) {
+    public void setShapeEnum(HazardShape shape) {
         this.shape = shape;
     }
 
-    public PlacementMode getPlacement() {
+    @Override
+    public int getShape() {
+        return shape.ordinal();
+    }
+
+    @Override
+    public void setShape(int shape) {
+        HazardShape[] values = HazardShape.values();
+        this.shape = shape >= 0 && shape < values.length ? values[shape] : HazardShape.CIRCLE;
+    }
+
+    public PlacementMode getPlacementEnum() {
         return placement;
     }
 
-    public void setPlacement(PlacementMode placement) {
+    public void setPlacementEnum(PlacementMode placement) {
         this.placement = placement;
+    }
+
+    @Override
+    public int getPlacement() {
+        return placement.ordinal();
+    }
+
+    @Override
+    public void setPlacement(int placement) {
+        PlacementMode[] values = PlacementMode.values();
+        this.placement = placement >= 0 && placement < values.length ? values[placement] : PlacementMode.AT_CASTER;
     }
 
     public float getDamagePerSecond() {

@@ -14,13 +14,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityProjectile;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityProjectile;
+
 import java.util.List;
 
 /**
  * Projectile ability: Ranged attack that deals damage to target.
  * Currently instant damage - can be enhanced with custom projectile entities.
  */
-public class AbilityProjectile extends Ability {
+public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     // Type-specific parameters
     private float damage = 6.0f;

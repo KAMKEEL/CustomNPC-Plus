@@ -18,6 +18,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityCharge;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +27,7 @@ import java.util.Set;
 /**
  * Charge ability: Rush attack where NPC charges in a line, damaging all targets hit.
  */
-public class AbilityCharge extends Ability {
+public class AbilityCharge extends Ability implements IAbilityCharge {
 
     // Type-specific parameters
     private float chargeSpeed = 0.8f;

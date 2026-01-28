@@ -13,13 +13,14 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityLaserShot;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityLaserShot;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Laser Shot ability: Fast expanding thin line that pierces through targets.
  * Travels in a straight line from origin, damaging all entities it passes through.
  */
-public class AbilityLaserShot extends Ability {
+public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     // Laser properties
     private float laserWidth = 0.3f;

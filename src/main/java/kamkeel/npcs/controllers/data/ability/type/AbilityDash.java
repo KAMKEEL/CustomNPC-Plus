@@ -14,13 +14,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityDash;
+
 import java.util.Random;
 
 /**
  * Dash ability: Quick evasive sidestep with NO telegraph.
  * Defensive repositioning move to evade attacks.
  */
-public class AbilityDash extends Ability {
+public class AbilityDash extends Ability implements IAbilityDash {
 
     /**
      * Dash behavior mode.
@@ -245,12 +247,23 @@ public class AbilityDash extends Ability {
     }
 
     // Getters & Setters
-    public DashMode getDashMode() {
+    public DashMode getDashModeEnum() {
         return dashMode;
     }
 
-    public void setDashMode(DashMode dashMode) {
+    public void setDashModeEnum(DashMode dashMode) {
         this.dashMode = dashMode;
+    }
+
+    @Override
+    public int getDashMode() {
+        return dashMode.ordinal();
+    }
+
+    @Override
+    public void setDashMode(int mode) {
+        DashMode[] values = DashMode.values();
+        this.dashMode = mode >= 0 && mode < values.length ? values[mode] : DashMode.AGGRESSIVE;
     }
 
     public float getDashDistance() {

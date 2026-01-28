@@ -12,12 +12,12 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
+import net.minecraft.nbt.NBTTagCompound;;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityEnergyBeam;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityEnergyBeam;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -26,7 +26,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  * The beam stays attached to the origin and curves as it homes in on target.
  * Cannot cross over itself (self-intersection prevention).
  */
-public class AbilityEnergyBeam extends Ability {
+public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
 
     // Movement properties
     private float speed = 0.4f;
@@ -310,9 +310,8 @@ public class AbilityEnergyBeam extends Ability {
     public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
-    public AnchorPoint getAnchorPoint() { return anchorPoint; }
-    public void setAnchorPoint(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
 
+    
     @Override
     public Animation getWindUpAnimation() {
         if (windUpAnimationId == -1)
@@ -328,4 +327,13 @@ public class AbilityEnergyBeam extends Ability {
 
         return super.getActiveAnimation();
     }
+
+    public AnchorPoint getAnchorPointEnum() { return anchorPoint; }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+
+    @Override
+    public int getAnchorPoint() { return anchorPoint.getId(); }
+
+    @Override
+    public void setAnchorPoint(int point) { this.anchorPoint = AnchorPoint.fromId(point); }
 }

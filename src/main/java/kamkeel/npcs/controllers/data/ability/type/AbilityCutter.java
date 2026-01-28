@@ -15,6 +15,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCutter;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityCutter;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +26,7 @@ import java.util.Set;
  * Deals damage to all entities in a cone/arc in front of the caster.
  * Can sweep outward over time or hit instantly.
  */
-public class AbilityCutter extends Ability {
+public class AbilityCutter extends Ability implements IAbilityCutter {
 
     public enum SweepMode {
         SWIPE,
@@ -254,12 +256,23 @@ public class AbilityCutter extends Ability {
         this.knockback = knockback;
     }
 
-    public SweepMode getSweepMode() {
+    public SweepMode getSweepModeEnum() {
         return sweepMode;
     }
 
-    public void setSweepMode(SweepMode sweepMode) {
+    public void setSweepModeEnum(SweepMode sweepMode) {
         this.sweepMode = sweepMode;
+    }
+
+    @Override
+    public int getSweepMode() {
+        return sweepMode.ordinal();
+    }
+
+    @Override
+    public void setSweepMode(int mode) {
+        SweepMode[] values = SweepMode.values();
+        this.sweepMode = mode >= 0 && mode < values.length ? values[mode] : SweepMode.SWIPE;
     }
 
     public float getSweepSpeed() {

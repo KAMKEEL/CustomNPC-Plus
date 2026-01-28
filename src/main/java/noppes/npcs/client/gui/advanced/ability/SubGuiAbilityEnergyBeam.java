@@ -118,7 +118,7 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
 
         // Row 1: Anchor Point
         addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
-        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), beam.getAnchorPoint().getId());
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), beam.getAnchorPointEnum().getId());
         anchorBtn.setHoverText("ability.hover.anchorPoint");
         addButton(anchorBtn);
 
@@ -219,7 +219,7 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
                 initGui();
                 break;
             case 210:
-                beam.setAnchorPoint(AnchorPoint.fromId(value));
+                beam.setAnchorPointEnum(AnchorPoint.fromId(value));
                 break;
         }
     }

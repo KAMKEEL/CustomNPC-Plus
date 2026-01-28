@@ -15,13 +15,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityShockwave;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityShockwave;
+
 import java.util.List;
 
 /**
  * Shockwave ability: Pushes targets away from the caster with damage.
  * Opposite of Vortex - instant knockback rather than gradual pull.
  */
-public class AbilityShockwave extends Ability {
+public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     private float pushRadius = 8.0f;
     private float pushStrength = 1.5f;

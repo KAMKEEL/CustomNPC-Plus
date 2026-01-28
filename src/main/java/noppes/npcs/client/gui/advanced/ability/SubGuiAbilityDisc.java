@@ -122,7 +122,7 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
 
         // Row 1: Anchor Point
         addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
-        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), disc.getAnchorPoint().getId());
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), disc.getAnchorPointEnum().getId());
         anchorBtn.setHoverText("ability.hover.anchorPoint");
         addButton(anchorBtn);
 
@@ -227,7 +227,7 @@ public class SubGuiAbilityDisc extends SubGuiAbilityConfig {
                 initGui();
                 break;
             case 210:
-                disc.setAnchorPoint(AnchorPoint.fromId(value));
+                disc.setAnchorPointEnum(AnchorPoint.fromId(value));
                 break;
         }
     }

@@ -15,6 +15,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySweeper;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilitySweeper;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -25,7 +26,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  * All damage logic is handled by the EntityAbilitySweeper entity to ensure
  * visual and damage hitbox alignment.
  */
-public class AbilitySweeper extends Ability {
+public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     // Type-specific parameters
     private float beamLength = 10.0f;

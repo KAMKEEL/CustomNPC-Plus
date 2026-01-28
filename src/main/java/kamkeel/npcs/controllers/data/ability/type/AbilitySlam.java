@@ -17,6 +17,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySlam;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilitySlam;
+
 import java.util.List;
 
 /**
@@ -28,7 +30,7 @@ import java.util.List;
  * - Landing: When NPC hits ground, deal AOE damage
  * - RECOVERY: Landing recovery animation
  */
-public class AbilitySlam extends Ability {
+public class AbilitySlam extends Ability implements IAbilitySlam {
 
     // Type-specific config
     private float damage = 10.0f;

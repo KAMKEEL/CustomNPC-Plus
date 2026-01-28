@@ -14,13 +14,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityGuard;
+
 import java.util.Random;
 
 /**
  * Guard ability: Defensive stance that reduces incoming damage.
  * Can optionally counter-attack when hit.
  */
-public class AbilityGuard extends Ability {
+public class AbilityGuard extends Ability implements IAbilityGuard {
 
     private static final Random RANDOM = new Random();
 
@@ -228,16 +230,32 @@ public class AbilityGuard extends Ability {
         return canCounter;
     }
 
+    @Override
+    public boolean canCounter() {
+        return canCounter;
+    }
+
     public void setCanCounter(boolean canCounter) {
         this.canCounter = canCounter;
     }
 
-    public CounterType getCounterType() {
+    public CounterType getCounterTypeEnum() {
         return counterType;
     }
 
-    public void setCounterType(CounterType counterType) {
+    public void setCounterTypeEnum(CounterType counterType) {
         this.counterType = counterType;
+    }
+
+    @Override
+    public int getCounterType() {
+        return counterType.ordinal();
+    }
+
+    @Override
+    public void setCounterType(int type) {
+        CounterType[] values = CounterType.values();
+        this.counterType = type >= 0 && type < values.length ? values[type] : CounterType.FLAT;
     }
 
     public float getCounterValue() {

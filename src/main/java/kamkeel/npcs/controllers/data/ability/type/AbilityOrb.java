@@ -19,6 +19,7 @@ import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.api.ability.type.IAbilityOrb;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -26,7 +27,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  * The EntityAbilityOrb handles all movement, collision, and damage logic.
  * This ability just configures and spawns the orb entity.
  */
-public class AbilityOrb extends Ability {
+public class AbilityOrb extends Ability implements IAbilityOrb {
 
     // Movement properties
     private float orbSpeed = 0.5f;
@@ -456,11 +457,11 @@ public class AbilityOrb extends Ability {
         this.lightningFadeTime = lightningFadeTime;
     }
 
-    public AnchorPoint getAnchorPoint() {
+    public AnchorPoint getAnchorPointEnum() {
         return anchorPoint;
     }
 
-    public void setAnchorPoint(AnchorPoint anchorPoint) {
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) {
         this.anchorPoint = anchorPoint;
     }
 
@@ -470,5 +471,14 @@ public class AbilityOrb extends Ability {
             return super.getWindUpAnimation();
 
         return animation.windUp();
+    }
+
+    public int getAnchorPoint() {
+        return anchorPoint.getId();
+    }
+
+    @Override
+    public void setAnchorPoint(int point) {
+        this.anchorPoint = AnchorPoint.fromId(point);
     }
 }

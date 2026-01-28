@@ -11,13 +11,14 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityHeavyHit;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Heavy Hit ability: Single-target melee attack with optional stun.
  * Deals high damage to one target and can stun them.
  */
-public class AbilityHeavyHit extends Ability {
+public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     private float damage = 8.0f;
     private float knockback = 2.0f;

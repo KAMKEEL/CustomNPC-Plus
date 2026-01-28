@@ -39,7 +39,7 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(100, "ability.shape", col2LabelX, y + 5));
         String[] shapes = {"Circle", "Ring", "Cone"};
-        GuiNpcButton shapeBtn = new GuiNpcButton(100, col2FieldX, y, 55, 20, shapes, hazard.getShape().ordinal());
+        GuiNpcButton shapeBtn = new GuiNpcButton(100, col2FieldX, y, 55, 20, shapes, hazard.getShapeEnum().ordinal());
         shapeBtn.setHoverText("ability.hover.shape");
         addButton(shapeBtn);
 
@@ -48,7 +48,7 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
         // Row 2: Placement
         addLabel(new GuiNpcLabel(101, "ability.placement", labelX, y + 5));
         String[] placements = {"Caster", "Target", "FollowCast", "FollowTgt"};
-        GuiNpcButton placementBtn = new GuiNpcButton(101, fieldX, y, 70, 20, placements, hazard.getPlacement().ordinal());
+        GuiNpcButton placementBtn = new GuiNpcButton(101, fieldX, y, 70, 20, placements, hazard.getPlacementEnum().ordinal());
         placementBtn.setHoverText("ability.hover.placement");
         addButton(placementBtn);
 
@@ -101,10 +101,10 @@ public class SubGuiAbilityHazard extends SubGuiAbilityConfig {
         int value = button.getValue();
         switch (id) {
             case 100:
-                hazard.setShape(AbilityHazard.HazardShape.values()[value]);
+                hazard.setShapeEnum(AbilityHazard.HazardShape.values()[value]);
                 break;
             case 101:
-                hazard.setPlacement(AbilityHazard.PlacementMode.values()[value]);
+                hazard.setPlacementEnum(AbilityHazard.PlacementMode.values()[value]);
                 break;
             case 109:
                 hazard.setAffectsCaster(value == 1);

@@ -604,6 +604,50 @@ public class DataAbilities {
         }
     }
 
+    /**
+     * Force start a specific ability, bypassing normal selection and cooldown.
+     * If an ability is currently executing, it will be cancelled.
+     *
+     * @param ability The ability to start
+     * @param target The target entity (can be null for self-targeted abilities)
+     * @return true if the ability was started successfully
+     */
+    public boolean forceStartAbility(Ability ability, EntityLivingBase target) {
+        if (ability == null || npc.worldObj.isRemote) {
+            return false;
+        }
+
+        // Stop any currently executing ability
+        stopCurrentAbility();
+
+        // Reset the ability state
+        ability.reset();
+
+        // Start the ability directly
+        return startAbility(ability, target);
+    }
+
+    /**
+     * Execute a preset ability on this NPC.
+     * The NPC does NOT need to have this ability assigned.
+     *
+     * @param presetName The name of the saved ability preset
+     * @param target The target entity (can be null for self-targeted abilities)
+     * @return true if the ability was started successfully
+     */
+    public boolean executePresetAbility(String presetName, EntityLivingBase target) {
+        if (presetName == null || presetName.isEmpty() || npc.worldObj.isRemote) {
+            return false;
+        }
+
+        Ability preset = AbilityController.Instance.getSavedAbility(presetName);
+        if (preset == null) {
+            return false;
+        }
+
+        return forceStartAbility(preset, target);
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // SCRIPT EVENTS
     // ═══════════════════════════════════════════════════════════════════

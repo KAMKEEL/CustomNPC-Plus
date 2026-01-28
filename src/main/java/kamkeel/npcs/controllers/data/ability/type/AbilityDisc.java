@@ -17,13 +17,14 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDisc;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityDisc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Disc ability: Spawns a flat spinning disc projectile.
  * Has optional boomerang behavior to return to owner.
  */
-public class AbilityDisc extends Ability {
+public class AbilityDisc extends Ability implements IAbilityDisc {
 
     // Movement properties
     private float speed = 0.6f;
@@ -312,6 +313,12 @@ public class AbilityDisc extends Ability {
     public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
-    public AnchorPoint getAnchorPoint() { return anchorPoint; }
-    public void setAnchorPoint(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+    public AnchorPoint getAnchorPointEnum() { return anchorPoint; }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+
+    @Override
+    public int getAnchorPoint() { return anchorPoint.getId(); }
+
+    @Override
+    public void setAnchorPoint(int point) { this.anchorPoint = AnchorPoint.fromId(point); }
 }
