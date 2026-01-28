@@ -324,54 +324,68 @@ public class TypeResolver {
             return TypeInfo.fromPrimitive("void");
         }
 
-        // Use the generic type parser for full handling
-        GenericTypeParser.ParsedType parsed = GenericTypeParser.parse(jsTypeName);
-        if (parsed == null) {
+        // Normalize import() references first.
+        String normalized = TypeStringNormalizer.stripImportTypeSyntax(jsTypeName);
+        if (normalized == null || normalized.isEmpty()) {
+            return TypeInfo.fromPrimitive("void");
+        }
+
+        // Unions: pick a single "best" branch for resolution (prefer non-nullish).
+        normalized = TypeStringNormalizer.pickPreferredUnionBranch(normalized);
+
+        // Nullable: treat Foo? as Foo | null (for resolution purposes this means "resolve Foo").
+        normalized = TypeStringNormalizer.stripNullableSuffix(normalized);
+
+        // Arrays: handled here, not in the generics structural parser.
+        TypeStringNormalizer.ArraySplit arraySplit = TypeStringNormalizer.splitArraySuffixes(normalized);
+        String baseExpr = arraySplit.base;
+        int arrayDims = arraySplit.dimensions;
+
+        if (baseExpr == null || baseExpr.isEmpty()) {
             return TypeInfo.unresolved(jsTypeName, jsTypeName);
         }
-        
-        // Resolve the parsed type tree into a TypeInfo tree
-        return resolveFromParsedType(parsed);
-    }
-    
-    /**
-     * Resolve a ParsedType tree into a TypeInfo, preserving generic arguments.
-     * This is the core resolution method that handles nested generics.
-     */
-    private TypeInfo resolveFromParsedType(GenericTypeParser.ParsedType parsed) {
-        if (parsed == null) {
-            return null;
+
+        TypeInfo resolved = null;
+        // Fast path: no generics - skip expensive parsing
+        if (!baseExpr.contains("<")) {
+            resolved = resolveBaseType(baseExpr);
+        } else {
+            // Slow path: parse and resolve into a TypeInfo, preserving generic arguments.
+            GenericTypeParser.ParsedType parsed = GenericTypeParser.parse(baseExpr);
+            if (parsed != null) {
+                // Resolve the base type (without generics)
+                TypeInfo baseType = resolveBaseType(parsed.baseName);
+
+                // If we have type arguments, resolve them (allowing each arg to have its own arrays/unions/etc).
+                if (parsed.hasTypeArgs() && baseType != null && baseType.isResolved()) {
+                    List<TypeInfo> resolvedArgs = new ArrayList<>();
+                    for (GenericTypeParser.ParsedType argParsed : parsed.typeArgs) {
+                        if (argParsed == null) {
+                            resolvedArgs.add(TypeInfo.ANY);
+                            continue;
+                        }
+                        TypeInfo argType = resolveJSType(argParsed.rawString);
+                        resolvedArgs.add(argType != null ? argType : TypeInfo.unresolved(argParsed.baseName,
+                                argParsed.baseName));
+                    }
+                    if (!resolvedArgs.isEmpty()) {
+                        baseType = baseType.parameterize(resolvedArgs);
+                    }
+                }
+                resolved = baseType != null ? baseType : TypeInfo.unresolved(parsed.baseName, parsed.rawString);
+            } else
+                resolved = resolveBaseType(baseExpr);
         }
-        
-        String baseName = parsed.baseName;
-        
-        // Handle "Java." prefix - convert to actual Java type
-        if (baseName.startsWith("Java.")) {
-            baseName = baseName.substring(5); // Remove "Java."
+
+        if (resolved == null) {
+            resolved = TypeInfo.unresolved(baseExpr, jsTypeName);
         }
-        
-        // Resolve the base type (without generics)
-        TypeInfo baseType = resolveBaseType(baseName);
-        
-        // If we have type arguments, recursively resolve them and create parameterized type
-        if (parsed.hasTypeArgs() && baseType != null && baseType.isResolved()) {
-            List<TypeInfo> resolvedArgs = new ArrayList<>();
-            for (GenericTypeParser.ParsedType argParsed : parsed.typeArgs) {
-                TypeInfo argType = resolveFromParsedType(argParsed);
-                resolvedArgs.add(argType != null ? argType : TypeInfo.unresolved(argParsed.baseName, argParsed.baseName));
-            }
-            baseType = baseType.parameterize(resolvedArgs);
+
+        for (int i = 0; i < arrayDims; i++) {
+            resolved = TypeInfo.arrayOf(resolved);
         }
-        
-        // Handle array
-        if (parsed.isArray && baseType != null) {
-            for (int i = 0; i < parsed.arrayDimensions; i++) {
-                baseType = TypeInfo.arrayOf(baseType);
-            }
-        }
-        
-        // Return the resolved (possibly parameterized) type
-        return baseType != null ? baseType : TypeInfo.unresolved(parsed.baseName, parsed.rawString);
+
+        return resolved;
     }
     
     /**
@@ -381,6 +395,11 @@ public class TypeResolver {
     private TypeInfo resolveBaseType(String baseName) {
         if (baseName == null || baseName.isEmpty()) {
             return null;
+        }
+
+        // Handle "Java." prefix - convert to actual Java type
+        if (baseName.startsWith("Java.")) {
+            baseName = baseName.substring(5);
         }
 
         // Check synthetic types (Nashorn built-ins, custom types, etc.)

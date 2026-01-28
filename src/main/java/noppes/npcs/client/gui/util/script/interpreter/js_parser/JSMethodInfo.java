@@ -1,9 +1,9 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.GenericContext;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
 
 import java.util.*;
 
@@ -59,20 +59,11 @@ public class JSMethodInfo {
      */
     public TypeInfo getResolvedReturnType(TypeInfo contextType) {
         TypeResolver resolver = TypeResolver.getInstance();
-        
-        // First, resolve the return type string to a TypeInfo (now preserves generic args)
         TypeInfo resolved = resolver.resolveJSType(returnType);
         
-        // If we have a parameterized context, apply type variable substitution
-        if (contextType != null && contextType.isParameterized()) {
-            resolved = TypeSubstitutor.getSubstitutedReturnType(resolved, returnType, contextType, resolver);
-        }
-        // Fallback: if not resolved and contextType has declared type parameters, try direct resolution
-        else if (contextType != null && !resolved.isResolved()) {
-            TypeInfo paramResolution = contextType.resolveTypeParamToTypeInfo(returnType);
-            if (paramResolution != null) {
-                resolved = paramResolution;
-            }
+        if (contextType != null) {
+            GenericContext ctx = GenericContext.forReceiver(contextType);
+            resolved = ctx.substituteType(resolved, returnType, resolver);
         }
 
         return resolved;
@@ -168,20 +159,11 @@ public class JSMethodInfo {
          */
         public TypeInfo getResolvedType(TypeInfo contextType) {
             TypeResolver resolver = TypeResolver.getInstance();
-            
-            // First, resolve the type string to a TypeInfo (now preserves generic args)
             TypeInfo resolved = resolver.resolveJSType(type);
             
-            // If we have a parameterized context, apply type variable substitution
-            if (contextType != null && contextType.isParameterized()) {
-                resolved = TypeSubstitutor.getSubstitutedReturnType(resolved, type, contextType, resolver);
-            }
-            // Fallback: if not resolved and contextType has declared type parameters, try direct resolution
-            else if (contextType != null && !resolved.isResolved()) {
-                TypeInfo paramResolution = contextType.resolveTypeParamToTypeInfo(type);
-                if (paramResolution != null) {
-                    resolved = paramResolution;
-                }
+            if (contextType != null) {
+                GenericContext ctx = GenericContext.forReceiver(contextType);
+                resolved = ctx.substituteType(resolved, type, resolver);
             }
 
             return resolved;

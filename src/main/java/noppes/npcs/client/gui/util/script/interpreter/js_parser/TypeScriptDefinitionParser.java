@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocTag;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeStringNormalizer;
 
 import java.io.*;
 import java.util.*;
@@ -665,55 +666,7 @@ public class TypeScriptDefinitionParser {
      */
     private String cleanType(String type) {
         if (type == null) return "any";
-        type = type.trim();
-
-        // Strip TypeScript import() type references anywhere in the string.
-        // Examples:
-        // - import('./data/IAction').IAction                -> IAction
-        // - Java.java.util.function.Consumer<import('./x').T> -> Java.java.util.function.Consumer<T>
-        // This is important because import() can appear nested inside generics.
-        int importIdx;
-        while ((importIdx = type.indexOf("import(")) >= 0) {
-            int i = importIdx + "import(".length();
-            int depth = 1;
-            boolean inString = false;
-            char stringChar = 0;
-
-            while (i < type.length() && depth > 0) {
-                char c = type.charAt(i);
-                if (inString) {
-                    if (c == stringChar && (i == 0 || type.charAt(i - 1) != '\\')) {
-                        inString = false;
-                    }
-                } else {
-                    if (c == '\'' || c == '"') {
-                        inString = true;
-                        stringChar = c;
-                    } else if (c == '(') {
-                        depth++;
-                    } else if (c == ')') {
-                        depth--;
-                    }
-                }
-                i++;
-            }
-
-            // i is positioned just after the matching ')', if found.
-            if (depth != 0) {
-                break; // Unbalanced import( ... ) - stop trying to clean.
-            }
-
-            // If immediately followed by ".", remove "import(...) ." prefix.
-            if (i < type.length() && type.charAt(i) == '.') {
-                int removeEnd = i + 1;
-                type = type.substring(0, importIdx) + type.substring(removeEnd);
-            } else {
-                // Remove just the import(...) portion.
-                type = type.substring(0, importIdx) + type.substring(i);
-            }
-        }
-
-        return type;
+        return TypeStringNormalizer.stripImportTypeSyntax(type);
     }
     
     /**

@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.GenericContext;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 /**
@@ -44,19 +45,17 @@ public class JSFieldInfo {
      * @return The resolved TypeInfo for the field type
      */
     public TypeInfo getResolvedType(TypeInfo contextType) {
-        // Use pre-resolved if available
-        if (typeInfo != null && typeInfo.isResolved()) 
-            return typeInfo;
-        
-        // Fall back to resolving from string
         TypeResolver resolver = TypeResolver.getInstance();
-        TypeInfo resolved = typeInfo = resolver.resolveJSType(type);
-        
-        // If not resolved and contextType has type parameters, try to resolve as type parameter
-        if (contextType != null && !resolved.isResolved()) {
-            TypeInfo paramResolution = contextType.resolveTypeParamToTypeInfo(type);
-            if (paramResolution != null) 
-                resolved = typeInfo = paramResolution; // cache it to typeInfo
+
+        // Cache only the raw resolved type; substitutions depend on the receiver context.
+        TypeInfo resolved = typeInfo != null ? typeInfo : resolver.resolveJSType(type);
+        if (typeInfo == null) {
+            typeInfo = resolved;
+        }
+
+        if (contextType != null) {
+            GenericContext ctx = GenericContext.forReceiver(contextType);
+            return ctx.substituteType(resolved, type, resolver);
         }
         
         return resolved;

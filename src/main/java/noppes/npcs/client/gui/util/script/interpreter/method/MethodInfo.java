@@ -8,6 +8,7 @@ import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.GenericContext;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
@@ -15,11 +16,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Metadata for a method declaration or method call.
@@ -174,9 +171,12 @@ public final class MethodInfo {
         }
 
         // If the receiver is parameterized (e.g., List<String>), substitute class type variables (E -> String)
-        java.util.Map<String, TypeInfo> receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
-        if (!receiverBindings.isEmpty()) {
-            returnType = TypeSubstitutor.substitute(returnType, receiverBindings);
+        Map<String, TypeInfo> receiverBindings = null;
+        if (GenericContext.hasGenerics(containingType)) {
+            receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
+            if (!receiverBindings.isEmpty()) {
+                returnType = TypeSubstitutor.substitute(returnType, receiverBindings);
+            }
         }
         List<FieldInfo> params = new ArrayList<>();
         // Use getGenericParameterTypes() to preserve generic information
@@ -188,7 +188,7 @@ public final class MethodInfo {
                 paramType = TypeInfo.fromClass(method.getParameterTypes()[i]);
             }
 
-            if (!receiverBindings.isEmpty()) {
+            if (receiverBindings != null && !receiverBindings.isEmpty()) {
                 paramType = TypeSubstitutor.substitute(paramType, receiverBindings);
             }
             String paramName = "arg" + i;

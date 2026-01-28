@@ -6,6 +6,7 @@ import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.bridge.DtsJavaBridge;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.GenericContext;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
@@ -16,6 +17,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Metadata for a field (variable) declaration or reference.
@@ -158,9 +160,11 @@ public final class FieldInfo {
         }
 
         // If the receiver is parameterized, substitute class type variables in the field type
-        java.util.Map<String, TypeInfo> receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
-        if (!receiverBindings.isEmpty()) {
-            type = TypeSubstitutor.substitute(type, receiverBindings);
+        if (GenericContext.hasGenerics(containingType)) {
+            Map<String, TypeInfo> receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
+            if (!receiverBindings.isEmpty()) {
+                type = TypeSubstitutor.substitute(type, receiverBindings);
+            }
         }
 
         // Check if this is an enum constant

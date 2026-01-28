@@ -12,9 +12,9 @@ import java.util.List;
  * - Single generic: "List<String>", "Consumer<IAction>"
  * - Multiple generics: "Map<String, Integer>"
  * - Nested generics: "List<Map<String, Integer>>"
- * - Arrays: "String[]", "List<String>[]"
- * - Nullable: "String?"
- * - Union types: "String | null" (uses first type for resolution)
+ *
+ * Note: union/nullability/array semantics are handled by higher-level resolvers.
+ * This parser only consumes suffix tokens where needed to correctly delimit type arguments.
  * 
  * This parser produces a ParsedType tree that can be resolved into parameterized TypeInfo instances.
  */
@@ -30,25 +30,12 @@ public class GenericTypeParser {
         /** The applied type arguments (for generics like List<String>), each is itself a ParsedType */
         public final List<ParsedType> typeArgs;
         
-        /** Whether this type is an array (has [] suffix) */
-        public final boolean isArray;
-        
-        /** Array dimensions (1 for T[], 2 for T[][], etc.) */
-        public final int arrayDimensions;
-        
-        /** Whether this type is nullable (has ? suffix in TypeScript) */
-        public final boolean isNullable;
-        
         /** The original raw string before parsing */
         public final String rawString;
         
-        public ParsedType(String baseName, List<ParsedType> typeArgs, boolean isArray, 
-                         int arrayDimensions, boolean isNullable, String rawString) {
+        public ParsedType(String baseName, List<ParsedType> typeArgs, String rawString) {
             this.baseName = baseName;
             this.typeArgs = typeArgs != null ? typeArgs : new ArrayList<>();
-            this.isArray = isArray;
-            this.arrayDimensions = arrayDimensions;
-            this.isNullable = isNullable;
             this.rawString = rawString;
         }
         
@@ -73,12 +60,6 @@ public class GenericTypeParser {
                 }
                 sb.append(">");
             }
-            for (int i = 0; i < arrayDimensions; i++) {
-                sb.append("[]");
-            }
-            if (isNullable) {
-                sb.append("?");
-            }
             return sb.toString();
         }
     }
@@ -96,38 +77,14 @@ public class GenericTypeParser {
         
         String expr = typeExpr.trim();
         
-        // Handle union types - use first type (same as current behavior)
-        if (expr.contains("|")) {
-            String[] parts = expr.split("\\|");
-            expr = parts[0].trim();
-        }
-        
-        // Handle nullable marker (TypeScript ?), remove it but track
-        boolean isNullable = false;
-        if (expr.endsWith("?")) {
-            isNullable = true;
-            expr = expr.substring(0, expr.length() - 1).trim();
-        }
-        
-        // Count and strip array dimensions
-        int arrayDims = 0;
-        while (expr.endsWith("[]")) {
-            arrayDims++;
-            expr = expr.substring(0, expr.length() - 2).trim();
-        }
-        
         // Now parse the base type with potential generic arguments
         ParseResult result = parseTypeWithGenerics(expr, 0);
         if (result == null || result.type == null) {
             // Fallback: treat entire expression as a simple type
-            return new ParsedType(expr, null, arrayDims > 0, arrayDims, isNullable, typeExpr);
+            return new ParsedType(expr, null, typeExpr);
         }
         
-        ParsedType parsed = result.type;
-        
-        // Apply array and nullable modifiers
-        return new ParsedType(parsed.baseName, parsed.typeArgs, 
-                             arrayDims > 0, arrayDims, isNullable, typeExpr);
+        return result.type;
     }
     
     /**
@@ -160,71 +117,18 @@ public class GenericTypeParser {
             return null;
         }
         
-        // Special-case: TypeScript import() type references like import('./x').TypeName
-        // We normalize these to just the referenced type name (e.g., "TypeName" or "Ns.TypeName").
-        String baseName;
-        if (expr.startsWith("import(", i)) {
-            int j = i + "import(".length();
-            int depth = 1;
-            boolean inString = false;
-            char stringChar = 0;
-            while (j < len && depth > 0) {
-                char c = expr.charAt(j);
-                if (inString) {
-                    if (c == stringChar && (j == 0 || expr.charAt(j - 1) != '\\')) {
-                        inString = false;
-                    }
-                } else {
-                    if (c == '\'' || c == '"') {
-                        inString = true;
-                        stringChar = c;
-                    } else if (c == '(') {
-                        depth++;
-                    } else if (c == ')') {
-                        depth--;
-                    }
-                }
-                j++;
-            }
-            // j is positioned just after ')'
-            i = j;
-            // Skip whitespace
-            while (i < len && Character.isWhitespace(expr.charAt(i))) {
+        // Read the base type name (can include dots for qualified names)
+        StringBuilder baseNameBuilder = new StringBuilder();
+        while (i < len) {
+            char c = expr.charAt(i);
+            if (Character.isJavaIdentifierPart(c) || c == '.') {
+                baseNameBuilder.append(c);
                 i++;
+            } else {
+                break;
             }
-            // Optional dot before the referenced type
-            if (i < len && expr.charAt(i) == '.') {
-                i++;
-                while (i < len && Character.isWhitespace(expr.charAt(i))) {
-                    i++;
-                }
-            }
-
-            StringBuilder nameBuilder = new StringBuilder();
-            while (i < len) {
-                char c = expr.charAt(i);
-                if (Character.isJavaIdentifierPart(c) || c == '.') {
-                    nameBuilder.append(c);
-                    i++;
-                } else {
-                    break;
-                }
-            }
-            baseName = nameBuilder.toString().trim();
-        } else {
-            // Read the base type name (can include dots for qualified names)
-            StringBuilder baseNameBuilder = new StringBuilder();
-            while (i < len) {
-                char c = expr.charAt(i);
-                if (Character.isJavaIdentifierPart(c) || c == '.') {
-                    baseNameBuilder.append(c);
-                    i++;
-                } else {
-                    break;
-                }
-            }
-            baseName = baseNameBuilder.toString().trim();
         }
+        String baseName = baseNameBuilder.toString().trim();
 
         if (baseName.isEmpty()) {
             return null;
@@ -277,7 +181,7 @@ public class GenericTypeParser {
             }
         }
         
-        ParsedType type = new ParsedType(baseName, typeArgs, false, 0, false, expr.substring(startIndex, i));
+        ParsedType type = new ParsedType(baseName, typeArgs, expr.substring(startIndex, i));
         return new ParseResult(type, i);
     }
 
@@ -363,7 +267,7 @@ public class GenericTypeParser {
                 }
             }
             // Plain wildcard, treat as Object
-            return new ParseResult(new ParsedType("Object", null, false, 0, false, "?"), i);
+            return new ParseResult(new ParsedType("Object", null, "?"), i);
         }
         
         // Parse regular type with potential generics
@@ -380,33 +284,22 @@ public class GenericTypeParser {
             i++;
         }
         
-        // Check for array suffix
-        int arrayDims = 0;
+        // Consume array suffixes / nullable suffix so the caller can correctly find delimiters.
         while (i + 1 < len && expr.charAt(i) == '[' && expr.charAt(i + 1) == ']') {
-            arrayDims++;
             i += 2;
-            // Skip whitespace
             while (i < len && Character.isWhitespace(expr.charAt(i))) {
                 i++;
             }
         }
-        
-        // Check for nullable suffix
-        boolean isNullable = false;
         if (i < len && expr.charAt(i) == '?') {
-            isNullable = true;
             i++;
         }
-        
-        // If we have array dims or nullable, wrap the base type
-        if (arrayDims > 0 || isNullable) {
-            return new ParseResult(
-                new ParsedType(baseType.baseName, baseType.typeArgs, arrayDims > 0, arrayDims, isNullable, 
-                              expr.substring(startIndex, i)),
-                i
-            );
+
+        // Preserve the full raw substring (including suffixes) for higher-level resolvers.
+        if (i != typeResult.endIndex) {
+            return new ParseResult(new ParsedType(baseType.baseName, baseType.typeArgs, expr.substring(startIndex, i)), i);
         }
-        
+
         return new ParseResult(baseType, i);
     }
     

@@ -93,7 +93,7 @@ public class TypeSubstitutor {
         String typeName = type.getSimpleName();
         
         // Check if this type is itself a type variable
-        if (!type.isResolved() || isTypeVariable(typeName)) {
+        if (!type.isResolved()) {
             TypeInfo substitution = bindings.get(typeName);
             if (substitution != null) {
                 return substitution;
@@ -122,11 +122,16 @@ public class TypeSubstitutor {
         
         // Handle array types - substitute the element type
         if (type.getSimpleName().endsWith("[]")) {
-            // Extract element type and substitute
-            String elementTypeName = typeName.substring(0, typeName.length() - 2);
-            TypeInfo elementSubstitution = bindings.get(elementTypeName);
+            TypeStringNormalizer.ArraySplit split = TypeStringNormalizer.splitArraySuffixes(typeName);
+            String elementTypeName = split.base;
+            int dims = split.dimensions;
+            TypeInfo elementSubstitution = elementTypeName != null ? bindings.get(elementTypeName) : null;
             if (elementSubstitution != null) {
-                return TypeInfo.arrayOf(elementSubstitution);
+                TypeInfo result = elementSubstitution;
+                for (int i = 0; i < dims; i++) {
+                    result = TypeInfo.arrayOf(result);
+                }
+                return result;
             }
         }
         
@@ -148,11 +153,13 @@ public class TypeSubstitutor {
         }
         
         // First check if the whole string is a type variable
-        String trimmed = typeString.trim();
-        
-        // Handle array suffix
-        boolean isArray = trimmed.endsWith("[]");
-        String baseName = isArray ? trimmed.substring(0, trimmed.length() - 2).trim() : trimmed;
+        String trimmed = TypeStringNormalizer.stripImportTypeSyntax(typeString);
+        trimmed = TypeStringNormalizer.pickPreferredUnionBranch(trimmed);
+        trimmed = TypeStringNormalizer.stripNullableSuffix(trimmed);
+
+        TypeStringNormalizer.ArraySplit arraySplit = TypeStringNormalizer.splitArraySuffixes(trimmed);
+        String baseName = arraySplit.base;
+        int arrayDims = arraySplit.dimensions;
         
         // Strip generic args to check the base name
         String bareBaseName = GenericTypeParser.stripGenerics(baseName);
@@ -162,7 +169,7 @@ public class TypeSubstitutor {
         if (directSubstitution != null) {
             // It's a type variable, return the substitution
             TypeInfo result = directSubstitution;
-            if (isArray) {
+            for (int i = 0; i < arrayDims; i++) {
                 result = TypeInfo.arrayOf(result);
             }
             return result;
@@ -171,20 +178,6 @@ public class TypeSubstitutor {
         // Parse and resolve the type, then substitute within it
         TypeInfo resolved = resolver.resolveJSType(typeString);
         return substitute(resolved, bindings);
-    }
-    
-    /**
-     * Check if a type name looks like a type variable (single uppercase letter or short uppercase name).
-     */
-    private static boolean isTypeVariable(String name) {
-        if (name == null || name.isEmpty()) {
-            return false;
-        }
-        // Common type variable patterns: T, E, K, V, R, U, etc.
-        // Also handles longer ones like KEY, VALUE but those are rare
-        return name.length() <= 3 && 
-               Character.isUpperCase(name.charAt(0)) &&
-               name.chars().allMatch(c -> Character.isUpperCase(c) || Character.isDigit(c));
     }
     
     /**
@@ -198,25 +191,7 @@ public class TypeSubstitutor {
      */
     public static TypeInfo getSubstitutedReturnType(TypeInfo rawReturnType, String rawReturnTypeString, 
                                                      TypeInfo receiverType, TypeResolver resolver) {
-        Map<String, TypeInfo> bindings = createBindingsFromReceiver(receiverType);
-        if (bindings.isEmpty()) {
-            return rawReturnType;
-        }
-        
-        // Try substituting the resolved type first
-        TypeInfo substituted = substitute(rawReturnType, bindings);
-        if (substituted != rawReturnType && substituted.isResolved()) {
-            return substituted;
-        }
-        
-        // If still not resolved, try substituting from the string
-        if (rawReturnTypeString != null && !rawReturnTypeString.isEmpty()) {
-            TypeInfo fromString = substituteString(rawReturnTypeString, bindings, resolver);
-            if (fromString != null && fromString.isResolved()) {
-                return fromString;
-            }
-        }
-        
-        return substituted;
+        GenericContext ctx = GenericContext.forReceiver(receiverType);
+        return ctx.substituteType(rawReturnType, rawReturnTypeString, resolver);
     }
 }
