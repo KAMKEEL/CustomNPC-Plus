@@ -71,14 +71,14 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
                             double x, double y, double z,
                             float orbSize, int innerColor, int outerColor,
-                            boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                            boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                             float damage, float knockback, float knockbackUp,
                             float speed, boolean homing, float homingStrength, float homingRange,
                             boolean explosive, float explosionRadius, float explosionDamageFalloff,
                             int stunDuration, int slowDuration, int slowLevel,
                             float maxDistance, int maxLifetime) {
         this(world, owner, target, x, y, z,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp,
             speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
@@ -93,7 +93,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
                             double x, double y, double z,
                             float orbSize, int innerColor, int outerColor,
-                            boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                            boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                             float damage, float knockback, float knockbackUp,
                             float speed, boolean homing, float homingStrength, float homingRange,
                             boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -104,7 +104,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
         // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorAlpha,  outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
@@ -145,7 +145,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      */
     public static EntityAbilityOrb createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
                                                    float orbSize, int innerColor, int outerColor,
-                                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                                    float damage, float knockback, float knockbackUp,
                                                    float speed, boolean homing, float homingStrength, float homingRange,
                                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -162,7 +162,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         EntityAbilityOrb orb = new EntityAbilityOrb(
             world, owner, target,
             spawnX, spawnY, spawnZ,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,

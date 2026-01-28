@@ -58,6 +58,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     private int innerColor = 0xFFFFFF;  // White core
     private int outerColor = 0x8888FF;  // Light blue glow
     private float outerColorWidth = 0.4f; // Additive offset from inner size
+    private float outerColorAlpha = 0.5f;
     private boolean outerColorEnabled = true; // Whether to render outer glow
     private float rotationSpeed = 4.0f; // Degrees per tick
 
@@ -134,7 +135,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
             // Create orb in charging mode - follows NPC based on anchor point during windup
             orbEntity = EntityAbilityOrb.createCharging(
                 world, npc, target,
-                orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
                 damage, knockback, knockbackUp,
                 orbSpeed, homing, homingStrength, homingRange,
                 explosive, explosionRadius, explosionDamageFalloff,
@@ -220,6 +221,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
         nbt.setBoolean("lightningEffect", lightningEffect);
@@ -250,6 +252,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
@@ -410,6 +413,14 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     public void setOuterColorWidth(float outerColorWidth) {
         this.outerColorWidth = outerColorWidth;
+    }
+
+    public float getOuterColorAlpha() {
+        return outerColorAlpha;
+    }
+
+    public void setOuterColorAlpha(float outerColorAlpha) {
+        this.outerColorAlpha = outerColorAlpha;
     }
 
     public boolean isOuterColorEnabled() {

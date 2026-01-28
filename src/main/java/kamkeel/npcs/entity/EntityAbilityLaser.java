@@ -50,14 +50,14 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
                                double x, double y, double z,
                                float laserWidth, int innerColor, int outerColor,
-                               boolean outerColorEnabled, float outerColorWidth,
+                               boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha,
                                float damage, float knockback, float knockbackUp,
                                float expansionSpeed, int lingerTicks,
                                boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                int stunDuration, int slowDuration, int slowLevel,
                                float maxDistance, int maxLifetime) {
         this(world, owner, target, x, y, z,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth,
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha,
             damage, knockback, knockbackUp, expansionSpeed, lingerTicks,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
@@ -70,7 +70,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
                                double x, double y, double z,
                                float laserWidth, int innerColor, int outerColor,
-                               boolean outerColorEnabled, float outerColorWidth,
+                               boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha,
                                float damage, float knockback, float knockbackUp,
                                float expansionSpeed, int lingerTicks,
                                boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -81,7 +81,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
 
         // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, 0.0f, // No rotation for laser
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, 0.0f, // No rotation for laser
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,

@@ -60,6 +60,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0x00AAFF;
     private float outerColorWidth = 0.4f; // Additive offset from inner size
+    private float outerColorAlpha = 0.5f;
     private boolean outerColorEnabled = true;
     private float rotationSpeed = 6.0f;
 
@@ -138,7 +139,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
             // Create beam in charging mode - follows NPC based on anchor point during windup
             beamEntity = EntityAbilityBeam.createCharging(
                 world, npc, target,
-                beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
                 damage, knockback, knockbackUp,
                 speed, homing, homingStrength, homingRange,
                 explosive, explosionRadius, explosionDamageFalloff,
@@ -226,6 +227,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
         nbt.setBoolean("lightningEffect", lightningEffect);
@@ -256,6 +258,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x00AAFF;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 6.0f;
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
@@ -305,6 +308,8 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public void setOuterColor(int outerColor) { this.outerColor = outerColor; }
     public float getOuterColorWidth() { return outerColorWidth; }
     public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
+    public float getOuterColorAlpha() { return outerColorAlpha; }
+    public void setOuterColorAlpha(float outerColorAlpha) { this.outerColorAlpha = outerColorAlpha; }
     public boolean isOuterColorEnabled() { return outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
     public float getRotationSpeed() { return rotationSpeed; }

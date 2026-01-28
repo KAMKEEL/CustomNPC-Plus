@@ -152,14 +152,20 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
         y += 24;
 
         // Row 3: Rotation Speed
-        addLabel(new GuiNpcLabel(204, "ability.rotationSpeed", labelX, y + 5));
-        addTextField(createFloatField(204, fieldX, y, 50, beam.getRotationSpeed()));
+        addLabel(new GuiNpcLabel(204, "ability.outerAlpha", labelX, y + 5));
+        GuiNpcTextField alphaField = createFloatField(204, fieldX, y, 55, beam.getOuterColorAlpha());
+        alphaField.setEnabled(beam.isOuterColorEnabled());
+        alphaField.setMinMaxDefaultFloat(0, 1, 0.5f);
+        addTextField(alphaField);
+
+        addLabel(new GuiNpcLabel(205, "ability.rotationSpeed", col2LabelX, y + 5));
+        addTextField(createFloatField(205, col2FieldX, y, 50, beam.getRotationSpeed()));
 
         y += 24;
 
         // Row 4: Lightning Effect Enabled (only affects head)
-        addLabel(new GuiNpcLabel(205, "ability.lightning", labelX, y + 5));
-        GuiNpcButton lightningBtn = new GuiNpcButton(205, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.hasLightningEffect() ? 1 : 0);
+        addLabel(new GuiNpcLabel(206, "ability.lightning", labelX, y + 5));
+        GuiNpcButton lightningBtn = new GuiNpcButton(206, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.hasLightningEffect() ? 1 : 0);
         lightningBtn.setHoverText("ability.hover.lightning");
         addButton(lightningBtn);
 
@@ -168,13 +174,13 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
             y += 24;
 
             // Row 5: Density + Radius
-            addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
-            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(beam.getLightningDensity()));
+            addLabel(new GuiNpcLabel(207, "ability.lightningDensity", labelX, y + 5));
+            GuiNpcTextField densityField = new GuiNpcTextField(207, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(beam.getLightningDensity()));
             densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
             addTextField(densityField);
 
-            addLabel(new GuiNpcLabel(207, "ability.lightningRadius", col2LabelX, y + 5));
-            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(beam.getLightningRadius()));
+            addLabel(new GuiNpcLabel(208, "ability.lightningRadius", col2LabelX, y + 5));
+            GuiNpcTextField radiusField = new GuiNpcTextField(208, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(beam.getLightningRadius()));
             radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
             addTextField(radiusField);
         }
@@ -214,7 +220,7 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
                 beam.setOuterColorEnabled(value == 1);
                 initGui();
                 break;
-            case 205:
+            case 206:
                 beam.setLightningEffect(value == 1);
                 initGui();
                 break;
@@ -290,12 +296,15 @@ public class SubGuiAbilityEnergyBeam extends SubGuiAbilityConfig {
                 beam.setOuterColorWidth(parseFloat(field, beam.getOuterColorWidth()));
                 break;
             case 204:
+                beam.setOuterColorAlpha(parseFloat(field, beam.getOuterColorAlpha()));
+                break;
+            case 205:
                 beam.setRotationSpeed(parseFloat(field, beam.getRotationSpeed()));
                 break;
-            case 206:
+            case 207:
                 beam.setLightningDensity(parseFloat(field, beam.getLightningDensity()));
                 break;
-            case 207:
+            case 208:
                 beam.setLightningRadius(parseFloat(field, beam.getLightningRadius()));
                 break;
         }

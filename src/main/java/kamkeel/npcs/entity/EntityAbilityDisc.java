@@ -82,7 +82,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
                               float discRadius, float discThickness, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                               float damage, float knockback, float knockbackUp,
                               float speed, boolean homing, float homingStrength, float homingRange,
                               boolean boomerang, int boomerangDelay,
@@ -90,7 +90,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
                               int stunDuration, int slowDuration, int slowLevel,
                               float maxDistance, int maxLifetime) {
         this(world, owner, target, x, y, z,
-            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
             boomerang, boomerangDelay, explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
@@ -103,7 +103,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
                               float discRadius, float discThickness, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                               float damage, float knockback, float knockbackUp,
                               float speed, boolean homing, float homingStrength, float homingRange,
                               boolean boomerang, int boomerangDelay,
@@ -115,7 +115,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Initialize base properties with lightning (use discRadius as size for base)
         initProjectile(owner, target, x, y, z,
-            discRadius, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            discRadius, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
@@ -161,7 +161,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      */
     public static EntityAbilityDisc createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
                                                     float discRadius, float discThickness, int innerColor, int outerColor,
-                                                    boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                    boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                                     float damage, float knockback, float knockbackUp,
                                                     float speed, boolean homing, float homingStrength, float homingRange,
                                                     boolean boomerang, int boomerangDelay,
@@ -179,7 +179,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         EntityAbilityDisc disc = new EntityAbilityDisc(
             world, owner, target,
             spawnX, spawnY, spawnZ,
-            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
             boomerang, boomerangDelay,
             explosive, explosionRadius, explosionDamageFalloff,

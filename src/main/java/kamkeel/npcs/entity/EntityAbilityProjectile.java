@@ -31,6 +31,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected int outerColor = 0x8888FF;
     protected boolean outerColorEnabled = true;
     protected float outerColorWidth = 0.4f; // Additive offset from inner size
+    protected float outerColorAlpha = 0.5f;
     protected float rotationSpeed = 4.0f;
 
     // ==================== COMBAT PROPERTIES ====================
@@ -98,13 +99,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
                                    double x, double y, double z,
                                    float size, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                    float damage, float knockback, float knockbackUp,
                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                    int stunDuration, int slowDuration, int slowLevel,
                                    float maxDistance, int maxLifetime) {
         initProjectile(owner, target, x, y, z,
-            size, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            size, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
@@ -118,7 +119,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
                                    double x, double y, double z,
                                    float size, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                    float damage, float knockback, float knockbackUp,
                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                    int stunDuration, int slowDuration, int slowLevel,
@@ -138,6 +139,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.outerColor = outerColor;
         this.outerColorEnabled = outerColorEnabled;
         this.outerColorWidth = outerColorWidth;
+        this.outerColorAlpha = outerColorAlpha;
         this.rotationSpeed = rotationSpeed;
 
         // Combat
@@ -428,6 +430,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         return outerColorWidth;
     }
 
+    public float getOuterColorAlpha() {
+        return outerColorAlpha;
+    }
+
     public float getRotationSpeed() {
         return rotationSpeed;
     }
@@ -501,6 +507,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.innerColor = nbt.getInteger("InnerColor");
         this.outerColor = nbt.getInteger("OuterColor");
         this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
+        this.outerColorAlpha = nbt.hasKey("OuterColorAlpha") ? nbt.getFloat("OuterColorAlpha") : 0.5f;
         this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 0.4f;
         this.rotationSpeed = nbt.hasKey("RotationSpeed") ? nbt.getFloat("RotationSpeed") : 4.0f;
 
@@ -552,6 +559,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         nbt.setInteger("OuterColor", outerColor);
         nbt.setBoolean("OuterColorEnabled", outerColorEnabled);
         nbt.setFloat("OuterColorWidth", outerColorWidth);
+        nbt.setFloat("OuterColorAlpha", outerColorAlpha);
         nbt.setFloat("RotationSpeed", rotationSpeed);
 
         nbt.setFloat("Damage", damage);

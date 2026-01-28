@@ -49,6 +49,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0xFF0000;
     private float outerColorWidth = 0.4f; // Additive offset from inner width
+    private float outerColorAlpha = 0.5f;
     private boolean outerColorEnabled = true;
 
     // Lightning effect properties
@@ -117,7 +118,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         laserEntity = new EntityAbilityLaser(
             world, npc, target,
             spawnX, spawnY, spawnZ,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth,
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha,
             damage, knockback, knockbackUp,
             expansionSpeed, lingerTicks,
             explosive, explosionRadius, explosionDamageFalloff,
@@ -177,6 +178,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setBoolean("lightningEffect", lightningEffect);
         nbt.setFloat("lightningDensity", lightningDensity);
@@ -202,6 +204,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF0000;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
         this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
@@ -243,6 +246,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     public void setOuterColor(int outerColor) { this.outerColor = outerColor; }
     public float getOuterColorWidth() { return outerColorWidth; }
     public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
+    public float getOuterColorAlpha() { return outerColorAlpha; }
+    public void setOuterColorAlpha(float outerColorAlpha) { this.outerColorAlpha = outerColorAlpha; }
     public boolean isOuterColorEnabled() { return outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
     public boolean hasLightningEffect() { return lightningEffect; }

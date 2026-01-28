@@ -54,7 +54,7 @@ public class RenderAbilityDisc extends RenderAbilityProjectile {
         if (disc.isOuterColorEnabled()) {
             float outerScale = innerScale + disc.getOuterColorWidth();
             GL11.glDepthMask(false);
-            renderFlatSquare(disc.getOuterColor(), 0.5f, radius * outerScale, thickness);
+            renderFlatSquare(disc.getOuterColor(), disc.getOuterColorAlpha(), radius * outerScale, thickness);
             GL11.glDepthMask(true);
         }
 

@@ -127,8 +127,14 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
         y += 24;
 
         // Row 3: Lightning Effect Enabled
-        addLabel(new GuiNpcLabel(204, "ability.lightning", labelX, y + 5));
-        GuiNpcButton lightningBtn = new GuiNpcButton(204, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.hasLightningEffect() ? 1 : 0);
+        addLabel(new GuiNpcLabel(204, "ability.outerAlpha", labelX, y + 5));
+        GuiNpcTextField alphaField = createFloatField(204, fieldX, y, 55, laser.getOuterColorAlpha());
+        alphaField.setEnabled(laser.isOuterColorEnabled());
+        alphaField.setMinMaxDefaultFloat(0, 1, 0.5f);
+        addTextField(alphaField);
+
+        addLabel(new GuiNpcLabel(205, "ability.lightning", col2LabelX, y + 5));
+        GuiNpcButton lightningBtn = new GuiNpcButton(205, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.hasLightningEffect() ? 1 : 0);
         lightningBtn.setHoverText("ability.hover.lightning");
         addButton(lightningBtn);
 
@@ -137,13 +143,13 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
             y += 24;
 
             // Row 4: Density + Radius
-            addLabel(new GuiNpcLabel(205, "ability.lightningDensity", labelX, y + 5));
-            GuiNpcTextField densityField = new GuiNpcTextField(205, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(laser.getLightningDensity()));
+            addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
+            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(laser.getLightningDensity()));
             densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
             addTextField(densityField);
 
-            addLabel(new GuiNpcLabel(206, "ability.lightningRadius", col2LabelX, y + 5));
-            GuiNpcTextField radiusField = new GuiNpcTextField(206, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(laser.getLightningRadius()));
+            addLabel(new GuiNpcLabel(207, "ability.lightningRadius", col2LabelX, y + 5));
+            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(laser.getLightningRadius()));
             radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
             addTextField(radiusField);
         }
@@ -179,7 +185,7 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
                 laser.setOuterColorEnabled(value == 1);
                 initGui();
                 break;
-            case 204:
+            case 205:
                 laser.setLightningEffect(value == 1);
                 initGui();
                 break;
@@ -215,10 +221,13 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
             case 203:
                 laser.setOuterColorWidth(parseFloat(field, laser.getOuterColorWidth()));
                 break;
-            case 205:
-                laser.setLightningDensity(parseFloat(field, laser.getLightningDensity()));
+            case 204:
+                laser.setOuterColorAlpha(parseFloat(field, laser.getOuterColorAlpha()));
                 break;
             case 206:
+                laser.setLightningDensity(parseFloat(field, laser.getLightningDensity()));
+                break;
+            case 207:
                 laser.setLightningRadius(parseFloat(field, laser.getLightningRadius()));
                 break;
         }

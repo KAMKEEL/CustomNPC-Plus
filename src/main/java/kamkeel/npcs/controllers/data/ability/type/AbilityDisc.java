@@ -62,6 +62,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0xFF8800;
     private float outerColorWidth = 0.4f; // Additive offset from inner size
+    private float outerColorAlpha = 0.5f; // Additive offset from inner size
     private boolean outerColorEnabled = true;
     private float rotationSpeed = 5.0f;
 
@@ -135,7 +136,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
             // Create disc in charging mode - follows NPC based on anchor point during windup
             discEntity = EntityAbilityDisc.createCharging(
                 world, npc, target,
-                discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
                 damage, knockback, knockbackUp,
                 speed, homing, homingStrength, homingRange,
                 boomerang, boomerangDelay,
@@ -224,6 +225,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
         nbt.setBoolean("lightningEffect", lightningEffect);
@@ -256,6 +258,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF8800;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 5.0f;
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
@@ -309,6 +312,8 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public void setOuterColor(int outerColor) { this.outerColor = outerColor; }
     public float getOuterColorWidth() { return outerColorWidth; }
     public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
+    public float getOuterColorAlpha() { return outerColorAlpha; }
+    public void setOuterColorAlpha(float outerColorAlpha) { this.outerColorAlpha = outerColorAlpha; }
     public boolean isOuterColorEnabled() { return outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
     public float getRotationSpeed() { return rotationSpeed; }
