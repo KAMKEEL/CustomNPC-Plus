@@ -128,18 +128,14 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
         world.spawnEntityInWorld(laserEntity);
 
-        // If movement is locked during active phase, keep ability active until entity dies
-        // Otherwise signal completion immediately
-        if (!lockMovement.locksActive()) {
-            laserEntity = null;
-            signalCompletion();
-        }
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // If we're tracking the entity for movement lock, check if it's dead
-        if (laserEntity != null && laserEntity.isDead) {
+        // Signal completion when entity dies
+        if (laserEntity == null || laserEntity.isDead) {
             laserEntity = null;
             signalCompletion();
         }

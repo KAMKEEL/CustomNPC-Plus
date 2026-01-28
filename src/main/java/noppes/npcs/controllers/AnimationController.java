@@ -314,13 +314,18 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public IAnimation get(String name) {
-        // Check built-in animations first (by name)
+        // Check user/custom animations first (allows overriding built-in)
+        for (Map.Entry<Integer, Animation> entry : animations.entrySet()) {
+            if (entry.getValue().name.equalsIgnoreCase(name)) {
+                return entry.getValue();
+            }
+        }
+        // Then check built-in animations
         BuiltInAnimation builtIn = builtInAnimations.get(name.toLowerCase());
         if (builtIn != null) {
             return builtIn;
         }
-        // Then check user animations
-        return getAnimationFromName(name);
+        return null;
     }
 
     /**
@@ -384,16 +389,16 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public Animation getAnimationFromName(String animation) {
-        // Check built-in animations first (by name)
-        BuiltInAnimation builtIn = builtInAnimations.get(animation.toLowerCase());
-        if (builtIn != null) {
-            return builtIn;
-        }
-        // Then check user animations
+        // Check user/custom animations first (allows overriding built-in)
         for (Map.Entry<Integer, Animation> entryAnimation : animations.entrySet()) {
             if (entryAnimation.getValue().name.equalsIgnoreCase(animation)) {
                 return entryAnimation.getValue();
             }
+        }
+        // Then check built-in animations
+        BuiltInAnimation builtIn = builtInAnimations.get(animation.toLowerCase());
+        if (builtIn != null) {
+            return builtIn;
         }
         return null;
     }

@@ -100,18 +100,14 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
             lockOnTarget);
         world.spawnEntityInWorld(activeEntity);
 
-        // If movement is locked during active phase, keep ability active until entity dies
-        // Otherwise signal completion immediately
-        if (!lockMovement.locksActive()) {
-            activeEntity = null;
-            signalCompletion();
-        }
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // If we're tracking the entity for movement lock, check if it's dead
-        if (activeEntity != null && activeEntity.isDead) {
+        // Signal completion when entity dies
+        if (activeEntity == null || activeEntity.isDead) {
             activeEntity = null;
             signalCompletion();
         }

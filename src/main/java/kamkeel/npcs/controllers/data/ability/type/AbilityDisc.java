@@ -122,12 +122,8 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
             discEntity.startMoving(target);
         }
 
-        // If movement is locked during active phase, keep ability active until entity dies
-        // Otherwise signal completion immediately
-        if (!lockMovement.locksActive()) {
-            discEntity = null;
-            signalCompletion();
-        }
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
@@ -157,8 +153,8 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // If we're tracking the entity for movement lock, check if it's dead
-        if (discEntity != null && discEntity.isDead) {
+        // Signal completion when entity dies
+        if (discEntity == null || discEntity.isDead) {
             discEntity = null;
             signalCompletion();
         }

@@ -123,12 +123,8 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
             beamEntity.startFiring(target);
         }
 
-        // If movement is locked during active phase, keep ability active until entity dies
-        // Otherwise signal completion immediately
-        if (!lockMovement.locksActive()) {
-            beamEntity = null;
-            signalCompletion();
-        }
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
@@ -161,8 +157,8 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // If we're tracking the entity for movement lock, check if it's dead
-        if (beamEntity != null && beamEntity.isDead) {
+        // Signal completion when entity dies
+        if (beamEntity == null || beamEntity.isDead) {
             beamEntity = null;
             signalCompletion();
         }
