@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -66,7 +67,7 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
         this.name = "Trap";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         this.telegraphType = TelegraphType.CIRCLE;

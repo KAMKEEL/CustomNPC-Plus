@@ -55,7 +55,7 @@ public abstract class Ability implements IAbility {
     protected boolean interruptible = true;
 
     // Feedback
-    protected boolean lockMovement = true;
+    protected LockMovementType lockMovement = LockMovementType.WINDUP;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -662,7 +662,7 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("windUp", windUpTicks);
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
-        nbt.setBoolean("lockMovement", lockMovement);
+        nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
@@ -707,7 +707,7 @@ public abstract class Ability implements IAbility {
         windUpTicks = nbt.getInteger("windUp");
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
-        lockMovement = nbt.getBoolean("lockMovement");
+        lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
         // Support old telegraphColor key for backwards compatibility
         if (nbt.hasKey("windUpColor")) {
             windUpColor = nbt.getInteger("windUpColor");
@@ -868,12 +868,60 @@ public abstract class Ability implements IAbility {
         this.interruptible = interruptible;
     }
 
-    public boolean isLockMovement() {
+    public LockMovementType getLockMovement() {
         return lockMovement;
     }
 
-    public void setLockMovement(boolean lockMovement) {
+    public void setLockMovement(LockMovementType lockMovement) {
         this.lockMovement = lockMovement;
+    }
+
+    /**
+     * API method: Get lock movement type as integer.
+     * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public int getLockMovementType() {
+        return lockMovement.ordinal();
+    }
+
+    /**
+     * API method: Set lock movement type from integer.
+     * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public void setLockMovementType(int type) {
+        this.lockMovement = LockMovementType.fromOrdinal(type);
+    }
+
+    /**
+     * Check if movement should be locked during WINDUP phase.
+     */
+    @Override
+    public boolean isMovementLockedDuringWindup() {
+        return lockMovement.locksWindup();
+    }
+
+    /**
+     * Check if movement should be locked during ACTIVE phase.
+     */
+    @Override
+    public boolean isMovementLockedDuringActive() {
+        return lockMovement.locksActive();
+    }
+
+    /**
+     * Check if movement should be locked during the current phase.
+     */
+    public boolean isMovementLockedForCurrentPhase() {
+        switch (phase) {
+            case WINDUP:
+                return lockMovement.locksWindup();
+            case ACTIVE:
+                return lockMovement.locksActive();
+            default:
+                return false;
+        }
     }
 
     public int getWindUpColor() {

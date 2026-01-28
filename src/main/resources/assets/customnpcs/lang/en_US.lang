@@ -1519,6 +1519,9 @@ ability.dazed=Dazed Ticks
 ability.interruptible=Interruptible
 ability.threshold=Threshold
 ability.lockMove=Lock Move
+ability.lockMove.windup=Windup
+ability.lockMove.active=Active
+ability.lockMove.both=Both
 ability.telegraph=Telegraph
 ability.telegraphType=Telegraph Type
 

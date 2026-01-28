@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAnimation;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -85,6 +86,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 40;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
     }
@@ -145,7 +147,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
                 stunDuration, slowDuration, slowLevel,
                 maxDistance, maxLifetime,
                 lightningEffect, lightningDensity, lightningRadius,
-                lockMovement, // Anchored mode
+                lockMovement.locksActive(), // Anchored mode during firing
                 windUpTicks,  // Charge duration = windup duration
                 offsetDist,   // Offset distance (used by FRONT anchor)
                 anchorPoint   // Anchor point for charging position
@@ -311,7 +313,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
 
-    
+
     @Override
     public Animation getWindUpAnimation() {
         if (windUpAnimationId == -1)

@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
@@ -49,7 +50,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
         this.typeId = "ability.cnpc.heal";
         this.name = "Heal";
         this.targetingMode = TargetingMode.SELF;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         // No telegraph for heal - it's a self/ally buff

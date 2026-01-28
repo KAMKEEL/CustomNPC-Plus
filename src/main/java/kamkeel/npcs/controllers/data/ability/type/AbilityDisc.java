@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -83,6 +84,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
+        this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
     }

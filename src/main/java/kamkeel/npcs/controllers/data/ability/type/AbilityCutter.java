@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -54,7 +55,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         this.name = "Cutter";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 8.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.NO;
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         this.telegraphType = TelegraphType.CONE;

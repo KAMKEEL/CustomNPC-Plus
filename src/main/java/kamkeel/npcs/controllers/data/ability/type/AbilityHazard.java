@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -83,7 +84,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
         this.name = "Hazard";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.CIRCLE;

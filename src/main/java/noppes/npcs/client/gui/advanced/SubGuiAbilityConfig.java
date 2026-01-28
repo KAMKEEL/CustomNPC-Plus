@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.Condition;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import noppes.npcs.controllers.data.Animation;
@@ -58,7 +59,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     protected String name;
     protected boolean enabled;
     protected int weight;
-    protected boolean lockMovement;
+    protected LockMovementType lockMovement;
     protected boolean interruptible;
 
     // Timing
@@ -111,7 +112,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.name = ability.getName() != null ? ability.getName() : "";
         this.enabled = ability.isEnabled();
         this.weight = ability.getWeight();
-        this.lockMovement = ability.isLockMovement();
+        this.lockMovement = ability.getLockMovement();
         this.interruptible = ability.isInterruptible();
 
         // Timing
@@ -251,7 +252,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         addTextField(weightField);
 
         addLabel(new GuiNpcLabel(5, "ability.lockMove", col2LabelX, y + 5));
-        GuiNpcButton lockMoveBtn = new GuiNpcButton(16, col2FieldX, y, 40, 20, new String[]{"gui.no", "gui.yes"}, lockMovement ? 1 : 0);
+        GuiNpcButton lockMoveBtn = new GuiNpcButton(16, col2FieldX, y, 60, 20, LockMovementType.getDisplayKeys(), lockMovement.ordinal());
         lockMoveBtn.setHoverText("ability.hover.lockMove");
         addButton(lockMoveBtn);
 
@@ -644,7 +645,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             interruptible = ((GuiNpcButton) guibutton).getValue() == 1;
             initGui(); // Refresh to show/hide dazed ticks field
         } else if (id == 16) {
-            lockMovement = ((GuiNpcButton) guibutton).getValue() == 1;
+            lockMovement = LockMovementType.fromOrdinal(((GuiNpcButton) guibutton).getValue());
         } else if (id == 17) {
             // Sync windup ticks with animation duration
             syncWindupWithAnimation();
@@ -920,7 +921,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.name = ability.getName() != null ? ability.getName() : "";
         this.enabled = ability.isEnabled();
         this.weight = ability.getWeight();
-        this.lockMovement = ability.isLockMovement();
+        this.lockMovement = ability.getLockMovement();
         this.interruptible = ability.isInterruptible();
 
         this.cooldownTicks = ability.getCooldownTicks();

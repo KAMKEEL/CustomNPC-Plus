@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -47,7 +48,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;
         this.minRange = 4.0f;
-        this.lockMovement = false; // Movement IS the ability
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         // LINE telegraph showing charge path

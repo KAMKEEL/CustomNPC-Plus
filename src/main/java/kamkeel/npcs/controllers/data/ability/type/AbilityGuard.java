@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -50,7 +51,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.typeId = "ability.cnpc.guard";
         this.name = "Guard";
         this.targetingMode = TargetingMode.SELF;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 10;
         this.interruptible = false; // Hard to interrupt while guarding

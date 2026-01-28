@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -35,7 +36,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.name = "Shockwave";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 25;
         this.telegraphType = TelegraphType.CIRCLE;

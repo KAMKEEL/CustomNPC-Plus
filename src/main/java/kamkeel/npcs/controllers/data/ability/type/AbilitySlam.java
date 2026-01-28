@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -52,7 +53,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         this.targetingMode = TargetingMode.AOE_SELF; // Can also be AOE_TARGET to leap to target
         this.windUpTicks = 30;
         this.cooldownTicks = 0;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP;
         this.minRange = 2.0f;
         this.maxRange = 15.0f;
         this.telegraphType = TelegraphType.CIRCLE;

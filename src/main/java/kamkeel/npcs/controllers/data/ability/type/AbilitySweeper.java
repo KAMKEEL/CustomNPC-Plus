@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -54,7 +55,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
         this.minRange = 0.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 60;
         // Circle telegraph to show range

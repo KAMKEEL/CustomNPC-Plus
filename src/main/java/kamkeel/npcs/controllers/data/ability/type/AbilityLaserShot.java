@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityLaser;
@@ -63,6 +64,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.minRange = 3.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 15;
+        this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
     }
