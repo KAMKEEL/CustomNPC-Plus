@@ -656,140 +656,178 @@ public class AutocompleteManager {
      */
     private String findReceiverExpression(String text, int dotPos) {
         if (text == null || dotPos <= 0) return "";
-        
+        if (dotPos >= text.length()) return "";
+
         int end = dotPos;
-        int start = end;
-        int parenDepth = 0;
-        int bracketDepth = 0;
-        boolean sawNewline = false;  // Track if we've seen a newline
-        
-        // Walk backwards to find the start of the expression
-        while (start > 0) {
-            char c = text.charAt(start - 1);
-            
-            // Inside parens/brackets: allow everything including newlines
-            if (parenDepth > 0 || bracketDepth > 0) {
-                if (c == ')') parenDepth++;
-                else if (c == '(') parenDepth--;
-                else if (c == ']') bracketDepth++;
-                else if (c == '[') bracketDepth--;
-                else if (c == '"' || c == '\'') {
-                    // Skip string literals
-                    start--;
-                    char quote = c;
-                    while (start > 0) {
-                        char strChar = text.charAt(start - 1);
-                        start--;
-                        if (strChar == quote && (start == 0 || text.charAt(start - 1) != '\\')) {
-                            break;
-                        }
-                    }
-                    continue;
+        int pos = dotPos - 1;
+
+        // Skip whitespace immediately left of dot
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) pos--;
+        if (pos < 0) return "";
+
+        // Walk left across a dotted receiver chain.
+        while (pos >= 0) {
+            // Skip excluded regions (comments/strings) if the document knows them
+            if (document != null && document.isExcluded(pos)) {
+                int jumped = jumpBeforeExcluded(pos);
+                if (jumped == pos) {
+                    pos--; // Safety fallback
+                } else {
+                    pos = jumped;
                 }
-                start--;
                 continue;
             }
-            
-            // Not inside depth - handle based on character
-            if (c == ')' || c == ']') {
-                // Start tracking depth
-                if (c == ')') parenDepth++;
-                else bracketDepth++;
-                start--;
-            } else if (c == '(' || c == '[') {
-                // Hit opening without matching closing - stop
-                break;
-            } else if (c == '.') {
-                // Dot is a chain operator - continue
-                start--;
-                sawNewline = false;  // Reset newline tracking after seeing dot
-            } else if (Character.isJavaIdentifierPart(c)) {
-                // Part of identifier
-                start--;
-            } else if (c == ';') {
-                // Semicolon always terminates statement
-                break;
-            } else if (c == '\n') {
-                // Newline - check if it's part of a chain continuation
-                if (sawNewline) {
-                    // Second newline = blank line = statement boundary
+
+            char c = text.charAt(pos);
+            if (Character.isWhitespace(c)) {
+                pos--;
+                continue;
+            }
+
+            if (c == ')') {
+                int open = findMatchingBackward(text, pos, '(', ')');
+                if (open < 0) break;
+                pos = open - 1;
+                continue;
+            }
+
+            if (c == ']') {
+                int open = findMatchingBackward(text, pos, '[', ']');
+                if (open < 0) break;
+                pos = open - 1;
+                continue;
+            }
+
+            if (Character.isJavaIdentifierPart(c)) {
+                // Consume identifier
+                while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) pos--;
+
+                // If preceded by a dot (allowing whitespace/newlines between), keep going.
+                int checkPos = pos;
+                while (checkPos >= 0) {
+                    char ch = text.charAt(checkPos);
+                    if (Character.isWhitespace(ch)) {
+                        checkPos--;
+                        continue;
+                    }
+                    // Critical for cases like: ").   // comment\n    setData(...)"
+                    // The last non-whitespace char before the newline is inside an excluded range,
+                    // so we need to skip excluded ranges when searching for the dot.
+                    if (document != null && document.isExcluded(checkPos)) {
+                        int jumped = jumpBeforeExcluded(checkPos);
+                        if (jumped == checkPos) {
+                            checkPos--; // Safety fallback
+                        } else {
+                            checkPos = jumped;
+                        }
+                        continue;
+                    }
                     break;
                 }
-                
-                // Check if this is a chain continuation pattern
-                boolean isContinuation = false;
-                
-                // Look forward: does the next line start with a dot?
-                int forwardPos = start;
-                while (forwardPos < end && Character.isWhitespace(text.charAt(forwardPos))) {
-                    forwardPos++;
+                if (checkPos >= 0 && text.charAt(checkPos) == '.') {
+                    pos = checkPos - 1;
+                    continue;
                 }
-                if (forwardPos < end && text.charAt(forwardPos) == '.') {
-                    isContinuation = true;
-                }
-                
-                // Look backward: did the previous line end with a dot?
-                if (!isContinuation) {
-                    int backPos = start - 2; // skip the \n we're at
-                    while (backPos >= 0 && (text.charAt(backPos) == ' ' || text.charAt(backPos) == '\t' || text.charAt(backPos) == '\r')) {
-                        backPos--;
-                    }
-                    if (backPos >= 0 && text.charAt(backPos) == '.') {
-                        isContinuation = true;
-                    }
-                }
-                
-                if (isContinuation) {
-                    // Part of chain - continue but mark that we saw a newline
-                    sawNewline = true;
-                    start--;
-                } else {
-                    // Not a continuation - check if previous significant char suggests chain
-                    int backPos = start - 2;
-                    while (backPos >= 0 && Character.isWhitespace(text.charAt(backPos))) {
-                        backPos--;
-                    }
-                    
-                    if (backPos >= 0) {
-                        char prevChar = text.charAt(backPos);
-                        // Only continue if previous was dot, paren, or bracket (active chain)
-                        if (prevChar == '.' || prevChar == ')' || prevChar == ']' || prevChar == '>') {
-                            sawNewline = true;
-                            start--;
-                        } else {
-                            // Previous char suggests end of statement
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            } else if (c == ' ' || c == '\t' || c == '\r') {
-                // Other whitespace - skip but don't break yet
-                start--;
-            } else if (c == '"' || c == '\'') {
-                // String literal - skip it
-                char quote = c;
-                start--;
-                while (start > 0) {
-                    char strChar = text.charAt(start - 1);
-                    start--;
-                    if (strChar == quote && (start == 0 || text.charAt(start - 1) != '\\')) {
-                        break;
-                    }
-                }
-            } else {
-                // Any other character (operator, etc.) - stop
                 break;
             }
+
+            // Anything else terminates the receiver
+            break;
         }
-        
+
+        int start = pos + 1;
+        if (start < 0) start = 0;
+        if (end > text.length()) end = text.length();
+        if (start >= end) return "";
+
         String expr = text.substring(start, end);
-        
-        // Normalize whitespace: replace multiple spaces/newlines with single space
+
+        // Mask comment ranges so comment words don't get parsed as identifiers/segments.
+        // Keep string literal ranges intact so argument type resolution still works.
+        if (document != null) {
+            char[] chars = expr.toCharArray();
+            for (int[] range : document.getExcludedRanges()) {
+                if (range == null || range.length < 2) continue;
+                if (!isCommentRange(text, range[0])) continue;
+
+                int a = Math.max(range[0], start) - start;
+                int b = Math.min(range[1], end) - start;
+                if (b <= 0 || a >= chars.length) continue;
+                if (a < 0) a = 0;
+                if (b > chars.length) b = chars.length;
+
+                for (int i = a; i < b; i++) {
+                    char ch = chars[i];
+                    if (ch != '\n' && ch != '\r') {
+                        chars[i] = ' ';
+                    }
+                }
+            }
+            expr = new String(chars);
+        }
         expr = expr.replaceAll("\\s+", " ").trim();
-        
         return expr;
+    }
+
+    private boolean isCommentRange(String text, int start) {
+        if (start < 0 || start + 1 >= text.length()) return false;
+        if (text.charAt(start) != '/') return false;
+        char next = text.charAt(start + 1);
+        return next == '/' || next == '*';
+    }
+
+    /**
+     * Jump to just before the excluded range that contains position, or return position if unknown.
+     */
+    private int jumpBeforeExcluded(int position) {
+        if (document == null) return position;
+        for (int[] range : document.getExcludedRanges()) {
+            if (position >= range[0] && position < range[1]) {
+                return range[0] - 1;
+            }
+        }
+        return position;
+    }
+
+    /**
+     * Find the matching opening delimiter scanning backward from closePos.
+     * Skips excluded ranges and ignores delimiters inside string literals.
+     */
+    private int findMatchingBackward(String text, int closePos, char openChar, char closeChar) {
+        int depth = 0;
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = closePos; i >= 0; i--) {
+            char c = text.charAt(i);
+
+            // Handle strings (backward), respecting escapes
+            if (!inString && (c == '"' || c == '\'')) {
+                int backslashCount = 0;
+                for (int j = i - 1; j >= 0 && text.charAt(j) == '\\'; j--) backslashCount++;
+                if (backslashCount % 2 == 0) {
+                    inString = true;
+                    stringChar = c;
+                }
+            } else if (inString && c == stringChar) {
+                int backslashCount = 0;
+                for (int j = i - 1; j >= 0 && text.charAt(j) == '\\'; j--) backslashCount++;
+                if (backslashCount % 2 == 0) {
+                    inString = false;
+                }
+            }
+
+            if (inString) continue;
+
+            if (document != null && document.isExcluded(i)) continue;
+
+            if (c == closeChar) depth++;
+            else if (c == openChar) {
+                depth--;
+                if (depth == 0) return i;
+            }
+        }
+        return -1;
     }
     
     /**
