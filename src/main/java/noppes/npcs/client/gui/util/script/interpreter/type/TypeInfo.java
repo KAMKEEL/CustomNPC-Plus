@@ -82,6 +82,10 @@ public class TypeInfo {
     // Documentation (script-defined types)
     private JSDocInfo jsDocInfo;
 
+    // SAM (Single Abstract Method) caching for functional interface detection
+    private MethodInfo cachedSAM;
+    private boolean samCacheResolved = false;
+
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
         this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, null, null, null);
@@ -935,6 +939,158 @@ public class TypeInfo {
      */
     public void validate() {
         // Default: no validation for Java types
+    }
+    
+    // ==================== Functional Interface (SAM) Detection ====================
+    
+    /**
+     * Determine whether this type is a functional interface and return its single abstract method (SAM).
+     * 
+     * For Java reflection types (javaClass != null):
+     *   - Must be an interface
+     *   - Collects all public methods from javaClass.getMethods()
+     *   - Filters out: static methods, default methods, and Object methods
+     *   - If exactly one abstract instance method remains, returns it as a MethodInfo
+     * 
+     * For script-defined interfaces (ScriptTypeInfo with kind == INTERFACE):
+     *   - Identifies abstract methods (methods without body)
+     *   - If exactly one exists, returns it as a MethodInfo
+     * 
+     * @return MethodInfo for the single abstract method, or null if not a functional interface
+     */
+    public MethodInfo getSingleAbstractMethod() {
+        // Return cached result if already resolved
+        if (samCacheResolved) {
+            return cachedSAM;
+        }
+        
+        // Mark as resolved to prevent re-computation
+        samCacheResolved = true;
+        
+        try {
+            // Handle Java reflection types
+            if (javaClass != null) {
+                // Only interfaces can be functional interfaces (for simplicity)
+                if (!javaClass.isInterface()) {
+                    cachedSAM = null;
+                    return null;
+                }
+                
+                // Collect all public methods
+                java.lang.reflect.Method[] methods = javaClass.getMethods();
+                java.lang.reflect.Method singleAbstractMethod = null;
+                
+                for (java.lang.reflect.Method method : methods) {
+                    int modifiers = method.getModifiers();
+                    
+                    // Skip static methods
+                    if (java.lang.reflect.Modifier.isStatic(modifiers)) {
+                        continue;
+                    }
+                    
+                    // Skip default methods (Java 8+)
+                    if (method.isDefault()) {
+                        continue;
+                    }
+                    
+                    // Skip methods inherited from Object
+                    String methodName = method.getName();
+                    if (isObjectMethod(methodName, method.getParameterCount())) {
+                        continue;
+                    }
+                    
+                    // This is an abstract instance method
+                    if (singleAbstractMethod != null) {
+                        // More than one abstract method - not a functional interface
+                        cachedSAM = null;
+                        return null;
+                    }
+                    
+                    singleAbstractMethod = method;
+                }
+                
+                // If exactly one abstract method found, create MethodInfo with generic substitution
+                if (singleAbstractMethod != null) {
+                    cachedSAM = MethodInfo.fromReflection(singleAbstractMethod, this);
+                    return cachedSAM;
+                }
+                
+                cachedSAM = null;
+                return null;
+            }
+            
+            // Handle script-defined interfaces
+            if (this instanceof ScriptTypeInfo) {
+                ScriptTypeInfo scriptType = (ScriptTypeInfo) this;
+                
+                // Only check interfaces
+                if (scriptType.getKind() != Kind.INTERFACE) {
+                    cachedSAM = null;
+                    return null;
+                }
+                
+                // Find all abstract methods (methods without body)
+                // For script-defined interfaces, all declared methods are implicitly abstract
+                java.util.List<MethodInfo> allMethods = scriptType.getAllMethodsFlat();
+                
+                if (allMethods.size() == 1) {
+                    // Exactly one method - it's the SAM
+                    cachedSAM = allMethods.get(0);
+                    return cachedSAM;
+                } else if (allMethods.size() > 1) {
+                    // More than one method - not a functional interface
+                    cachedSAM = null;
+                    return null;
+                }
+                
+                cachedSAM = null;
+                return null;
+            }
+            
+            // Not a functional interface
+            cachedSAM = null;
+            return null;
+            
+        } catch (Exception e) {
+            // Any reflection or security error - treat as not a functional interface
+            cachedSAM = null;
+            return null;
+        }
+    }
+    
+    /**
+     * Check if this type is a functional interface (has a single abstract method).
+     * 
+     * @return true if this is a functional interface, false otherwise
+     */
+    public boolean isFunctionalInterface() {
+        return getSingleAbstractMethod() != null;
+    }
+    
+    /**
+     * Helper method to check if a method is inherited from java.lang.Object.
+     * These methods don't count toward the SAM requirement.
+     * 
+     * @param methodName The name of the method
+     * @param paramCount The number of parameters
+     * @return true if this is an Object method
+     */
+    private boolean isObjectMethod(String methodName, int paramCount) {
+        switch (methodName) {
+            case "equals":
+                return paramCount == 1;
+            case "hashCode":
+            case "toString":
+            case "getClass":
+            case "notify":
+            case "notifyAll":
+                return paramCount == 0;
+            case "wait":
+                // wait() has overloads with 0, 1, and 2 parameters
+                return paramCount == 0 || paramCount == 1 || paramCount == 2;
+            default:
+                return false;
+        }
     }
     
     // ==================== Type Parameter Methods ====================

@@ -106,6 +106,9 @@ public class ScriptDocument {
     // Local variables per method (methodStartOffset -> {varName -> FieldInfo})
     private final Map<Integer, Map<String, FieldInfo>> methodLocals = new HashMap<>();
 
+    // Inner callable scopes (lambdas, JS function expressions) - NOT in methods list
+    private final List<InnerCallableScope> innerScopes = new ArrayList<>();
+
     // Method calls - stores all parsed method call information
     private final List<MethodCallInfo> methodCalls = new ArrayList<>();
     // Field accesses - stores all parsed field access information
@@ -331,6 +334,7 @@ public class ScriptDocument {
         excludedRanges.clear();
         methodLocals.clear();
         scriptTypes.clear();
+        innerScopes.clear();
         methodCalls.clear();
         externalFieldAssignments.clear();
         declarationErrors.clear();
@@ -652,6 +656,9 @@ public class ScriptDocument {
         
         // Parse methods/functions - UNIFIED for both languages
         parseMethodDeclarations();
+
+        // Parse inner callable scopes (lambdas, JS function expressions)
+        parseInnerCallableScopes();
 
         // Parse local variables inside methods/functions - UNIFIED for both languages
         parseLocalVariables();
@@ -1530,6 +1537,322 @@ public class ScriptDocument {
         }
         
         return currentType;
+    }
+
+    /**
+     * Parse inner callable scopes (lambdas and JS function expressions).
+     * These are NOT added to the methods list - they're resolution-only scopes.
+     */
+    private void parseInnerCallableScopes() {
+        // For Java: detect (params) -> expr and (params) -> { ... } and param -> expr
+        // For JS: detect function(params) { ... } that are expressions (not declarations)
+        
+        if (isJavaScript()) {
+            parseJSFunctionExpressions();
+        } else {
+            parseJavaLambdas();
+        }
+        
+        // Sort by header start and set up parent relationships
+        innerScopes.sort((a, b) -> Integer.compare(a.getHeaderStart(), b.getHeaderStart()));
+        setupScopeParents();
+    }
+
+    private void parseJavaLambdas() {
+        // Pattern: (params) -> or identifier ->
+        // Look for -> that's not inside strings/comments
+        String arrowPattern = "->";
+        int pos = 0;
+        while ((pos = text.indexOf(arrowPattern, pos)) >= 0) {
+            if (isExcluded(pos)) {
+                pos += 2;
+                continue;
+            }
+            
+            // Found a potential lambda arrow
+            int arrowPos = pos;
+            
+            // Look backwards to find the parameter list
+            int headerStart = findLambdaHeaderStart(arrowPos);
+            if (headerStart < 0) {
+                pos += 2;
+                continue;
+            }
+            
+            // Look forward to find the body end
+            int bodyStart = arrowPos + 2;
+            // Skip whitespace after ->
+            while (bodyStart < text.length() && Character.isWhitespace(text.charAt(bodyStart))) {
+                bodyStart++;
+            }
+            
+            if (bodyStart >= text.length()) {
+                pos += 2;
+                continue;
+            }
+            
+            int bodyEnd;
+            if (text.charAt(bodyStart) == '{') {
+                // Block lambda
+                bodyEnd = findMatchingBrace(bodyStart);
+                if (bodyEnd < 0) bodyEnd = text.length();
+                else bodyEnd++; // Include the closing brace
+            } else {
+                // Expression lambda - find end of expression
+                bodyEnd = findLambdaExpressionEnd(bodyStart);
+            }
+            
+            InnerCallableScope scope = new InnerCallableScope(
+                InnerCallableScope.Kind.JAVA_LAMBDA,
+                headerStart,
+                arrowPos + 2,
+                bodyStart,
+                bodyEnd
+            );
+            
+            // Parse parameters (will be typed later during resolution)
+            parseLambdaParameters(scope, headerStart, arrowPos);
+            
+            innerScopes.add(scope);
+            pos = bodyEnd;
+        }
+    }
+
+    private int findLambdaHeaderStart(int arrowPos) {
+        // Work backwards from arrow to find start of parameter list
+        int pos = arrowPos - 1;
+        
+        // Skip whitespace
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
+            pos--;
+        }
+        
+        if (pos < 0) return -1;
+        
+        if (text.charAt(pos) == ')') {
+            // Parenthesized params: find matching (
+            int depth = 1;
+            pos--;
+            while (pos >= 0 && depth > 0) {
+                if (isExcluded(pos)) {
+                    pos--;
+                    continue;
+                }
+                char c = text.charAt(pos);
+                if (c == ')') depth++;
+                else if (c == '(') depth--;
+                pos--;
+            }
+            return pos + 1; // Position of '('
+        } else if (Character.isJavaIdentifierPart(text.charAt(pos))) {
+            // Single identifier param (no parens): identifier ->
+            while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) {
+                pos--;
+            }
+            return pos + 1;
+        }
+        
+        return -1;
+    }
+
+    private int findLambdaExpressionEnd(int start) {
+        // Find end of expression lambda body
+        // Ends at: ; , ) ] } (at depth 0) or end of text
+        int depth = 0;
+        int angleDepth = 0;
+        int pos = start;
+        boolean inString = false;
+        char stringChar = 0;
+        
+        while (pos < text.length()) {
+            char c = text.charAt(pos);
+            
+            // Handle strings
+            if (!inString && (c == '"' || c == '\'')) {
+                inString = true;
+                stringChar = c;
+                pos++;
+                continue;
+            }
+            if (inString) {
+                if (c == stringChar && (pos == 0 || text.charAt(pos - 1) != '\\')) {
+                    inString = false;
+                }
+                pos++;
+                continue;
+            }
+            
+            // Track nesting
+            if (c == '(' || c == '[' || c == '{') depth++;
+            else if (c == ')' || c == ']' || c == '}') {
+                if (depth == 0) return pos;
+                depth--;
+            }
+            else if (c == '<') angleDepth++;
+            else if (c == '>') angleDepth = Math.max(0, angleDepth - 1);
+            else if ((c == ';' || c == ',') && depth == 0 && angleDepth == 0) {
+                return pos;
+            }
+            
+            pos++;
+        }
+        
+        return pos;
+    }
+
+    private void parseLambdaParameters(InnerCallableScope scope, int headerStart, int arrowPos) {
+        String headerText = text.substring(headerStart, arrowPos).trim();
+        
+        if (headerText.startsWith("(") && headerText.endsWith(")")) {
+            // Parenthesized: (a, b) or (Type a, Type b)
+            String paramsText = headerText.substring(1, headerText.length() - 1).trim();
+            if (!paramsText.isEmpty()) {
+                String[] params = paramsText.split(",");
+                int offset = headerStart + 1; // After '('
+                for (String param : params) {
+                    param = param.trim();
+                    if (param.isEmpty()) continue;
+                    
+                    // Find position in original text
+                    int paramOffset = text.indexOf(param, offset);
+                    if (paramOffset < 0) paramOffset = offset;
+                    
+                    String[] parts = param.split("\\s+");
+                    String paramName;
+                    TypeInfo paramType = null;
+                    
+                    if (parts.length >= 2) {
+                        // Typed: Type name
+                        paramName = parts[parts.length - 1];
+                        String typeName = parts[parts.length - 2];
+                        paramType = resolveType(typeName);
+                    } else {
+                        // Untyped: just name (type will be inferred from expected FI)
+                        paramName = parts[0];
+                    }
+                    
+                    int nameOffset = text.indexOf(paramName, paramOffset);
+                    if (nameOffset < 0) nameOffset = paramOffset;
+                    
+                    FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
+                    scope.addParameter(paramInfo);
+                    
+                    offset = paramOffset + param.length();
+                }
+            }
+        } else {
+            // Single identifier: x ->
+            String paramName = headerText;
+            int nameOffset = text.indexOf(paramName, headerStart);
+            if (nameOffset < 0) nameOffset = headerStart;
+            
+            FieldInfo paramInfo = FieldInfo.parameter(paramName, null, nameOffset, null);
+            scope.addParameter(paramInfo);
+        }
+    }
+
+    private void parseJSFunctionExpressions() {
+        // Pattern: function(params) { ... } or function name(params) { ... }
+        // But NOT function declarations at top level (those are already in methods)
+        Pattern funcExprPattern = Pattern.compile("function\\s*(?:\\w+)?\\s*\\(([^)]*)\\)\\s*\\{");
+        Matcher m = funcExprPattern.matcher(text);
+        
+        while (m.find()) {
+            int start = m.start();
+            if (isExcluded(start)) continue;
+            
+            // Check if this is a function expression (not a declaration)
+            // A function declaration is at statement level; expression is inside parens, after =, etc.
+            if (isFunctionDeclaration(start)) continue;
+            
+            int headerStart = start;
+            int headerEnd = m.end() - 1; // Position of '{'
+            int bodyStart = m.end() - 1;
+            int bodyEnd = findMatchingBrace(bodyStart);
+            if (bodyEnd < 0) bodyEnd = text.length();
+            else bodyEnd++; // Include closing brace
+            
+            InnerCallableScope scope = new InnerCallableScope(
+                InnerCallableScope.Kind.JS_FUNCTION_EXPR,
+                headerStart,
+                headerEnd,
+                bodyStart,
+                bodyEnd
+            );
+            
+            // Parse parameters
+            String paramsText = m.group(1).trim();
+            if (!paramsText.isEmpty()) {
+                String[] params = paramsText.split(",");
+                int offset = m.start(1);
+                for (String param : params) {
+                    param = param.trim();
+                    if (param.isEmpty()) continue;
+                    
+                    int nameOffset = text.indexOf(param, offset);
+                    if (nameOffset < 0) nameOffset = offset;
+                    
+                    // JS params don't have types by default; will infer from expected FI
+                    FieldInfo paramInfo = FieldInfo.parameter(param, TypeInfo.ANY, nameOffset, null);
+                    scope.addParameter(paramInfo);
+                    
+                    offset = nameOffset + param.length();
+                }
+            }
+            
+            innerScopes.add(scope);
+        }
+    }
+
+    private boolean isFunctionDeclaration(int funcStart) {
+        // A function declaration is a statement, check context:
+        // - If preceded by = or ( or , or : or [ it's an expression
+        // - If at line start (possibly with whitespace) or after { or ; it's a declaration
+        
+        int pos = funcStart - 1;
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos)) && text.charAt(pos) != '\n') {
+            pos--;
+        }
+        
+        if (pos < 0) return true; // Start of file = declaration
+        
+        char prev = text.charAt(pos);
+        // These characters indicate it's an expression, not a declaration
+        if (prev == '=' || prev == '(' || prev == ',' || prev == ':' || prev == '[' || prev == '?') {
+            return false;
+        }
+        // After newline + whitespace could be declaration
+        if (prev == '\n' || prev == '{' || prev == ';' || prev == '}') {
+            return true;
+        }
+        
+        return true; // Default to declaration to avoid false positives in inner scopes
+    }
+
+    private void setupScopeParents() {
+        // For each scope, find its immediate parent (smallest enclosing scope)
+        for (int i = 0; i < innerScopes.size(); i++) {
+            InnerCallableScope scope = innerScopes.get(i);
+            InnerCallableScope parent = null;
+            
+            for (int j = 0; j < innerScopes.size(); j++) {
+                if (i == j) continue;
+                InnerCallableScope candidate = innerScopes.get(j);
+                
+                // Check if candidate contains scope
+                if (candidate.getBodyStart() < scope.getHeaderStart() && 
+                    candidate.getBodyEnd() > scope.getFullEnd()) {
+                    // candidate contains scope
+                    if (parent == null || 
+                        (candidate.getBodyStart() > parent.getBodyStart())) {
+                        // candidate is smaller (more immediate) than current parent
+                        parent = candidate;
+                    }
+                }
+            }
+            
+            scope.setParentScope(parent);
+        }
     }
 
     /**
@@ -5857,6 +6180,29 @@ public class ScriptDocument {
         return null;
     }
 
+    /**
+     * Find the innermost scope (method or inner callable) at a position.
+     * Returns null if not inside any scope.
+     */
+    public Object findInnermostScopeAt(int position) {
+        // First check inner callable scopes (most specific)
+        InnerCallableScope innermost = null;
+        for (InnerCallableScope scope : innerScopes) {
+            if (scope.containsPosition(position)) {
+                if (innermost == null || scope.getBodyStart() > innermost.getBodyStart()) {
+                    innermost = scope;
+                }
+            }
+        }
+        
+        if (innermost != null) {
+            return innermost;
+        }
+        
+        // Fall back to method scope
+        return findMethodAtPosition(position);
+    }
+
     private int findMatchingBrace(int openBraceIndex) {
         if (openBraceIndex < 0 || openBraceIndex >= text.length())
             return -1;
@@ -5890,6 +6236,10 @@ public class ScriptDocument {
 
     public List<MethodInfo> getMethods() {
         return Collections.unmodifiableList(methods);
+    }
+
+    public List<InnerCallableScope> getInnerScopes() {
+        return Collections.unmodifiableList(innerScopes);
     }
 
     public List<ScriptTypeInfo> getScriptTypes() {
