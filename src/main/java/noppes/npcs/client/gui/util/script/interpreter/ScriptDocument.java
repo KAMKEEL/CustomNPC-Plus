@@ -1295,11 +1295,14 @@ public class ScriptDocument {
                         initStart = bodyStart + m.start(3);
                         int searchPos = bodyStart + m.end(3);
                         int depth = 0;
+                        int angleDepth = 0;
                         while (searchPos < text.length()) {
                             char c = text.charAt(searchPos);
                             if (c == '(' || c == '[' || c == '{') depth++;
                             else if (c == ')' || c == ']' || c == '}') depth--;
-                            else if ((c == ';' || c == ',') && depth == 0) {
+                            else if (c == '<') angleDepth++;
+                            else if (c == '>') angleDepth--;
+                            else if ((c == ';' || c == ',') && depth == 0 && angleDepth == 0) {
                                 initEnd = searchPos;
                                 break;
                             }

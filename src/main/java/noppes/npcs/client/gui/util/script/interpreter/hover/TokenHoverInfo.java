@@ -1496,12 +1496,14 @@ public class TokenHoverInfo {
         // Never add space before these closing/trailing characters
         if (firstChar == '(' || firstChar == '[' || firstChar == '{' || 
             firstChar == '.' || firstChar == ',' || firstChar == ';' ||
+            firstChar == '>' ||  // No space before closing angle bracket
             (firstChar == ':' && lastToken.equals("?"))) {
             return false;
         }
 
         // Never add space after these opening/leading characters
-        if (lastChar == '(' || lastChar == '[' || lastChar == '{' || lastChar == '.') {
+        if (lastChar == '(' || lastChar == '[' || lastChar == '{' || 
+            lastChar == '.' || lastChar == '<') {  // No space after opening angle bracket
             return false;
         }
 
