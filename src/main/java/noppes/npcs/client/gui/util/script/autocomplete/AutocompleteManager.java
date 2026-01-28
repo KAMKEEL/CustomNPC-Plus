@@ -1,11 +1,13 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
+import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import org.lwjgl.input.Mouse;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
@@ -642,6 +644,15 @@ public class AutocompleteManager {
     
     /**
      * Find the receiver expression before a dot.
+     * Handles multiline chains and whitespace intelligently.
+     * 
+     * Stops at statement boundaries:
+     * - Semicolons (Java)
+     * - Blank lines or newlines not part of chain continuation
+     * 
+     * Continues through:
+     * - Dots at start/end of lines (chain continuation pattern)
+     * - Whitespace within expressions
      */
     private String findReceiverExpression(String text, int dotPos) {
         if (text == null || dotPos <= 0) return "";
@@ -650,67 +661,133 @@ public class AutocompleteManager {
         int start = end;
         int parenDepth = 0;
         int bracketDepth = 0;
+        boolean sawNewline = false;  // Track if we've seen a newline
         
         // Walk backwards to find the start of the expression
         while (start > 0) {
             char c = text.charAt(start - 1);
             
-            if (c == ')') {
-                parenDepth++;
-                start--;
-            } else if (c == '(') {
-                if (parenDepth > 0) {
-                    parenDepth--;
+            // Inside parens/brackets: allow everything including newlines
+            if (parenDepth > 0 || bracketDepth > 0) {
+                if (c == ')') parenDepth++;
+                else if (c == '(') parenDepth--;
+                else if (c == ']') bracketDepth++;
+                else if (c == '[') bracketDepth--;
+                else if (c == '"' || c == '\'') {
+                    // Skip string literals
                     start--;
-                } else {
+                    char quote = c;
+                    while (start > 0) {
+                        char strChar = text.charAt(start - 1);
+                        start--;
+                        if (strChar == quote && (start == 0 || text.charAt(start - 1) != '\\')) {
+                            break;
+                        }
+                    }
+                    continue;
+                }
+                start--;
+                continue;
+            }
+            
+            // Not inside depth - handle based on character
+            if (c == ')' || c == ']') {
+                // Start tracking depth
+                if (c == ')') parenDepth++;
+                else bracketDepth++;
+                start--;
+            } else if (c == '(' || c == '[') {
+                // Hit opening without matching closing - stop
+                break;
+            } else if (c == '.') {
+                // Dot is a chain operator - continue
+                start--;
+                sawNewline = false;  // Reset newline tracking after seeing dot
+            } else if (Character.isJavaIdentifierPart(c)) {
+                // Part of identifier
+                start--;
+            } else if (c == ';') {
+                // Semicolon always terminates statement
+                break;
+            } else if (c == '\n') {
+                // Newline - check if it's part of a chain continuation
+                if (sawNewline) {
+                    // Second newline = blank line = statement boundary
                     break;
                 }
-            } else if (c == ']') {
-                bracketDepth++;
-                start--;
-            } else if (c == '[') {
-                if (bracketDepth > 0) {
-                    bracketDepth--;
+                
+                // Check if this is a chain continuation pattern
+                boolean isContinuation = false;
+                
+                // Look forward: does the next line start with a dot?
+                int forwardPos = start;
+                while (forwardPos < end && Character.isWhitespace(text.charAt(forwardPos))) {
+                    forwardPos++;
+                }
+                if (forwardPos < end && text.charAt(forwardPos) == '.') {
+                    isContinuation = true;
+                }
+                
+                // Look backward: did the previous line end with a dot?
+                if (!isContinuation) {
+                    int backPos = start - 2; // skip the \n we're at
+                    while (backPos >= 0 && (text.charAt(backPos) == ' ' || text.charAt(backPos) == '\t' || text.charAt(backPos) == '\r')) {
+                        backPos--;
+                    }
+                    if (backPos >= 0 && text.charAt(backPos) == '.') {
+                        isContinuation = true;
+                    }
+                }
+                
+                if (isContinuation) {
+                    // Part of chain - continue but mark that we saw a newline
+                    sawNewline = true;
                     start--;
                 } else {
-                    break;
+                    // Not a continuation - check if previous significant char suggests chain
+                    int backPos = start - 2;
+                    while (backPos >= 0 && Character.isWhitespace(text.charAt(backPos))) {
+                        backPos--;
+                    }
+                    
+                    if (backPos >= 0) {
+                        char prevChar = text.charAt(backPos);
+                        // Only continue if previous was dot, paren, or bracket (active chain)
+                        if (prevChar == '.' || prevChar == ')' || prevChar == ']' || prevChar == '>') {
+                            sawNewline = true;
+                            start--;
+                        } else {
+                            // Previous char suggests end of statement
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
                 }
+            } else if (c == ' ' || c == '\t' || c == '\r') {
+                // Other whitespace - skip but don't break yet
+                start--;
             } else if (c == '"' || c == '\'') {
-                // Skip over string literals
+                // String literal - skip it
                 char quote = c;
                 start--;
                 while (start > 0) {
                     char strChar = text.charAt(start - 1);
-                    if (strChar == quote && (start < 2 || text.charAt(start - 2) != '\\')) {
-                        // Found unescaped closing quote
-                        start--;
+                    start--;
+                    if (strChar == quote && (start == 0 || text.charAt(start - 1) != '\\')) {
                         break;
                     }
-                    start--;
-                }
-            } else if (Character.isJavaIdentifierPart(c) || c == '.') {
-                start--;
-            } else if (Character.isWhitespace(c)) {
-                // Skip whitespace within expression (e.g., after method call)
-                if (parenDepth > 0 || bracketDepth > 0) {
-                    start--;
-                } else {
-                    break;
                 }
             } else {
-                // Within parentheses or brackets, allow any character (commas, operators, etc.)
-                if (parenDepth > 0 || bracketDepth > 0) {
-                    start--;
-                } else {
-                    break;
-                }
+                // Any other character (operator, etc.) - stop
+                break;
             }
         }
         
-        String expr = text.substring(start, end).trim();
+        String expr = text.substring(start, end);
         
-        // Clean up the expression
-        expr = expr.replaceAll("\\s+", "");
+        // Normalize whitespace: replace multiple spaces/newlines with single space
+        expr = expr.replaceAll("\\s+", " ").trim();
         
         return expr;
     }
