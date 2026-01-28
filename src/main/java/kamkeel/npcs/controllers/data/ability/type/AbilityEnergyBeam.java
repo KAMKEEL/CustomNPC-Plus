@@ -3,7 +3,6 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityAnimation;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -13,13 +12,12 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.nbt.NBTTagCompound;;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityEnergyBeam;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.api.ability.type.IAbilityEnergyBeam;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -71,9 +69,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     private float lightningRadius = 0.5f;
 
     // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
-
-    private final AbilityAnimation animation = AbilityAnimation.ABILITYBEAM;
+    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
 
     // Transient state for beam entity (used during windup charging)
     private transient EntityAbilityBeam beamEntity = null;
@@ -89,6 +85,9 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
         this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
+        // Default built-in animations
+        this.windUpAnimationName = "Ability_Beam_Windup";
+        this.activeAnimationName = "Ability_Beam_Active";
     }
 
     @Override
@@ -123,10 +122,13 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
         if (beamEntity != null && !beamEntity.isDead) {
             beamEntity.startFiring(target);
         }
-        beamEntity = null;
 
-        // Beam entity manages itself - ability is done
-        signalCompletion();
+        // If movement is locked during active phase, keep ability active until entity dies
+        // Otherwise signal completion immediately
+        if (!lockMovement.locksActive()) {
+            beamEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -159,6 +161,11 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        // If we're tracking the entity for movement lock, check if it's dead
+        if (beamEntity != null && beamEntity.isDead) {
+            beamEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -312,23 +319,6 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
-
-
-    @Override
-    public Animation getWindUpAnimation() {
-        if (windUpAnimationId == -1)
-            return animation.windUp();
-
-        return super.getWindUpAnimation();
-    }
-
-    @Override
-    public Animation getActiveAnimation() {
-        if (activeAnimationId == -1)
-            return animation.active();
-
-        return super.getActiveAnimation();
-    }
 
     public AnchorPoint getAnchorPointEnum() { return anchorPoint; }
     public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }

@@ -19,20 +19,42 @@ import java.util.Vector;
 
 /**
  * Animation selection dialog for choosing global animations.
- * Requests animation data from the server via packets.
+ * Toggle between Built-in animations (by name) and Custom animations (by ID).
  */
 public class GuiAnimationSelection extends SubGuiInterface implements ICustomScrollListener, IScrollData {
 
     private GuiCustomScroll scrollAnimations;
-    private HashMap<String, Integer> animationData = new HashMap<String, Integer>();
 
+    // Built-in animations (name only, no ID)
+    private HashMap<String, Integer> builtInData = new HashMap<>();
+    // Custom/user animations (name -> ID)
+    private HashMap<String, Integer> customData = new HashMap<>();
+
+    // View mode: true = built-in, false = custom
+    private boolean showingBuiltIn = true;
+
+    // Initial values passed in
     private int initialAnimationId;
-    public int selectedAnimationId = -1;
-    private String selectedName = null;
+    private String initialAnimationName;
 
+    // Selected values to return
+    public int selectedAnimationId = -1;
+    public String selectedBuiltInName = "";
+
+    private String selectedCustomName = null;
     private String search = "";
 
+    /**
+     * Constructor for selecting by ID (user animations).
+     */
     public GuiAnimationSelection(int animationId) {
+        this(animationId, "");
+    }
+
+    /**
+     * Constructor for selecting by name (built-in) or ID (user).
+     */
+    public GuiAnimationSelection(int animationId, String animationName) {
         drawDefaultBackground = false;
         title = "";
         setBackground("menubg.png");
@@ -40,7 +62,12 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
         ySize = 226;
 
         this.initialAnimationId = animationId;
+        this.initialAnimationName = animationName != null ? animationName : "";
         this.selectedAnimationId = animationId;
+        this.selectedBuiltInName = this.initialAnimationName;
+
+        // Start showing built-in if we have a built-in name, otherwise custom
+        this.showingBuiltIn = !this.initialAnimationName.isEmpty();
 
         // Request animation data from server
         PacketClient.sendClient(new AnimationsGetPacket());
@@ -50,56 +77,87 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
     public void initGui() {
         super.initGui();
 
-        this.addLabel(new GuiNpcLabel(0, "menu.animations", guiLeft + 8, guiTop + 4));
+        int y = guiTop + 4;
 
-        this.addButton(new GuiNpcButton(1, guiLeft + 4, guiTop + ySize - 35, 50, 20, "gui.clear"));
-        this.addButton(new GuiNpcButton(2, guiLeft + xSize - 56, guiTop + ySize - 35, 50, 20, "gui.done"));
-        this.addButton(new GuiNpcButton(3, guiLeft + xSize - 108, guiTop + ySize - 35, 50, 20, "gui.cancel"));
+        // Toggle button for switching views
+        String viewLabel = showingBuiltIn ? "gui.builtinAnimations" : "gui.customAnimations";
+        this.addButton(new GuiNpcButton(10, guiLeft + 4, y, 212, 20, viewLabel));
+        y += 24;
 
+        // Animation scroll list
         if (scrollAnimations == null) {
             scrollAnimations = new GuiCustomScroll(this, 0, 0);
-            scrollAnimations.setSize(212, 150);
+            scrollAnimations.setSize(212, 130);
         }
         scrollAnimations.setList(getSearchList());
-        if (selectedName != null) {
-            scrollAnimations.setSelected(selectedName);
-        }
-        scrollAnimations.guiLeft = guiLeft + 4;
-        scrollAnimations.guiTop = guiTop + 14;
-        this.addScroll(scrollAnimations);
 
-        // Search textbox - moved up to avoid overlapping with buttons
-        addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 4, guiTop + 166, 212, 20, search));
+        // Set selection based on current mode
+        if (showingBuiltIn && !selectedBuiltInName.isEmpty()) {
+            scrollAnimations.setSelected(selectedBuiltInName);
+        } else if (!showingBuiltIn && selectedCustomName != null) {
+            scrollAnimations.setSelected(selectedCustomName);
+        }
+
+        scrollAnimations.guiLeft = guiLeft + 4;
+        scrollAnimations.guiTop = y;
+        this.addScroll(scrollAnimations);
+        y += 134;
+
+        // Search textbox
+        addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 4, y, 212, 20, search));
+        y += 24;
+
+        // Buttons
+        this.addButton(new GuiNpcButton(1, guiLeft + 4, y, 50, 20, "gui.clear"));
+        this.addButton(new GuiNpcButton(3, guiLeft + xSize - 108, y, 50, 20, "gui.cancel"));
+        this.addButton(new GuiNpcButton(2, guiLeft + xSize - 56, y, 50, 20, "gui.done"));
     }
 
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-        this.animationData = data;
+        if (type == EnumScrollData.BUILTIN_ANIMATIONS) {
+            this.builtInData = data;
 
-        // Find the name for our initial animation ID
-        if (initialAnimationId >= 0) {
-            for (String name : data.keySet()) {
-                if (data.get(name) == initialAnimationId) {
-                    selectedName = name;
-                    break;
+            // Check if initial name matches a built-in animation
+            if (!initialAnimationName.isEmpty()) {
+                for (String name : builtInData.keySet()) {
+                    if (name.equalsIgnoreCase(initialAnimationName)) {
+                        selectedBuiltInName = name;
+                        selectedAnimationId = -1;
+                        selectedCustomName = null;
+                        showingBuiltIn = true;
+                        break;
+                    }
+                }
+            }
+        } else if (type == EnumScrollData.ANIMATIONS) {
+            this.customData = data;
+
+            // Find the name for our initial animation ID (if not using built-in)
+            if (selectedBuiltInName.isEmpty() && initialAnimationId >= 0) {
+                for (String name : data.keySet()) {
+                    if (data.get(name) == initialAnimationId) {
+                        selectedCustomName = name;
+                        showingBuiltIn = false;
+                        break;
+                    }
                 }
             }
         }
 
         if (scrollAnimations != null) {
             scrollAnimations.setList(getSearchList());
-            if (selectedName != null) {
-                scrollAnimations.setSelected(selectedName);
+            if (showingBuiltIn && !selectedBuiltInName.isEmpty()) {
+                scrollAnimations.setSelected(selectedBuiltInName);
+            } else if (!showingBuiltIn && selectedCustomName != null) {
+                scrollAnimations.setSelected(selectedCustomName);
             }
         }
     }
 
     @Override
     public void setSelected(String selected) {
-        this.selectedName = selected;
-        if (scrollAnimations != null) {
-            scrollAnimations.setSelected(selected);
-        }
+        // Not used in this implementation
     }
 
     @Override
@@ -110,18 +168,22 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
                 if (search.equals(getTextField(55).getText()))
                     return;
                 search = getTextField(55).getText().toLowerCase();
-                scrollAnimations.resetScroll();
-                scrollAnimations.setList(getSearchList());
+                if (scrollAnimations != null) {
+                    scrollAnimations.resetScroll();
+                    scrollAnimations.setList(getSearchList());
+                }
             }
         }
     }
 
     private List<String> getSearchList() {
+        HashMap<String, Integer> sourceData = showingBuiltIn ? builtInData : customData;
+
         if (search.isEmpty()) {
-            return new ArrayList<String>(animationData.keySet());
+            return new ArrayList<>(sourceData.keySet());
         }
-        List<String> list = new ArrayList<String>();
-        for (String name : animationData.keySet()) {
+        List<String> list = new ArrayList<>();
+        for (String name : sourceData.keySet()) {
             if (name.toLowerCase().contains(search))
                 list.add(name);
         }
@@ -130,11 +192,20 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-        if (guiCustomScroll.id == 0) {
-            String selected = scrollAnimations.getSelected();
-            if (selected != null && animationData.containsKey(selected)) {
-                selectedName = selected;
-                selectedAnimationId = animationData.get(selected);
+        String selected = scrollAnimations.getSelected();
+        if (selected == null) return;
+
+        if (showingBuiltIn) {
+            if (builtInData.containsKey(selected)) {
+                selectedBuiltInName = selected;
+                selectedAnimationId = -1;
+                selectedCustomName = null;
+            }
+        } else {
+            if (customData.containsKey(selected)) {
+                selectedCustomName = selected;
+                selectedAnimationId = customData.get(selected);
+                selectedBuiltInName = "";
             }
         }
         initGui();
@@ -142,27 +213,40 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
 
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
-        if (selectedAnimationId < 0)
-            return;
-        close();
+        // Double-click to confirm selection
+        if (!selectedBuiltInName.isEmpty() || selectedAnimationId >= 0) {
+            close();
+        }
     }
 
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         int id = guibutton.id;
-        if (id == 1) {
-            // Clear selection
-            selectedName = null;
+
+        // Toggle view button
+        if (id == 10) {
+            showingBuiltIn = !showingBuiltIn;
+            search = "";
+            if (scrollAnimations != null) {
+                scrollAnimations.resetScroll();
+            }
+            initGui();
+        }
+        // Clear
+        else if (id == 1) {
+            selectedBuiltInName = "";
             selectedAnimationId = -1;
+            selectedCustomName = null;
             close();
         }
-        if (id == 2) {
-            // Done - keep selection
+        // Done
+        else if (id == 2) {
             close();
         }
-        if (id == 3) {
-            // Cancel - restore initial value
+        // Cancel
+        else if (id == 3) {
             selectedAnimationId = initialAnimationId;
+            selectedBuiltInName = initialAnimationName;
             close();
         }
     }
@@ -171,6 +255,16 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
      * Get the name of the selected animation (for display purposes).
      */
     public String getSelectedName() {
-        return selectedName;
+        if (!selectedBuiltInName.isEmpty()) {
+            return selectedBuiltInName;
+        }
+        return selectedCustomName;
+    }
+
+    /**
+     * Check if a built-in animation was selected.
+     */
+    public boolean isBuiltInSelected() {
+        return !selectedBuiltInName.isEmpty();
     }
 }

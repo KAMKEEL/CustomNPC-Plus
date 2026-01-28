@@ -3,7 +3,6 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityAnimation;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -19,7 +18,6 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.api.ability.type.IAbilityOrb;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -70,12 +68,10 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     private int lightningFadeTime = 6;       // Ticks before lightning fades out
 
     // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
 
     // Transient state for orb entity (used during windup charging)
     private transient EntityAbilityOrb orbEntity = null;
-
-    private final AbilityAnimation animation = AbilityAnimation.ABILITYORB;
 
     public AbilityOrb() {
         this.typeId = "ability.cnpc.orb";
@@ -88,6 +84,8 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
+        // Default built-in animation
+        this.windUpAnimationName = "Ability_Orb_Windup";
     }
 
     @Override
@@ -122,10 +120,13 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         if (orbEntity != null && !orbEntity.isDead) {
             orbEntity.startMoving(target);
         }
-        orbEntity = null;
 
-        // Orb entity manages itself - ability is done
-        signalCompletion();
+        // If movement is locked during active phase, keep ability active until entity dies
+        // Otherwise signal completion immediately
+        if (!lockMovement.locksActive()) {
+            orbEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -154,7 +155,11 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // Nothing to do - entity manages itself
+        // If we're tracking the entity for movement lock, check if it's dead
+        if (orbEntity != null && orbEntity.isDead) {
+            orbEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -465,14 +470,6 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     public void setAnchorPointEnum(AnchorPoint anchorPoint) {
         this.anchorPoint = anchorPoint;
-    }
-
-    @Override
-    public Animation getWindUpAnimation() {
-        if (windUpAnimationId != -1)
-            return super.getWindUpAnimation();
-
-        return animation.windUp();
     }
 
     public int getAnchorPoint() {

@@ -64,8 +64,12 @@ public abstract class Ability implements IAbility {
     protected String activeSound = "";        // Sound to play when active phase starts
 
     // Animations (global animation IDs, -1 = none)
-    protected int windUpAnimationId = -1;     // Animation to play during wind up
-    protected int activeAnimationId = -1;     // Animation to play during active phase
+    protected int windUpAnimationId = -1;     // Animation to play during wind up (user animations)
+    protected int activeAnimationId = -1;     // Animation to play during active phase (user animations)
+
+    // Built-in animation names (empty = none, takes priority over IDs if set)
+    protected String windUpAnimationName = "";   // Built-in animation name for wind up
+    protected String activeAnimationName = "";   // Built-in animation name for active phase
 
     // Telegraph configuration
     protected boolean showTelegraph = true;
@@ -669,6 +673,8 @@ public abstract class Ability implements IAbility {
         nbt.setString("activeSound", activeSound);
         nbt.setInteger("windUpAnimationId", windUpAnimationId);
         nbt.setInteger("activeAnimationId", activeAnimationId);
+        nbt.setString("windUpAnimationName", windUpAnimationName);
+        nbt.setString("activeAnimationName", activeAnimationName);
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
@@ -738,6 +744,8 @@ public abstract class Ability implements IAbility {
             windUpAnimationId = -1;
         }
         activeAnimationId = nbt.hasKey("activeAnimationId") ? nbt.getInteger("activeAnimationId") : -1;
+        windUpAnimationName = nbt.hasKey("windUpAnimationName") ? nbt.getString("windUpAnimationName") : "";
+        activeAnimationName = nbt.hasKey("activeAnimationName") ? nbt.getString("activeAnimationName") : "";
         showTelegraph = !nbt.hasKey("showTelegraph") || nbt.getBoolean("showTelegraph");
         if (nbt.hasKey("telegraphType")) {
             try {
@@ -959,21 +967,61 @@ public abstract class Ability implements IAbility {
     public Animation getWindUpAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        return (Animation) AnimationController.Instance.get(windUpAnimationId);
+        // Built-in animation by name takes priority
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(windUpAnimationName);
+        }
+        // Fall back to user animation by ID
+        if (windUpAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+        return null;
+    }
+
+    public int getWindUpAnimationId() {
+        return windUpAnimationId;
     }
 
     public void setWindUpAnimationId(int windUpAnimationId) {
         this.windUpAnimationId = windUpAnimationId;
     }
 
+    public String getWindUpAnimationName() {
+        return windUpAnimationName;
+    }
+
+    public void setWindUpAnimationName(String windUpAnimationName) {
+        this.windUpAnimationName = windUpAnimationName != null ? windUpAnimationName : "";
+    }
+
     public Animation getActiveAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        return (Animation) AnimationController.Instance.get(activeAnimationId);
+        // Built-in animation by name takes priority
+        if (activeAnimationName != null && !activeAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(activeAnimationName);
+        }
+        // Fall back to user animation by ID
+        if (activeAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(activeAnimationId);
+        }
+        return null;
+    }
+
+    public int getActiveAnimationId() {
+        return activeAnimationId;
     }
 
     public void setActiveAnimationId(int activeAnimationId) {
         this.activeAnimationId = activeAnimationId;
+    }
+
+    public String getActiveAnimationName() {
+        return activeAnimationName;
+    }
+
+    public void setActiveAnimationName(String activeAnimationName) {
+        this.activeAnimationName = activeAnimationName != null ? activeAnimationName : "";
     }
 
     public boolean isShowTelegraph() {

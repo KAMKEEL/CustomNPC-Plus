@@ -412,7 +412,7 @@ public class DataAbilities {
      * @param animation The animation to play, or null if none
      */
     public void playAbilityAnimation(Animation animation) {
-        if (animation == null || animation.id < 0) return;
+        if (animation == null) return;
         if (AnimationController.Instance == null) return;
 
         npc.display.animationData.setEnabled(true);

@@ -129,8 +129,11 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Effects
         this.windUpSound = ability.getWindUpSound();
         this.activeSound = ability.getActiveSound();
-        this.windUpAnimationId = ability.getWindUpAnimation() != null ? ability.getWindUpAnimation().getID() : -1;
-        this.activeAnimationId = ability.getActiveAnimation() != null ? ability.getActiveAnimation().getID() : -1;
+        // Animation: check name first (built-in), then ID (user)
+        this.windUpAnimationName = ability.getWindUpAnimationName();
+        this.activeAnimationName = ability.getActiveAnimationName();
+        this.windUpAnimationId = ability.getWindUpAnimationId();
+        this.activeAnimationId = ability.getActiveAnimationId();
 
         // Telegraph
         this.showTelegraph = ability.isShowTelegraph();
@@ -286,8 +289,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         windupField.setMinMaxDefault(0, 1000, 20);
         addTextField(windupField);
 
-        // Sync button - only show if windup animation is selected
-        if (windUpAnimationId >= 0) {
+        // Sync button - only show if windup animation is selected (either by name or ID)
+        if (windUpAnimationId >= 0 || (windUpAnimationName != null && !windUpAnimationName.isEmpty())) {
             GuiNpcButton syncBtn = new GuiNpcButton(17, guiLeft + 115, y, 40, 20, "gui.sync");
             syncBtn.setHoverText("ability.hover.sync");
             addButton(syncBtn);
@@ -591,12 +594,16 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     }
 
     private String getAnimationName(int animId, boolean isWindUp) {
-        if (animId < 0) return StatCollector.translateToLocal("gui.none");
-        String cachedName = isWindUp ? windUpAnimationName : activeAnimationName;
-        if (cachedName != null && !cachedName.isEmpty()) {
-            return truncateString(cachedName, 8);
+        String animName = isWindUp ? windUpAnimationName : activeAnimationName;
+        // Check if we have a built-in animation (by name)
+        if (animName != null && !animName.isEmpty()) {
+            return truncateString(animName, 8);
         }
-        return "ID: " + animId;
+        // Check if we have a user animation (by ID)
+        if (animId >= 0) {
+            return "ID: " + animId;
+        }
+        return StatCollector.translateToLocal("gui.none");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -726,19 +733,19 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Animation buttons
         else if (id == 32) {
             editingAnimationId = 32;
-            setSubGui(new GuiAnimationSelection(windUpAnimationId));
+            setSubGui(new GuiAnimationSelection(windUpAnimationId, windUpAnimationName));
         } else if (id == 33) {
             editingAnimationId = 33;
-            setSubGui(new GuiAnimationSelection(activeAnimationId));
+            setSubGui(new GuiAnimationSelection(activeAnimationId, activeAnimationName));
         }
         // Animation clear buttons
         else if (id == 37) {
             windUpAnimationId = -1;
-            windUpAnimationName = null;
+            windUpAnimationName = "";
             initGui();
         } else if (id == 38) {
             activeAnimationId = -1;
-            activeAnimationName = null;
+            activeAnimationName = "";
             initGui();
         }
 
@@ -824,11 +831,25 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         } else if (subgui instanceof GuiAnimationSelection) {
             GuiAnimationSelection animSelector = (GuiAnimationSelection) subgui;
             if (editingAnimationId == 32) {
-                windUpAnimationId = animSelector.selectedAnimationId;
-                windUpAnimationName = animSelector.getSelectedName();
+                if (animSelector.isBuiltInSelected()) {
+                    // Built-in animation selected - use name, clear ID
+                    windUpAnimationName = animSelector.selectedBuiltInName;
+                    windUpAnimationId = -1;
+                } else {
+                    // User animation selected - use ID, clear name
+                    windUpAnimationId = animSelector.selectedAnimationId;
+                    windUpAnimationName = "";
+                }
             } else if (editingAnimationId == 33) {
-                activeAnimationId = animSelector.selectedAnimationId;
-                activeAnimationName = animSelector.getSelectedName();
+                if (animSelector.isBuiltInSelected()) {
+                    // Built-in animation selected - use name, clear ID
+                    activeAnimationName = animSelector.selectedBuiltInName;
+                    activeAnimationId = -1;
+                } else {
+                    // User animation selected - use ID, clear name
+                    activeAnimationId = animSelector.selectedAnimationId;
+                    activeAnimationName = "";
+                }
             }
             editingAnimationId = 0;
             initGui();
@@ -896,6 +917,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         ability.setActiveSound(activeSound);
         ability.setWindUpAnimationId(windUpAnimationId);
         ability.setActiveAnimationId(activeAnimationId);
+        ability.setWindUpAnimationName(windUpAnimationName != null ? windUpAnimationName : "");
+        ability.setActiveAnimationName(activeAnimationName != null ? activeAnimationName : "");
 
         // Telegraph
         ability.setShowTelegraph(showTelegraph);
@@ -948,11 +971,20 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
      * Syncs windup ticks with the selected windup animation's total duration.
      */
     private void syncWindupWithAnimation() {
-        if (windUpAnimationId < 0 || AnimationController.Instance == null) {
+        if (AnimationController.Instance == null) {
             return;
         }
 
-        Animation animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        Animation animation = null;
+        // Check for built-in animation (by name) first
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationName);
+        }
+        // Fall back to user animation (by ID)
+        else if (windUpAnimationId >= 0) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+
         if (animation == null || animation.frames.isEmpty()) {
             return;
         }

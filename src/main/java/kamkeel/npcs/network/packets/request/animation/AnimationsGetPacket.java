@@ -44,5 +44,6 @@ public final class AnimationsGetPacket extends AbstractPacket {
             return;
 
         NoppesUtilServer.sendAnimationDataAll((EntityPlayerMP) player);
+        NoppesUtilServer.sendBuiltInAnimationData((EntityPlayerMP) player);
     }
 }

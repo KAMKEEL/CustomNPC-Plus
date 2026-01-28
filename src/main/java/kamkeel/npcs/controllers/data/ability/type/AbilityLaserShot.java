@@ -56,6 +56,9 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private float lightningDensity = 0.15f;
     private float lightningRadius = 0.5f;
 
+    // Transient state for laser entity (used for movement locking)
+    private transient EntityAbilityLaser laserEntity = null;
+
     public AbilityLaserShot() {
         this.typeId = "ability.cnpc.laser_shot";
         this.name = "Laser Shot";
@@ -111,7 +114,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
         double spawnZ = npc.posZ;
 
-        EntityAbilityLaser laser = new EntityAbilityLaser(
+        laserEntity = new EntityAbilityLaser(
             world, npc, target,
             spawnX, spawnY, spawnZ,
             laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth,
@@ -123,15 +126,23 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             lightningEffect, lightningDensity, lightningRadius
         );
 
-        world.spawnEntityInWorld(laser);
+        world.spawnEntityInWorld(laserEntity);
 
-        // Laser entity manages itself - ability is done
-        signalCompletion();
+        // If movement is locked during active phase, keep ability active until entity dies
+        // Otherwise signal completion immediately
+        if (!lockMovement.locksActive()) {
+            laserEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // Laser entity manages itself
+        // If we're tracking the entity for movement lock, check if it's dead
+        if (laserEntity != null && laserEntity.isDead) {
+            laserEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -140,6 +151,15 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    }
+
+    @Override
+    public void cleanup() {
+        // Despawn laser entity if still alive
+        if (laserEntity != null && !laserEntity.isDead) {
+            laserEntity.setDead();
+        }
+        laserEntity = null;
     }
 
     @Override
