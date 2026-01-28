@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityAnimation;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
@@ -17,6 +18,7 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityEnergyBeam;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -69,6 +71,8 @@ public class AbilityEnergyBeam extends Ability {
 
     // Anchor point for charging position
     private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+
+    private final AbilityAnimation animation = AbilityAnimation.ABILITYBEAM;
 
     // Transient state for beam entity (used during windup charging)
     private transient EntityAbilityBeam beamEntity = null;
@@ -308,4 +312,20 @@ public class AbilityEnergyBeam extends Ability {
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
     public AnchorPoint getAnchorPoint() { return anchorPoint; }
     public void setAnchorPoint(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+
+    @Override
+    public Animation getWindUpAnimation() {
+        if (windUpAnimationId == -1)
+            return animation.windUp();
+
+        return super.getWindUpAnimation();
+    }
+
+    @Override
+    public Animation getActiveAnimation() {
+        if (activeAnimationId == -1)
+            return animation.active();
+
+        return super.getActiveAnimation();
+    }
 }

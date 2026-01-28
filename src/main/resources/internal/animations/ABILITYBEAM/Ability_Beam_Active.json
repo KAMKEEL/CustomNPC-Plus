@@ -1,0 +1,230 @@
+{
+    "Loop": -1,
+    "Speed": 1.0f,
+    "Frames": [
+        {
+            "ColorMarker": 16777215,
+            "Comment": "",
+            "Speed": 1.0f,
+            "FrameParts": [
+                {
+                    "Pivot2": -5.0f,
+                    "Part": "LEFT_ARM",
+                    "Rotation1": 107.0f,
+                    "Rotation0": -94.0f,
+                    "Pivot0": -5.0f,
+                    "Pivot1": 3.0f,
+                    "Rotation2": -31.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "RIGHT_ARM",
+                    "Rotation1": 88.0f,
+                    "Rotation0": -56.0f,
+                    "Pivot0": 1.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": -18.0f
+                },
+                {
+                    "Pivot2": -3.0f,
+                    "Part": "HEAD",
+                    "Rotation1": 12.0f,
+                    "Rotation0": 18.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 1.0f,
+                    "Rotation2": -6.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "RIGHT_LEG",
+                    "Rotation1": 56.0f,
+                    "Rotation0": 6.0f,
+                    "Pivot0": -2.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -3.0f,
+                    "Part": "BODY",
+                    "Rotation1": 25.0f,
+                    "Rotation0": 18.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 1.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -5.0f,
+                    "Part": "LEFT_LEG",
+                    "Rotation1": -25.0f,
+                    "Rotation0": 12.0f,
+                    "Pivot0": 2.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": -6.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "FULL_MODEL",
+                    "Rotation1": 25.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 0.0f
+                }
+            ],
+            "Smooth": 0b,
+            "Duration": 5
+        },
+        {
+            "ColorMarker": 16777215,
+            "Comment": "",
+            "Speed": 2.0f,
+            "FrameParts": [
+                {
+                    "Pivot2": -5.0f,
+                    "Part": "LEFT_ARM",
+                    "Rotation1": 12.0f,
+                    "Rotation0": -75.0f,
+                    "Pivot0": -2.0f,
+                    "Pivot1": 3.0f,
+                    "Rotation2": 50.0f
+                },
+                {
+                    "Pivot2": -5.0f,
+                    "Part": "RIGHT_ARM",
+                    "Rotation1": -18.0f,
+                    "Rotation0": -107.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 2.0f,
+                    "Rotation2": 50.0f
+                },
+                {
+                    "Pivot2": -3.0f,
+                    "Part": "HEAD",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 1.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -4.0f,
+                    "Part": "RIGHT_LEG",
+                    "Rotation1": 56.0f,
+                    "Rotation0": 18.0f,
+                    "Pivot0": -4.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -3.0f,
+                    "Part": "BODY",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 1.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -6.0f,
+                    "Part": "LEFT_LEG",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": -6.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "FULL_MODEL",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 0.0f
+                }
+            ],
+            "Smooth": 0b,
+            "Duration": 5
+        },
+        {
+            "ColorMarker": 16777215,
+            "Comment": "",
+            "Speed": 0.75f,
+            "FrameParts": [
+                {
+                    "Pivot2": -5.0f,
+                    "Part": "LEFT_ARM",
+                    "Rotation1": 12.0f,
+                    "Rotation0": -75.0f,
+                    "Pivot0": -2.0f,
+                    "Pivot1": 3.0f,
+                    "Rotation2": 50.0f
+                },
+                {
+                    "Pivot2": -5.0f,
+                    "Part": "RIGHT_ARM",
+                    "Rotation1": -18.0f,
+                    "Rotation0": -107.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 2.0f,
+                    "Rotation2": 50.0f
+                },
+                {
+                    "Pivot2": -3.0f,
+                    "Part": "HEAD",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 1.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -4.0f,
+                    "Part": "RIGHT_LEG",
+                    "Rotation1": 56.0f,
+                    "Rotation0": 18.0f,
+                    "Pivot0": -4.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -3.0f,
+                    "Part": "BODY",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": 1.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -6.0f,
+                    "Part": "LEFT_LEG",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": -6.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "FULL_MODEL",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 0.0f
+                }
+            ],
+            "Smooth": 0b,
+            "Duration": 20
+        }
+    ],
+    "CurrentFrameTime": 0,
+    "CurrentFrame": 0,
+    "Smooth": 0b,
+    "ID": 2,
+    "WhileAttacking": 1b,
+    "WhileWalking": 1b,
+    "Name": "Ability_Beam_Active",
+    "WhileStanding": 1b
+}

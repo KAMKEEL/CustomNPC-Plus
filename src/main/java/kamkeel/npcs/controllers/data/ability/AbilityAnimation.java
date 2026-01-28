@@ -2,7 +2,6 @@ package kamkeel.npcs.controllers.data.ability;
 
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.util.NBTJsonUtil;
 import org.apache.commons.io.FileUtils;
@@ -13,7 +12,9 @@ import java.util.HashMap;
 
 import static kamkeel.npcs.controllers.data.ability.AbilityPhase.*;
 
-public enum AbilityAnimation {;
+public enum AbilityAnimation {
+    ABILITYORB("Ability_Orb_Windup", WINDUP),
+    ABILITYBEAM("Ability_Beam_Windup", "Ability_Beam_Active");
     private final HashMap<AbilityPhase, String> animationNames = new HashMap<>();
 
     AbilityAnimation(String idle, String windUp, String active, String recovery) {
@@ -49,7 +50,7 @@ public enum AbilityAnimation {;
         return getFileFromName(animationNames.get(phase));
     }
 
-    public IAnimation getAnimation(AbilityPhase phase) {
+    public Animation getAnimation(AbilityPhase phase) {
         try {
             File file = getFile(phase);
 
@@ -68,24 +69,24 @@ public enum AbilityAnimation {;
         return null;
     }
 
-    public IAnimation idle() {
+    public Animation idle() {
         return getAnimation(IDLE);
     }
 
-    public IAnimation windUp() {
+    public Animation windUp() {
         return getAnimation(WINDUP);
     }
 
-    public IAnimation active() {
+    public Animation active() {
         return getAnimation(ACTIVE);
     }
 
-    public IAnimation dazed() {
+    public Animation dazed() {
         return getAnimation(DAZED);
     }
 
     private File getFileFromName(String fileName) {
-        try (InputStream stream = CustomNpcs.class.getResourceAsStream("/internal/data/animations/" + name() + "/" + fileName + ".json")) {
+        try (InputStream stream = CustomNpcs.class.getResourceAsStream("/internal/animations/" + name() + "/" + fileName + ".json")) {
 
             File file = new File("temp");
 
