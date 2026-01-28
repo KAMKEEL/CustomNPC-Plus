@@ -163,7 +163,8 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     private void checkBlockCollision() {
         Vec3 start = Vec3.createVectorHelper(startX, startY, startZ);
         Vec3 end = Vec3.createVectorHelper(endX, endY, endZ);
-        MovingObjectPosition blockHit = worldObj.rayTraceBlocks(start, end);
+        // Use full raytrace that doesn't stop at liquids and checks all blocks
+        MovingObjectPosition blockHit = worldObj.func_147447_a(start, end, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             // Laser stops at block

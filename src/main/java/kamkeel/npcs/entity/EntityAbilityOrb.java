@@ -298,11 +298,15 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     private void checkBlockCollision() {
         Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
         Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
-        MovingObjectPosition blockHit = worldObj.rayTraceBlocks(currentPos, nextPos);
+        // Use full raytrace that doesn't stop at liquids and checks all blocks
+        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             hasHit = true;
             if (explosive) {
+                posX = blockHit.hitVec.xCoord;
+                posY = blockHit.hitVec.yCoord;
+                posZ = blockHit.hitVec.zCoord;
                 doExplosion();
             }
             this.setDead();

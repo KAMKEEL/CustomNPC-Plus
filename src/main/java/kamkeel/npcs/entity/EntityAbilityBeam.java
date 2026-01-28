@@ -68,7 +68,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     private static final int DW_CHARGING = 20;
 
     // Debug logging
-    private static final boolean DEBUG_LOGGING = true;
+    private static final boolean DEBUG_LOGGING = false;
 
     public EntityAbilityBeam(World world) {
         super(world);
@@ -560,12 +560,10 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         Vec3 currentPos = Vec3.createVectorHelper(prevHeadWorldX, prevHeadWorldY, prevHeadWorldZ);
         Vec3 nextPos = Vec3.createVectorHelper(headX, headY, headZ);
-        MovingObjectPosition blockHit = worldObj.rayTraceBlocks(currentPos, nextPos);
+        // Use full raytrace that doesn't stop at liquids and checks all blocks
+        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (DEBUG_LOGGING) {
-                LogWriter.info("[Beam] DEAD: Block collision at tick " + ticksExisted);
-            }
             hasHit = true;
             if (explosive) {
                 posX = blockHit.hitVec.xCoord;

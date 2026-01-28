@@ -215,9 +215,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         // Check lifespan using world time (survives chunk unload/reload)
         if (deathWorldTime > 0 && worldObj.getTotalWorldTime() >= deathWorldTime) {
-            if (!worldObj.isRemote) {
-                noppes.npcs.LogWriter.info("[Projectile:" + this.getClass().getSimpleName() + "] DEAD: Lifetime exceeded. worldTime=" + worldObj.getTotalWorldTime() + " deathTime=" + deathWorldTime);
-            }
             this.setDead();
             return;
         }
@@ -229,9 +226,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         }
 
         if (hasHit) {
-            if (!worldObj.isRemote) {
-                noppes.npcs.LogWriter.info("[Projectile:" + this.getClass().getSimpleName() + "] DEAD: hasHit=true at tick " + ticksExisted);
-            }
             this.setDead();
             return;
         }

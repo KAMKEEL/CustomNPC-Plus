@@ -66,6 +66,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     protected int cooldownTicks;
     protected int windUpTicks;
     protected int dazedTicks;
+    protected boolean syncWindupWithAnimation = true; // Sync windup ticks with animation duration
 
     // ═══════════════════════════════════════════════════════════════════════════
     // CACHED VALUES - Target Tab
@@ -282,16 +283,27 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         addLabel(new GuiNpcLabel(7, "ability.timing", col1LabelX, y));
         y += 14;
 
+        // Check if windup animation is selected (either by name or ID)
+        boolean hasWindupAnimation = windUpAnimationId >= 0 || (windUpAnimationName != null && !windUpAnimationName.isEmpty());
+
         // Row 4: Windup Ticks + Cooldown Ticks
         addLabel(new GuiNpcLabel(10, "ability.windup", col1LabelX, y + 5));
-        GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(windUpTicks));
-        windupField.setIntegersOnly();
-        windupField.setMinMaxDefault(0, 1000, 20);
-        addTextField(windupField);
 
-        // Sync button - only show if windup animation is selected (either by name or ID)
-        if (windUpAnimationId >= 0 || (windUpAnimationName != null && !windUpAnimationName.isEmpty())) {
-            GuiNpcButton syncBtn = new GuiNpcButton(17, guiLeft + 115, y, 40, 20, "gui.sync");
+        // Only show windup textbox if sync is off or no animation selected
+        if (!syncWindupWithAnimation || !hasWindupAnimation) {
+            GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(windUpTicks));
+            windupField.setIntegersOnly();
+            windupField.setMinMaxDefault(0, 1000, 20);
+            addTextField(windupField);
+        } else {
+            // Show calculated value as label when synced
+            addLabel(new GuiNpcLabel(11, String.valueOf(windUpTicks), col1FieldX + 5, y + 5));
+        }
+
+        // Sync toggle button - only show if windup animation is selected
+        if (hasWindupAnimation) {
+            String syncLabel = syncWindupWithAnimation ? "ability.syncOn" : "ability.syncOff";
+            GuiNpcButton syncBtn = new GuiNpcButton(17, guiLeft + 115, y, 50, 20, syncLabel);
             syncBtn.setHoverText("ability.hover.sync");
             addButton(syncBtn);
         }
@@ -654,8 +666,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         } else if (id == 16) {
             lockMovement = LockMovementType.fromOrdinal(((GuiNpcButton) guibutton).getValue());
         } else if (id == 17) {
-            // Sync windup ticks with animation duration
-            syncWindupWithAnimation();
+            // Toggle sync on/off
+            syncWindupWithAnimation = !syncWindupWithAnimation;
+            if (syncWindupWithAnimation) {
+                // Calculate windup ticks from animation when turning sync on
+                calculateWindupFromAnimation();
+            }
+            initGui();
         }
 
         // Target tab - Targeting mode
@@ -896,6 +913,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         ability.setLockMovement(lockMovement);
         ability.setInterruptible(interruptible);
 
+        // If sync is enabled and we have a windup animation, recalculate before saving
+        boolean hasWindupAnimation = windUpAnimationId >= 0 || (windUpAnimationName != null && !windUpAnimationName.isEmpty());
+        if (syncWindupWithAnimation && hasWindupAnimation) {
+            calculateWindupFromAnimation();
+        }
+
         // Timing
         ability.setCooldownTicks(cooldownTicks);
         ability.setWindUpTicks(windUpTicks);
@@ -968,9 +991,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
-     * Syncs windup ticks with the selected windup animation's total duration.
+     * Calculates windup ticks from the selected windup animation's total duration.
      */
-    private void syncWindupWithAnimation() {
+    private void calculateWindupFromAnimation() {
         if (AnimationController.Instance == null) {
             return;
         }
