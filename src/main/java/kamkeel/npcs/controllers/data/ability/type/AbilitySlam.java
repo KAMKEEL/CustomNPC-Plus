@@ -58,7 +58,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         this.maxRange = 15.0f;
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "mob.irongolem.throw";
-        this.activeSound = "random.explode";
+        this.activeSound = "";
     }
 
     @Override
@@ -277,6 +277,9 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         npc.velocityChanged = true;
 
         if (world.isRemote) return;
+
+        // Play slam impact sound on landing
+        world.playSoundAtEntity(npc, "random.explode", 1.0f, 1.0f);
 
         // Find all entities in radius
         @SuppressWarnings("unchecked")

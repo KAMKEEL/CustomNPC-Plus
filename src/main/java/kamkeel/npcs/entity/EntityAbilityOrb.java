@@ -1,6 +1,11 @@
 package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -70,181 +75,110 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     }
 
     /**
-     * Full constructor with all parameters.
+     * Full constructor using data classes for grouped parameters.
      */
     public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
-                            double x, double y, double z,
-                            float orbSize, int innerColor, int outerColor,
-                            boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                            float damage, float knockback, float knockbackUp,
-                            float speed, boolean homing, float homingStrength, float homingRange,
-                            boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                            int stunDuration, int slowDuration, int slowLevel,
-                            float maxDistance, int maxLifetime) {
-        this(world, owner, target, x, y, z,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp,
-            speed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime,
-            false, 0.15f, 0.5f, 6); // Default: no lightning, low density, small radius, 6 tick fade
-    }
-
-    /**
-     * Full constructor with lightning effect support.
-     */
-    public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
-                            double x, double y, double z,
-                            float orbSize, int innerColor, int outerColor,
-                            boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                            float damage, float knockback, float knockbackUp,
-                            float speed, boolean homing, float homingStrength, float homingRange,
-                            boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                            int stunDuration, int slowDuration, int slowLevel,
-                            float maxDistance, int maxLifetime,
-                            boolean lightningEffect, float lightningDensity, float lightningRadius, int lightningFadeTime) {
+                            double x, double y, double z, float orbSize,
+                            EnergyColorData color, EnergyCombatData combat,
+                            EnergyHomingData homing, EnergyLightningData lightning,
+                            EnergyLifespanData lifespan) {
         super(world);
 
-        // Initialize base properties with lightning
-        initProjectile(owner, target, x, y, z,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorAlpha,  outerColorWidth, rotationSpeed,
-            damage, knockback, knockbackUp,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime);
+        // Initialize base properties
+        initProjectile(owner, target, x, y, z, orbSize, color, combat, lightning, lifespan);
 
         // Orb-specific properties
-        this.speed = speed;
-        this.homing = homing;
-        this.homingStrength = homingStrength;
-        this.homingRange = homingRange;
+        this.speed = homing.speed;
+        this.homing = homing.homing;
+        this.homingStrength = homing.homingStrength;
+        this.homingRange = homing.homingRange;
 
         // Calculate initial velocity toward target
         if (target != null) {
             double dx = target.posX - x;
-            double dy = (target.posY + target.height * 0.5) - y;
+            double dy = (target.posY + target.getEyeHeight()) - y;
             double dz = target.posZ - z;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
-                this.motionX = (dx / len) * speed;
-                this.motionY = (dy / len) * speed;
-                this.motionZ = (dz / len) * speed;
+                this.motionX = (dx / len) * homing.speed;
+                this.motionY = (dy / len) * homing.speed;
+                this.motionZ = (dz / len) * homing.speed;
             }
         } else {
             // Fire in NPC's facing direction
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
-            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            this.motionY = -Math.sin(pitch) * speed;
-            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * homing.speed;
+            this.motionY = -Math.sin(pitch) * homing.speed;
+            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * homing.speed;
         }
     }
 
     /**
-     * Create an orb in charging mode (for windup phase).
+     * Setup this orb in charging mode (for windup phase).
      * The orb will grow from 0 to orbSize over chargeDuration ticks.
      * Position follows the owner based on anchor point.
      */
-    public static EntityAbilityOrb createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
-                                                   float orbSize, int innerColor, int outerColor,
-                                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                                                   float damage, float knockback, float knockbackUp,
-                                                   float speed, boolean homing, float homingStrength, float homingRange,
-                                                   boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                                                   int stunDuration, int slowDuration, int slowLevel,
-                                                   float maxDistance, int maxLifetime,
-                                                   boolean lightningEffect, float lightningDensity, float lightningRadius, int lightningFadeTime,
-                                                   AnchorPoint anchorPoint, int chargeDuration) {
-        // Calculate initial position based on anchor point
-        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
-        double spawnX = spawnPos.xCoord;
-        double spawnY = spawnPos.yCoord;
-        double spawnZ = spawnPos.zCoord;
-
-        EntityAbilityOrb orb = new EntityAbilityOrb(
-            world, owner, target,
-            spawnX, spawnY, spawnZ,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime);
-
-        // Set charging state (uses data watcher for client sync)
-        orb.setCharging(true);
-        orb.chargeDuration = chargeDuration;
-        orb.chargeTick = 0;
-        orb.anchorPoint = anchorPoint;
-
-        // Store target size and start at 0 for grow effect
-        orb.targetSize = orb.size;
-        orb.size = 0.01f; // Start very small
-        orb.renderCurrentSize = 0.01f;
-        orb.prevRenderSize = 0.01f;
-
-        // Clear motion while charging
-        orb.motionX = 0;
-        orb.motionY = 0;
-        orb.motionZ = 0;
-
-        return orb;
+    public void setupCharging(AnchorPoint anchorPoint, int chargeDuration) {
+        setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.anchorPoint = anchorPoint;
+        this.targetSize = this.size;
+        this.size = 0.01f;
+        this.renderCurrentSize = 0.01f;
+        this.prevRenderSize = 0.01f;
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
     }
 
     /**
-     * Create an orb in preview mode for GUI display.
+     * Setup this orb in preview mode for GUI display.
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public static EntityAbilityOrb createPreview(World world, EntityNPCInterface owner,
-                                                  float orbSize, int innerColor, int outerColor,
-                                                  boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
-                                                  boolean lightningEffect, float lightningDensity, float lightningRadius, int lightningFadeTime,
-                                                  AnchorPoint anchorPoint, int chargeDuration) {
-        EntityAbilityOrb orb = new EntityAbilityOrb(world);
-        orb.setPreviewMode(true);
-        orb.setPreviewOwner(owner);
+    public void setupPreview(EntityNPCInterface owner, float orbSize, EnergyColorData color, EnergyLightningData lightning, AnchorPoint anchorPoint, int chargeDuration) {
+        this.setPreviewMode(true);
+        this.setPreviewOwner(owner);
 
         // Set visual properties
-        orb.innerColor = innerColor;
-        orb.outerColor = outerColor;
-        orb.outerColorEnabled = outerColorEnabled;
-        orb.outerColorWidth = outerColorWidth;
-        orb.rotationSpeed = rotationSpeed;
-        orb.lightningEffect = lightningEffect;
-        orb.lightningDensity = lightningDensity;
-        orb.lightningRadius = lightningRadius;
-        orb.lightningFadeTime = lightningFadeTime;
+        this.innerColor = color.innerColor;
+        this.outerColor = color.outerColor;
+        this.outerColorEnabled = color.outerColorEnabled;
+        this.outerColorWidth = color.outerColorWidth;
+        this.rotationSpeed = color.rotationSpeed;
+        this.lightningEffect = lightning.lightningEffect;
+        this.lightningDensity = lightning.lightningDensity;
+        this.lightningRadius = lightning.lightningRadius;
+        this.lightningFadeTime = lightning.lightningFadeTime;
 
-        // Set charging state (like createCharging does)
-        orb.setCharging(true);
-        orb.chargeDuration = chargeDuration;
-        orb.chargeTick = 0;
-        orb.anchorPoint = anchorPoint;
+        // Set charging state
+        this.setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.anchorPoint = anchorPoint;
 
         // Store target size and start at 0 for grow effect
-        orb.targetSize = orbSize;
-        orb.size = 0.01f;
-        orb.renderCurrentSize = 0.01f;
-        orb.prevRenderSize = 0.01f;
+        this.targetSize = orbSize;
+        this.size = 0.01f;
+        this.renderCurrentSize = 0.01f;
+        this.prevRenderSize = 0.01f;
 
         // Initial position at anchor point
         Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
-        orb.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        orb.prevPosX = pos.xCoord;
-        orb.prevPosY = pos.yCoord;
-        orb.prevPosZ = pos.zCoord;
-        orb.startX = pos.xCoord;
-        orb.startY = pos.yCoord;
-        orb.startZ = pos.zCoord;
+        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        this.prevPosX = pos.xCoord;
+        this.prevPosY = pos.yCoord;
+        this.prevPosZ = pos.zCoord;
+        this.startX = pos.xCoord;
+        this.startY = pos.yCoord;
+        this.startZ = pos.zCoord;
 
-        // Clear motion while charging
-        orb.motionX = 0;
-        orb.motionY = 0;
-        orb.motionZ = 0;
-
-        return orb;
+        // Clear motion
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
     }
 
     /**
@@ -300,7 +234,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
         if (target != null) {
             double dx = target.posX - posX;
-            double dy = (target.posY + target.height * 0.5) - posY;
+            double dy = (target.posY + target.getEyeHeight()) - posY;
             double dz = target.posZ - posZ;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
@@ -370,7 +304,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         if (target == null || !target.isEntityAlive()) return;
 
         double dx = target.posX - posX;
-        double dy = (target.posY + target.height * 0.5) - posY;
+        double dy = (target.posY + target.getEyeHeight()) - posY;
         double dz = target.posZ - posZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 

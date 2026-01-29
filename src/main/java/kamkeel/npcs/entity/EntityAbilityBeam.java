@@ -1,6 +1,11 @@
 package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -103,79 +108,27 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     }
 
     /**
-     * Full constructor with all parameters (no lightning).
-     */
-    public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
-                              double x, double y, double z,
-                              float beamWidth, float headSize, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                              float damage, float knockback, float knockbackUp,
-                              float speed, boolean homing, float homingStrength, float homingRange,
-                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                              int stunDuration, int slowDuration, int slowLevel,
-                              float maxDistance, int maxLifetime) {
-        this(world, owner, target, x, y, z,
-            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
-            false, 0.15f, 0.5f);
-    }
-
-    /**
-     * Full constructor with all parameters including lightning.
-     */
-    public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
-                              double x, double y, double z,
-                              float beamWidth, float headSize, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                              float damage, float knockback, float knockbackUp,
-                              float speed, boolean homing, float homingStrength, float homingRange,
-                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                              int stunDuration, int slowDuration, int slowLevel,
-                              float maxDistance, int maxLifetime,
-                              boolean lightningEffect, float lightningDensity, float lightningRadius) {
-        this(world, owner, target, x, y, z,
-            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius,
-            true); // Default to anchored mode
-    }
-
-    /**
-     * Full constructor with all parameters including lightning and anchored mode.
+     * Full constructor with all parameters using data classes.
      * @param anchoredMode If true, origin follows owner and tail orb is rendered.
      *                     If false, beam is free-moving with trailing length (no tail orb).
      */
     public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
-                              float beamWidth, float headSize, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                              float damage, float knockback, float knockbackUp,
-                              float speed, boolean homing, float homingStrength, float homingRange,
-                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                              int stunDuration, int slowDuration, int slowLevel,
-                              float maxDistance, int maxLifetime,
-                              boolean lightningEffect, float lightningDensity, float lightningRadius,
+                              float beamWidth, float headSize,
+                              EnergyColorData color, EnergyCombatData combat,
+                              EnergyHomingData homing, EnergyLightningData lightning,
+                              EnergyLifespanData lifespan,
                               boolean anchoredMode) {
         super(world);
 
-        // Initialize base properties with lightning
-        initProjectile(owner, target, x, y, z,
-            headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius, 6);
+        // Initialize base properties via parent
+        initProjectile(owner, target, x, y, z, headSize, color, combat, lightning, lifespan);
 
-        // Beam-specific properties
-        this.speed = speed;
-        this.homing = homing;
-        this.homingStrength = homingStrength;
-        this.homingRange = homingRange;
+        // Beam-specific properties from homing data
+        this.speed = homing.speed;
+        this.homing = homing.homing;
+        this.homingStrength = homing.homingStrength;
+        this.homingRange = homing.homingRange;
         this.beamWidth = beamWidth;
         this.headSize = headSize;
 
@@ -195,13 +148,13 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
 
         if (DEBUG_LOGGING && !world.isRemote) {
-            LogWriter.info("[Beam] Created at origin " + x + ", " + y + ", " + z + " maxDist=" + maxDistance);
+            LogWriter.info("[Beam] Created at origin " + x + ", " + y + ", " + z + " maxDist=" + lifespan.maxDistance);
         }
 
         // Calculate initial velocity toward target
         if (target != null) {
             double dx = target.posX - x;
-            double dy = (target.posY + target.height * 0.5) - y;
+            double dy = (target.posY + target.getEyeHeight()) - y;
             double dz = target.posZ - z;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
@@ -218,118 +171,69 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         }
     }
 
-    /**
-     * Create a beam in charging mode (for windup phase).
-     * The beam will grow from 0 to headSize over chargeDuration ticks.
-     * Position follows the owner based on anchor point.
-     */
-    public static EntityAbilityBeam createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
-                                                    float beamWidth, float headSize, int innerColor, int outerColor,
-                                                    boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                                                    float damage, float knockback, float knockbackUp,
-                                                    float speed, boolean homing, float homingStrength, float homingRange,
-                                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                                                    int stunDuration, int slowDuration, int slowLevel,
-                                                    float maxDistance, int maxLifetime,
-                                                    boolean lightningEffect, float lightningDensity, float lightningRadius,
-                                                    boolean anchoredMode, int chargeDuration, float chargeOffsetDistance,
-                                                    AnchorPoint anchorPoint) {
-        // Calculate initial position based on anchor point
-        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint, chargeOffsetDistance);
-        double spawnX = spawnPos.xCoord;
-        double spawnY = spawnPos.yCoord;
-        double spawnZ = spawnPos.zCoord;
-
-        EntityAbilityBeam beam = new EntityAbilityBeam(
-            world, owner, target,
-            spawnX, spawnY, spawnZ,
-            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius,
-            anchoredMode);
-
-        // Set charging state (uses data watcher for client sync)
-        beam.setCharging(true);
-        beam.chargeDuration = chargeDuration;
-        beam.chargeTick = 0;
-        beam.chargeOffsetDistance = chargeOffsetDistance;
-        beam.anchorPoint = anchorPoint;
-
-        // Non-anchored beams have fading trail (comet effect)
-        beam.fadeTrail = !anchoredMode;
-
-        // Clear motion while charging
-        beam.motionX = 0;
-        beam.motionY = 0;
-        beam.motionZ = 0;
-
-        return beam;
+    public void setupCharging(AnchorPoint anchorPoint, int chargeDuration, float chargeOffsetDistance) {
+        setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.chargeOffsetDistance = chargeOffsetDistance;
+        this.anchorPoint = anchorPoint;
+        this.fadeTrail = !attachedToOwner;
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
     }
 
-    /**
-     * Create a beam in preview mode for GUI display.
-     * Follows anchor point and animations like in the real game.
-     * Can be fired when transitioning to active phase.
-     */
-    public static EntityAbilityBeam createPreview(World world, EntityNPCInterface owner,
-                                                   float beamWidth, float headSize, int innerColor, int outerColor,
-                                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
-                                                   boolean lightningEffect, float lightningDensity, float lightningRadius,
-                                                   AnchorPoint anchorPoint, int chargeDuration, float chargeOffsetDistance) {
-        EntityAbilityBeam beam = new EntityAbilityBeam(world);
-        beam.setPreviewMode(true);
-        beam.setPreviewOwner(owner);
+    public void setupPreview(EntityNPCInterface owner, float beamWidth, float headSize, EnergyColorData color, EnergyLightningData lightning, AnchorPoint anchorPoint, int chargeDuration, float chargeOffsetDistance) {
+        this.setPreviewMode(true);
+        this.setPreviewOwner(owner);
 
         // Set visual properties
-        beam.beamWidth = beamWidth;
-        beam.headSize = headSize;
-        beam.size = headSize;
-        beam.innerColor = innerColor;
-        beam.outerColor = outerColor;
-        beam.outerColorEnabled = outerColorEnabled;
-        beam.outerColorWidth = outerColorWidth;
-        beam.rotationSpeed = rotationSpeed;
-        beam.lightningEffect = lightningEffect;
-        beam.lightningDensity = lightningDensity;
-        beam.lightningRadius = lightningRadius;
+        this.beamWidth = beamWidth;
+        this.headSize = headSize;
+        this.size = headSize;
+        this.innerColor = color.innerColor;
+        this.outerColor = color.outerColor;
+        this.outerColorEnabled = color.outerColorEnabled;
+        this.outerColorWidth = color.outerColorWidth;
+        this.outerColorAlpha = color.outerColorAlpha;
+        this.rotationSpeed = color.rotationSpeed;
+        this.lightningEffect = lightning.lightningEffect;
+        this.lightningDensity = lightning.lightningDensity;
+        this.lightningRadius = lightning.lightningRadius;
 
         // Set charging state
-        beam.setCharging(true);
-        beam.chargeDuration = chargeDuration;
-        beam.chargeTick = 0;
-        beam.chargeOffsetDistance = chargeOffsetDistance;
-        beam.anchorPoint = anchorPoint;
+        this.setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.chargeOffsetDistance = chargeOffsetDistance;
+        this.anchorPoint = anchorPoint;
 
         // Initial position at anchor point
         Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint, chargeOffsetDistance);
-        beam.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        beam.prevPosX = pos.xCoord;
-        beam.prevPosY = pos.yCoord;
-        beam.prevPosZ = pos.zCoord;
-        beam.startX = pos.xCoord;
-        beam.startY = pos.yCoord;
-        beam.startZ = pos.zCoord;
+        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        this.prevPosX = pos.xCoord;
+        this.prevPosY = pos.yCoord;
+        this.prevPosZ = pos.zCoord;
+        this.startX = pos.xCoord;
+        this.startY = pos.yCoord;
+        this.startZ = pos.zCoord;
 
         // Initialize head offsets
-        beam.headOffsetX = 0;
-        beam.headOffsetY = 0;
-        beam.headOffsetZ = 0;
-        beam.prevHeadOffsetX = 0;
-        beam.prevHeadOffsetY = 0;
-        beam.prevHeadOffsetZ = 0;
+        this.headOffsetX = 0;
+        this.headOffsetY = 0;
+        this.headOffsetZ = 0;
+        this.prevHeadOffsetX = 0;
+        this.prevHeadOffsetY = 0;
+        this.prevHeadOffsetZ = 0;
 
         // Attach to owner for anchor following
-        beam.attachedToOwner = true;
-        beam.renderTailOrb = true;
+        this.attachedToOwner = true;
+        this.renderTailOrb = true;
 
-        // Clear motion while charging
-        beam.motionX = 0;
-        beam.motionY = 0;
-        beam.motionZ = 0;
-
-        return beam;
+        // Clear motion
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
     }
 
     /**
@@ -406,7 +310,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         if (target != null) {
             double dx = target.posX - startX;
-            double dy = (target.posY + target.height * 0.5) - startY;
+            double dy = (target.posY + target.getEyeHeight()) - startY;
             double dz = target.posZ - startZ;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
@@ -660,7 +564,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         double headWorldZ = startZ + headOffsetZ;
 
         double dx = target.posX - headWorldX;
-        double dy = (target.posY + target.height * 0.5) - headWorldY;
+        double dy = (target.posY + target.getEyeHeight()) - headWorldY;
         double dz = target.posZ - headWorldZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 

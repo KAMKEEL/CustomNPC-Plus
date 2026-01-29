@@ -1934,6 +1934,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (NPCMountUtil.isFlyingMountWithFlightEnabled(this)) {
             return;
         }
+        // Skip fall damage during abilities that control NPC movement (e.g., Slam leap)
+        if (this.abilities != null && this.abilities.isExecutingAbility()
+            && this.abilities.getCurrentAbility() != null
+            && this.abilities.getCurrentAbility().hasAbilityMovement()) {
+            this.fallDistance = 0;
+            return;
+        }
         if (!this.stats.noFallDamage)
             super.fall(distance);
     }

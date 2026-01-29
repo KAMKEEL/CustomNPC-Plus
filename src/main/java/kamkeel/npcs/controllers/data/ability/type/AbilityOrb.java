@@ -6,14 +6,21 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
@@ -28,48 +35,18 @@ import noppes.npcs.entity.EntityNPCInterface;
  */
 public class AbilityOrb extends Ability implements IAbilityOrb {
 
-    // Movement properties
-    private float orbSpeed = 0.5f;
+    // Ability-specific properties
     private float orbSize = 1.0f;
-    private float maxDistance = 30.0f; // Max distance before orb dies
-    private int maxLifetime = 200; // Ticks the orb lives
-
-    // Combat properties
-    private float damage = 7.0f;
-    private float knockback = 1.0f;
-    private float knockbackUp = 0.1f;
-
-    // Homing properties
-    private boolean homing = true;
-    private float homingStrength = 0.15f;
-    private float homingRange = 20.0f;
-
-    // Explosion properties
-    private boolean explosive = false;
-    private float explosionRadius = 3.0f;
-    private float explosionDamageFalloff = 0.5f;
-
-    // Effect properties
-    private int stunDuration = 0;
-    private int slowDuration = 0;
-    private int slowLevel = 0;
-
-    // Visual properties
-    private int innerColor = 0xFFFFFF;  // White core
-    private int outerColor = 0x8888FF;  // Light blue glow
-    private float outerColorWidth = 0.4f; // Additive offset from inner size
-    private float outerColorAlpha = 0.5f;
-    private boolean outerColorEnabled = true; // Whether to render outer glow
-    private float rotationSpeed = 4.0f; // Degrees per tick
-
-    // Lightning effect properties
-    private boolean lightningEffect = false;
-    private float lightningDensity = 0.15f;  // Bolts spawned per tick (0.15 = ~15% chance per frame)
-    private float lightningRadius = 0.5f;    // Max distance lightning arcs - scales with orbSize
-    private int lightningFadeTime = 6;       // Ticks before lightning fades out
 
     // Anchor point for charging position
     private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
+
+    // Data classes for energy properties
+    public final EnergyColorData colorData = new EnergyColorData();
+    public final EnergyCombatData combatData = new EnergyCombatData();
+    public final EnergyHomingData homingData = new EnergyHomingData();
+    public final EnergyLightningData lightningData = new EnergyLightningData();
+    public final EnergyLifespanData lifespanData = new EnergyLifespanData();
 
     // Transient state for orb entity (used during windup charging)
     private transient EntityAbilityOrb orbEntity = null;
@@ -133,19 +110,14 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
             // Create orb in charging mode - follows NPC based on anchor point during windup
-            orbEntity = EntityAbilityOrb.createCharging(
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorPoint);
+            orbEntity = new EntityAbilityOrb(
                 world, npc, target,
-                orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-                damage, knockback, knockbackUp,
-                orbSpeed, homing, homingStrength, homingRange,
-                explosive, explosionRadius, explosionDamageFalloff,
-                stunDuration, slowDuration, slowLevel,
-                maxDistance, maxLifetime,
-                lightningEffect, lightningDensity, lightningRadius, lightningFadeTime,
-                anchorPoint,  // Anchor point for charging position
-                windUpTicks   // Charge duration = windup duration
-            );
+                spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
+                colorData, combatData, homingData, lightningData, lifespanData);
+            orbEntity.setupCharging(anchorPoint, windUpTicks);
 
+            orbEntity.setEffects(this.effects);
             world.spawnEntityInWorld(orbEntity);
         }
     }
@@ -202,73 +174,39 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
-        nbt.setFloat("orbSpeed", orbSpeed);
         nbt.setFloat("orbSize", orbSize);
-        nbt.setFloat("maxDistance", maxDistance);
-        nbt.setInteger("maxLifetime", maxLifetime);
-        nbt.setFloat("damage", damage);
-        nbt.setFloat("knockback", knockback);
-        nbt.setFloat("knockbackUp", knockbackUp);
-        nbt.setBoolean("homing", homing);
-        nbt.setFloat("homingStrength", homingStrength);
-        nbt.setFloat("homingRange", homingRange);
-        nbt.setBoolean("explosive", explosive);
-        nbt.setFloat("explosionRadius", explosionRadius);
-        nbt.setFloat("explosionDamageFalloff", explosionDamageFalloff);
-        nbt.setInteger("stunDuration", stunDuration);
-        nbt.setInteger("slowDuration", slowDuration);
-        nbt.setInteger("slowLevel", slowLevel);
-        nbt.setInteger("innerColor", innerColor);
-        nbt.setInteger("outerColor", outerColor);
-        nbt.setFloat("outerColorWidth", outerColorWidth);
-        nbt.setFloat("outerColorAlpha", outerColorAlpha);
-        nbt.setBoolean("outerColorEnabled", outerColorEnabled);
-        nbt.setFloat("rotationSpeed", rotationSpeed);
-        nbt.setBoolean("lightningEffect", lightningEffect);
-        nbt.setFloat("lightningDensity", lightningDensity);
-        nbt.setFloat("lightningRadius", lightningRadius);
-        nbt.setInteger("lightningFadeTime", lightningFadeTime);
         nbt.setInteger("anchorPoint", anchorPoint.getId());
+        colorData.writeNBT(nbt);
+        combatData.writeNBT(nbt);
+        homingData.writeNBT(nbt);
+        lightningData.writeNBT(nbt);
+        lifespanData.writeNBT(nbt);
+        // Backward compat: old key was "orbSpeed"
+        nbt.setFloat("orbSpeed", homingData.speed);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.orbSpeed = nbt.hasKey("orbSpeed") ? nbt.getFloat("orbSpeed") : 0.5f;
         this.orbSize = nbt.hasKey("orbSize") ? nbt.getFloat("orbSize") : 1.0f;
-        this.maxDistance = nbt.hasKey("maxDistance") ? nbt.getFloat("maxDistance") : 30.0f;
-        this.maxLifetime = nbt.hasKey("maxLifetime") ? nbt.getInteger("maxLifetime") : 200;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 7.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.0f;
-        this.knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.1f;
-        this.homing = !nbt.hasKey("homing") || nbt.getBoolean("homing");
-        this.homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.15f;
-        this.homingRange = nbt.hasKey("homingRange") ? nbt.getFloat("homingRange") : 20.0f;
-        this.explosive = nbt.hasKey("explosive") && nbt.getBoolean("explosive");
-        this.explosionRadius = nbt.hasKey("explosionRadius") ? nbt.getFloat("explosionRadius") : 3.0f;
-        this.explosionDamageFalloff = nbt.hasKey("explosionDamageFalloff") ? nbt.getFloat("explosionDamageFalloff") : 0.5f;
-        this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
-        this.slowDuration = nbt.hasKey("slowDuration") ? nbt.getInteger("slowDuration") : 0;
-        this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
-        this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
-        this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
-        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
-        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
-        this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
-        this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
-        this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
-        this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
-        this.lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
-        this.lightningFadeTime = nbt.hasKey("lightningFadeTime") ? nbt.getInteger("lightningFadeTime") : 6;
         this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
+        colorData.readNBT(nbt);
+        combatData.readNBT(nbt);
+        homingData.readNBT(nbt);
+        lightningData.readNBT(nbt);
+        lifespanData.readNBT(nbt);
+        // Backward compat: old key was "orbSpeed"
+        if (nbt.hasKey("orbSpeed")) {
+            homingData.speed = nbt.getFloat("orbSpeed");
+        }
     }
 
     // Getters & Setters
     public float getOrbSpeed() {
-        return orbSpeed;
+        return homingData.speed;
     }
 
     public void setOrbSpeed(float orbSpeed) {
-        this.orbSpeed = orbSpeed;
+        homingData.speed = orbSpeed;
     }
 
     public float getOrbSize() {
@@ -280,195 +218,171 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     public float getMaxDistance() {
-        return maxDistance;
+        return lifespanData.maxDistance;
     }
 
     public void setMaxDistance(float maxDistance) {
-        this.maxDistance = maxDistance;
+        lifespanData.maxDistance = maxDistance;
     }
 
     public int getMaxLifetime() {
-        return maxLifetime;
+        return lifespanData.maxLifetime;
     }
 
     public void setMaxLifetime(int maxLifetime) {
-        this.maxLifetime = maxLifetime;
+        lifespanData.maxLifetime = maxLifetime;
     }
 
     public float getDamage() {
-        return damage;
+        return combatData.damage;
     }
 
     public void setDamage(float damage) {
-        this.damage = damage;
+        combatData.damage = damage;
     }
 
     public float getKnockback() {
-        return knockback;
+        return combatData.knockback;
     }
 
     public void setKnockback(float knockback) {
-        this.knockback = knockback;
+        combatData.knockback = knockback;
     }
 
     public float getKnockbackUp() {
-        return knockbackUp;
+        return combatData.knockbackUp;
     }
 
     public void setKnockbackUp(float knockbackUp) {
-        this.knockbackUp = knockbackUp;
+        combatData.knockbackUp = knockbackUp;
     }
 
     public boolean isHoming() {
-        return homing;
+        return homingData.homing;
     }
 
     public void setHoming(boolean homing) {
-        this.homing = homing;
+        homingData.homing = homing;
     }
 
     public float getHomingStrength() {
-        return homingStrength;
+        return homingData.homingStrength;
     }
 
     public void setHomingStrength(float homingStrength) {
-        this.homingStrength = homingStrength;
+        homingData.homingStrength = homingStrength;
     }
 
     public float getHomingRange() {
-        return homingRange;
+        return homingData.homingRange;
     }
 
     public void setHomingRange(float homingRange) {
-        this.homingRange = homingRange;
+        homingData.homingRange = homingRange;
     }
 
     public boolean isExplosive() {
-        return explosive;
+        return combatData.explosive;
     }
 
     public void setExplosive(boolean explosive) {
-        this.explosive = explosive;
+        combatData.explosive = explosive;
     }
 
     public float getExplosionRadius() {
-        return explosionRadius;
+        return combatData.explosionRadius;
     }
 
     public void setExplosionRadius(float explosionRadius) {
-        this.explosionRadius = explosionRadius;
+        combatData.explosionRadius = explosionRadius;
     }
 
     public float getExplosionDamageFalloff() {
-        return explosionDamageFalloff;
+        return combatData.explosionDamageFalloff;
     }
 
     public void setExplosionDamageFalloff(float explosionDamageFalloff) {
-        this.explosionDamageFalloff = explosionDamageFalloff;
-    }
-
-    public int getStunDuration() {
-        return stunDuration;
-    }
-
-    public void setStunDuration(int stunDuration) {
-        this.stunDuration = stunDuration;
-    }
-
-    public int getSlowDuration() {
-        return slowDuration;
-    }
-
-    public void setSlowDuration(int slowDuration) {
-        this.slowDuration = slowDuration;
-    }
-
-    public int getSlowLevel() {
-        return slowLevel;
-    }
-
-    public void setSlowLevel(int slowLevel) {
-        this.slowLevel = slowLevel;
+        combatData.explosionDamageFalloff = explosionDamageFalloff;
     }
 
     public int getInnerColor() {
-        return innerColor;
+        return colorData.innerColor;
     }
 
     public void setInnerColor(int innerColor) {
-        this.innerColor = innerColor;
+        colorData.innerColor = innerColor;
     }
 
     public int getOuterColor() {
-        return outerColor;
+        return colorData.outerColor;
     }
 
     public void setOuterColor(int outerColor) {
-        this.outerColor = outerColor;
+        colorData.outerColor = outerColor;
     }
 
     public float getOuterColorWidth() {
-        return outerColorWidth;
+        return colorData.outerColorWidth;
     }
 
     public void setOuterColorWidth(float outerColorWidth) {
-        this.outerColorWidth = outerColorWidth;
+        colorData.outerColorWidth = outerColorWidth;
     }
 
     public float getOuterColorAlpha() {
-        return outerColorAlpha;
+        return colorData.outerColorAlpha;
     }
 
     public void setOuterColorAlpha(float outerColorAlpha) {
-        this.outerColorAlpha = outerColorAlpha;
+        colorData.outerColorAlpha = outerColorAlpha;
     }
 
     public boolean isOuterColorEnabled() {
-        return outerColorEnabled;
+        return colorData.outerColorEnabled;
     }
 
     public void setOuterColorEnabled(boolean outerColorEnabled) {
-        this.outerColorEnabled = outerColorEnabled;
+        colorData.outerColorEnabled = outerColorEnabled;
     }
 
     public float getRotationSpeed() {
-        return rotationSpeed;
+        return colorData.rotationSpeed;
     }
 
     public void setRotationSpeed(float rotationSpeed) {
-        this.rotationSpeed = rotationSpeed;
+        colorData.rotationSpeed = rotationSpeed;
     }
 
     public boolean hasLightningEffect() {
-        return lightningEffect;
+        return lightningData.lightningEffect;
     }
 
     public void setLightningEffect(boolean lightningEffect) {
-        this.lightningEffect = lightningEffect;
+        lightningData.lightningEffect = lightningEffect;
     }
 
     public float getLightningDensity() {
-        return lightningDensity;
+        return lightningData.lightningDensity;
     }
 
     public void setLightningDensity(float lightningDensity) {
-        this.lightningDensity = lightningDensity;
+        lightningData.lightningDensity = lightningDensity;
     }
 
     public float getLightningRadius() {
-        return lightningRadius;
+        return lightningData.lightningRadius;
     }
 
     public void setLightningRadius(float lightningRadius) {
-        this.lightningRadius = lightningRadius;
+        lightningData.lightningRadius = lightningRadius;
     }
 
     public int getLightningFadeTime() {
-        return lightningFadeTime;
+        return lightningData.lightningFadeTime;
     }
 
     public void setLightningFadeTime(int lightningFadeTime) {
-        this.lightningFadeTime = lightningFadeTime;
+        lightningData.lightningFadeTime = lightningFadeTime;
     }
 
     public AnchorPoint getAnchorPointEnum() {
@@ -493,17 +407,13 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     public Entity createPreviewEntity(EntityNPCInterface npc) {
         if (npc == null || npc.worldObj == null) return null;
 
-        return EntityAbilityOrb.createPreview(
-            npc.worldObj, npc,
-            orbSize, innerColor, outerColor,
-            outerColorEnabled, outerColorWidth, rotationSpeed,
-            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime,
-            anchorPoint, windUpTicks
-        );
+        EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
+        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorPoint, windUpTicks);
+        return orb;
     }
 
     @Override
     public int getPreviewActiveDuration() {
-        return maxLifetime > 0 ? Math.min(maxLifetime, 100) : 100;
+        return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 }

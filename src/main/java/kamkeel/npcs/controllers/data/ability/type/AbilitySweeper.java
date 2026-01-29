@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -41,10 +42,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     private boolean lockOnTarget = false;
 
     // Visual properties
-    private int innerColor = 0xFF6600;
-    private int outerColor = 0xFF0000;
-    private float outerColorWidth = 1.8f;
-    private boolean outerColorEnabled = true;
+    private EnergyColorData colorData = new EnergyColorData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f);
 
     // Runtime state (transient)
     private transient EntityAbilitySweeper activeEntity = null;
@@ -94,7 +92,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         // Spawn the entity that handles BOTH visuals AND damage
         activeEntity = new EntityAbilitySweeper(world, npc, target,
             beamLength, beamWidth, beamHeight,
-            innerColor, outerColor, outerColorEnabled, outerColorWidth,
+            colorData,
             sweepSpeed, numberOfRotations,
             damage, damageInterval, piercing,
             lockOnTarget);
@@ -163,10 +161,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         nbt.setFloat("sweepSpeed", sweepSpeed);
         nbt.setInteger("numberOfRotations", numberOfRotations);
         nbt.setBoolean("lockOnTarget", lockOnTarget);
-        nbt.setInteger("innerColor", innerColor);
-        nbt.setInteger("outerColor", outerColor);
-        nbt.setFloat("outerColorWidth", outerColorWidth);
-        nbt.setBoolean("outerColorEnabled", outerColorEnabled);
+        colorData.writeNBT(nbt);
     }
 
     @Override
@@ -180,10 +175,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         this.sweepSpeed = nbt.hasKey("sweepSpeed") ? nbt.getFloat("sweepSpeed") : 3.0f;
         this.numberOfRotations = nbt.hasKey("numberOfRotations") ? nbt.getInteger("numberOfRotations") : 2;
         this.lockOnTarget = nbt.hasKey("lockOnTarget") && nbt.getBoolean("lockOnTarget");
-        this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFF6600;
-        this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF0000;
-        this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 1.8f;
-        this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
+        colorData.readNBT(nbt);
     }
 
     // Getters & Setters
@@ -205,12 +197,12 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public void setNumberOfRotations(int numberOfRotations) { this.numberOfRotations = numberOfRotations; }
     public boolean isLockOnTarget() { return lockOnTarget; }
     public void setLockOnTarget(boolean lockOnTarget) { this.lockOnTarget = lockOnTarget; }
-    public int getInnerColor() { return innerColor; }
-    public void setInnerColor(int innerColor) { this.innerColor = innerColor; }
-    public int getOuterColor() { return outerColor; }
-    public void setOuterColor(int outerColor) { this.outerColor = outerColor; }
-    public float getOuterColorWidth() { return outerColorWidth; }
-    public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
-    public boolean isOuterColorEnabled() { return outerColorEnabled; }
-    public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
+    public int getInnerColor() { return colorData.innerColor; }
+    public void setInnerColor(int innerColor) { colorData.innerColor = innerColor; }
+    public int getOuterColor() { return colorData.outerColor; }
+    public void setOuterColor(int outerColor) { colorData.outerColor = outerColor; }
+    public float getOuterColorWidth() { return colorData.outerColorWidth; }
+    public void setOuterColorWidth(float outerColorWidth) { colorData.outerColorWidth = outerColorWidth; }
+    public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
+    public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
 }
