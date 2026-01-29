@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -14,6 +15,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityVortex;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,7 +26,7 @@ import java.util.UUID;
  * Vortex ability: Pulls targets toward the caster.
  * Can pull single target or AOE, with optional damage and stun on arrival.
  */
-public class AbilityVortex extends Ability {
+public class AbilityVortex extends Ability implements IAbilityVortex {
 
     private float pullRadius = 8.0f;
     private float pullStrength = 0.8f;
@@ -51,7 +54,7 @@ public class AbilityVortex extends Ability {
         this.name = "Vortex";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.CIRCLE;

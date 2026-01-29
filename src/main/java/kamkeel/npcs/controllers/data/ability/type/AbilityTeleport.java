@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
@@ -18,13 +19,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityTeleport;
+
 import java.util.List;
 import java.util.Random;
 
 /**
  * Teleport ability: Instant reposition with wall/line-of-sight checks.
  */
-public class AbilityTeleport extends Ability {
+public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     /**
      * Teleport behavior mode.
@@ -61,6 +64,7 @@ public class AbilityTeleport extends Ability {
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 10;
+        this.lockMovement = LockMovementType.NO;
         // No telegraph for teleport - it's instant repositioning
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
@@ -440,12 +444,23 @@ public class AbilityTeleport extends Ability {
     }
 
     // Getters & Setters
-    public TeleportMode getMode() {
+    public TeleportMode getModeEnum() {
         return mode;
     }
 
-    public void setMode(TeleportMode mode) {
+    public void setModeEnum(TeleportMode mode) {
         this.mode = mode;
+    }
+
+    @Override
+    public int getMode() {
+        return mode.ordinal();
+    }
+
+    @Override
+    public void setMode(int mode) {
+        TeleportMode[] values = TeleportMode.values();
+        this.mode = mode >= 0 && mode < values.length ? values[mode] : TeleportMode.BLINK;
     }
 
     public int getBlinkCount() {

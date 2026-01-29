@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -16,6 +17,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTrap;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityTrap;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -26,7 +29,7 @@ import java.util.UUID;
  * Trap ability: Places a proximity-triggered trap.
  * Features arm time, trigger radius, and various effects on trigger.
  */
-public class AbilityTrap extends Ability {
+public class AbilityTrap extends Ability implements IAbilityTrap {
 
     public enum TrapPlacement {
         AT_CASTER,
@@ -64,7 +67,7 @@ public class AbilityTrap extends Ability {
         this.name = "Trap";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         this.telegraphType = TelegraphType.CIRCLE;
@@ -330,12 +333,23 @@ public class AbilityTrap extends Ability {
         this.durationTicks = Math.max(1, durationTicks);
     }
 
-    public TrapPlacement getPlacement() {
+    public TrapPlacement getPlacementEnum() {
         return placement;
     }
 
-    public void setPlacement(TrapPlacement placement) {
+    public void setPlacementEnum(TrapPlacement placement) {
         this.placement = placement;
+    }
+
+    @Override
+    public int getPlacement() {
+        return placement.ordinal();
+    }
+
+    @Override
+    public void setPlacement(int placement) {
+        TrapPlacement[] values = TrapPlacement.values();
+        this.placement = placement >= 0 && placement < values.length ? values[placement] : TrapPlacement.AT_TARGET;
     }
 
     public float getPlacementDistance() {

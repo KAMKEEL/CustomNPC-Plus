@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -17,6 +18,7 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityOrb;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -24,7 +26,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  * The EntityAbilityOrb handles all movement, collision, and damage logic.
  * This ability just configures and spawns the orb entity.
  */
-public class AbilityOrb extends Ability {
+public class AbilityOrb extends Ability implements IAbilityOrb {
 
     // Movement properties
     private float orbSpeed = 0.5f;
@@ -56,6 +58,7 @@ public class AbilityOrb extends Ability {
     private int innerColor = 0xFFFFFF;  // White core
     private int outerColor = 0x8888FF;  // Light blue glow
     private float outerColorWidth = 0.4f; // Additive offset from inner size
+    private float outerColorAlpha = 0.5f;
     private boolean outerColorEnabled = true; // Whether to render outer glow
     private float rotationSpeed = 4.0f; // Degrees per tick
 
@@ -66,7 +69,7 @@ public class AbilityOrb extends Ability {
     private int lightningFadeTime = 6;       // Ticks before lightning fades out
 
     // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
 
     // Transient state for orb entity (used during windup charging)
     private transient EntityAbilityOrb orbEntity = null;
@@ -79,8 +82,11 @@ public class AbilityOrb extends Ability {
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
+        this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
+        // Default built-in animation
+        this.windUpAnimationName = "Ability_Orb_Windup";
     }
 
     @Override
@@ -115,10 +121,9 @@ public class AbilityOrb extends Ability {
         if (orbEntity != null && !orbEntity.isDead) {
             orbEntity.startMoving(target);
         }
-        orbEntity = null;
 
-        // Orb entity manages itself - ability is done
-        signalCompletion();
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
@@ -130,7 +135,7 @@ public class AbilityOrb extends Ability {
             // Create orb in charging mode - follows NPC based on anchor point during windup
             orbEntity = EntityAbilityOrb.createCharging(
                 world, npc, target,
-                orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
                 damage, knockback, knockbackUp,
                 orbSpeed, homing, homingStrength, homingRange,
                 explosive, explosionRadius, explosionDamageFalloff,
@@ -147,7 +152,11 @@ public class AbilityOrb extends Ability {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // Nothing to do - entity manages itself
+        // Signal completion when entity dies
+        if (orbEntity == null || orbEntity.isDead) {
+            orbEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -212,6 +221,7 @@ public class AbilityOrb extends Ability {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
         nbt.setBoolean("lightningEffect", lightningEffect);
@@ -242,6 +252,7 @@ public class AbilityOrb extends Ability {
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
@@ -404,6 +415,14 @@ public class AbilityOrb extends Ability {
         this.outerColorWidth = outerColorWidth;
     }
 
+    public float getOuterColorAlpha() {
+        return outerColorAlpha;
+    }
+
+    public void setOuterColorAlpha(float outerColorAlpha) {
+        this.outerColorAlpha = outerColorAlpha;
+    }
+
     public boolean isOuterColorEnabled() {
         return outerColorEnabled;
     }
@@ -452,11 +471,39 @@ public class AbilityOrb extends Ability {
         this.lightningFadeTime = lightningFadeTime;
     }
 
-    public AnchorPoint getAnchorPoint() {
+    public AnchorPoint getAnchorPointEnum() {
         return anchorPoint;
     }
 
-    public void setAnchorPoint(AnchorPoint anchorPoint) {
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) {
         this.anchorPoint = anchorPoint;
+    }
+
+    public int getAnchorPoint() {
+        return anchorPoint.getId();
+    }
+
+    @Override
+    public void setAnchorPoint(int point) {
+        this.anchorPoint = AnchorPoint.fromId(point);
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        return EntityAbilityOrb.createPreview(
+            npc.worldObj, npc,
+            orbSize, innerColor, outerColor,
+            outerColorEnabled, outerColorWidth, rotationSpeed,
+            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime,
+            anchorPoint, windUpTicks
+        );
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return maxLifetime > 0 ? Math.min(maxLifetime, 100) : 100;
     }
 }

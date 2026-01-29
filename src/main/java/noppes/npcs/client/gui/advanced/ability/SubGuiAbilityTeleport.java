@@ -34,11 +34,11 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
         // Row 1: Mode
         addLabel(new GuiNpcLabel(100, "ability.mode", labelX, y + 5));
         String[] modes = {"Blink", "Behind", "Single"};
-        addButton(new GuiNpcButton(100, fieldX, y, 80, 20, modes, teleport.getMode().ordinal()));
+        addButton(new GuiNpcButton(100, fieldX, y, 80, 20, modes, teleport.getModeEnum().ordinal()));
 
         y += 24;
 
-        switch (teleport.getMode()) {
+        switch (teleport.getModeEnum()) {
             case BLINK:
                 // Row 2: Blink Radius + Blink Count
                 addLabel(new GuiNpcLabel(101, "ability.blinkRadius", labelX, y + 5));
@@ -109,7 +109,7 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
         int value = button.getValue();
         switch (id) {
             case 100:
-                teleport.setMode(AbilityTeleport.TeleportMode.values()[value]);
+                teleport.setModeEnum(AbilityTeleport.TeleportMode.values()[value]);
                 initGui();
                 break;
             case 105:

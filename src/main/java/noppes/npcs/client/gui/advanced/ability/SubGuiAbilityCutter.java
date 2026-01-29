@@ -61,7 +61,7 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         // Row 4: Sweep Mode + Piercing
         addLabel(new GuiNpcLabel(106, "ability.sweepMode", labelX, y + 5));
         String[] sweepModes = {"Swipe", "Spin"};
-        GuiNpcButton sweepModeBtn = new GuiNpcButton(106, fieldX, y, 70, 20, sweepModes, cutter.getSweepMode().ordinal());
+        GuiNpcButton sweepModeBtn = new GuiNpcButton(106, fieldX, y, 70, 20, sweepModes, cutter.getSweepModeEnum().ordinal());
         sweepModeBtn.setHoverText("ability.hover.sweepMode");
         addButton(sweepModeBtn);
 
@@ -73,7 +73,7 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         y += 24;
 
         // Row 5: Spin Duration (only for SPIN mode) + Effects button
-        if (cutter.getSweepMode() == AbilityCutter.SweepMode.SPIN) {
+        if (cutter.getSweepModeEnum() == AbilityCutter.SweepMode.SPIN) {
             addLabel(new GuiNpcLabel(108, "ability.duration", labelX, y + 5));
             GuiNpcTextField durationField = createIntField(108, fieldX, y, 50, cutter.getSpinDurationTicks());
             durationField.setMinMaxDefault(1, 1000, 60);
@@ -88,7 +88,7 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
         int value = button.getValue();
         switch (id) {
             case 106:
-                cutter.setSweepMode(AbilityCutter.SweepMode.values()[value]);
+                cutter.setSweepModeEnum(AbilityCutter.SweepMode.values()[value]);
                 initGui(); // Refresh to show/hide duration field
                 break;
             case 107:

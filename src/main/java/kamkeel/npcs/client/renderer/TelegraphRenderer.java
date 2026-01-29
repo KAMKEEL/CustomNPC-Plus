@@ -257,4 +257,83 @@ public class TelegraphRenderer {
 
         tessellator.draw();
     }
+
+    // ==================== GUI PREVIEW RENDERING ====================
+
+    /**
+     * Render a telegraph in GUI space for ability preview.
+     * This is used by the Manage Abilities GUI to show telegraph shapes.
+     *
+     * @param instance     The telegraph instance to render
+     * @param centerX      X center position in GUI space
+     * @param centerY      Y center position in GUI space
+     * @param centerZ      Z center position in GUI space
+     * @param scale        Scale factor for the telegraph
+     * @param partialTicks Partial ticks for interpolation
+     */
+    public void renderTelegraphInGUI(TelegraphInstance instance,
+                                      double centerX, double centerY, double centerZ,
+                                      float scale, float partialTicks) {
+        if (instance == null) return;
+
+        Telegraph telegraph = instance.getTelegraph();
+        if (telegraph == null || telegraph.getType() == TelegraphType.NONE) {
+            return;
+        }
+
+        // Get animated color
+        int color = instance.getAnimatedColor(partialTicks);
+        float alpha = ((color >> 24) & 0xFF) / 255.0f;
+        float red = ((color >> 16) & 0xFF) / 255.0f;
+        float green = ((color >> 8) & 0xFF) / 255.0f;
+        float blue = (color & 0xFF) / 255.0f;
+
+        // Setup GL state
+        GL11.glPushMatrix();
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_CULL_FACE);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDepthMask(false);
+
+        GL11.glTranslated(centerX, centerY, centerZ);
+        GL11.glScalef(scale, scale, scale);
+
+        // Rotate for directional shapes
+        GL11.glRotatef(-instance.getInterpolatedYaw(partialTicks), 0, 1, 0);
+
+        // Render based on type
+        switch (telegraph.getType()) {
+            case CIRCLE:
+                renderCircle(telegraph.getRadius(), red, green, blue, alpha);
+                break;
+            case RING:
+                renderRing(telegraph.getRadius(), telegraph.getInnerRadius(), red, green, blue, alpha);
+                break;
+            case LINE:
+                renderLine(telegraph.getLength(), telegraph.getWidth(), red, green, blue, alpha);
+                break;
+            case CONE:
+                renderCone(telegraph.getLength(), telegraph.getAngle(), red, green, blue, alpha);
+                break;
+            case POINT:
+                renderPoint(red, green, blue, alpha);
+                break;
+            default:
+                break;
+        }
+
+        // Restore GL state
+        GL11.glDepthMask(true);
+        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+
+        GL11.glPopAttrib();
+        GL11.glPopMatrix();
+    }
 }

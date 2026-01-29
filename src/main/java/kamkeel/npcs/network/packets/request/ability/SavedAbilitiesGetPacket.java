@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request.animation;
+package kamkeel.npcs.network.packets.request.ability;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -15,15 +15,18 @@ import noppes.npcs.NoppesUtilServer;
 
 import java.io.IOException;
 
-public final class AnimationsGetPacket extends AbstractPacket {
-    public static String packetName = "Request|AnimationsGet";
+/**
+ * Request packet to get list of all saved ability preset names.
+ */
+public final class SavedAbilitiesGetPacket extends AbstractPacket {
+    public static String packetName = "Request|SavedAbilitiesGet";
 
-    public AnimationsGetPacket() {
+    public SavedAbilitiesGetPacket() {
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.AnimationsGet;
+        return EnumRequestPacket.SavedAbilitiesGet;
     }
 
     @Override
@@ -43,7 +46,6 @@ public final class AnimationsGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
-        NoppesUtilServer.sendAnimationDataAll((EntityPlayerMP) player);
-        NoppesUtilServer.sendBuiltInAnimationData((EntityPlayerMP) player);
+        NoppesUtilServer.sendSavedAbilitiesData((EntityPlayerMP) player);
     }
 }

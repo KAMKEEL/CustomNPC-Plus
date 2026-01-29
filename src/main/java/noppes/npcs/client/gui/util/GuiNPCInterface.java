@@ -409,6 +409,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 button.drawHover(i, j, subGui);
             }
         }
+        for (GuiNpcTextField textField : textfields.values()) {
+            if (textField.hasHoverText()) {
+                textField.drawHover(i, j, subGui);
+            }
+        }
 
         for (GuiScreen gui : extra.values())
             gui.drawScreen(i, j, f);

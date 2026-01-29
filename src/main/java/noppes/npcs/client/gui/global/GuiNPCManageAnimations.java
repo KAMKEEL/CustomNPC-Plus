@@ -5,6 +5,7 @@ import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
+import kamkeel.npcs.network.packets.request.animation.BuiltInAnimationGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -37,12 +38,18 @@ import java.util.Vector;
 
 public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrollData, ICustomScrollListener, ITextfieldListener, IGuiData, ISubGuiListener, GuiYesNoCallback {
     private GuiCustomScroll scrollAnimations;
-    private HashMap<String, Integer> data = new HashMap<String, Integer>();
+    private HashMap<String, Integer> customData = new HashMap<String, Integer>();
+    private HashMap<String, Integer> builtInData = new HashMap<String, Integer>();
     private Animation animation = new Animation();
     public boolean playingAnimation = false;
     private long prevTick;
     private String selected = null;
     private String search = "";
+
+    // Toggle between Custom (false) and Built-in (true) animations
+    private boolean showingBuiltIn = false;
+    // Track if current animation is built-in
+    private boolean currentIsBuiltIn = false;
 
     public GuiNPCManageAnimations(EntityNPCInterface npc, boolean save) {
         super(npc);
@@ -58,8 +65,15 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     public void initGui() {
         super.initGui();
 
-        this.addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
-        this.addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
+        // Add/Remove buttons - only show for custom animations
+        if (!showingBuiltIn) {
+            this.addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
+            this.addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
+        }
+
+        // Toggle button for Custom/Built-in - under Remove button
+        String toggleLabel = showingBuiltIn ? "gui.builtin" : "gui.custom";
+        this.addButton(new GuiNpcButton(10, guiLeft + 368, guiTop + 56, 45, 20, toggleLabel));
 
         if (scrollAnimations == null) {
             scrollAnimations = new GuiCustomScroll(this, 0, 0);
@@ -68,13 +82,23 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         scrollAnimations.guiLeft = guiLeft + 220;
         scrollAnimations.guiTop = guiTop + 4;
         addScroll(scrollAnimations);
+
+        // Search field
         addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 192, 143, 20, search));
 
-        if (animation.id == -1)
+        // Update scroll list based on current view
+        scrollAnimations.setList(getSearchList());
+
+        if (animation.id == -1 && !currentIsBuiltIn)
             return;
 
-        addLabel(new GuiNpcLabel(10, "ID", guiLeft + 368, guiTop + 192));
-        addLabel(new GuiNpcLabel(11, animation.id + "", guiLeft + 368, guiTop + 192 + 10));
+        // ID label - only for custom animations
+        if (!currentIsBuiltIn) {
+            addLabel(new GuiNpcLabel(10, "ID", guiLeft + 368, guiTop + 192));
+            addLabel(new GuiNpcLabel(11, animation.id + "", guiLeft + 368, guiTop + 192 + 10));
+        } else {
+            addLabel(new GuiNpcLabel(10, "gui.builtin", guiLeft + 368, guiTop + 192));
+        }
 
         AnimationData data = npc.display.animationData;
         if (!playingAnimation) {
@@ -90,12 +114,13 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
             }
         }
 
-        if (animation != null) {
+        // Edit button - only for custom animations
+        if (animation != null && !currentIsBuiltIn) {
             this.addButton(new GuiNpcButton(100, guiLeft + 10, guiTop + 192, 45, 20, "gui.edit"));
         }
 
         String animTexture = "customnpcs:textures/gui/animation.png";
-        int playButtonOffsetX = 140;
+        int playButtonOffsetX = currentIsBuiltIn ? 80 : 140;
         if (animation != null && !animation.frames.isEmpty()) {
             if (!this.playingAnimation || data.animation.paused) {//Play
                 this.addLabel(new GuiNpcLabel(90, data.animation.paused ? "animation.paused" : "animation.stopped", guiLeft + playButtonOffsetX - 15, guiTop + 198));
@@ -151,12 +176,17 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         }
     }
 
+    private HashMap<String, Integer> getCurrentData() {
+        return showingBuiltIn ? builtInData : customData;
+    }
+
     private List<String> getSearchList() {
+        HashMap<String, Integer> data = getCurrentData();
         if (search.isEmpty()) {
-            return new ArrayList<String>(this.data.keySet());
+            return new ArrayList<String>(data.keySet());
         }
         List<String> list = new ArrayList<String>();
-        for (String name : this.data.keySet()) {
+        for (String name : data.keySet()) {
             if (name.toLowerCase().contains(search))
                 list.add(name);
         }
@@ -167,16 +197,31 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
 
-        if (button.id == 0) {
+        // Toggle button
+        if (button.id == 10) {
+            showingBuiltIn = !showingBuiltIn;
+            // Clear selection when switching views
+            selected = null;
+            animation = new Animation();
+            currentIsBuiltIn = false;
+            scrollAnimations.clear();
+            initGui();
+            return;
+        }
+
+        // Add button - only for custom
+        if (button.id == 0 && !showingBuiltIn) {
             save();
             String name = "New";
-            while (data.containsKey(name))
+            while (customData.containsKey(name))
                 name += "_";
             Animation animation = new Animation(-1, name);
             PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
         }
-        if (button.id == 1) {
-            if (data.containsKey(scrollAnimations.getSelected())) {
+
+        // Remove button - only for custom
+        if (button.id == 1 && !showingBuiltIn) {
+            if (customData.containsKey(scrollAnimations.getSelected())) {
                 GuiYesNo guiyesno = new GuiYesNo(this, scrollAnimations.getSelected(), StatCollector.translateToLocal("gui.delete"), 1);
                 displayGuiScreen(guiyesno);
             }
@@ -204,7 +249,8 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
             data.animation.paused = false;
         }
 
-        if (guibutton.id == 100) {
+        // Edit button - only for custom
+        if (guibutton.id == 100 && !currentIsBuiltIn) {
             NoppesUtil.openGUI(player, new GuiNPCEditAnimation(this, this.animation, npc));
         }
 
@@ -215,6 +261,10 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     public void setGuiData(NBTTagCompound compound) {
         this.animation = new Animation();
         animation.readFromNBT(compound);
+
+        // Check if this is a built-in animation
+        currentIsBuiltIn = compound.hasKey("BuiltIn") && compound.getBoolean("BuiltIn");
+
         setSelected(animation.name);
         npc.display.animationData.setAnimation(this.animation);
         this.playingAnimation = false;
@@ -225,7 +275,13 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
         String name = scrollAnimations.getSelected();
-        this.data = data;
+
+        if (type == EnumScrollData.ANIMATIONS) {
+            this.customData = data;
+        } else if (type == EnumScrollData.BUILTIN_ANIMATIONS) {
+            this.builtInData = data;
+        }
+
         scrollAnimations.setList(getSearchList());
 
         if (name != null)
@@ -242,28 +298,40 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
         if (guiCustomScroll.id == 0) {
             selected = scrollAnimations.getSelected();
-            PacketClient.sendClient(new AnimationGetPacket(data.get(selected)));
+            HashMap<String, Integer> data = getCurrentData();
+
+            if (showingBuiltIn) {
+                // Fetch built-in animation by name
+                PacketClient.sendClient(new BuiltInAnimationGetPacket(selected));
+            } else {
+                // Fetch custom animation by ID
+                if (data.containsKey(selected)) {
+                    PacketClient.sendClient(new AnimationGetPacket(data.get(selected)));
+                }
+            }
         }
     }
 
     public void save() {
-        if (selected != null && data.containsKey(selected) && animation != null) {
+        // Only save custom animations
+        if (selected != null && customData.containsKey(selected) && animation != null && !currentIsBuiltIn) {
             PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
         }
     }
 
     @Override
     public void unFocused(GuiNpcTextField guiNpcTextField) {
-        if (animation.id == -1)
+        // Don't allow renaming built-in animations
+        if (animation.id == -1 || currentIsBuiltIn)
             return;
 
         if (guiNpcTextField.id == 0) {
             String name = guiNpcTextField.getText();
-            if (!name.isEmpty() && !data.containsKey(name)) {
+            if (!name.isEmpty() && !customData.containsKey(name)) {
                 String old = animation.name;
-                data.remove(animation.name);
+                customData.remove(animation.name);
                 animation.name = name;
-                data.put(animation.name, animation.id);
+                customData.put(animation.name, animation.id);
                 selected = name;
                 scrollAnimations.replace(old, animation.name);
             }
@@ -280,10 +348,12 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         if (!result)
             return;
         if (id == 1) {
-            if (data.containsKey(scrollAnimations.getSelected())) {
-                PacketClient.sendClient(new AnimationRemovePacket(data.get(selected)));
+            // Only delete custom animations
+            if (customData.containsKey(scrollAnimations.getSelected()) && !showingBuiltIn) {
+                PacketClient.sendClient(new AnimationRemovePacket(customData.get(selected)));
                 scrollAnimations.clear();
                 animation = new Animation();
+                currentIsBuiltIn = false;
                 initGui();
             }
         }

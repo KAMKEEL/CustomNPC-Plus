@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -12,11 +13,11 @@ import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityEnergyBeam;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityEnergyBeam;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -24,7 +25,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  * The beam stays attached to the origin and curves as it homes in on target.
  * Cannot cross over itself (self-intersection prevention).
  */
-public class AbilityEnergyBeam extends Ability {
+public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
 
     // Movement properties
     private float speed = 0.4f;
@@ -59,6 +60,7 @@ public class AbilityEnergyBeam extends Ability {
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0x00AAFF;
     private float outerColorWidth = 0.4f; // Additive offset from inner size
+    private float outerColorAlpha = 0.5f;
     private boolean outerColorEnabled = true;
     private float rotationSpeed = 6.0f;
 
@@ -68,7 +70,7 @@ public class AbilityEnergyBeam extends Ability {
     private float lightningRadius = 0.5f;
 
     // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
 
     // Transient state for beam entity (used during windup charging)
     private transient EntityAbilityBeam beamEntity = null;
@@ -81,8 +83,12 @@ public class AbilityEnergyBeam extends Ability {
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 40;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
+        // Default built-in animations
+        this.windUpAnimationName = "Ability_Beam_Windup";
+        this.activeAnimationName = "Ability_Beam_Active";
     }
 
     @Override
@@ -117,10 +123,9 @@ public class AbilityEnergyBeam extends Ability {
         if (beamEntity != null && !beamEntity.isDead) {
             beamEntity.startFiring(target);
         }
-        beamEntity = null;
 
-        // Beam entity manages itself - ability is done
-        signalCompletion();
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
@@ -134,14 +139,14 @@ public class AbilityEnergyBeam extends Ability {
             // Create beam in charging mode - follows NPC based on anchor point during windup
             beamEntity = EntityAbilityBeam.createCharging(
                 world, npc, target,
-                beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+                beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
                 damage, knockback, knockbackUp,
                 speed, homing, homingStrength, homingRange,
                 explosive, explosionRadius, explosionDamageFalloff,
                 stunDuration, slowDuration, slowLevel,
                 maxDistance, maxLifetime,
                 lightningEffect, lightningDensity, lightningRadius,
-                lockMovement, // Anchored mode
+                lockMovement.locksActive(), // Anchored mode during firing
                 windUpTicks,  // Charge duration = windup duration
                 offsetDist,   // Offset distance (used by FRONT anchor)
                 anchorPoint   // Anchor point for charging position
@@ -153,6 +158,11 @@ public class AbilityEnergyBeam extends Ability {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        // Signal completion when entity dies
+        if (beamEntity == null || beamEntity.isDead) {
+            beamEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -217,6 +227,7 @@ public class AbilityEnergyBeam extends Ability {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("rotationSpeed", rotationSpeed);
         nbt.setBoolean("lightningEffect", lightningEffect);
@@ -247,6 +258,7 @@ public class AbilityEnergyBeam extends Ability {
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x00AAFF;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 6.0f;
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
@@ -296,6 +308,8 @@ public class AbilityEnergyBeam extends Ability {
     public void setOuterColor(int outerColor) { this.outerColor = outerColor; }
     public float getOuterColorWidth() { return outerColorWidth; }
     public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
+    public float getOuterColorAlpha() { return outerColorAlpha; }
+    public void setOuterColorAlpha(float outerColorAlpha) { this.outerColorAlpha = outerColorAlpha; }
     public boolean isOuterColorEnabled() { return outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
     public float getRotationSpeed() { return rotationSpeed; }
@@ -306,6 +320,32 @@ public class AbilityEnergyBeam extends Ability {
     public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
-    public AnchorPoint getAnchorPoint() { return anchorPoint; }
-    public void setAnchorPoint(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+
+    public AnchorPoint getAnchorPointEnum() { return anchorPoint; }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+
+    @Override
+    public int getAnchorPoint() { return anchorPoint.getId(); }
+
+    @Override
+    public void setAnchorPoint(int point) { this.anchorPoint = AnchorPoint.fromId(point); }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        return EntityAbilityBeam.createPreview(
+            npc.worldObj, npc,
+            beamWidth, headSize, innerColor, outerColor,
+            outerColorEnabled, outerColorWidth, rotationSpeed,
+            lightningEffect, lightningDensity, lightningRadius,
+            anchorPoint, windUpTicks, 1.0f
+        );
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return maxLifetime > 0 ? Math.min(maxLifetime, 100) : 100;
+    }
 }

@@ -31,6 +31,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected int outerColor = 0x8888FF;
     protected boolean outerColorEnabled = true;
     protected float outerColorWidth = 0.4f; // Additive offset from inner size
+    protected float outerColorAlpha = 0.5f;
     protected float rotationSpeed = 4.0f;
 
     // ==================== COMBAT PROPERTIES ====================
@@ -70,6 +71,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
+    protected boolean previewMode = false; // Client-side preview mode (no damage/effects)
+    protected EntityNPCInterface previewOwner = null; // Direct reference for GUI preview (no world lookup)
 
     // ==================== ROTATION INTERPOLATION ====================
     public float prevRotationValX, prevRotationValY, prevRotationValZ;
@@ -98,13 +101,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
                                    double x, double y, double z,
                                    float size, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                    float damage, float knockback, float knockbackUp,
                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                    int stunDuration, int slowDuration, int slowLevel,
                                    float maxDistance, int maxLifetime) {
         initProjectile(owner, target, x, y, z,
-            size, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            size, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
@@ -118,7 +121,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
                                    double x, double y, double z,
                                    float size, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                    float damage, float knockback, float knockbackUp,
                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                    int stunDuration, int slowDuration, int slowLevel,
@@ -138,6 +141,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.outerColor = outerColor;
         this.outerColorEnabled = outerColorEnabled;
         this.outerColorWidth = outerColorWidth;
+        this.outerColorAlpha = outerColorAlpha;
         this.rotationSpeed = rotationSpeed;
 
         // Combat
@@ -200,7 +204,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.prevRotationValZ = this.rotationValZ;
         this.prevRenderSize = this.renderCurrentSize;
 
-        super.onUpdate();
+        // Skip super.onUpdate() in preview mode to avoid world checks
+        if (!previewMode) {
+            super.onUpdate();
+        }
 
         // Update rotation
         updateRotation();
@@ -208,32 +215,29 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         // Lerp render size toward actual size
         this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
 
-        // Set death time on first tick if not already set (handles chunk load/unload)
-        if (deathWorldTime < 0 && worldObj != null) {
-            deathWorldTime = worldObj.getTotalWorldTime() + maxLifetime;
-        }
-
-        // Check lifespan using world time (survives chunk unload/reload)
-        if (deathWorldTime > 0 && worldObj.getTotalWorldTime() >= deathWorldTime) {
-            if (!worldObj.isRemote) {
-                noppes.npcs.LogWriter.info("[Projectile:" + this.getClass().getSimpleName() + "] DEAD: Lifetime exceeded. worldTime=" + worldObj.getTotalWorldTime() + " deathTime=" + deathWorldTime);
+        // Skip lifetime/distance checks in preview mode
+        if (!previewMode) {
+            // Set death time on first tick if not already set (handles chunk load/unload)
+            if (deathWorldTime < 0 && worldObj != null) {
+                deathWorldTime = worldObj.getTotalWorldTime() + maxLifetime;
             }
-            this.setDead();
-            return;
-        }
 
-        // Check max distance (subclass can override if needed)
-        if (checkMaxDistance()) {
-            this.setDead();
-            return;
-        }
-
-        if (hasHit) {
-            if (!worldObj.isRemote) {
-                noppes.npcs.LogWriter.info("[Projectile:" + this.getClass().getSimpleName() + "] DEAD: hasHit=true at tick " + ticksExisted);
+            // Check lifespan using world time (survives chunk unload/reload)
+            if (deathWorldTime > 0 && worldObj.getTotalWorldTime() >= deathWorldTime) {
+                this.setDead();
+                return;
             }
-            this.setDead();
-            return;
+
+            // Check max distance (subclass can override if needed)
+            if (checkMaxDistance()) {
+                this.setDead();
+                return;
+            }
+
+            if (hasHit) {
+                this.setDead();
+                return;
+            }
         }
 
         // Subclass-specific update
@@ -314,13 +318,32 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         }
     }
 
+    // ==================== PREVIEW MODE ====================
+
+    /**
+     * Set preview mode for GUI display.
+     * In preview mode, no damage or world effects are applied.
+     */
+    public void setPreviewMode(boolean preview) {
+        this.previewMode = preview;
+    }
+
+    /**
+     * Check if entity is in preview mode.
+     */
+    public boolean isPreviewMode() {
+        return previewMode;
+    }
+
     // ==================== DAMAGE & EFFECTS ====================
 
     protected void applyDamage(EntityLivingBase target) {
+        if (previewMode) return; // Skip damage in preview mode
         applyDamage(target, this.damage, this.knockback);
     }
 
     protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
+        if (previewMode) return; // Skip damage in preview mode
         Entity owner = getOwner();
         EntityNPCInterface npc = (owner instanceof EntityNPCInterface) ? (EntityNPCInterface) owner : null;
 
@@ -357,6 +380,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     }
 
     protected void doExplosion() {
+        if (previewMode) return; // Skip explosion in preview mode
         worldObj.playSoundEffect(posX, posY, posZ, "random.explode", 1.0f, 1.0f);
 
         Entity owner = getOwner();
@@ -388,8 +412,20 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     // ==================== ENTITY HELPERS ====================
 
     protected Entity getOwner() {
+        // In preview mode, use direct reference (no world lookup)
+        if (previewMode && previewOwner != null) {
+            return previewOwner;
+        }
         if (ownerEntityId == -1) return null;
         return worldObj.getEntityByID(ownerEntityId);
+    }
+
+    /**
+     * Set the preview owner for GUI preview mode.
+     * This allows anchor point calculations without world entity lookup.
+     */
+    public void setPreviewOwner(EntityNPCInterface owner) {
+        this.previewOwner = owner;
     }
 
     protected Entity getTarget() {
@@ -432,6 +468,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     public float getOuterColorWidth() {
         return outerColorWidth;
+    }
+
+    public float getOuterColorAlpha() {
+        return outerColorAlpha;
     }
 
     public float getRotationSpeed() {
@@ -507,6 +547,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.innerColor = nbt.getInteger("InnerColor");
         this.outerColor = nbt.getInteger("OuterColor");
         this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
+        this.outerColorAlpha = nbt.hasKey("OuterColorAlpha") ? nbt.getFloat("OuterColorAlpha") : 0.5f;
         this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 0.4f;
         this.rotationSpeed = nbt.hasKey("RotationSpeed") ? nbt.getFloat("RotationSpeed") : 4.0f;
 
@@ -558,6 +599,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         nbt.setInteger("OuterColor", outerColor);
         nbt.setBoolean("OuterColorEnabled", outerColorEnabled);
         nbt.setFloat("OuterColorWidth", outerColorWidth);
+        nbt.setFloat("OuterColorAlpha", outerColorAlpha);
         nbt.setFloat("RotationSpeed", rotationSpeed);
 
         nbt.setFloat("Damage", damage);

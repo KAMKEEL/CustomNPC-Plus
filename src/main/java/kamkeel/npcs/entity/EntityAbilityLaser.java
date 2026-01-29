@@ -50,14 +50,14 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
                                double x, double y, double z,
                                float laserWidth, int innerColor, int outerColor,
-                               boolean outerColorEnabled, float outerColorWidth,
+                               boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha,
                                float damage, float knockback, float knockbackUp,
                                float expansionSpeed, int lingerTicks,
                                boolean explosive, float explosionRadius, float explosionDamageFalloff,
                                int stunDuration, int slowDuration, int slowLevel,
                                float maxDistance, int maxLifetime) {
         this(world, owner, target, x, y, z,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth,
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha,
             damage, knockback, knockbackUp, expansionSpeed, lingerTicks,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
@@ -70,7 +70,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
                                double x, double y, double z,
                                float laserWidth, int innerColor, int outerColor,
-                               boolean outerColorEnabled, float outerColorWidth,
+                               boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha,
                                float damage, float knockback, float knockbackUp,
                                float expansionSpeed, int lingerTicks,
                                boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -81,7 +81,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
 
         // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, 0.0f, // No rotation for laser
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, 0.0f, // No rotation for laser
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
@@ -163,7 +163,8 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     private void checkBlockCollision() {
         Vec3 start = Vec3.createVectorHelper(startX, startY, startZ);
         Vec3 end = Vec3.createVectorHelper(endX, endY, endZ);
-        MovingObjectPosition blockHit = worldObj.rayTraceBlocks(start, end);
+        // Use full raytrace that doesn't stop at liquids and checks all blocks
+        MovingObjectPosition blockHit = worldObj.func_147447_a(start, end, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             // Laser stops at block
@@ -345,5 +346,57 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         nbt.setDouble("EndX", endX);
         nbt.setDouble("EndY", endY);
         nbt.setDouble("EndZ", endZ);
+    }
+
+    /**
+     * Create a laser in preview mode for GUI display.
+     * Laser doesn't have charging state - spawns at active phase and fires immediately.
+     */
+    public static EntityAbilityLaser createPreview(World world, EntityNPCInterface owner,
+                                                    float laserWidth, int innerColor, int outerColor,
+                                                    boolean outerColorEnabled, float outerColorWidth,
+                                                    float expansionSpeed, float maxDistance,
+                                                    boolean lightningEffect, float lightningDensity, float lightningRadius) {
+        EntityAbilityLaser laser = new EntityAbilityLaser(world);
+        laser.setPreviewMode(true);
+        laser.setPreviewOwner(owner);
+
+        // Set visual properties
+        laser.laserWidth = laserWidth;
+        laser.size = laserWidth;
+        laser.innerColor = innerColor;
+        laser.outerColor = outerColor;
+        laser.outerColorEnabled = outerColorEnabled;
+        laser.outerColorWidth = outerColorWidth;
+        laser.expansionSpeed = expansionSpeed;
+        laser.maxDistance = Math.min(maxDistance, 5.0f); // Limit for GUI preview
+        laser.lightningEffect = lightningEffect;
+        laser.lightningDensity = lightningDensity;
+        laser.lightningRadius = lightningRadius;
+
+        // Position at chest height
+        double x = owner.posX;
+        double y = owner.posY + owner.height * 0.7;
+        double z = owner.posZ;
+        laser.setPosition(x, y, z);
+        laser.prevPosX = x;
+        laser.prevPosY = y;
+        laser.prevPosZ = z;
+        laser.startX = x;
+        laser.startY = y;
+        laser.startZ = z;
+
+        // Fire in owner's facing direction
+        float yaw = (float) Math.toRadians(owner.rotationYaw);
+        laser.dirX = -Math.sin(yaw);
+        laser.dirY = 0;
+        laser.dirZ = Math.cos(yaw);
+
+        // Initialize end point (same as start, will expand)
+        laser.endX = x;
+        laser.endY = y;
+        laser.endZ = z;
+
+        return laser;
     }
 }

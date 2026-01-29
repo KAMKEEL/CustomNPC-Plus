@@ -50,7 +50,7 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(102, "ability.counterType", col2LabelX, y + 5));
         String[] types = {"Flat", "Percent"};
-        GuiNpcButton counterTypeButton = new GuiNpcButton(102, col2FieldX, y, 60, 20, types, guard.getCounterType().ordinal());
+        GuiNpcButton counterTypeButton = new GuiNpcButton(102, col2FieldX, y, 60, 20, types, guard.getCounterTypeEnum().ordinal());
         counterTypeButton.setHoverText("ability.hover.counterType");
         counterTypeButton.setEnabled(guard.isCanCounter());
         addButton(counterTypeButton);
@@ -97,7 +97,7 @@ public class SubGuiAbilityGuard extends SubGuiAbilityConfig {
                 initGui();
                 break;
             case 102:
-                guard.setCounterType(AbilityGuard.CounterType.values()[button.getValue()]);
+                guard.setCounterTypeEnum(AbilityGuard.CounterType.values()[button.getValue()]);
                 break;
             case 150:
                 setSubGui(new SubGuiAbilityEffects(guard.getEffects()));

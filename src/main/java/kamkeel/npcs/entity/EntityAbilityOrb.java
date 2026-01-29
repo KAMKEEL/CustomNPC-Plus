@@ -50,8 +50,12 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
     /**
      * Check if orb is in charging state (synced via data watcher).
+     * In preview mode, uses local field since data watcher isn't synced.
      */
     public boolean isCharging() {
+        if (previewMode) {
+            return this.charging;
+        }
         return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
     }
 
@@ -71,14 +75,14 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
                             double x, double y, double z,
                             float orbSize, int innerColor, int outerColor,
-                            boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                            boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                             float damage, float knockback, float knockbackUp,
                             float speed, boolean homing, float homingStrength, float homingRange,
                             boolean explosive, float explosionRadius, float explosionDamageFalloff,
                             int stunDuration, int slowDuration, int slowLevel,
                             float maxDistance, int maxLifetime) {
         this(world, owner, target, x, y, z,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp,
             speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
@@ -93,7 +97,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
                             double x, double y, double z,
                             float orbSize, int innerColor, int outerColor,
-                            boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                            boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                             float damage, float knockback, float knockbackUp,
                             float speed, boolean homing, float homingStrength, float homingRange,
                             boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -104,7 +108,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
         // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorAlpha,  outerColorWidth, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
@@ -145,7 +149,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      */
     public static EntityAbilityOrb createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
                                                    float orbSize, int innerColor, int outerColor,
-                                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                                    float damage, float knockback, float knockbackUp,
                                                    float speed, boolean homing, float homingStrength, float homingRange,
                                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -162,7 +166,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         EntityAbilityOrb orb = new EntityAbilityOrb(
             world, owner, target,
             spawnX, spawnY, spawnZ,
-            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            orbSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
@@ -186,6 +190,95 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         orb.motionZ = 0;
 
         return orb;
+    }
+
+    /**
+     * Create an orb in preview mode for GUI display.
+     * Follows anchor point and animations like in the real game.
+     * Can be fired when transitioning to active phase.
+     */
+    public static EntityAbilityOrb createPreview(World world, EntityNPCInterface owner,
+                                                  float orbSize, int innerColor, int outerColor,
+                                                  boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                  boolean lightningEffect, float lightningDensity, float lightningRadius, int lightningFadeTime,
+                                                  AnchorPoint anchorPoint, int chargeDuration) {
+        EntityAbilityOrb orb = new EntityAbilityOrb(world);
+        orb.setPreviewMode(true);
+        orb.setPreviewOwner(owner);
+
+        // Set visual properties
+        orb.innerColor = innerColor;
+        orb.outerColor = outerColor;
+        orb.outerColorEnabled = outerColorEnabled;
+        orb.outerColorWidth = outerColorWidth;
+        orb.rotationSpeed = rotationSpeed;
+        orb.lightningEffect = lightningEffect;
+        orb.lightningDensity = lightningDensity;
+        orb.lightningRadius = lightningRadius;
+        orb.lightningFadeTime = lightningFadeTime;
+
+        // Set charging state (like createCharging does)
+        orb.setCharging(true);
+        orb.chargeDuration = chargeDuration;
+        orb.chargeTick = 0;
+        orb.anchorPoint = anchorPoint;
+
+        // Store target size and start at 0 for grow effect
+        orb.targetSize = orbSize;
+        orb.size = 0.01f;
+        orb.renderCurrentSize = 0.01f;
+        orb.prevRenderSize = 0.01f;
+
+        // Initial position at anchor point
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
+        orb.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        orb.prevPosX = pos.xCoord;
+        orb.prevPosY = pos.yCoord;
+        orb.prevPosZ = pos.zCoord;
+        orb.startX = pos.xCoord;
+        orb.startY = pos.yCoord;
+        orb.startZ = pos.zCoord;
+
+        // Clear motion while charging
+        orb.motionX = 0;
+        orb.motionY = 0;
+        orb.motionZ = 0;
+
+        return orb;
+    }
+
+    /**
+     * Start preview firing (simulates firing toward a point in front of NPC).
+     */
+    public void startPreviewFiring() {
+        if (!isCharging()) return;
+
+        setCharging(false);
+
+        // Update start position to current position
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+
+        // Sync prev position to prevent visual jump on first frame
+        prevPosX = posX;
+        prevPosY = posY;
+        prevPosZ = posZ;
+
+        // Fire forward based on owner facing direction
+        Entity owner = getOwner();
+        if (owner != null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = (float) Math.toRadians(0); // Fire horizontally
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
+            motionY = -Math.sin(pitch) * speed;
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+        } else {
+            // Default: fire forward (positive X in model space)
+            motionX = speed;
+            motionY = 0;
+            motionZ = 0;
+        }
     }
 
     /**
@@ -232,6 +325,12 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
             return;
         }
 
+        // In preview mode, run movement on client (no server)
+        if (previewMode) {
+            updatePreviewMovement();
+            return;
+        }
+
         if (worldObj.isRemote) {
             handleClientInterpolation();
         } else {
@@ -252,6 +351,16 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
             }
             this.setDead();
         }
+    }
+
+    /**
+     * Update movement in preview mode (client-side only, no damage).
+     */
+    private void updatePreviewMovement() {
+        // Simple movement - just apply motion
+        this.posX += motionX;
+        this.posY += motionY;
+        this.posZ += motionZ;
     }
 
     private void updateHoming() {
@@ -298,11 +407,15 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     private void checkBlockCollision() {
         Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
         Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
-        MovingObjectPosition blockHit = worldObj.rayTraceBlocks(currentPos, nextPos);
+        // Use full raytrace that doesn't stop at liquids and checks all blocks
+        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             hasHit = true;
             if (explosive) {
+                posX = blockHit.hitVec.xCoord;
+                posY = blockHit.hitVec.yCoord;
+                posZ = blockHit.hitVec.zCoord;
                 doExplosion();
             }
             this.setDead();

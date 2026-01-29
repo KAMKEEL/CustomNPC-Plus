@@ -39,7 +39,7 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
 
         addLabel(new GuiNpcLabel(100, "ability.placement", col2LabelX, y + 5));
         String[] placements = {"Caster", "Target", "Ahead"};
-        GuiNpcButton placementBtn = new GuiNpcButton(100, col2FieldX, y, 55, 20, placements, trap.getPlacement().ordinal());
+        GuiNpcButton placementBtn = new GuiNpcButton(100, col2FieldX, y, 55, 20, placements, trap.getPlacementEnum().ordinal());
         placementBtn.setHoverText("ability.hover.placement");
         addButton(placementBtn);
 
@@ -79,7 +79,7 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
     @Override
     protected void handleTypeButton(int id, GuiNpcButton button) {
         if (id == 100) {
-            trap.setPlacement(AbilityTrap.TrapPlacement.values()[button.getValue()]);
+            trap.setPlacementEnum(AbilityTrap.TrapPlacement.values()[button.getValue()]);
         } else if (id == 150) {
             setSubGui(new SubGuiAbilityEffects(trap.getEffects()));
         }

@@ -2,6 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
@@ -26,6 +27,7 @@ public abstract class RenderAbilityProjectile extends Render {
 
     /**
      * Setup GL state for translucent, self-illuminated rendering.
+     * Forces full brightness so world lighting does not affect projectiles.
      */
     protected void setupRenderState() {
         GL11.glPushMatrix();
@@ -37,6 +39,9 @@ public abstract class RenderAbilityProjectile extends Render {
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
+
+        // Force full brightness - prevents world lighting from darkening projectiles
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f);
     }
 
     /**

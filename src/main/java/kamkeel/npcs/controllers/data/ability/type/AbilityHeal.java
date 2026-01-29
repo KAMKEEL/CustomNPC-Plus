@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
@@ -15,6 +16,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityHeal;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +25,7 @@ import java.util.List;
  * Heal ability: Restore health to self or allies.
  * Can heal a fixed amount or percentage of max health.
  */
-public class AbilityHeal extends Ability {
+public class AbilityHeal extends Ability implements IAbilityHeal {
 
     // Type-specific parameters
     private int durationTicks = 60;
@@ -47,7 +50,7 @@ public class AbilityHeal extends Ability {
         this.typeId = "ability.cnpc.heal";
         this.name = "Heal";
         this.targetingMode = TargetingMode.SELF;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         // No telegraph for heal - it's a self/ally buff

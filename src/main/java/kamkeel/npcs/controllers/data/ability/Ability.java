@@ -26,6 +26,8 @@ import noppes.npcs.scripted.event.AbilityEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.entity.Entity;
+
 public abstract class Ability implements IAbility {
 
     // ═══════════════════════════════════════════════════════════════════
@@ -55,7 +57,7 @@ public abstract class Ability implements IAbility {
     protected boolean interruptible = true;
 
     // Feedback
-    protected boolean lockMovement = true;
+    protected LockMovementType lockMovement = LockMovementType.WINDUP;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -64,8 +66,12 @@ public abstract class Ability implements IAbility {
     protected String activeSound = "";        // Sound to play when active phase starts
 
     // Animations (global animation IDs, -1 = none)
-    protected int windUpAnimationId = -1;     // Animation to play during wind up
-    protected int activeAnimationId = -1;     // Animation to play during active phase
+    protected int windUpAnimationId = -1;     // Animation to play during wind up (user animations)
+    protected int activeAnimationId = -1;     // Animation to play during active phase (user animations)
+
+    // Built-in animation names (empty = none, takes priority over IDs if set)
+    protected String windUpAnimationName = "";   // Built-in animation name for wind up
+    protected String activeAnimationName = "";   // Built-in animation name for active phase
 
     // Telegraph configuration
     protected boolean showTelegraph = true;
@@ -633,6 +639,93 @@ public abstract class Ability implements IAbility {
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    // CLIENT-SIDE PREVIEW METHODS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Get total active phase duration for preview (in ticks).
+     * Override in subclasses to provide accurate preview duration.
+     *
+     * @return Duration of active phase in ticks (default: 40 = 2 seconds)
+     */
+    public int getPreviewActiveDuration() {
+        return 40;
+    }
+
+    /**
+     * Called during preview windup tick (client-side only).
+     * Override for visual updates during windup preview.
+     * Do NOT apply damage or world effects here.
+     *
+     * @param npc  The preview NPC
+     * @param tick Current tick within windup phase
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewWindUpTick(EntityNPCInterface npc, int tick) {
+        // Default: no-op. Override in subclasses for visual effects.
+    }
+
+    /**
+     * Called during preview active tick (client-side only).
+     * Override for visual updates during active preview.
+     * Do NOT apply damage or world effects here.
+     *
+     * @param npc  The preview NPC
+     * @param tick Current tick within active phase
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
+        // Default: no-op. Override in subclasses for visual effects.
+    }
+
+    /**
+     * Create a preview entity for GUI display (client-side only).
+     * The entity should be in preview mode and not apply damage.
+     * Override in abilities that spawn entities (Beam, Orb, Disc, etc.)
+     *
+     * @param npc The preview NPC
+     * @return Preview entity, or null if ability doesn't spawn entities
+     */
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        return null; // Override in entity-spawning abilities
+    }
+
+    /**
+     * Whether to spawn preview entity during WINDUP phase (true) or ACTIVE phase (false).
+     * Most abilities (Orb, Beam, Disc) spawn during windup for charging effect.
+     * Laser spawns at active phase since it has no charging state.
+     */
+    public boolean spawnPreviewDuringWindup() {
+        return true; // Default: spawn during windup for charging
+    }
+
+    // ── Preview target (set by executor for abilities that need targeting) ──
+
+    protected transient EntityLivingBase previewTarget;
+
+    /**
+     * Set the fake target entity for preview mode.
+     * Called by AbilityPreviewExecutor before starting preview.
+     */
+    public void setPreviewTarget(EntityLivingBase target) {
+        this.previewTarget = target;
+    }
+
+    public EntityLivingBase getPreviewTarget() {
+        return previewTarget;
+    }
+
+    /**
+     * Called once when transitioning from WINDUP to ACTIVE in preview mode.
+     * Override in movement-based abilities to initiate movement.
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewExecute(EntityNPCInterface npc) {
+        // Default: no-op. Override in movement abilities.
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     // CONDITION CHECKING
     // ═══════════════════════════════════════════════════════════════════
 
@@ -662,13 +755,15 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("windUp", windUpTicks);
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
-        nbt.setBoolean("lockMovement", lockMovement);
+        nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
         nbt.setString("activeSound", activeSound);
         nbt.setInteger("windUpAnimationId", windUpAnimationId);
         nbt.setInteger("activeAnimationId", activeAnimationId);
+        nbt.setString("windUpAnimationName", windUpAnimationName);
+        nbt.setString("activeAnimationName", activeAnimationName);
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
@@ -707,7 +802,7 @@ public abstract class Ability implements IAbility {
         windUpTicks = nbt.getInteger("windUp");
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
-        lockMovement = nbt.getBoolean("lockMovement");
+        lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
         // Support old telegraphColor key for backwards compatibility
         if (nbt.hasKey("windUpColor")) {
             windUpColor = nbt.getInteger("windUpColor");
@@ -738,6 +833,8 @@ public abstract class Ability implements IAbility {
             windUpAnimationId = -1;
         }
         activeAnimationId = nbt.hasKey("activeAnimationId") ? nbt.getInteger("activeAnimationId") : -1;
+        windUpAnimationName = nbt.hasKey("windUpAnimationName") ? nbt.getString("windUpAnimationName") : "";
+        activeAnimationName = nbt.hasKey("activeAnimationName") ? nbt.getString("activeAnimationName") : "";
         showTelegraph = !nbt.hasKey("showTelegraph") || nbt.getBoolean("showTelegraph");
         if (nbt.hasKey("telegraphType")) {
             try {
@@ -868,12 +965,60 @@ public abstract class Ability implements IAbility {
         this.interruptible = interruptible;
     }
 
-    public boolean isLockMovement() {
+    public LockMovementType getLockMovement() {
         return lockMovement;
     }
 
-    public void setLockMovement(boolean lockMovement) {
+    public void setLockMovement(LockMovementType lockMovement) {
         this.lockMovement = lockMovement;
+    }
+
+    /**
+     * API method: Get lock movement type as integer.
+     * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public int getLockMovementType() {
+        return lockMovement.ordinal();
+    }
+
+    /**
+     * API method: Set lock movement type from integer.
+     * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public void setLockMovementType(int type) {
+        this.lockMovement = LockMovementType.fromOrdinal(type);
+    }
+
+    /**
+     * Check if movement should be locked during WINDUP phase.
+     */
+    @Override
+    public boolean isMovementLockedDuringWindup() {
+        return lockMovement.locksWindup();
+    }
+
+    /**
+     * Check if movement should be locked during ACTIVE phase.
+     */
+    @Override
+    public boolean isMovementLockedDuringActive() {
+        return lockMovement.locksActive();
+    }
+
+    /**
+     * Check if movement should be locked during the current phase.
+     */
+    public boolean isMovementLockedForCurrentPhase() {
+        switch (phase) {
+            case WINDUP:
+                return lockMovement.locksWindup();
+            case ACTIVE:
+                return lockMovement.locksActive();
+            default:
+                return false;
+        }
     }
 
     public int getWindUpColor() {
@@ -911,21 +1056,61 @@ public abstract class Ability implements IAbility {
     public Animation getWindUpAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        return (Animation) AnimationController.Instance.get(windUpAnimationId);
+        // Built-in animation by name takes priority
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(windUpAnimationName);
+        }
+        // Fall back to user animation by ID
+        if (windUpAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+        return null;
+    }
+
+    public int getWindUpAnimationId() {
+        return windUpAnimationId;
     }
 
     public void setWindUpAnimationId(int windUpAnimationId) {
         this.windUpAnimationId = windUpAnimationId;
     }
 
+    public String getWindUpAnimationName() {
+        return windUpAnimationName;
+    }
+
+    public void setWindUpAnimationName(String windUpAnimationName) {
+        this.windUpAnimationName = windUpAnimationName != null ? windUpAnimationName : "";
+    }
+
     public Animation getActiveAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        return (Animation) AnimationController.Instance.get(activeAnimationId);
+        // Built-in animation by name takes priority
+        if (activeAnimationName != null && !activeAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(activeAnimationName);
+        }
+        // Fall back to user animation by ID
+        if (activeAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(activeAnimationId);
+        }
+        return null;
+    }
+
+    public int getActiveAnimationId() {
+        return activeAnimationId;
     }
 
     public void setActiveAnimationId(int activeAnimationId) {
         this.activeAnimationId = activeAnimationId;
+    }
+
+    public String getActiveAnimationName() {
+        return activeAnimationName;
+    }
+
+    public void setActiveAnimationName(String activeAnimationName) {
+        this.activeAnimationName = activeAnimationName != null ? activeAnimationName : "";
     }
 
     public boolean isShowTelegraph() {

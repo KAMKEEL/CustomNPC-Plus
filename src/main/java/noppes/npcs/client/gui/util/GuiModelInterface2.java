@@ -18,11 +18,11 @@ import org.lwjgl.opengl.GL12;
 public class GuiModelInterface2 extends GuiNPCInterface2 {
     public ModelData playerdata;
 
-    private static float rotation = 0;
+    protected static float rotation = 0;
 
     private GuiNpcButton left, right, zoom, unzoom;
 
-    private static float zoomed = 60;
+    protected static float zoomed = 60;
 
     public int xOffset = 0;
     public int yOffset = 0;

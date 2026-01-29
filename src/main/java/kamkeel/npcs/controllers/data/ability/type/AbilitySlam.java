@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -17,6 +18,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySlam;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilitySlam;
+
 import java.util.List;
 
 /**
@@ -28,7 +31,7 @@ import java.util.List;
  * - Landing: When NPC hits ground, deal AOE damage
  * - RECOVERY: Landing recovery animation
  */
-public class AbilitySlam extends Ability {
+public class AbilitySlam extends Ability implements IAbilitySlam {
 
     // Type-specific config
     private float damage = 10.0f;
@@ -50,7 +53,7 @@ public class AbilitySlam extends Ability {
         this.targetingMode = TargetingMode.AOE_SELF; // Can also be AOE_TARGET to leap to target
         this.windUpTicks = 30;
         this.cooldownTicks = 0;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP;
         this.minRange = 2.0f;
         this.maxRange = 15.0f;
         this.telegraphType = TelegraphType.CIRCLE;
@@ -356,6 +359,100 @@ public class AbilitySlam extends Ability {
         hasLaunched = false;
         hasLanded = false;
         airTicks = 0;
+    }
+
+    // ==================== PREVIEW MODE ====================
+
+    private transient double previewVelX, previewVelY, previewVelZ;
+    private transient boolean previewLaunched = false;
+    private transient double previewGroundY;
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewExecute(EntityNPCInterface npc) {
+        previewLaunched = false;
+
+        double tx, ty, tz;
+        if (previewTarget != null && targetingMode == TargetingMode.AOE_TARGET) {
+            tx = previewTarget.posX;
+            ty = previewTarget.posY;
+            tz = previewTarget.posZ;
+        } else {
+            tx = npc.posX;
+            ty = npc.posY;
+            tz = npc.posZ;
+        }
+
+        previewGroundY = npc.posY;
+
+        double dx = tx - npc.posX;
+        double dz = tz - npc.posZ;
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+
+        if (horizontalDist < 0.5) {
+            previewVelX = 0;
+            previewVelZ = 0;
+            previewVelY = 0.8 * leapSpeed;
+        } else {
+            if (horizontalDist > maxRange) {
+                double scale = maxRange / horizontalDist;
+                dx *= scale;
+                dz *= scale;
+                horizontalDist = maxRange;
+            }
+
+            int flightTicks = (int) Math.max(15, Math.min(horizontalDist * 1.5, 30));
+            double drag = 0.91;
+            double dragPowN = Math.pow(drag, flightTicks);
+            double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN) * leapSpeed;
+
+            double arcHeight = Math.max(1.0, leapHeight) * leapSpeed;
+            double peakTicks = flightTicks * 0.4;
+            double vy = (arcHeight * 2.0 / peakTicks) + (0.08 * peakTicks * 0.5);
+            vy = Math.max(vy, 0.6 * leapSpeed);
+
+            double dirX = dx / horizontalDist;
+            double dirZ = dz / horizontalDist;
+            previewVelX = dirX * vHorizontal;
+            previewVelZ = dirZ * vHorizontal;
+            previewVelY = vy;
+        }
+        previewLaunched = true;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
+        if (!previewLaunched) return;
+
+        // Apply velocity
+        npc.prevPosX = npc.posX;
+        npc.prevPosY = npc.posY;
+        npc.prevPosZ = npc.posZ;
+
+        npc.posX += previewVelX;
+        npc.posY += previewVelY;
+        npc.posZ += previewVelZ;
+
+        // Gravity and drag
+        previewVelY -= 0.08;
+        previewVelY *= 0.98;
+        previewVelX *= 0.91;
+        previewVelZ *= 0.91;
+
+        // Ground clamp - stop falling below starting Y
+        if (npc.posY < previewGroundY && previewVelY < 0) {
+            npc.posY = previewGroundY;
+            previewVelY = 0;
+            previewVelX = 0;
+            previewVelZ = 0;
+            previewLaunched = false;
+        }
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return 60;
     }
 
     @Override

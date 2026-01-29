@@ -79,7 +79,7 @@ public class DataAbilities {
     private transient List<Long> recentHitTimes = new ArrayList<>();
 
     /**
-     * Locked rotation values for ACTIVE phase with lockMovement.
+     * Locked rotation values for ACTIVE phase when movement is locked.
      * Stored when entering ACTIVE phase, applied every tick to prevent rotation changes.
      */
     private transient boolean rotationLocked = false;
@@ -146,9 +146,9 @@ public class DataAbilities {
                     // Remove telegraph - it has served its purpose
                     removeTelegraph(currentAbility);
 
-                    // Lock rotation if lockMovement is true
+                    // Lock rotation if movement is locked during ACTIVE phase
                     // Capture current rotation values to force them every tick
-                    if (currentAbility.isLockMovement()) {
+                    if (currentAbility.isMovementLockedDuringActive()) {
                         captureLockedRotation();
                     }
 
@@ -191,6 +191,32 @@ public class DataAbilities {
                 handleAbilityCompletion(target);
                 break;
         }
+
+        // Apply movement control if ability is still executing
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            applyMovementControl();
+        }
+    }
+
+    /**
+     * Apply movement control based on lock movement settings.
+     * Called every tick during ability execution.
+     */
+    private void applyMovementControl() {
+        if (currentAbility == null) return;
+
+        // Check if movement should be locked for the current phase
+        if (currentAbility.isMovementLockedForCurrentPhase()) {
+            // Clear navigator to prevent AI pathfinding
+            npc.getNavigator().clearPathEntity();
+
+            // Zero motion if ability doesn't have its own movement
+            // This allows abilities like Charge/Slam to control their own motion
+            if (!currentAbility.hasAbilityMovement()) {
+                npc.motionX = 0;
+                npc.motionZ = 0;
+            }
+        }
     }
 
     /**
@@ -210,29 +236,11 @@ public class DataAbilities {
             npc.wrappedNPC, currentAbility, target);
         NpcAPI.EVENT_BUS.post(completeEvent);
 
-        // Clean up and roll cooldown
+        // Release rotation lock before cleanup
+        releaseLockedRotation();
+
+        // Clean up and roll cooldown (this sets currentAbility to null)
         onAbilityComplete();
-
-        // Clear AI pathfinding if ability is controlling movement
-        // But DON'T zero motion - let the ability set it if needed
-        if (currentAbility != null && currentAbility.isExecuting()) {
-            if (isAbilityControllingMovement()) {
-                // Clear navigator so AI doesn't fight with ability movement
-                npc.getNavigator().clearPathEntity();
-
-                // Only zero motion if lockMovement is true AND ability doesn't have its own movement
-                // This allows stationary abilities to freeze the NPC, while movement abilities can set their own motion
-                if (currentAbility.isLockMovement() && !currentAbility.hasAbilityMovement()) {
-                    npc.motionX = 0;
-                    npc.motionZ = 0;
-                }
-            }
-
-            // Unlock rotation when leaving ACTIVE phase
-            if (rotationLocked && currentAbility.getPhase() != AbilityPhase.ACTIVE) {
-                releaseLockedRotation();
-            }
-        }
     }
 
     /**
@@ -404,7 +412,7 @@ public class DataAbilities {
      * @param animation The animation to play, or null if none
      */
     public void playAbilityAnimation(Animation animation) {
-        if (animation == null || animation.id < 0) return;
+        if (animation == null) return;
         if (AnimationController.Instance == null) return;
 
         npc.display.animationData.setEnabled(true);
@@ -604,6 +612,50 @@ public class DataAbilities {
         }
     }
 
+    /**
+     * Force start a specific ability, bypassing normal selection and cooldown.
+     * If an ability is currently executing, it will be cancelled.
+     *
+     * @param ability The ability to start
+     * @param target The target entity (can be null for self-targeted abilities)
+     * @return true if the ability was started successfully
+     */
+    public boolean forceStartAbility(Ability ability, EntityLivingBase target) {
+        if (ability == null || npc.worldObj.isRemote) {
+            return false;
+        }
+
+        // Stop any currently executing ability
+        stopCurrentAbility();
+
+        // Reset the ability state
+        ability.reset();
+
+        // Start the ability directly
+        return startAbility(ability, target);
+    }
+
+    /**
+     * Execute a preset ability on this NPC.
+     * The NPC does NOT need to have this ability assigned.
+     *
+     * @param presetName The name of the saved ability preset
+     * @param target The target entity (can be null for self-targeted abilities)
+     * @return true if the ability was started successfully
+     */
+    public boolean executePresetAbility(String presetName, EntityLivingBase target) {
+        if (presetName == null || presetName.isEmpty() || npc.worldObj.isRemote) {
+            return false;
+        }
+
+        Ability preset = AbilityController.Instance.getSavedAbility(presetName);
+        if (preset == null) {
+            return false;
+        }
+
+        return forceStartAbility(preset, target);
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // SCRIPT EVENTS
     // ═══════════════════════════════════════════════════════════════════
@@ -743,8 +795,8 @@ public class DataAbilities {
      * Called by AI tasks to determine if they should try to path.
      * <p>
      * Rules:
-     * - WINDUP phase: Block AI if lockMovement is true
-     * - ACTIVE phase: Block AI if lockMovement OR hasAbilityMovement is true
+     * - WINDUP phase: Block AI if movement is locked during windup
+     * - ACTIVE phase: Block AI if movement is locked during active OR hasAbilityMovement is true
      * - DAZED phase: Always block AI (NPC is stunned)
      */
     public boolean isAbilityControllingMovement() {
@@ -756,15 +808,15 @@ public class DataAbilities {
 
         switch (phase) {
             case WINDUP:
-                // During windup, only block if lockMovement is set
-                // This allows NPC to keep chasing while winding up if lockMovement=false
-                return currentAbility.isLockMovement();
+                // During windup, only block if movement is locked during windup
+                // This allows NPC to keep chasing while winding up if not locked
+                return currentAbility.isMovementLockedDuringWindup();
 
             case ACTIVE:
                 // During active phase, block if either:
-                // - lockMovement is true (stationary ability)
+                // - movement is locked during active (stationary ability)
                 // - hasAbilityMovement is true (ability is moving the NPC itself)
-                return currentAbility.isLockMovement() || currentAbility.hasAbilityMovement();
+                return currentAbility.isMovementLockedDuringActive() || currentAbility.hasAbilityMovement();
 
             case DAZED:
                 // During dazed phase, always block - NPC is stunned from interrupt
@@ -777,7 +829,7 @@ public class DataAbilities {
 
     /**
      * Check if NPC's look direction should be locked to target.
-     * Only locks during ACTIVE phase when lockMovement is true.
+     * Only locks during ACTIVE phase when movement is locked during active.
      * This allows the NPC to freely track target during WINDUP and DAZED.
      */
     public boolean shouldLockLookDirection() {
@@ -790,7 +842,7 @@ public class DataAbilities {
             return false;
         }
 
-        return currentAbility.isLockMovement();
+        return currentAbility.isMovementLockedDuringActive();
     }
 
     /**
@@ -810,7 +862,7 @@ public class DataAbilities {
 
     /**
      * Capture current rotation values to lock NPC's look direction.
-     * Called when entering ACTIVE phase with lockMovement enabled.
+     * Called when entering ACTIVE phase with movement locked during active.
      */
     private void captureLockedRotation() {
         lockedYaw = npc.rotationYaw;

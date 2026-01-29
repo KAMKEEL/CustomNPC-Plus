@@ -68,7 +68,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     private static final int DW_CHARGING = 20;
 
     // Debug logging
-    private static final boolean DEBUG_LOGGING = true;
+    private static final boolean DEBUG_LOGGING = false;
 
     public EntityAbilityBeam(World world) {
         super(world);
@@ -83,8 +83,12 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
     /**
      * Check if beam is in charging state (synced via data watcher).
+     * In preview mode, uses local field since data watcher isn't synced.
      */
     public boolean isCharging() {
+        if (previewMode) {
+            return this.charging;
+        }
         return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
     }
 
@@ -104,14 +108,14 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
                               float beamWidth, float headSize, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                               float damage, float knockback, float knockbackUp,
                               float speed, boolean homing, float homingStrength, float homingRange,
                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
                               int stunDuration, int slowDuration, int slowLevel,
                               float maxDistance, int maxLifetime) {
         this(world, owner, target, x, y, z,
-            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
@@ -124,7 +128,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
                               float beamWidth, float headSize, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                               float damage, float knockback, float knockbackUp,
                               float speed, boolean homing, float homingStrength, float homingRange,
                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -132,7 +136,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                               float maxDistance, int maxLifetime,
                               boolean lightningEffect, float lightningDensity, float lightningRadius) {
         this(world, owner, target, x, y, z,
-            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
@@ -148,7 +152,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
                               float beamWidth, float headSize, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                               float damage, float knockback, float knockbackUp,
                               float speed, boolean homing, float homingStrength, float homingRange,
                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -160,7 +164,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         // Initialize base properties with lightning
         initProjectile(owner, target, x, y, z,
-            headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel,
@@ -221,7 +225,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
      */
     public static EntityAbilityBeam createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
                                                     float beamWidth, float headSize, int innerColor, int outerColor,
-                                                    boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                    boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
                                                     float damage, float knockback, float knockbackUp,
                                                     float speed, boolean homing, float homingStrength, float homingRange,
                                                     boolean explosive, float explosionRadius, float explosionDamageFalloff,
@@ -239,7 +243,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         EntityAbilityBeam beam = new EntityAbilityBeam(
             world, owner, target,
             spawnX, spawnY, spawnZ,
-            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, rotationSpeed,
+            beamWidth, headSize, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
             damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
             explosive, explosionRadius, explosionDamageFalloff,
             stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
@@ -262,6 +266,103 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         beam.motionZ = 0;
 
         return beam;
+    }
+
+    /**
+     * Create a beam in preview mode for GUI display.
+     * Follows anchor point and animations like in the real game.
+     * Can be fired when transitioning to active phase.
+     */
+    public static EntityAbilityBeam createPreview(World world, EntityNPCInterface owner,
+                                                   float beamWidth, float headSize, int innerColor, int outerColor,
+                                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                   boolean lightningEffect, float lightningDensity, float lightningRadius,
+                                                   AnchorPoint anchorPoint, int chargeDuration, float chargeOffsetDistance) {
+        EntityAbilityBeam beam = new EntityAbilityBeam(world);
+        beam.setPreviewMode(true);
+        beam.setPreviewOwner(owner);
+
+        // Set visual properties
+        beam.beamWidth = beamWidth;
+        beam.headSize = headSize;
+        beam.size = headSize;
+        beam.innerColor = innerColor;
+        beam.outerColor = outerColor;
+        beam.outerColorEnabled = outerColorEnabled;
+        beam.outerColorWidth = outerColorWidth;
+        beam.rotationSpeed = rotationSpeed;
+        beam.lightningEffect = lightningEffect;
+        beam.lightningDensity = lightningDensity;
+        beam.lightningRadius = lightningRadius;
+
+        // Set charging state
+        beam.setCharging(true);
+        beam.chargeDuration = chargeDuration;
+        beam.chargeTick = 0;
+        beam.chargeOffsetDistance = chargeOffsetDistance;
+        beam.anchorPoint = anchorPoint;
+
+        // Initial position at anchor point
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint, chargeOffsetDistance);
+        beam.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        beam.prevPosX = pos.xCoord;
+        beam.prevPosY = pos.yCoord;
+        beam.prevPosZ = pos.zCoord;
+        beam.startX = pos.xCoord;
+        beam.startY = pos.yCoord;
+        beam.startZ = pos.zCoord;
+
+        // Initialize head offsets
+        beam.headOffsetX = 0;
+        beam.headOffsetY = 0;
+        beam.headOffsetZ = 0;
+        beam.prevHeadOffsetX = 0;
+        beam.prevHeadOffsetY = 0;
+        beam.prevHeadOffsetZ = 0;
+
+        // Attach to owner for anchor following
+        beam.attachedToOwner = true;
+        beam.renderTailOrb = true;
+
+        // Clear motion while charging
+        beam.motionX = 0;
+        beam.motionY = 0;
+        beam.motionZ = 0;
+
+        return beam;
+    }
+
+    /**
+     * Start preview firing (simulates firing toward a point in front of NPC).
+     */
+    public void startPreviewFiring() {
+        if (!isCharging()) return;
+
+        setCharging(false);
+
+        // Update start position to current position
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+
+        // Sync prev position to prevent visual jump on first frame
+        prevPosX = posX;
+        prevPosY = posY;
+        prevPosZ = posZ;
+
+        // Fire forward based on owner facing direction
+        Entity owner = getOwner();
+        if (owner != null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = 0; // Fire horizontally
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
+            motionY = -Math.sin(pitch) * speed;
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+        } else {
+            motionX = speed;
+            motionY = 0;
+            motionZ = 0;
+        }
     }
 
     /**
@@ -359,6 +460,12 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         // Age trail points for fading effect
         if (fadeTrail) {
             ageTrailPoints();
+        }
+
+        // In preview mode, run movement on client (no server)
+        if (previewMode) {
+            updatePreviewMovement();
+            return;
         }
 
         if (worldObj.isRemote) {
@@ -510,6 +617,37 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         }
     }
 
+    /**
+     * Update movement in preview mode (client-side only, no damage).
+     */
+    private void updatePreviewMovement() {
+        // Move head offset
+        headOffsetX += motionX;
+        headOffsetY += motionY;
+        headOffsetZ += motionZ;
+
+        // Update origin if attached to owner
+        if (attachedToOwner) {
+            Entity owner = getOwner();
+            if (owner != null) {
+                startX = owner.posX;
+                startY = owner.posY + owner.getEyeHeight() * 0.7;
+                startZ = owner.posZ;
+            }
+        }
+
+        // Calculate world position of head
+        double headWorldX = startX + headOffsetX;
+        double headWorldY = startY + headOffsetY;
+        double headWorldZ = startZ + headOffsetZ;
+
+        // Update entity position to head
+        this.setPosition(headWorldX, headWorldY, headWorldZ);
+
+        // Add trail point
+        addTrailPoint();
+    }
+
     private void updateHoming() {
         if (!homing) return;
 
@@ -560,12 +698,10 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         Vec3 currentPos = Vec3.createVectorHelper(prevHeadWorldX, prevHeadWorldY, prevHeadWorldZ);
         Vec3 nextPos = Vec3.createVectorHelper(headX, headY, headZ);
-        MovingObjectPosition blockHit = worldObj.rayTraceBlocks(currentPos, nextPos);
+        // Use full raytrace that doesn't stop at liquids and checks all blocks
+        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (DEBUG_LOGGING) {
-                LogWriter.info("[Beam] DEAD: Block collision at tick " + ticksExisted);
-            }
             hasHit = true;
             if (explosive) {
                 posX = blockHit.hitVec.xCoord;

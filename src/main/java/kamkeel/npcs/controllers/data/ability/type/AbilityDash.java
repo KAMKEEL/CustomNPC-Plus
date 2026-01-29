@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -14,13 +15,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityDash;
+
 import java.util.Random;
 
 /**
  * Dash ability: Quick evasive sidestep with NO telegraph.
  * Defensive repositioning move to evade attacks.
  */
-public class AbilityDash extends Ability {
+public class AbilityDash extends Ability implements IAbilityDash {
 
     /**
      * Dash behavior mode.
@@ -86,7 +89,7 @@ public class AbilityDash extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;
         this.minRange = 0.0f;
-        this.lockMovement = false;
+        this.lockMovement = LockMovementType.NO;
         this.cooldownTicks = 0;
         this.windUpTicks = 5;
         // No telegraph for dash - it's a quick evasive move
@@ -221,6 +224,69 @@ public class AbilityDash extends Ability {
         return !npc.worldObj.getCollidingBoundingBoxes(npc, npc.boundingBox.copy().offset(nextX, 0, nextZ)).isEmpty();
     }
 
+    // ==================== PREVIEW MODE ====================
+
+    private transient double previewDirX, previewDirZ;
+    private transient double previewStartX, previewStartZ;
+    private transient boolean previewDashing = false;
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewExecute(EntityNPCInterface npc) {
+        previewStartX = npc.posX;
+        previewStartZ = npc.posZ;
+        previewDashing = false;
+
+        // Pick a random direction based on mode
+        DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
+            ? AGGRESSIVE_DIRECTIONS
+            : DEFENSIVE_DIRECTIONS;
+        DashDirection dir = directions[RANDOM.nextInt(directions.length)];
+
+        float baseYaw;
+        if (previewTarget != null) {
+            double dx = previewTarget.posX - npc.posX;
+            double dz = previewTarget.posZ - npc.posZ;
+            baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        } else {
+            baseYaw = npc.rotationYaw;
+        }
+
+        float dashYaw = baseYaw + dir.getAngleOffset();
+        float yawRad = (float) Math.toRadians(dashYaw);
+        previewDirX = -Math.sin(yawRad);
+        previewDirZ = Math.cos(yawRad);
+        previewDashing = true;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
+        if (!previewDashing) return;
+
+        double distTraveled = Math.sqrt(
+            Math.pow(npc.posX - previewStartX, 2) +
+            Math.pow(npc.posZ - previewStartZ, 2)
+        );
+
+        if (distTraveled >= dashDistance) {
+            previewDashing = false;
+            return;
+        }
+
+        npc.prevPosX = npc.posX;
+        npc.prevPosY = npc.posY;
+        npc.prevPosZ = npc.posZ;
+
+        npc.posX += previewDirX * dashSpeed;
+        npc.posZ += previewDirZ * dashSpeed;
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return (int) Math.ceil(dashDistance / dashSpeed) + 5;
+    }
+
     @Override
     public float getTelegraphRadius() {
         return 0; // No telegraph for dash
@@ -245,12 +311,23 @@ public class AbilityDash extends Ability {
     }
 
     // Getters & Setters
-    public DashMode getDashMode() {
+    public DashMode getDashModeEnum() {
         return dashMode;
     }
 
-    public void setDashMode(DashMode dashMode) {
+    public void setDashModeEnum(DashMode dashMode) {
         this.dashMode = dashMode;
+    }
+
+    @Override
+    public int getDashMode() {
+        return dashMode.ordinal();
+    }
+
+    @Override
+    public void setDashMode(int mode) {
+        DashMode[] values = DashMode.values();
+        this.dashMode = mode >= 0 && mode < values.length ? values[mode] : DashMode.AGGRESSIVE;
     }
 
     public float getDashDistance() {

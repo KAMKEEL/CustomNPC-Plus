@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -15,6 +16,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySweeper;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilitySweeper;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -25,7 +27,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  * All damage logic is handled by the EntityAbilitySweeper entity to ensure
  * visual and damage hitbox alignment.
  */
-public class AbilitySweeper extends Ability {
+public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     // Type-specific parameters
     private float beamLength = 10.0f;
@@ -53,7 +55,7 @@ public class AbilitySweeper extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
         this.minRange = 0.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 60;
         // Circle telegraph to show range
@@ -89,8 +91,6 @@ public class AbilitySweeper extends Ability {
             return;
         }
 
-        LogWriter.info("[Sweeper] onExecute called at NPC pos " + npc.posX + ", " + npc.posY + ", " + npc.posZ);
-
         // Spawn the entity that handles BOTH visuals AND damage
         activeEntity = new EntityAbilitySweeper(world, npc, target,
             beamLength, beamWidth, beamHeight,
@@ -100,14 +100,15 @@ public class AbilitySweeper extends Ability {
             lockOnTarget);
         world.spawnEntityInWorld(activeEntity);
 
-        LogWriter.info("[Sweeper] Spawned sweeper entity");
-        // Entity manages itself - completion signaled from onActiveTick when entity dies
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // Entity handles everything - check if entity finished its rotations
+        // Signal completion when entity dies
         if (activeEntity == null || activeEntity.isDead) {
+            activeEntity = null;
             signalCompletion();
         }
     }

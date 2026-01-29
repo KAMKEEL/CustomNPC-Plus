@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -11,13 +12,14 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityHeavyHit;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Heavy Hit ability: Single-target melee attack with optional stun.
  * Deals high damage to one target and can stun them.
  */
-public class AbilityHeavyHit extends Ability {
+public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     private float damage = 8.0f;
     private float knockback = 2.0f;
@@ -28,7 +30,7 @@ public class AbilityHeavyHit extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 3.0f;
         this.minRange = 0.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.NO;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.POINT;

@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util;
 import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
@@ -217,17 +218,27 @@ public class GuiNpcButton extends GuiButton {
             maxHeight += 2 + (textLines.size() - 1) * 10;
         }
 
-        int gameWidth = mc.displayWidth;
-        int maxTooltipX = gameWidth - maxWidth - 4;
+        // Get scaled screen dimensions
+        ScaledResolution scaledRes = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        int screenWidth = scaledRes.getScaledWidth();
+        int screenHeight = scaledRes.getScaledHeight();
 
-        if (j2 > maxTooltipX) {
-            int diff = j2 - maxTooltipX;
-            j2 -= diff;
-            GL11.glTranslatef(-300, 0, 0);
+        // If tooltip would go off right edge, draw on left side of mouse
+        if (j2 + maxWidth + 6 > screenWidth) {
+            j2 = x - maxWidth - 16;
         }
 
-        if (k2 + maxHeight + 6 > mc.displayHeight) {
-            k2 = mc.displayHeight - maxHeight - 6;
+        // Keep tooltip on screen horizontally
+        if (j2 < 4) {
+            j2 = 4;
+        }
+
+        // Keep tooltip on screen vertically
+        if (k2 + maxHeight + 6 > screenHeight) {
+            k2 = screenHeight - maxHeight - 6;
+        }
+        if (k2 < 4) {
+            k2 = 4;
         }
 
         this.zLevel = 300.0F;

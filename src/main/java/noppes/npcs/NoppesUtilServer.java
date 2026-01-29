@@ -163,7 +163,16 @@ public class NoppesUtilServer {
         for (Animation animation : AnimationController.getInstance().animations.values()) {
             map.put(animation.name, animation.id);
         }
-        sendScrollData(player, map, EnumScrollData.OPTIONAL);
+        sendScrollData(player, map, EnumScrollData.ANIMATIONS);
+    }
+
+    public static void sendBuiltInAnimationData(EntityPlayerMP player) {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        for (String name : AnimationController.getInstance().builtInAnimations.keySet()) {
+            // Use -1 as a marker for built-in animations (they have no ID)
+            map.put(AnimationController.getInstance().builtInAnimations.get(name).getName(), -1);
+        }
+        sendScrollData(player, map, EnumScrollData.BUILTIN_ANIMATIONS);
     }
 
     public static void sendTagDataAll(EntityPlayerMP player) {
@@ -774,6 +783,18 @@ public class NoppesUtilServer {
             }
         }
         sendScrollData(player, map, EnumScrollData.ABILITY_TYPES);
+    }
+
+    public static void sendSavedAbilitiesData(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        kamkeel.npcs.controllers.data.ability.AbilityController controller = kamkeel.npcs.controllers.data.ability.AbilityController.Instance;
+        if (controller != null) {
+            int index = 0;
+            for (String name : controller.getSavedAbilityNames()) {
+                map.put(name, index++);
+            }
+        }
+        sendScrollData(player, map, EnumScrollData.ABILITIES);
     }
 
     public static DialogOption setNpcDialog(int slot, int dialogId, EntityPlayer player) throws IOException {

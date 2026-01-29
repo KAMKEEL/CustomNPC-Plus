@@ -66,6 +66,7 @@ public class CustomNpcsPermissions {
     public static final Permission GLOBAL_NATURALSPAWN = new Permission("customnpcs.global.naturalspawn");
     public static final Permission GLOBAL_TAG = new Permission("customnpcs.global.tag");
     public static final Permission GLOBAL_ANIMATION = new Permission("customnpcs.global.animation");
+    public static final Permission GLOBAL_ABILITY = new Permission("customnpcs.global.ability");
     public static final Permission GLOBAL_MAGIC = new Permission("customnpcs.global.magic");
     public static final Permission GLOBAL_EFFECT = new Permission("customnpcs.global.effect");
 

@@ -120,6 +120,10 @@ gui.range=Range
 gui.partly=Partially
 gui.copy=Copy
 gui.clear=Clear
+gui.builtin=Built-in
+gui.custom=Custom
+gui.builtinAnimations=Built-in Animations
+gui.customAnimations=Custom Animations
 gui.done=Done
 gui.paste=Paste
 gui.test=Test
@@ -685,6 +689,8 @@ global.naturalspawn=Spawns
 global.linked=Linked
 global.customeffects=Effects
 global.magic=Magic
+global.abilities=Abilities
+global.auction=Auction
 
 bank.slot=Slot
 bank.unlock=Unlock
@@ -1515,10 +1521,15 @@ ability.maxRange=Max Range
 ability.timing=Timing (ticks)
 ability.cooldown=Cooldown
 ability.windup=Wind Up
+ability.syncOn=Sync: On
+ability.syncOff=Sync: Off
 ability.dazed=Dazed Ticks
 ability.interruptible=Interruptible
 ability.threshold=Threshold
 ability.lockMove=Lock Move
+ability.lockMove.windup=Windup
+ability.lockMove.active=Active
+ability.lockMove.both=Both
 ability.telegraph=Telegraph
 ability.telegraphType=Telegraph Type
 
@@ -1705,7 +1716,6 @@ ability.delete.confirm=Delete ability preset
 gui.load=Load
 
 # Global Abilities Manager
-global.abilities=Abilities
 ability.manager.title=Ability Manager
 
 # Explosive Hover Text
@@ -1782,6 +1792,22 @@ condition.hit_count=Hit Count
 condition.percent=Threshold
 condition.hits=Required Hits
 condition.within=Within (ticks)
+
+# Condition Hover Tooltips
+condition.hover.type=Condition type that must be met for ability to activate
+condition.hover.hpAbove=Activates when NPC health is above this percentage
+condition.hover.hpBelow=Activates when NPC health is below this percentage
+condition.hover.targetHpAbove=Activates when target's health is above this percentage
+condition.hover.targetHpBelow=Activates when target's health is below this percentage
+condition.hover.hitCount=Activates after receiving X hits within the time window
+condition.hover.hits=Number of hits required to trigger condition
+condition.hover.within=Time window in ticks (20 ticks = 1 second)
+condition.hover.threshold=Health percentage threshold (1-99%)
+
+# Effect Hover Tooltips
+effect.hover.type=Potion effect type to apply to targets
+effect.hover.duration=Effect duration in ticks (20 ticks = 1 second)
+effect.hover.amplifier=Effect strength level (higher = stronger)
 
 # =========================================
 # Auction House

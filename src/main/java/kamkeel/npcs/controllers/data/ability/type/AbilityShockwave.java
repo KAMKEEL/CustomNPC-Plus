@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,13 +16,15 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityShockwave;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityShockwave;
+
 import java.util.List;
 
 /**
  * Shockwave ability: Pushes targets away from the caster with damage.
  * Opposite of Vortex - instant knockback rather than gradual pull.
  */
-public class AbilityShockwave extends Ability {
+public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     private float pushRadius = 8.0f;
     private float pushStrength = 1.5f;
@@ -33,7 +36,7 @@ public class AbilityShockwave extends Ability {
         this.name = "Shockwave";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;
-        this.lockMovement = true;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 25;
         this.telegraphType = TelegraphType.CIRCLE;

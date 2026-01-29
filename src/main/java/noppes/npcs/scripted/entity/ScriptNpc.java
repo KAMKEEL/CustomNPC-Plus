@@ -1457,4 +1457,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     public IMagicData getMagicData() {
         return npc.stats.magicData;
     }
+
+    public noppes.npcs.api.ability.IDataAbilities getAbilityData() {
+        return new noppes.npcs.scripted.wrapper.ScriptDataAbilities(npc);
+    }
 }

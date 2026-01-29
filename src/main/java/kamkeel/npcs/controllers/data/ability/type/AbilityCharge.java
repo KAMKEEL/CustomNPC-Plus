@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -18,6 +19,8 @@ import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityCharge;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +28,7 @@ import java.util.Set;
 /**
  * Charge ability: Rush attack where NPC charges in a line, damaging all targets hit.
  */
-public class AbilityCharge extends Ability {
+public class AbilityCharge extends Ability implements IAbilityCharge {
 
     // Type-specific parameters
     private float chargeSpeed = 0.8f;
@@ -45,7 +48,7 @@ public class AbilityCharge extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;
         this.minRange = 4.0f;
-        this.lockMovement = false; // Movement IS the ability
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         // LINE telegraph showing charge path
@@ -283,6 +286,69 @@ public class AbilityCharge extends Ability {
         instance.setEntityIdToFollow(npc.getEntityId());
 
         return instance;
+    }
+
+    // ==================== PREVIEW MODE ====================
+
+    private transient double previewDirX, previewDirZ;
+    private transient double previewStartX, previewStartZ;
+    private transient boolean previewCharging = false;
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewExecute(EntityNPCInterface npc) {
+        previewStartX = npc.posX;
+        previewStartZ = npc.posZ;
+        previewCharging = false;
+
+        // Calculate direction toward fake target
+        if (previewTarget != null) {
+            double dx = previewTarget.posX - npc.posX;
+            double dz = previewTarget.posZ - npc.posZ;
+            double len = Math.sqrt(dx * dx + dz * dz);
+            if (len > 0) {
+                previewDirX = dx / len;
+                previewDirZ = dz / len;
+            } else {
+                float yaw = (float) Math.toRadians(npc.rotationYaw);
+                previewDirX = -Math.sin(yaw);
+                previewDirZ = Math.cos(yaw);
+            }
+        } else {
+            float yaw = (float) Math.toRadians(npc.rotationYaw);
+            previewDirX = -Math.sin(yaw);
+            previewDirZ = Math.cos(yaw);
+        }
+        previewCharging = true;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
+        if (!previewCharging) return;
+
+        // Check distance traveled
+        double distTraveled = Math.sqrt(
+            Math.pow(npc.posX - previewStartX, 2) +
+            Math.pow(npc.posZ - previewStartZ, 2)
+        );
+
+        if (distTraveled >= maxRange) {
+            previewCharging = false;
+            return;
+        }
+
+        npc.prevPosX = npc.posX;
+        npc.prevPosY = npc.posY;
+        npc.prevPosZ = npc.posZ;
+
+        npc.posX += previewDirX * chargeSpeed;
+        npc.posZ += previewDirZ * chargeSpeed;
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return (int) Math.ceil(maxRange / chargeSpeed) + 5;
     }
 
     @Override

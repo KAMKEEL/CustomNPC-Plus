@@ -3,9 +3,11 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityLaser;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -13,13 +15,14 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityLaserShot;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.ability.type.IAbilityLaserShot;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Laser Shot ability: Fast expanding thin line that pierces through targets.
  * Travels in a straight line from origin, damaging all entities it passes through.
  */
-public class AbilityLaserShot extends Ability {
+public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     // Laser properties
     private float laserWidth = 0.3f;
@@ -47,12 +50,16 @@ public class AbilityLaserShot extends Ability {
     private int innerColor = 0xFFFFFF;
     private int outerColor = 0xFF0000;
     private float outerColorWidth = 0.4f; // Additive offset from inner width
+    private float outerColorAlpha = 0.5f;
     private boolean outerColorEnabled = true;
 
     // Lightning effect properties
     private boolean lightningEffect = false;
     private float lightningDensity = 0.15f;
     private float lightningRadius = 0.5f;
+
+    // Transient state for laser entity (used for movement locking)
+    private transient EntityAbilityLaser laserEntity = null;
 
     public AbilityLaserShot() {
         this.typeId = "ability.cnpc.laser_shot";
@@ -62,6 +69,7 @@ public class AbilityLaserShot extends Ability {
         this.minRange = 3.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 15;
+        this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
     }
@@ -108,10 +116,10 @@ public class AbilityLaserShot extends Ability {
         double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
         double spawnZ = npc.posZ;
 
-        EntityAbilityLaser laser = new EntityAbilityLaser(
+        laserEntity = new EntityAbilityLaser(
             world, npc, target,
             spawnX, spawnY, spawnZ,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth,
+            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha,
             damage, knockback, knockbackUp,
             expansionSpeed, lingerTicks,
             explosive, explosionRadius, explosionDamageFalloff,
@@ -120,15 +128,19 @@ public class AbilityLaserShot extends Ability {
             lightningEffect, lightningDensity, lightningRadius
         );
 
-        world.spawnEntityInWorld(laser);
+        world.spawnEntityInWorld(laserEntity);
 
-        // Laser entity manages itself - ability is done
-        signalCompletion();
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // Laser entity manages itself
+        // Signal completion when entity dies
+        if (laserEntity == null || laserEntity.isDead) {
+            laserEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
@@ -137,6 +149,15 @@ public class AbilityLaserShot extends Ability {
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    }
+
+    @Override
+    public void cleanup() {
+        // Despawn laser entity if still alive
+        if (laserEntity != null && !laserEntity.isDead) {
+            laserEntity.setDead();
+        }
+        laserEntity = null;
     }
 
     @Override
@@ -158,6 +179,7 @@ public class AbilityLaserShot extends Ability {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setBoolean("lightningEffect", lightningEffect);
         nbt.setFloat("lightningDensity", lightningDensity);
@@ -183,6 +205,7 @@ public class AbilityLaserShot extends Ability {
         this.innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         this.outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0xFF0000;
         this.outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        this.outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         this.outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
         this.lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
         this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
@@ -224,6 +247,8 @@ public class AbilityLaserShot extends Ability {
     public void setOuterColor(int outerColor) { this.outerColor = outerColor; }
     public float getOuterColorWidth() { return outerColorWidth; }
     public void setOuterColorWidth(float outerColorWidth) { this.outerColorWidth = outerColorWidth; }
+    public float getOuterColorAlpha() { return outerColorAlpha; }
+    public void setOuterColorAlpha(float outerColorAlpha) { this.outerColorAlpha = outerColorAlpha; }
     public boolean isOuterColorEnabled() { return outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { this.outerColorEnabled = outerColorEnabled; }
     public boolean hasLightningEffect() { return lightningEffect; }
@@ -232,4 +257,28 @@ public class AbilityLaserShot extends Ability {
     public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        return EntityAbilityLaser.createPreview(
+            npc.worldObj, npc,
+            laserWidth, innerColor, outerColor,
+            outerColorEnabled, outerColorWidth,
+            expansionSpeed, maxDistance,
+            lightningEffect, lightningDensity, lightningRadius
+        );
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return maxLifetime > 0 ? Math.min(maxLifetime, 60) : 60;
+    }
+
+    @Override
+    public boolean spawnPreviewDuringWindup() {
+        return false; // Laser has no charging, spawns at active phase
+    }
 }
