@@ -6,11 +6,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -19,7 +15,6 @@ import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -42,15 +37,13 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     private boolean boomerang = false;
     private int boomerangDelay = 40;
 
-    // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
-
     // Energy data classes
     private EnergyColorData colorData = new EnergyColorData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f);
     private EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
     private EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
     private EnergyLightningData lightningData = new EnergyLightningData();
     private EnergyLifespanData lifespanData = new EnergyLifespanData(35.0f, 200);
+    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
 
     // Transient state for disc entity (used during windup charging)
     private transient EntityAbilityDisc discEntity = null;
@@ -115,14 +108,14 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         // Spawn disc in charging mode on first tick of windup
         if (tick == 1) {
             // Create disc in charging mode - follows NPC based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorPoint);
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorData);
             discEntity = new EntityAbilityDisc(
                 world, npc, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 discRadius, discThickness,
                 colorData, combatData, homingData, lightningData, lifespanData,
                 boomerang, boomerangDelay);
-            discEntity.setupCharging(anchorPoint, windUpTicks);
+            discEntity.setupCharging(anchorData, windUpTicks);
 
             discEntity.setEffects(this.effects);
             world.spawnEntityInWorld(discEntity);
@@ -184,7 +177,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         nbt.setFloat("discThickness", discThickness);
         nbt.setBoolean("boomerang", boomerang);
         nbt.setInteger("boomerangDelay", boomerangDelay);
-        nbt.setInteger("anchorPoint", anchorPoint.getId());
+        anchorData.writeNBT(nbt);
         colorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
         homingData.writeNBT(nbt);
@@ -198,7 +191,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         this.discThickness = nbt.hasKey("discThickness") ? nbt.getFloat("discThickness") : 0.2f;
         this.boomerang = nbt.hasKey("boomerang") && nbt.getBoolean("boomerang");
         this.boomerangDelay = nbt.hasKey("boomerangDelay") ? nbt.getInteger("boomerangDelay") : 40;
-        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
+        anchorData.readNBT(nbt);
         colorData.readNBT(nbt);
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
@@ -257,14 +250,20 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public void setLightningDensity(float lightningDensity) { lightningData.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningData.lightningRadius; }
     public void setLightningRadius(float lightningRadius) { lightningData.lightningRadius = lightningRadius; }
-    public AnchorPoint getAnchorPointEnum() { return anchorPoint; }
-    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
+    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
+    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
+    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
+    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
+    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
+    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
 
     @Override
-    public int getAnchorPoint() { return anchorPoint.getId(); }
+    public int getAnchorPoint() { return anchorData.anchorPoint.getId(); }
 
     @Override
-    public void setAnchorPoint(int point) { this.anchorPoint = AnchorPoint.fromId(point); }
+    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromId(point); }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -272,7 +271,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityDisc disc = new EntityAbilityDisc(npc.worldObj);
-        disc.setupPreview(npc, discRadius, discThickness, colorData, lightningData, anchorPoint, windUpTicks);
+        disc.setupPreview(npc, discRadius, discThickness, colorData, lightningData, anchorData, windUpTicks);
         return disc;
     }
 

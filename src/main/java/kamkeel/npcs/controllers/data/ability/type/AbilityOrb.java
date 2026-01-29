@@ -6,11 +6,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -19,7 +15,6 @@ import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -38,15 +33,13 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     // Ability-specific properties
     private float orbSize = 1.0f;
 
-    // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
-
     // Data classes for energy properties
     public final EnergyColorData colorData = new EnergyColorData();
     public final EnergyCombatData combatData = new EnergyCombatData();
     public final EnergyHomingData homingData = new EnergyHomingData();
     public final EnergyLightningData lightningData = new EnergyLightningData();
     public final EnergyLifespanData lifespanData = new EnergyLifespanData();
+    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
 
     // Transient state for orb entity (used during windup charging)
     private transient EntityAbilityOrb orbEntity = null;
@@ -110,12 +103,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
             // Create orb in charging mode - follows NPC based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorPoint);
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorData);
             orbEntity = new EntityAbilityOrb(
                 world, npc, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
                 colorData, combatData, homingData, lightningData, lifespanData);
-            orbEntity.setupCharging(anchorPoint, windUpTicks);
+            orbEntity.setupCharging(anchorData, windUpTicks);
 
             orbEntity.setEffects(this.effects);
             world.spawnEntityInWorld(orbEntity);
@@ -175,7 +168,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("orbSize", orbSize);
-        nbt.setInteger("anchorPoint", anchorPoint.getId());
+        anchorData.writeNBT(nbt);
         colorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
         homingData.writeNBT(nbt);
@@ -188,7 +181,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         this.orbSize = nbt.hasKey("orbSize") ? nbt.getFloat("orbSize") : 1.0f;
-        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
+        anchorData.readNBT(nbt);
         colorData.readNBT(nbt);
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
@@ -385,21 +378,29 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         lightningData.lightningFadeTime = lightningFadeTime;
     }
 
-    public AnchorPoint getAnchorPointEnum() {
-        return anchorPoint;
-    }
+    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
 
-    public void setAnchorPointEnum(AnchorPoint anchorPoint) {
-        this.anchorPoint = anchorPoint;
-    }
+    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
+
+    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
+
+    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
+
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
+
+    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
+
+    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
+
+    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
 
     public int getAnchorPoint() {
-        return anchorPoint.getId();
+        return anchorData.anchorPoint.getId();
     }
 
     @Override
     public void setAnchorPoint(int point) {
-        this.anchorPoint = AnchorPoint.fromId(point);
+        this.anchorData.anchorPoint = AnchorPoint.fromId(point);
     }
 
     @Override
@@ -408,7 +409,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
-        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorPoint, windUpTicks);
+        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorData, windUpTicks);
         return orb;
     }
 

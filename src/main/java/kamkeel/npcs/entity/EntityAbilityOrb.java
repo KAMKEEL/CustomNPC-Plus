@@ -1,11 +1,7 @@
 package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -36,7 +32,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     private boolean charging = false;
     private int chargeDuration = 40;
     private int chargeTick = 0;
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
     private float targetSize = 1.0f; // Full size to grow to during charging
 
     // Data watcher index for charging state (synced to clients)
@@ -119,11 +115,11 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      * The orb will grow from 0 to orbSize over chargeDuration ticks.
      * Position follows the owner based on anchor point.
      */
-    public void setupCharging(AnchorPoint anchorPoint, int chargeDuration) {
+    public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
         setCharging(true);
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
-        this.anchorPoint = anchorPoint;
+        this.anchorData = anchor;
         this.targetSize = this.size;
         this.size = 0.01f;
         this.renderCurrentSize = 0.01f;
@@ -138,7 +134,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityNPCInterface owner, float orbSize, EnergyColorData color, EnergyLightningData lightning, AnchorPoint anchorPoint, int chargeDuration) {
+    public void setupPreview(EntityNPCInterface owner, float orbSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -157,7 +153,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.setCharging(true);
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
-        this.anchorPoint = anchorPoint;
+        this.anchorData = anchor;
 
         // Store target size and start at 0 for grow effect
         this.targetSize = orbSize;
@@ -166,7 +162,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.prevRenderSize = 0.01f;
 
         // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
         this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
         this.prevPosX = pos.xCoord;
         this.prevPosY = pos.yCoord;
@@ -400,7 +396,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
         // Calculate position based on anchor point
         if (owner instanceof EntityLivingBase) {
-            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorPoint);
+            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
         }
     }
@@ -460,8 +456,9 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.dataWatcher.updateObject(DW_CHARGING, (byte) (isCharging ? 1 : 0));
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
-        this.anchorPoint = nbt.hasKey("AnchorPoint") ? AnchorPoint.fromId(nbt.getInteger("AnchorPoint")) : AnchorPoint.FRONT;
         this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
+        // Anchor data
+        this.anchorData.readNBT(nbt);
     }
 
     @Override
@@ -474,7 +471,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         nbt.setBoolean("Charging", isCharging());
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
-        nbt.setInteger("AnchorPoint", anchorPoint.getId());
+        anchorData.writeNBT(nbt);
         nbt.setFloat("TargetSize", targetSize);
     }
 }

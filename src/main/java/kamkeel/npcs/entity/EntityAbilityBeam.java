@@ -1,11 +1,7 @@
 package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -62,7 +58,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     private int chargeDuration = 40;
     private int chargeTick = 0;
     private float chargeOffsetDistance = 1.0f;
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
 
     // Trail fading for non-anchored beams (comet effect)
     private boolean fadeTrail = false;
@@ -171,19 +167,19 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         }
     }
 
-    public void setupCharging(AnchorPoint anchorPoint, int chargeDuration, float chargeOffsetDistance) {
+    public void setupCharging(EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
         setCharging(true);
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
         this.chargeOffsetDistance = chargeOffsetDistance;
-        this.anchorPoint = anchorPoint;
+        this.anchorData = anchor;
         this.fadeTrail = !attachedToOwner;
         this.motionX = 0;
         this.motionY = 0;
         this.motionZ = 0;
     }
 
-    public void setupPreview(EntityNPCInterface owner, float beamWidth, float headSize, EnergyColorData color, EnergyLightningData lightning, AnchorPoint anchorPoint, int chargeDuration, float chargeOffsetDistance) {
+    public void setupPreview(EntityNPCInterface owner, float beamWidth, float headSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -206,10 +202,10 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
         this.chargeOffsetDistance = chargeOffsetDistance;
-        this.anchorPoint = anchorPoint;
+        this.anchorData = anchor;
 
         // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint, chargeOffsetDistance);
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData, chargeOffsetDistance);
         this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
         this.prevPosX = pos.xCoord;
         this.prevPosY = pos.yCoord;
@@ -450,7 +446,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         // Calculate position based on anchor point
         Vec3 pos;
         if (owner instanceof EntityLivingBase) {
-            pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorPoint, chargeOffsetDistance);
+            pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData, chargeOffsetDistance);
         } else {
             // Fallback for non-living entities (shouldn't happen normally)
             float yaw = (float) Math.toRadians(owner.rotationYaw);
@@ -772,9 +768,10 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
         this.chargeOffsetDistance = nbt.hasKey("ChargeOffsetDistance") ? nbt.getFloat("ChargeOffsetDistance") : 1.0f;
-        this.anchorPoint = nbt.hasKey("AnchorPoint") ? AnchorPoint.fromId(nbt.getInteger("AnchorPoint")) : AnchorPoint.FRONT;
         this.fadeTrail = nbt.hasKey("FadeTrail") && nbt.getBoolean("FadeTrail");
         this.trailFadeTime = nbt.hasKey("TrailFadeTime") ? nbt.getInteger("TrailFadeTime") : 20;
+
+        this.anchorData.readNBT(nbt);
 
         // Read trail points (relative to origin)
         trailPoints.clear();
@@ -808,9 +805,10 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
         nbt.setFloat("ChargeOffsetDistance", chargeOffsetDistance);
-        nbt.setInteger("AnchorPoint", anchorPoint.getId());
         nbt.setBoolean("FadeTrail", fadeTrail);
         nbt.setInteger("TrailFadeTime", trailFadeTime);
+
+        this.anchorData.writeNBT(nbt);
 
         // Write trail points
         NBTTagList trailList = new NBTTagList();

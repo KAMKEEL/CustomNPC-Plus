@@ -1,11 +1,7 @@
 package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -46,9 +42,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     private boolean charging = false;
     private int chargeDuration = 40;
     private int chargeTick = 0;
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
     private float targetDiscRadius = 1.0f; // Full radius to grow to during charging
     private float targetDiscThickness = 0.2f; // Full thickness to grow to during charging
+    private EnergyAnchorData anchorData = new EnergyAnchorData();
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
@@ -137,11 +133,11 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * The disc will grow from 0 to discRadius over chargeDuration ticks.
      * Position follows the owner based on anchor point.
      */
-    public void setupCharging(AnchorPoint anchorPoint, int chargeDuration) {
+    public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
         setCharging(true);
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
-        this.anchorPoint = anchorPoint;
+        this.anchorData = anchor;
         this.targetDiscRadius = this.discRadius;
         this.targetDiscThickness = this.discThickness;
         this.discRadius = 0.01f;
@@ -159,7 +155,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityNPCInterface owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, AnchorPoint anchorPoint, int chargeDuration) {
+    public void setupPreview(EntityNPCInterface owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -177,7 +173,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.setCharging(true);
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
-        this.anchorPoint = anchorPoint;
+        this.anchorData = anchor;
 
         // Store target size and start at 0 for grow effect
         this.targetDiscRadius = discRadius;
@@ -187,7 +183,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.size = 0.01f;
 
         // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
         this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
         this.prevPosX = pos.xCoord;
         this.prevPosY = pos.yCoord;
@@ -518,7 +514,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Calculate position based on anchor point
         if (owner instanceof EntityLivingBase) {
-            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorPoint);
+            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
         }
 
@@ -589,9 +585,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.dataWatcher.updateObject(DW_CHARGING, (byte) (isCharging ? 1 : 0));
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
-        this.anchorPoint = nbt.hasKey("AnchorPoint") ? AnchorPoint.fromId(nbt.getInteger("AnchorPoint")) : AnchorPoint.FRONT;
         this.targetDiscRadius = nbt.hasKey("TargetDiscRadius") ? nbt.getFloat("TargetDiscRadius") : this.discRadius;
         this.targetDiscThickness = nbt.hasKey("TargetDiscThickness") ? nbt.getFloat("TargetDiscThickness") : this.discThickness;
+        this.anchorData.readNBT(nbt);
     }
 
     @Override
@@ -609,8 +605,10 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         nbt.setBoolean("Charging", isCharging());
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
-        nbt.setInteger("AnchorPoint", anchorPoint.getId());
         nbt.setFloat("TargetDiscRadius", targetDiscRadius);
         nbt.setFloat("TargetDiscThickness", targetDiscThickness);
+
+        // Anchor data
+        this.anchorData.writeNBT(nbt);
     }
 }

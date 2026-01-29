@@ -6,11 +6,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -44,9 +40,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     private EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
     private EnergyLightningData lightningData = new EnergyLightningData();
     private EnergyLifespanData lifespanData = new EnergyLifespanData(25.0f, 200);
-
-    // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
+    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
 
     // Transient state for beam entity (used during windup charging)
     private transient EntityAbilityBeam beamEntity = null;
@@ -113,14 +107,14 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
             float offsetDist = 1.0f;
 
             // Create beam in charging mode - follows NPC based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorPoint, offsetDist);
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorData, offsetDist);
             beamEntity = new EntityAbilityBeam(
                 world, npc, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 beamWidth, headSize,
                 colorData, combatData, homingData, lightningData, lifespanData,
                 lockMovement.locksActive());
-            beamEntity.setupCharging(anchorPoint, windUpTicks, offsetDist);
+            beamEntity.setupCharging(anchorData, windUpTicks, offsetDist);
 
             beamEntity.setEffects(this.effects);
             world.spawnEntityInWorld(beamEntity);
@@ -180,7 +174,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("beamWidth", beamWidth);
         nbt.setFloat("headSize", headSize);
-        nbt.setInteger("anchorPoint", anchorPoint.getId());
+        anchorData.writeNBT(nbt);
         colorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
         homingData.writeNBT(nbt);
@@ -192,7 +186,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.beamWidth = nbt.hasKey("beamWidth") ? nbt.getFloat("beamWidth") : 0.4f;
         this.headSize = nbt.hasKey("headSize") ? nbt.getFloat("headSize") : 0.6f;
-        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
+        anchorData.readNBT(nbt);
         colorData.readNBT(nbt);
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
@@ -259,14 +253,20 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public void setMaxLifetime(int maxLifetime) { this.lifespanData.maxLifetime = maxLifetime; }
 
     // Getters & Setters - Anchor point
-    public AnchorPoint getAnchorPointEnum() { return anchorPoint; }
-    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorPoint = anchorPoint; }
+    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
+    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
+    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
+    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
+    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
+    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
+    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
 
     @Override
-    public int getAnchorPoint() { return anchorPoint.getId(); }
+    public int getAnchorPoint() { return anchorData.anchorPoint.getId(); }
 
     @Override
-    public void setAnchorPoint(int point) { this.anchorPoint = AnchorPoint.fromId(point); }
+    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromId(point); }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -274,7 +274,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityBeam beam = new EntityAbilityBeam(npc.worldObj);
-        beam.setupPreview(npc, beamWidth, headSize, colorData, lightningData, anchorPoint, windUpTicks, 1.0f);
+        beam.setupPreview(npc, beamWidth, headSize, colorData, lightningData, anchorData, windUpTicks, 1.0f);
         return beam;
     }
 
