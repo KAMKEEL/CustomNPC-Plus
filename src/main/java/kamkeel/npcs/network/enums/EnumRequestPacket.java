@@ -198,6 +198,10 @@ public enum EnumRequestPacket {
     NpcAbilitiesGet,
     NpcAbilitiesSave,
     AbilitiesGetAll,
+    SavedAbilitiesGet,
+    SavedAbilityGet,
+    SavedAbilityRemove,
+    SavedAbilitySave,
     Hammer,
 
     RecipeScript,

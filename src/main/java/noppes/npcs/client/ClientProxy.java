@@ -87,6 +87,7 @@ import noppes.npcs.client.gui.global.GuiNPCManageAnimations;
 import noppes.npcs.client.gui.global.GuiNPCManageBanks;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCManageEffects;
+import noppes.npcs.client.gui.global.GuiNpcManageAbilities;
 import noppes.npcs.client.gui.global.GuiNPCManageFactions;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.global.GuiNPCManageQuest;
@@ -496,6 +497,20 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.ManageEffects)
             return new GuiNPCManageEffects(npc);
+
+        else if (gui == EnumGuiType.ManageAbilities) {
+            EntityCustomNpc abilityNpc;
+            if (npc != null) {
+                abilityNpc = new EntityCustomNpc(npc.worldObj);
+                abilityNpc.copyDataFrom(npc, true);
+                abilityNpc.display.showName = 1;
+                abilityNpc.display.showBossBar = 0;
+            } else {
+                abilityNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
+                abilityNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+            }
+            return new GuiNpcManageAbilities(abilityNpc);
+        }
 
         else if (gui == EnumGuiType.MainMenuGlobal)
             return new GuiNPCGlobalMainMenu(npc);

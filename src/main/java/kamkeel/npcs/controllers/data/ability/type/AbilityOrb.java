@@ -487,4 +487,23 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     public void setAnchorPoint(int point) {
         this.anchorPoint = AnchorPoint.fromId(point);
     }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        return EntityAbilityOrb.createPreview(
+            npc.worldObj, npc,
+            orbSize, innerColor, outerColor,
+            outerColorEnabled, outerColorWidth, rotationSpeed,
+            lightningEffect, lightningDensity, lightningRadius, lightningFadeTime,
+            anchorPoint, windUpTicks
+        );
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return maxLifetime > 0 ? Math.min(maxLifetime, 100) : 100;
+    }
 }

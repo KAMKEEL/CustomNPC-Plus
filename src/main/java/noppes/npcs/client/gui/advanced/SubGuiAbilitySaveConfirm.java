@@ -1,23 +1,30 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.ability.SavedAbilitySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 
 /**
  * Confirmation dialog for saving an ability preset.
+ * Uses packet-based communication for proper client-server architecture.
  */
 public class SubGuiAbilitySaveConfirm extends SubGuiInterface {
 
     private final Ability ability;
-    private final boolean exists;
+    private final IAbilityConfigCallback callback;
 
     public SubGuiAbilitySaveConfirm(Ability ability) {
+        this(ability, null);
+    }
+
+    public SubGuiAbilitySaveConfirm(Ability ability, IAbilityConfigCallback callback) {
         this.ability = ability;
-        this.exists = AbilityController.Instance.hasSavedAbility(ability.getName());
+        this.callback = callback;
 
         setBackground("menubg.png");
         xSize = 200;
@@ -30,15 +37,9 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface {
 
         int y = guiTop + 10;
 
-        if (exists) {
-            addLabel(new GuiNpcLabel(0, "ability.save.overwrite", guiLeft + 10, y));
-            y += 12;
-            addLabel(new GuiNpcLabel(1, "'" + ability.getName() + "'?", guiLeft + 10, y));
-        } else {
-            addLabel(new GuiNpcLabel(0, "ability.save.confirm", guiLeft + 10, y));
-            y += 12;
-            addLabel(new GuiNpcLabel(1, "'" + ability.getName() + "'?", guiLeft + 10, y));
-        }
+        addLabel(new GuiNpcLabel(0, "ability.save.confirm", guiLeft + 10, y));
+        y += 12;
+        addLabel(new GuiNpcLabel(1, "'" + ability.getName() + "'?", guiLeft + 10, y));
 
         y += 30;
 
@@ -51,8 +52,11 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface {
         int id = guibutton.id;
 
         if (id == 0) {
-            // Save the ability
-            AbilityController.Instance.saveAbility(ability);
+            // Save the ability via packet
+            PacketClient.sendClient(new SavedAbilitySavePacket(ability.writeNBT()));
+            if (callback != null) {
+                callback.onAbilitySaved(ability);
+            }
             close();
         } else if (id == 1) {
             close();

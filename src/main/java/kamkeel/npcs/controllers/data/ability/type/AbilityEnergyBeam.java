@@ -329,4 +329,23 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
 
     @Override
     public void setAnchorPoint(int point) { this.anchorPoint = AnchorPoint.fromId(point); }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        return EntityAbilityBeam.createPreview(
+            npc.worldObj, npc,
+            beamWidth, headSize, innerColor, outerColor,
+            outerColorEnabled, outerColorWidth, rotationSpeed,
+            lightningEffect, lightningDensity, lightningRadius,
+            anchorPoint, windUpTicks, 1.0f
+        );
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return maxLifetime > 0 ? Math.min(maxLifetime, 100) : 100;
+    }
 }

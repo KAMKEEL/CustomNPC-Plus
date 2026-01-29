@@ -71,6 +71,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
+    protected boolean previewMode = false; // Client-side preview mode (no damage/effects)
+    protected EntityNPCInterface previewOwner = null; // Direct reference for GUI preview (no world lookup)
 
     // ==================== ROTATION INTERPOLATION ====================
     public float prevRotationValX, prevRotationValY, prevRotationValZ;
@@ -202,7 +204,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.prevRotationValZ = this.rotationValZ;
         this.prevRenderSize = this.renderCurrentSize;
 
-        super.onUpdate();
+        // Skip super.onUpdate() in preview mode to avoid world checks
+        if (!previewMode) {
+            super.onUpdate();
+        }
 
         // Update rotation
         updateRotation();
@@ -210,26 +215,29 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         // Lerp render size toward actual size
         this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
 
-        // Set death time on first tick if not already set (handles chunk load/unload)
-        if (deathWorldTime < 0 && worldObj != null) {
-            deathWorldTime = worldObj.getTotalWorldTime() + maxLifetime;
-        }
+        // Skip lifetime/distance checks in preview mode
+        if (!previewMode) {
+            // Set death time on first tick if not already set (handles chunk load/unload)
+            if (deathWorldTime < 0 && worldObj != null) {
+                deathWorldTime = worldObj.getTotalWorldTime() + maxLifetime;
+            }
 
-        // Check lifespan using world time (survives chunk unload/reload)
-        if (deathWorldTime > 0 && worldObj.getTotalWorldTime() >= deathWorldTime) {
-            this.setDead();
-            return;
-        }
+            // Check lifespan using world time (survives chunk unload/reload)
+            if (deathWorldTime > 0 && worldObj.getTotalWorldTime() >= deathWorldTime) {
+                this.setDead();
+                return;
+            }
 
-        // Check max distance (subclass can override if needed)
-        if (checkMaxDistance()) {
-            this.setDead();
-            return;
-        }
+            // Check max distance (subclass can override if needed)
+            if (checkMaxDistance()) {
+                this.setDead();
+                return;
+            }
 
-        if (hasHit) {
-            this.setDead();
-            return;
+            if (hasHit) {
+                this.setDead();
+                return;
+            }
         }
 
         // Subclass-specific update
@@ -310,13 +318,32 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         }
     }
 
+    // ==================== PREVIEW MODE ====================
+
+    /**
+     * Set preview mode for GUI display.
+     * In preview mode, no damage or world effects are applied.
+     */
+    public void setPreviewMode(boolean preview) {
+        this.previewMode = preview;
+    }
+
+    /**
+     * Check if entity is in preview mode.
+     */
+    public boolean isPreviewMode() {
+        return previewMode;
+    }
+
     // ==================== DAMAGE & EFFECTS ====================
 
     protected void applyDamage(EntityLivingBase target) {
+        if (previewMode) return; // Skip damage in preview mode
         applyDamage(target, this.damage, this.knockback);
     }
 
     protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
+        if (previewMode) return; // Skip damage in preview mode
         Entity owner = getOwner();
         EntityNPCInterface npc = (owner instanceof EntityNPCInterface) ? (EntityNPCInterface) owner : null;
 
@@ -353,6 +380,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     }
 
     protected void doExplosion() {
+        if (previewMode) return; // Skip explosion in preview mode
         worldObj.playSoundEffect(posX, posY, posZ, "random.explode", 1.0f, 1.0f);
 
         Entity owner = getOwner();
@@ -384,8 +412,20 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     // ==================== ENTITY HELPERS ====================
 
     protected Entity getOwner() {
+        // In preview mode, use direct reference (no world lookup)
+        if (previewMode && previewOwner != null) {
+            return previewOwner;
+        }
         if (ownerEntityId == -1) return null;
         return worldObj.getEntityByID(ownerEntityId);
+    }
+
+    /**
+     * Set the preview owner for GUI preview mode.
+     * This allows anchor point calculations without world entity lookup.
+     */
+    public void setPreviewOwner(EntityNPCInterface owner) {
+        this.previewOwner = owner;
     }
 
     protected Entity getTarget() {

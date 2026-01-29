@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityLaser;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -256,4 +257,28 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     public void setLightningDensity(float lightningDensity) { this.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningRadius = lightningRadius; }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        return EntityAbilityLaser.createPreview(
+            npc.worldObj, npc,
+            laserWidth, innerColor, outerColor,
+            outerColorEnabled, outerColorWidth,
+            expansionSpeed, maxDistance,
+            lightningEffect, lightningDensity, lightningRadius
+        );
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return maxLifetime > 0 ? Math.min(maxLifetime, 60) : 60;
+    }
+
+    @Override
+    public boolean spawnPreviewDuringWindup() {
+        return false; // Laser has no charging, spawns at active phase
+    }
 }

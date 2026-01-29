@@ -785,6 +785,18 @@ public class NoppesUtilServer {
         sendScrollData(player, map, EnumScrollData.ABILITY_TYPES);
     }
 
+    public static void sendSavedAbilitiesData(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        kamkeel.npcs.controllers.data.ability.AbilityController controller = kamkeel.npcs.controllers.data.ability.AbilityController.Instance;
+        if (controller != null) {
+            int index = 0;
+            for (String name : controller.getSavedAbilityNames()) {
+                map.put(name, index++);
+            }
+        }
+        sendScrollData(player, map, EnumScrollData.ABILITIES);
+    }
+
     public static DialogOption setNpcDialog(int slot, int dialogId, EntityPlayer player) throws IOException {
         return setNpcDialog(slot, dialogId, getEditingNpc(player));
     }

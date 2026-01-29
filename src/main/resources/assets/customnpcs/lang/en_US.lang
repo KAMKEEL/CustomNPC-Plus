@@ -689,6 +689,8 @@ global.naturalspawn=Spawns
 global.linked=Linked
 global.customeffects=Effects
 global.magic=Magic
+global.abilities=Abilities
+global.auction=Auction
 
 bank.slot=Slot
 bank.unlock=Unlock
@@ -1714,7 +1716,6 @@ ability.delete.confirm=Delete ability preset
 gui.load=Load
 
 # Global Abilities Manager
-global.abilities=Abilities
 ability.manager.title=Ability Manager
 
 # Explosive Hover Text

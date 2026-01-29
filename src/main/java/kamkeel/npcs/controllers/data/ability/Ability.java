@@ -26,6 +26,8 @@ import noppes.npcs.scripted.event.AbilityEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.entity.Entity;
+
 public abstract class Ability implements IAbility {
 
     // ═══════════════════════════════════════════════════════════════════
@@ -634,6 +636,93 @@ public abstract class Ability implements IAbility {
      */
     public void cleanup() {
         // Override in subclasses to clean up spawned entities, etc.
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CLIENT-SIDE PREVIEW METHODS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Get total active phase duration for preview (in ticks).
+     * Override in subclasses to provide accurate preview duration.
+     *
+     * @return Duration of active phase in ticks (default: 40 = 2 seconds)
+     */
+    public int getPreviewActiveDuration() {
+        return 40;
+    }
+
+    /**
+     * Called during preview windup tick (client-side only).
+     * Override for visual updates during windup preview.
+     * Do NOT apply damage or world effects here.
+     *
+     * @param npc  The preview NPC
+     * @param tick Current tick within windup phase
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewWindUpTick(EntityNPCInterface npc, int tick) {
+        // Default: no-op. Override in subclasses for visual effects.
+    }
+
+    /**
+     * Called during preview active tick (client-side only).
+     * Override for visual updates during active preview.
+     * Do NOT apply damage or world effects here.
+     *
+     * @param npc  The preview NPC
+     * @param tick Current tick within active phase
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
+        // Default: no-op. Override in subclasses for visual effects.
+    }
+
+    /**
+     * Create a preview entity for GUI display (client-side only).
+     * The entity should be in preview mode and not apply damage.
+     * Override in abilities that spawn entities (Beam, Orb, Disc, etc.)
+     *
+     * @param npc The preview NPC
+     * @return Preview entity, or null if ability doesn't spawn entities
+     */
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        return null; // Override in entity-spawning abilities
+    }
+
+    /**
+     * Whether to spawn preview entity during WINDUP phase (true) or ACTIVE phase (false).
+     * Most abilities (Orb, Beam, Disc) spawn during windup for charging effect.
+     * Laser spawns at active phase since it has no charging state.
+     */
+    public boolean spawnPreviewDuringWindup() {
+        return true; // Default: spawn during windup for charging
+    }
+
+    // ── Preview target (set by executor for abilities that need targeting) ──
+
+    protected transient EntityLivingBase previewTarget;
+
+    /**
+     * Set the fake target entity for preview mode.
+     * Called by AbilityPreviewExecutor before starting preview.
+     */
+    public void setPreviewTarget(EntityLivingBase target) {
+        this.previewTarget = target;
+    }
+
+    public EntityLivingBase getPreviewTarget() {
+        return previewTarget;
+    }
+
+    /**
+     * Called once when transitioning from WINDUP to ACTIVE in preview mode.
+     * Override in movement-based abilities to initiate movement.
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewExecute(EntityNPCInterface npc) {
+        // Default: no-op. Override in movement abilities.
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -61,8 +61,12 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     /**
      * Check if disc is in charging state (synced via data watcher).
+     * In preview mode, uses local field since data watcher isn't synced.
      */
     public boolean isCharging() {
+        if (previewMode) {
+            return this.charging;
+        }
         return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
     }
 
@@ -210,6 +214,94 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     }
 
     /**
+     * Create a disc in preview mode for GUI display.
+     * Follows anchor point and animations like in the real game.
+     * Can be fired when transitioning to active phase.
+     */
+    public static EntityAbilityDisc createPreview(World world, EntityNPCInterface owner,
+                                                   float discRadius, float discThickness, int innerColor, int outerColor,
+                                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
+                                                   boolean lightningEffect, float lightningDensity, float lightningRadius,
+                                                   AnchorPoint anchorPoint, int chargeDuration) {
+        EntityAbilityDisc disc = new EntityAbilityDisc(world);
+        disc.setPreviewMode(true);
+        disc.setPreviewOwner(owner);
+
+        // Set visual properties
+        disc.innerColor = innerColor;
+        disc.outerColor = outerColor;
+        disc.outerColorEnabled = outerColorEnabled;
+        disc.outerColorWidth = outerColorWidth;
+        disc.rotationSpeed = rotationSpeed;
+        disc.lightningEffect = lightningEffect;
+        disc.lightningDensity = lightningDensity;
+        disc.lightningRadius = lightningRadius;
+
+        // Set charging state
+        disc.setCharging(true);
+        disc.chargeDuration = chargeDuration;
+        disc.chargeTick = 0;
+        disc.anchorPoint = anchorPoint;
+
+        // Store target size and start at 0 for grow effect
+        disc.targetDiscRadius = discRadius;
+        disc.targetDiscThickness = discThickness;
+        disc.discRadius = 0.01f;
+        disc.discThickness = 0.01f;
+        disc.size = 0.01f;
+
+        // Initial position at anchor point
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
+        disc.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        disc.prevPosX = pos.xCoord;
+        disc.prevPosY = pos.yCoord;
+        disc.prevPosZ = pos.zCoord;
+        disc.startX = pos.xCoord;
+        disc.startY = pos.yCoord;
+        disc.startZ = pos.zCoord;
+
+        // Clear motion while charging
+        disc.motionX = 0;
+        disc.motionY = 0;
+        disc.motionZ = 0;
+
+        return disc;
+    }
+
+    /**
+     * Start preview firing (simulates firing toward a point in front of NPC).
+     */
+    public void startPreviewFiring() {
+        if (!isCharging()) return;
+
+        setCharging(false);
+
+        // Update start position to current position
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+
+        // Sync prev position to prevent visual jump on first frame
+        prevPosX = posX;
+        prevPosY = posY;
+        prevPosZ = posZ;
+
+        // Fire forward based on owner facing direction
+        Entity owner = getOwner();
+        if (owner != null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = 0; // Fire horizontally
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
+            motionY = -Math.sin(pitch) * speed;
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+        } else {
+            motionX = speed;
+            motionY = 0;
+            motionZ = 0;
+        }
+    }
+
+    /**
      * Start the disc moving (exit charging mode).
      * Called by ability when windup ends.
      */
@@ -258,6 +350,12 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         // Handle charging state (windup phase)
         if (isCharging()) {
             updateCharging();
+            return;
+        }
+
+        // In preview mode, run movement on client (no server)
+        if (previewMode) {
+            updatePreviewMovement();
             return;
         }
 
@@ -330,6 +428,16 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Non-boomerang: standard max distance check
         return distTraveled >= maxDistance;
+    }
+
+    /**
+     * Update movement in preview mode (client-side only, no damage).
+     */
+    private void updatePreviewMovement() {
+        // Simple movement - just apply motion
+        this.posX += motionX;
+        this.posY += motionY;
+        this.posZ += motionZ;
     }
 
     private void updateHoming() {

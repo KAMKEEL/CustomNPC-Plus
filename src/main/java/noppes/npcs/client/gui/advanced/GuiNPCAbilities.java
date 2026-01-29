@@ -281,6 +281,13 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
+        // Only process NPC ability data, not saved ability preset data
+        // SubGuiAbilityLoad also implements IGuiData and may receive responses
+        // that get forwarded here - ignore those by checking for expected keys
+        if (!compound.hasKey("Abilities")) {
+            return;
+        }
+
         abilitiesEnabled = compound.getBoolean("AbilitiesEnabled");
 
         // Support old globalCooldown for backwards compatibility

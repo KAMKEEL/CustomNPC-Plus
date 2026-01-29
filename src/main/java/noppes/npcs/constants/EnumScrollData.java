@@ -7,6 +7,7 @@ public enum EnumScrollData {
     DIALOG_GROUP,
     QUEST_GROUP,
     ABILITY_TYPES,
+    ABILITIES,
     ANIMATIONS,
     BUILTIN_ANIMATIONS
 }

@@ -361,6 +361,100 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         airTicks = 0;
     }
 
+    // ==================== PREVIEW MODE ====================
+
+    private transient double previewVelX, previewVelY, previewVelZ;
+    private transient boolean previewLaunched = false;
+    private transient double previewGroundY;
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewExecute(EntityNPCInterface npc) {
+        previewLaunched = false;
+
+        double tx, ty, tz;
+        if (previewTarget != null && targetingMode == TargetingMode.AOE_TARGET) {
+            tx = previewTarget.posX;
+            ty = previewTarget.posY;
+            tz = previewTarget.posZ;
+        } else {
+            tx = npc.posX;
+            ty = npc.posY;
+            tz = npc.posZ;
+        }
+
+        previewGroundY = npc.posY;
+
+        double dx = tx - npc.posX;
+        double dz = tz - npc.posZ;
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+
+        if (horizontalDist < 0.5) {
+            previewVelX = 0;
+            previewVelZ = 0;
+            previewVelY = 0.8 * leapSpeed;
+        } else {
+            if (horizontalDist > maxRange) {
+                double scale = maxRange / horizontalDist;
+                dx *= scale;
+                dz *= scale;
+                horizontalDist = maxRange;
+            }
+
+            int flightTicks = (int) Math.max(15, Math.min(horizontalDist * 1.5, 30));
+            double drag = 0.91;
+            double dragPowN = Math.pow(drag, flightTicks);
+            double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN) * leapSpeed;
+
+            double arcHeight = Math.max(1.0, leapHeight) * leapSpeed;
+            double peakTicks = flightTicks * 0.4;
+            double vy = (arcHeight * 2.0 / peakTicks) + (0.08 * peakTicks * 0.5);
+            vy = Math.max(vy, 0.6 * leapSpeed);
+
+            double dirX = dx / horizontalDist;
+            double dirZ = dz / horizontalDist;
+            previewVelX = dirX * vHorizontal;
+            previewVelZ = dirZ * vHorizontal;
+            previewVelY = vy;
+        }
+        previewLaunched = true;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
+        if (!previewLaunched) return;
+
+        // Apply velocity
+        npc.prevPosX = npc.posX;
+        npc.prevPosY = npc.posY;
+        npc.prevPosZ = npc.posZ;
+
+        npc.posX += previewVelX;
+        npc.posY += previewVelY;
+        npc.posZ += previewVelZ;
+
+        // Gravity and drag
+        previewVelY -= 0.08;
+        previewVelY *= 0.98;
+        previewVelX *= 0.91;
+        previewVelZ *= 0.91;
+
+        // Ground clamp - stop falling below starting Y
+        if (npc.posY < previewGroundY && previewVelY < 0) {
+            npc.posY = previewGroundY;
+            previewVelY = 0;
+            previewVelX = 0;
+            previewVelZ = 0;
+            previewLaunched = false;
+        }
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return 60;
+    }
+
     @Override
     public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
         // Check if telegraph should be shown

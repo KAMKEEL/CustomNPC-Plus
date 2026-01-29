@@ -332,4 +332,23 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
 
     @Override
     public void setAnchorPoint(int point) { this.anchorPoint = AnchorPoint.fromId(point); }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        return EntityAbilityDisc.createPreview(
+            npc.worldObj, npc,
+            discRadius, discThickness, innerColor, outerColor,
+            outerColorEnabled, outerColorWidth, rotationSpeed,
+            lightningEffect, lightningDensity, lightningRadius,
+            anchorPoint, windUpTicks
+        );
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return maxLifetime > 0 ? Math.min(maxLifetime, 100) : 100;
+    }
 }

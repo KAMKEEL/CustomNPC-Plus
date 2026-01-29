@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.advanced;
 
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.ability.SavedAbilityRemovePacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -8,15 +9,20 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 
 /**
  * Confirmation dialog for deleting an ability preset.
+ * Uses packet-based communication for proper client-server architecture.
  */
 public class SubGuiAbilityDeleteConfirm extends SubGuiInterface {
 
     private final String abilityName;
-    private final SubGuiAbilityLoad loadGui;
+    private final Runnable onDeleted;
 
-    public SubGuiAbilityDeleteConfirm(String abilityName, SubGuiAbilityLoad loadGui) {
+    public SubGuiAbilityDeleteConfirm(String abilityName) {
+        this(abilityName, null);
+    }
+
+    public SubGuiAbilityDeleteConfirm(String abilityName, Runnable onDeleted) {
         this.abilityName = abilityName;
-        this.loadGui = loadGui;
+        this.onDeleted = onDeleted;
 
         setBackground("menubg.png");
         xSize = 200;
@@ -44,9 +50,11 @@ public class SubGuiAbilityDeleteConfirm extends SubGuiInterface {
         int id = guibutton.id;
 
         if (id == 0) {
-            // Delete the ability
-            AbilityController.Instance.deleteAbility(abilityName);
-            loadGui.onAbilityDeleted(abilityName);
+            // Delete the ability via packet
+            PacketClient.sendClient(new SavedAbilityRemovePacket(abilityName));
+            if (onDeleted != null) {
+                onDeleted.run();
+            }
             close();
         } else if (id == 1) {
             close();
