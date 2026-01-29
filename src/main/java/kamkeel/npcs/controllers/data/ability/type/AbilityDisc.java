@@ -43,7 +43,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     private int boomerangDelay = 40;
 
     // Anchor point for charging position
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
+    private AnchorPoint anchorPoint = AnchorPoint.RIGHT_HAND;
 
     // Energy data classes
     private EnergyColorData colorData = new EnergyColorData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f);
@@ -62,10 +62,13 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
-        this.windUpTicks = 20;
+        this.windUpTicks = 60;
         this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
+        // Default built-in animations
+        this.windUpAnimationName = "Ability_Disc_Windup";
+        this.activeAnimationName = "Ability_Disc_Active";
     }
 
     @Override

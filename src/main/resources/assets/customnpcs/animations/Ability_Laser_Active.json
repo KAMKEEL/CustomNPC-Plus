@@ -1,0 +1,77 @@
+{
+    "Loop": 0,
+    "Speed": 1.0f,
+    "Frames": [
+        {
+            "ColorMarker": 16777215,
+            "Comment": "",
+            "Speed": 3.0f,
+            "FrameParts": [
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "LEFT_LEG",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": -18.0f
+                },
+                {
+                    "Pivot2": 5.0f,
+                    "Part": "BODY",
+                    "Rotation1": 0.0f,
+                    "Rotation0": -25.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 2.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "RIGHT_LEG",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 18.0f
+                },
+                {
+                    "Pivot2": 2.0f,
+                    "Part": "LEFT_ARM",
+                    "Rotation1": 0.0f,
+                    "Rotation0": -195.0f,
+                    "Pivot0": -1.0f,
+                    "Pivot1": -1.0f,
+                    "Rotation2": -56.0f
+                },
+                {
+                    "Pivot2": 4.0f,
+                    "Part": "RIGHT_ARM",
+                    "Rotation1": 90.0f,
+                    "Rotation0": -90.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": -1.0f,
+                    "Rotation2": 90.0f
+                },
+                {
+                    "Pivot2": 5.0f,
+                    "Part": "HEAD",
+                    "Rotation1": 0.0f,
+                    "Rotation0": -37.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 2.0f,
+                    "Rotation2": 0.0f
+                }
+            ],
+            "Smooth": 0b,
+            "Duration": 3
+        }
+    ],
+    "CurrentFrameTime": 0,
+    "CurrentFrame": 3,
+    "Smooth": 0b,
+    "ID": 10,
+    "WhileAttacking": 1b,
+    "WhileWalking": 1b,
+    "Name": "Ability_Laser_Active",
+    "WhileStanding": 1b
+}

@@ -53,6 +53,9 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
+        // Default built-in animations
+        this.windUpAnimationName = "Ability_Laser_Windup";
+        this.activeAnimationName = "Ability_Laser_Active";
     }
 
     @Override

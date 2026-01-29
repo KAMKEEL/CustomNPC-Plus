@@ -59,6 +59,9 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "mob.irongolem.throw";
         this.activeSound = "";
+        // Default built-in animations
+        this.windUpAnimationName = "Ability_Slam_Windup";
+        this.activeAnimationName = "Ability_Slam_Active";
     }
 
     @Override
