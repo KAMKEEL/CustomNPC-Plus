@@ -2,11 +2,14 @@ package noppes.npcs.scripted.wrapper;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.data.ability.AbilitySlot;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.api.ability.IAbility;
 import noppes.npcs.api.ability.IDataAbilities;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.List;
 
 /**
  * Script wrapper for DataAbilities providing API access to NPC abilities.
@@ -65,7 +68,7 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public boolean isAbilityReference(String abilityId) {
-        List<kamkeel.npcs.controllers.data.ability.AbilitySlot> slots = data.getAbilitySlots();
+        List<AbilitySlot> slots = data.getAbilitySlots();
         for (int i = 0; i < slots.size(); i++) {
             kamkeel.npcs.controllers.data.ability.AbilitySlot slot = slots.get(i);
             if (slot.isReference()) {
