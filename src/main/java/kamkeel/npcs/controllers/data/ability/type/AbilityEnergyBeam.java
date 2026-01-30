@@ -263,10 +263,10 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
 
     @Override
-    public int getAnchorPoint() { return anchorData.anchorPoint.getId(); }
+    public int getAnchorPoint() { return anchorData.anchorPoint.ordinal(); }
 
     @Override
-    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromId(point); }
+    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
     @SideOnly(Side.CLIENT)
