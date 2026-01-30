@@ -57,6 +57,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         this.showTelegraph = true;
         // Default built-in animation
         this.windUpAnimationName = "Ability_Orb_Windup";
+        this.activeAnimationName = "Ability_Orb_Active";
     }
 
     @Override
