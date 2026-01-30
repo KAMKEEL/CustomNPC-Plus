@@ -1,6 +1,7 @@
 package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.Vec3;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -48,16 +49,22 @@ public class AnchorPointHelper {
     /**
      * Calculate world position for an anchor point on an entity.
      */
-    public static Vec3 calculateAnchorPosition(EntityLivingBase entity, AnchorPoint anchor) {
-        return calculateAnchorPosition(entity, anchor, DEFAULT_FRONT_DISTANCE);
+    public static Vec3 calculateAnchorPosition(EntityLivingBase entity, EnergyAnchorData anchorData) {
+        return calculateAnchorPosition(entity, anchorData, DEFAULT_FRONT_DISTANCE);
     }
 
     /**
      * Calculate world position for an anchor point with custom front offset.
      */
-    public static Vec3 calculateAnchorPosition(EntityLivingBase entity, AnchorPoint anchor, float frontOffset) {
+    public static Vec3 calculateAnchorPosition(EntityLivingBase entity, EnergyAnchorData anchorData, float frontOffset) {
         float scale = getModelScale(entity);
         float height = entity.height;
+
+        AnchorPoint anchor = anchorData.anchorPoint;
+
+        float anchorX = anchorData.anchorOffsetX;
+        float anchorY = anchorData.anchorOffsetY;
+        float anchorZ = anchorData.anchorOffsetZ;
 
         double x = entity.posX;
         double y = entity.posY;
@@ -78,10 +85,10 @@ public class AnchorPointHelper {
                 break;
 
             case RIGHT_HAND:
-                return calculateHandPosition(entity, true, scale);
+                return calculateHandPosition(entity, anchorData, true, scale);
 
             case LEFT_HAND:
-                return calculateHandPosition(entity, false, scale);
+                return calculateHandPosition(entity, anchorData, false, scale);
 
             case ABOVE_HEAD:
                 y += height * ABOVE_HEAD_HEIGHT;
@@ -91,6 +98,10 @@ public class AnchorPointHelper {
                 y += height * CHEST_HEIGHT;
                 break;
         }
+
+        x += anchorX * scale;
+        y += anchorY * scale;
+        z += anchorZ * scale;
 
         return Vec3.createVectorHelper(x, y, z);
     }
@@ -124,22 +135,22 @@ public class AnchorPointHelper {
     /**
      * Calculate hand position using animation data if available.
      */
-    private static Vec3 calculateHandPosition(EntityLivingBase entity, boolean rightHand, float scale) {
+    private static Vec3 calculateHandPosition(EntityLivingBase entity, EnergyAnchorData anchor, boolean rightHand, float scale) {
         // Try to get animated position first
-        Vec3 animatedPos = getAnimatedHandPosition(entity, rightHand, scale);
+        Vec3 animatedPos = getAnimatedHandPosition(entity, anchor, rightHand, scale);
         if (animatedPos != null) {
             return animatedPos;
         }
 
         // Fallback to static position
-        return calculateFallbackHandPosition(entity, rightHand, scale);
+        return calculateFallbackHandPosition(entity, anchor, rightHand, scale);
     }
 
     /**
      * Calculate hand position from animation data.
      * Works for both NPCs and Players.
      */
-    private static Vec3 getAnimatedHandPosition(EntityLivingBase entity, boolean rightHand, float scale) {
+    private static Vec3 getAnimatedHandPosition(EntityLivingBase entity, EnergyAnchorData anchor, boolean rightHand, float scale) {
         AnimationData animData = AnimationData.getData(entity);
         if (animData == null || !animData.isActive() || animData.animation == null) {
             return null;
@@ -235,6 +246,10 @@ public class AnchorPointHelper {
         double worldY = entity.posY + shoulderHeight - blockY;
         double worldZ = entity.posZ + worldOffsetZ;
 
+        worldX += anchor.anchorOffsetX * scale;
+        worldY += anchor.anchorOffsetY * scale;
+        worldZ += anchor.anchorOffsetZ * scale;
+
         return Vec3.createVectorHelper(worldX, worldY, worldZ);
     }
 
@@ -277,7 +292,7 @@ public class AnchorPointHelper {
      * Calculate fallback hand position when no animation is active.
      * Represents arms hanging at sides in default idle pose.
      */
-    private static Vec3 calculateFallbackHandPosition(EntityLivingBase entity, boolean rightHand, float scale) {
+    private static Vec3 calculateFallbackHandPosition(EntityLivingBase entity, EnergyAnchorData anchor, boolean rightHand, float scale) {
         float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
 
         // Get arm scale for EntityCustomNpc
@@ -301,6 +316,10 @@ public class AnchorPointHelper {
         double x = entity.posX + lateralX + forwardX;
         double y = entity.posY + entity.height * FALLBACK_ARM_HEIGHT + armLengthOffset;
         double z = entity.posZ + lateralZ + forwardZ;
+
+        x += anchor.anchorOffsetX * scale;
+        y += anchor.anchorOffsetY * scale;
+        z += anchor.anchorOffsetZ * scale;
 
         return Vec3.createVectorHelper(x, y, z);
     }

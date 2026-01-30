@@ -4,17 +4,22 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,9 +45,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected float knockbackUp = 0.1f;
 
     // ==================== EFFECT PROPERTIES ====================
-    protected int stunDuration = 0;
-    protected int slowDuration = 0;
-    protected int slowLevel = 0;
+    protected List<AbilityEffect> effects = new ArrayList<>();
 
     // ==================== EXPLOSION PROPERTIES ====================
     protected boolean explosive = false;
@@ -96,37 +99,12 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     }
 
     /**
-     * Initialize common properties. Call from subclass constructors.
+     * Initialize common properties using data classes. Call from subclass constructors.
      */
     protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
-                                   double x, double y, double z,
-                                   float size, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                                   float damage, float knockback, float knockbackUp,
-                                   boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                                   int stunDuration, int slowDuration, int slowLevel,
-                                   float maxDistance, int maxLifetime) {
-        initProjectile(owner, target, x, y, z,
-            size, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime,
-            false, 0.15f, 0.5f, 6); // Default: no lightning, low density, small radius, 6 tick fade
-    }
-
-    /**
-     * Initialize common properties with lightning effect support.
-     */
-    protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
-                                   double x, double y, double z,
-                                   float size, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                                   float damage, float knockback, float knockbackUp,
-                                   boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                                   int stunDuration, int slowDuration, int slowLevel,
-                                   float maxDistance, int maxLifetime,
-                                   boolean lightningEffect, float lightningDensity, float lightningRadius, int lightningFadeTime) {
+                                   double x, double y, double z, float size,
+                                   EnergyColorData color, EnergyCombatData combat,
+                                   EnergyLightningData lightning, EnergyLifespanData lifespan) {
         this.setPosition(x, y, z);
         this.startX = x;
         this.startY = y;
@@ -137,38 +115,33 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         // Visual
         this.size = size;
-        this.innerColor = innerColor;
-        this.outerColor = outerColor;
-        this.outerColorEnabled = outerColorEnabled;
-        this.outerColorWidth = outerColorWidth;
-        this.outerColorAlpha = outerColorAlpha;
-        this.rotationSpeed = rotationSpeed;
+        this.innerColor = color.innerColor;
+        this.outerColor = color.outerColor;
+        this.outerColorEnabled = color.outerColorEnabled;
+        this.outerColorWidth = color.outerColorWidth;
+        this.outerColorAlpha = color.outerColorAlpha;
+        this.rotationSpeed = color.rotationSpeed;
 
         // Combat
-        this.damage = damage;
-        this.knockback = knockback;
-        this.knockbackUp = knockbackUp;
+        this.damage = combat.damage;
+        this.knockback = combat.knockback;
+        this.knockbackUp = combat.knockbackUp;
 
         // Explosion
-        this.explosive = explosive;
-        this.explosionRadius = explosionRadius;
-        this.explosionDamageFalloff = explosionDamageFalloff;
-
-        // Effects
-        this.stunDuration = stunDuration;
-        this.slowDuration = slowDuration;
-        this.slowLevel = slowLevel;
+        this.explosive = combat.explosive;
+        this.explosionRadius = combat.explosionRadius;
+        this.explosionDamageFalloff = combat.explosionDamageFalloff;
 
         // Lifespan
-        this.maxDistance = maxDistance;
-        this.maxLifetime = maxLifetime;
+        this.maxDistance = lifespan.maxDistance;
+        this.maxLifetime = lifespan.maxLifetime;
         // deathWorldTime will be set on first tick when world is available
 
         // Lightning
-        this.lightningEffect = lightningEffect;
-        this.lightningDensity = lightningDensity;
-        this.lightningRadius = lightningRadius;
-        this.lightningFadeTime = lightningFadeTime;
+        this.lightningEffect = lightning.lightningEffect;
+        this.lightningDensity = lightning.lightningDensity;
+        this.lightningRadius = lightning.lightningRadius;
+        this.lightningFadeTime = lightning.lightningFadeTime;
 
         // Initialize render size
         this.renderCurrentSize = size;
@@ -370,13 +343,16 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     }
 
     protected void applyEffects(EntityLivingBase target) {
-        if (stunDuration > 0) {
-            target.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-            target.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
+        for (AbilityEffect effect : effects) {
+            effect.apply(target);
         }
-        if (slowDuration > 0 && slowLevel > 0) {
-            target.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, slowDuration, slowLevel));
-        }
+    }
+
+    /**
+     * Set the effects list from the ability's configured effects.
+     */
+    public void setEffects(List<AbilityEffect> effects) {
+        this.effects = effects != null ? effects : new ArrayList<>();
     }
 
     protected void doExplosion() {
@@ -559,9 +535,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.explosionRadius = nbt.getFloat("ExplosionRadius");
         this.explosionDamageFalloff = nbt.getFloat("ExplosionDamageFalloff");
 
-        this.stunDuration = nbt.getInteger("StunDuration");
-        this.slowDuration = nbt.getInteger("SlowDuration");
-        this.slowLevel = nbt.getInteger("SlowLevel");
+        // Read effects list
+        this.effects.clear();
+        if (nbt.hasKey("Effects")) {
+            NBTTagList effectsList = nbt.getTagList("Effects", 10); // 10 = compound tag
+            for (int i = 0; i < effectsList.tagCount(); i++) {
+                effects.add(AbilityEffect.fromNBT(effectsList.getCompoundTagAt(i)));
+            }
+        }
 
         this.maxDistance = nbt.getFloat("MaxDistance");
         this.maxLifetime = nbt.getInteger("MaxLifetime");
@@ -610,9 +591,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         nbt.setFloat("ExplosionRadius", explosionRadius);
         nbt.setFloat("ExplosionDamageFalloff", explosionDamageFalloff);
 
-        nbt.setInteger("StunDuration", stunDuration);
-        nbt.setInteger("SlowDuration", slowDuration);
-        nbt.setInteger("SlowLevel", slowLevel);
+        // Write effects list
+        if (!effects.isEmpty()) {
+            NBTTagList effectsList = new NBTTagList();
+            for (AbilityEffect effect : effects) {
+                effectsList.appendTag(effect.writeNBT());
+            }
+            nbt.setTag("Effects", effectsList);
+        }
 
         nbt.setFloat("MaxDistance", maxDistance);
         nbt.setLong("DeathWorldTime", deathWorldTime);

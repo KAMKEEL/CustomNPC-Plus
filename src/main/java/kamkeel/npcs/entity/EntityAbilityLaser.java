@@ -1,5 +1,9 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -45,48 +49,19 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     }
 
     /**
-     * Full constructor with all parameters (no lightning).
+     * Full constructor with all parameters using data classes.
      */
     public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
                                double x, double y, double z,
-                               float laserWidth, int innerColor, int outerColor,
-                               boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha,
-                               float damage, float knockback, float knockbackUp,
-                               float expansionSpeed, int lingerTicks,
-                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                               int stunDuration, int slowDuration, int slowLevel,
-                               float maxDistance, int maxLifetime) {
-        this(world, owner, target, x, y, z,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha,
-            damage, knockback, knockbackUp, expansionSpeed, lingerTicks,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
-            false, 0.15f, 0.5f);
-    }
-
-    /**
-     * Full constructor with all parameters including lightning.
-     */
-    public EntityAbilityLaser(World world, EntityNPCInterface owner, EntityLivingBase target,
-                               double x, double y, double z,
-                               float laserWidth, int innerColor, int outerColor,
-                               boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha,
-                               float damage, float knockback, float knockbackUp,
-                               float expansionSpeed, int lingerTicks,
-                               boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                               int stunDuration, int slowDuration, int slowLevel,
-                               float maxDistance, int maxLifetime,
-                               boolean lightningEffect, float lightningDensity, float lightningRadius) {
+                               float laserWidth,
+                               EnergyColorData color, EnergyCombatData combat,
+                               EnergyLightningData lightning, EnergyLifespanData lifespan,
+                               float expansionSpeed, int lingerTicks) {
         super(world);
 
-        // Initialize base properties with lightning
-        initProjectile(owner, target, x, y, z,
-            laserWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, 0.0f, // No rotation for laser
-            damage, knockback, knockbackUp,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius, 6);
+        // Initialize base properties (laser doesn't rotate)
+        initProjectile(owner, target, x, y, z, laserWidth, color, combat, lightning, lifespan);
+        this.rotationSpeed = 0.0f;
 
         // Laser-specific properties
         this.laserWidth = laserWidth;
@@ -96,7 +71,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         // Calculate direction toward target or forward
         if (target != null) {
             double dx = target.posX - x;
-            double dy = (target.posY + target.height * 0.5) - y;
+            double dy = (target.posY + target.getEyeHeight()) - y;
             double dz = target.posZ - z;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
@@ -349,54 +324,48 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     }
 
     /**
-     * Create a laser in preview mode for GUI display.
+     * Setup this laser in preview mode for GUI display.
      * Laser doesn't have charging state - spawns at active phase and fires immediately.
      */
-    public static EntityAbilityLaser createPreview(World world, EntityNPCInterface owner,
-                                                    float laserWidth, int innerColor, int outerColor,
-                                                    boolean outerColorEnabled, float outerColorWidth,
-                                                    float expansionSpeed, float maxDistance,
-                                                    boolean lightningEffect, float lightningDensity, float lightningRadius) {
-        EntityAbilityLaser laser = new EntityAbilityLaser(world);
-        laser.setPreviewMode(true);
-        laser.setPreviewOwner(owner);
+    public void setupPreview(EntityNPCInterface owner, float laserWidth, EnergyColorData color,
+                             EnergyLightningData lightning, float expansionSpeed, float maxDistance) {
+        this.setPreviewMode(true);
+        this.setPreviewOwner(owner);
 
         // Set visual properties
-        laser.laserWidth = laserWidth;
-        laser.size = laserWidth;
-        laser.innerColor = innerColor;
-        laser.outerColor = outerColor;
-        laser.outerColorEnabled = outerColorEnabled;
-        laser.outerColorWidth = outerColorWidth;
-        laser.expansionSpeed = expansionSpeed;
-        laser.maxDistance = Math.min(maxDistance, 5.0f); // Limit for GUI preview
-        laser.lightningEffect = lightningEffect;
-        laser.lightningDensity = lightningDensity;
-        laser.lightningRadius = lightningRadius;
+        this.laserWidth = laserWidth;
+        this.size = laserWidth;
+        this.innerColor = color.innerColor;
+        this.outerColor = color.outerColor;
+        this.outerColorEnabled = color.outerColorEnabled;
+        this.outerColorWidth = color.outerColorWidth;
+        this.expansionSpeed = expansionSpeed;
+        this.maxDistance = Math.min(maxDistance, 5.0f); // Limit for GUI preview
+        this.lightningEffect = lightning.lightningEffect;
+        this.lightningDensity = lightning.lightningDensity;
+        this.lightningRadius = lightning.lightningRadius;
 
         // Position at chest height
         double x = owner.posX;
         double y = owner.posY + owner.height * 0.7;
         double z = owner.posZ;
-        laser.setPosition(x, y, z);
-        laser.prevPosX = x;
-        laser.prevPosY = y;
-        laser.prevPosZ = z;
-        laser.startX = x;
-        laser.startY = y;
-        laser.startZ = z;
+        this.setPosition(x, y, z);
+        this.prevPosX = x;
+        this.prevPosY = y;
+        this.prevPosZ = z;
+        this.startX = x;
+        this.startY = y;
+        this.startZ = z;
 
         // Fire in owner's facing direction
         float yaw = (float) Math.toRadians(owner.rotationYaw);
-        laser.dirX = -Math.sin(yaw);
-        laser.dirY = 0;
-        laser.dirZ = Math.cos(yaw);
+        this.dirX = -Math.sin(yaw);
+        this.dirY = 0;
+        this.dirZ = Math.cos(yaw);
 
         // Initialize end point (same as start, will expand)
-        laser.endX = x;
-        laser.endY = y;
-        laser.endZ = z;
-
-        return laser;
+        this.endX = x;
+        this.endY = y;
+        this.endZ = z;
     }
 }

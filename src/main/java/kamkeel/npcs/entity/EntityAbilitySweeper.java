@@ -4,6 +4,7 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -71,8 +72,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     public EntityAbilitySweeper(World world, EntityNPCInterface owner, EntityLivingBase target,
                                  float beamLength, float beamWidth, float beamHeight,
-                                 int innerColor, int outerColor,
-                                 boolean outerColorEnabled, float outerColorWidth,
+                                 EnergyColorData colorData,
                                  float sweepSpeed, int numberOfRotations,
                                  float damage, int damageInterval, boolean piercing,
                                  boolean lockOnTarget) {
@@ -83,10 +83,10 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.beamLength = beamLength;
         this.beamWidth = beamWidth;
         this.beamHeight = beamHeight;
-        this.innerColor = innerColor;
-        this.outerColor = outerColor;
-        this.outerColorEnabled = outerColorEnabled;
-        this.outerColorWidth = outerColorWidth;
+        this.innerColor = colorData.innerColor;
+        this.outerColor = colorData.outerColor;
+        this.outerColorEnabled = colorData.outerColorEnabled;
+        this.outerColorWidth = colorData.outerColorWidth;
         this.sweepSpeed = sweepSpeed;
         this.numberOfRotations = numberOfRotations;
         this.damage = damage;

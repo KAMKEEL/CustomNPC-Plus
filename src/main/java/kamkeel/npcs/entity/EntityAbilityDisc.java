@@ -1,6 +1,7 @@
 package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -41,9 +42,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     private boolean charging = false;
     private int chargeDuration = 40;
     private int chargeTick = 0;
-    private AnchorPoint anchorPoint = AnchorPoint.FRONT;
     private float targetDiscRadius = 1.0f; // Full radius to grow to during charging
     private float targetDiscThickness = 0.2f; // Full thickness to grow to during charging
+    private EnergyAnchorData anchorData = new EnergyAnchorData();
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
@@ -81,56 +82,25 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     }
 
     /**
-     * Full constructor with all parameters (no lightning).
+     * Full constructor with all parameters using data classes.
      */
     public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
                               double x, double y, double z,
-                              float discRadius, float discThickness, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                              float damage, float knockback, float knockbackUp,
-                              float speed, boolean homing, float homingStrength, float homingRange,
-                              boolean boomerang, int boomerangDelay,
-                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                              int stunDuration, int slowDuration, int slowLevel,
-                              float maxDistance, int maxLifetime) {
-        this(world, owner, target, x, y, z,
-            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
-            boomerang, boomerangDelay, explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
-            false, 0.15f, 0.5f);
-    }
-
-    /**
-     * Full constructor with all parameters including lightning.
-     */
-    public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
-                              double x, double y, double z,
-                              float discRadius, float discThickness, int innerColor, int outerColor,
-                              boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                              float damage, float knockback, float knockbackUp,
-                              float speed, boolean homing, float homingStrength, float homingRange,
-                              boolean boomerang, int boomerangDelay,
-                              boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                              int stunDuration, int slowDuration, int slowLevel,
-                              float maxDistance, int maxLifetime,
-                              boolean lightningEffect, float lightningDensity, float lightningRadius) {
+                              float discRadius, float discThickness,
+                              EnergyColorData color, EnergyCombatData combat,
+                              EnergyHomingData homing, EnergyLightningData lightning,
+                              EnergyLifespanData lifespan,
+                              boolean boomerang, int boomerangDelay) {
         super(world);
 
-        // Initialize base properties with lightning (use discRadius as size for base)
-        initProjectile(owner, target, x, y, z,
-            discRadius, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel,
-            maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius, 6);
+        // Initialize base properties
+        initProjectile(owner, target, x, y, z, discRadius, color, combat, lightning, lifespan);
 
-        // Disc-specific properties
-        this.speed = speed;
-        this.homing = homing;
-        this.homingStrength = homingStrength;
-        this.homingRange = homingRange;
+        // Disc-specific properties from homing data
+        this.speed = homing.speed;
+        this.homing = homing.homing;
+        this.homingStrength = homing.homingStrength;
+        this.homingRange = homing.homingRange;
 
         this.boomerang = boomerang;
         this.boomerangDelay = boomerangDelay;
@@ -141,7 +111,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         // Calculate initial velocity toward target
         if (target != null) {
             double dx = target.posX - x;
-            double dy = (target.posY + target.height * 0.5) - y;
+            double dy = (target.posY + target.getEyeHeight()) - y;
             double dz = target.posZ - z;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
@@ -159,113 +129,73 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     }
 
     /**
-     * Create a disc in charging mode (for windup phase).
+     * Setup this disc in charging mode (for windup phase).
      * The disc will grow from 0 to discRadius over chargeDuration ticks.
      * Position follows the owner based on anchor point.
      */
-    public static EntityAbilityDisc createCharging(World world, EntityNPCInterface owner, EntityLivingBase target,
-                                                    float discRadius, float discThickness, int innerColor, int outerColor,
-                                                    boolean outerColorEnabled, float outerColorWidth, float outerColorAlpha, float rotationSpeed,
-                                                    float damage, float knockback, float knockbackUp,
-                                                    float speed, boolean homing, float homingStrength, float homingRange,
-                                                    boolean boomerang, int boomerangDelay,
-                                                    boolean explosive, float explosionRadius, float explosionDamageFalloff,
-                                                    int stunDuration, int slowDuration, int slowLevel,
-                                                    float maxDistance, int maxLifetime,
-                                                    boolean lightningEffect, float lightningDensity, float lightningRadius,
-                                                    AnchorPoint anchorPoint, int chargeDuration) {
-        // Calculate initial position based on anchor point
-        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
-        double spawnX = spawnPos.xCoord;
-        double spawnY = spawnPos.yCoord;
-        double spawnZ = spawnPos.zCoord;
-
-        EntityAbilityDisc disc = new EntityAbilityDisc(
-            world, owner, target,
-            spawnX, spawnY, spawnZ,
-            discRadius, discThickness, innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed,
-            damage, knockback, knockbackUp, speed, homing, homingStrength, homingRange,
-            boomerang, boomerangDelay,
-            explosive, explosionRadius, explosionDamageFalloff,
-            stunDuration, slowDuration, slowLevel, maxDistance, maxLifetime,
-            lightningEffect, lightningDensity, lightningRadius);
-
-        // Set charging state (uses data watcher for client sync)
-        disc.setCharging(true);
-        disc.chargeDuration = chargeDuration;
-        disc.chargeTick = 0;
-        disc.anchorPoint = anchorPoint;
-
-        // Store target size and start at 0 for grow effect
-        disc.targetDiscRadius = disc.discRadius;
-        disc.targetDiscThickness = disc.discThickness;
-        disc.discRadius = 0.01f; // Start very small
-        disc.discThickness = 0.01f;
-        disc.size = 0.01f; // Base size used for rendering
-        disc.renderCurrentSize = 0.01f;
-        disc.prevRenderSize = 0.01f;
-
-        // Clear motion while charging
-        disc.motionX = 0;
-        disc.motionY = 0;
-        disc.motionZ = 0;
-
-        return disc;
+    public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
+        setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.anchorData = anchor;
+        this.targetDiscRadius = this.discRadius;
+        this.targetDiscThickness = this.discThickness;
+        this.discRadius = 0.01f;
+        this.discThickness = 0.01f;
+        this.size = 0.01f;
+        this.renderCurrentSize = 0.01f;
+        this.prevRenderSize = 0.01f;
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
     }
 
     /**
-     * Create a disc in preview mode for GUI display.
+     * Setup this disc in preview mode for GUI display.
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public static EntityAbilityDisc createPreview(World world, EntityNPCInterface owner,
-                                                   float discRadius, float discThickness, int innerColor, int outerColor,
-                                                   boolean outerColorEnabled, float outerColorWidth, float rotationSpeed,
-                                                   boolean lightningEffect, float lightningDensity, float lightningRadius,
-                                                   AnchorPoint anchorPoint, int chargeDuration) {
-        EntityAbilityDisc disc = new EntityAbilityDisc(world);
-        disc.setPreviewMode(true);
-        disc.setPreviewOwner(owner);
+    public void setupPreview(EntityNPCInterface owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+        this.setPreviewMode(true);
+        this.setPreviewOwner(owner);
 
         // Set visual properties
-        disc.innerColor = innerColor;
-        disc.outerColor = outerColor;
-        disc.outerColorEnabled = outerColorEnabled;
-        disc.outerColorWidth = outerColorWidth;
-        disc.rotationSpeed = rotationSpeed;
-        disc.lightningEffect = lightningEffect;
-        disc.lightningDensity = lightningDensity;
-        disc.lightningRadius = lightningRadius;
+        this.innerColor = color.innerColor;
+        this.outerColor = color.outerColor;
+        this.outerColorEnabled = color.outerColorEnabled;
+        this.outerColorWidth = color.outerColorWidth;
+        this.rotationSpeed = color.rotationSpeed;
+        this.lightningEffect = lightning.lightningEffect;
+        this.lightningDensity = lightning.lightningDensity;
+        this.lightningRadius = lightning.lightningRadius;
 
         // Set charging state
-        disc.setCharging(true);
-        disc.chargeDuration = chargeDuration;
-        disc.chargeTick = 0;
-        disc.anchorPoint = anchorPoint;
+        this.setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.anchorData = anchor;
 
         // Store target size and start at 0 for grow effect
-        disc.targetDiscRadius = discRadius;
-        disc.targetDiscThickness = discThickness;
-        disc.discRadius = 0.01f;
-        disc.discThickness = 0.01f;
-        disc.size = 0.01f;
+        this.targetDiscRadius = discRadius;
+        this.targetDiscThickness = discThickness;
+        this.discRadius = 0.01f;
+        this.discThickness = 0.01f;
+        this.size = 0.01f;
 
         // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorPoint);
-        disc.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        disc.prevPosX = pos.xCoord;
-        disc.prevPosY = pos.yCoord;
-        disc.prevPosZ = pos.zCoord;
-        disc.startX = pos.xCoord;
-        disc.startY = pos.yCoord;
-        disc.startZ = pos.zCoord;
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
+        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        this.prevPosX = pos.xCoord;
+        this.prevPosY = pos.yCoord;
+        this.prevPosZ = pos.zCoord;
+        this.startX = pos.xCoord;
+        this.startY = pos.yCoord;
+        this.startZ = pos.zCoord;
 
-        // Clear motion while charging
-        disc.motionX = 0;
-        disc.motionY = 0;
-        disc.motionZ = 0;
-
-        return disc;
+        // Clear motion
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
     }
 
     /**
@@ -320,7 +250,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         if (target != null) {
             double dx = target.posX - posX;
-            double dy = (target.posY + target.height * 0.5) - posY;
+            double dy = (target.posY + target.getEyeHeight()) - posY;
             double dz = target.posZ - posZ;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
@@ -447,7 +377,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         if (target == null || !target.isEntityAlive()) return;
 
         double dx = target.posX - posX;
-        double dy = (target.posY + target.height * 0.5) - posY;
+        double dy = (target.posY + target.getEyeHeight()) - posY;
         double dz = target.posZ - posZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
@@ -584,7 +514,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Calculate position based on anchor point
         if (owner instanceof EntityLivingBase) {
-            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorPoint);
+            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
         }
 
@@ -655,9 +585,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.dataWatcher.updateObject(DW_CHARGING, (byte) (isCharging ? 1 : 0));
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
-        this.anchorPoint = nbt.hasKey("AnchorPoint") ? AnchorPoint.fromId(nbt.getInteger("AnchorPoint")) : AnchorPoint.FRONT;
         this.targetDiscRadius = nbt.hasKey("TargetDiscRadius") ? nbt.getFloat("TargetDiscRadius") : this.discRadius;
         this.targetDiscThickness = nbt.hasKey("TargetDiscThickness") ? nbt.getFloat("TargetDiscThickness") : this.discThickness;
+        this.anchorData.readNBT(nbt);
     }
 
     @Override
@@ -675,8 +605,10 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         nbt.setBoolean("Charging", isCharging());
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
-        nbt.setInteger("AnchorPoint", anchorPoint.getId());
         nbt.setFloat("TargetDiscRadius", targetDiscRadius);
         nbt.setFloat("TargetDiscThickness", targetDiscThickness);
+
+        // Anchor data
+        this.anchorData.writeNBT(nbt);
     }
 }
