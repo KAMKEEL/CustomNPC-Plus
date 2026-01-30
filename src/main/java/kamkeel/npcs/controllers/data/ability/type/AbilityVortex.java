@@ -90,22 +90,22 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         getPulledEntities().clear();
         pullComplete = false;
         ticksSincePullDamage = 0;
 
         if (aoe) {
-            AxisAlignedBB box = npc.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+            AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
             @SuppressWarnings("unchecked")
             List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
             int count = 0;
             for (EntityLivingBase entity : entities) {
-                if (entity == npc) continue;
+                if (entity == caster) continue;
                 if (entity.isDead) continue;
 
-                double dist = npc.getDistanceToEntity(entity);
+                double dist = caster.getDistanceToEntity(entity);
                 if (dist <= pullRadius) {
                     getPulledEntities().add(entity.getUniqueID());
                     count++;
@@ -115,7 +115,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         } else {
             // Single target mode - still check pullRadius
             if (target != null && !target.isDead) {
-                double dist = npc.getDistanceToEntity(target);
+                double dist = caster.getDistanceToEntity(target);
                 if (dist <= pullRadius) {
                     getPulledEntities().add(target.getUniqueID());
                 }
@@ -124,21 +124,21 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (pullComplete || getPulledEntities().isEmpty()) {
             signalCompletion();
             return;
         }
 
-        double destX = npc.posX;
-        double destY = npc.posY;
-        double destZ = npc.posZ;
+        double destX = caster.posX;
+        double destY = caster.posY;
+        double destZ = caster.posZ;
 
         boolean anyStillPulling = false;
         ticksSincePullDamage++;
 
         for (UUID uuid : new HashSet<>(getPulledEntities())) {
-            EntityLivingBase entity = findEntity(npc, world, uuid);
+            EntityLivingBase entity = findEntity(caster, world, uuid);
             if (entity == null || entity.isDead) {
                 getPulledEntities().remove(uuid);
                 continue;
@@ -151,7 +151,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
             if (dist <= 1.0f) {
                 getPulledEntities().remove(uuid);
-                onTargetArrived(npc, entity, world);
+                onTargetArrived(caster, entity, world);
                 continue;
             }
 
@@ -176,7 +176,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             if (damageOnPull && pullDamage > 0 && ticksSincePullDamage >= 10) {
                 ticksSincePullDamage = 0;
                 entity.hurtResistantTime = 0;
-                applyAbilityDamage(npc, entity, pullDamage * 0.5f, 0);
+                applyAbilityDamage(caster, entity, pullDamage * 0.5f, 0);
             }
         }
 
@@ -186,9 +186,9 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         }
     }
 
-    private void onTargetArrived(EntityNPCInterface npc, EntityLivingBase entity, World world) {
+    private void onTargetArrived(EntityLivingBase caster, EntityLivingBase entity, World world) {
         // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback * 0.5f);
+        boolean wasHit = applyAbilityDamage(caster, entity, damage, knockback * 0.5f);
 
         // Only apply effects if hit wasn't cancelled
         if (wasHit) {
@@ -201,9 +201,9 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
      * Uses AABB search instead of iterating all loaded entities.
      */
     @SuppressWarnings("unchecked")
-    private EntityLivingBase findEntity(EntityNPCInterface npc, World world, UUID uuid) {
+    private EntityLivingBase findEntity(EntityLivingBase caster, World world, UUID uuid) {
         // Search within pull radius (entities being pulled should be within this area)
-        AxisAlignedBB searchBox = npc.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+        AxisAlignedBB searchBox = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
         List<EntityLivingBase> nearbyEntities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
 
         for (EntityLivingBase entity : nearbyEntities) {

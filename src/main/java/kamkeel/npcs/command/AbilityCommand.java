@@ -4,9 +4,6 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import net.minecraft.command.ICommandSender;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import static kamkeel.npcs.util.ColorUtil.sendError;
@@ -25,25 +22,23 @@ public class AbilityCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-        desc = "List all saved abilities"
+        desc = "List all custom abilities"
     )
     public void list(ICommandSender sender, String[] args) {
-        Set<String> names = AbilityController.Instance.getSavedAbilityNames();
-        if (names.isEmpty()) {
-            sendResult(sender, "No saved abilities found.");
+        Set<String> uuids = AbilityController.Instance.getCustomAbilityIds();
+        if (uuids.isEmpty()) {
+            sendResult(sender, "No custom abilities found.");
             return;
         }
 
-        List<String> sortedNames = new ArrayList<>(names);
-        Collections.sort(sortedNames);
-
-        sendResult(sender, "Saved Abilities (" + sortedNames.size() + "):");
-        for (String name : sortedNames) {
-            Ability ability = AbilityController.Instance.getSavedAbility(name);
+        sendResult(sender, "Custom Abilities (" + uuids.size() + "):");
+        for (String uuid : uuids) {
+            Ability ability = AbilityController.Instance.getCustomAbility(uuid);
             if (ability != null) {
-                sendResult(sender, "  - \u00A7b" + name + "\u00A77 (" + ability.getTypeId() + ")");
+                String name = ability.getName() != null ? ability.getName() : uuid;
+                sendResult(sender, "  - \u00A7b" + name + "\u00A77 (" + ability.getTypeId() + ") [" + uuid + "]");
             } else {
-                sendResult(sender, "  - \u00A7b" + name);
+                sendResult(sender, "  - \u00A7b" + uuid);
             }
         }
     }
@@ -79,39 +74,39 @@ public class AbilityCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-        desc = "Delete a saved ability",
-        usage = "<name>"
+        desc = "Delete a custom ability by UUID",
+        usage = "<uuid>"
     )
     public void delete(ICommandSender sender, String[] args) {
         if (args.length < 1) {
-            sendError(sender, "Usage: /kam ability delete <name>");
+            sendError(sender, "Usage: /kam ability delete <uuid>");
             return;
         }
 
-        String name = args[0];
-        if (!AbilityController.Instance.getSavedAbilityNames().contains(name)) {
-            sendError(sender, "No saved ability with name: " + name);
+        String uuid = args[0];
+        if (!AbilityController.Instance.hasCustomAbility(uuid)) {
+            sendError(sender, "No custom ability with UUID: " + uuid);
             return;
         }
 
-        AbilityController.Instance.deleteAbility(name);
-        sendResult(sender, "Deleted ability: \u00A7b" + name);
+        AbilityController.Instance.deleteCustomAbility(uuid);
+        sendResult(sender, "Deleted ability: \u00A7b" + uuid);
     }
 
     @SubCommand(
-        desc = "Get info about a saved ability",
-        usage = "<name>"
+        desc = "Get info about an ability",
+        usage = "<name or uuid>"
     )
     public void info(ICommandSender sender, String[] args) {
         if (args.length < 1) {
-            sendError(sender, "Usage: /kam ability info <name>");
+            sendError(sender, "Usage: /kam ability info <name or uuid>");
             return;
         }
 
-        String name = args[0];
-        Ability ability = AbilityController.Instance.getSavedAbility(name);
+        String key = args[0];
+        Ability ability = AbilityController.Instance.resolveAbility(key);
         if (ability == null) {
-            sendError(sender, "No saved ability with name: " + name);
+            sendError(sender, "No ability found for: " + key);
             return;
         }
 

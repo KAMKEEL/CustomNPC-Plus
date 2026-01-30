@@ -11,9 +11,11 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
@@ -75,7 +77,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     // ==================== STATE ====================
     protected boolean hasHit = false;
     protected boolean previewMode = false; // Client-side preview mode (no damage/effects)
-    protected EntityNPCInterface previewOwner = null; // Direct reference for GUI preview (no world lookup)
+    protected EntityLivingBase previewOwner = null; // Direct reference for GUI preview (no world lookup)
 
     // ==================== ROTATION INTERPOLATION ====================
     public float prevRotationValX, prevRotationValY, prevRotationValZ;
@@ -101,7 +103,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     /**
      * Initialize common properties using data classes. Call from subclass constructors.
      */
-    protected void initProjectile(EntityNPCInterface owner, EntityLivingBase target,
+    protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
                                    double x, double y, double z, float size,
                                    EnergyColorData color, EnergyCombatData combat,
                                    EnergyLightningData lightning, EnergyLifespanData lifespan) {
@@ -318,10 +320,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
         if (previewMode) return; // Skip damage in preview mode
         Entity owner = getOwner();
-        EntityNPCInterface npc = (owner instanceof EntityNPCInterface) ? (EntityNPCInterface) owner : null;
 
-        if (npc != null) {
-            target.attackEntityFrom(new NpcDamageSource("npc_ability", npc), dmg);
+        if (owner instanceof EntityNPCInterface) {
+            target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+        } else if (owner instanceof EntityPlayer) {
+            target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+        } else if (owner instanceof EntityLivingBase) {
+            target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
         } else {
             target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
         }
@@ -400,7 +405,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      * Set the preview owner for GUI preview mode.
      * This allows anchor point calculations without world entity lookup.
      */
-    public void setPreviewOwner(EntityNPCInterface owner) {
+    public void setPreviewOwner(EntityLivingBase owner) {
         this.previewOwner = owner;
     }
 

@@ -2,7 +2,7 @@ package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.ability.SavedAbilitySavePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -53,7 +53,7 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface {
 
         if (id == 0) {
             // Save the ability via packet
-            PacketClient.sendClient(new SavedAbilitySavePacket(ability.writeNBT()));
+            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
             if (callback != null) {
                 callback.onAbilitySaved(ability);
             }

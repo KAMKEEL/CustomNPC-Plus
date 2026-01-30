@@ -3,6 +3,7 @@ package noppes.npcs;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.AbilitySlot;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -35,9 +36,9 @@ public class DataAbilities {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * List of abilities this NPC can use
+     * List of ability slots this NPC can use (inline or reference).
      */
-    private List<Ability> abilities = new ArrayList<>();
+    private List<AbilitySlot> abilitySlots = new ArrayList<>();
 
     /**
      * Whether the ability system is enabled for this NPC
@@ -294,7 +295,7 @@ public class DataAbilities {
      * Check if an ability can be selected right now.
      */
     public boolean canSelectAbility() {
-        if (!enabled || abilities.isEmpty()) {
+        if (!enabled || abilitySlots.isEmpty()) {
             return false;
         }
         if (currentAbility != null && currentAbility.isExecuting()) {
@@ -314,7 +315,7 @@ public class DataAbilities {
         List<Ability> eligible = new ArrayList<>();
         int totalWeight = 0;
 
-        for (Ability ability : abilities) {
+        for (Ability ability : getAbilities()) {
             if (isAbilityEligible(ability, target)) {
                 eligible.add(ability);
                 totalWeight += ability.getWeight();
@@ -636,24 +637,24 @@ public class DataAbilities {
     }
 
     /**
-     * Execute a preset ability on this NPC.
+     * Execute an ability on this NPC by key (built-in name or custom UUID).
      * The NPC does NOT need to have this ability assigned.
      *
-     * @param presetName The name of the saved ability preset
+     * @param key The ability key (built-in name or custom UUID)
      * @param target The target entity (can be null for self-targeted abilities)
      * @return true if the ability was started successfully
      */
-    public boolean executePresetAbility(String presetName, EntityLivingBase target) {
-        if (presetName == null || presetName.isEmpty() || npc.worldObj.isRemote) {
+    public boolean executeAbility(String key, EntityLivingBase target) {
+        if (key == null || key.isEmpty() || npc.worldObj.isRemote) {
             return false;
         }
 
-        Ability preset = AbilityController.Instance.getSavedAbility(presetName);
-        if (preset == null) {
+        Ability resolved = AbilityController.Instance.resolveAbility(key);
+        if (resolved == null) {
             return false;
         }
 
-        return forceStartAbility(preset, target);
+        return forceStartAbility(resolved, target);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -715,8 +716,8 @@ public class DataAbilities {
         // Roll cooldown so NPC doesn't immediately attack after reset
         rollCooldown();
 
-        // Reset execution state on all abilities
-        for (Ability ability : abilities) {
+        // Reset execution state on all resolved abilities
+        for (Ability ability : getAbilities()) {
             ability.reset();
         }
     }
@@ -737,39 +738,79 @@ public class DataAbilities {
     // ABILITY LIST MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════
 
+    /**
+     * Get resolved abilities from all slots, filtering out broken references.
+     */
     public List<Ability> getAbilities() {
-        return abilities;
+        List<Ability> resolved = new ArrayList<>();
+        for (AbilitySlot slot : abilitySlots) {
+            Ability a = slot.getAbility();
+            if (a != null) {
+                resolved.add(a);
+            }
+        }
+        return resolved;
     }
 
+    /** Get the raw slot list (for GUI access). */
+    public List<AbilitySlot> getAbilitySlots() {
+        return abilitySlots;
+    }
+
+    /** Add an inline ability. */
     public void addAbility(Ability ability) {
-        abilities.add(ability);
+        abilitySlots.add(AbilitySlot.inline(ability));
+    }
+
+    /** Add a reference ability by key (built-in name or custom UUID). */
+    public void addAbilityReference(String key) {
+        abilitySlots.add(AbilitySlot.reference(key));
     }
 
     public void removeAbility(int index) {
-        if (index >= 0 && index < abilities.size()) {
-            abilities.remove(index);
+        if (index >= 0 && index < abilitySlots.size()) {
+            abilitySlots.remove(index);
         }
     }
 
     public void removeAbility(String id) {
-        abilities.removeIf(a -> a.getId().equals(id));
+        abilitySlots.removeIf(slot -> {
+            if (slot.isReference()) {
+                return slot.getReferenceId().equals(id);
+            }
+            Ability a = slot.getAbility();
+            return a != null && a.getId().equals(id);
+        });
     }
 
     public Ability getAbility(String id) {
-        for (Ability ability : abilities) {
-            if (ability.getId().equals(id)) {
-                return ability;
+        for (AbilitySlot slot : abilitySlots) {
+            Ability a = slot.getAbility();
+            if (a != null && a.getId().equals(id)) {
+                return a;
             }
         }
         return null;
     }
 
+    /** Check if a slot at a given index is a reference. */
+    public boolean isSlotReference(int index) {
+        if (index < 0 || index >= abilitySlots.size()) return false;
+        return abilitySlots.get(index).isReference();
+    }
+
+    /** Convert a reference slot to inline. Returns false if resolution fails. */
+    public boolean convertToInline(int index) {
+        if (index < 0 || index >= abilitySlots.size()) return false;
+        return abilitySlots.get(index).convertToInline();
+    }
+
     public void clearAbilities() {
-        abilities.clear();
+        abilitySlots.clear();
     }
 
     public boolean isEmpty() {
-        return abilities.isEmpty();
+        return abilitySlots.isEmpty();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -920,8 +961,8 @@ public class DataAbilities {
         compound.setInteger("AbilityMaxCooldown", maxCooldown);
 
         NBTTagList abilityList = new NBTTagList();
-        for (Ability ability : abilities) {
-            abilityList.appendTag(ability.writeNBT());
+        for (AbilitySlot slot : abilitySlots) {
+            abilityList.appendTag(slot.writeNBT());
         }
         compound.setTag("Abilities", abilityList);
 
@@ -930,28 +971,16 @@ public class DataAbilities {
 
     public void readFromNBT(NBTTagCompound compound) {
         enabled = compound.getBoolean("AbilitiesEnabled");
+        minCooldown = compound.getInteger("AbilityMinCooldown");
+        maxCooldown = compound.getInteger("AbilityMaxCooldown");
 
-        // Support old globalCooldown for backwards compatibility
-        if (compound.hasKey("AbilityMinCooldown")) {
-            minCooldown = compound.getInteger("AbilityMinCooldown");
-            maxCooldown = compound.getInteger("AbilityMaxCooldown");
-        } else if (compound.hasKey("AbilityGlobalCooldown")) {
-            // Migrate old single cooldown to min/max range
-            int oldCooldown = compound.getInteger("AbilityGlobalCooldown");
-            minCooldown = oldCooldown;
-            maxCooldown = oldCooldown * 2; // Give some range
-        } else {
-            minCooldown = 20;
-            maxCooldown = 60;
-        }
-
-        abilities.clear();
+        abilitySlots.clear();
         NBTTagList abilityList = compound.getTagList("Abilities", 10);
         for (int i = 0; i < abilityList.tagCount(); i++) {
             NBTTagCompound abilityNBT = abilityList.getCompoundTagAt(i);
-            Ability ability = AbilityController.Instance.fromNBT(abilityNBT);
-            if (ability != null) {
-                abilities.add(ability);
+            AbilitySlot slot = AbilitySlot.fromNBT(abilityNBT);
+            if (slot != null) {
+                abilitySlots.add(slot);
             }
         }
     }

@@ -19,9 +19,14 @@ import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
+import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
+import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +86,12 @@ public abstract class Ability implements IAbility {
     // Custom data for external mods
     protected NBTTagCompound customData = new NBTTagCompound();
 
+    // User type restriction
+    protected UserType allowedBy = UserType.BOTH;
+
+    // Cooldown override
+    protected boolean ignoreCooldown = false;
+
     // Configurable potion effects
     protected List<AbilityEffect> effects = new ArrayList<>();
 
@@ -101,12 +112,12 @@ public abstract class Ability implements IAbility {
     /**
      * Called first tick of ACTIVE phase
      */
-    public abstract void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world);
+    public abstract void onExecute(EntityLivingBase caster, EntityLivingBase target, World world);
 
     /**
      * Called every tick of ACTIVE phase
      */
-    public abstract void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick);
+    public abstract void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick);
 
     /**
      * Write type-specific config to NBT
@@ -122,55 +133,55 @@ public abstract class Ability implements IAbility {
     // OPTIONAL OVERRIDES
     // ═══════════════════════════════════════════════════════════════════
 
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
     }
 
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
     }
 
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
     }
 
     /**
      * Apply damage to an entity with ability hit event support.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc       The NPC executing the ability
+     * @param caster    The entity executing the ability (NPC or Player)
      * @param hitEntity The entity being hit
      * @param damage    The damage amount
      * @param knockback The horizontal knockback
      * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamage(EntityLivingBase caster, EntityLivingBase hitEntity,
                                          float damage, float knockback) {
-        double dx = hitEntity.posX - npc.posX;
-        double dz = hitEntity.posZ - npc.posZ;
-        return applyAbilityDamageInternal(npc, hitEntity, damage, knockback, 0.0f, dx, dz);
+        double dx = hitEntity.posX - caster.posX;
+        double dz = hitEntity.posZ - caster.posZ;
+        return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, 0.0f, dx, dz);
     }
 
     /**
      * Apply damage to an entity with ability hit event support and vertical knockback.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc         The NPC executing the ability
+     * @param caster      The entity executing the ability (NPC or Player)
      * @param hitEntity   The entity being hit
      * @param damage      The damage amount
      * @param knockback   The horizontal knockback
      * @param knockbackUp The vertical knockback
      * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamage(EntityLivingBase caster, EntityLivingBase hitEntity,
                                          float damage, float knockback, float knockbackUp) {
-        double dx = hitEntity.posX - npc.posX;
-        double dz = hitEntity.posZ - npc.posZ;
-        return applyAbilityDamageInternal(npc, hitEntity, damage, knockback, knockbackUp, dx, dz);
+        double dx = hitEntity.posX - caster.posX;
+        double dz = hitEntity.posZ - caster.posZ;
+        return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, knockbackUp, dx, dz);
     }
 
     /**
      * Apply damage to an entity with ability hit event support and custom knockback direction.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc           The NPC executing the ability
+     * @param caster        The entity executing the ability (NPC or Player)
      * @param hitEntity     The entity being hit
      * @param damage        The damage amount
      * @param knockback     The horizontal knockback
@@ -178,46 +189,74 @@ public abstract class Ability implements IAbility {
      * @param knockbackDirZ The Z component of knockback direction
      * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamageWithDirection(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamageWithDirection(EntityLivingBase caster, EntityLivingBase hitEntity,
                                                       float damage, float knockback,
                                                       double knockbackDirX, double knockbackDirZ) {
-        return applyAbilityDamageInternal(npc, hitEntity, damage, knockback, 0.0f, knockbackDirX, knockbackDirZ);
+        return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, 0.0f, knockbackDirX, knockbackDirZ);
     }
 
     /**
      * Internal unified damage application method.
      * All public damage methods delegate to this.
+     * Supports both NPC and Player casters.
      */
-    private boolean applyAbilityDamageInternal(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    private boolean applyAbilityDamageInternal(EntityLivingBase caster, EntityLivingBase hitEntity,
                                                float damage, float knockback, float knockbackUp,
                                                double knockbackDirX, double knockbackDirZ) {
-        DataAbilities dataAbilities = npc.abilities;
-        AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
-            this, currentTarget, hitEntity, damage, knockback, knockbackUp);
+        // Fire hit event for NPC casters (NPC event system)
+        if (caster instanceof EntityNPCInterface) {
+            EntityNPCInterface npc = (EntityNPCInterface) caster;
+            DataAbilities dataAbilities = npc.abilities;
+            AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
+                this, currentTarget, hitEntity, damage, knockback, knockbackUp);
 
-        if (event == null) {
-            return false; // Cancelled
+            if (event == null) {
+                return false; // Cancelled
+            }
+
+            damage = event.getDamage();
+            knockback = event.getKnockback();
+            knockbackUp = event.getKnockbackUp();
+        }
+        // Fire hit event for Player casters (Player event system)
+        else if (caster instanceof EntityPlayer && ScriptController.Instance != null) {
+            EntityPlayer player = (EntityPlayer) caster;
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            if (handler != null) {
+                IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+                PlayerAbilityEvent.HitEvent event = new PlayerAbilityEvent.HitEvent(
+                    iPlayer, this, currentTarget, hitEntity, damage, knockback, knockbackUp);
+
+                if (noppes.npcs.EventHooks.onPlayerAbilityHit(handler, event)) {
+                    return false; // Cancelled
+                }
+
+                damage = event.getDamage();
+                knockback = event.getKnockback();
+                knockbackUp = event.getKnockbackUp();
+            }
         }
 
-        // Apply damage with potentially modified values
-        float finalDamage = event.getDamage();
-        float finalKnockback = event.getKnockback();
-        float finalKnockbackUp = event.getKnockbackUp();
-
         // Apply damage
-        if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(new NpcDamageSource("mob", npc), finalDamage);
+        if (damage > 0) {
+            if (caster instanceof EntityNPCInterface) {
+                hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
+            } else if (caster instanceof EntityPlayer) {
+                hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
+            } else {
+                hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+            }
         }
 
         // Apply knockback if any
-        if (finalKnockback > 0 || finalKnockbackUp > 0) {
-            applyNpcKnockback(hitEntity, knockbackDirX, knockbackDirZ, finalKnockback, finalKnockbackUp);
+        if (knockback > 0 || knockbackUp > 0) {
+            applyKnockback(hitEntity, knockbackDirX, knockbackDirZ, knockback, knockbackUp);
         }
 
         return true;
     }
 
-    private void applyNpcKnockback(EntityLivingBase hitEntity, double dirX, double dirZ, float knockback, float knockbackUp) {
+    private void applyKnockback(EntityLivingBase hitEntity, double dirX, double dirZ, float knockback, float knockbackUp) {
         double len = Math.sqrt(dirX * dirX + dirZ * dirZ);
         double x = 0;
         double z = 0;
@@ -334,33 +373,33 @@ public abstract class Ability implements IAbility {
      * @param target The target (for position calculation)
      * @return The telegraph instance, or null if no telegraph
      */
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
         if (!showTelegraph || telegraphType == TelegraphType.NONE) {
             return null;
         }
 
         Telegraph telegraph;
         double x, y, z;
-        float yaw = npc.rotationYaw;
+        float yaw = caster.rotationYaw;
 
         // Determine position based on targeting mode
-        boolean positionAtNpc = targetingMode == TargetingMode.AOE_SELF ||
+        boolean positionAtCaster = targetingMode == TargetingMode.AOE_SELF ||
             targetingMode == TargetingMode.SELF ||
             telegraphType == TelegraphType.LINE ||
             telegraphType == TelegraphType.CONE;
 
-        if (positionAtNpc) {
-            x = npc.posX;
-            y = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
-            z = npc.posZ;
+        if (positionAtCaster) {
+            x = caster.posX;
+            y = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+            z = caster.posZ;
         } else if (target != null) {
             x = target.posX;
-            y = findGroundLevel(npc.worldObj, target.posX, target.posY, target.posZ);
+            y = findGroundLevel(caster.worldObj, target.posX, target.posY, target.posZ);
             z = target.posZ;
         } else {
-            x = npc.posX;
-            y = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
-            z = npc.posZ;
+            x = caster.posX;
+            y = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+            z = caster.posZ;
         }
 
         // Create telegraph based on type
@@ -391,12 +430,12 @@ public abstract class Ability implements IAbility {
         telegraph.setHeightOffset(telegraphHeightOffset);
 
         TelegraphInstance instance = new TelegraphInstance(telegraph, x, y, z, yaw);
-        instance.setCasterEntityId(npc.getEntityId());
+        instance.setCasterEntityId(caster.getEntityId());
 
         // Set entity to follow based on targeting mode
-        if (positionAtNpc) {
-            // AOE_SELF abilities: telegraph follows NPC during windup
-            instance.setEntityIdToFollow(npc.getEntityId());
+        if (positionAtCaster) {
+            // AOE_SELF abilities: telegraph follows caster during windup
+            instance.setEntityIdToFollow(caster.getEntityId());
 
             // For LINE/CONE telegraphs: track target direction during windup
             if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
@@ -729,9 +768,20 @@ public abstract class Ability implements IAbility {
     // CONDITION CHECKING
     // ═══════════════════════════════════════════════════════════════════
 
-    public boolean checkConditions(EntityNPCInterface npc, EntityLivingBase target) {
+    public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
         for (Condition c : conditions) {
-            if (!c.check(npc, target)) return false;
+            if (!c.check(caster, target)) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check conditions for a player caster, skipping target-requiring conditions.
+     */
+    public boolean checkConditionsForPlayer(EntityLivingBase caster) {
+        for (Condition c : conditions) {
+            if (c.requiresTarget()) continue;
+            if (!c.check(caster, null)) return false;
         }
         return true;
     }
@@ -768,6 +818,8 @@ public abstract class Ability implements IAbility {
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
         nbt.setTag("customData", customData);
+        nbt.setInteger("allowedBy", allowedBy.ordinal());
+        nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
         // Conditions
         NBTTagList condList = new NBTTagList();
@@ -803,38 +855,14 @@ public abstract class Ability implements IAbility {
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
-        // Support old telegraphColor key for backwards compatibility
-        if (nbt.hasKey("windUpColor")) {
-            windUpColor = nbt.getInteger("windUpColor");
-        } else if (nbt.hasKey("telegraphColor")) {
-            windUpColor = nbt.getInteger("telegraphColor");
-        }
-        if (nbt.hasKey("activeColor")) {
-            activeColor = nbt.getInteger("activeColor");
-        } else {
-            // Default active color to windUpColor with higher alpha
-            activeColor = (windUpColor & 0x00FFFFFF) | 0xC0000000;
-        }
-        // Sound fields (with backwards compatibility for old castSound)
-        if (nbt.hasKey("windUpSound")) {
-            windUpSound = nbt.getString("windUpSound");
-        } else if (nbt.hasKey("castSound")) {
-            windUpSound = nbt.getString("castSound"); // Migrate old field
-        } else {
-            windUpSound = "";
-        }
-        activeSound = nbt.hasKey("activeSound") ? nbt.getString("activeSound") : "";
-        // Animation fields (with backwards compatibility for old animationId)
-        if (nbt.hasKey("windUpAnimationId")) {
-            windUpAnimationId = nbt.getInteger("windUpAnimationId");
-        } else if (nbt.hasKey("animationId")) {
-            windUpAnimationId = nbt.getInteger("animationId"); // Migrate old field
-        } else {
-            windUpAnimationId = -1;
-        }
+        windUpColor = nbt.getInteger("windUpColor");
+        activeColor = nbt.getInteger("activeColor");
+        windUpSound = nbt.getString("windUpSound");
+        activeSound = nbt.getString("activeSound");
+        windUpAnimationId = nbt.hasKey("windUpAnimationId") ? nbt.getInteger("windUpAnimationId") : -1;
         activeAnimationId = nbt.hasKey("activeAnimationId") ? nbt.getInteger("activeAnimationId") : -1;
-        windUpAnimationName = nbt.hasKey("windUpAnimationName") ? nbt.getString("windUpAnimationName") : "";
-        activeAnimationName = nbt.hasKey("activeAnimationName") ? nbt.getString("activeAnimationName") : "";
+        windUpAnimationName = nbt.getString("windUpAnimationName");
+        activeAnimationName = nbt.getString("activeAnimationName");
         showTelegraph = !nbt.hasKey("showTelegraph") || nbt.getBoolean("showTelegraph");
         if (nbt.hasKey("telegraphType")) {
             try {
@@ -845,6 +873,8 @@ public abstract class Ability implements IAbility {
         }
         telegraphHeightOffset = nbt.hasKey("telegraphHeightOffset") ? nbt.getFloat("telegraphHeightOffset") : 0.1f;
         customData = nbt.getCompoundTag("customData");
+        allowedBy = nbt.hasKey("allowedBy") ? UserType.fromOrdinal(nbt.getInteger("allowedBy")) : UserType.BOTH;
+        ignoreCooldown = nbt.hasKey("ignoreCooldown") && nbt.getBoolean("ignoreCooldown");
 
         // Conditions
         conditions.clear();
@@ -1170,6 +1200,22 @@ public abstract class Ability implements IAbility {
         conditions.add(c);
     }
 
+    public UserType getAllowedBy() {
+        return allowedBy;
+    }
+
+    public void setAllowedBy(UserType allowedBy) {
+        this.allowedBy = allowedBy;
+    }
+
+    public boolean isIgnoreCooldown() {
+        return ignoreCooldown;
+    }
+
+    public void setIgnoreCooldown(boolean ignoreCooldown) {
+        this.ignoreCooldown = ignoreCooldown;
+    }
+
     public List<AbilityEffect> getEffects() {
         return effects;
     }
@@ -1191,6 +1237,16 @@ public abstract class Ability implements IAbility {
     // ═══════════════════════════════════════════════════════════════════
     // IAbility API METHODS
     // ═══════════════════════════════════════════════════════════════════
+
+    @Override
+    public int getAllowedByType() {
+        return allowedBy.ordinal();
+    }
+
+    @Override
+    public void setAllowedByType(int type) {
+        this.allowedBy = UserType.fromOrdinal(type);
+    }
 
     @Override
     public INbt getNbt() {

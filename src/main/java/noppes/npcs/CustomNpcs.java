@@ -340,7 +340,6 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
-        new AbilityController();
         AbilityController.Instance.load();
         TelegraphController.init();
 

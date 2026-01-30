@@ -106,7 +106,7 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
 
         // Row 1: Anchor Point
         addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
-        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), orb.getAnchorPointEnum().getId());
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), orb.getAnchorPointEnum().ordinal());
         anchorBtn.setHoverText("ability.hover.anchorPoint");
         addButton(anchorBtn);
 
@@ -163,12 +163,12 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
 
             // Row 61: Density + Radius
             addLabel(new GuiNpcLabel(207, "ability.lightningDensity", labelX, y + 5));
-            GuiNpcTextField densityField = new GuiNpcTextField(207, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(orb.getLightningDensity()));
+            GuiNpcTextField densityField = new GuiNpcTextField(207, this, fontRendererObj, fieldX, y, 55, 18, "" + orb.getLightningDensity());
             densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
             addTextField(densityField);
 
             addLabel(new GuiNpcLabel(208, "ability.lightningRadius", col2LabelX, y + 5));
-            GuiNpcTextField radiusField = new GuiNpcTextField(208, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(orb.getLightningRadius()));
+            GuiNpcTextField radiusField = new GuiNpcTextField(208, this, fontRendererObj, col2FieldX, y, 55, 18, "" + orb.getLightningRadius());
             radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
             addTextField(radiusField);
         }
@@ -213,7 +213,7 @@ public class SubGuiAbilityOrb extends SubGuiAbilityConfig {
                 initGui();
                 break;
             case 210:
-                orb.setAnchorPointEnum(AnchorPoint.fromId(value));
+                orb.setAnchorPointEnum(AnchorPoint.fromOrdinal(value));
                 break;
         }
     }

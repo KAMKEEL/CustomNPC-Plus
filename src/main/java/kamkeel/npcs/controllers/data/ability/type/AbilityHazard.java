@@ -118,8 +118,8 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
-        TelegraphInstance instance = super.createTelegraph(npc, target);
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
+        TelegraphInstance instance = super.createTelegraph(caster, target);
         if (instance == null) return null;
 
         // Control telegraph following based on placement mode
@@ -128,9 +128,9 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
             case FOLLOW_CASTER:
                 // Telegraph stays at caster position, no following
                 instance.setEntityIdToFollow(-1);
-                instance.setX(npc.posX);
-                instance.setY(npc.posY);
-                instance.setZ(npc.posZ);
+                instance.setX(caster.posX);
+                instance.setY(caster.posY);
+                instance.setZ(caster.posZ);
                 break;
             case AT_TARGET:
                 // Telegraph follows target during windup, locks on execute
@@ -149,14 +149,14 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     }
 
     @Override
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // AT_CASTER locks immediately, AT_TARGET follows during windup and locks on execute
         if (tick == 0) {
             switch (placement) {
                 case AT_CASTER:
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                     positionLocked = true;
                     break;
                 case AT_TARGET:
@@ -172,7 +172,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         // Lock position from telegraph (which was following target) or calculate it now
         TelegraphInstance telegraph = getTelegraphInstance();
 
@@ -180,9 +180,9 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
             case AT_CASTER:
                 // Already locked during windup
                 if (!positionLocked) {
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                 }
                 break;
             case AT_TARGET:
@@ -204,15 +204,15 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
                     zoneY = pos[1];
                     zoneZ = pos[2];
                 } else {
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                 }
                 break;
             case FOLLOW_CASTER:
-                zoneX = npc.posX;
-                zoneY = npc.posY;
-                zoneZ = npc.posZ;
+                zoneX = caster.posX;
+                zoneY = caster.posY;
+                zoneZ = caster.posZ;
                 break;
             case FOLLOW_TARGET:
                 if (target != null) {
@@ -220,9 +220,9 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
                     zoneY = target.posY;
                     zoneZ = target.posZ;
                 } else {
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                 }
                 break;
         }
@@ -231,7 +231,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
         // Check if hazard duration has ended
@@ -245,9 +245,9 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
 
         switch (placement) {
             case FOLLOW_CASTER:
-                zoneX = npc.posX;
-                zoneY = npc.posY;
-                zoneZ = npc.posZ;
+                zoneX = caster.posX;
+                zoneY = caster.posY;
+                zoneZ = caster.posZ;
                 break;
             case FOLLOW_TARGET:
                 if (target != null) {
@@ -272,16 +272,16 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
             List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
 
             for (EntityLivingBase entity : entities) {
-                if (entity == npc && !affectsCaster) continue;
+                if (entity == caster && !affectsCaster) continue;
                 if (damagedThisTick.contains(entity.getEntityId())) continue;
-                if (!isInZone(entity, npc)) continue;
+                if (!isInZone(entity, caster)) continue;
 
                 if (damagePerSecond > 0) {
                     if (ignoreInvulnFrames) {
                         entity.hurtResistantTime = 0;
                     }
                     // Apply damage with scripted event support (no knockback for hazard)
-                    boolean wasHit = applyAbilityDamage(npc, entity, damagePerSecond, 0);
+                    boolean wasHit = applyAbilityDamage(caster, entity, damagePerSecond, 0);
                     if (!wasHit) continue; // Skip debuffs if hit was cancelled
                 }
 
@@ -291,7 +291,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
         }
     }
 
-    private boolean isInZone(EntityLivingBase entity, EntityNPCInterface npc) {
+    private boolean isInZone(EntityLivingBase entity, EntityLivingBase caster) {
         double dx = entity.posX - zoneX;
         double dz = entity.posZ - zoneZ;
         double dist = Math.sqrt(dx * dx + dz * dz);
@@ -303,7 +303,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
                 return dist >= innerRadius && dist <= radius;
             case CONE:
                 if (dist > radius) return false;
-                float casterYaw = npc.rotationYaw;
+                float casterYaw = caster.rotationYaw;
                 double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
                 double angleDiff = Math.abs(normalizeAngle(angleToEntity - casterYaw));
                 return angleDiff <= coneAngle / 2;
@@ -337,13 +337,13 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
         damagedThisTick.clear();
         positionLocked = false;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
         damagedThisTick.clear();
         positionLocked = false;
     }

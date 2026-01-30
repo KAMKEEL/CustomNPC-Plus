@@ -62,7 +62,7 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
         // Bid amount field
         addLabel(new GuiNpcLabel(3, "auction.bid.yourBid", guiLeft + 15, y + 4));
         GuiNpcTextField bidField = new GuiNpcTextField(txtBidId, this, fontRendererObj,
-            guiLeft + 80, y, 100, 18, String.valueOf(minimumBid));
+            guiLeft + 80, y, 100, 18, "" + minimumBid);
         bidField.setIntegersOnly();
         addTextField(bidField);
         y += 28;
@@ -146,9 +146,9 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
     }
 
     private String formatCurrency(long amount) {
-        if (amount < 1000) return String.valueOf(amount);
+        if (amount < 1000) return "" + amount;
         StringBuilder sb = new StringBuilder();
-        String str = String.valueOf(amount);
+        String str = "" + amount;
         int count = 0;
         for (int i = str.length() - 1; i >= 0; i--) {
             if (count > 0 && count % 3 == 0) sb.insert(0, ',');

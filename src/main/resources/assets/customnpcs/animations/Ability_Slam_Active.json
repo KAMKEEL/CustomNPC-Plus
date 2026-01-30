@@ -8,39 +8,21 @@
             "FrameParts": [
                 {
                     "Pivot2": 0.0f,
+                    "Part": "FULL_MODEL",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": 0.0f,
                     "Part": "HEAD",
                     "Rotation1": 0.0f,
                     "Rotation0": 31.0f,
                     "Pivot0": 0.0f,
                     "Pivot1": 0.0f,
                     "Rotation2": 0.0f
-                },
-                {
-                    "Pivot2": 0.0f,
-                    "Part": "LEFT_ARM",
-                    "Rotation1": 0.0f,
-                    "Rotation0": -208.0f,
-                    "Pivot0": 0.0f,
-                    "Pivot1": 0.0f,
-                    "Rotation2": 12.0f
-                },
-                {
-                    "Pivot2": 0.0f,
-                    "Part": "BODY",
-                    "Rotation1": 0.0f,
-                    "Rotation0": -6.0f,
-                    "Pivot0": 0.0f,
-                    "Pivot1": 0.0f,
-                    "Rotation2": 0.0f
-                },
-                {
-                    "Pivot2": 0.0f,
-                    "Part": "RIGHT_ARM",
-                    "Rotation1": 0.0f,
-                    "Rotation0": -208.0f,
-                    "Pivot0": 0.0f,
-                    "Pivot1": 0.0f,
-                    "Rotation2": -12.0f
                 },
                 {
                     "Pivot2": -2.0f,
@@ -62,9 +44,27 @@
                 },
                 {
                     "Pivot2": 0.0f,
-                    "Part": "FULL_MODEL",
+                    "Part": "LEFT_ARM",
                     "Rotation1": 0.0f,
-                    "Rotation0": 0.0f,
+                    "Rotation0": -208.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": 12.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "RIGHT_ARM",
+                    "Rotation1": 0.0f,
+                    "Rotation0": -208.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 0.0f,
+                    "Rotation2": -12.0f
+                },
+                {
+                    "Pivot2": 0.0f,
+                    "Part": "BODY",
+                    "Rotation1": 0.0f,
+                    "Rotation0": -6.0f,
                     "Pivot0": 0.0f,
                     "Pivot1": 0.0f,
                     "Rotation2": 0.0f
@@ -76,7 +76,7 @@
     "CurrentFrameTime": 0,
     "CurrentFrame": 0,
     "Smooth": 0b,
-    "ID": 5,
+    "ID": 14,
     "WhileAttacking": 1b,
     "WhileWalking": 1b,
     "Name": "Ability_Slam_Active",

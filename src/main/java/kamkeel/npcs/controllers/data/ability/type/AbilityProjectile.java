@@ -13,8 +13,6 @@ import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityProjectile;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.entity.EntityNPCInterface;
-
 import noppes.npcs.api.ability.type.IAbilityProjectile;
 
 import java.util.List;
@@ -71,13 +69,13 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote || target == null) return;
 
         // Calculate direction to target
-        double dx = target.posX - npc.posX;
-        double dy = (target.posY + target.height / 2) - (npc.posY + npc.getEyeHeight());
-        double dz = target.posZ - npc.posZ;
+        double dx = target.posX - caster.posX;
+        double dy = (target.posY + target.height / 2) - (caster.posY + caster.getEyeHeight());
+        double dz = target.posZ - caster.posZ;
         double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
         if (len > 0) {
@@ -88,10 +86,10 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
         // Deal instant damage with scripted event support
         // TODO: Use custom EntityAbilityProjectile for actual tracking
-        applyAbilityDamageWithDirection(npc, target, damage, knockback, dx, dz);
+        applyAbilityDamageWithDirection(caster, target, damage, knockback, dx, dz);
 
         // Play sound
-        world.playSoundAtEntity(npc, "random.bow", 1.0f, 0.8f);
+        world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
 
         // Handle splash damage for explosive projectiles
         if (explosive && explosionRadius > 0) {
@@ -100,13 +98,13 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
                 target.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));
 
             for (Entity entity : entities) {
-                if (entity instanceof EntityLivingBase && entity != npc) {
+                if (entity instanceof EntityLivingBase && entity != caster) {
                     EntityLivingBase living = (EntityLivingBase) entity;
                     float dist = target.getDistanceToEntity(living);
                     if (dist < explosionRadius) {
                         float falloff = 1.0f - (dist / explosionRadius);
                         // Apply splash damage with scripted event support (no knockback)
-                        applyAbilityDamage(npc, living, damage * falloff * 0.5f, 0);
+                        applyAbilityDamage(caster, living, damage * falloff * 0.5f, 0);
                     }
                 }
             }
@@ -123,16 +121,16 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
         }
 
         // Spawn projectile particles (visual trail)
-        spawnProjectileParticles(world, npc, target);
+        spawnProjectileParticles(world, caster, target);
 
         // Projectile is instant
         signalCompletion();
     }
 
-    private void spawnProjectileParticles(World world, EntityNPCInterface npc, EntityLivingBase target) {
-        double startX = npc.posX;
-        double startY = npc.posY + npc.getEyeHeight();
-        double startZ = npc.posZ;
+    private void spawnProjectileParticles(World world, EntityLivingBase caster, EntityLivingBase target) {
+        double startX = caster.posX;
+        double startY = caster.posY + caster.getEyeHeight();
+        double startZ = caster.posZ;
         double endX = target.posX;
         double endY = target.posY + target.height / 2;
         double endZ = target.posZ;
@@ -161,7 +159,7 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Projectile is instant, nothing to do per-tick
     }
 

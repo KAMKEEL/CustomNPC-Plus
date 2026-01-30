@@ -97,6 +97,13 @@ public class ScriptPlayerEventHandler {
             if (PlayerDataController.Instance != null) {
                 PlayerData playerData = PlayerData.get(player);
                 playerData.actionManager.tick();
+                playerData.abilityData.tick(player);
+
+                // Lock player movement during ability phases that require it
+                if (playerData.abilityData.isMovementLocked()) {
+                    player.motionX = 0;
+                    player.motionZ = 0;
+                }
 
                 if (playerData.updateClient) {
                     SyncController.syncPlayerData((EntityPlayerMP) player, true);

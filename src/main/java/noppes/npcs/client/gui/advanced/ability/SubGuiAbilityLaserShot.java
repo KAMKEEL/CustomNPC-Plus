@@ -144,12 +144,12 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
             // Row 4: Density + Radius
             addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
-            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, String.valueOf(laser.getLightningDensity()));
+            GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, "" + laser.getLightningDensity());
             densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
             addTextField(densityField);
 
             addLabel(new GuiNpcLabel(207, "ability.lightningRadius", col2LabelX, y + 5));
-            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, String.valueOf(laser.getLightningRadius()));
+            GuiNpcTextField radiusField = new GuiNpcTextField(207, this, fontRendererObj, col2FieldX, y, 55, 18, "" + laser.getLightningRadius());
             radiusField.setMinMaxDefaultFloat(0.1f, 10.0f, 0.5f);
             addTextField(radiusField);
         }

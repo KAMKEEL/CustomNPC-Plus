@@ -250,7 +250,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         // Row 2: Weight + Lock Movement
         addLabel(new GuiNpcLabel(4, "ability.weight", col1LabelX, y + 5));
-        GuiNpcTextField weightField = new GuiNpcTextField(3, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(weight));
+        GuiNpcTextField weightField = new GuiNpcTextField(3, this, fontRendererObj, col1FieldX, y, 40, 20, "" + weight);
         weightField.setIntegersOnly();
         weightField.setMinMaxDefault(1, 1000, 10);
         addTextField(weightField);
@@ -271,7 +271,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Only show dazed ticks if interruptible is enabled
         if (interruptible) {
             addLabel(new GuiNpcLabel(12, "ability.dazed", col2LabelX, y + 5));
-            GuiNpcTextField dazedField = new GuiNpcTextField(13, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(dazedTicks));
+            GuiNpcTextField dazedField = new GuiNpcTextField(13, this, fontRendererObj, col2FieldX, y, 40, 20, "" + dazedTicks);
             dazedField.setIntegersOnly();
             dazedField.setMinMaxDefault(0, 1000, 80);
             addTextField(dazedField);
@@ -291,13 +291,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         // Only show windup textbox if sync is off or no animation selected
         if (!syncWindupWithAnimation || !hasWindupAnimation) {
-            GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(windUpTicks));
+            GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 40, 20, "" + windUpTicks);
             windupField.setIntegersOnly();
             windupField.setMinMaxDefault(0, 1000, 20);
             addTextField(windupField);
         } else {
             // Show calculated value as label when synced
-            addLabel(new GuiNpcLabel(11, String.valueOf(windUpTicks), col1FieldX + 5, y + 5));
+            addLabel(new GuiNpcLabel(11, "" + windUpTicks, col1FieldX + 5, y + 5));
         }
 
         // Sync toggle button - only show if windup animation is selected
@@ -309,7 +309,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         }
 
         addLabel(new GuiNpcLabel(13, "ability.cooldown", col2LabelX, y + 5));
-        GuiNpcTextField cooldownField = new GuiNpcTextField(10, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(cooldownTicks));
+        GuiNpcTextField cooldownField = new GuiNpcTextField(10, this, fontRendererObj, col2FieldX, y, 40, 20, "" + cooldownTicks);
         cooldownField.setIntegersOnly();
         cooldownField.setMinMaxDefault(0, 10000, 0);
         addTextField(cooldownField);
@@ -399,13 +399,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         // Row 1: Min Range + Max Range
         addLabel(new GuiNpcLabel(20, "ability.minRange", col1LabelX, y + 5));
-        GuiNpcTextField minRangeField = new GuiNpcTextField(5, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf((int) minRange));
+        GuiNpcTextField minRangeField = new GuiNpcTextField(5, this, fontRendererObj, col1FieldX, y, 40, 20, "" + (int) minRange);
         minRangeField.setIntegersOnly();
         minRangeField.setMinMaxDefault(0, 100, 0);
         addTextField(minRangeField);
 
         addLabel(new GuiNpcLabel(21, "ability.maxRange", col2LabelX, y + 5));
-        GuiNpcTextField maxRangeField = new GuiNpcTextField(6, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf((int) maxRange));
+        GuiNpcTextField maxRangeField = new GuiNpcTextField(6, this, fontRendererObj, col2FieldX, y, 40, 20, "" + (int) maxRange);
         maxRangeField.setIntegersOnly();
         maxRangeField.setMinMaxDefault(1, 100, 20);
         addTextField(maxRangeField);
@@ -1039,7 +1039,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
      * Creates an integer text field for type-specific settings.
      */
     protected GuiNpcTextField createIntField(int id, int x, int y, int width, int value) {
-        GuiNpcTextField field = new GuiNpcTextField(id, this, fontRendererObj, x, y, width, 20, String.valueOf(value));
+        GuiNpcTextField field = new GuiNpcTextField(id, this, fontRendererObj, x, y, width, 20, "" + value);
         field.setIntegersOnly();
         return field;
     }

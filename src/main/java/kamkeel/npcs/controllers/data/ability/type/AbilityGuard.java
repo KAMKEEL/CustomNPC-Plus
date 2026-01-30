@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -60,6 +61,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.showTelegraph = false;
         this.windUpSound = "random.anvil_use";
         this.activeSound = "random.anvil_land";
+        this.allowedBy = UserType.NPC_ONLY;
     }
 
     @Override
@@ -85,17 +87,17 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         lastAttacker = null;
         counterTriggered = false;
         lastDamageTaken = 0.0f;
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Counter attack logic if triggered
         if (canCounter && counterTriggered && lastAttacker != null && !world.isRemote) {
-            performCounter(npc, world);
+            performCounter(caster, world);
         }
 
         // Check if guard duration has ended
@@ -105,13 +107,13 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     /**
-     * Called externally when the NPC takes damage while guarding.
+     * Called externally when the caster takes damage while guarding.
      * This should be called from the damage handling code.
      *
      * @param attacker The entity that attacked
      * @param damage   The damage amount (after reduction)
      */
-    public void onDamageTaken(EntityNPCInterface npc, EntityLivingBase attacker, DamageSource source, float damage) {
+    public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
         if (!canCounter || attacker == null) return;
         if (!isDirectHit(source)) return;
         if (RANDOM.nextFloat() >= counterChance) return;
@@ -122,17 +124,19 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         // Counter will be performed in onActiveTick - don't self-interrupt
     }
 
-    private void performCounter(EntityNPCInterface npc, World world) {
+    private void performCounter(EntityLivingBase caster, World world) {
         float counterDamage = counterType == CounterType.PERCENT
             ? lastDamageTaken * (counterValue / 100.0f)
             : counterValue;
 
-        boolean wasHit = applyAbilityDamage(npc, lastAttacker, counterDamage, 0.5f);
+        boolean wasHit = applyAbilityDamage(caster, lastAttacker, counterDamage, 0.5f);
         if (wasHit && counterSound != null && !counterSound.isEmpty()) {
-            world.playSoundAtEntity(npc, counterSound, 1.0f, 1.2f);
+            world.playSoundAtEntity(caster, counterSound, 1.0f, 1.2f);
         }
-        // Use shared animation utility
-        npc.abilities.playAbilityAnimation(counterAnimationId);
+        // Use shared animation utility - only available for NPCs
+        if (caster instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) caster).abilities.playAbilityAnimation(counterAnimationId);
+        }
 
         counterTriggered = false;
         lastAttacker = null;
@@ -157,7 +161,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     /**
-     * Check if the NPC is currently in guard stance.
+     * Check if the caster is currently in guard stance.
      */
     public boolean isGuarding() {
         return isExecuting() && getPhase() == kamkeel.npcs.controllers.data.ability.AbilityPhase.ACTIVE;

@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.data.ability.AbilitySlot;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
@@ -46,8 +47,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     // Display name to typeId mapping for the available types scroll
     private final HashMap<String, String> displayNameToTypeId = new HashMap<>();
 
-    // NPC's current abilities
-    private final List<Ability> npcAbilities = new ArrayList<>();
+    // NPC's current ability slots
+    private final List<AbilitySlot> npcSlots = new ArrayList<>();
 
     // Settings
     private boolean abilitiesEnabled = false;
@@ -75,13 +76,13 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         // Cooldown range: Min Cooldown and Max Cooldown (spaced apart more)
         addLabel(new GuiNpcLabel(101, "ability.minCooldown", guiLeft + 115, y + 5));
-        GuiNpcTextField minField = new GuiNpcTextField(101, this, fontRendererObj, guiLeft + 165, y, 40, 20, String.valueOf(minCooldown));
+        GuiNpcTextField minField = new GuiNpcTextField(101, this, fontRendererObj, guiLeft + 165, y, 40, 20, "" + minCooldown);
         minField.setIntegersOnly();
         minField.setMinMaxDefault(0, 10000, 20);
         addTextField(minField);
 
         addLabel(new GuiNpcLabel(102, "ability.maxCooldown", guiLeft + 260, y + 5));
-        GuiNpcTextField maxField = new GuiNpcTextField(102, this, fontRendererObj, guiLeft + 310, y, 40, 20, String.valueOf(maxCooldown));
+        GuiNpcTextField maxField = new GuiNpcTextField(102, this, fontRendererObj, guiLeft + 310, y, 40, 20, "" + maxCooldown);
         maxField.setIntegersOnly();
         maxField.setMinMaxDefault(0, 10000, 60);
         addTextField(maxField);
@@ -124,8 +125,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         addButton(new GuiNpcButton(75, centerX, y + 90, 40, 20, "gui.load"));
 
         // On/Off toggle for selected ability (under Load button)
-        if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-            Ability selectedAbility = npcAbilities.get(selectedAbilityIndex);
+        if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+            Ability selectedAbility = npcSlots.get(selectedAbilityIndex).getAbility();
             GuiNpcButton toggleBtn = new GuiNpcButton(77, centerX, y + 112, 40, 20,
                 new String[]{"gui.off", "gui.on"}, selectedAbility.isEnabled() ? 1 : 0);
             addButton(toggleBtn);
@@ -139,7 +140,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         addButton(new GuiNpcButton(73, guiLeft + 270, y + 145, 20, 20, "<"));
         addButton(new GuiNpcButton(74, guiLeft + 292, y + 145, 20, 20, ">"));
         getButton(73).setEnabled(selectedAbilityIndex > 0);
-        getButton(74).setEnabled(selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size() - 1);
+        getButton(74).setEnabled(selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size() - 1);
 
         // Save button (to the right of carrots, only enabled when ability is selected)
         addButton(new GuiNpcButton(76, guiLeft + 320, y + 145, 50, 20, "gui.save"));
@@ -166,10 +167,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     Ability newAbility = AbilityController.Instance.create(typeId);
                     if (newAbility != null) {
                         newAbility.setId(UUID.randomUUID().toString());
-                        // Don't set custom name - let it default to type name
-                        npcAbilities.add(newAbility);
-                        // Auto-select the newly added ability
-                        selectedAbilityIndex = npcAbilities.size() - 1;
+                        npcSlots.add(AbilitySlot.inline(newAbility));
+                        selectedAbilityIndex = npcSlots.size() - 1;
                         updateNpcAbilitiesList();
                         selectAbilityByIndex(selectedAbilityIndex);
                         initGui();
@@ -182,8 +181,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         // Remove ability
         if (id == 71) {
-            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-                npcAbilities.remove(selectedAbilityIndex);
+            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+                npcSlots.remove(selectedAbilityIndex);
                 selectedAbilityIndex = -1;
                 updateNpcAbilitiesList();
                 initGui();
@@ -194,9 +193,17 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         // Edit ability
         if (id == 72) {
-            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-                Ability ability = npcAbilities.get(selectedAbilityIndex);
-                setSubGui(ability.createConfigGui(this));
+            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+                AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+                if (slot.isReference()) {
+                    // Reference slot - ask clone-and-modify vs modify-parent
+                    setSubGui(new SubGuiAbilityEditMode());
+                } else {
+                    Ability ability = slot.getAbility();
+                    if (ability != null) {
+                        setSubGui(ability.createConfigGui(this));
+                    }
+                }
             }
             return;
         }
@@ -204,9 +211,9 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Move up (carrot left = earlier in list)
         if (id == 73) {
             if (selectedAbilityIndex > 0) {
-                Ability temp = npcAbilities.get(selectedAbilityIndex);
-                npcAbilities.set(selectedAbilityIndex, npcAbilities.get(selectedAbilityIndex - 1));
-                npcAbilities.set(selectedAbilityIndex - 1, temp);
+                AbilitySlot temp = npcSlots.get(selectedAbilityIndex);
+                npcSlots.set(selectedAbilityIndex, npcSlots.get(selectedAbilityIndex - 1));
+                npcSlots.set(selectedAbilityIndex - 1, temp);
                 selectedAbilityIndex--;
                 updateNpcAbilitiesList();
                 selectAbilityByIndex(selectedAbilityIndex);
@@ -218,10 +225,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         // Move down (carrot right = later in list)
         if (id == 74) {
-            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size() - 1) {
-                Ability temp = npcAbilities.get(selectedAbilityIndex);
-                npcAbilities.set(selectedAbilityIndex, npcAbilities.get(selectedAbilityIndex + 1));
-                npcAbilities.set(selectedAbilityIndex + 1, temp);
+            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size() - 1) {
+                AbilitySlot temp = npcSlots.get(selectedAbilityIndex);
+                npcSlots.set(selectedAbilityIndex, npcSlots.get(selectedAbilityIndex + 1));
+                npcSlots.set(selectedAbilityIndex + 1, temp);
                 selectedAbilityIndex++;
                 updateNpcAbilitiesList();
                 selectAbilityByIndex(selectedAbilityIndex);
@@ -237,15 +244,16 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             return;
         }
 
-        // Save selected ability
+        // Save selected ability as custom preset
         if (id == 76) {
-            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-                Ability abilityToSave = npcAbilities.get(selectedAbilityIndex);
-                if (abilityToSave.getName() == null || abilityToSave.getName().isEmpty()) {
-                    // Need a name to save - open edit dialog first
-                    setSubGui(abilityToSave.createConfigGui(this));
-                } else {
-                    setSubGui(new SubGuiAbilitySaveConfirm(abilityToSave));
+            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+                Ability abilityToSave = npcSlots.get(selectedAbilityIndex).getAbility();
+                if (abilityToSave != null) {
+                    if (abilityToSave.getName() == null || abilityToSave.getName().isEmpty()) {
+                        setSubGui(abilityToSave.createConfigGui(this));
+                    } else {
+                        setSubGui(new SubGuiAbilitySaveConfirm(abilityToSave));
+                    }
                 }
             }
             return;
@@ -253,13 +261,15 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         // Toggle selected ability on/off
         if (id == 77) {
-            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-                Ability ability = npcAbilities.get(selectedAbilityIndex);
-                ability.setEnabled(((GuiNpcButton) guibutton).getValue() == 1);
-                updateNpcAbilitiesList();
-                selectAbilityByIndex(selectedAbilityIndex);
-                initGui();
-                save();
+            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+                Ability ability = npcSlots.get(selectedAbilityIndex).getAbility();
+                if (ability != null) {
+                    ability.setEnabled(((GuiNpcButton) guibutton).getValue() == 1);
+                    updateNpcAbilitiesList();
+                    selectAbilityByIndex(selectedAbilityIndex);
+                    initGui();
+                    save();
+                }
             }
             return;
         }
@@ -290,26 +300,20 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         abilitiesEnabled = compound.getBoolean("AbilitiesEnabled");
 
-        // Support old globalCooldown for backwards compatibility
-        if (compound.hasKey("AbilityMinCooldown")) {
-            minCooldown = compound.getInteger("AbilityMinCooldown");
-            maxCooldown = compound.getInteger("AbilityMaxCooldown");
-        } else if (compound.hasKey("AbilityGlobalCooldown")) {
-            int oldCooldown = compound.getInteger("AbilityGlobalCooldown");
-            minCooldown = oldCooldown;
-            maxCooldown = oldCooldown * 2;
-        } else {
+        minCooldown = compound.getInteger("AbilityMinCooldown");
+        maxCooldown = compound.getInteger("AbilityMaxCooldown");
+        if (minCooldown == 0 && maxCooldown == 0) {
             minCooldown = 20;
             maxCooldown = 60;
         }
 
-        npcAbilities.clear();
+        npcSlots.clear();
         NBTTagList abilityList = compound.getTagList("Abilities", 10);
         for (int i = 0; i < abilityList.tagCount(); i++) {
             NBTTagCompound abilityNBT = abilityList.getCompoundTagAt(i);
-            Ability ability = AbilityController.Instance.fromNBT(abilityNBT);
-            if (ability != null) {
-                npcAbilities.add(ability);
+            AbilitySlot slot = AbilitySlot.fromNBT(abilityNBT);
+            if (slot != null) {
+                npcSlots.add(slot);
             }
         }
 
@@ -352,7 +356,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     private void updateNpcAbilitiesList() {
         List<String> list = new ArrayList<>();
-        for (int i = 0; i < npcAbilities.size(); i++) {
+        for (int i = 0; i < npcSlots.size(); i++) {
             list.add(getAbilityListEntry(i));
         }
         if (npcAbilitiesScroll != null) {
@@ -361,26 +365,41 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     }
 
     /**
-     * Creates the display entry for an ability in the list.
-     * Format: "[●] 1. Custom Name (Type)" or "[●] 1. Type" if no custom name
-     * Circle is green (§a) for enabled, red (§c) for disabled
+     * Creates the display entry for an ability slot in the list.
+     * Inline:    "[●] 1. Custom Name (Type)" or "[●] 1. Type"
+     * Reference: "[●] 1. > Name (Type)" in yellow
+     * Broken:    "[●] 1. > [Missing: id...]" in red
      */
     private String getAbilityListEntry(int index) {
-        Ability ability = npcAbilities.get(index);
+        AbilitySlot slot = npcSlots.get(index);
+        Ability ability = slot.getAbility();
+
+        if (ability == null) {
+            // Broken reference
+            String refId = slot.getReferenceId();
+            String shortId = refId != null && refId.length() > 8 ? refId.substring(0, 8) + "..." : refId;
+            return "\u00A7c\u25CF\u00A7r " + (index + 1) + ". \u00A7c> [Missing: " + shortId + "]\u00A7r";
+        }
+
         String typeName = getDisplayName(ability.getTypeId());
         String customName = ability.getName();
-
-        // Color prefix: green circle for enabled, red for disabled
         String colorPrefix = ability.isEnabled() ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
 
+        String nameDisplay;
         if (customName != null && !customName.isEmpty() && !customName.equals(typeName)) {
-            return colorPrefix + (index + 1) + ". " + customName + " (" + typeName + ")";
+            nameDisplay = customName + " (" + typeName + ")";
+        } else {
+            nameDisplay = typeName;
         }
-        return colorPrefix + (index + 1) + ". " + typeName;
+
+        if (slot.isReference()) {
+            return colorPrefix + (index + 1) + ". \u00A7e> " + nameDisplay + "\u00A7r";
+        }
+        return colorPrefix + (index + 1) + ". " + nameDisplay;
     }
 
     private void selectAbilityByIndex(int index) {
-        if (index >= 0 && index < npcAbilities.size()) {
+        if (index >= 0 && index < npcSlots.size()) {
             String entry = getAbilityListEntry(index);
             if (npcAbilitiesScroll != null) {
                 npcAbilitiesScroll.setSelected(entry);
@@ -403,8 +422,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         compound.setInteger("AbilityMaxCooldown", maxCooldown);
 
         NBTTagList abilityList = new NBTTagList();
-        for (Ability ability : npcAbilities) {
-            abilityList.appendTag(ability.writeNBT());
+        for (AbilitySlot slot : npcSlots) {
+            abilityList.appendTag(slot.writeNBT());
         }
         compound.setTag("Abilities", abilityList);
 
@@ -412,15 +431,29 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     }
 
     /**
-     * Called from SubGuiAbilityLoad when a saved ability is loaded.
-     * Adds the ability to the NPC's ability list.
+     * Called from SubGuiAbilityLoad when a cloned ability is loaded.
+     * Adds as an inline slot.
      */
     public void loadAbility(Ability loadedAbility) {
         if (loadedAbility != null) {
             loadedAbility.setId(UUID.randomUUID().toString());
-            npcAbilities.add(loadedAbility);
-            // Auto-select the newly added ability
-            selectedAbilityIndex = npcAbilities.size() - 1;
+            npcSlots.add(AbilitySlot.inline(loadedAbility));
+            selectedAbilityIndex = npcSlots.size() - 1;
+            updateNpcAbilitiesList();
+            selectAbilityByIndex(selectedAbilityIndex);
+            initGui();
+            save();
+        }
+    }
+
+    /**
+     * Called from SubGuiAbilityLoad when a reference is loaded.
+     * Adds as a reference slot.
+     */
+    public void loadAbilityReference(String referenceId) {
+        if (referenceId != null && !referenceId.isEmpty()) {
+            npcSlots.add(AbilitySlot.reference(referenceId));
+            selectedAbilityIndex = npcSlots.size() - 1;
             updateNpcAbilitiesList();
             selectAbilityByIndex(selectedAbilityIndex);
             initGui();
@@ -460,9 +493,16 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
-        if (scroll == npcAbilitiesScroll && selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-            Ability ability = npcAbilities.get(selectedAbilityIndex);
-            setSubGui(ability.createConfigGui(this));
+        if (scroll == npcAbilitiesScroll && selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+            AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+            if (slot.isReference()) {
+                setSubGui(new SubGuiAbilityEditMode());
+            } else {
+                Ability ability = slot.getAbility();
+                if (ability != null) {
+                    setSubGui(ability.createConfigGui(this));
+                }
+            }
         }
     }
 
@@ -489,8 +529,32 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if (subgui instanceof SubGuiAbilityConfig) {
-            // Ability was saved in the SubGui, refresh list
+        if (subgui instanceof SubGuiAbilityEditMode) {
+            int mode = ((SubGuiAbilityEditMode) subgui).getResult();
+            if (mode < 0) return; // cancelled
+
+            if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+                AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+                if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
+                    // Convert reference to inline, then edit
+                    if (slot.convertToInline()) {
+                        Ability ability = slot.getAbility();
+                        if (ability != null) {
+                            ability.setId(UUID.randomUUID().toString());
+                            setSubGui(ability.createConfigGui(this));
+                        }
+                        updateNpcAbilitiesList();
+                        save();
+                    }
+                } else if (mode == SubGuiAbilityEditMode.MODE_MODIFY_PARENT) {
+                    // Edit the resolved ability directly (changes propagate to controller)
+                    Ability ability = slot.getAbility();
+                    if (ability != null) {
+                        setSubGui(ability.createConfigGui(this));
+                    }
+                }
+            }
+        } else if (subgui instanceof SubGuiAbilityConfig) {
             updateNpcAbilitiesList();
             save();
         }
@@ -500,8 +564,15 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      * Called from SubGuiAbilityConfig when ability is saved.
      */
     public void onAbilitySaved(Ability ability) {
-        if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-            npcAbilities.set(selectedAbilityIndex, ability);
+        if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+            AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+            if (slot.isReference()) {
+                // For reference slots, save back to controller
+                // (The resolved copy was edited in-place)
+            } else {
+                // For inline slots, replace with the updated ability
+                npcSlots.set(selectedAbilityIndex, AbilitySlot.inline(ability));
+            }
             updateNpcAbilitiesList();
             save();
         }

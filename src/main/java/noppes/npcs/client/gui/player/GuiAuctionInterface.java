@@ -196,9 +196,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
 
     /** Format currency with commas (e.g., 1000 -> "1,000") */
     protected String formatCurrency(long amount) {
-        if (amount < 1000) return String.valueOf(amount);
+        if (amount < 1000) return "" + amount;
         StringBuilder sb = new StringBuilder();
-        String str = String.valueOf(amount);
+        String str = "" + amount;
         int count = 0;
         for (int i = str.length() - 1; i >= 0; i--) {
             if (count > 0 && count % 3 == 0) sb.insert(0, ',');

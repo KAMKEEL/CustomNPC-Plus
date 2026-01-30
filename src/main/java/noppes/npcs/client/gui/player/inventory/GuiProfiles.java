@@ -180,7 +180,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
 
             if (slot.isTemporary()) {
                 label = StatCollector.translateToLocal("profile.temporary");
-                result = (String.valueOf(slot.isTemporary())).toUpperCase();
+                result = ("" + slot.isTemporary()).toUpperCase();
                 labelColor = 0xfc60dd;
                 resultColor = 0x35fc81;
                 fontRendererObj.drawString(label, xLabel, y, labelColor, false);

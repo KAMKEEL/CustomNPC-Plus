@@ -80,7 +80,7 @@ public class SubGuiAbilityEffects extends SubGuiInterface implements ITextfieldL
 
             // Duration text field
             GuiNpcTextField durField = new GuiNpcTextField(baseId + 1, this, fontRendererObj,
-                guiLeft + 112, y, 50, 20, String.valueOf(effect.getDurationTicks()));
+                guiLeft + 112, y, 50, 20, "" + effect.getDurationTicks());
             durField.setIntegersOnly();
             durField.setMinMaxDefault(1, 12000, 60);
             durField.setHoverText("effect.hover.duration");
@@ -89,7 +89,7 @@ public class SubGuiAbilityEffects extends SubGuiInterface implements ITextfieldL
             // Amplifier selector (0-10)
             String[] ampValues = new String[11];
             for (int a = 0; a <= 10; a++) {
-                ampValues[a] = String.valueOf(a);
+                ampValues[a] = "" + a;
             }
             GuiNpcButton ampBtn = new GuiNpcButton(baseId + 2, guiLeft + 168, y, 40, 20, ampValues, effect.getAmplifier());
             ampBtn.setHoverText("effect.hover.amplifier");
