@@ -63,6 +63,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         float headSize = beam.getHeadSize();
         int innerColor = beam.getInnerColor();
         int outerColor = beam.getOuterColor();
+        float outerAlpha = beam.getOuterColorAlpha();
 
         // Render everything relative to origin position
         GL11.glPushMatrix();
@@ -74,7 +75,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         // Render tail orb at origin (0,0,0) - only in anchored mode
         // Don't render if head is too close to origin (would cause overlap/extra orb appearance)
         if (beam.shouldRenderTailOrb() && headDistFromOrigin > headSize * 0.5) {
-            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
+            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), outerAlpha);
         }
 
         // Render trail segments with smooth connections (with fading for non-anchored)
@@ -85,7 +86,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         }
 
         // Render head at interpolated offset position
-        renderHead(beam, headOffsetX, headOffsetY, headOffsetZ, headSize, innerColor, outerColor, partialTicks);
+        renderHead(beam, headOffsetX, headOffsetY, headOffsetZ, headSize, innerColor, outerColor, outerAlpha, partialTicks);
 
         GL11.glPopMatrix();
 
@@ -128,10 +129,11 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         // Render outer glow only if enabled
         if (beam.isOuterColorEnabled()) {
             float outerScale = innerScale + beam.getOuterColorWidth();
+            float outerAlpha = beam.getOuterColorAlpha();
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
             GL11.glScalef(outerScale, outerScale, outerScale);
-            renderCube(outerColor, 0.5f, 0.5f);
+            renderCube(outerColor, outerAlpha, 0.5f);
             GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
@@ -148,7 +150,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
      * Render the tail orb at the origin (where the beam emanates from).
      * This orb does not rotate - it's a stable anchor point.
      */
-    private void renderTailOrb(float size, int innerColor, int outerColor, boolean outerColorEnabled, float outerColorWidth) {
+    private void renderTailOrb(float size, int innerColor, int outerColor, boolean outerColorEnabled, float outerColorWidth, float outerAlpha) {
         GL11.glPushMatrix();
         // Already at origin (0,0,0)
 
@@ -162,7 +164,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
             GL11.glScalef(size * outerScale, size * outerScale, size * outerScale);
-            renderCube(outerColor, 0.4f, 0.5f);
+            renderCube(outerColor, outerAlpha, 0.5f);
             GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
@@ -532,7 +534,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
      * Coordinates are relative to origin.
      */
     private void renderHead(EntityAbilityBeam beam, double x, double y, double z,
-                            float size, int innerColor, int outerColor, float partialTicks) {
+                            float size, int innerColor, int outerColor, float outerAlpha, float partialTicks) {
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, z);
 
@@ -564,7 +566,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
             GL11.glScalef(outerScale, outerScale, outerScale);
-            renderCube(outerColor, 0.5f, 0.5f);
+            renderCube(outerColor, outerAlpha, 0.5f);
             GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
