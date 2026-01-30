@@ -75,9 +75,10 @@ public class AnchorPointHelper {
 
         switch (anchor) {
             case FRONT:
-                x -= Math.sin(headYaw) * frontOffset * scale;
-                y += height * FRONT_HEIGHT;
-                z += Math.cos(headYaw) * frontOffset * scale;
+                Vec3 look = entity.getLookVec();
+                x += look.xCoord * frontOffset * scale;
+                y += height * FRONT_HEIGHT + look.yCoord * frontOffset * scale;
+                z += look.zCoord * frontOffset * scale;
                 break;
 
             case CENTER:

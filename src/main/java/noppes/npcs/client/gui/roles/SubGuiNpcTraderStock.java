@@ -95,7 +95,7 @@ public class SubGuiNpcTraderStock extends SubGuiInterface implements ISubGuiList
                 return "-1"; // Mixed values, return unlimited
             }
         }
-        return String.valueOf(first);
+        return "" + first;
     }
 
     @Override

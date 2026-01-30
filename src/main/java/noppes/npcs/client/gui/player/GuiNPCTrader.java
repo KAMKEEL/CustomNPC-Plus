@@ -172,7 +172,7 @@ public class GuiNPCTrader extends GuiContainerNPCInterface implements IGuiData {
 
                 // Draw stock count to the RIGHT of the trade (after output slot)
                 if (stockEnabled && availableStock[slotIdx] < Integer.MAX_VALUE) {
-                    String stockText = String.valueOf(availableStock[slotIdx]);
+                    String stockText = "" + availableStock[slotIdx];
                     int stockColor = availableStock[slotIdx] > 0 ? 0x00AA00 : 0xAA0000;
                     fontRendererObj.drawString(stockText, x + OUTPUT_OFFSET + 20, y + 5, stockColor);
                 }
@@ -317,10 +317,10 @@ public class GuiNPCTrader extends GuiContainerNPCInterface implements IGuiData {
      */
     private String formatCurrency(long amount) {
         if (amount < 1000) {
-            return String.valueOf(amount);
+            return "" + amount;
         }
         StringBuilder sb = new StringBuilder();
-        String str = String.valueOf(amount);
+        String str = "" + amount;
         int count = 0;
         for (int i = str.length() - 1; i >= 0; i--) {
             if (count > 0 && count % 3 == 0) {

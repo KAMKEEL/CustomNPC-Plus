@@ -39,11 +39,14 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,7 +75,8 @@ public class SyncController {
         EnumSyncType.ANVIL_RECIPES,
         EnumSyncType.CUSTOM_EFFECTS,
         EnumSyncType.MAGIC,
-        EnumSyncType.MAGIC_CYCLE
+        EnumSyncType.MAGIC_CYCLE,
+        EnumSyncType.CUSTOM_ABILITY
     };
 
     public static void load() {
@@ -88,6 +92,7 @@ public class SyncController {
         registerCache(EnumSyncType.CUSTOM_EFFECTS, SyncController::customEffectsNBT);
         registerCache(EnumSyncType.MAGIC, SyncController::magicsNBT);
         registerCache(EnumSyncType.MAGIC_CYCLE, SyncController::magicCyclesNBT);
+        registerCache(EnumSyncType.CUSTOM_ABILITY, SyncController::customAbilitiesNBT);
     }
 
     public static void syncPlayer(EntityPlayerMP player) {
@@ -321,6 +326,27 @@ public class SyncController {
         }
         compound.setTag("Data", list);
         return compound;
+    }
+
+    public static NBTTagCompound customAbilitiesNBT() {
+        NBTTagList list = new NBTTagList();
+        NBTTagCompound compound = new NBTTagCompound();
+        for (Map.Entry<String, Ability> entry : AbilityController.Instance.getCustomAbilities().entrySet()) {
+            NBTTagCompound abilityNBT = entry.getValue().writeNBT();
+            abilityNBT.setString("CustomAbilityId", entry.getKey());
+            list.appendTag(abilityNBT);
+        }
+        compound.setTag("Data", list);
+        return compound;
+    }
+
+    public static void syncAllCustomAbilities() {
+        CachedSyncPayload payload = rebuildNow(EnumSyncType.CUSTOM_ABILITY);
+        if (payload == null) {
+            return;
+        }
+        PacketHandler.Instance.sendToAll(new SyncPacket(EnumSyncType.CUSTOM_ABILITY, payload));
+        updateAllPlayerRevisions(EnumSyncType.CUSTOM_ABILITY, payload.getRevision());
     }
 
     public static void syncPlayerData(EntityPlayerMP player, boolean update) {
@@ -595,6 +621,21 @@ public class SyncController {
                 ce.customEffectsSync.clear();
                 break;
             }
+            case CUSTOM_ABILITY: {
+                NBTTagList list = fullCompound.getTagList("Data", 10);
+                LinkedHashMap<String, Ability> sync = new LinkedHashMap<>();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    NBTTagCompound nbt = list.getCompoundTagAt(i);
+                    String uuid = nbt.getString("CustomAbilityId");
+                    Ability ability = AbilityController.Instance.fromNBT(nbt);
+                    if (ability != null) {
+                        ability.setId(uuid);
+                        sync.put(uuid, ability);
+                    }
+                }
+                AbilityController.Instance.setCustomAbilities(sync);
+                break;
+            }
         }
 
         ClientCacheHandler.updateClientRevision(enumSyncType, revision);
@@ -843,6 +884,8 @@ public class SyncController {
                 return EnumSet.of(EnumSyncType.ANVIL_RECIPES);
             case CUSTOM_EFFECTS:
                 return EnumSet.of(EnumSyncType.CUSTOM_EFFECTS);
+            case CUSTOM_ABILITY:
+                return EnumSet.of(EnumSyncType.CUSTOM_ABILITY);
             default:
                 return EnumSet.noneOf(EnumSyncType.class);
         }

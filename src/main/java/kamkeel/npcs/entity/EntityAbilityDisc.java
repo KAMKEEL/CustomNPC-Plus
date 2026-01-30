@@ -10,7 +10,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 
@@ -84,7 +83,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     /**
      * Full constructor with all parameters using data classes.
      */
-    public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
+    public EntityAbilityDisc(World world, EntityLivingBase owner, EntityLivingBase target,
                               double x, double y, double z,
                               float discRadius, float discThickness,
                               EnergyColorData color, EnergyCombatData combat,
@@ -155,7 +154,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityNPCInterface owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -512,7 +511,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.discThickness = targetDiscThickness * progress;
         this.size = this.discRadius; // Base size for interpolation
 
-        // Calculate position based on anchor point
+        // Calculate position based on anchor point, offset downward by half radius to center
         if (owner instanceof EntityLivingBase) {
             Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);

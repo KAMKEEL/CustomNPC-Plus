@@ -98,7 +98,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             getTextField(18).setVisible(dialog.renderGradual);
             getLabel(18).enabled = dialog.renderGradual;
 
-            addTextField(new GuiNpcTextField(19, this, guiLeft + 125, y += 22, 40, 20, String.valueOf(dialog.textPitch)));
+            addTextField(new GuiNpcTextField(19, this, guiLeft + 125, y += 22, 40, 20, "" + dialog.textPitch));
             addLabel(new GuiNpcLabel(19, "dialog.textPitch", guiLeft + 4, y + 5));
             getTextField(19).floatsOnly = true;
             getTextField(19).setVisible(dialog.renderGradual);
@@ -110,48 +110,48 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             addButton(new GuiNpcButton(24, guiLeft + 192, y, 50, 20, new String[]{"display.bottom", "display.top"}, dialog.alignment));
             addLabel(new GuiNpcLabel(27, "display.alignment", guiLeft + 126, y + 5));
 
-            addTextField(new GuiNpcTextField(11, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textWidth)));
-            addTextField(new GuiNpcTextField(12, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textHeight)));
+            addTextField(new GuiNpcTextField(11, this, guiLeft + 120, y += 25, 40, 20, "" + dialog.textWidth));
+            addTextField(new GuiNpcTextField(12, this, guiLeft + 165, y, 40, 20, "" + dialog.textHeight));
             addLabel(new GuiNpcLabel(12, "gui.widthHeight", guiLeft + 4, y + 5));
             getTextField(11).integersOnly = true;
             getTextField(11).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
             getTextField(12).integersOnly = true;
             getTextField(12).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-            addTextField(new GuiNpcTextField(13, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textOffsetX)));
-            addTextField(new GuiNpcTextField(14, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textOffsetY)));
+            addTextField(new GuiNpcTextField(13, this, guiLeft + 120, y += 25, 40, 20, "" + dialog.textOffsetX));
+            addTextField(new GuiNpcTextField(14, this, guiLeft + 165, y, 40, 20, "" + dialog.textOffsetY));
             addLabel(new GuiNpcLabel(15, "dialog.textOffset", guiLeft + 4, y + 5));
             getTextField(13).integersOnly = true;
             getTextField(13).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
             getTextField(14).integersOnly = true;
             getTextField(14).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-            addTextField(new GuiNpcTextField(15, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.titleOffsetX)));
-            addTextField(new GuiNpcTextField(16, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.titleOffsetY)));
+            addTextField(new GuiNpcTextField(15, this, guiLeft + 120, y += 25, 40, 20, "" + dialog.titleOffsetX));
+            addTextField(new GuiNpcTextField(16, this, guiLeft + 165, y, 40, 20, "" + dialog.titleOffsetY));
             addLabel(new GuiNpcLabel(18, "dialog.titleOffset", guiLeft + 4, y + 5));
             getTextField(15).integersOnly = true;
             getTextField(15).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
             getTextField(16).integersOnly = true;
             getTextField(16).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-            addTextField(new GuiNpcTextField(17, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.optionOffsetX)));
-            addTextField(new GuiNpcTextField(18, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.optionOffsetY)));
+            addTextField(new GuiNpcTextField(17, this, guiLeft + 120, y += 25, 40, 20, "" + dialog.optionOffsetX));
+            addTextField(new GuiNpcTextField(18, this, guiLeft + 165, y, 40, 20, "" + dialog.optionOffsetY));
             addLabel(new GuiNpcLabel(21, "dialog.optionOffset", guiLeft + 4, y + 5));
             getTextField(17).integersOnly = true;
             getTextField(17).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
             getTextField(18).integersOnly = true;
             getTextField(18).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-            addTextField(new GuiNpcTextField(19, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.optionSpaceX)));
-            addTextField(new GuiNpcTextField(20, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.optionSpaceY)));
+            addTextField(new GuiNpcTextField(19, this, guiLeft + 120, y += 25, 40, 20, "" + dialog.optionSpaceX));
+            addTextField(new GuiNpcTextField(20, this, guiLeft + 165, y, 40, 20, "" + dialog.optionSpaceY));
             addLabel(new GuiNpcLabel(24, "dialog.optionSpacing", guiLeft + 4, y + 5));
             getTextField(19).integersOnly = true;
             getTextField(19).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
             getTextField(20).integersOnly = true;
             getTextField(20).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-            addTextField(new GuiNpcTextField(21, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcOffsetX)));
-            addTextField(new GuiNpcTextField(22, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.npcOffsetY)));
+            addTextField(new GuiNpcTextField(21, this, guiLeft + 120, y += 25, 40, 20, "" + dialog.npcOffsetX));
+            addTextField(new GuiNpcTextField(22, this, guiLeft + 165, y, 40, 20, "" + dialog.npcOffsetY));
             addLabel(new GuiNpcLabel(25, "dialog.npcOffset", guiLeft + 4, y + 5));
             getTextField(21).integersOnly = true;
             getTextField(21).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
@@ -161,7 +161,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             getTextField(22).setVisible(!dialog.hideNPC);
             getLabel(25).enabled = !dialog.hideNPC;
 
-            addTextField(new GuiNpcTextField(23, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcScale)));
+            addTextField(new GuiNpcTextField(23, this, guiLeft + 120, y += 25, 40, 20, "" + dialog.npcScale));
             addLabel(new GuiNpcLabel(26, "dialog.npcScale", guiLeft + 4, y + 5));
             getTextField(23).floatsOnly = true;
             getTextField(23).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
@@ -182,30 +182,30 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 DialogImage dialogImage = getSelectedImage();
                 addButton(new GuiNpcButton(2, guiLeft + xSize + 24, guiTop + 5, 20, 20, "-"));
 
-                addTextField(new GuiNpcTextField(10, this, guiLeft + 17, y += 25, 30, 20, String.valueOf(dialogImage.id)));
+                addTextField(new GuiNpcTextField(10, this, guiLeft + 17, y += 25, 30, 20, "" + dialogImage.id));
                 addTextField(new GuiNpcTextField(11, this, guiLeft + 92, y, 150, 20, dialogImage.texture));
                 addLabel(new GuiNpcLabel(10, "gui.id", guiLeft + 4, y + 5));
                 addLabel(new GuiNpcLabel(11, "display.texture", guiLeft + 50, y + 5));
                 getTextField(10).integersOnly = true;
 
-                addTextField(new GuiNpcTextField(12, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialogImage.x)));
-                addTextField(new GuiNpcTextField(13, this, guiLeft + 165, y, 40, 20, String.valueOf(dialogImage.y)));
+                addTextField(new GuiNpcTextField(12, this, guiLeft + 120, y += 25, 40, 20, "" + dialogImage.x));
+                addTextField(new GuiNpcTextField(13, this, guiLeft + 165, y, 40, 20, "" + dialogImage.y));
                 addLabel(new GuiNpcLabel(12, "gui.position", guiLeft + 4, y + 5));
                 getTextField(12).integersOnly = true;
                 getTextField(12).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
                 getTextField(13).integersOnly = true;
                 getTextField(13).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-                addTextField(new GuiNpcTextField(14, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialogImage.width)));
-                addTextField(new GuiNpcTextField(15, this, guiLeft + 165, y, 40, 20, String.valueOf(dialogImage.height)));
+                addTextField(new GuiNpcTextField(14, this, guiLeft + 120, y += 25, 40, 20, "" + dialogImage.width));
+                addTextField(new GuiNpcTextField(15, this, guiLeft + 165, y, 40, 20, "" + dialogImage.height));
                 addLabel(new GuiNpcLabel(13, "gui.widthHeight", guiLeft + 4, y + 5));
                 getTextField(14).integersOnly = true;
                 getTextField(14).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
                 getTextField(15).integersOnly = true;
                 getTextField(15).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-                addTextField(new GuiNpcTextField(16, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialogImage.textureX)));
-                addTextField(new GuiNpcTextField(17, this, guiLeft + 165, y, 40, 20, String.valueOf(dialogImage.textureY)));
+                addTextField(new GuiNpcTextField(16, this, guiLeft + 120, y += 25, 40, 20, "" + dialogImage.textureX));
+                addTextField(new GuiNpcTextField(17, this, guiLeft + 165, y, 40, 20, "" + dialogImage.textureY));
                 addLabel(new GuiNpcLabel(14, "dialog.textureOffset", guiLeft + 4, y + 5));
                 getTextField(16).integersOnly = true;
                 getTextField(16).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
@@ -229,9 +229,9 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 getButton(19).setVisible(dialogImage.imageType == 2);
                 getLabel(16).enabled = dialogImage.imageType == 2;
 
-                addTextField(new GuiNpcTextField(20, this, guiLeft + 33, y += 25, 30, 20, String.valueOf(dialogImage.scale)));
-                addTextField(new GuiNpcTextField(21, this, guiLeft + 102, y, 30, 20, String.valueOf(dialogImage.alpha)));
-                addTextField(new GuiNpcTextField(22, this, guiLeft + 183, y, 45, 20, String.valueOf(dialogImage.rotation)));
+                addTextField(new GuiNpcTextField(20, this, guiLeft + 33, y += 25, 30, 20, "" + dialogImage.scale));
+                addTextField(new GuiNpcTextField(21, this, guiLeft + 102, y, 30, 20, "" + dialogImage.alpha));
+                addTextField(new GuiNpcTextField(22, this, guiLeft + 183, y, 45, 20, "" + dialogImage.rotation));
                 addLabel(new GuiNpcLabel(17, "model.scale", guiLeft + 4, y + 5));
                 addLabel(new GuiNpcLabel(18, "display.alpha", guiLeft + 72, y + 5));
                 addLabel(new GuiNpcLabel(19, "movement.rotation", guiLeft + 140, y + 5));
@@ -306,13 +306,13 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         Collections.sort(ids);
         ArrayList<String> strings = new ArrayList<>();
         for (int i : ids) {
-            strings.add(String.valueOf(i));
+            strings.add("" + i);
         }
         imageScroll.setUnsortedList(strings);
 
         if (changedId != -1) {
-            selected = imageScroll.getList().indexOf(String.valueOf(changedId));
-            imageScroll.setSelected(String.valueOf(changedId));
+            selected = imageScroll.getList().indexOf("" + changedId);
+            imageScroll.setSelected("" + changedId);
             changedId = -1;
         }
 
@@ -402,7 +402,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
                 dialog.dialogImages.put(addId, new DialogImage(addId));
                 updateScrollData();
-                selected = imageScroll.getList().indexOf(String.valueOf(addId));
+                selected = imageScroll.getList().indexOf("" + addId);
             }
             if (button.id == 2) {
                 if (imageScroll.getSelected() != null) {
@@ -598,8 +598,8 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             }
 
             if (textfield.id == 10) {
-                if (imageScroll.getList().contains(String.valueOf(textfield.getInteger()))) {
-                    textfield.setText(String.valueOf(dialogImage.id));
+                if (imageScroll.getList().contains("" + textfield.getInteger())) {
+                    textfield.setText("" + dialogImage.id);
                     return;
                 }
 

@@ -71,7 +71,7 @@ public class SubGuiNpcPartyOptions extends SubGuiInterface implements ITextfield
             y += 23;
             //min party size - number field
             GuiNpcTextField minField = new GuiNpcTextField(21, this, guiLeft + 60, guiTop + 10 + y,
-                30, 20, String.valueOf(options.minPartySize));
+                30, 20, "" + options.minPartySize);
             minField.integersOnly = true;
             minField.setMinMaxDefault(1, Integer.MAX_VALUE, 1);
             addTextField(minField);
@@ -79,7 +79,7 @@ public class SubGuiNpcPartyOptions extends SubGuiInterface implements ITextfield
 
             //max party size - number field
             GuiNpcTextField maxField = new GuiNpcTextField(20, this, guiLeft + 160, guiTop + 10 + y,
-                30, 20, String.valueOf(options.maxPartySize));
+                30, 20, "" + options.maxPartySize);
             maxField.integersOnly = true;
             maxField.setMinMaxDefault(1, Integer.MAX_VALUE, 4);
             addTextField(maxField);

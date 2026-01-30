@@ -192,7 +192,7 @@ public class AuctionTooltipHandler {
                 tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocal("auction.claim.expiresSoon"));
             } else {
                 tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.claim.expires")
-                    .replace("%s", String.valueOf(daysLeft)));
+                    .replace("%s", "" + daysLeft));
             }
 
             tooltip.add("");
@@ -238,7 +238,7 @@ public class AuctionTooltipHandler {
             return amount + " " + AuctionClientConfig.getCurrencyName();
         }
         StringBuilder sb = new StringBuilder();
-        String str = String.valueOf(amount);
+        String str = "" + amount;
         int count = 0;
         for (int i = str.length() - 1; i >= 0; i--) {
             if (count > 0 && count % 3 == 0) {

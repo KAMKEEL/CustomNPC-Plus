@@ -62,14 +62,14 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote || target == null) {
             signalCompletion();
             return;
         }
 
         // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(npc, target, damage, knockback);
+        boolean wasHit = applyAbilityDamage(caster, target, damage, knockback);
 
         // Apply effects if hit wasn't cancelled
         if (wasHit) {
@@ -81,7 +81,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Heavy Hit is instant, no active tick needed
     }
 

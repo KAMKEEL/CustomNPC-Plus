@@ -90,18 +90,18 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
             return;
         }
 
-        double spawnX = npc.posX;
-        double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
-        double spawnZ = npc.posZ;
+        double spawnX = caster.posX;
+        double spawnY = caster.posY + caster.getEyeHeight();
+        double spawnZ = caster.posZ;
 
         laserEntity = new EntityAbilityLaser(
-            world, npc, target,
+            world, caster, target,
             spawnX, spawnY, spawnZ,
             laserWidth,
             colorData, combatData, lightningData, lifespanData,
@@ -116,7 +116,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Signal completion when entity dies
         if (laserEntity == null || laserEntity.isDead) {
             laserEntity = null;
@@ -125,11 +125,11 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
     }
 
     @Override

@@ -56,7 +56,7 @@ public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITex
             int x = guiLeft + i % 3 * 130 + 15;  // First position after "$" label
             int y = guiTop + i / 3 * 22 + 14;
             long cost = role.getCurrencyCost(i);
-            GuiNpcTextField field = new GuiNpcTextField(CURRENCY_FIELD_ID_START + i, this, x, y, 36, 16, cost > 0 ? String.valueOf(cost) : "");
+            GuiNpcTextField field = new GuiNpcTextField(CURRENCY_FIELD_ID_START + i, this, x, y, 36, 16, cost > 0 ? "" + cost : "");
             field.setMaxStringLength(8);
             field.setIntegersOnly();
             addTextField(field);

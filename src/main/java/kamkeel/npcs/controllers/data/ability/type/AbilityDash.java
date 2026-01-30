@@ -8,6 +8,8 @@ import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -127,10 +129,10 @@ public class AbilityDash extends Ability implements IAbilityDash {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        startX = npc.posX;
-        startY = npc.posY;
-        startZ = npc.posZ;
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+        startX = caster.posX;
+        startY = caster.posY;
+        startZ = caster.posZ;
 
         // Choose random direction based on mode
         DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
@@ -141,11 +143,11 @@ public class AbilityDash extends Ability implements IAbilityDash {
         // Calculate dash direction relative to target
         float baseYaw;
         if (target != null) {
-            double dx = target.posX - npc.posX;
-            double dz = target.posZ - npc.posZ;
+            double dx = target.posX - caster.posX;
+            double dz = target.posZ - caster.posZ;
             baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         } else {
-            baseYaw = npc.rotationYaw;
+            baseYaw = caster.rotationYaw;
         }
 
         // Apply direction offset
@@ -161,54 +163,54 @@ public class AbilityDash extends Ability implements IAbilityDash {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (dashDirection == null) return;
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
-            Math.pow(npc.posX - startX, 2) +
-                Math.pow(npc.posZ - startZ, 2)
+            Math.pow(caster.posX - startX, 2) +
+                Math.pow(caster.posZ - startZ, 2)
         );
 
         // Check if reached max distance
         if (distanceTraveled >= dashDistance) {
-            npc.motionX = 0;
-            npc.motionZ = 0;
-            npc.velocityChanged = true;
+            caster.motionX = 0;
+            caster.motionZ = 0;
+            caster.velocityChanged = true;
             signalCompletion();
             return;
         }
 
-        if (isDashBlocked(npc)) {
-            npc.motionX = 0;
-            npc.motionZ = 0;
-            npc.velocityChanged = true;
+        if (isDashBlocked(caster)) {
+            caster.motionX = 0;
+            caster.motionZ = 0;
+            caster.velocityChanged = true;
             signalCompletion();
             return;
         }
 
-        // Move NPC
-        npc.motionX = dashDirection.xCoord * dashSpeed;
-        npc.motionY = 0;
-        npc.motionZ = dashDirection.zCoord * dashSpeed;
-        npc.velocityChanged = true;
+        // Move caster
+        caster.motionX = dashDirection.xCoord * dashSpeed;
+        caster.motionY = 0;
+        caster.motionZ = dashDirection.zCoord * dashSpeed;
+        caster.velocityChanged = true;
 
         // Trail particles
-        world.spawnParticle("smoke", npc.posX, npc.posY + 0.5, npc.posZ, 0, 0, 0);
+        world.spawnParticle("smoke", caster.posX, caster.posY + 0.5, caster.posZ, 0, 0, 0);
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        npc.motionX = 0;
-        npc.motionZ = 0;
-        npc.velocityChanged = true;
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+        caster.motionX = 0;
+        caster.motionZ = 0;
+        caster.velocityChanged = true;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, net.minecraft.util.DamageSource source, float damage) {
-        npc.motionX = 0;
-        npc.motionZ = 0;
-        npc.velocityChanged = true;
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        caster.motionX = 0;
+        caster.motionZ = 0;
+        caster.velocityChanged = true;
     }
 
     @Override
@@ -217,11 +219,11 @@ public class AbilityDash extends Ability implements IAbilityDash {
         chosenDirection = null;
     }
 
-    private boolean isDashBlocked(EntityNPCInterface npc) {
+    private boolean isDashBlocked(EntityLivingBase caster) {
         if (dashDirection == null) return true;
         double nextX = dashDirection.xCoord * dashSpeed;
         double nextZ = dashDirection.zCoord * dashSpeed;
-        return !npc.worldObj.getCollidingBoundingBoxes(npc, npc.boundingBox.copy().offset(nextX, 0, nextZ)).isEmpty();
+        return !caster.worldObj.getCollidingBoundingBoxes(caster, caster.boundingBox.copy().offset(nextX, 0, nextZ)).isEmpty();
     }
 
     // ==================== PREVIEW MODE ====================

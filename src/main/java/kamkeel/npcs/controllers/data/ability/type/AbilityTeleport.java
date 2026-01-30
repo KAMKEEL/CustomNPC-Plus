@@ -95,13 +95,13 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         currentBlink = 0;
         ticksSinceLastBlink = blinkDelayTicks; // Trigger first blink immediately
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
         if (currentBlink >= blinkLimit) {
             signalCompletion();
@@ -111,7 +111,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         ticksSinceLastBlink++;
 
         if (ticksSinceLastBlink >= blinkDelayTicks) {
-            performBlink(npc, target, world);
+            performBlink(caster, target, world);
             currentBlink++;
             ticksSinceLastBlink = 0;
 
@@ -122,20 +122,20 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         }
     }
 
-    private void performBlink(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    private void performBlink(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) return;
 
-        double oldX = npc.posX;
-        double oldY = npc.posY;
-        double oldZ = npc.posZ;
+        double oldX = caster.posX;
+        double oldY = caster.posY;
+        double oldZ = caster.posZ;
 
-        Vec3 destination = calculateDestination(npc, target, world);
+        Vec3 destination = calculateDestination(caster, target, world);
         if (destination == null) return;
 
         boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
-        if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + npc.getEyeHeight(), oldZ,
-            destination.xCoord, destination.yCoord + npc.getEyeHeight(), destination.zCoord)) {
-            destination = findValidPositionAlongLine(world, npc, oldX, oldY, oldZ,
+        if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + caster.getEyeHeight(), oldZ,
+            destination.xCoord, destination.yCoord + caster.getEyeHeight(), destination.zCoord)) {
+            destination = findValidPositionAlongLine(world, caster, oldX, oldY, oldZ,
                 destination.xCoord, destination.yCoord, destination.zCoord);
             if (destination == null) return;
         }
@@ -146,22 +146,22 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
         // Damage at origin
         if (damageAtStart) {
-            dealDamageAt(npc, world, oldX, oldY, oldZ);
+            dealDamageAt(caster, world, oldX, oldY, oldZ);
         }
 
         // Spawn particles at origin
         spawnTeleportParticles(world, oldX, oldY, oldZ);
 
         // Teleport
-        npc.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
-        npc.fallDistance = 0;
+        caster.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        caster.fallDistance = 0;
 
         // Spawn particles at destination
         spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
 
         // Damage at destination
         if (damageAtEnd) {
-            dealDamageAt(npc, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            dealDamageAt(caster, world, destination.xCoord, destination.yCoord, destination.zCoord);
         }
 
         // Face target after teleport
@@ -169,8 +169,8 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
             double dx = target.posX - destination.xCoord;
             double dz = target.posZ - destination.zCoord;
             float newYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-            npc.rotationYaw = newYaw;
-            npc.rotationYawHead = newYaw;
+            caster.rotationYaw = newYaw;
+            caster.rotationYawHead = newYaw;
         }
     }
 
@@ -186,29 +186,50 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         }
     }
 
-    private Vec3 calculateDestination(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (target == null) return null;
-
+    private Vec3 calculateDestination(EntityLivingBase caster, EntityLivingBase target, World world) {
         double newX;
         double newY;
         double newZ;
 
+        if (target != null) {
+            switch (mode) {
+                case BEHIND:
+                    double yaw = Math.toRadians(target.rotationYaw);
+                    newX = target.posX + Math.sin(yaw) * behindDistance;
+                    newZ = target.posZ - Math.cos(yaw) * behindDistance;
+                    newY = target.posY;
+                    return Vec3.createVectorHelper(newX, newY, newZ);
+                case SINGLE:
+                case BLINK:
+                default:
+                    double angle = RANDOM.nextDouble() * Math.PI * 2;
+                    double dist = Math.min(blinkRadius, maxRange);
+                    double offset = RANDOM.nextDouble() * dist;
+                    newX = target.posX + Math.cos(angle) * offset;
+                    newZ = target.posZ + Math.sin(angle) * offset;
+                    newY = target.posY;
+                    return Vec3.createVectorHelper(newX, newY, newZ);
+            }
+        }
+
+        // No target (player use) - teleport in caster's look direction
+        Vec3 look = caster.getLookVec();
         switch (mode) {
             case BEHIND:
-                double yaw = Math.toRadians(target.rotationYaw);
-                newX = target.posX + Math.sin(yaw) * behindDistance;
-                newZ = target.posZ - Math.cos(yaw) * behindDistance;
-                newY = target.posY;
+                // Teleport forward in look direction by behindDistance
+                newX = caster.posX + look.xCoord * behindDistance;
+                newZ = caster.posZ + look.zCoord * behindDistance;
+                newY = caster.posY;
                 return Vec3.createVectorHelper(newX, newY, newZ);
             case SINGLE:
             case BLINK:
             default:
-                double angle = RANDOM.nextDouble() * Math.PI * 2;
+                // Teleport forward in look direction within blinkRadius
                 double dist = Math.min(blinkRadius, maxRange);
-                double offset = RANDOM.nextDouble() * dist;
-                newX = target.posX + Math.cos(angle) * offset;
-                newZ = target.posZ + Math.sin(angle) * offset;
-                newY = target.posY;
+                double offset = (RANDOM.nextDouble() * 0.5 + 0.5) * dist; // 50-100% of max distance
+                newX = caster.posX + look.xCoord * offset;
+                newZ = caster.posZ + look.zCoord * offset;
+                newY = caster.posY;
                 return Vec3.createVectorHelper(newX, newY, newZ);
         }
     }
@@ -285,7 +306,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         return true;
     }
 
-    private Vec3 findValidPositionAlongLine(World world, EntityNPCInterface npc,
+    private Vec3 findValidPositionAlongLine(World world, EntityLivingBase caster,
                                             double x1, double y1, double z1,
                                             double x2, double y2, double z2) {
         double dx = x2 - x1;
@@ -307,8 +328,8 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
             double checkY = y1 + dy * d;
             double checkZ = z1 + dz * d;
 
-            if (hasLineOfSight(world, x1, y1 + npc.getEyeHeight(), z1,
-                checkX, checkY + npc.getEyeHeight(), checkZ)) {
+            if (hasLineOfSight(world, x1, y1 + caster.getEyeHeight(), z1,
+                checkX, checkY + caster.getEyeHeight(), checkZ)) {
                 int blockX = MathHelper.floor_double(checkX);
                 int blockY = MathHelper.floor_double(checkY);
                 int blockZ = MathHelper.floor_double(checkZ);
@@ -361,7 +382,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
             !headBlock.getMaterial().isSolid();
     }
 
-    private void dealDamageAt(EntityNPCInterface npc, World world, double x, double y, double z) {
+    private void dealDamageAt(EntityLivingBase caster, World world, double x, double y, double z) {
         AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(
             x - damageRadius, y - 1, z - damageRadius,
             x + damageRadius, y + 2, z + damageRadius
@@ -372,13 +393,13 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
         for (Entity entity : entities) {
             if (!(entity instanceof EntityLivingBase)) continue;
-            if (entity == npc) continue;
+            if (entity == caster) continue;
 
             EntityLivingBase living = (EntityLivingBase) entity;
             double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
             if (dist <= damageRadius) {
                 // Apply damage with scripted event support (no knockback for teleport damage)
-                boolean wasHit = applyAbilityDamage(npc, living, damage, 0);
+                boolean wasHit = applyAbilityDamage(caster, living, damage, 0);
                 if (wasHit) {
                     applyEffects(living);
                 }

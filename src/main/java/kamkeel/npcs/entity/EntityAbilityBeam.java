@@ -12,7 +12,6 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.LogWriter;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +107,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
      * @param anchoredMode If true, origin follows owner and tail orb is rendered.
      *                     If false, beam is free-moving with trailing length (no tail orb).
      */
-    public EntityAbilityBeam(World world, EntityNPCInterface owner, EntityLivingBase target,
+    public EntityAbilityBeam(World world, EntityLivingBase owner, EntityLivingBase target,
                               double x, double y, double z,
                               float beamWidth, float headSize,
                               EnergyColorData color, EnergyCombatData combat,
@@ -179,7 +178,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.motionZ = 0;
     }
 
-    public void setupPreview(EntityNPCInterface owner, float beamWidth, float headSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
+    public void setupPreview(EntityLivingBase owner, float beamWidth, float headSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -459,11 +458,13 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             );
         }
 
-        setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        // Offset downward by half headSize to center
+        double centeredY = pos.yCoord - headSize * 0.5;
+        setPosition(pos.xCoord, centeredY, pos.zCoord);
 
         // Also update origin for when firing starts
         startX = pos.xCoord;
-        startY = pos.yCoord;
+        startY = centeredY;
         startZ = pos.zCoord;
     }
 

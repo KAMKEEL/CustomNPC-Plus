@@ -366,7 +366,7 @@ public class RenameRefactorHandler {
         if (isValidIdentifierChar(c, isFirstChar)) {
             if (hasSelection) {
                 // Replace entire selection with this character
-                currentWord = String.valueOf(c);
+                currentWord = "" + c;
                 applyLiveRename();
                 callback.setCursorPosition(primaryOccurrenceStart + 1);
                 sel.setSelection(0, 0); // Clear selection

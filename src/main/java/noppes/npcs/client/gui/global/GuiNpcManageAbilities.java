@@ -5,10 +5,10 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.ability.SavedAbilitiesGetPacket;
-import kamkeel.npcs.network.packets.request.ability.SavedAbilityGetPacket;
-import kamkeel.npcs.network.packets.request.ability.SavedAbilityRemovePacket;
-import kamkeel.npcs.network.packets.request.ability.SavedAbilitySavePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -53,7 +53,10 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     // ==================== DATA ====================
     private GuiCustomScroll scroll;
     private HashMap<String, Integer> abilityData = new HashMap<>();
+    /** Maps display name -> UUID for custom abilities */
+    private final HashMap<String, String> displayToUuid = new HashMap<>();
     private String selected = null;
+    private String selectedUuid = null;
     private String search = "";
     private Ability selectedAbility = null;
 
@@ -73,7 +76,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         previewExecutor.setParentGui(this);
 
         // Request ability data from server
-        PacketClient.sendClient(new SavedAbilitiesGetPacket());
+        PacketClient.sendClient(new CustomAbilitiesGetPacket());
 
         // Enable animation data
         AnimationData data = npc.display.animationData;
@@ -90,7 +93,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         // Remove button
         addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
-        getButton(1).setEnabled(selected != null && !selected.isEmpty() && abilityData.containsKey(selected));
+        getButton(1).setEnabled(selected != null && !selected.isEmpty() && displayToUuid.containsKey(selected));
 
         // Scroll list of saved abilities (right side)
         if (scroll == null) {
@@ -103,7 +106,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         // Update scroll list
         scroll.setList(getSearchList());
-        if (selected != null && abilityData.containsKey(selected)) {
+        if (selected != null && displayToUuid.containsKey(selected)) {
             scroll.setSelected(selected);
         }
 
@@ -144,10 +147,10 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     private List<String> getSearchList() {
         if (search.isEmpty()) {
-            return new ArrayList<>(abilityData.keySet());
+            return new ArrayList<>(displayToUuid.keySet());
         }
         List<String> list = new ArrayList<>();
-        for (String name : abilityData.keySet()) {
+        for (String name : displayToUuid.keySet()) {
             if (name.toLowerCase().contains(search.toLowerCase())) {
                 list.add(name);
             }
@@ -208,8 +211,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         int id = guibutton.id;
 
-        if (id == 1 && selected != null && abilityData.containsKey(selected)) {
-            // Remove - show confirmation
+        if (id == 1 && selected != null && selectedUuid != null) {
             GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), 1);
             displayGuiScreen(guiyesno);
         } else if (id == 100 && selectedAbility != null) {
@@ -254,12 +256,13 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (scroll.id == 0) {
             String newSelection = scroll.getSelected();
             if (newSelection != null && !newSelection.equals(selected)) {
-                // Stop any playing preview
                 previewExecutor.stop();
 
                 selected = newSelection;
-                // Request ability data from server
-                PacketClient.sendClient(new SavedAbilityGetPacket(selected));
+                selectedUuid = displayToUuid.get(selected);
+                if (selectedUuid != null) {
+                    PacketClient.sendClient(new CustomAbilityGetPacket(selectedUuid));
+                }
             }
         }
     }
@@ -277,13 +280,25 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-        if (type == EnumScrollData.ABILITIES) {
-            String name = scroll != null ? scroll.getSelected() : null;
+        if (type == EnumScrollData.CUSTOM_ABILITIES) {
+            String prevSelected = scroll != null ? scroll.getSelected() : null;
             this.abilityData = data;
+            displayToUuid.clear();
+            for (String key : data.keySet()) {
+                // key format: "displayName\tUUID"
+                int tabIndex = key.indexOf('\t');
+                if (tabIndex > 0) {
+                    String displayName = key.substring(0, tabIndex);
+                    String uuid = key.substring(tabIndex + 1);
+                    displayToUuid.put(displayName, uuid);
+                } else {
+                    displayToUuid.put(key, key);
+                }
+            }
             if (scroll != null) {
                 scroll.setList(getSearchList());
-                if (name != null && abilityData.containsKey(name)) {
-                    scroll.setSelected(name);
+                if (prevSelected != null && displayToUuid.containsKey(prevSelected)) {
+                    scroll.setSelected(prevSelected);
                 }
             }
             initGui();
@@ -322,11 +337,11 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         NoppesUtil.openGUI(player, this);
         if (!result) return;
 
-        if (id == 1 && selected != null && abilityData.containsKey(selected)) {
-            // Delete ability via packet
-            PacketClient.sendClient(new SavedAbilityRemovePacket(selected));
+        if (id == 1 && selected != null && selectedUuid != null) {
+            PacketClient.sendClient(new CustomAbilityRemovePacket(selectedUuid));
             scroll.clear();
             selected = null;
+            selectedUuid = null;
             selectedAbility = null;
             initGui();
         }
@@ -334,8 +349,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void onAbilitySaved(Ability ability) {
-        // Save the edited ability via packet
-        PacketClient.sendClient(new SavedAbilitySavePacket(ability.writeNBT()));
+        PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
     }
 
     @Override

@@ -54,7 +54,13 @@ public final class SpecialKeyStatePacket extends AbstractPacket {
 
         PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayerMP) player);
         if (data != null) {
+            boolean wasDown = data.isSpecialKeyDown();
             data.setSpecialKeyDown(keyDown);
+
+            // Trigger ability activation on key press (rising edge)
+            if (keyDown && !wasDown) {
+                data.abilityData.activateAbility(player);
+            }
         }
     }
 }

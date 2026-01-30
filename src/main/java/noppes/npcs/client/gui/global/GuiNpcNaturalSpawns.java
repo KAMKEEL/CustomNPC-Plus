@@ -90,7 +90,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         ArrayList<String> list = new ArrayList<>();
         Set<Integer> keySet = this.spawn.spawnCompounds.keySet();
         for (int i : keySet) {
-            list.add(String.valueOf(i));
+            list.add("" + i);
         }
         this.spawnEntryScroll.setList(list);
         addScroll(this.spawnEntryScroll);
@@ -99,7 +99,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         if (this.spawnEntryScroll.hasSelected()) {
             int selected = Integer.parseInt(this.spawnEntryScroll.getSelected());
             addButton(new GuiNpcButton(22, guiLeft + 32, y, 20, 20, "-"));
-            GuiNpcTextField num = new GuiNpcTextField(25, this, guiLeft + 60, y += 10, 30, 20, String.valueOf(selected));
+            GuiNpcTextField num = new GuiNpcTextField(25, this, guiLeft + 60, y += 10, 30, 20, "" + selected);
             num.integersOnly = true;
             addTextField(num);
             addButton(new GuiNpcButton(26, guiLeft + 92, y, 100, 20, this.getTitle(this.spawn.spawnCompounds.get(selected))));
@@ -215,8 +215,8 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         }
         if (textfield.id == 25 && this.spawnEntryScroll.hasSelected()) {
             int selected = Integer.parseInt(spawnEntryScroll.getSelected());
-            if (spawnEntryScroll.getList().contains(String.valueOf(textfield.getInteger()))) {
-                textfield.setText(String.valueOf(selected));
+            if (spawnEntryScroll.getList().contains("" + textfield.getInteger())) {
+                textfield.setText("" + selected);
                 return;
             }
             NBTTagCompound compound = spawn.spawnCompounds.get(selected);

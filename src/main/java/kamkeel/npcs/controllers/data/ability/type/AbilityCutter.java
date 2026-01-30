@@ -100,13 +100,13 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         hitEntities.clear();
         currentRotation = -arcAngle / 2.0f;
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
         switch (sweepMode) {
@@ -115,7 +115,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
                     signalCompletion(); // Swipe arc complete
                     return;
                 }
-                performSweepDamage(npc, world, innerRadius, range, currentRotation);
+                performSweepDamage(caster, world, innerRadius, range, currentRotation);
                 currentRotation += sweepSpeed;
                 break;
 
@@ -126,30 +126,30 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
                 }
                 currentRotation = (currentRotation + sweepSpeed) % 360.0f;
                 hitEntities.clear();
-                performSweepDamage(npc, world, innerRadius, range, currentRotation);
+                performSweepDamage(caster, world, innerRadius, range, currentRotation);
                 break;
         }
     }
 
-    private void performSweepDamage(EntityNPCInterface npc, World world, float minDist, float maxDist, float angleOffset) {
-        float casterYaw = npc.rotationYaw + angleOffset;
+    private void performSweepDamage(EntityLivingBase caster, World world, float minDist, float maxDist, float angleOffset) {
+        float casterYaw = caster.rotationYaw + angleOffset;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-            npc.posX - maxDist, npc.posY - 1, npc.posZ - maxDist,
-            npc.posX + maxDist, npc.posY + 3, npc.posZ + maxDist
+            caster.posX - maxDist, caster.posY - 1, caster.posZ - maxDist,
+            caster.posX + maxDist, caster.posY + 3, caster.posZ + maxDist
         );
 
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
 
         for (EntityLivingBase entity : entities) {
-            if (entity == npc) continue;
+            if (entity == caster) continue;
             if (hitEntities.contains(entity.getEntityId())) continue;
             // If not piercing, stop after hitting one entity this sweep
             if (!piercing && !hitEntities.isEmpty()) break;
 
-            double dx = entity.posX - npc.posX;
-            double dz = entity.posZ - npc.posZ;
+            double dx = entity.posX - caster.posX;
+            double dz = entity.posZ - caster.posZ;
             double dist = Math.sqrt(dx * dx + dz * dz);
 
             if (dist < minDist || dist > maxDist) continue;
@@ -161,7 +161,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
             float actualDamage = damage * distFactor;
 
             // Apply damage with scripted event support
-            boolean wasHit = applyAbilityDamage(npc, entity, actualDamage, knockback);
+            boolean wasHit = applyAbilityDamage(caster, entity, actualDamage, knockback);
 
             // Apply effects if hit wasn't cancelled
             if (wasHit) {
@@ -183,13 +183,13 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
         hitEntities.clear();
         currentRotation = 0.0f;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
         hitEntities.clear();
         currentRotation = 0.0f;
     }

@@ -86,7 +86,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
             return;
@@ -102,15 +102,15 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     }
 
     @Override
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
         // Spawn disc in charging mode on first tick of windup
         if (tick == 1) {
-            // Create disc in charging mode - follows NPC based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorData);
+            // Create disc in charging mode - follows caster based on anchor point during windup
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
             discEntity = new EntityAbilityDisc(
-                world, npc, target,
+                world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 discRadius, discThickness,
                 colorData, combatData, homingData, lightningData, lifespanData,
@@ -123,7 +123,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Signal completion when entity dies
         if (discEntity == null || discEntity.isDead) {
             discEntity = null;
@@ -132,7 +132,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
     }
 
     @Override
@@ -145,7 +145,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
         if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
             return null;
         }
@@ -159,8 +159,8 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         telegraph.setHeightOffset(telegraphHeightOffset);
 
         // Position at target and follow target during windup
-        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, npc.rotationYaw);
-        instance.setCasterEntityId(npc.getEntityId());
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, caster.rotationYaw);
+        instance.setCasterEntityId(caster.getEntityId());
         instance.setEntityIdToFollow(target.getEntityId());
 
         return instance;

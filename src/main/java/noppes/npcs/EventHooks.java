@@ -62,6 +62,7 @@ import noppes.npcs.scripted.event.RecipeScriptEvent;
 import noppes.npcs.scripted.event.player.CustomGuiEvent;
 import noppes.npcs.scripted.event.player.DialogEvent;
 import noppes.npcs.scripted.event.player.FactionEvent;
+import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 import noppes.npcs.scripted.event.player.PlayerEvent.ChatEvent;
 import noppes.npcs.scripted.event.player.PlayerEvent.ContainerOpen;
@@ -689,6 +690,11 @@ public class EventHooks {
 
     public static boolean onPlayerDamagedEntity(PlayerDataScript handler, DamagedEntityEvent event) {
         handler.callScript(EnumScriptType.DAMAGED_ENTITY, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerAbilityHit(PlayerDataScript handler, PlayerAbilityEvent.HitEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_HIT, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 

@@ -361,7 +361,7 @@ public class OverlayKeyPresetViewer {
             GL11.glPushMatrix();
             GL11.glScalef(scale, scale, 1);
             GL11.glTranslatef(letterX / scale, nameY / scale, 1);
-            font.drawStringWithShadow(String.valueOf(letter), 0, 0, isDefault ? 0xff8a8a8a : 0xffffffff);
+            font.drawStringWithShadow("" + letter, 0, 0, isDefault ? 0xff8a8a8a : 0xffffffff);
             GL11.glPopMatrix();
 
             ////////////////////////////////////////////

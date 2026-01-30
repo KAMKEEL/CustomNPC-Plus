@@ -47,7 +47,7 @@ public class SubGuiNpcTraderStockSlots extends SubGuiInterface implements ITextf
 
             // Max stock textfield
             int maxStock = role.stock.maxStock[i];
-            String value = maxStock < 0 ? "-1" : String.valueOf(maxStock);
+            String value = maxStock < 0 ? "-1" : "" + maxStock;
             GuiNpcTextField field = new GuiNpcTextField(i, this, fontRendererObj, x + 42, y, 32, 18, value);
             field.setIntegersOnly();
             field.setMinMaxDefault(-1, Integer.MAX_VALUE, -1);

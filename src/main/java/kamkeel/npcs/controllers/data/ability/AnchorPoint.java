@@ -5,23 +5,17 @@ package kamkeel.npcs.controllers.data.ability;
  * Determines where the charging visual (orb, disc, etc.) appears relative to the entity.
  */
 public enum AnchorPoint {
-    FRONT(0, "Front"),           // In front of entity face (default)
-    CENTER(1, "Center"),         // Entity center
-    RIGHT_HAND(2, "Right Hand"), // Right arm/hand position
-    LEFT_HAND(3, "Left Hand"),   // Left arm/hand position
-    ABOVE_HEAD(4, "Above Head"), // Above the entity
-    CHEST(5, "Chest");           // Chest level, centered
+    FRONT("Front"),           // In front of entity face (default)
+    CENTER("Center"),         // Entity center
+    RIGHT_HAND("Right Hand"), // Right arm/hand position
+    LEFT_HAND("Left Hand"),   // Left arm/hand position
+    ABOVE_HEAD("Above Head"), // Above the entity
+    CHEST("Chest");           // Chest level, centered
 
-    private final int id;
     private final String displayName;
 
-    AnchorPoint(int id, String displayName) {
-        this.id = id;
+    AnchorPoint(String displayName) {
         this.displayName = displayName;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public String getDisplayName() {
@@ -29,16 +23,15 @@ public enum AnchorPoint {
     }
 
     /**
-     * Get AnchorPoint from NBT id value.
-     * Returns FRONT if id is invalid.
+     * Get AnchorPoint from ordinal value.
+     * Returns FRONT if ordinal is out of bounds.
      */
-    public static AnchorPoint fromId(int id) {
-        for (AnchorPoint anchor : values()) {
-            if (anchor.id == id) {
-                return anchor;
-            }
+    public static AnchorPoint fromOrdinal(int ordinal) {
+        AnchorPoint[] vals = values();
+        if (ordinal < 0 || ordinal >= vals.length) {
+            return FRONT;
         }
-        return FRONT;
+        return vals[ordinal];
     }
 
     /**

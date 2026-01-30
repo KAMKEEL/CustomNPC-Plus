@@ -1,7 +1,7 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.ability.SavedAbilityRemovePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -51,7 +51,7 @@ public class SubGuiAbilityDeleteConfirm extends SubGuiInterface {
 
         if (id == 0) {
             // Delete the ability via packet
-            PacketClient.sendClient(new SavedAbilityRemovePacket(abilityName));
+            PacketClient.sendClient(new CustomAbilityRemovePacket(abilityName));
             if (onDeleted != null) {
                 onDeleted.run();
             }

@@ -169,7 +169,7 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
         GL11.glPushMatrix();
 
         // Move to NPC render position on screen
-        GL11.glTranslatef(npcScreenX, npcScreenY, 50F);
+        GL11.glTranslatef(npcScreenX, npcScreenY, 300F);
 
         // Apply zoom (scale)
         GL11.glScalef(-CAMERA_ZOOM, CAMERA_ZOOM, CAMERA_ZOOM);

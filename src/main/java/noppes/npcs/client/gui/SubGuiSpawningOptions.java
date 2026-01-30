@@ -36,9 +36,9 @@ public class SubGuiSpawningOptions extends SubGuiInterface implements ITextfield
         addButton(new GuiNpcButtonYesNo(13, guiLeft + 120, y += 22, data.airSpawning));
         addLabel(new GuiNpcLabel(13, "spawning.airSpawning", guiLeft + 4, y + 5));
 
-        addTextField(new GuiNpcTextField(14, this, guiLeft + 120, y += 22, 40, 20, String.valueOf(data.spawnHeightMin)));
+        addTextField(new GuiNpcTextField(14, this, guiLeft + 120, y += 22, 40, 20, "" + data.spawnHeightMin));
         addLabel(new GuiNpcLabel(14, "spawning.minHeight", guiLeft + 4, y + 5));
-        addTextField(new GuiNpcTextField(15, this, guiLeft + 120, y += 22, 40, 20, String.valueOf(data.spawnHeightMax)));
+        addTextField(new GuiNpcTextField(15, this, guiLeft + 120, y += 22, 40, 20, "" + data.spawnHeightMax));
         addLabel(new GuiNpcLabel(15, "spawning.maxHeight", guiLeft + 4, y + 5));
         getTextField(14).integersOnly = true;
         getTextField(14).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);

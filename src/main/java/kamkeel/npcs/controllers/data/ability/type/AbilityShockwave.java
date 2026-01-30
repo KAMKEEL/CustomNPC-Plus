@@ -71,28 +71,28 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         // Shockwave is instant - apply effect immediately after windup
 
         // Get all entities in radius
-        AxisAlignedBB box = npc.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
+        AxisAlignedBB box = caster.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
         int count = 0;
         for (EntityLivingBase entity : entities) {
-            if (entity == npc) continue;
+            if (entity == caster) continue;
             if (entity.isDead) continue;
 
-            double dist = npc.getDistanceToEntity(entity);
+            double dist = caster.getDistanceToEntity(entity);
             if (dist > pushRadius) continue;
 
             count++;
             if (count > maxTargets) break;
 
             // Calculate push direction (away from caster)
-            double dx = entity.posX - npc.posX;
-            double dz = entity.posZ - npc.posZ;
+            double dx = entity.posX - caster.posX;
+            double dz = entity.posZ - caster.posZ;
             double len = Math.sqrt(dx * dx + dz * dz);
 
             if (len > 0) {
@@ -109,7 +109,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
             float distFactor = 1.0f - (float) (dist / pushRadius) * 0.5f;
             float finalPush = pushStrength * distFactor;
             // Apply damage with custom knockback direction
-            boolean wasHit = applyAbilityDamageWithDirection(npc, entity, damage * distFactor, finalPush, dx, dz);
+            boolean wasHit = applyAbilityDamageWithDirection(caster, entity, damage * distFactor, finalPush, dx, dz);
 
             // Apply effects if hit connected
             if (wasHit) {
@@ -122,7 +122,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Shockwave is instant - nothing to do per-tick
     }
 

@@ -18,7 +18,6 @@ import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySweeper;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.api.ability.type.IAbilitySweeper;
-import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Sweeper ability: A low sweeping beam that rotates around the NPC.
@@ -83,14 +82,14 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
             return;
         }
 
         // Spawn the entity that handles BOTH visuals AND damage
-        activeEntity = new EntityAbilitySweeper(world, npc, target,
+        activeEntity = new EntityAbilitySweeper(world, caster, target,
             beamLength, beamWidth, beamHeight,
             colorData,
             sweepSpeed, numberOfRotations,
@@ -103,7 +102,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Signal completion when entity dies
         if (activeEntity == null || activeEntity.isDead) {
             activeEntity = null;
@@ -129,12 +128,12 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
      * Override to position telegraph at NPC (not target) since the sweep is centered on NPC.
      */
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
         if (!showTelegraph || telegraphType == TelegraphType.NONE) {
             return null;
         }
 
-        // Create circle telegraph centered on NPC
+        // Create circle telegraph centered on caster
         Telegraph telegraph = Telegraph.circle(beamLength);
         telegraph.setDurationTicks(windUpTicks);
         telegraph.setColor(windUpColor);
@@ -142,10 +141,10 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
         telegraph.setHeightOffset(telegraphHeightOffset);
 
-        // Position at NPC, not target
-        TelegraphInstance instance = new TelegraphInstance(telegraph, npc.posX, npc.posY, npc.posZ, npc.rotationYaw);
-        instance.setCasterEntityId(npc.getEntityId());
-        instance.setEntityIdToFollow(npc.getEntityId());  // Follow NPC
+        // Position at caster, not target
+        TelegraphInstance instance = new TelegraphInstance(telegraph, caster.posX, caster.posY, caster.posZ, caster.rotationYaw);
+        instance.setCasterEntityId(caster.getEntityId());
+        instance.setEntityIdToFollow(caster.getEntityId());  // Follow caster
 
         return instance;
     }

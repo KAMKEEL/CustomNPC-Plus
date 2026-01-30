@@ -44,6 +44,11 @@ public class ScriptDataAbilities implements IDataAbilities {
     }
 
     @Override
+    public void addAbilityReference(String key) {
+        data.addAbilityReference(key);
+    }
+
+    @Override
     public void removeAbility(String abilityId) {
         data.removeAbility(abilityId);
     }
@@ -56,6 +61,33 @@ public class ScriptDataAbilities implements IDataAbilities {
     @Override
     public boolean hasAbility(String abilityId) {
         return data.getAbility(abilityId) != null;
+    }
+
+    @Override
+    public boolean isAbilityReference(String abilityId) {
+        List<kamkeel.npcs.controllers.data.ability.AbilitySlot> slots = data.getAbilitySlots();
+        for (int i = 0; i < slots.size(); i++) {
+            kamkeel.npcs.controllers.data.ability.AbilitySlot slot = slots.get(i);
+            if (slot.isReference()) {
+                if (slot.getReferenceId().equals(abilityId)) return true;
+            } else {
+                Ability a = slot.getAbility();
+                if (a != null && a.getId().equals(abilityId)) return false;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean convertToInline(String abilityId) {
+        List<kamkeel.npcs.controllers.data.ability.AbilitySlot> slots = data.getAbilitySlots();
+        for (int i = 0; i < slots.size(); i++) {
+            kamkeel.npcs.controllers.data.ability.AbilitySlot slot = slots.get(i);
+            if (slot.isReference() && slot.getReferenceId().equals(abilityId)) {
+                return data.convertToInline(i);
+            }
+        }
+        return false;
     }
 
     @Override
@@ -117,17 +149,14 @@ public class ScriptDataAbilities implements IDataAbilities {
     }
 
     @Override
-    public boolean executePresetAbility(String presetName) {
-        return executePresetAbility(presetName, null);
+    public boolean executeAbility(String key) {
+        return executeAbility(key, null);
     }
 
     @Override
-    public boolean executePresetAbility(String presetName, Object target) {
-        // Resolve target
+    public boolean executeAbility(String key, Object target) {
         EntityLivingBase targetEntity = resolveTarget(target);
-
-        // Use the direct preset execution method
-        return data.executePresetAbility(presetName, targetEntity);
+        return data.executeAbility(key, targetEntity);
     }
 
     @Override

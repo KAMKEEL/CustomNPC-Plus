@@ -7,8 +7,10 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NpcDamageSource;
@@ -70,7 +72,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.ignoreFrustumCheck = true;
     }
 
-    public EntityAbilitySweeper(World world, EntityNPCInterface owner, EntityLivingBase target,
+    public EntityAbilitySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
                                  float beamLength, float beamWidth, float beamHeight,
                                  EnergyColorData colorData,
                                  float sweepSpeed, int numberOfRotations,
@@ -264,10 +266,12 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
     }
 
     private void applyDamage(EntityLivingBase target, Entity owner) {
-        EntityNPCInterface npc = (owner instanceof EntityNPCInterface) ? (EntityNPCInterface) owner : null;
-
-        if (npc != null) {
-            target.attackEntityFrom(new NpcDamageSource("npc_ability", npc), damage);
+        if (owner instanceof EntityNPCInterface) {
+            target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), damage);
+        } else if (owner instanceof EntityPlayer) {
+            target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), damage);
+        } else if (owner instanceof EntityLivingBase) {
+            target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), damage);
         } else {
             target.attackEntityFrom(new NpcDamageSource("npc_ability", null), damage);
         }

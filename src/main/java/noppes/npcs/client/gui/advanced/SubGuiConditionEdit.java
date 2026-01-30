@@ -98,7 +98,7 @@ public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldLi
         if (typeId.equals("hit_count")) {
             // Hit count fields
             addLabel(new GuiNpcLabel(2, "condition.hits", labelX, y + 5));
-            GuiNpcTextField hitsField = new GuiNpcTextField(2, this, fontRendererObj, fieldX, y, 40, 20, String.valueOf(requiredHits));
+            GuiNpcTextField hitsField = new GuiNpcTextField(2, this, fontRendererObj, fieldX, y, 40, 20, "" + requiredHits);
             hitsField.setIntegersOnly();
             hitsField.setMinMaxDefault(1, 100, 3);
             hitsField.setHoverText("condition.hover.hits");
@@ -106,7 +106,7 @@ public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldLi
             y += 24;
 
             addLabel(new GuiNpcLabel(3, "condition.within", labelX, y + 5));
-            GuiNpcTextField ticksField = new GuiNpcTextField(3, this, fontRendererObj, fieldX, y, 40, 20, String.valueOf(withinTicks));
+            GuiNpcTextField ticksField = new GuiNpcTextField(3, this, fontRendererObj, fieldX, y, 40, 20, "" + withinTicks);
             ticksField.setIntegersOnly();
             ticksField.setMinMaxDefault(1, 1200, 60);
             ticksField.setHoverText("condition.hover.within");
@@ -115,7 +115,7 @@ public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldLi
             // HP threshold field (as percentage)
             addLabel(new GuiNpcLabel(2, "condition.percent", labelX, y + 5));
             int percent = (int) (threshold * 100);
-            GuiNpcTextField thresholdField = new GuiNpcTextField(4, this, fontRendererObj, fieldX, y, 40, 20, String.valueOf(percent));
+            GuiNpcTextField thresholdField = new GuiNpcTextField(4, this, fontRendererObj, fieldX, y, 40, 20, "" + percent);
             thresholdField.setIntegersOnly();
             thresholdField.setMinMaxDefault(1, 99, 50);
             thresholdField.setHoverText("condition.hover.threshold");

@@ -3,39 +3,30 @@ package kamkeel.npcs.network.packets.request.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 
 import java.io.IOException;
 
 /**
- * Request packet to remove a saved ability by name.
+ * Request packet to get list of all custom ability preset UUIDs/names.
  */
-public final class SavedAbilityRemovePacket extends AbstractPacket {
-    public static String packetName = "Request|SavedAbilityRemove";
+public final class CustomAbilitiesGetPacket extends AbstractPacket {
+    public static String packetName = "Request|CustomAbilitiesGet";
 
-    private String abilityName;
-
-    public SavedAbilityRemovePacket() {
-    }
-
-    public SavedAbilityRemovePacket(String abilityName) {
-        this.abilityName = abilityName;
+    public CustomAbilitiesGetPacket() {
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.SavedAbilityRemove;
+        return EnumRequestPacket.CustomAbilitiesGet;
     }
 
     @Override
@@ -43,27 +34,18 @@ public final class SavedAbilityRemovePacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
-    @Override
-    public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.GLOBAL_ABILITY;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, abilityName);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-
         if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
-        String name = ByteBufUtils.readString(in);
-        AbilityController.Instance.deleteAbility(name);
-        NoppesUtilServer.sendSavedAbilitiesData((EntityPlayerMP) player);
+        NoppesUtilServer.sendCustomAbilitiesData((EntityPlayerMP) player);
     }
 }

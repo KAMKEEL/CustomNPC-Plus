@@ -22,23 +22,23 @@ import noppes.npcs.NoppesUtilServer;
 import java.io.IOException;
 
 /**
- * Request packet to save an ability preset.
+ * Request packet to save a custom ability preset.
  */
-public final class SavedAbilitySavePacket extends AbstractPacket {
-    public static String packetName = "Request|SavedAbilitySave";
+public final class CustomAbilitySavePacket extends AbstractPacket {
+    public static String packetName = "Request|CustomAbilitySave";
 
     private NBTTagCompound abilityNBT;
 
-    public SavedAbilitySavePacket() {
+    public CustomAbilitySavePacket() {
     }
 
-    public SavedAbilitySavePacket(NBTTagCompound abilityNBT) {
+    public CustomAbilitySavePacket(NBTTagCompound abilityNBT) {
         this.abilityNBT = abilityNBT;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.SavedAbilitySave;
+        return EnumRequestPacket.CustomAbilitySave;
     }
 
     @Override
@@ -68,9 +68,11 @@ public final class SavedAbilitySavePacket extends AbstractPacket {
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
         Ability ability = AbilityController.Instance.fromNBT(compound);
         if (ability != null) {
-            AbilityController.Instance.saveAbility(ability);
-            NoppesUtilServer.sendSavedAbilitiesData((EntityPlayerMP) player);
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, ability.writeNBT());
+            AbilityController.Instance.saveCustomAbility(ability);
+            NoppesUtilServer.sendCustomAbilitiesData((EntityPlayerMP) player);
+            NBTTagCompound responseNbt = ability.writeNBT();
+            responseNbt.setString("_uuid", ability.getId());
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, responseNbt);
         }
     }
 }

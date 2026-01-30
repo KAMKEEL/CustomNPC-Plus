@@ -88,106 +88,106 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
      * Called on the first tick of windup - lock direction here so it matches telegraph.
      */
     @Override
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (tick == 1) {
             // Lock direction on first windup tick (same time telegraph is created)
-            lockChargeDirection(npc, target);
+            lockChargeDirection(caster, target);
         }
-        // Keep NPC facing the locked direction during windup
-        enforceLockedRotation(npc);
+        // Keep caster facing the locked direction during windup
+        enforceLockedRotation(caster);
     }
 
     /**
      * Locks the charge direction based on current target position.
      * Called once at windup start - direction won't change even if target moves.
      */
-    private void lockChargeDirection(EntityNPCInterface npc, EntityLivingBase target) {
+    private void lockChargeDirection(EntityLivingBase caster, EntityLivingBase target) {
         if (target != null) {
-            double dx = target.posX - npc.posX;
-            double dz = target.posZ - npc.posZ;
+            double dx = target.posX - caster.posX;
+            double dz = target.posZ - caster.posZ;
             double len = Math.sqrt(dx * dx + dz * dz);
             if (len > 0) {
                 chargeDirection = Vec3.createVectorHelper(dx / len, 0, dz / len);
             } else {
-                float yaw = (float) Math.toRadians(npc.rotationYaw);
+                float yaw = (float) Math.toRadians(caster.rotationYaw);
                 chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
             }
         } else {
-            float yaw = (float) Math.toRadians(npc.rotationYaw);
+            float yaw = (float) Math.toRadians(caster.rotationYaw);
             chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
         }
         lockedYaw = (float) Math.toDegrees(Math.atan2(-chargeDirection.xCoord, chargeDirection.zCoord));
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         // Initialize charge - direction was already locked during windup
-        startX = npc.posX;
-        startY = npc.posY;
-        startZ = npc.posZ;
+        startX = caster.posX;
+        startY = caster.posY;
+        startZ = caster.posZ;
         hitEntities.clear();
 
         // If direction wasn't set during windup (shouldn't happen), set it now
         if (chargeDirection == null) {
-            lockChargeDirection(npc, target);
+            lockChargeDirection(caster, target);
         }
 
-        enforceLockedRotation(npc);
+        enforceLockedRotation(caster);
     }
 
-    private void enforceLockedRotation(EntityNPCInterface npc) {
-        npc.rotationYaw = lockedYaw;
-        npc.rotationYawHead = lockedYaw;
-        npc.prevRotationYaw = lockedYaw;
-        npc.prevRotationYawHead = lockedYaw;
-        npc.renderYawOffset = lockedYaw;
-        npc.prevRenderYawOffset = lockedYaw;
+    private void enforceLockedRotation(EntityLivingBase caster) {
+        caster.rotationYaw = lockedYaw;
+        caster.rotationYawHead = lockedYaw;
+        caster.prevRotationYaw = lockedYaw;
+        caster.prevRotationYawHead = lockedYaw;
+        caster.renderYawOffset = lockedYaw;
+        caster.prevRenderYawOffset = lockedYaw;
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (chargeDirection == null) return;
 
         // Enforce rotation every tick
-        enforceLockedRotation(npc);
+        enforceLockedRotation(caster);
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
-            Math.pow(npc.posX - startX, 2) +
-                Math.pow(npc.posZ - startZ, 2)
+            Math.pow(caster.posX - startX, 2) +
+                Math.pow(caster.posZ - startZ, 2)
         );
 
         // Check if reached max distance
         if (distanceTraveled >= maxRange) {
-            npc.motionX = 0;
-            npc.motionZ = 0;
-            npc.velocityChanged = true;
+            caster.motionX = 0;
+            caster.motionZ = 0;
+            caster.velocityChanged = true;
             signalCompletion();
             return;
         }
 
-        if (isChargeBlocked(npc)) {
-            stopMomentum(npc);
+        if (isChargeBlocked(caster)) {
+            stopMomentum(caster);
             signalCompletion();
             return;
         }
 
-        // Move NPC
-        npc.motionX = chargeDirection.xCoord * chargeSpeed;
-        npc.motionY = 0;
-        npc.motionZ = chargeDirection.zCoord * chargeSpeed;
-        npc.velocityChanged = true;
+        // Move caster
+        caster.motionX = chargeDirection.xCoord * chargeSpeed;
+        caster.motionY = 0;
+        caster.motionZ = chargeDirection.zCoord * chargeSpeed;
+        caster.velocityChanged = true;
 
         // Server-side collision damage
         if (!world.isRemote) {
-            AxisAlignedBB hitBox = npc.boundingBox.expand(hitWidth, hitWidth * 0.5, hitWidth);
+            AxisAlignedBB hitBox = caster.boundingBox.expand(hitWidth, hitWidth * 0.5, hitWidth);
 
             @SuppressWarnings("unchecked")
             List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
 
             for (Entity entity : entities) {
                 if (!(entity instanceof EntityLivingBase)) continue;
-                if (entity == npc) continue;
+                if (entity == caster) continue;
                 if (hitEntities.contains(entity.getEntityId())) continue;
 
                 EntityLivingBase livingEntity = (EntityLivingBase) entity;
@@ -196,7 +196,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
                 hitEntities.add(entity.getEntityId());
 
                 // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamageWithDirection(npc, livingEntity, damage, knockback,
+                boolean wasHit = applyAbilityDamageWithDirection(caster, livingEntity, damage, knockback,
                     chargeDirection.xCoord, chargeDirection.zCoord);
 
                 // Play impact sound if hit wasn't cancelled
@@ -208,28 +208,28 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        stopMomentum(npc);
-        super.onComplete(npc, target);
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+        stopMomentum(caster);
+        super.onComplete(caster, target);
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, net.minecraft.util.DamageSource source, float damage) {
-        stopMomentum(npc);
-        super.onInterrupt(npc, source, damage);
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        stopMomentum(caster);
+        super.onInterrupt(caster, source, damage);
     }
 
-    private void stopMomentum(EntityNPCInterface npc) {
-        npc.motionX = 0;
-        npc.motionZ = 0;
-        npc.velocityChanged = true;
+    private void stopMomentum(EntityLivingBase caster) {
+        caster.motionX = 0;
+        caster.motionZ = 0;
+        caster.velocityChanged = true;
     }
 
-    private boolean isChargeBlocked(EntityNPCInterface npc) {
+    private boolean isChargeBlocked(EntityLivingBase caster) {
         double nextX = chargeDirection.xCoord * chargeSpeed;
         double nextZ = chargeDirection.zCoord * chargeSpeed;
-        AxisAlignedBB nextBox = npc.boundingBox.copy().offset(nextX, 0, nextZ);
-        return !npc.worldObj.getCollidingBoundingBoxes(npc, nextBox).isEmpty();
+        AxisAlignedBB nextBox = caster.boundingBox.copy().offset(nextX, 0, nextZ);
+        return !caster.worldObj.getCollidingBoundingBoxes(caster, nextBox).isEmpty();
     }
 
     @Override
@@ -250,12 +250,12 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     /**
-     * Creates a LINE telegraph from NPC position towards target.
-     * Telegraph follows NPC during windup (so NPC can reposition before charging).
+     * Creates a LINE telegraph from caster position towards target.
+     * Telegraph follows caster during windup (so caster can reposition before charging).
      * Direction is locked at creation based on target position.
      */
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
         if (!isShowTelegraph() || getTelegraphType() == TelegraphType.NONE) {
             return null;
         }
@@ -263,11 +263,11 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         // Calculate direction to target at this moment (locked)
         float yaw;
         if (target != null) {
-            double dx = target.posX - npc.posX;
-            double dz = target.posZ - npc.posZ;
+            double dx = target.posX - caster.posX;
+            double dz = target.posZ - caster.posZ;
             yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         } else {
-            yaw = npc.rotationYaw;
+            yaw = caster.rotationYaw;
         }
 
         // Create LINE telegraph
@@ -278,12 +278,12 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
         telegraph.setHeightOffset(telegraphHeightOffset);
 
-        // Position at NPC ground level, direction towards target
-        double groundY = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
-        TelegraphInstance instance = new TelegraphInstance(telegraph, npc.posX, groundY, npc.posZ, yaw);
-        instance.setCasterEntityId(npc.getEntityId());
-        // Telegraph follows NPC during windup - allows NPC to reposition
-        instance.setEntityIdToFollow(npc.getEntityId());
+        // Position at caster ground level, direction towards target
+        double groundY = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+        TelegraphInstance instance = new TelegraphInstance(telegraph, caster.posX, groundY, caster.posZ, yaw);
+        instance.setCasterEntityId(caster.getEntityId());
+        // Telegraph follows caster during windup - allows caster to reposition
+        instance.setEntityIdToFollow(caster.getEntityId());
 
         return instance;
     }
