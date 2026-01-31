@@ -1,19 +1,28 @@
 package somehussar.gui;
 
-import noppes.npcs.client.gui.util.GuiNPCInterface;
+import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import somehussar.gui.annotationHandling.GuiFieldHandler;
 import somehussar.gui.annotationHandling.field.EditableField;
 
-public class AnnotatedGui extends GuiNPCInterface {
+public class AnnotatedGui<T> extends SubGuiInterface {
     private final GuiFieldHandler.ClassMetadata metadata;
 
-    public AnnotatedGui(Class<?> type) {
-        metadata = GuiFieldHandler.getMetadata(type);
+    public AnnotatedGui(T object, String[] groups, GuiScreen parent) {
+        this(object, groups, parent, 256, 216);
+    }
+
+    public AnnotatedGui(T object, String[] groups, GuiScreen parent, int xSize, int ySize) {
+        if (object != null)
+            metadata = GuiFieldHandler.getMetadata(object.getClass());
+        else
+            metadata = null;
         setBackground("menubg.png");
-        xSize = 256;
-        ySize = 216;
+        this.xSize = xSize;
+        this.ySize = ySize;
         closeOnEsc = true;
+        this.parent = parent;
     }
 
     @Override
@@ -23,7 +32,7 @@ public class AnnotatedGui extends GuiNPCInterface {
             return;
 
         int i = 0;
-        for (EditableField field : metadata.getDeclaredFields()) {
+        for (EditableField field : metadata.getParent().getDeclaredFields()) {
             addLabel(new GuiNpcLabel(i++, field.getName(), guiLeft+8, guiTop+i*15+5));
         }
     }
