@@ -550,12 +550,11 @@ public class NoppesUtilPlayer {
         if (data == null)
             return false;
 
-        if (!data.quest.questInterface.isPartyCompleted(party))
-            return false;
-
-
         Quest quest = data.quest;
         if (quest == null)
+            return false;
+
+        if (!data.quest.questInterface.isPartyCompleted(party))
             return false;
 
         if (data.quest.completion == EnumQuestCompletion.Instant)
