@@ -181,10 +181,7 @@ public class ClientTickHandler {
 
         if (player == null || mc.theWorld == null)
             return;
-
-        if (ClientHudManager.getInstance() == null || ClientHudManager.getInstance().getHudComponents() == null)
-            return;
-
+        
         // Update compass
         HudComponent compass = ClientHudManager.getInstance()
             .getHudComponents().get(EnumHudComponent.QuestCompass);
