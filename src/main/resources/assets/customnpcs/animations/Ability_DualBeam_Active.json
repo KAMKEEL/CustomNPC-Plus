@@ -1,0 +1,203 @@
+{
+    "Loop": 0,
+    "Speed": 1.0f,
+    "Frames": [
+      {
+        "ColorMarker": 16777215,
+        "Comment": "",
+        "Speed": 3.0f,
+        "FrameParts": [
+          {
+            "Pivot2": -1.0f,
+            "Part": "RIGHT_LEG",
+            "Rotation1": 31.0f,
+            "Rotation0": 18.0f,
+            "Pivot0": -3.0f,
+            "Pivot1": 0.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "LEFT_LEG",
+            "Rotation1": -31.0f,
+            "Rotation0": 18.0f,
+            "Pivot0": 3.0f,
+            "Pivot1": 0.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -3.0f,
+            "Part": "RIGHT_ARM",
+            "Rotation1": -25.0f,
+            "Rotation0": -90.0f,
+            "Pivot0": 1.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -3.0f,
+            "Part": "LEFT_ARM",
+            "Rotation1": 25.0f,
+            "Rotation0": -90.0f,
+            "Pivot0": -1.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "BODY",
+            "Rotation1": 0.0f,
+            "Rotation0": 6.0f,
+            "Pivot0": 0.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "HEAD",
+            "Rotation1": 0.0f,
+            "Rotation0": 0.0f,
+            "Pivot0": 0.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          }
+        ],
+        "Smooth": 0b,
+        "Duration": 2
+      },
+      {
+        "ColorMarker": 16777215,
+        "Comment": "",
+        "Speed": 3.0f,
+        "FrameParts": [
+          {
+            "Pivot2": -1.0f,
+            "Part": "RIGHT_LEG",
+            "Rotation1": 31.0f,
+            "Rotation0": 18.0f,
+            "Pivot0": -3.0f,
+            "Pivot1": 0.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "LEFT_LEG",
+            "Rotation1": -31.0f,
+            "Rotation0": 18.0f,
+            "Pivot0": 3.0f,
+            "Pivot1": 0.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -3.0f,
+            "Part": "RIGHT_ARM",
+            "Rotation1": -25.0f,
+            "Rotation0": -85.0f,
+            "Pivot0": 1.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 20.0f
+          },
+          {
+            "Pivot2": -3.0f,
+            "Part": "LEFT_ARM",
+            "Rotation1": 25.0f,
+            "Rotation0": -85.0f,
+            "Pivot0": -1.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": -20.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "BODY",
+            "Rotation1": 0.0f,
+            "Rotation0": 6.0f,
+            "Pivot0": 0.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "HEAD",
+            "Rotation1": 0.0f,
+            "Rotation0": 0.0f,
+            "Pivot0": 0.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          }
+        ],
+        "Smooth": 0b,
+        "Duration": 2
+      },
+      {
+        "ColorMarker": 16777215,
+        "Comment": "",
+        "Speed": 3.0f,
+        "FrameParts": [
+          {
+            "Pivot2": -1.0f,
+            "Part": "RIGHT_LEG",
+            "Rotation1": 31.0f,
+            "Rotation0": 18.0f,
+            "Pivot0": -3.0f,
+            "Pivot1": 0.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "LEFT_LEG",
+            "Rotation1": -31.0f,
+            "Rotation0": 18.0f,
+            "Pivot0": 3.0f,
+            "Pivot1": 0.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -3.0f,
+            "Part": "RIGHT_ARM",
+            "Rotation1": -25.0f,
+            "Rotation0": -85.0f,
+            "Pivot0": 1.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": -20.0f
+          },
+          {
+            "Pivot2": -3.0f,
+            "Part": "LEFT_ARM",
+            "Rotation1": 25.0f,
+            "Rotation0": -85.0f,
+            "Pivot0": -1.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 20.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "BODY",
+            "Rotation1": 0.0f,
+            "Rotation0": 6.0f,
+            "Pivot0": 0.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          },
+          {
+            "Pivot2": -1.0f,
+            "Part": "HEAD",
+            "Rotation1": 0.0f,
+            "Rotation0": 0.0f,
+            "Pivot0": 0.0f,
+            "Pivot1": 1.0f,
+            "Rotation2": 0.0f
+          }
+        ],
+        "Smooth": 0b,
+        "Duration": 2
+      }
+    ],
+    "CurrentFrameTime": 0,
+    "CurrentFrame": 3,
+    "Smooth": 0b,
+    "ID": 12,
+    "WhileAttacking": 1b,
+    "WhileWalking": 1b,
+    "Name": "Ability_DualBeam_Active",
+    "WhileStanding": 1b
+}
