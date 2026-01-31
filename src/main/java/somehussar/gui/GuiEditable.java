@@ -8,6 +8,17 @@ public @interface GuiEditable {
 
     @Retention(RetentionPolicy.RUNTIME)
     @interface Field {
-        String name() default "";
+        String value();
+
+        /**
+         * Display order
+         * Higher value = higher priority.
+         */
+        int order() default 0;
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Group {
+        String value();
     }
 }

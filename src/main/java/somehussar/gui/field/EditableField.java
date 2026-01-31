@@ -11,6 +11,8 @@ public final class EditableField<T> {
     private final MethodHandle getter;
     private final MethodHandle setter;
     private final FieldConstraints constraints;
+    private final int order;
+    private final String group;
 
     public String getName() {
         return name;
@@ -42,12 +44,16 @@ public final class EditableField<T> {
         return this.constraints;
     }
 
+    public int getOrder() { return this.order; }
+
     EditableField(Builder<T> b) {
         this.name = b.name;
         this.type = b.type;
         this.getter = b.getter;
         this.setter = b.setter;
         this.constraints = b.constraints;
+        this.order = b.order;
+        this.group = b.group;
     }
 
     public static class Builder<T> {
@@ -56,15 +62,19 @@ public final class EditableField<T> {
         private MethodHandle getter;
         private MethodHandle setter;
         private FieldConstraints constraints;
+        private int order;
+        private String group = null;
 
         public Builder<T> name(String v) { this.name = v; return this; }
         public Builder<T> type(Class<T> v) { this.type = v; return this; }
         public Builder<T> getter(MethodHandle v) { this.getter = v; return this; }
         public Builder<T> setter(MethodHandle v) { this.setter = v; return this; }
         public Builder<T> constraints(FieldConstraints v) { this.constraints = v; return this; }
+        public Builder<T> order(int order) { this.order = order; return this; }
+        public Builder<T> group(String value) { this.group = value; return this; }
 
         public EditableField<T> build() {
-            return new EditableField(this);
+            return new EditableField<>(this);
         }
 
     }

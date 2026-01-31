@@ -67,12 +67,17 @@ public final class GuiFieldHandler {
             if (Modifier.isFinal(field.getModifiers())) return null;
 
             field.setAccessible(true);
-            EditableField.Builder builder = new EditableField.Builder();
-            builder.name(fieldConfig.name());
-            builder.type(field.getType());
-            builder.getter(LOOKUP.unreflectGetter(field));
-            builder.setter(LOOKUP.unreflectSetter(field));
-            builder.constraints(buildConstraints(field));
+            EditableField.Builder builder = new EditableField.Builder()
+                .name(fieldConfig.value())
+                .type(field.getType())
+                .getter(LOOKUP.unreflectGetter(field))
+                .setter(LOOKUP.unreflectSetter(field))
+                .constraints(buildConstraints(field))
+                .order(fieldConfig.order());
+
+            GuiEditable.Group group = field.getAnnotation(GuiEditable.Group.class);
+            if (group != null)
+                builder.group(group.value());
 
 
             return builder.build();
