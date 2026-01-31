@@ -27,15 +27,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
+import somehussar.gui.annotationHandling.GuiEditable;
 
+@GuiEditable
 public abstract class Ability implements IAbility {
 
     // ═══════════════════════════════════════════════════════════════════
     // CONFIGURATION (saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
+    @GuiEditable.Field("id")
     protected String id;
+    @GuiEditable.Field("name")
     protected String name;
+    @GuiEditable.Field("test")
     protected String typeId;                // e.g., "ability.cnpc.slam" (also used as lang key)
 
     // Selection
