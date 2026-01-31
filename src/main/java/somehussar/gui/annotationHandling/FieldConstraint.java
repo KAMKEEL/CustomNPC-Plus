@@ -1,4 +1,4 @@
-package somehussar.gui;
+package somehussar.gui.annotationHandling;
 
 public interface FieldConstraint {
     void validate(Object value);

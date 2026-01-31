@@ -1,7 +1,9 @@
-package somehussar.gui;
+package somehussar.gui.annotationHandling;
 
-import somehussar.gui.constraints.*;
-import somehussar.gui.field.EditableField;
+import somehussar.gui.annotationHandling.constraints.ConstraintFactory;
+import somehussar.gui.annotationHandling.constraints.NumericConstraint;
+import somehussar.gui.annotationHandling.constraints.NumericConstraintFactory;
+import somehussar.gui.annotationHandling.field.EditableField;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandles;

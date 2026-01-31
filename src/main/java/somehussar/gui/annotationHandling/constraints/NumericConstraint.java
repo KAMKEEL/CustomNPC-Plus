@@ -1,4 +1,4 @@
-package somehussar.gui.constraints;
+package somehussar.gui.annotationHandling.constraints;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

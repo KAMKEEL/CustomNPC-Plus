@@ -1,4 +1,4 @@
-package somehussar.gui;
+package somehussar.gui.annotationHandling;
 
 public final class FieldConstraints {
 

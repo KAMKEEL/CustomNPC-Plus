@@ -1,6 +1,6 @@
-package somehussar.gui.constraints;
+package somehussar.gui.annotationHandling.constraints;
 
-import somehussar.gui.FieldConstraint;
+import somehussar.gui.annotationHandling.FieldConstraint;
 
 import java.lang.reflect.Field;
 

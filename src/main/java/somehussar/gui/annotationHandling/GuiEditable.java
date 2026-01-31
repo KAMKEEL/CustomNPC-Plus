@@ -1,4 +1,4 @@
-package somehussar.gui;
+package somehussar.gui.annotationHandling;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
