@@ -30,6 +30,7 @@ public class CommandKamkeel extends CommandBase {
 
     public CommandKamkeel() {
         registerCommand(help);
+        registerCommand(new TestGui());
         registerCommand(new ScriptCommand());
         registerCommand(new SlayCommand());
         registerCommand(new QuestCommand());
