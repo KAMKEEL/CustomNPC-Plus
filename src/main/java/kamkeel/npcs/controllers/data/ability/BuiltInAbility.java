@@ -32,14 +32,6 @@ public abstract class BuiltInAbility extends Ability {
     }
 
     /**
-     * Built-in abilities are not customizable.
-     */
-    @Override
-    public boolean isCustomizable() {
-        return false;
-    }
-
-    /**
      * Built-in abilities do not write type-specific NBT (they have fixed configs).
      */
     @Override
