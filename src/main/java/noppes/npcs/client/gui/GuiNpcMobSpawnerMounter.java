@@ -127,7 +127,6 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
             return;
         }
 
-        ArrayList<String> list = new ArrayList<String>();
         this.list = ClientCloneController.Instance.getClones(activeTab);
         scroll.setList(getSearchList());
     }
