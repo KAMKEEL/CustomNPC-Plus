@@ -21,7 +21,7 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
 
     @Override
     public String[] getUnlockedAbilities() {
-        return data.getUnlockedAbilities().toArray(new String[0]);
+        return data.getUnlockedAbilities();
     }
 
     @Override
@@ -80,10 +80,20 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
     }
 
     @Override
+    public boolean isOnCooldown() {
+        return data.isOnCooldown();
+    }
+
+    @Override
     public boolean isOnCooldown(String key) {
         EntityPlayer player = playerData.player;
         if (player == null) return false;
         return data.isOnCooldown(key, player);
+    }
+
+    @Override
+    public void resetCooldown() {
+        data.resetCooldown();
     }
 
     @Override

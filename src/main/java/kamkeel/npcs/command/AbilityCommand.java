@@ -4,6 +4,9 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import net.minecraft.command.ICommandSender;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static kamkeel.npcs.util.ColorUtil.sendError;

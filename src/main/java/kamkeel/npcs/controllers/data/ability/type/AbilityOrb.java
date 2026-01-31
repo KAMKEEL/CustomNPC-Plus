@@ -396,12 +396,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
 
     public int getAnchorPoint() {
-        return anchorData.anchorPoint.getId();
+        return anchorData.anchorPoint.ordinal();
     }
 
     @Override
     public void setAnchorPoint(int point) {
-        this.anchorData.anchorPoint = AnchorPoint.fromId(point);
+        this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point);
     }
 
     @Override

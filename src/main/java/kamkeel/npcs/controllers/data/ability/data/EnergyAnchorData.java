@@ -24,25 +24,25 @@ public class EnergyAnchorData {
     }
 
     public EnergyAnchorData(int anchorPoint) {
-        this.anchorPoint = AnchorPoint.fromId(anchorPoint);
+        this.anchorPoint = AnchorPoint.fromOrdinal(anchorPoint);
     }
 
     public EnergyAnchorData(int anchorPoint, float anchorOffsetX, float anchorOffsetY, float anchorOffsetZ) {
-        this.anchorPoint = AnchorPoint.fromId(anchorPoint);
+        this.anchorPoint = AnchorPoint.fromOrdinal(anchorPoint);
         this.anchorOffsetX = anchorOffsetX;
         this.anchorOffsetY = anchorOffsetY;
         this.anchorOffsetZ = anchorOffsetZ;
     }
 
     public void writeNBT(NBTTagCompound nbt) {
-        nbt.setInteger("anchorPoint", anchorPoint.getId());
+        nbt.setInteger("anchorPoint", anchorPoint.ordinal());
         nbt.setFloat("anchorOffsetX", anchorOffsetX);
         nbt.setFloat("anchorOffsetY", anchorOffsetY);
         nbt.setFloat("anchorOffsetZ", anchorOffsetZ);
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromId(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
+        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromOrdinal(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
         this.anchorOffsetX = nbt.hasKey("anchorOffsetX") ? nbt.getFloat("anchorOffsetX") : 0;
         this.anchorOffsetY = nbt.hasKey("anchorOffsetY") ? nbt.getFloat("anchorOffsetY") : 0;
         this.anchorOffsetZ = nbt.hasKey("anchorOffsetZ") ? nbt.getFloat("anchorOffsetZ") : 0;
