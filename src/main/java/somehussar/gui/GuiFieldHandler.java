@@ -30,7 +30,7 @@ public final class GuiFieldHandler {
         return CACHE.computeIfAbsent(type, GuiFieldHandler::scanClass);
     }
 
-
+    @SuppressWarnings({"RawUseOfParameterized"})
     private static ClassMetadata scanClass(Class<?> type) {
         if (!type.isAnnotationPresent(GuiEditable.class)) {
             return null;
@@ -66,6 +66,9 @@ public final class GuiFieldHandler {
             if (fieldConfig == null) return null;
             if (Modifier.isFinal(field.getModifiers())) return null;
 
+            GuiEditable.Size size = field.getAnnotation(GuiEditable.Size.class);
+            if (size == null) size = GuiEditable.Size.DEFAULT_SIZE;;
+
             field.setAccessible(true);
             EditableField.Builder builder = new EditableField.Builder()
                 .name(fieldConfig.value())
@@ -73,7 +76,9 @@ public final class GuiFieldHandler {
                 .getter(LOOKUP.unreflectGetter(field))
                 .setter(LOOKUP.unreflectSetter(field))
                 .constraints(buildConstraints(field))
-                .order(fieldConfig.order());
+                .order(fieldConfig.order())
+                .size(size);
+
 
             GuiEditable.Group group = field.getAnnotation(GuiEditable.Group.class);
             if (group != null)

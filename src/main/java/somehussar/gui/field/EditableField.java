@@ -1,6 +1,7 @@
 package somehussar.gui.field;
 
 import somehussar.gui.FieldConstraints;
+import somehussar.gui.GuiEditable;
 
 import java.lang.invoke.MethodHandle;
 
@@ -13,6 +14,7 @@ public final class EditableField<T> {
     private final FieldConstraints constraints;
     private final int order;
     private final String group;
+    private final GuiEditable.Size size;
 
     public String getName() {
         return name;
@@ -54,6 +56,7 @@ public final class EditableField<T> {
         this.constraints = b.constraints;
         this.order = b.order;
         this.group = b.group;
+        this.size = b.size;
     }
 
     public static class Builder<T> {
@@ -64,6 +67,7 @@ public final class EditableField<T> {
         private FieldConstraints constraints;
         private int order;
         private String group = null;
+        private GuiEditable.Size size;
 
         public Builder<T> name(String v) { this.name = v; return this; }
         public Builder<T> type(Class<T> v) { this.type = v; return this; }
@@ -72,10 +76,10 @@ public final class EditableField<T> {
         public Builder<T> constraints(FieldConstraints v) { this.constraints = v; return this; }
         public Builder<T> order(int order) { this.order = order; return this; }
         public Builder<T> group(String value) { this.group = value; return this; }
+        public Builder<T> size(GuiEditable.Size size) { this.size = size; return this; }
 
         public EditableField<T> build() {
             return new EditableField<>(this);
         }
-
     }
 }
