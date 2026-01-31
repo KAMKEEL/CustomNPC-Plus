@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 public class ScriptContainer implements IScriptUnit {
-    private static final String lock = "lock";
+    private static final Object lock = new Object();
     public static ScriptContainer Current;
     private static String CurrentType;
     public String fullscript = "";

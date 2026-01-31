@@ -77,7 +77,7 @@ public class JavaTextContainer extends TextContainer {
     public void init(String text, int width, int height) {
         this.text = text == null ? "" : text.replaceAll("\\r?\\n|\\r", "\n");
         lines.clear();
-        String[] split = text.split("\n", -1);
+        String[] split = this.text.split("\n", -1);
 
         int totalChars = 0;
         for (String l : split) {

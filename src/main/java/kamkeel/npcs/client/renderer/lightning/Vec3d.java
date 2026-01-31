@@ -4,6 +4,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
 
+import java.util.Objects;
+
 /**
  * 3D Vector helper class for lightning calculations.
  * Adapted from Botania's Vector3 by ChickenBones.
@@ -180,5 +182,10 @@ public class Vec3d {
         if (!(o instanceof Vec3d)) return false;
         Vec3d v = (Vec3d) o;
         return x == v.x && y == v.y && z == v.z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, z);
     }
 }

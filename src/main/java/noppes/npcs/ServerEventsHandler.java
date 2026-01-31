@@ -133,7 +133,7 @@ public class ServerEventsHandler {
             mounted = event.target;
             if (isRemote)
                 CustomNpcs.proxy.openGui(MathHelper.floor_double(mounted.posX), MathHelper.floor_double(mounted.posY), MathHelper.floor_double(mounted.posZ), EnumGuiType.MobSpawnerMounter, event.entityPlayer);
-        } else if (item.getItem() == CustomItems.wand && !isRemote && event.target instanceof EntityVillager) {
+        } else if (item.getItem() == CustomItems.wand && event.target instanceof EntityVillager) {
             if (!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.EDIT_VILLAGER))
                 return;
             event.setCanceled(true);

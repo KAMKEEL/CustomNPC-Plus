@@ -341,11 +341,6 @@ public class NoppesUtilServer {
         sendOpenGui(player, gui, npc, 0, 0, 0);
     }
 
-    public static void sendOpenGuiNoDelay(EntityPlayer player,
-                                          EnumGuiType gui, EntityNPCInterface npc) {
-        sendOpenGuiNoDelay(player, gui, npc, 0, 0, 0);
-    }
-
     public static void sendOpenGui(final EntityPlayer player,
                                    final EnumGuiType gui, final EntityNPCInterface npc, final int i, final int j, final int k) {
         if (!(player instanceof EntityPlayerMP))
@@ -366,28 +361,6 @@ public class NoppesUtilServer {
 
         ScrollListPacket.sendList((EntityPlayerMP) player, list, EnumScrollData.OPTIONAL);
     }
-
-    public static void sendOpenGuiNoDelay(final EntityPlayer player,
-                                          final EnumGuiType gui, final EntityNPCInterface npc, final int i, final int j, final int k) {
-        if (!(player instanceof EntityPlayerMP))
-            return;
-
-        setEditingNpc(player, npc);
-        sendExtraData(player, npc, gui, i, j, k);
-
-        if (CustomNpcs.proxy.getServerGuiElement(gui.ordinal(), player, player.worldObj, i, j, k) != null) {
-            player.openGui(CustomNpcs.instance, gui.ordinal(), player.worldObj, i, j, k);
-            return;
-        } else {
-            GuiOpenPacket.openGUI((EntityPlayerMP) player, gui, i, j, k);
-        }
-        ArrayList<String> list = getScrollData(player, gui, npc);
-        if (list == null || list.isEmpty())
-            return;
-
-        ScrollListPacket.sendList((EntityPlayerMP) player, list, EnumScrollData.OPTIONAL);
-    }
-
 
     private static void sendExtraData(EntityPlayer player, EntityNPCInterface npc, EnumGuiType gui, int i, int j, int k) {
         if (gui == EnumGuiType.PlayerFollower || gui == EnumGuiType.PlayerFollowerHire || gui == EnumGuiType.PlayerTrader || gui == EnumGuiType.PlayerTransporter) {

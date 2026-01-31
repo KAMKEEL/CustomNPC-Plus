@@ -53,7 +53,7 @@ public class ItemNpcWand extends Item {
             par3World.spawnEntityInWorld(npc);
             npc.setHealth(npc.getMaxHealth());
 
-            NoppesUtilServer.sendOpenGuiNoDelay(player, EnumGuiType.MainMenuDisplay, npc);
+            NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, npc);
             return true;
         } else
             player.addChatMessage(new ChatComponentTranslation("availability.permission"));

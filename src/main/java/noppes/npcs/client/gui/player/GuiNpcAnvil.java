@@ -58,9 +58,12 @@ public class GuiNpcAnvil extends GuiContainerNPCInterface {
 
         // Compute the repair status message based on container.repairCost and player's XP.
         String status = "";
+        int textColor = CustomNpcResourceListener.DefaultTextColor;
+
         if (container.repairCost > 0) {
             if (container.repairCost > mc.thePlayer.experienceTotal) {
                 status = "Repair cost: " + container.repairCost + " XP";
+                textColor = 0xFF0000; // red when not enough XP
             } else {
                 status = "Repair cost: " + container.repairCost + " XP";
             }
@@ -71,10 +74,6 @@ public class GuiNpcAnvil extends GuiContainerNPCInterface {
                 container.anvilMatrix.getStackInRowAndColumn(0, 0).getItemDamage() <= 0) {
                 status = "Item is already fully repaired";
             }
-        }
-        int textColor = CustomNpcResourceListener.DefaultTextColor;
-        if (container.repairCost > mc.thePlayer.experienceTotal) {
-            textColor = 0xFF0000; // red when not enough XP
         }
         fontRendererObj.drawString(status, guiLeft + 5, guiTop + 75, textColor);
     }

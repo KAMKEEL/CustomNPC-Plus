@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class ScriptItemStack implements IItemStack {
@@ -355,6 +356,7 @@ public class ScriptItemStack implements IItemStack {
      * @return Returns whether this item is a book
      * @since 1.7.10d
      */
+    @Override
     public boolean isWrittenBook() {
         return item.getItem() == Items.written_book || item.getItem() == Items.writable_book;
     }
@@ -363,6 +365,7 @@ public class ScriptItemStack implements IItemStack {
      * @return Returns the books title
      * @since 1.7.10d
      */
+    @Override
     public String getBookTitle() {
         return item.getTagCompound().getString("title");
     }
@@ -371,6 +374,7 @@ public class ScriptItemStack implements IItemStack {
      * @return Returns the books author
      * @since 1.7.10d
      */
+    @Override
     public String getBookAuthor() {
         return item.getTagCompound().getString("author");
     }
@@ -379,6 +383,7 @@ public class ScriptItemStack implements IItemStack {
      * @return If the item is a book, returns a string array with book pages
      * @since 1.7.10d
      */
+    @Override
     public String[] getBookText() {
         if (!isWrittenBook())
             return null;
@@ -399,6 +404,7 @@ public class ScriptItemStack implements IItemStack {
     /**
      * @return Returns whether or not this item is a block
      */
+    @Override
     public boolean isBlock() {
         Block block = Block.getBlockFromItem(item.getItem());
         if (block == null || block == Blocks.air)
@@ -415,6 +421,7 @@ public class ScriptItemStack implements IItemStack {
         return -1;
     }
 
+    @Override
     public INbt getNbt() {
         NBTTagCompound compound = this.item.getTagCompound();
         if (compound == null) {
@@ -424,18 +431,21 @@ public class ScriptItemStack implements IItemStack {
         return NpcAPI.Instance().getINbt(compound);
     }
 
+    @Override
     public INbt getItemNbt() {
         NBTTagCompound compound = new NBTTagCompound();
         this.item.writeToNBT(compound);
         return NpcAPI.Instance().getINbt(compound);
     }
 
+    @Override
     public NBTTagCompound getMCNbt() {
         NBTTagCompound compound = new NBTTagCompound();
         this.item.writeToNBT(compound);
         return compound;
     }
 
+    @Override
     public void setMCNbt(NBTTagCompound compound) {
     }
 
@@ -444,16 +454,24 @@ public class ScriptItemStack implements IItemStack {
      *
      * @return Minecraft ItemStack
      */
+    @Override
     public ItemStack getMCItemStack() {
         return item;
     }
 
+    @Override
     public int itemHash() {
         return item.hashCode();
     }
 
+    @Override
     public boolean equals(Object object) {
         return object instanceof ScriptItemStack && ((ScriptItemStack) object).getMCItemStack().equals(this.getMCItemStack());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(item);
     }
 
     @Override
