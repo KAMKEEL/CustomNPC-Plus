@@ -22,6 +22,9 @@ import noppes.npcs.client.model.ModelNPCMale;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.items.ItemClaw;
+import noppes.npcs.items.ItemRotatedShield;
+import noppes.npcs.items.ItemShield;
 import org.lwjgl.opengl.GL11;
 
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
@@ -314,7 +317,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface {
 
             Class<?> clazz = itemstack2.getItem().getClass();
             boolean pluginMod = itemstack2.getItem().getUnlocalizedName().contains("plug:");
-            if (clazz.getSimpleName().equals("ItemShield") || clazz.getSimpleName().equals("ItemRotatedShield") || clazz.getSimpleName().equals("ItemClaw"))
+            if (clazz.equals(ItemShield.class) || clazz.equals(ItemRotatedShield.class) || clazz.equals(ItemClaw.class))
                 GL11.glTranslatef(0.30f, 0, 0f);
 
             if (itemstack2.getItem() instanceof ItemBlock && (is3D || RenderBlocks.renderItemIn3d(Block.getBlockFromItem(itemstack2.getItem()).getRenderType()))) {
