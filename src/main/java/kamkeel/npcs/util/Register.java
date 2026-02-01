@@ -55,8 +55,10 @@ public class Register<T> {
 
         public void register() {
             try {
+                String path = "/assets/" + namespace + "/" + animationsPath;
                 for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
-                    AnimationController.Instance.loadBuiltInAnimation(modClass, animationsPath, entry.getKey());
+                    String name = entry.getKey().substring(entry.getKey().indexOf(":"));
+                    AnimationController.Instance.loadBuiltInAnimation(modClass, path, name);
                 }
             } catch (Exception e) {
                 LogWriter.error("Error scanning built-in animations folder", e);
