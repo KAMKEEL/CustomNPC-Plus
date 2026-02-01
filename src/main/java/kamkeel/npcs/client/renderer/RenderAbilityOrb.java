@@ -56,7 +56,7 @@ public class RenderAbilityOrb extends RenderAbilityProjectile {
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
             GL11.glScalef(outerScale, outerScale, outerScale);
-            renderCube(orb.getOuterColor(), 0.5f, 0.5f);
+            renderCube(orb.getOuterColor(), orb.getOuterColorAlpha(), 0.5f);
             GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
