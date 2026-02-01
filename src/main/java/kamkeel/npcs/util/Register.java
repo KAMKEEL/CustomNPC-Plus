@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 
 public class Register<T> {
     private final String registryKey;
-    private final String namespace;
+    protected final String namespace;
     protected final Map<String, Supplier<T>> entries = new LinkedHashMap<>();
 
     public Register(String registryKey, String namespace) {
@@ -47,9 +47,13 @@ public class Register<T> {
             this.modClass = modClass;
         }
 
-        public void register() throws Exception {
-            for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
-                AnimationController.Instance.loadBuiltInAnimation(modClass, animationsPath, entry.getKey());
+        public void register() {
+            try {
+                for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
+                    AnimationController.Instance.loadBuiltInAnimation(modClass, animationsPath, entry.getKey());
+                }
+            } catch (Exception e) {
+                LogWriter.error("Error scanning built-in animations folder", e);
             }
         }
     }
