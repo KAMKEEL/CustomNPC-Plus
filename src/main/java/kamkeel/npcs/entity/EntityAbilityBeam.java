@@ -15,6 +15,7 @@ import noppes.npcs.LogWriter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Beam projectile - head with trailing path that curves with homing.
@@ -32,6 +33,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     private boolean homing = true;
     private float homingStrength = 0.35f;  // Increased from 0.15 for better tracking
     private float homingRange = 20.0f;
+    private UUID siblingUUID = null;
 
     // Beam shape properties
     private float beamWidth = 0.3f;
@@ -646,6 +648,12 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         }
     }
 
+    @Override
+    protected boolean shouldIgnoreEntity(Entity entity) {
+        if (entity.getPersistentID().equals(siblingUUID)) return true;
+        return super.shouldIgnoreEntity(entity);
+    }
+
     // ==================== GETTERS FOR RENDERER ====================
 
     public float getBeamWidth() {
@@ -744,6 +752,18 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         return trailFadeTime;
     }
 
+    public UUID getSiblingUUID() {
+        return siblingUUID;
+    }
+
+    public void setSiblingUUID(UUID siblingUUID) {
+        if (siblingUUID == null)
+            return;
+
+        if (this.siblingUUID == null)
+            this.siblingUUID = siblingUUID;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -787,6 +807,8 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                 ));
             }
         }
+
+        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
@@ -821,5 +843,6 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             trailList.appendTag(pointNbt);
         }
         nbt.setTag("Trail", trailList);
+        nbt.setString("SiblingUUID", siblingUUID.toString());
     }
 }

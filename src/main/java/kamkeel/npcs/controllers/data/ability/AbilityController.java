@@ -1,23 +1,6 @@
 package kamkeel.npcs.controllers.data.ability;
 
-import kamkeel.npcs.controllers.data.ability.type.AbilitySweeper;
-import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
-import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
-import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
-import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
-import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
-import kamkeel.npcs.controllers.data.ability.type.AbilityHeal;
-import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
-import kamkeel.npcs.controllers.data.ability.type.AbilityOrb;
-import kamkeel.npcs.controllers.data.ability.type.AbilityDisc;
-import kamkeel.npcs.controllers.data.ability.type.AbilityLaserShot;
-import kamkeel.npcs.controllers.data.ability.type.AbilityEnergyBeam;
-import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
-import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
-import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
-import kamkeel.npcs.controllers.data.ability.type.AbilityTeleport;
-import kamkeel.npcs.controllers.data.ability.type.AbilityTrap;
-import kamkeel.npcs.controllers.data.ability.type.AbilityVortex;
+import kamkeel.npcs.controllers.data.ability.type.*;
 import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
@@ -383,6 +366,7 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:disc", AbilityDisc::new);
         registerType("cnpc:laser_shot", AbilityLaserShot::new);
         registerType("cnpc:beam", AbilityEnergyBeam::new);
+        registerType("cnpc:dual_beam", AbilityDualBeam::new);
 
         // Movement abilities
         registerType("cnpc:charge", AbilityCharge::new);
