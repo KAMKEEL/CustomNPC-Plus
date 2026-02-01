@@ -329,7 +329,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             // Check if entity is close to the laser line
             if (isEntityOnLine(entity)) {
                 hitEntities.add(entity.getEntityId());
-                applyDamage(entity); // TODO find out why ts aint hittin
+                applyDamage(entity);
 
                 // Piercing - don't stop, continue to next entity
             }
