@@ -2,19 +2,19 @@ package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.type.AbilityDualOrb;
+import kamkeel.npcs.controllers.data.ability.type.AbilityOrbDual;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.*;
 
 import java.util.List;
 
-public class SubGuiAbilityDualOrb extends SubGuiAbilityConfig {
-    private final AbilityDualOrb orb;
+public class SubGuiAbilityOrbDual extends SubGuiAbilityConfig {
+    private final AbilityOrbDual orb;
     private int editingVisualColorId = 0;
     private int editingOrb = 0;
 
-    public SubGuiAbilityDualOrb(AbilityDualOrb ability, IAbilityConfigCallback callback) {
+    public SubGuiAbilityOrbDual(AbilityOrbDual ability, IAbilityConfigCallback callback) {
         super(ability, callback);
         this.orb = ability;
     }

@@ -2,20 +2,19 @@ package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.type.AbilityDisc;
-import kamkeel.npcs.controllers.data.ability.type.AbilityDualDisc;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDiscDual;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.*;
 
 import java.util.List;
 
-public class SubGuiAbilityDualDisc extends SubGuiAbilityConfig {
-    private final AbilityDualDisc disc;
+public class SubGuiAbilityDiscDual extends SubGuiAbilityConfig {
+    private final AbilityDiscDual disc;
     private int editingVisualColorId = 0;
     private int editingDisc = 0;
 
-    public SubGuiAbilityDualDisc(AbilityDualDisc ability, IAbilityConfigCallback callback) {
+    public SubGuiAbilityDiscDual(AbilityDiscDual ability, IAbilityConfigCallback callback) {
         super(ability, callback);
         this.disc = ability;
     }

@@ -18,12 +18,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDualDisc;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDiscDual;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
-public class AbilityDualDisc extends Ability {
+public class AbilityDiscDual extends Ability {
 
     // Disc geometry
     private float discRadius = 1.0f;
@@ -56,9 +56,9 @@ public class AbilityDualDisc extends Ability {
     private transient EntityAbilityDisc discEntity = null;
     private transient EntityAbilityDisc discEntity2 = null;
 
-    public AbilityDualDisc() {
-        this.typeId = "ability.cnpc.dual_disc";
-        this.name = "Dual Disc";
+    public AbilityDiscDual() {
+        this.typeId = "ability.cnpc.disc_dual";
+        this.name = "Disc Dual";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
@@ -68,8 +68,8 @@ public class AbilityDualDisc extends Ability {
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         // Default built-in animations
-        this.windUpAnimationName = "Ability_DualBeam_Windup";
-        this.activeAnimationName = "Ability_DualBeam_Active";
+        this.windUpAnimationName = "Ability_BeamDual_Windup";
+        this.activeAnimationName = "Ability_BeamDual_Active";
     }
 
     @Override
@@ -80,7 +80,7 @@ public class AbilityDualDisc extends Ability {
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityDualDisc(this, callback);
+        return new SubGuiAbilityDiscDual(this, callback);
     }
 
     @Override

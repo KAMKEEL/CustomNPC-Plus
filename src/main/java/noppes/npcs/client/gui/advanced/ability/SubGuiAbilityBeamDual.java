@@ -2,19 +2,19 @@ package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.type.AbilityDualBeam;
+import kamkeel.npcs.controllers.data.ability.type.AbilityBeamDual;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.*;
 
 import java.util.List;
 
-public class SubGuiAbilityDualBeam extends SubGuiAbilityConfig {
-    private final AbilityDualBeam beam;
+public class SubGuiAbilityBeamDual extends SubGuiAbilityConfig {
+    private final AbilityBeamDual beam;
     private int editingVisualColorId = 0;
     private int editingBeam = 0;
 
-    public SubGuiAbilityDualBeam(AbilityDualBeam ability, IAbilityConfigCallback callback) {
+    public SubGuiAbilityBeamDual(AbilityBeamDual ability, IAbilityConfigCallback callback) {
         super(ability, callback);
         this.beam = ability;
     }

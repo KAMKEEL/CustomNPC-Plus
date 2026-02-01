@@ -198,6 +198,6 @@
     "ID": 12,
     "WhileAttacking": 1b,
     "WhileWalking": 1b,
-    "Name": "Ability_DualBeam_Active",
+    "Name": "Ability_BeamDual_Active",
     "WhileStanding": 1b
 }

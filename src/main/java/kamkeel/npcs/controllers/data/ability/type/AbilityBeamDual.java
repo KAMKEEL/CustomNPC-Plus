@@ -18,12 +18,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDualBeam;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityBeamDual;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
-public class AbilityDualBeam extends Ability {
+public class AbilityBeamDual extends Ability {
     private float beamWidth = 0.4f;
     private float headSize = 0.6f;
     private boolean dualFire= true;
@@ -48,9 +48,9 @@ public class AbilityDualBeam extends Ability {
     private transient EntityAbilityBeam beamEntity = null;
     private transient EntityAbilityBeam beamEntity2 = null;
 
-    public AbilityDualBeam() {
-        this.typeId = "ability.cnpc.dual_beam";
-        this.name = "Dual Beam";
+    public AbilityBeamDual() {
+        this.typeId = "ability.cnpc.beam_dual";
+        this.name = "Beam Dual";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;
         this.minRange = 5.0f;
@@ -60,8 +60,8 @@ public class AbilityDualBeam extends Ability {
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         // Default built-in animations
-        this.windUpAnimationName = "Ability_DualBeam_Windup";
-        this.activeAnimationName = "Ability_DualBeam_Active";
+        this.windUpAnimationName = "Ability_BeamDual_Windup";
+        this.activeAnimationName = "Ability_BeamDual_Active";
     }
 
     @Override
@@ -72,7 +72,7 @@ public class AbilityDualBeam extends Ability {
     @Override
     @SideOnly(Side.CLIENT)
     public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityDualBeam(this, callback);
+        return new SubGuiAbilityBeamDual(this, callback);
     }
 
     @Override
