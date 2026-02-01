@@ -66,7 +66,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     protected int cooldownTicks;
     protected int windUpTicks;
     protected int dazedTicks;
-    protected boolean syncWindupWithAnimation = true; // Sync windup ticks with animation duration
+    protected boolean syncWindupWithAnimation; // Sync windup ticks with animation duration
 
     // ═══════════════════════════════════════════════════════════════════════════
     // CACHED VALUES - Target Tab
@@ -120,6 +120,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.cooldownTicks = ability.getCooldownTicks();
         this.windUpTicks = ability.getWindUpTicks();
         this.dazedTicks = ability.getDazedTicks();
+        this.syncWindupWithAnimation = ability.isSyncWindupWithAnimation();
 
         // Target
         this.minRange = ability.getMinRange();
@@ -923,6 +924,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         ability.setCooldownTicks(cooldownTicks);
         ability.setWindUpTicks(windUpTicks);
         ability.setDazedTicks(dazedTicks);
+        ability.setSyncWindupWithAnimation(syncWindupWithAnimation);
 
         // Target
         ability.setMinRange(minRange);

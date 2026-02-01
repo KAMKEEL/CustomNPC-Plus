@@ -33,4 +33,6 @@ public class Register<T> {
             }
         }
     }
+
+    // TODO ADD ANIMATION REGISTER
 }
