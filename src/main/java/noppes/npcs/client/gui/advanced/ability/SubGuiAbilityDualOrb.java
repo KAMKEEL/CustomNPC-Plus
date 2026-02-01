@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.advanced.ability;
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDualOrb;
-import kamkeel.npcs.controllers.data.ability.type.AbilityOrb;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.*;
@@ -240,9 +239,9 @@ public class SubGuiAbilityDualOrb extends SubGuiAbilityConfig {
             SubGuiColorSelector colorSelector = (SubGuiColorSelector) subgui;
             int rgb = colorSelector.color & 0x00FFFFFF;
             if (editingVisualColorId == 200) {
-                orb.setInnerColor(rgb);
+                orb.setInnerColor(editingOrb, rgb);
             } else if (editingVisualColorId == 201) {
-                orb.setOuterColor(rgb);
+                orb.setOuterColor(editingOrb, rgb);
             }
             editingVisualColorId = 0;
             initGui();

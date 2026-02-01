@@ -473,6 +473,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
         // Anchor data
         this.anchorData.readNBT(nbt);
+
+        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
@@ -487,5 +489,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         nbt.setInteger("ChargeTick", chargeTick);
         anchorData.writeNBT(nbt);
         nbt.setFloat("TargetSize", targetSize);
+
+        nbt.setString("SiblingUUID", siblingUUID.toString());
     }
 }
