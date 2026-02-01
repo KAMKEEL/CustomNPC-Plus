@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.advanced.ability;
 
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.type.AbilityLaserShot;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
@@ -99,7 +100,15 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 180;
         int col2FieldX = guiLeft + 260;
 
-        // Row 1: Inner Color + Outer Color
+        // Row 1: Anchor Point
+        addLabel(new GuiNpcLabel(210, "ability.anchorPoint", labelX, y + 5));
+        GuiNpcButton anchorBtn = new GuiNpcButton(210, fieldX, y, 80, 20, AnchorPoint.getDisplayNames(), laser.getAnchorPointEnum().ordinal());
+        anchorBtn.setHoverText("ability.hover.anchorPoint");
+        addButton(anchorBtn);
+
+        y += 24;
+
+        // Row 2: Inner Color + Outer Color
         addLabel(new GuiNpcLabel(200, "ability.innerColor", labelX, y + 5));
         String innerHex = String.format("%06X", laser.getInnerColor() & 0xFFFFFF);
         GuiNpcButton innerColorBtn = new GuiNpcButton(200, fieldX, y, 55, 20, innerHex);
@@ -115,7 +124,7 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 2: Outer Color Enabled + Outer Color Width
+        // Row 3: Outer Color Enabled + Outer Color Width
         addLabel(new GuiNpcLabel(202, "ability.outerEnabled", labelX, y + 5));
         addButton(new GuiNpcButton(202, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, laser.isOuterColorEnabled() ? 1 : 0));
 
@@ -126,7 +135,7 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Lightning Effect Enabled
+        // Row 4: Lightning Effect Enabled
         addLabel(new GuiNpcLabel(204, "ability.outerAlpha", labelX, y + 5));
         GuiNpcTextField alphaField = createFloatField(204, fieldX, y, 55, laser.getOuterColorAlpha());
         alphaField.setEnabled(laser.isOuterColorEnabled());
@@ -142,7 +151,7 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
         if (laser.hasLightningEffect()) {
             y += 24;
 
-            // Row 4: Density + Radius
+            // Row 5: Density + Radius
             addLabel(new GuiNpcLabel(206, "ability.lightningDensity", labelX, y + 5));
             GuiNpcTextField densityField = new GuiNpcTextField(206, this, fontRendererObj, fieldX, y, 55, 18, "" + laser.getLightningDensity());
             densityField.setMinMaxDefaultFloat(0.01f, 5.0f, 0.15f);
@@ -188,6 +197,9 @@ public class SubGuiAbilityLaserShot extends SubGuiAbilityConfig {
             case 205:
                 laser.setLightningEffect(value == 1);
                 initGui();
+                break;
+            case 210:
+                laser.setAnchorPointEnum(AnchorPoint.fromOrdinal(value));
                 break;
         }
     }
