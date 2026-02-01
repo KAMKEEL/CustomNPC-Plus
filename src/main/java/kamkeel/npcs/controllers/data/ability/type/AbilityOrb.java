@@ -34,12 +34,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     private float orbSize = 1.0f;
 
     // Data classes for energy properties
-    public final EnergyColorData colorData = new EnergyColorData();
-    public final EnergyCombatData combatData = new EnergyCombatData();
-    public final EnergyHomingData homingData = new EnergyHomingData();
-    public final EnergyLightningData lightningData = new EnergyLightningData();
-    public final EnergyLifespanData lifespanData = new EnergyLifespanData();
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyColorData colorData = new EnergyColorData();
+    private final EnergyCombatData combatData = new EnergyCombatData();
+    private final EnergyHomingData homingData = new EnergyHomingData();
+    private final EnergyLightningData lightningData = new EnergyLightningData();
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData();
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
 
     // Transient state for orb entity (used during windup charging)
     private transient EntityAbilityOrb orbEntity = null;
