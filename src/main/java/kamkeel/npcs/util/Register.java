@@ -2,6 +2,9 @@ package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import noppes.npcs.LogWriter;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,6 +33,23 @@ public class Register<T> {
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
                 AbilityController.Instance.registerType(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    public static class Animations extends Register<Animation> {
+        private final Class<?> modClass;
+        private final String animationsPath;
+
+        public Animations(Class<?> modClass, String animationsPath, String namespace) {
+            super("ability", namespace);
+            this.animationsPath = animationsPath;
+            this.modClass = modClass;
+        }
+
+        public void register() throws Exception {
+            for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
+                AnimationController.Instance.loadBuiltInAnimation(modClass, animationsPath, entry.getKey());
             }
         }
     }

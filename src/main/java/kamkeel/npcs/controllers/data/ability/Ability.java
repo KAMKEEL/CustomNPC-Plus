@@ -20,6 +20,7 @@ import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.ScriptController;
@@ -57,6 +58,7 @@ public abstract class Ability implements IAbility {
     protected int cooldownTicks = 0;      // Added to global cooldown after ability completes
     protected int windUpTicks = 20;
     protected int dazedTicks = 80;        // Only used when interrupted during WINDUP (if interruptible)
+    protected boolean syncWindupWithAnimation = true;
 
     // Interruption
     protected boolean interruptible = true;
@@ -972,7 +974,7 @@ public abstract class Ability implements IAbility {
     }
 
     public int getWindUpTicks() {
-        return windUpTicks;
+        return this.calculateWindupFromAnimation();
     }
 
     public void setWindUpTicks(int windUpTicks) {
@@ -985,6 +987,14 @@ public abstract class Ability implements IAbility {
 
     public void setDazedTicks(int dazedTicks) {
         this.dazedTicks = Math.max(0, dazedTicks);
+    }
+
+    public boolean isSyncWindupWithAnimation() {
+        return syncWindupWithAnimation;
+    }
+
+    public void setSyncWindupWithAnimation(boolean syncWindupWithAnimation) {
+        this.syncWindupWithAnimation = syncWindupWithAnimation;
     }
 
     public boolean isInterruptible() {
@@ -1088,7 +1098,7 @@ public abstract class Ability implements IAbility {
 
         // Built-in animation by name takes priority
         if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
-            return (Animation) AnimationController.Instance.get(windUpAnimationName);
+            return (Animation) AnimationController.Instance.get(windUpAnimationName, true);
         }
         // Fall back to user animation by ID
         if (windUpAnimationId >= 0) {
@@ -1118,7 +1128,7 @@ public abstract class Ability implements IAbility {
 
         // Built-in animation by name takes priority
         if (activeAnimationName != null && !activeAnimationName.isEmpty()) {
-            return (Animation) AnimationController.Instance.get(activeAnimationName);
+            return (Animation) AnimationController.Instance.get(activeAnimationName, true);
         }
         // Fall back to user animation by ID
         if (activeAnimationId >= 0) {
@@ -1232,6 +1242,43 @@ public abstract class Ability implements IAbility {
 
     public void clearEffects() {
         effects.clear();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SHIT FROM THE ASS
+    // ═══════════════════════════════════════════════════════════════════
+
+    private int calculateWindupFromAnimation() {
+        if (!syncWindupWithAnimation) {
+            return windUpTicks;
+        }
+
+        if (AnimationController.Instance == null) {
+            return this.windUpTicks;
+        }
+
+        Animation animation = null;
+        // Check for built-in animation (by name) first
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationName, true);
+        }
+        // Fall back to user animation (by ID)
+        else if (windUpAnimationId >= 0) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+
+        if (animation == null || animation.frames.isEmpty()) {
+            return this.windUpTicks;
+        }
+
+        // Calculate total duration by summing all frame durations
+        int totalDuration = 0;
+        for (Frame frame : animation.frames) {
+            totalDuration += frame.getDuration();
+        }
+
+        // Return total duration
+        return totalDuration;
     }
 
     // ═══════════════════════════════════════════════════════════════════
