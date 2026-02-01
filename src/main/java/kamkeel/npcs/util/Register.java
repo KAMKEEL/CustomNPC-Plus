@@ -5,6 +5,7 @@ import kamkeel.npcs.controllers.data.ability.AbilityController;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.BuiltInAnimation;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -45,6 +46,11 @@ public class Register<T> {
             super("ability", namespace);
             this.animationsPath = animationsPath;
             this.modClass = modClass;
+        }
+
+        @Override
+        public Animation register(String factoryName, Supplier<Animation> factory) {
+            return (BuiltInAnimation) super.register(factoryName, factory);
         }
 
         public void register() {
