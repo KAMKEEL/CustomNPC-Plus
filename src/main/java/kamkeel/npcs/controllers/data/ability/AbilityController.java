@@ -363,6 +363,7 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:sweeper", AbilitySweeper::new);
         registerType("cnpc:projectile", AbilityProjectile::new);
         registerType("cnpc:orb", AbilityOrb::new);
+        registerType("cnpc:dual_orb", AbilityDualOrb::new);
         registerType("cnpc:disc", AbilityDisc::new);
         registerType("cnpc:laser_shot", AbilityLaserShot::new);
         registerType("cnpc:beam", AbilityEnergyBeam::new);
