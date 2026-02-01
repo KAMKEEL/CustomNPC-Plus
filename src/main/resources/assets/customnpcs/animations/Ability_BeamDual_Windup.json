@@ -196,6 +196,6 @@
     "ID": 11,
     "WhileAttacking": 1b,
     "WhileWalking": 1b,
-    "Name": "Ability_DualBeam_Windup",
+    "Name": "Ability_BeamDual_Windup",
     "WhileStanding": 1b
 }
