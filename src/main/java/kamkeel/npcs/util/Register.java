@@ -2,7 +2,6 @@ package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
-import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
@@ -12,7 +11,7 @@ import java.util.function.Supplier;
 
 public class Register<T> {
     private final String registryKey;
-    private final String namespace;
+    protected final String namespace;
     protected final Map<String, Supplier<T>> entries = new LinkedHashMap<>();
 
     public Register(String registryKey, String namespace) {
@@ -41,15 +40,21 @@ public class Register<T> {
         private final Class<?> modClass;
         private final String animationsPath;
 
-        public Animations(Class<?> modClass, String animationsPath, String namespace) {
-            super("ability", namespace);
+        public Animations(Class<?> modClass, String namespace, String animationsPath) {
+            super("animation", namespace);
             this.animationsPath = animationsPath;
             this.modClass = modClass;
         }
 
         public void register() throws Exception {
-            for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
-                AnimationController.Instance.loadBuiltInAnimation(modClass, animationsPath, entry.getKey());
+            try {
+
+            } catch(Exception e) {
+                String path = "/assets/" + namespace + "/" + animationsPath + "/";
+                for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
+                    String key = entry.getKey().substring(entry.getKey().indexOf(":"));
+                    AnimationController.Instance.loadBuiltInAnimation(modClass, path, key);
+                }
             }
         }
     }
