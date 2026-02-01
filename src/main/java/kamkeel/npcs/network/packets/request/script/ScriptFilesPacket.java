@@ -47,7 +47,6 @@ public final class ScriptFilesPacket extends AbstractPacket {
         return CustomNpcsPermissions.SCRIPT_GLOBAL;
     }
 
-    @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
         ByteBufUtils.writeNBT(out, getScriptsNbt(lang));
