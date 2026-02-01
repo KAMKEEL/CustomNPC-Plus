@@ -2,6 +2,7 @@ package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
@@ -40,21 +41,19 @@ public class Register<T> {
         private final Class<?> modClass;
         private final String animationsPath;
 
-        public Animations(Class<?> modClass, String namespace, String animationsPath) {
-            super("animation", namespace);
+        public Animations(Class<?> modClass, String animationsPath, String namespace) {
+            super("ability", namespace);
             this.animationsPath = animationsPath;
             this.modClass = modClass;
         }
 
-        public void register() throws Exception {
+        public void register() {
             try {
-
-            } catch(Exception e) {
-                String path = "/assets/" + namespace + "/" + animationsPath + "/";
                 for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
-                    String key = entry.getKey().substring(entry.getKey().indexOf(":"));
-                    AnimationController.Instance.loadBuiltInAnimation(modClass, path, key);
+                    AnimationController.Instance.loadBuiltInAnimation(modClass, animationsPath, entry.getKey());
                 }
+            } catch (Exception e) {
+                LogWriter.error("Error scanning built-in animations folder", e);
             }
         }
     }
