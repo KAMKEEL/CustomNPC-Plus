@@ -120,12 +120,9 @@ public class AnimationController implements IAnimationHandler {
         }
     }
 
-    /**
-     * Load a single built-in animation by name from assets folder.
-     */
-    private void loadBuiltInAnimation(String animName) throws Exception {
-        String resourcePath = BUILTIN_ANIMATIONS_PATH + "/" + animName + ".json";
-        try (InputStream stream = CustomNpcs.class.getResourceAsStream(resourcePath)) {
+    public void loadBuiltInAnimation(Class<?> modClass, String path, String animName) throws Exception {
+        String resourcePath = path + "/" + animName + ".json";
+        try (InputStream stream = modClass.getResourceAsStream(resourcePath)) {
             if (stream == null) {
                 return;
             }
@@ -148,6 +145,13 @@ public class AnimationController implements IAnimationHandler {
             // Store with lowercase key for case-insensitive lookup
             builtInAnimations.put(animName.toLowerCase(), animation);
         }
+    }
+
+    /**
+     * Load a single built-in animation by name from assets folder.
+     */
+    private void loadBuiltInAnimation(String animName) throws Exception {
+        loadBuiltInAnimation(CustomNpcs.class, BUILTIN_ANIMATIONS_PATH, animName);
     }
 
     private void loadAnimations() {
@@ -314,6 +318,10 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public IAnimation get(String name) {
+        return get(name, false);
+    }
+
+    public IAnimation get(String name, boolean builtIn) {
         // Check user/custom animations first (allows overriding built-in)
         for (Map.Entry<Integer, Animation> entry : animations.entrySet()) {
             if (entry.getValue().name.equalsIgnoreCase(name)) {
@@ -321,10 +329,13 @@ public class AnimationController implements IAnimationHandler {
             }
         }
         // Then check built-in animations
-        BuiltInAnimation builtIn = builtInAnimations.get(name.toLowerCase());
-        if (builtIn != null) {
-            return builtIn;
+        if (builtIn) {
+            BuiltInAnimation builtInAnim = builtInAnimations.get(name.toLowerCase());
+            if (builtInAnim != null) {
+                return builtInAnim;
+            }
         }
+
         return null;
     }
 

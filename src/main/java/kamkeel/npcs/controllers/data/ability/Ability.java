@@ -1098,7 +1098,7 @@ public abstract class Ability implements IAbility {
 
         // Built-in animation by name takes priority
         if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
-            return (Animation) AnimationController.Instance.get(windUpAnimationName);
+            return (Animation) AnimationController.Instance.get(windUpAnimationName, true);
         }
         // Fall back to user animation by ID
         if (windUpAnimationId >= 0) {
@@ -1128,7 +1128,7 @@ public abstract class Ability implements IAbility {
 
         // Built-in animation by name takes priority
         if (activeAnimationName != null && !activeAnimationName.isEmpty()) {
-            return (Animation) AnimationController.Instance.get(activeAnimationName);
+            return (Animation) AnimationController.Instance.get(activeAnimationName, true);
         }
         // Fall back to user animation by ID
         if (activeAnimationId >= 0) {
@@ -1260,7 +1260,7 @@ public abstract class Ability implements IAbility {
         Animation animation = null;
         // Check for built-in animation (by name) first
         if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
-            animation = (Animation) AnimationController.Instance.get(windUpAnimationName);
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationName, true);
         }
         // Fall back to user animation (by ID)
         else if (windUpAnimationId >= 0) {

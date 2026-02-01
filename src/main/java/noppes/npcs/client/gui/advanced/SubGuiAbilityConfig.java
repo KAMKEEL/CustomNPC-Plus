@@ -1003,7 +1003,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         Animation animation = null;
         // Check for built-in animation (by name) first
         if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
-            animation = (Animation) AnimationController.Instance.get(windUpAnimationName);
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationName, true);
         }
         // Fall back to user animation (by ID)
         else if (windUpAnimationId >= 0) {
