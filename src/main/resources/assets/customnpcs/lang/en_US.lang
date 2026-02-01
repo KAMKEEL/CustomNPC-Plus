@@ -1562,8 +1562,10 @@ ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
 ability.cnpc.cutter=Cutter
 ability.cnpc.beam=Beam
+ability.cnpc.dual_beam=Dual Beam
 ability.cnpc.projectile=Projectile
 ability.cnpc.orb=Orb
+ability.cnpc.dual_orb=Dual Orb
 ability.cnpc.charge=Charge
 ability.cnpc.dash=Dash
 ability.cnpc.teleport=Teleport
@@ -1574,6 +1576,7 @@ ability.cnpc.heal=Heal
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
 ability.cnpc.disc=Disc
+ability.cnpc.dual_disc=Dual Disc
 ability.cnpc.laser_shot=Laser Shot
 ability.cnpc.sweeper=Sweeper
 
@@ -1698,6 +1701,10 @@ ability.lightningDensity=Density
 ability.lightningRadius=Radius
 ability.anchorPoint=Anchor Point
 ability.noVisualSettings=No visual settings for this ability type
+
+# Dual Energy Projectile Settings
+ability.dualFire=Dual Fire
+ability.dualFireDelay=Fire Delay
 
 # Laser Shot Settings
 ability.laserWidth=Laser Width

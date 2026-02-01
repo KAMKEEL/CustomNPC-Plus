@@ -369,7 +369,7 @@ public abstract class Ability implements IAbility {
      * Create a telegraph instance for this ability.
      * Override for custom telegraph shapes.
      *
-     * @param npc    The caster
+     * @param caster    The caster
      * @param target The target (for position calculation)
      * @return The telegraph instance, or null if no telegraph
      */

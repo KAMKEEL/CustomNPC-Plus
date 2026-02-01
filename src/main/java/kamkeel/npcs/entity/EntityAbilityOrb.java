@@ -12,6 +12,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Orb projectile - spherical homing energy ball.
@@ -36,6 +37,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
+
+    private UUID siblingUUID = null;
 
     public EntityAbilityOrb(World world) {
         super(world);
@@ -441,6 +444,18 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         return size;
     }
 
+    public UUID getSiblingUUID() {
+        return siblingUUID;
+    }
+
+    public void setSiblingUUID(UUID siblingUUID) {
+        if (siblingUUID == null)
+            return;
+
+        if (this.siblingUUID == null)
+            this.siblingUUID = siblingUUID;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -458,6 +473,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
         // Anchor data
         this.anchorData.readNBT(nbt);
+
+        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
@@ -472,5 +489,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         nbt.setInteger("ChargeTick", chargeTick);
         anchorData.writeNBT(nbt);
         nbt.setFloat("TargetSize", targetSize);
+
+        nbt.setString("SiblingUUID", siblingUUID.toString());
     }
 }

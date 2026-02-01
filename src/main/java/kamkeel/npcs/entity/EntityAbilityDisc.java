@@ -12,6 +12,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Disc projectile - flat spinning disc with optional boomerang behavior.
@@ -47,6 +48,8 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
+
+    private UUID siblingUUID = null;
 
     public EntityAbilityDisc(World world) {
         super(world);
@@ -565,6 +568,18 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         return returning;
     }
 
+    public UUID getSiblingUUID() {
+        return siblingUUID;
+    }
+
+    public void setSiblingUUID(UUID siblingUUID) {
+        if (siblingUUID == null)
+            return;
+
+        if (this.siblingUUID == null)
+            this.siblingUUID = siblingUUID;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -587,6 +602,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.targetDiscRadius = nbt.hasKey("TargetDiscRadius") ? nbt.getFloat("TargetDiscRadius") : this.discRadius;
         this.targetDiscThickness = nbt.hasKey("TargetDiscThickness") ? nbt.getFloat("TargetDiscThickness") : this.discThickness;
         this.anchorData.readNBT(nbt);
+        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
@@ -609,5 +625,6 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Anchor data
         this.anchorData.writeNBT(nbt);
+        nbt.setString("SiblingUUID", siblingUUID.toString());
     }
 }
