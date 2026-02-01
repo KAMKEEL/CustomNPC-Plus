@@ -3,6 +3,7 @@ package kamkeel.npcs.client.renderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
+import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -20,10 +21,13 @@ public class RenderAbilityLaser extends RenderAbilityProjectile {
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         EntityAbilityLaser laser = (EntityAbilityLaser) entity;
 
-        // Don't render if length is 0
-        if (laser.getCurrentLength() <= 0) return;
-
         setupRenderState();
+
+        if (laser.isCharging()) {
+            renderChargingOrb(laser, x, y, z, partialTicks);
+            restoreRenderState();
+            return;
+        }
 
         // Get laser parameters
         double startX = laser.getStartX();
@@ -123,6 +127,55 @@ public class RenderAbilityLaser extends RenderAbilityProjectile {
         restoreRenderState();
     }
 
+    private void renderChargingOrb(EntityAbilityLaser laser, double x, double y, double z, float partialTicks) {
+        float headSize = laser.getLaserWidth() * 1.5f;
+        float chargeProgress = laser.getInterpolatedChargeProgress(partialTicks);
+        float size = headSize * chargeProgress;
+
+        if (size <= 0.01f) return;
+
+        int innerColor = laser.getInnerColor();
+        int outerColor = laser.getOuterColor();
+
+        GL11.glPushMatrix();
+        GL11.glTranslated(x, y, z);
+
+        // Pulsing effect
+        float pulseTime = laser.ticksExisted + partialTicks;
+        float scaleModifier = (float) Math.sin(pulseTime * 0.2f) * 0.08f;
+        float scale = size * (1.0f + scaleModifier);
+
+        // Render lightning during charging if enabled
+        if (laser.hasLightningEffect()) {
+            renderAttachedLightning(laser, scale);
+        }
+
+        GL11.glPushMatrix();
+        GL11.glScalef(scale, scale, scale);
+
+        // Inner scale defines the core size
+        float innerScale = 0.6f;
+
+        // Render outer glow only if enabled
+        if (laser.isOuterColorEnabled()) {
+            float outerScale = innerScale + laser.getOuterColorWidth();
+            float outerAlpha = laser.getOuterColorAlpha();
+            GL11.glDepthMask(false);
+            GL11.glPushMatrix();
+            GL11.glScalef(outerScale, outerScale, outerScale);
+            renderCube(outerColor, outerAlpha, 0.5f);
+            GL11.glPopMatrix();
+            GL11.glDepthMask(true);
+        }
+
+        // Render inner core
+        GL11.glScalef(innerScale, innerScale, innerScale);
+        renderCube(innerColor, 1.0f, 0.5f);
+
+        GL11.glPopMatrix();
+        GL11.glPopMatrix();
+    }
+
     /**
      * Render lightning effects along the laser beam at multiple points.
      */
@@ -159,6 +212,22 @@ public class RenderAbilityLaser extends RenderAbilityProjectile {
         tipState.update(density * 0.7f, radius * 0.8f, outerColor, innerColor, fadeTime);
         tipState.render();
         GL11.glPopMatrix();
+    }
+
+
+    private void renderAttachedLightning(EntityAbilityLaser laser, float headScale) {
+        AttachedLightningRenderer.LightningState state = getLightningState(laser);
+
+        float density = laser.getLightningDensity();
+        // Lightning radius extends outward from inner surface (innerScale = 0.6)
+        float innerRadius = 0.6f * headScale * 0.5f;
+        float radius = innerRadius + laser.getLightningRadius() * headScale;
+        int outerColor = laser.getOuterColor();
+        int innerColor = laser.getInnerColor();
+        int fadeTime = laser.getLightningFadeTime();
+
+        state.update(density, radius, outerColor, innerColor, fadeTime);
+        state.render();
     }
 
     /**
