@@ -625,6 +625,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Anchor data
         this.anchorData.writeNBT(nbt);
-        nbt.setString("SiblingUUID", siblingUUID.toString());
+
+        if (siblingUUID instanceof UUID) {
+            nbt.setString("SiblingUUID", siblingUUID.toString());
+        }
     }
 }

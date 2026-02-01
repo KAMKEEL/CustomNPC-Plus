@@ -843,6 +843,9 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             trailList.appendTag(pointNbt);
         }
         nbt.setTag("Trail", trailList);
-        nbt.setString("SiblingUUID", siblingUUID.toString());
+
+        if (siblingUUID instanceof UUID) {
+            nbt.setString("SiblingUUID", siblingUUID.toString());
+        }
     }
 }

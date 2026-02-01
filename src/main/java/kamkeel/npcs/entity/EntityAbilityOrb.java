@@ -490,6 +490,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         anchorData.writeNBT(nbt);
         nbt.setFloat("TargetSize", targetSize);
 
-        nbt.setString("SiblingUUID", siblingUUID.toString());
+        if (siblingUUID instanceof UUID) {
+            nbt.setString("SiblingUUID", siblingUUID.toString());
+        }
     }
 }
