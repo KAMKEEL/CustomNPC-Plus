@@ -50,7 +50,7 @@ public class Register<T> {
 
         @Override
         public Animation register(String factoryName, Supplier<Animation> factory) {
-            return (BuiltInAnimation) super.register(factoryName, factory);
+            return super.register(factoryName, factory);
         }
 
         public void register() {
