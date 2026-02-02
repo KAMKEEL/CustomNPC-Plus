@@ -12,6 +12,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityGuard;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 
@@ -44,7 +45,16 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     public enum CounterType {
         FLAT,
-        PERCENT
+        PERCENT;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case FLAT: return "ability.counter.flat";
+                case PERCENT: return "ability.counter.percent";
+                default: return name();
+            }
+        }
     }
 
     public AbilityGuard() {
@@ -287,23 +297,21 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
-                .range(1, 1000),
-            FieldDef.floatField("ability.dmgReduce", this::getDamageReduction, this::setDamageReduction),
-            FieldDef.boolField("ability.canCounter", this::isCanCounter, this::setCanCounter)
-                .hover("ability.hover.canCounter"),
-            FieldDef.enumField("ability.counterType", CounterType.class, this::getCounterTypeEnum, this::setCounterTypeEnum)
-                .hover("ability.hover.counterType")
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 1000),
+            FieldDef.floatField("ability.damageReduction", this::getDamageReduction, this::setDamageReduction),
+            FieldDef.section("ability.section.counter"),
+            FieldDef.boolField("gui.enabled", this::isCanCounter, this::setCanCounter).hover("ability.hover.canCounter"),
+            FieldDef.enumField("gui.type", CounterType.class, this::getCounterTypeEnum, this::setCounterTypeEnum)
+                .hover("ability.hover.counterType").visibleWhen(this::isCanCounter),
+            FieldDef.floatField("gui.value", this::getCounterValue, this::setCounterValue)
+                .visibleWhen(this::isCanCounter).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.chance", this::getCounterChance, this::setCounterChance)
+                .visibleWhen(this::isCanCounter).column(ColumnHint.RIGHT),
+            FieldDef.stringField("gui.sound", this::getCounterSound, this::setCounterSound)
                 .visibleWhen(this::isCanCounter),
-            FieldDef.floatField("ability.counterValue", this::getCounterValue, this::setCounterValue)
+            FieldDef.intField("gui.animation", this::getCounterAnimationId, this::setCounterAnimationId)
                 .visibleWhen(this::isCanCounter),
-            FieldDef.floatField("ability.counterChance", this::getCounterChance, this::setCounterChance)
-                .visibleWhen(this::isCanCounter),
-            FieldDef.stringField("ability.counterSound", this::getCounterSound, this::setCounterSound)
-                .visibleWhen(this::isCanCounter),
-            FieldDef.intField("ability.counterAnim", this::getCounterAnimationId, this::setCounterAnimationId)
-                .visibleWhen(this::isCanCounter),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

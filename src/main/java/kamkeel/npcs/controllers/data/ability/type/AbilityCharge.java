@@ -16,6 +16,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityCharge;
@@ -403,11 +404,11 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("stats.speed", this::getChargeSpeed, this::setChargeSpeed),
-            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
-            FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.chargeSpeed", this::getChargeSpeed, this::setChargeSpeed).column(ColumnHint.RIGHT),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth).column(ColumnHint.RIGHT),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

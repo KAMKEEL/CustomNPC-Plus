@@ -19,10 +19,12 @@ import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 
@@ -60,6 +62,7 @@ public abstract class Ability implements IAbility {
     // Timing (ticks)
     protected int cooldownTicks = 0;      // Added to global cooldown after ability completes
     protected int windUpTicks = 20;
+    protected boolean syncWindupWithAnimation = true;
     protected int dazedTicks = 80;        // Only used when interrupted during WINDUP (if interruptible)
 
     // Interruption
@@ -325,49 +328,70 @@ public abstract class Ability implements IAbility {
         defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
             .tab(TabTarget.GENERAL));
         defs.add(FieldDef.intField("ability.weight", this::getWeight, this::setWeight)
-            .tab(TabTarget.GENERAL).range(1, 1000));
-        defs.add(FieldDef.enumField("ability.lockMove", LockMovementType.class,
-            this::getLockMovement, this::setLockMovement)
+            .tab(TabTarget.GENERAL).range(1, 1000).column(ColumnHint.LEFT));
+        defs.add(FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
+            .tab(TabTarget.GENERAL).column(ColumnHint.RIGHT));
+        defs.add(FieldDef.section("ability.section.timing").tab(TabTarget.GENERAL));
+        defs.add(FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks)
+            .tab(TabTarget.GENERAL).range(0, 1000).column(ColumnHint.LEFT)
+            .visibleWhen(() -> !isSyncWindupWithAnimation()));
+        defs.add(FieldDef.labelField("ability.windUpTicks", () -> getWindUpTicks() + "t")
+            .tab(TabTarget.GENERAL).column(ColumnHint.LEFT)
+            .visibleWhen(this::isSyncWindupWithAnimation));
+        defs.add(FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
+            .tab(TabTarget.GENERAL).hover("ability.hover.sync").column(ColumnHint.RIGHT)
+            .visibleWhen(this::hasWindUpAnimation));
+        defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
+            .tab(TabTarget.GENERAL).range(0, 10000));
+        defs.add(FieldDef.section("ability.section.movement").tab(TabTarget.GENERAL));
+        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
+            () -> this.getLockMovement().getDisplayKey(),
+            v -> {
+                String[] keys = LockMovementType.getDisplayKeys();
+                for (int i = 0; i < keys.length; i++) {
+                    if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
+                }
+            })
             .tab(TabTarget.GENERAL).hover("ability.hover.lockMove"));
         defs.add(FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
-            .tab(TabTarget.GENERAL).hover("ability.hover.interruptible"));
-        defs.add(FieldDef.intField("ability.dazed", this::getDazedTicks, this::setDazedTicks)
+            .tab(TabTarget.GENERAL).hover("ability.hover.interruptible").column(ColumnHint.LEFT));
+        defs.add(FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
             .tab(TabTarget.GENERAL).range(0, 1000)
-            .visibleWhen(this::isInterruptible));
-        defs.add(FieldDef.intField("ability.windup", this::getWindUpTicks, this::setWindUpTicks)
-            .tab(TabTarget.GENERAL).range(0, 1000));
-        defs.add(FieldDef.intField("ability.cooldown", this::getCooldownTicks, this::setCooldownTicks)
-            .tab(TabTarget.GENERAL).range(0, 10000));
-        defs.add(FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
-            .tab(TabTarget.GENERAL));
+            .visibleWhen(this::isInterruptible).column(ColumnHint.RIGHT));
 
         // Target tab
         defs.add(FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v))
-            .tab(TabTarget.TARGET).range(0, 100));
+            .tab(TabTarget.TARGET).range(0, 100).column(ColumnHint.LEFT));
         defs.add(FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v))
-            .tab(TabTarget.TARGET).range(1, 100));
+            .tab(TabTarget.TARGET).range(1, 100).column(ColumnHint.RIGHT));
         if (!isTargetingModeLocked()) {
-            defs.add(FieldDef.enumField("ability.targeting", TargetingMode.class,
+            defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
                 this::getTargetingMode, this::setTargetingMode)
                 .tab(TabTarget.TARGET).hover("ability.hover.targeting"));
         }
 
-        // Effects tab
+        // Effects tab - Sounds
+        defs.add(FieldDef.section("ability.section.sounds").tab(TabTarget.EFFECTS));
         defs.add(FieldDef.soundSubGui("ability.windUpSound", this::getWindUpSound, this::setWindUpSound)
             .tab(TabTarget.EFFECTS));
         defs.add(FieldDef.soundSubGui("ability.activeSound", this::getActiveSound, this::setActiveSound)
             .tab(TabTarget.EFFECTS));
-        defs.add(FieldDef.animSubGui("ability.windUpAnim",
+        // Effects tab - Animations
+        defs.add(FieldDef.section("ability.section.animations").tab(TabTarget.EFFECTS));
+        defs.add(FieldDef.animSubGui("ability.windUpAnimation",
             this::getWindUpAnimationId, this::setWindUpAnimationId,
             this::getWindUpAnimationName, this::setWindUpAnimationName)
             .tab(TabTarget.EFFECTS));
-        defs.add(FieldDef.animSubGui("ability.activeAnim",
+        defs.add(FieldDef.animSubGui("ability.activeAnimation",
             this::getActiveAnimationId, this::setActiveAnimationId,
             this::getActiveAnimationName, this::setActiveAnimationName)
             .tab(TabTarget.EFFECTS));
 
+        // Effects tab - Telegraph
         TelegraphType tType = getTelegraphType();
         if (tType != null && tType != TelegraphType.NONE) {
+            defs.add(FieldDef.section("ability.section.telegraph").tab(TabTarget.EFFECTS)
+                .tooltip("telegraph." + tType.name().toLowerCase()));
             defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
                 .tab(TabTarget.EFFECTS).hover("ability.hover.showTelegraph"));
             defs.add(FieldDef.colorSubGui("ability.windUpColor", this::getWindUpColor, this::setWindUpColor)
@@ -847,6 +871,7 @@ public abstract class Ability implements IAbility {
         nbt.setFloat("maxRange", maxRange);
         nbt.setInteger("cooldown", cooldownTicks);
         nbt.setInteger("windUp", windUpTicks);
+        nbt.setBoolean("syncWindup", syncWindupWithAnimation);
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
         nbt.setInteger("lockMovement", lockMovement.ordinal());
@@ -894,6 +919,7 @@ public abstract class Ability implements IAbility {
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
+        syncWindupWithAnimation = !nbt.hasKey("syncWindup") || nbt.getBoolean("syncWindup");
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
@@ -1036,11 +1062,54 @@ public abstract class Ability implements IAbility {
     }
 
     public int getWindUpTicks() {
+        return calculateWindupFromAnimation();
+    }
+
+    public int getRawWindUpTicks() {
         return windUpTicks;
     }
 
     public void setWindUpTicks(int windUpTicks) {
         this.windUpTicks = Math.max(0, windUpTicks);
+    }
+
+    public boolean isSyncWindupWithAnimation() {
+        return syncWindupWithAnimation;
+    }
+
+    public boolean hasWindUpAnimation() {
+        return (windUpAnimationName != null && !windUpAnimationName.isEmpty()) || windUpAnimationId >= 0;
+    }
+
+    public void setSyncWindupWithAnimation(boolean syncWindupWithAnimation) {
+        this.syncWindupWithAnimation = syncWindupWithAnimation;
+    }
+
+    private int calculateWindupFromAnimation() {
+        if (!syncWindupWithAnimation) {
+            return windUpTicks;
+        }
+
+        if (AnimationController.Instance == null) {
+            return windUpTicks;
+        }
+
+        Animation animation = null;
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationName);
+        } else if (windUpAnimationId >= 0) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+
+        if (animation == null || animation.frames.isEmpty()) {
+            return windUpTicks;
+        }
+
+        int totalDuration = 0;
+        for (Frame frame : animation.frames) {
+            totalDuration += frame.getDuration();
+        }
+        return totalDuration;
     }
 
     public int getDazedTicks() {

@@ -2,7 +2,6 @@ package kamkeel.npcs.controllers.data.ability.gui;
 
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import noppes.npcs.client.gui.SubGuiColorSelector;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityEffects;
 import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.SubGuiInterface;
@@ -26,6 +25,7 @@ public class FieldDef {
     private Supplier<Object> getter;
     private Consumer<Object> setter;
     private BooleanSupplier visibleWhen = () -> true;
+    private BooleanSupplier enabledWhen = () -> true;
     private String tooltip = null;
     private String hoverText = null;
 
@@ -56,6 +56,10 @@ public class FieldDef {
     // ═══════════════════════════════════════════════════════════════════
     // STATIC FACTORIES
     // ═══════════════════════════════════════════════════════════════════
+
+    public static FieldDef section(String label) {
+        return new FieldDef(label, FieldType.SECTION_HEADER);
+    }
 
     public static FieldDef floatField(String label, Supplier<Float> getter, Consumer<Float> setter) {
         FieldDef def = new FieldDef(label, FieldType.FLOAT);
@@ -102,6 +106,20 @@ public class FieldDef {
         return def;
     }
 
+    public static FieldDef labelField(String label, Supplier<String> textSupplier) {
+        FieldDef def = new FieldDef(label, FieldType.LABEL);
+        def.getter = () -> textSupplier.get();
+        return def;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static FieldDef effectsListField(String label, Supplier<List<AbilityEffect>> getter, Consumer<List<AbilityEffect>> setter) {
+        FieldDef def = new FieldDef(label, FieldType.EFFECTS_LIST);
+        def.getter = () -> getter.get();
+        def.setter = v -> setter.accept((List<AbilityEffect>) v);
+        return def;
+    }
+
     public static FieldDef subGuiField(String label, Supplier<SubGuiInterface> factory, Consumer<SubGuiInterface> resultHandler) {
         FieldDef def = new FieldDef(label, FieldType.SUB_GUI);
         def.subGuiFactory = factory;
@@ -121,15 +139,6 @@ public class FieldDef {
             .buttonTextColor(() -> getter.get() & 0xFFFFFF);
     }
 
-    public static FieldDef effectsSubGui(String label, Supplier<List<AbilityEffect>> getter, Consumer<List<AbilityEffect>> setter) {
-        return subGuiField(label,
-            () -> new SubGuiAbilityEffects(getter.get()),
-            gui -> {
-                List<AbilityEffect> r = ((SubGuiAbilityEffects) gui).getResult();
-                if (r != null) setter.accept(r);
-            });
-    }
-
     public static FieldDef soundSubGui(String label, Supplier<String> getter, Consumer<String> setter) {
         return subGuiField(label,
             () -> new GuiSoundSelection(getter.get()),
@@ -139,7 +148,7 @@ public class FieldDef {
             })
             .buttonLabel(() -> {
                 String s = getter.get();
-                return s == null || s.isEmpty() ? "gui.none" : truncateEnd(s, 10);
+                return s == null || s.isEmpty() ? "gui.none" : s;
             })
             .clearable(() -> setter.accept(""));
     }
@@ -161,7 +170,7 @@ public class FieldDef {
             })
             .buttonLabel(() -> {
                 String name = nameGetter.get();
-                if (name != null && !name.isEmpty()) return truncateEnd(name, 8);
+                if (name != null && !name.isEmpty()) return name;
                 int id = idGetter.get();
                 return id >= 0 ? "ID: " + id : "gui.none";
             })
@@ -196,6 +205,11 @@ public class FieldDef {
 
     public FieldDef visibleWhen(BooleanSupplier condition) {
         this.visibleWhen = condition;
+        return this;
+    }
+
+    public FieldDef enabledWhen(BooleanSupplier condition) {
+        this.enabledWhen = condition;
         return this;
     }
 
@@ -234,6 +248,7 @@ public class FieldDef {
     public String getCustomTabName() { return customTabName; }
     public ColumnHint getColumn() { return column; }
     public boolean isVisible() { return visibleWhen.getAsBoolean(); }
+    public boolean isEnabled() { return enabledWhen.getAsBoolean(); }
     public String getTooltip() { return tooltip; }
     public String getHoverText() { return hoverText; }
     public float getMin() { return min; }
@@ -271,17 +286,4 @@ public class FieldDef {
         return buttonTextColorSupplier != null ? buttonTextColorSupplier.get() : null;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // HELPERS
-    // ═══════════════════════════════════════════════════════════════════
-
-    static String truncateEnd(String str, int maxLen) {
-        if (str == null) return "";
-        if (str.length() <= maxLen) return str;
-        int lastSlash = str.lastIndexOf('/');
-        if (lastSlash >= 0 && str.length() - lastSlash <= maxLen) {
-            return "..." + str.substring(lastSlash);
-        }
-        return "..." + str.substring(str.length() - maxLen + 3);
-    }
 }

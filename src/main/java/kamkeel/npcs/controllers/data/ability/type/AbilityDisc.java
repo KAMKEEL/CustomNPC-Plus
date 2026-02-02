@@ -17,8 +17,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityDisc;
 
 import java.util.Arrays;
@@ -280,51 +280,53 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
             // Type tab
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed),
-            FieldDef.floatField("ability.discRadius", this::getDiscRadius, this::setDiscRadius),
-            FieldDef.floatField("ability.discThickness", this::getDiscThickness, this::setDiscThickness),
-            FieldDef.boolField("ability.homing", this::isHoming, this::setHoming)
-                .hover("ability.hover.homing"),
-            FieldDef.floatField("ability.homingStr", this::getHomingStrength, this::setHomingStrength)
-                .visibleWhen(this::isHoming),
-            FieldDef.boolField("ability.boomerang", this::isBoomerang, this::setBoomerang)
-                .hover("ability.hover.boomerang"),
-            FieldDef.intField("ability.boomerangDelay", this::getBoomerangDelay, this::setBoomerangDelay)
-                .visibleWhen(this::isBoomerang),
-            FieldDef.boolField("ability.explosive", this::isExplosive, this::setExplosive)
-                .hover("ability.hover.explosive"),
-            FieldDef.floatField("ability.explosionRad", this::getExplosionRadius, this::setExplosionRadius)
-                .visibleWhen(this::isExplosive),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
-            FieldDef.floatField("ability.maxDist", this::getMaxDistance, this::setMaxDistance),
-            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects),
+            FieldDef.section("ability.section.disc"),
+            FieldDef.floatField("gui.radius", this::getDiscRadius, this::setDiscRadius).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.thickness", this::getDiscThickness, this::setDiscThickness).column(ColumnHint.RIGHT),
+            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming)
+                .hover("ability.hover.homing"),
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength)
+                .visibleWhen(this::isHoming),
+            FieldDef.section("ability.section.boomerang"),
+            FieldDef.boolField("gui.enabled", this::isBoomerang, this::setBoomerang)
+                .hover("ability.hover.boomerang"),
+            FieldDef.intField("gui.delay", this::getBoomerangDelay, this::setBoomerangDelay)
+                .visibleWhen(this::isBoomerang),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive)
+                .hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
+                .visibleWhen(this::isExplosive),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects),
             // Visual tab
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
-                .tab(TabTarget.VISUAL),
+                .customTab("ability.tab.visual"),
+            FieldDef.section("ability.section.colors").customTab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-                .tab(TabTarget.VISUAL),
-            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-                .tab(TabTarget.VISUAL),
+                .customTab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
-                .tab(TabTarget.VISUAL),
+                .customTab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
             FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .tab(TabTarget.VISUAL)
-                .visibleWhen(this::isOuterColorEnabled),
+                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled).column(ColumnHint.LEFT),
             FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
-                .tab(TabTarget.VISUAL).range(0, 1)
-                .visibleWhen(this::isOuterColorEnabled),
+                .customTab("ability.tab.visual").range(0, 1).visibleWhen(this::isOuterColorEnabled).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.effects").customTab("ability.tab.visual"),
             FieldDef.floatField("ability.rotationSpeed", this::getRotationSpeed, this::setRotationSpeed)
-                .tab(TabTarget.VISUAL),
+                .customTab("ability.tab.visual"),
             FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect)
-                .tab(TabTarget.VISUAL),
-            FieldDef.floatField("ability.lightningDensity", this::getLightningDensity, this::setLightningDensity)
-                .tab(TabTarget.VISUAL).range(0.01f, 5.0f)
-                .visibleWhen(this::hasLightningEffect),
-            FieldDef.floatField("ability.lightningRadius", this::getLightningRadius, this::setLightningRadius)
-                .tab(TabTarget.VISUAL).range(0.1f, 10.0f)
-                .visibleWhen(this::hasLightningEffect)
+                .customTab("ability.tab.visual"),
+            FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
+                .customTab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
+                .customTab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.RIGHT)
         );
     }
 }

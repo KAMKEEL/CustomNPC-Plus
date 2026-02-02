@@ -12,6 +12,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityDash;
@@ -31,7 +32,16 @@ public class AbilityDash extends Ability implements IAbilityDash {
      */
     public enum DashMode {
         AGGRESSIVE,
-        DEFENSIVE
+        DEFENSIVE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case AGGRESSIVE: return "ability.dash.aggressive";
+                case DEFENSIVE: return "ability.dash.defensive";
+                default: return name();
+            }
+        }
     }
 
     /**
@@ -347,10 +357,10 @@ public class AbilityDash extends Ability implements IAbilityDash {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.enumField("ability.mode", DashMode.class, this::getDashModeEnum, this::setDashModeEnum)
+            FieldDef.enumField("ability.dashMode", DashMode.class, this::getDashModeEnum, this::setDashModeEnum)
                 .hover("ability.hover.dashMode"),
-            FieldDef.floatField("ability.dashDist", this::getDashDistance, this::setDashDistance),
-            FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
+            FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed).column(ColumnHint.RIGHT)
         );
     }
 }

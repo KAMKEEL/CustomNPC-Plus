@@ -10,6 +10,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityVortex;
@@ -304,17 +305,22 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius),
-            FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength),
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
-            FieldDef.boolField("ability.aoe", this::isAoe, this::setAoe)
+            FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.aoe"),
+            FieldDef.boolField("gui.enabled", this::isAoe, this::setAoe)
                 .hover("ability.hover.aoe"),
-            FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
-            FieldDef.boolField("ability.dmgOnPull", this::isDamageOnPull, this::setDamageOnPull)
+            FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets)
+                .visibleWhen(this::isAoe),
+            FieldDef.section("ability.section.pullDamage"),
+            FieldDef.boolField("gui.enabled", this::isDamageOnPull, this::setDamageOnPull)
                 .hover("ability.hover.dmgOnPull"),
-            FieldDef.floatField("ability.pullDamage", this::getPullDamage, this::setPullDamage),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.floatField("enchantment.damage", this::getPullDamage, this::setPullDamage)
+                .visibleWhen(this::isDamageOnPull),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

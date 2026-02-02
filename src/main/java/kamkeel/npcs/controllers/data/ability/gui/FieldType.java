@@ -7,5 +7,8 @@ public enum FieldType {
     ENUM,
     STRING_ENUM,
     SUB_GUI,
-    STRING
+    STRING,
+    SECTION_HEADER,
+    LABEL,
+    EFFECTS_LIST
 }

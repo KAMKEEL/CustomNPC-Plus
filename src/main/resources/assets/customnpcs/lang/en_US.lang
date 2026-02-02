@@ -1537,6 +1537,48 @@ ability.target.aggro_target=Target
 ability.target.self=Self
 ability.target.aoe_self=AOE Self
 ability.target.aoe_target=AOE Target
+ability.syncWindup=Sync Windup
+
+# Anchor Point
+ability.anchor.front=Front
+ability.anchor.center=Center
+ability.anchor.rightHand=Right Hand
+ability.anchor.leftHand=Left Hand
+ability.anchor.aboveHead=Above Head
+ability.anchor.chest=Chest
+
+# Sweep Mode
+ability.sweep.swipe=Swipe
+ability.sweep.spin=Spin
+
+# Dash Mode
+ability.dash.aggressive=Aggressive
+ability.dash.defensive=Defensive
+
+# Counter Type
+ability.counter.flat=Flat
+ability.counter.percent=Percent
+
+# Hazard Shape
+ability.shape.circle=Circle
+ability.shape.ring=Ring
+ability.shape.cone=Cone
+
+# Placement Mode
+ability.placement.atCaster=At Caster
+ability.placement.atTarget=At Target
+ability.placement.followCaster=Follow Caster
+ability.placement.followTarget=Follow Target
+
+# Teleport Mode
+ability.teleport.blink=Blink
+ability.teleport.behind=Behind
+ability.teleport.single=Single
+
+# Trap Placement
+ability.trapPlace.atCaster=At Caster
+ability.trapPlace.atTarget=At Target
+ability.trapPlace.aheadOfCaster=Ahead of Caster
 
 telegraph.circle=Circle
 telegraph.ring=Ring
@@ -1577,136 +1619,173 @@ ability.cnpc.disc=Disc
 ability.cnpc.laser_shot=Laser Shot
 ability.cnpc.sweeper=Sweeper
 
-# Ability GUI - Type Tab
+# ═══════════════════════════════════════════════════════════════
+# Ability Config GUI
+# ═══════════════════════════════════════════════════════════════
+
+# General Tab
+ability.weight=Weight
+ability.windUpTicks=Wind Up
+ability.cooldownTicks=Cooldown
+ability.lockMovement=Lock Movement
+ability.interruptible=Interruptible
+ability.dazedTicks=Dazed Ticks
+ability.targetingMode=Targeting
+
+# Target Tab
+ability.minRange=Min Range
+ability.maxRange=Max Range
+ability.conditions=Conditions
+
+# Effects Tab
+ability.windUpSound=Wind Up Sound
+ability.activeSound=Active Sound
+ability.windUpAnimation=Wind Up Animation
+ability.activeAnimation=Active Animation
+ability.showTelegraph=Show Telegraph
+ability.windUpColor=Wind Up Color
+ability.activeColor=Active Color
+
+# Section Headers
+ability.section.timing=Timing
+ability.section.movement=Movement
+ability.section.sounds=Sounds
+ability.section.animations=Animations
+ability.section.telegraph=Telegraph
+ability.section.beam=Beam
+ability.section.sweep=Sweep
+ability.section.push=Push
+ability.section.leap=Leap
+ability.section.disc=Disc
+ability.section.homing=Homing
+ability.section.boomerang=Boomerang
+ability.section.explosive=Explosive
+ability.section.colors=Colors
+ability.section.effects=Effects
+ability.section.counter=Counter
+ability.section.area=Area
+ability.section.damage=Damage
+ability.section.debuffs=Debuffs
+ability.section.healing=Healing
+ability.section.trigger=Trigger
+ability.section.aoe=AOE
+ability.section.pullDamage=Pull Damage
+
+# Shared Sub-Section Labels (used under section headers)
+gui.radius=Radius
+gui.thickness=Thickness
+gui.rotationSpeed=Rotation Speed
+gui.strength=Strength
+gui.range=Range
+gui.delay=Delay
+gui.density=Density
+gui.length=Length
+gui.width=Width
+gui.height=Height
+gui.value=Value
+gui.chance=Chance
+gui.sound=Sound
+gui.animation=Animation
+gui.duration=Duration
+gui.amp=Amp
 
 # Common Type Settings
 ability.radius=Radius
 ability.knockback=Knockback
-ability.knockbackUp=KB Up
-ability.maxDist=Max Dist
-ability.minDist=Min Dist
+ability.knockbackUp=Knockback Up
 ability.distance=Distance
+ability.maxDistance=Max Distance
 ability.lifetime=Lifetime
-ability.stunTicks=Stun
-ability.leapHeight=Leap Height
+ability.stunTicks=Stun Ticks
 ability.hitWidth=Hit Width
 ability.effects=Effects
-gui.duration=Duration
-gui.amp=Amp
+ability.mode=Mode
+ability.duration=Duration
+ability.anchorPoint=Anchor Point
+ability.rotationSpeed=Rotation Speed
 
-# Slam Settings
+# Slam
 ability.leapSpeed=Leap Speed
+ability.leapHeight=Leap Height
 
-# Charge Settings
-ability.hitRadius=Hit Radius
-
-# Cutter Settings
+# Cutter
+ability.range=Range
+ability.sweepMode=Sweep Mode
+ability.spinDuration=Spin Duration
 ability.arcAngle=Arc Angle
-ability.sweepWaves=Waves
-ability.rotSpeed=Rot Speed
-ability.piercing=Piercing
+ability.innerRadius=Inner Radius
 
-# Orb Settings
-ability.homing=Homing
-ability.explosive=Explosive
+# Projectile
+ability.projectileType=Projectile Type
 
-# Vortex Settings
-ability.pullRadius=Radius
-ability.pullStrength=Strength
-ability.pullTo=Pull To
-ability.aoe=AOE
+# Charge (no unique keys)
+
+# Dash (no unique keys)
+
+# Teleport
+ability.blinkRadius=Blink Radius
+ability.blinkCount=Blink Count
+ability.blinkDelay=Blink Delay
+ability.behindDistance=Behind Distance
+ability.lineOfSight=Line of Sight
+ability.damageAtStart=Damage At Start
+ability.damageAtEnd=Damage At End
+
+# Vortex
+ability.pullRadius=Pull Radius
+ability.pullStrength=Pull Strength
 ability.maxTargets=Max Targets
 
-# Dash Settings
-ability.dash.aggressive=Aggressive
-ability.dash.defensive=Defensive
-ability.mode=Mode
-ability.behindDistance=Behind Dist
+# Shockwave
+ability.pushStrength=Push Strength
 
-# Teleport Settings
-ability.blinkCount=Blinks
-ability.blinkDelay=Delay
-ability.blinkRadius=Radius
-ability.minRadius=Min Rad
-ability.dmgRadius=Dmg Radius
-ability.lineOfSight=Line Sight
-ability.dmgAtStart=Dmg Start
+# Guard
+ability.damageReduction=Damage Reduction
 
-# Projectile Settings
-ability.explRadius=Expl Rad
-
-# Beam Settings
-ability.beamLength=Length
-ability.beamWidth=Width
-ability.beamHeight=Height
-ability.dmgInterval=Interval
-ability.sweepAngle=Sweep Ang
-ability.sweepSpeed=Sweep Spd
-ability.lockTarget=Lock Tgt
-ability.rotations=Rotations
-
-# Guard Settings
-ability.dmgReduce=Dmg Reduce
-ability.counterDmg=Counter Dmg
-ability.canCounter=Counter
-ability.counterChance=Counter %
-ability.counterType=Counter Type
-ability.counterValue=Counter Value
-ability.counterSound=Counter Sound
-ability.counterAnim=Counter Anim
-
-# Heal Settings
-ability.healAmount=Amount
-ability.healPercent=Percent
-ability.healRadius=Radius
+# Heal
+ability.instantHeal=Instant Heal
+ability.healAmount=Heal Amount
+ability.healPercent=Heal Percent
+ability.healRadius=Heal Radius
 ability.healSelf=Heal Self
 ability.healAllies=Heal Allies
 
-# Hazard Settings
-ability.dmgPerSec=Dmg/Sec
-ability.debuffDur=Debuff Dur
+# Hazard
 ability.shape=Shape
 ability.placement=Placement
-ability.affectsCaster=Hit Caster
-ability.ignoreInvuln=Ign Invuln
-ability.place.caster=At Caster
-ability.place.target=At Target
-ability.place.followCaster=Follow Caster
-ability.place.followTarget=Follow Target
-ability.place.ahead=Ahead
+ability.damagePerSecond=Damage/Sec
+ability.damageInterval=Damage Interval
+ability.slownessLevel=Slowness Level
+ability.debuffDuration=Debuff Duration
+ability.poisonLevel=Poison Level
+ability.affectsCaster=Affects Caster
 
-# Trap Settings
-ability.triggerRadius=Trig Rad
+# Trap
 ability.armTime=Arm Time
-ability.maxTriggers=Max Trig
+ability.maxTriggers=Max Triggers
+ability.triggerCooldown=Trigger Cooldown
 
-# Disc Settings
-ability.discRadius=Disc Rad
-ability.discThickness=Thickness
-ability.boomerang=Boomerang
-ability.boomerangDelay=Return Delay
-ability.homingStr=Homing Str
-ability.homingRange=Homing Rng
-ability.explosionRad=Expl Rad
-ability.rotationSpeed=Rot Speed
+# Sweeper
+ability.sweepSpeed=Sweep Speed
+ability.rotations=Rotations
+ability.piercing=Piercing
+ability.lockTarget=Lock Target
+
+# Beam / Laser
+ability.beamWidth=Beam Width
+ability.headSize=Head Size
+ability.attachedToOwner=Attached to Owner
+ability.laserWidth=Laser Width
+ability.expansionSpeed=Expansion Speed
+ability.lingerTicks=Linger Ticks
+
+# Visual Settings
 ability.innerColor=Inner Color
 ability.outerColor=Outer Color
 ability.outerEnabled=Outer Glow
 ability.outerWidth=Outer Width
+ability.outerAlpha=Outer Alpha
 ability.lightning=Lightning
-ability.lightningDensity=Density
-ability.lightningRadius=Radius
-ability.anchorPoint=Anchor Point
-ability.noVisualSettings=No visual settings for this ability type
-
-# Laser Shot Settings
-ability.laserWidth=Laser Width
-ability.expansionSpeed=Expansion Spd
-ability.lingerTicks=Linger Ticks
-
-# Energy Beam Settings
-ability.headSize=Head Size
-ability.attachedToOwner=Attached
 
 # Ability Save/Load
 ability.save.confirm=Save ability preset
@@ -1718,25 +1797,9 @@ gui.load=Load
 # Global Abilities Manager
 ability.manager.title=Ability Manager
 
-# Explosive Hover Text
-ability.explosive.noBlockDamage=Explosions do not destroy blocks
-
-# Additional Orb Settings
-ability.explRadius=Expl Radius
-
-# Telegraph Colors (for abilities that support separate colors)
-ability.windUpColor=Wind Up Color
-ability.activeColor=Active Color
-
-# Shockwave Settings
-ability.pushRadius=Push Radius
-ability.pushStrength=Push Str
-ability.shockwaveFalloff=Damage/knockback drop off with distance
-
-# Ability Config GUI
-ability.typeId=Type ID
-ability.conditions=Conditions
-ability.noTypeSettings=No type-specific settings
+# ═══════════════════════════════════════════════════════════════
+# Ability Hover Tooltips
+# ═══════════════════════════════════════════════════════════════
 
 ability.hover.weight=Higher weight = more likely to be chosen when multiple abilities available
 ability.hover.lockMove=Prevents NPC from moving while ability is charging or active

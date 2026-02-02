@@ -11,6 +11,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityShockwave;
@@ -171,10 +172,11 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("ability.pushRadius", this::getPushRadius, this::setPushRadius),
-            FieldDef.floatField("ability.pushStrength", this::getPushStrength, this::setPushStrength),
+            FieldDef.section("ability.section.push"),
+            FieldDef.floatField("gui.radius", this::getPushRadius, this::setPushRadius).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.strength", this::getPushStrength, this::setPushStrength).column(ColumnHint.RIGHT),
             FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

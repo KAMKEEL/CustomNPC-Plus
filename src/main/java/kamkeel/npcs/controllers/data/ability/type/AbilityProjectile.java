@@ -12,6 +12,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityProjectile;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 
@@ -255,19 +256,17 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
-            FieldDef.stringEnumField("ability.projType", new String[]{"fireball", "arrow", "magic"}, this::getProjectileType, this::setProjectileType),
-            FieldDef.boolField("ability.explosive", this::isExplosive, this::setExplosive)
-                .hover("ability.hover.explosive"),
-            FieldDef.floatField("ability.explosionRad", this::getExplosionRadius, this::setExplosionRadius)
-                .visibleWhen(this::isExplosive),
-            FieldDef.boolField("ability.homing", this::isHoming, this::setHoming)
-                .hover("ability.hover.homing"),
-            FieldDef.floatField("ability.homingStr", this::getHomingStrength, this::setHomingStrength)
-                .visibleWhen(this::isHoming),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.stringEnumField("ability.projectileType", new String[]{"fireball", "arrow", "magic"}, this::getProjectileType, this::setProjectileType),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"),
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

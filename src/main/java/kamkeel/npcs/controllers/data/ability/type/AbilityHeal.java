@@ -11,6 +11,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityHeal;
@@ -285,18 +286,18 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.boolField("dialog.instant", this::isInstantHeal, this::setInstantHeal)
+            FieldDef.boolField("ability.instantHeal", this::isInstantHeal, this::setInstantHeal)
                 .hover("ability.hover.instant"),
             FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
-                .range(1, 1000)
-                .visibleWhen(() -> !this.isInstantHeal()),
-            FieldDef.floatField("ability.healAmount", this::getHealAmount, this::setHealAmount),
-            FieldDef.floatField("ability.healPercent", this::getHealPercent, this::setHealPercent),
+                .range(1, 1000).visibleWhen(() -> !this.isInstantHeal()),
+            FieldDef.section("ability.section.healing"),
+            FieldDef.floatField("ability.healAmount", this::getHealAmount, this::setHealAmount).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.healPercent", this::getHealPercent, this::setHealPercent).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.healRadius", this::getHealRadius, this::setHealRadius),
             FieldDef.boolField("ability.healSelf", this::isHealSelf, this::setHealSelf)
-                .hover("ability.hover.healSelf"),
+                .hover("ability.hover.healSelf").column(ColumnHint.LEFT),
             FieldDef.boolField("ability.healAllies", this::isHealAllies, this::setHealAllies)
-                .hover("ability.hover.healAllies")
+                .hover("ability.hover.healAllies").column(ColumnHint.RIGHT)
         );
     }
 }

@@ -16,6 +16,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityHazard;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 
@@ -34,14 +35,35 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     public enum HazardShape {
         CIRCLE,
         RING,
-        CONE
+        CONE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case CIRCLE: return "ability.shape.circle";
+                case RING: return "ability.shape.ring";
+                case CONE: return "ability.shape.cone";
+                default: return name();
+            }
+        }
     }
 
     public enum PlacementMode {
         AT_CASTER,
         AT_TARGET,
         FOLLOW_CASTER,
-        FOLLOW_TARGET
+        FOLLOW_TARGET;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case AT_CASTER: return "ability.placement.atCaster";
+                case AT_TARGET: return "ability.placement.atTarget";
+                case FOLLOW_CASTER: return "ability.placement.followCaster";
+                case FOLLOW_TARGET: return "ability.placement.followTarget";
+                default: return name();
+            }
+        }
     }
 
     private int durationTicks = 100;
@@ -612,22 +634,24 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
-                .range(1, 2000),
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
             FieldDef.enumField("ability.shape", HazardShape.class, this::getShapeEnum, this::setShapeEnum)
                 .hover("ability.hover.shape"),
             FieldDef.enumField("ability.placement", PlacementMode.class, this::getPlacementEnum, this::setPlacementEnum)
                 .hover("ability.hover.placement"),
-            FieldDef.floatField("ability.radius", this::getRadius, this::setRadius),
-            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius),
-            FieldDef.floatField("ability.dmgPerSec", this::getDamagePerSecond, this::setDamagePerSecond),
-            FieldDef.intField("ability.dmgInterval", this::getDamageInterval, this::setDamageInterval),
-            FieldDef.intField("ability.slownessLvl", this::getSlownessLevel, this::setSlownessLevel),
-            FieldDef.intField("ability.debuffDur", this::getDebuffDuration, this::setDebuffDuration),
-            FieldDef.intField("ability.poisonLvl", this::getPoisonLevel, this::setPoisonLevel),
+            FieldDef.section("ability.section.area"),
+            FieldDef.floatField("gui.radius", this::getRadius, this::setRadius).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.floatField("ability.damagePerSecond", this::getDamagePerSecond, this::setDamagePerSecond).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.debuffs"),
+            FieldDef.intField("ability.slownessLevel", this::getSlownessLevel, this::setSlownessLevel).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.debuffDuration", this::getDebuffDuration, this::setDebuffDuration).column(ColumnHint.RIGHT),
+            FieldDef.intField("ability.poisonLevel", this::getPoisonLevel, this::setPoisonLevel),
             FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
                 .hover("ability.hover.affectsCaster"),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

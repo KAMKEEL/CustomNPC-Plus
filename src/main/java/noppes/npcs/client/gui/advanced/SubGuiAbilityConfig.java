@@ -1,8 +1,10 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDefinitionsBuilder;
 import kamkeel.npcs.controllers.data.ability.gui.FieldType;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import net.minecraft.client.gui.GuiButton;
@@ -19,38 +21,39 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldListener, ISubGuiListener {
 
     private static final int DECLARATIVE_ID_START = 1000;
     private static final int CLEAR_ID_START = 2000;
+    private static final int LABEL_ID_START = 3000;
 
+    // Fixed tab indices
     private static final int TAB_GENERAL = 0;
     private static final int TAB_TYPE = 1;
     private static final int TAB_TARGET = 2;
     private static final int TAB_EFFECTS = 3;
-    private static final int TAB_VISUAL = 4;
+    // Custom tabs start at index 4
+
+    private static final int L_LABEL_X = 5;
+    private static final int ROW_H = 24;
 
     private final Ability ability;
     private final IAbilityConfigCallback callback;
     private int activeTab = TAB_GENERAL;
 
     private List<FieldDef> fieldDefs;
-    private boolean hasTypeFields;
-    private boolean hasVisualFields;
+    private List<String> customTabNames;
 
-    // Conditions are complex (list with add/edit/remove) - cached separately
     private List<Condition> conditions;
     private int editingConditionIndex = -1;
 
-    // Event routing
-    private final Map<Integer, FieldDef> buttonFieldMap = new HashMap<>();
-    private final Map<Integer, FieldDef> textFieldMap = new HashMap<>();
-    private final Map<Integer, FieldDef> clearFieldMap = new HashMap<>();
+    private FieldDefinitionsBuilder builder;
     private FieldDef activeSubGuiField = null;
+
+    // Scroll position preservation per tab
+    private float[] tabScrollY;
 
     public SubGuiAbilityConfig(Ability ability, IAbilityConfigCallback callback) {
         this.ability = ability;
@@ -58,19 +61,22 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.conditions = new ArrayList<>(ability.getConditions());
 
         this.fieldDefs = ability.getAllFieldDefinitions();
-        this.hasTypeFields = hasFieldsForTab(TabTarget.TYPE);
-        this.hasVisualFields = hasFieldsForTab(TabTarget.VISUAL);
+        discoverCustomTabs();
 
         setBackground("menubg.png", 217);
         xSize = 356;
         ySize = 200;
     }
 
-    private boolean hasFieldsForTab(TabTarget target) {
+    private void discoverCustomTabs() {
+        customTabNames = new ArrayList<>();
         for (FieldDef def : fieldDefs) {
-            if (def.getTab() == target) return true;
+            if (def.getTab() == TabTarget.CUSTOM && def.getCustomTabName() != null
+                    && !customTabNames.contains(def.getCustomTabName())) {
+                customTabNames.add(def.getCustomTabName());
+            }
         }
-        return false;
+        tabScrollY = new float[4 + customTabNames.size()];
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -79,23 +85,24 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     @Override
     public void initGui() {
-        super.initGui();
-        buttonFieldMap.clear();
-        textFieldMap.clear();
-        clearFieldMap.clear();
+        // Save scroll position before super clears scroll windows
+        GuiScrollWindow oldSw = getScrollableGui(0);
+        if (oldSw != null && activeTab < tabScrollY.length) {
+            tabScrollY[activeTab] = oldSw.nextScrollY;
+        }
 
-        // Tab buttons
+        super.initGui();
+
+        // Tab buttons — always show General, Type, Target, Effects
         GuiMenuTopButton generalTab = new GuiMenuTopButton(90, guiLeft + 4, guiTop - 17, "menu.general");
         generalTab.active = (activeTab == TAB_GENERAL);
         addTopButton(generalTab);
         GuiMenuTopButton lastTab = generalTab;
 
-        if (hasTypeFields) {
-            GuiMenuTopButton typeTab = new GuiMenuTopButton(91, lastTab, "gui.type");
-            typeTab.active = (activeTab == TAB_TYPE);
-            addTopButton(typeTab);
-            lastTab = typeTab;
-        }
+        GuiMenuTopButton typeTab = new GuiMenuTopButton(91, lastTab, "gui.type");
+        typeTab.active = (activeTab == TAB_TYPE);
+        addTopButton(typeTab);
+        lastTab = typeTab;
 
         GuiMenuTopButton targetTab = new GuiMenuTopButton(92, lastTab, "script.target");
         targetTab.active = (activeTab == TAB_TARGET);
@@ -107,194 +114,117 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         addTopButton(effectsTab);
         lastTab = effectsTab;
 
-        if (hasVisualFields) {
-            GuiMenuTopButton visualTab = new GuiMenuTopButton(94, lastTab, "ability.tab.visual");
-            visualTab.active = (activeTab == TAB_VISUAL);
-            addTopButton(visualTab);
+        // Custom tabs (Visual, etc.)
+        for (int i = 0; i < customTabNames.size(); i++) {
+            GuiMenuTopButton ct = new GuiMenuTopButton(94 + i, lastTab, customTabNames.get(i));
+            ct.active = (activeTab == 4 + i);
+            addTopButton(ct);
+            lastTab = ct;
         }
 
         GuiMenuTopButton closeBtn = new GuiMenuTopButton(-1000, guiLeft + xSize - 22, guiTop - 17, "X");
         addTopButton(closeBtn);
 
-        // Scroll window for tab content
+        // Scroll window
         int swX = guiLeft + 4;
         int swY = guiTop + 5;
         int swW = xSize - 8;
         int swH = ySize - 10;
 
         GuiScrollWindow sw = new GuiScrollWindow(this, swX, swY, swW, swH, 0);
+        sw.backgroundColor = 0x88000000;
+        addScrollableGui(0, sw);
 
-        TabTarget tabTarget = tabTargetForIndex(activeTab);
         int y = 5;
-        int idCounter = DECLARATIVE_ID_START;
-        int clearCounter = CLEAR_ID_START;
+        int labelCounter = LABEL_ID_START;
 
-        // General tab: show type label at top
+        // General tab: type label at top
         if (activeTab == TAB_GENERAL) {
-            sw.addLabel(new GuiNpcLabel(1, "gui.type", 5, y + 5));
-            sw.addLabel(new GuiNpcLabel(2, ability.getTypeId(), 50, y + 5));
-            y += 24;
+            sw.addLabel(new GuiNpcLabel(labelCounter++, "gui.type", 5, y + 5, 0xFFFFFF));
+            sw.addLabel(new GuiNpcLabel(labelCounter++, ability.getTypeId(), 55, y + 5, 0xFFFFFF));
+            y += ROW_H;
         }
 
-        // Render declarative fields for this tab
-        List<FieldDef> tabFields = getVisibleFieldsForTab(tabTarget);
-        for (FieldDef def : tabFields) {
-            int widgetId = idCounter++;
-            int clearId = clearCounter++;
-            y = renderField(sw, def, widgetId, clearId, y);
-        }
+        // Build declarative fields using the builder
+        List<FieldDef> tabFields = getVisibleFieldsForTab(activeTab);
+        builder = new FieldDefinitionsBuilder(this, sw, fontRendererObj)
+            .startIds(DECLARATIVE_ID_START, CLEAR_ID_START, labelCounter)
+            .startY(y);
 
-        // Target tab: append conditions list
+        y = builder.build(tabFields);
+
+        // Conditions on target tab
         if (activeTab == TAB_TARGET) {
-            y = renderConditions(sw, y);
+            y = renderConditions(sw, y, builder.getNextLabelId());
         }
 
         sw.maxScrollY = Math.max(y - swH, 0);
-        addScrollableGui(0, sw);
-    }
 
-    private TabTarget tabTargetForIndex(int tab) {
-        switch (tab) {
-            case TAB_GENERAL: return TabTarget.GENERAL;
-            case TAB_TYPE:    return TabTarget.TYPE;
-            case TAB_TARGET:  return TabTarget.TARGET;
-            case TAB_EFFECTS: return TabTarget.EFFECTS;
-            case TAB_VISUAL:  return TabTarget.VISUAL;
-            default:          return TabTarget.TYPE;
+        // Restore scroll position
+        if (activeTab < tabScrollY.length) {
+            float restored = Math.min(tabScrollY[activeTab], sw.maxScrollY);
+            sw.nextScrollY = restored;
+            sw.scrollY = restored;
         }
     }
 
-    private List<FieldDef> getVisibleFieldsForTab(TabTarget target) {
+    private List<FieldDef> getVisibleFieldsForTab(int tabIndex) {
         List<FieldDef> result = new ArrayList<>();
-        for (FieldDef def : fieldDefs) {
-            if (def.getTab() == target && def.isVisible()) {
-                result.add(def);
+
+        if (tabIndex >= 4) {
+            // Custom tab — match by custom tab name
+            int customIndex = tabIndex - 4;
+            if (customIndex >= 0 && customIndex < customTabNames.size()) {
+                String tabName = customTabNames.get(customIndex);
+                for (FieldDef def : fieldDefs) {
+                    if (def.getTab() == TabTarget.CUSTOM
+                            && tabName.equals(def.getCustomTabName())
+                            && def.isVisible()) {
+                        result.add(def);
+                    }
+                }
+            }
+        } else {
+            // Fixed tab
+            TabTarget target;
+            switch (tabIndex) {
+                case TAB_GENERAL: target = TabTarget.GENERAL; break;
+                case TAB_TYPE:    target = TabTarget.TYPE;    break;
+                case TAB_TARGET:  target = TabTarget.TARGET;  break;
+                case TAB_EFFECTS: target = TabTarget.EFFECTS; break;
+                default:          target = TabTarget.TYPE;    break;
+            }
+            for (FieldDef def : fieldDefs) {
+                if (def.getTab() == target && def.isVisible()) {
+                    result.add(def);
+                }
             }
         }
+
         return result;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // FIELD RENDERING
+    // CONDITIONS (Target tab)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private int renderField(GuiScrollWindow sw, FieldDef def, int widgetId, int clearId, int y) {
-        int labelX = 5;
-        int fieldX = 100;
-        int fieldW = 60;
-
-        sw.addLabel(new GuiNpcLabel(widgetId, def.getLabel(), labelX, y + 5));
-
-        switch (def.getType()) {
-            case FLOAT: {
-                float fVal = def.getValue() instanceof Number ? ((Number) def.getValue()).floatValue() : 0f;
-                GuiNpcTextField tf = new GuiNpcTextField(widgetId, this, fontRendererObj, fieldX, y, fieldW, 20, String.format("%.2f", fVal));
-                tf.setFloatsOnly();
-                if (def.hasRange()) tf.setMinMaxDefaultFloat(def.getMin(), def.getMax(), fVal);
-                if (def.getTooltip() != null) tf.setHoverText(def.getTooltip());
-                sw.addTextField(tf);
-                textFieldMap.put(widgetId, def);
-                break;
-            }
-            case INT: {
-                int iVal = def.getValue() instanceof Number ? ((Number) def.getValue()).intValue() : 0;
-                GuiNpcTextField tf = new GuiNpcTextField(widgetId, this, fontRendererObj, fieldX, y, fieldW, 20, String.valueOf(iVal));
-                tf.setIntegersOnly();
-                if (def.hasRange()) tf.setMinMaxDefault((int) def.getMin(), (int) def.getMax(), iVal);
-                if (def.getTooltip() != null) tf.setHoverText(def.getTooltip());
-                sw.addTextField(tf);
-                textFieldMap.put(widgetId, def);
-                break;
-            }
-            case STRING: {
-                String sVal = def.getValue() != null ? def.getValue().toString() : "";
-                GuiNpcTextField tf = new GuiNpcTextField(widgetId, this, fontRendererObj, fieldX, y, fieldW + 40, 20, sVal);
-                if (def.getTooltip() != null) tf.setHoverText(def.getTooltip());
-                sw.addTextField(tf);
-                textFieldMap.put(widgetId, def);
-                break;
-            }
-            case BOOLEAN: {
-                boolean bVal = def.getValue() instanceof Boolean ? (Boolean) def.getValue() : false;
-                GuiNpcButton btn = new GuiNpcButton(widgetId, fieldX, y, 40, 20, new String[]{"gui.no", "gui.yes"}, bVal ? 1 : 0);
-                if (def.getHoverText() != null) btn.setHoverText(def.getHoverText());
-                sw.addButton(btn);
-                buttonFieldMap.put(widgetId, def);
-                break;
-            }
-            case ENUM: {
-                Class<? extends Enum<?>> enumClass = def.getEnumClass();
-                if (enumClass != null) {
-                    Enum<?>[] constants = enumClass.getEnumConstants();
-                    String[] names = new String[constants.length];
-                    for (int i = 0; i < constants.length; i++) names[i] = constants[i].toString();
-                    int selected = def.getValue() instanceof Enum ? ((Enum<?>) def.getValue()).ordinal() : 0;
-                    GuiNpcButton btn = new GuiNpcButton(widgetId, fieldX, y, 80, 20, names, selected);
-                    if (def.getHoverText() != null) btn.setHoverText(def.getHoverText());
-                    sw.addButton(btn);
-                    buttonFieldMap.put(widgetId, def);
-                }
-                break;
-            }
-            case STRING_ENUM: {
-                String[] values = def.getStringEnumValues();
-                if (values != null && values.length > 0) {
-                    String curVal = def.getStringEnumValue();
-                    int selected = 0;
-                    for (int i = 0; i < values.length; i++) {
-                        if (values[i].equals(curVal)) { selected = i; break; }
-                    }
-                    GuiNpcButton btn = new GuiNpcButton(widgetId, fieldX, y, 80, 20, values, selected);
-                    if (def.getHoverText() != null) btn.setHoverText(def.getHoverText());
-                    sw.addButton(btn);
-                    buttonFieldMap.put(widgetId, def);
-                }
-                break;
-            }
-            case SUB_GUI: {
-                String btnText = def.getButtonLabel();
-                int btnW = def.hasClearAction() ? 60 : 80;
-                GuiNpcButton btn = new GuiNpcButton(widgetId, fieldX, y, btnW, 20, btnText);
-                Integer textColor = def.getButtonTextColor();
-                if (textColor != null) btn.setTextColor(textColor);
-                if (def.getHoverText() != null) btn.setHoverText(def.getHoverText());
-                sw.addButton(btn);
-                buttonFieldMap.put(widgetId, def);
-
-                if (def.hasClearAction()) {
-                    GuiNpcButton clearBtn = new GuiNpcButton(clearId, fieldX + btnW + 5, y, 20, 20, "X");
-                    sw.addButton(clearBtn);
-                    clearFieldMap.put(clearId, def);
-                }
-                break;
-            }
-        }
-        return y + 24;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CONDITIONS (Target tab special handling)
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    private int renderConditions(GuiScrollWindow sw, int y) {
-        int x = 5;
-
-        sw.addLabel(new GuiNpcLabel(50, "ability.conditions", x, y));
-        y += 14;
+    private int renderConditions(GuiScrollWindow sw, int y, int labelCounter) {
+        y += 3;
+        sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
+        y += 15;
 
         for (int i = 0; i < conditions.size() && i < 3; i++) {
             Condition cond = conditions.get(i);
             String condName = getConditionDisplayName(cond);
-            sw.addButton(new GuiNpcButton(50 + i * 10, x, y, 140, 20, condName));
-            sw.addButton(new GuiNpcButton(51 + i * 10, x + 145, y, 40, 20, "gui.edit"));
-            sw.addButton(new GuiNpcButton(52 + i * 10, x + 190, y, 20, 20, "X"));
+            sw.addButton(new GuiNpcButton(50 + i * 10, L_LABEL_X, y, 140, 20, condName));
+            sw.addButton(new GuiNpcButton(51 + i * 10, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
+            sw.addButton(new GuiNpcButton(52 + i * 10, L_LABEL_X + 190, y, 20, 20, "X"));
             y += 22;
         }
 
         if (conditions.size() < 3) {
-            sw.addButton(new GuiNpcButton(80, x, y, 50, 20, "gui.add"));
-            y += 24;
+            sw.addButton(new GuiNpcButton(80, L_LABEL_X, y, 50, 20, "gui.add"));
+            y += ROW_H;
         }
 
         return y;
@@ -334,12 +264,17 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
 
-        // Tab switching
+        // Tab switching — fixed tabs
         if (id == 90) { activeTab = TAB_GENERAL; initGui(); return; }
         if (id == 91) { activeTab = TAB_TYPE; initGui(); return; }
         if (id == 92) { activeTab = TAB_TARGET; initGui(); return; }
         if (id == 93) { activeTab = TAB_EFFECTS; initGui(); return; }
-        if (id == 94) { activeTab = TAB_VISUAL; initGui(); return; }
+        // Custom tabs (94+)
+        if (id >= 94 && id < 94 + customTabNames.size()) {
+            activeTab = 4 + (id - 94);
+            initGui();
+            return;
+        }
         if (id == -1000) { close(); return; }
 
         // Condition buttons (50-80)
@@ -367,9 +302,19 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             return;
         }
 
-        // Clear buttons
+        // Clear buttons (effects delete or SUB_GUI clear)
         if (id >= CLEAR_ID_START) {
-            FieldDef def = clearFieldMap.get(id);
+            // Check effects list delete first
+            int[] meta = builder.getEffectWidgetMeta().get(id);
+            if (meta != null && meta[1] == 3) {
+                FieldDef def = builder.getClearFieldMap().get(id);
+                if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
+                    handleEffectButton(def, meta, guibutton);
+                    return;
+                }
+            }
+            // SUB_GUI clear
+            FieldDef def = builder.getClearFieldMap().get(id);
             if (def != null && def.hasClearAction()) {
                 def.getClearAction().run();
                 initGui();
@@ -379,8 +324,15 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         // Declarative field buttons
         if (id >= DECLARATIVE_ID_START) {
-            FieldDef def = buttonFieldMap.get(id);
+            FieldDef def = builder.getButtonFieldMap().get(id);
             if (def == null) return;
+
+            // Effects list buttons (type, amp, add)
+            int[] meta = builder.getEffectWidgetMeta().get(id);
+            if (meta != null && def.getType() == FieldType.EFFECTS_LIST) {
+                handleEffectButton(def, meta, guibutton);
+                return;
+            }
 
             switch (def.getType()) {
                 case BOOLEAN:
@@ -412,16 +364,63 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private void handleEffectButton(FieldDef def, int[] meta, GuiButton btn) {
+        List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
+        if (effects == null) return;
+        int effectIdx = meta[0];
+        int action = meta[1];
+
+        switch (action) {
+            case 0: // Type changed
+                if (effectIdx < effects.size()) {
+                    effects.get(effectIdx).setType(AbilityEffect.EffectType.fromOrdinal(((GuiNpcButton) btn).getValue()));
+                }
+                break;
+            case 2: // Amp changed
+                if (effectIdx < effects.size()) {
+                    effects.get(effectIdx).setAmplifier(((GuiNpcButton) btn).getValue());
+                }
+                break;
+            case 3: // Delete
+                if (effectIdx < effects.size()) {
+                    effects.remove(effectIdx);
+                    initGui();
+                }
+                break;
+            case 4: // Add
+                if (effects.size() < 5) {
+                    effects.add(new AbilityEffect(AbilityEffect.EffectType.SLOWNESS, 60, 0));
+                    initGui();
+                }
+                break;
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // TEXT FIELD EVENTS
     // ═══════════════════════════════════════════════════════════════════════════
 
     @Override
+    @SuppressWarnings("unchecked")
     public void unFocused(GuiNpcTextField textField) {
         int id = textField.id;
         if (id < DECLARATIVE_ID_START) return;
 
-        FieldDef def = textFieldMap.get(id);
+        // Check effects list duration fields
+        int[] meta = builder.getEffectWidgetMeta().get(id);
+        if (meta != null && meta[1] == 1) {
+            FieldDef def = builder.getTextFieldMap().get(id);
+            if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
+                List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
+                if (effects != null && meta[0] < effects.size()) {
+                    effects.get(meta[0]).setDurationTicks(textField.getInteger());
+                }
+                return;
+            }
+        }
+
+        FieldDef def = builder.getTextFieldMap().get(id);
         if (def == null) return;
 
         switch (def.getType()) {
@@ -480,10 +479,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     }
 
     protected void applyToAbility() {
-        // Conditions are the only cached values - write them back
         ability.getConditions().clear();
         for (Condition c : conditions) ability.addCondition(c);
-        // All other fields write directly to ability via FieldDef lambdas
     }
 
     public void loadAbility(Ability loadedAbility) {
@@ -494,8 +491,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         this.conditions = new ArrayList<>(ability.getConditions());
         this.fieldDefs = ability.getAllFieldDefinitions();
-        this.hasTypeFields = hasFieldsForTab(TabTarget.TYPE);
-        this.hasVisualFields = hasFieldsForTab(TabTarget.VISUAL);
+        discoverCustomTabs();
         initGui();
     }
 

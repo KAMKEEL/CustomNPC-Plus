@@ -16,6 +16,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTeleport;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 
@@ -34,7 +35,17 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     public enum TeleportMode {
         BLINK,
         BEHIND,
-        SINGLE
+        SINGLE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case BLINK: return "ability.teleport.blink";
+                case BEHIND: return "ability.teleport.behind";
+                case SINGLE: return "ability.teleport.single";
+                default: return name();
+            }
+        }
     }
 
     private static final Random RANDOM = new Random();
@@ -534,21 +545,22 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
             FieldDef.floatField("ability.blinkRadius", this::getBlinkRadius, this::setBlinkRadius)
                 .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
             FieldDef.intField("ability.blinkCount", this::getBlinkCount, this::setBlinkCount)
-                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK),
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK).column(ColumnHint.LEFT),
             FieldDef.intField("ability.blinkDelay", this::getBlinkDelayTicks, this::setBlinkDelayTicks)
-                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK),
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.behindDistance", this::getBehindDistance, this::setBehindDistance)
                 .visibleWhen(() -> this.getModeEnum() == TeleportMode.BEHIND),
             FieldDef.boolField("ability.lineOfSight", this::isRequireLineOfSight, this::setRequireLineOfSight)
                 .hover("ability.hover.lineOfSight")
                 .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("ability.dmgRadius", this::getDamageRadius, this::setDamageRadius),
-            FieldDef.boolField("ability.dmgAtStart", this::isDamageAtStart, this::setDamageAtStart)
-                .hover("ability.hover.dmgAtStart"),
-            FieldDef.boolField("ability.dmgAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
-                .hover("ability.hover.dmgAtEnd"),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.section("ability.section.damage"),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius).column(ColumnHint.RIGHT),
+            FieldDef.boolField("ability.damageAtStart", this::isDamageAtStart, this::setDamageAtStart)
+                .hover("ability.hover.dmgAtStart").column(ColumnHint.LEFT),
+            FieldDef.boolField("ability.damageAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
+                .hover("ability.hover.dmgAtEnd").column(ColumnHint.RIGHT),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

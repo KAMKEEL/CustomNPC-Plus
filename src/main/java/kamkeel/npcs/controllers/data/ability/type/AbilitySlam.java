@@ -18,6 +18,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.api.ability.type.IAbilitySlam;
 import somehussar.gui.annotationHandling.GuiEditable;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import java.util.Arrays;
@@ -572,11 +573,12 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("ability.radius", this::getRadius, this::setRadius),
-            FieldDef.floatField("ability.knockback", this::getKnockbackStrength, this::setKnockbackStrength),
-            FieldDef.floatField("ability.leapSpeed", this::getLeapSpeed, this::setLeapSpeed),
-            FieldDef.floatField("ability.leapHeight", this::getLeapHeight, this::setLeapHeight),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.floatField("gui.radius", this::getRadius, this::setRadius).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.knockback", this::getKnockbackStrength, this::setKnockbackStrength).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.leap"),
+            FieldDef.floatField("gui.speed", this::getLeapSpeed, this::setLeapSpeed).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.height", this::getLeapHeight, this::setLeapHeight).column(ColumnHint.RIGHT),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

@@ -5,6 +5,5 @@ public enum TabTarget {
     TYPE,
     TARGET,
     EFFECTS,
-    VISUAL,
     CUSTOM
 }

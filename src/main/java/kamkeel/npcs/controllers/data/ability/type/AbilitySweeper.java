@@ -4,8 +4,8 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -203,29 +203,29 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            // Type tab
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.intField("ability.dmgInterval", this::getDamageInterval, this::setDamageInterval),
-            FieldDef.floatField("ability.beamLength", this::getBeamLength, this::setBeamLength),
-            FieldDef.floatField("ability.beamWidth", this::getBeamWidth, this::setBeamWidth),
-            FieldDef.floatField("ability.beamHeight", this::getBeamHeight, this::setBeamHeight),
-            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.beam"),
+            FieldDef.floatField("gui.length", this::getBeamLength, this::setBeamLength).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.width", this::getBeamWidth, this::setBeamWidth).column(ColumnHint.RIGHT),
+            FieldDef.floatField("gui.height", this::getBeamHeight, this::setBeamHeight).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed).column(ColumnHint.RIGHT),
             FieldDef.intField("ability.rotations", this::getNumberOfRotations, this::setNumberOfRotations),
             FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
-                .hover("ability.hover.piercing"),
+                .hover("ability.hover.piercing").column(ColumnHint.LEFT),
             FieldDef.boolField("ability.lockTarget", this::isLockOnTarget, this::setLockOnTarget)
-                .hover("ability.hover.lockTarget"),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects),
+                .hover("ability.hover.lockTarget").column(ColumnHint.RIGHT),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects),
             // Visual tab
+            FieldDef.section("ability.section.colors").customTab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-                .tab(TabTarget.VISUAL),
-            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-                .tab(TabTarget.VISUAL),
+                .customTab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
-                .tab(TabTarget.VISUAL),
+                .customTab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
             FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .tab(TabTarget.VISUAL)
-                .visibleWhen(this::isOuterColorEnabled)
+                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled)
         );
     }
 }

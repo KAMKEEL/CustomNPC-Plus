@@ -13,6 +13,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityCutter;
 
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 
@@ -30,7 +31,16 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
     public enum SweepMode {
         SWIPE,
-        SPIN
+        SPIN;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case SWIPE: return "ability.sweep.swipe";
+                case SPIN: return "ability.sweep.spin";
+                default: return name();
+            }
+        }
     }
 
     private float arcAngle = 90.0f;
@@ -308,20 +318,21 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("gui.range", this::getRange, this::setRange),
-            FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle),
-            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.range", this::getRange, this::setRange).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
-            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
+            FieldDef.section("ability.section.sweep"),
             FieldDef.enumField("ability.sweepMode", SweepMode.class, this::getSweepModeEnum, this::setSweepModeEnum)
                 .hover("ability.hover.sweepMode"),
-            FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
-                .hover("ability.hover.piercing"),
-            FieldDef.intField("ability.duration", this::getSpinDurationTicks, this::setSpinDurationTicks)
+            FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius).column(ColumnHint.RIGHT),
+            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
+            FieldDef.intField("ability.spinDuration", this::getSpinDurationTicks, this::setSpinDurationTicks)
                 .range(1, 1000)
                 .visibleWhen(() -> this.getSweepModeEnum() == SweepMode.SPIN),
-            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+            FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
+                .hover("ability.hover.piercing"),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }
