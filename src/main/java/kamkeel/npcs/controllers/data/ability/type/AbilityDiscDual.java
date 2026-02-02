@@ -49,7 +49,7 @@ public class AbilityDiscDual extends Ability {
     };
     private EnergyLifespanData lifespanData = new EnergyLifespanData(35.0f, 200);
     private EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
-        new EnergyAnchorData(AnchorPoint.RIGHT_HAND), new EnergyAnchorData(AnchorPoint.LEFT_HAND)
+        new EnergyAnchorData(AnchorPoint.LEFT_HAND), new EnergyAnchorData(AnchorPoint.RIGHT_HAND)
     };
 
     // Transient state for disc entity (used during windup charging)
@@ -68,8 +68,8 @@ public class AbilityDiscDual extends Ability {
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         // Default built-in animations
-        this.windUpAnimationName = "Ability_BeamDual_Windup";
-        this.activeAnimationName = "Ability_BeamDual_Active";
+        this.windUpAnimationName = "Ability_DiscDual_Windup";
+        this.activeAnimationName = "Ability_DiscDual_Active";
     }
 
     @Override

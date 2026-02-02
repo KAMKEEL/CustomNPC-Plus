@@ -37,6 +37,8 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.showTelegraph = false;
         this.windUpSound = "random.anvil_use";
         this.activeSound = "random.anvil_land";
+        this.windUpAnimationName = "Ability_HeavyHit_Windup";
+        this.activeAnimationName = "Ability_HeavyHit_Active";
     }
 
     @Override
@@ -75,14 +77,13 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         if (wasHit) {
             applyEffects(target);
         }
-
-        // Heavy Hit is instant
-        signalCompletion();
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Heavy Hit is instant, no active tick needed
+        // Just enough delay to see the active animation
+        if (tick == 10)
+            signalCompletion();
     }
 
     @Override

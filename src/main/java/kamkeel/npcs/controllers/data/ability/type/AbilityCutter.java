@@ -61,6 +61,8 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         this.telegraphType = TelegraphType.CONE;
         this.windUpSound = "random.bow";
         this.activeSound = "random.break";
+        this.windUpAnimationName = "Ability_Cutter_Windup";
+        this.activeAnimationName = "Ability_Cutter_Active";
     }
 
     @Override
