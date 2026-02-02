@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -14,13 +12,14 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTeleport;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -75,13 +74,6 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityTeleport(this, callback);
     }
 
     @Override
@@ -533,5 +525,30 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     public void setDamageRadius(float damageRadius) {
         this.damageRadius = damageRadius;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.enumField("ability.mode", TeleportMode.class, this::getModeEnum, this::setModeEnum),
+            FieldDef.floatField("ability.blinkRadius", this::getBlinkRadius, this::setBlinkRadius)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.intField("ability.blinkCount", this::getBlinkCount, this::setBlinkCount)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK),
+            FieldDef.intField("ability.blinkDelay", this::getBlinkDelayTicks, this::setBlinkDelayTicks)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK),
+            FieldDef.floatField("ability.behindDistance", this::getBehindDistance, this::setBehindDistance)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BEHIND),
+            FieldDef.boolField("ability.lineOfSight", this::isRequireLineOfSight, this::setRequireLineOfSight)
+                .hover("ability.hover.lineOfSight")
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("ability.dmgRadius", this::getDamageRadius, this::setDamageRadius),
+            FieldDef.boolField("ability.dmgAtStart", this::isDamageAtStart, this::setDamageAtStart)
+                .hover("ability.hover.dmgAtStart"),
+            FieldDef.boolField("ability.dmgAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
+                .hover("ability.hover.dmgAtEnd"),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

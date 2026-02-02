@@ -1,11 +1,11 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -14,10 +14,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.LogWriter;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySweeper;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.api.ability.type.IAbilitySweeper;
+
+import java.util.Arrays;
+import java.util.List;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -64,12 +64,6 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilitySweeper(this, callback);
     }
 
     @Override
@@ -205,4 +199,33 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public void setOuterColorWidth(float outerColorWidth) { colorData.outerColorWidth = outerColorWidth; }
     public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            // Type tab
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.intField("ability.dmgInterval", this::getDamageInterval, this::setDamageInterval),
+            FieldDef.floatField("ability.beamLength", this::getBeamLength, this::setBeamLength),
+            FieldDef.floatField("ability.beamWidth", this::getBeamWidth, this::setBeamWidth),
+            FieldDef.floatField("ability.beamHeight", this::getBeamHeight, this::setBeamHeight),
+            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
+            FieldDef.intField("ability.rotations", this::getNumberOfRotations, this::setNumberOfRotations),
+            FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
+                .hover("ability.hover.piercing"),
+            FieldDef.boolField("ability.lockTarget", this::isLockOnTarget, this::setLockOnTarget)
+                .hover("ability.hover.lockTarget"),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects),
+            // Visual tab
+            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
+                .tab(TabTarget.VISUAL),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .tab(TabTarget.VISUAL),
+            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
+                .tab(TabTarget.VISUAL),
+            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                .tab(TabTarget.VISUAL)
+                .visibleWhen(this::isOuterColorEnabled)
+        );
+    }
 }

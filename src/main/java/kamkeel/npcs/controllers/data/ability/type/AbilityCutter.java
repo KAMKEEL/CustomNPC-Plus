@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -11,13 +9,14 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCutter;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityCutter;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,12 +65,6 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityCutter(this, callback);
     }
 
     @Override
@@ -310,5 +303,25 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
     public float getCurrentRotation() {
         return currentRotation;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("gui.range", this::getRange, this::setRange),
+            FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle),
+            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
+            FieldDef.enumField("ability.sweepMode", SweepMode.class, this::getSweepModeEnum, this::setSweepModeEnum)
+                .hover("ability.hover.sweepMode"),
+            FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
+                .hover("ability.hover.piercing"),
+            FieldDef.intField("ability.duration", this::getSpinDurationTicks, this::setSpinDurationTicks)
+                .range(1, 1000)
+                .visibleWhen(() -> this.getSweepModeEnum() == SweepMode.SPIN),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

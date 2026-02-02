@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -9,11 +7,13 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityHeavyHit;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Heavy Hit ability: Single-target melee attack with optional stun.
@@ -42,13 +42,6 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityHeavyHit(this, callback);
     }
 
     @Override
@@ -112,5 +105,14 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     public void setKnockback(float knockback) {
         this.knockback = knockback;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

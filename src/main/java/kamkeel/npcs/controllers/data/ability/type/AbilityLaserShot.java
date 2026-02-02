@@ -6,6 +6,8 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
@@ -16,10 +18,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityLaserShot;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.api.ability.type.IAbilityLaserShot;
+
+import java.util.Arrays;
+import java.util.List;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -61,12 +63,6 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityLaserShot(this, callback);
     }
 
     @Override
@@ -228,5 +224,46 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     @Override
     public boolean spawnPreviewDuringWindup() {
         return false; // Laser has no charging, spawns at active phase
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            // Type tab
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth),
+            FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed),
+            FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks),
+            FieldDef.floatField("ability.maxDist", this::getMaxDistance, this::setMaxDistance),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime),
+            FieldDef.boolField("ability.explosive", this::isExplosive, this::setExplosive)
+                .hover("ability.hover.explosive"),
+            FieldDef.floatField("ability.explosionRad", this::getExplosionRadius, this::setExplosionRadius)
+                .visibleWhen(this::isExplosive),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.floatField("ability.knockbackUp", this::getKnockbackUp, this::setKnockbackUp),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects),
+            // Visual tab
+            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
+                .tab(TabTarget.VISUAL),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .tab(TabTarget.VISUAL),
+            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
+                .tab(TabTarget.VISUAL),
+            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                .tab(TabTarget.VISUAL)
+                .visibleWhen(this::isOuterColorEnabled),
+            FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                .tab(TabTarget.VISUAL).range(0, 1)
+                .visibleWhen(this::isOuterColorEnabled),
+            FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect)
+                .tab(TabTarget.VISUAL),
+            FieldDef.floatField("ability.lightningDensity", this::getLightningDensity, this::setLightningDensity)
+                .tab(TabTarget.VISUAL).range(0.01f, 5.0f)
+                .visibleWhen(this::hasLightningEffect),
+            FieldDef.floatField("ability.lightningRadius", this::getLightningRadius, this::setLightningRadius)
+                .tab(TabTarget.VISUAL).range(0.1f, 10.0f)
+                .visibleWhen(this::hasLightningEffect)
+        );
     }
 }

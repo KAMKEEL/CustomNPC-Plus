@@ -14,13 +14,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityCharge;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,12 +61,6 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityCharge(this, callback);
     }
 
     @Override
@@ -404,5 +398,16 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     public void setHitWidth(float hitWidth) {
         this.hitWidth = hitWidth;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("stats.speed", this::getChargeSpeed, this::setChargeSpeed),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

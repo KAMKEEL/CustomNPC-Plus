@@ -10,13 +10,14 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityDash;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -102,13 +103,6 @@ public class AbilityDash extends Ability implements IAbilityDash {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityDash(this, callback);
     }
 
     @Override
@@ -348,5 +342,15 @@ public class AbilityDash extends Ability implements IAbilityDash {
 
     public DashDirection getChosenDirection() {
         return chosenDirection;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.enumField("ability.mode", DashMode.class, this::getDashModeEnum, this::setDashModeEnum)
+                .hover("ability.hover.dashMode"),
+            FieldDef.floatField("ability.dashDist", this::getDashDistance, this::setDashDistance),
+            FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
+        );
     }
 }

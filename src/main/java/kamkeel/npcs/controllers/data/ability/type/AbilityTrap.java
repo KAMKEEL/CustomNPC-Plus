@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -12,13 +10,14 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTrap;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTrap;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -76,12 +75,6 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityTrap(this, callback);
     }
 
     @Override
@@ -463,5 +456,22 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
 
     public boolean isArmed() {
         return armed;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
+                .range(1, 2000),
+            FieldDef.enumField("ability.placement", TrapPlacement.class, this::getPlacementEnum, this::setPlacementEnum)
+                .hover("ability.hover.placement"),
+            FieldDef.floatField("ability.triggerRad", this::getTriggerRadius, this::setTriggerRadius),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("ability.dmgRadius", this::getDamageRadius, this::setDamageRadius),
+            FieldDef.intField("ability.armTime", this::getArmTime, this::setArmTime),
+            FieldDef.intField("ability.maxTriggers", this::getMaxTriggers, this::setMaxTriggers),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

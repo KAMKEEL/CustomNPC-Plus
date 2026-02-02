@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -14,13 +12,14 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHazard;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityHazard;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -93,13 +92,6 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityHazard(this, callback);
     }
 
     @Override
@@ -615,5 +607,27 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
 
     public double getZoneZ() {
         return zoneZ;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
+                .range(1, 2000),
+            FieldDef.enumField("ability.shape", HazardShape.class, this::getShapeEnum, this::setShapeEnum)
+                .hover("ability.hover.shape"),
+            FieldDef.enumField("ability.placement", PlacementMode.class, this::getPlacementEnum, this::setPlacementEnum)
+                .hover("ability.hover.placement"),
+            FieldDef.floatField("ability.radius", this::getRadius, this::setRadius),
+            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius),
+            FieldDef.floatField("ability.dmgPerSec", this::getDamagePerSecond, this::setDamagePerSecond),
+            FieldDef.intField("ability.dmgInterval", this::getDamageInterval, this::setDamageInterval),
+            FieldDef.intField("ability.slownessLvl", this::getSlownessLevel, this::setSlownessLevel),
+            FieldDef.intField("ability.debuffDur", this::getDebuffDuration, this::setDebuffDuration),
+            FieldDef.intField("ability.poisonLvl", this::getPoisonLevel, this::setPoisonLevel),
+            FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
+                .hover("ability.hover.affectsCaster"),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

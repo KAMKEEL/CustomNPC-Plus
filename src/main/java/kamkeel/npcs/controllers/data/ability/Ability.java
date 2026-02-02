@@ -23,7 +23,11 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
@@ -298,6 +302,91 @@ public abstract class Ability implements IAbility {
      */
     public boolean isTelegraphTypeLocked() {
         return true;
+    }
+
+    /**
+     * Returns the declarative field definitions for this ability's GUI.
+     * Override in subclasses to declare type-specific and visual fields.
+     * The GUI rendering engine in SubGuiAbilityConfig uses this list to
+     * automatically build the Type and Visual tabs.
+     */
+    public List<FieldDef> getFieldDefinitions() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Returns field definitions for all base Ability fields (General, Target, Effects tabs).
+     */
+    @SideOnly(Side.CLIENT)
+    public List<FieldDef> getBaseFieldDefinitions() {
+        List<FieldDef> defs = new ArrayList<>();
+
+        // General tab
+        defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
+            .tab(TabTarget.GENERAL));
+        defs.add(FieldDef.intField("ability.weight", this::getWeight, this::setWeight)
+            .tab(TabTarget.GENERAL).range(1, 1000));
+        defs.add(FieldDef.enumField("ability.lockMove", LockMovementType.class,
+            this::getLockMovement, this::setLockMovement)
+            .tab(TabTarget.GENERAL).hover("ability.hover.lockMove"));
+        defs.add(FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
+            .tab(TabTarget.GENERAL).hover("ability.hover.interruptible"));
+        defs.add(FieldDef.intField("ability.dazed", this::getDazedTicks, this::setDazedTicks)
+            .tab(TabTarget.GENERAL).range(0, 1000)
+            .visibleWhen(this::isInterruptible));
+        defs.add(FieldDef.intField("ability.windup", this::getWindUpTicks, this::setWindUpTicks)
+            .tab(TabTarget.GENERAL).range(0, 1000));
+        defs.add(FieldDef.intField("ability.cooldown", this::getCooldownTicks, this::setCooldownTicks)
+            .tab(TabTarget.GENERAL).range(0, 10000));
+        defs.add(FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
+            .tab(TabTarget.GENERAL));
+
+        // Target tab
+        defs.add(FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v))
+            .tab(TabTarget.TARGET).range(0, 100));
+        defs.add(FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v))
+            .tab(TabTarget.TARGET).range(1, 100));
+        if (!isTargetingModeLocked()) {
+            defs.add(FieldDef.enumField("ability.targeting", TargetingMode.class,
+                this::getTargetingMode, this::setTargetingMode)
+                .tab(TabTarget.TARGET).hover("ability.hover.targeting"));
+        }
+
+        // Effects tab
+        defs.add(FieldDef.soundSubGui("ability.windUpSound", this::getWindUpSound, this::setWindUpSound)
+            .tab(TabTarget.EFFECTS));
+        defs.add(FieldDef.soundSubGui("ability.activeSound", this::getActiveSound, this::setActiveSound)
+            .tab(TabTarget.EFFECTS));
+        defs.add(FieldDef.animSubGui("ability.windUpAnim",
+            this::getWindUpAnimationId, this::setWindUpAnimationId,
+            this::getWindUpAnimationName, this::setWindUpAnimationName)
+            .tab(TabTarget.EFFECTS));
+        defs.add(FieldDef.animSubGui("ability.activeAnim",
+            this::getActiveAnimationId, this::setActiveAnimationId,
+            this::getActiveAnimationName, this::setActiveAnimationName)
+            .tab(TabTarget.EFFECTS));
+
+        TelegraphType tType = getTelegraphType();
+        if (tType != null && tType != TelegraphType.NONE) {
+            defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
+                .tab(TabTarget.EFFECTS).hover("ability.hover.showTelegraph"));
+            defs.add(FieldDef.colorSubGui("ability.windUpColor", this::getWindUpColor, this::setWindUpColor)
+                .tab(TabTarget.EFFECTS).visibleWhen(this::isShowTelegraph));
+            defs.add(FieldDef.colorSubGui("ability.activeColor", this::getActiveColor, this::setActiveColor)
+                .tab(TabTarget.EFFECTS).visibleWhen(this::isShowTelegraph));
+        }
+
+        return defs;
+    }
+
+    /**
+     * Returns ALL field definitions: base (General/Target/Effects) + type-specific (Type/Visual).
+     */
+    @SideOnly(Side.CLIENT)
+    public final List<FieldDef> getAllFieldDefinitions() {
+        List<FieldDef> all = new ArrayList<>(getBaseFieldDefinitions());
+        all.addAll(getFieldDefinitions());
+        return all;
     }
 
     /**

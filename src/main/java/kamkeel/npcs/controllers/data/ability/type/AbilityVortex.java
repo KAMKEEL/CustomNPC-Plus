@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -10,13 +8,13 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
 import noppes.npcs.api.ability.type.IAbilityVortex;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -65,13 +63,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     @Override
     public boolean hasTypeSettings() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityVortex(this, callback);
     }
 
     @Override
@@ -308,5 +299,22 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     public void setPullDamage(float pullDamage) {
         this.pullDamage = pullDamage;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius),
+            FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.boolField("ability.aoe", this::isAoe, this::setAoe)
+                .hover("ability.hover.aoe"),
+            FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
+            FieldDef.boolField("ability.dmgOnPull", this::isDamageOnPull, this::setDamageOnPull)
+                .hover("ability.hover.dmgOnPull"),
+            FieldDef.floatField("ability.pullDamage", this::getPullDamage, this::setPullDamage),
+            FieldDef.effectsSubGui("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }
