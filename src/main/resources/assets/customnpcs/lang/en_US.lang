@@ -1612,6 +1612,9 @@ ability.piercing=Piercing
 # Orb Settings
 ability.homing=Homing
 ability.explosive=Explosive
+ability.firingSpeed=Firing Speed
+ability.amount=Amount
+ability.dualCharge=Dual Charging
 
 # Vortex Settings
 ability.pullRadius=Radius
@@ -1729,9 +1732,6 @@ ability.manager.title=Ability Manager
 # Explosive Hover Text
 ability.explosive.noBlockDamage=Explosions do not destroy blocks
 
-# Additional Orb Settings
-ability.explRadius=Expl Radius
-
 # Telegraph Colors (for abilities that support separate colors)
 ability.windUpColor=Wind Up Color
 ability.activeColor=Active Color
@@ -1768,6 +1768,7 @@ ability.hover.piercing=Hits multiple targets instead of stopping on first hit
 ability.hover.lightning=Add electrical effect to visuals
 ability.hover.outerGlow=Enable outer glow layer around projectile
 ability.hover.anchorPoint=Where on the NPC the ability spawns from
+ability.hover.dualCharge=Whether or not should create two anchor points
 ability.hover.damage=Base damage dealt to targets
 ability.hover.speed=Movement speed of projectile
 ability.hover.lifetime=Maximum ticks before despawning
