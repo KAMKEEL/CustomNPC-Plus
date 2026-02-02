@@ -158,7 +158,13 @@ public class CustomNpcs {
     @SideOnly(Side.CLIENT)
     private static IDynamicCompiler clientJaninoCompiler;
     @SideOnly(Side.CLIENT)
-    private final static Set<Consumer<AdvancedClassFilter>> clientClassFilterConsumer = new HashSet<>();
+    private static Set<Consumer<AdvancedClassFilter>> clientClassFilterConsumer;
+
+    static {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            clientClassFilterConsumer = new HashSet<>();
+        }
+    }
 
     @SideOnly(Side.CLIENT)
     public static void addClassesToClientClassFilter(Consumer<AdvancedClassFilter> consumer) {
@@ -340,7 +346,6 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
-        new AbilityController();
         AbilityController.Instance.load();
         TelegraphController.init();
 

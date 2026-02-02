@@ -3,20 +3,20 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
 import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.api.ability.type.IAbilityLaserShot;
 
@@ -36,10 +36,11 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private int lingerTicks = 8;
 
     // Data classes
-    private EnergyColorData colorData = new EnergyColorData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
-    private EnergyCombatData combatData = new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f);
-    private EnergyLightningData lightningData = new EnergyLightningData();
-    private EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);
+    private final EnergyColorData colorData = new EnergyColorData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
+    private final EnergyCombatData combatData = new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f);
+    private final EnergyLightningData lightningData = new EnergyLightningData();
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
 
     // Transient state for laser entity (used for movement locking)
     private transient EntityAbilityLaser laserEntity = null;
@@ -86,33 +87,40 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+        if (world.isRemote) return;
+
+        if (tick == 1) {
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
+            laserEntity = new EntityAbilityLaser(
+                world, caster, target,
+                spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
+                laserWidth,
+                colorData, combatData, lightningData, lifespanData,
+                expansionSpeed, lingerTicks
+            );
+
+            laserEntity.setupCharging(anchorData, windUpTicks);
+
+            laserEntity.setEffects(this.effects);
+            world.spawnEntityInWorld(laserEntity);
+        }
+    }
+
+    @Override
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
-            return;
         }
 
-        double spawnX = npc.posX;
-        double spawnY = npc.posY + npc.getEyeHeight() * 0.8;
-        double spawnZ = npc.posZ;
-
-        laserEntity = new EntityAbilityLaser(
-            world, npc, target,
-            spawnX, spawnY, spawnZ,
-            laserWidth,
-            colorData, combatData, lightningData, lifespanData,
-            expansionSpeed, lingerTicks
-        );
-
-        laserEntity.setEffects(this.effects);
-        world.spawnEntityInWorld(laserEntity);
+        laserEntity.startMoving(target);
 
         // Ability stays active until entity dies (prevents firing another while projectile is alive)
         // Movement locking is handled separately by the base class
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Signal completion when entity dies
         if (laserEntity == null || laserEntity.isDead) {
             laserEntity = null;
@@ -121,11 +129,11 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
     }
 
     @Override
@@ -142,6 +150,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         nbt.setFloat("laserWidth", laserWidth);
         nbt.setFloat("expansionSpeed", expansionSpeed);
         nbt.setInteger("lingerTicks", lingerTicks);
+        anchorData.writeNBT(nbt);
         colorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
@@ -153,6 +162,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.laserWidth = nbt.hasKey("laserWidth") ? nbt.getFloat("laserWidth") : 0.3f;
         this.expansionSpeed = nbt.hasKey("expansionSpeed") ? nbt.getFloat("expansionSpeed") : 3.0f;
         this.lingerTicks = nbt.hasKey("lingerTicks") ? nbt.getInteger("lingerTicks") : 8;
+        anchorData.readNBT(nbt);
         colorData.readNBT(nbt);
         combatData.readNBT(nbt);
         lightningData.readNBT(nbt);
@@ -205,6 +215,20 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     public void setLightningDensity(float lightningDensity) { this.lightningData.lightningDensity = lightningDensity; }
     public float getLightningRadius() { return lightningData.lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningData.lightningRadius = lightningRadius; }
+
+    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
+
+    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
+    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
+    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
+    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
+    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
+    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
+    public int getAnchorPoint() {
+        return anchorData.anchorPoint.ordinal();
+    }
+    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
     @SideOnly(Side.CLIENT)

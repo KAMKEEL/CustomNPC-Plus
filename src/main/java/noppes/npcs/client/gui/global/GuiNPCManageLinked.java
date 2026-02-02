@@ -338,21 +338,21 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
             // Health
             label = StatCollector.translateToLocal("stats.health") + ": ";
-            value = String.valueOf(npc.stats.maxHealth);
+            value = "" + npc.stats.maxHealth;
             fontRendererObj.drawString(label, xLabel, y, 0x29d6b9, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
 
             // Damage (using getAttackStrength)
             label = StatCollector.translateToLocal("stats.meleestrength") + ": ";
-            value = String.valueOf(npc.stats.getAttackStrength());
+            value = "" + npc.stats.getAttackStrength();
             fontRendererObj.drawString(label, xLabel, y, 0xff5714, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
 
             // Attack Speed
             label = StatCollector.translateToLocal("stats.meleespeed") + ": ";
-            value = String.valueOf(npc.stats.attackSpeed);
+            value = "" + npc.stats.attackSpeed;
             fontRendererObj.drawString(label, xLabel, y, 0xf7ca28, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -381,7 +381,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
             // Walk Speed
             label = StatCollector.translateToLocal("stats.speed") + ": ";
-            value = String.valueOf(npc.ais.getWalkingSpeed());
+            value = "" + npc.ais.getWalkingSpeed();
             fontRendererObj.drawString(label, xLabel, y, 0xffae0d, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -415,7 +415,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
             // Version
             label = StatCollector.translateToLocal("display.version") + ": ";
-            value = String.valueOf(linkedItem.version);
+            value = "" + linkedItem.version;
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -423,7 +423,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             // Max Stack Size
             labelColor = 0xff5714;
             label = StatCollector.translateToLocal("display.maxStack") + ": ";
-            value = String.valueOf(linkedItem.stackSize);
+            value = "" + linkedItem.stackSize;
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -431,7 +431,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             // Dig Speed
             labelColor = 0xf7ca28;
             label = StatCollector.translateToLocal("display.digSpeed") + ": ";
-            value = String.valueOf(linkedItem.digSpeed);
+            value = "" + linkedItem.digSpeed;
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -498,14 +498,14 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             labelColor = 0x7cff54;
             // isTool
             label = StatCollector.translateToLocal("display.isTool") + ": ";
-            value = String.valueOf(linkedItem.isTool).toUpperCase();
+            value = ("" + linkedItem.isTool).toUpperCase();
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
 
             // isNormalItem
             label = StatCollector.translateToLocal("display.isNormalItem") + ": ";
-            value = String.valueOf(linkedItem.isNormalItem).toUpperCase();
+            value = ("" + linkedItem.isNormalItem).toUpperCase();
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;

@@ -62,6 +62,7 @@ public enum EnumDataPacket {
     // Ability System
     TELEGRAPH_SPAWN,
     TELEGRAPH_REMOVE,
+    PLAYER_ABILITY_SYNC,
 
     // Auction System
     AUCTION_DATA,

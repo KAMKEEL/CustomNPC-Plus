@@ -31,6 +31,7 @@ public abstract class RenderAbilityProjectile extends Render {
      */
     protected void setupRenderState() {
         GL11.glPushMatrix();
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -48,9 +49,7 @@ public abstract class RenderAbilityProjectile extends Render {
      * Restore GL state after rendering.
      */
     protected void restoreRenderState() {
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glPopAttrib();
         GL11.glPopMatrix();
     }
 

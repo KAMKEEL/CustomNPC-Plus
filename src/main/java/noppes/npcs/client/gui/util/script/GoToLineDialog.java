@@ -470,7 +470,7 @@ public class GoToLineDialog {
         // Type character - only allow digits and colon
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
             if (Character.isDigit(c) || c == ':') {
-                insertText(String.valueOf(c));
+                insertText("" + c);
                 markActivity();
                 return true;
             }

@@ -39,7 +39,7 @@ public final class ScriptFilesPacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.DATA_PACKET;
+        return PacketHandler.REQUEST_PACKET;
     }
 
     @Override
@@ -47,7 +47,6 @@ public final class ScriptFilesPacket extends AbstractPacket {
         return CustomNpcsPermissions.SCRIPT_GLOBAL;
     }
 
-    @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
         ByteBufUtils.writeNBT(out, getScriptsNbt(lang));

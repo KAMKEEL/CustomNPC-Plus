@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ITimers;
+import noppes.npcs.api.ability.IDataAbilities;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
@@ -51,6 +52,7 @@ import noppes.npcs.scripted.roles.ScriptRoleInterface;
 import noppes.npcs.scripted.roles.ScriptRoleMailman;
 import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
+import noppes.npcs.scripted.wrapper.ScriptDataAbilities;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -1458,7 +1460,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
         return npc.stats.magicData;
     }
 
-    public noppes.npcs.api.ability.IDataAbilities getAbilityData() {
-        return new noppes.npcs.scripted.wrapper.ScriptDataAbilities(npc);
+    public IDataAbilities getAbilityData() {
+        return new ScriptDataAbilities(npc);
     }
 }

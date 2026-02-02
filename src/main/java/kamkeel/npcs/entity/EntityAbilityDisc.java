@@ -10,9 +10,9 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Disc projectile - flat spinning disc with optional boomerang behavior.
@@ -49,6 +49,8 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
 
+    private UUID siblingUUID = null;
+
     public EntityAbilityDisc(World world) {
         super(world);
     }
@@ -84,7 +86,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     /**
      * Full constructor with all parameters using data classes.
      */
-    public EntityAbilityDisc(World world, EntityNPCInterface owner, EntityLivingBase target,
+    public EntityAbilityDisc(World world, EntityLivingBase owner, EntityLivingBase target,
                               double x, double y, double z,
                               float discRadius, float discThickness,
                               EnergyColorData color, EnergyCombatData combat,
@@ -155,7 +157,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityNPCInterface owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -512,7 +514,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.discThickness = targetDiscThickness * progress;
         this.size = this.discRadius; // Base size for interpolation
 
-        // Calculate position based on anchor point
+        // Calculate position based on anchor point, offset downward by half radius to center
         if (owner instanceof EntityLivingBase) {
             Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
@@ -566,6 +568,18 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         return returning;
     }
 
+    public UUID getSiblingUUID() {
+        return siblingUUID;
+    }
+
+    public void setSiblingUUID(UUID siblingUUID) {
+        if (siblingUUID == null)
+            return;
+
+        if (this.siblingUUID == null)
+            this.siblingUUID = siblingUUID;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -588,6 +602,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.targetDiscRadius = nbt.hasKey("TargetDiscRadius") ? nbt.getFloat("TargetDiscRadius") : this.discRadius;
         this.targetDiscThickness = nbt.hasKey("TargetDiscThickness") ? nbt.getFloat("TargetDiscThickness") : this.discThickness;
         this.anchorData.readNBT(nbt);
+        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
@@ -610,5 +625,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         // Anchor data
         this.anchorData.writeNBT(nbt);
+
+        if (siblingUUID instanceof UUID) {
+            nbt.setString("SiblingUUID", siblingUUID.toString());
+        }
     }
 }

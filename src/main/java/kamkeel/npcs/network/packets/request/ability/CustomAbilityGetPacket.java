@@ -20,23 +20,23 @@ import net.minecraft.nbt.NBTTagCompound;
 import java.io.IOException;
 
 /**
- * Request packet to get a specific saved ability by name.
+ * Request packet to get a specific custom ability by UUID.
  */
-public final class SavedAbilityGetPacket extends AbstractPacket {
-    public static String packetName = "Request|SavedAbilityGet";
+public final class CustomAbilityGetPacket extends AbstractPacket {
+    public static String packetName = "Request|CustomAbilityGet";
 
-    private String abilityName;
+    private String uuid;
 
-    public SavedAbilityGetPacket() {
+    public CustomAbilityGetPacket() {
     }
 
-    public SavedAbilityGetPacket(String abilityName) {
-        this.abilityName = abilityName;
+    public CustomAbilityGetPacket(String uuid) {
+        this.uuid = uuid;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.SavedAbilityGet;
+        return EnumRequestPacket.CustomAbilityGet;
     }
 
     @Override
@@ -47,7 +47,7 @@ public final class SavedAbilityGetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, abilityName);
+        ByteBufUtils.writeString(out, uuid);
     }
 
     @Override
@@ -58,10 +58,12 @@ public final class SavedAbilityGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
-        String name = ByteBufUtils.readString(in);
-        Ability ability = AbilityController.Instance.getSavedAbility(name);
+        String id = ByteBufUtils.readString(in);
+        Ability ability = AbilityController.Instance.getCustomAbility(id);
         if (ability != null) {
             NBTTagCompound compound = ability.writeNBT();
+            // Include the UUID so the client can track it
+            compound.setString("_uuid", id);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }
     }

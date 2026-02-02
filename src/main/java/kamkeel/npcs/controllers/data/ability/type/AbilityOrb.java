@@ -36,12 +36,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     private float orbSize = 1.0f;
 
     // Data classes for energy properties
-    public final EnergyColorData colorData = new EnergyColorData();
-    public final EnergyCombatData combatData = new EnergyCombatData();
-    public final EnergyHomingData homingData = new EnergyHomingData();
-    public final EnergyLightningData lightningData = new EnergyLightningData();
-    public final EnergyLifespanData lifespanData = new EnergyLifespanData();
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyColorData colorData = new EnergyColorData();
+    private final EnergyCombatData combatData = new EnergyCombatData();
+    private final EnergyHomingData homingData = new EnergyHomingData();
+    private final EnergyLightningData lightningData = new EnergyLightningData();
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData();
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
 
     // Transient state for orb entity (used during windup charging)
     private transient EntityAbilityOrb orbEntity = null;
@@ -78,7 +78,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
             return;
@@ -94,15 +94,15 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     @Override
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
-            // Create orb in charging mode - follows NPC based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorData);
+            // Create orb in charging mode - follows caster based on anchor point during windup
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
             orbEntity = new EntityAbilityOrb(
-                world, npc, target,
+                world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
                 colorData, combatData, homingData, lightningData, lifespanData);
             orbEntity.setupCharging(anchorData, windUpTicks);
@@ -113,7 +113,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Signal completion when entity dies
         if (orbEntity == null || orbEntity.isDead) {
             orbEntity = null;
@@ -122,7 +122,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
         // Nothing to clean up - entity manages itself
     }
 
@@ -136,7 +136,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
         if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
             return null;
         }
@@ -150,8 +150,8 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         telegraph.setHeightOffset(telegraphHeightOffset);
 
         // Position at target and follow target during windup
-        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, npc.rotationYaw);
-        instance.setCasterEntityId(npc.getEntityId());
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, caster.rotationYaw);
+        instance.setCasterEntityId(caster.getEntityId());
         instance.setEntityIdToFollow(target.getEntityId());
 
         return instance;
@@ -392,12 +392,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
 
     public int getAnchorPoint() {
-        return anchorData.anchorPoint.getId();
+        return anchorData.anchorPoint.ordinal();
     }
 
     @Override
     public void setAnchorPoint(int point) {
-        this.anchorData.anchorPoint = AnchorPoint.fromId(point);
+        this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point);
     }
 
     @Override

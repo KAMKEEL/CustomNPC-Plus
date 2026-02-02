@@ -10,9 +10,9 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Orb projectile - spherical homing energy ball.
@@ -37,6 +37,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
+
+    private UUID siblingUUID = null;
 
     public EntityAbilityOrb(World world) {
         super(world);
@@ -73,7 +75,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     /**
      * Full constructor using data classes for grouped parameters.
      */
-    public EntityAbilityOrb(World world, EntityNPCInterface owner, EntityLivingBase target,
+    public EntityAbilityOrb(World world, EntityLivingBase owner, EntityLivingBase target,
                             double x, double y, double z, float orbSize,
                             EnergyColorData color, EnergyCombatData combat,
                             EnergyHomingData homing, EnergyLightningData lightning,
@@ -134,7 +136,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityNPCInterface owner, float orbSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float orbSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -394,7 +396,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         float progress = getChargeProgress();
         this.size = targetSize * progress;
 
-        // Calculate position based on anchor point
+        // Calculate position based on anchor point, offset downward by half size to center
         if (owner instanceof EntityLivingBase) {
             Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
@@ -442,6 +444,18 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         return size;
     }
 
+    public UUID getSiblingUUID() {
+        return siblingUUID;
+    }
+
+    public void setSiblingUUID(UUID siblingUUID) {
+        if (siblingUUID == null)
+            return;
+
+        if (this.siblingUUID == null)
+            this.siblingUUID = siblingUUID;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -459,6 +473,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
         // Anchor data
         this.anchorData.readNBT(nbt);
+
+        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
@@ -473,5 +489,9 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         nbt.setInteger("ChargeTick", chargeTick);
         anchorData.writeNBT(nbt);
         nbt.setFloat("TargetSize", targetSize);
+
+        if (siblingUUID instanceof UUID) {
+            nbt.setString("SiblingUUID", siblingUUID.toString());
+        }
     }
 }

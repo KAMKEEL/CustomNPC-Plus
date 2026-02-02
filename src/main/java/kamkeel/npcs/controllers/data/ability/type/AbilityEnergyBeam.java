@@ -79,7 +79,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
             return;
@@ -95,17 +95,17 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     }
 
     @Override
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
         // Spawn beam in charging mode on first tick of windup
         if (tick == 1) {
             float offsetDist = 1.0f;
 
-            // Create beam in charging mode - follows NPC based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(npc, anchorData, offsetDist);
+            // Create beam in charging mode - follows caster based on anchor point during windup
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData, offsetDist);
             beamEntity = new EntityAbilityBeam(
-                world, npc, target,
+                world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 beamWidth, headSize,
                 colorData, combatData, homingData, lightningData, lifespanData,
@@ -118,7 +118,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Signal completion when entity dies
         if (beamEntity == null || beamEntity.isDead) {
             beamEntity = null;
@@ -127,7 +127,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
     }
 
     @Override
@@ -140,7 +140,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
         if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
             return null;
         }
@@ -154,8 +154,8 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
         telegraph.setHeightOffset(telegraphHeightOffset);
 
         // Position at target and follow target during windup
-        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, npc.rotationYaw);
-        instance.setCasterEntityId(npc.getEntityId());
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, caster.rotationYaw);
+        instance.setCasterEntityId(caster.getEntityId());
         instance.setEntityIdToFollow(target.getEntityId());
 
         return instance;
@@ -259,10 +259,10 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
 
     @Override
-    public int getAnchorPoint() { return anchorData.anchorPoint.getId(); }
+    public int getAnchorPoint() { return anchorData.anchorPoint.ordinal(); }
 
     @Override
-    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromId(point); }
+    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
     @SideOnly(Side.CLIENT)

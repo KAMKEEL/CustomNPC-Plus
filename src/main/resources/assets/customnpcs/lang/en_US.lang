@@ -1604,8 +1604,10 @@ ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
 ability.cnpc.cutter=Cutter
 ability.cnpc.beam=Beam
+ability.cnpc.beam_dual=Beam Dual
 ability.cnpc.projectile=Projectile
 ability.cnpc.orb=Orb
+ability.cnpc.orb_dual=Orb Dual
 ability.cnpc.charge=Charge
 ability.cnpc.dash=Dash
 ability.cnpc.teleport=Teleport
@@ -1616,6 +1618,7 @@ ability.cnpc.heal=Heal
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
 ability.cnpc.disc=Disc
+ability.cnpc.disc_dual=Disc Dual
 ability.cnpc.laser_shot=Laser Shot
 ability.cnpc.sweeper=Sweeper
 
@@ -1662,6 +1665,13 @@ ability.section.boomerang=Boomerang
 ability.section.explosive=Explosive
 ability.section.colors=Colors
 ability.section.effects=Effects
+ability.section.dual=Dual
+ability.section.beam1=Beam 1
+ability.section.beam2=Beam 2
+ability.section.disc1=Disc 1
+ability.section.disc2=Disc 2
+ability.section.orb1=Orb 1
+ability.section.orb2=Orb 2
 ability.section.counter=Counter
 ability.section.area=Area
 ability.section.damage=Damage
@@ -1717,6 +1727,13 @@ ability.innerRadius=Inner Radius
 
 # Projectile
 ability.projectileType=Projectile Type
+
+# Orb Settings
+ability.homing=Homing
+ability.explosive=Explosive
+ability.firingSpeed=Firing Speed
+ability.amount=Amount
+ability.dualCharge=Dual Charging
 
 # Charge (no unique keys)
 
@@ -1786,6 +1803,12 @@ ability.outerEnabled=Outer Glow
 ability.outerWidth=Outer Width
 ability.outerAlpha=Outer Alpha
 ability.lightning=Lightning
+ability.lightningDensity=Density
+ability.lightningRadius=Radius
+
+# Dual Energy Projectile Settings
+ability.dualFire=Dual Fire
+ability.dualFireDelay=Fire Delay
 
 # Ability Save/Load
 ability.save.confirm=Save ability preset
@@ -1796,6 +1819,16 @@ gui.load=Load
 
 # Global Abilities Manager
 ability.manager.title=Ability Manager
+
+# Explosive Hover Text
+ability.explosive.noBlockDamage=Explosions do not destroy blocks
+
+# Shockwave Settings (dev)
+ability.shockwaveFalloff=Damage/knockback drop off with distance
+
+# Ability Config GUI (dev)
+ability.typeId=Type ID
+ability.noTypeSettings=No type-specific settings
 
 # ═══════════════════════════════════════════════════════════════
 # Ability Hover Tooltips
@@ -1823,6 +1856,7 @@ ability.hover.piercing=Hits multiple targets instead of stopping on first hit
 ability.hover.lightning=Add electrical effect to visuals
 ability.hover.outerGlow=Enable outer glow layer around projectile
 ability.hover.anchorPoint=Where on the NPC the ability spawns from
+ability.hover.dualCharge=Whether or not should create two anchor points
 ability.hover.damage=Base damage dealt to targets
 ability.hover.speed=Movement speed of projectile
 ability.hover.lifetime=Maximum ticks before despawning

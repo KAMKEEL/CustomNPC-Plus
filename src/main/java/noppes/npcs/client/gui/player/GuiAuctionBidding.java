@@ -255,7 +255,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         String bidCountLabel = StatCollector.translateToLocal("auction.info.bidCount");
         fontRendererObj.drawString(EnumChatFormatting.GRAY + bidCountLabel, x, y, 0xFFFFFF);
 
-        label =  String.valueOf(listing.bidCount);
+        label = "" + listing.bidCount;
         length = fontRendererObj.getStringWidth(label);
         fontRendererObj.drawString(EnumChatFormatting.WHITE + label, xRight - length, y, 0xFFFFFF);
     }

@@ -38,6 +38,8 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.showTelegraph = false;
         this.windUpSound = "random.anvil_use";
         this.activeSound = "random.anvil_land";
+        this.windUpAnimationName = "Ability_HeavyHit_Windup";
+        this.activeAnimationName = "Ability_HeavyHit_Active";
     }
 
     @Override
@@ -56,27 +58,26 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote || target == null) {
             signalCompletion();
             return;
         }
 
         // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(npc, target, damage, knockback);
+        boolean wasHit = applyAbilityDamage(caster, target, damage, knockback);
 
         // Apply effects if hit wasn't cancelled
         if (wasHit) {
             applyEffects(target);
         }
-
-        // Heavy Hit is instant
-        signalCompletion();
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        // Heavy Hit is instant, no active tick needed
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+        // Just enough delay to see the active animation
+        if (tick == 10)
+            signalCompletion();
     }
 
     @Override
