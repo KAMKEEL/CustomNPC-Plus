@@ -550,10 +550,10 @@ public class AbilityOrbDual extends Ability {
             FieldDef.row(
                 FieldDef.floatField("gui.density",
                     () -> getLightningDensity(1), v -> setLightningDensity(1, v))
-                    .range(0.01f, 5.0f).visibleWhen(() -> hasLightningEffect(1)),
+                    .range(0.01f, 100f).visibleWhen(() -> hasLightningEffect(1)),
                 FieldDef.floatField("gui.radius",
                     () -> getLightningRadius(1), v -> setLightningRadius(1, v))
-                    .range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(1))
+                    .range(0.1f, 100f).visibleWhen(() -> hasLightningEffect(1))
             ).tab("ability.tab.visual")
         ));
     }

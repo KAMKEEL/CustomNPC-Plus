@@ -30,7 +30,7 @@ import noppes.npcs.entity.EntityNPCInterface;
  * The beam stays attached to the origin and curves as it homes in on target.
  * Cannot cross over itself (self-intersection prevention).
  */
-public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
+public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
 
     // Shape properties (standalone)
     private float beamWidth = 0.4f;
@@ -47,7 +47,7 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
     // Transient state for beam entity (used during windup charging)
     private transient EntityAbilityBeam beamEntity = null;
 
-    public AbilityEnergyBeam() {
+    public AbilityBeam() {
         this.typeId = "ability.cnpc.beam";
         this.name = "Beam";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
@@ -331,9 +331,9 @@ public class AbilityEnergyBeam extends Ability implements IAbilityEnergyBeam {
                 .tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                    .range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect),
+                    .range(0.01f, 100f).visibleWhen(this::hasLightningEffect),
                 FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                    .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
+                    .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
             ).tab("ability.tab.visual")
         ));
     }
