@@ -20,6 +20,7 @@ import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import noppes.npcs.util.ValueUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -117,12 +118,19 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
-        if (!isGuarding()) return;
-        if (!canCounter || attacker == null || !counterEligible) return;
-        if (!isDirectHit(source)) return;
+        if (!isGuarding() || attacker == null) return;
 
         lastAttacker = attacker;
         lastDamageTaken = damage;
+
+        float reduction = ValueUtil.clamp(getDamageReductionFactor(), 0, damage);
+        float newHealth = ValueUtil.clamp(caster.getHealth() + reduction, 0, caster.getMaxHealth());
+
+        caster.setHealth(newHealth);
+
+        if (!canCounter || !counterEligible || counterTriggered) return;
+        if (!isDirectHit(source)) return;
+
         counterTriggered = true;
         // Counter will be performed in onActiveTick - don't self-interrupt
     }
