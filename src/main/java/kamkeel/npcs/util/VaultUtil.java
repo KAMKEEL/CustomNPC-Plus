@@ -1,13 +1,12 @@
 package kamkeel.npcs.util;
 
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
 import net.minecraft.entity.player.EntityPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.Plugin;
+
+import java.lang.reflect.Method;
 
 /**
  * Utility class for Vault Economy integration.
@@ -19,42 +18,40 @@ public class VaultUtil {
 
     private static boolean initialized = false;
     private static boolean vaultEnabled = false;
-//
-//    // Vault classes
-//    private static Class<?> economyClass;
-//    private static Class<?> economyResponseClass;
-//
-//    // Economy methods
-//    private static Method isEnabled;
-//    private static Method getName;
-//    private static Method hasAccount;
-//    private static Method hasAccountOffline;
-//    private static Method getBalance;
-//    private static Method getBalanceOffline;
-//    private static Method has;
-//    private static Method hasOffline;
-//    private static Method withdrawPlayer;
-//    private static Method withdrawPlayerOffline;
-//    private static Method depositPlayer;
-//    private static Method depositPlayerOffline;
-//    private static Method format;
-//    private static Method currencyNamePlural;
-//    private static Method currencyNameSingular;
-//    private static Method createPlayerAccount;
-//    private static Method createPlayerAccountOffline;
-//    private static Method hasBankSupport;
-//    private static Method getBanks;
-//    private static Method bankBalance;
-//    private static Method bankHas;
-//    private static Method bankWithdraw;
-//    private static Method bankDeposit;
-//
-//    // EconomyResponse methods
-//    private static Method transactionSuccess;
-//
-//    // Cached economy instance
-//    private static Object ((Economy) economyInstance);
 
+    // Vault classes
+    private static Class<?> economyClass;
+    private static Class<?> economyResponseClass;
+
+    // Economy methods
+    private static Method isEnabled;
+    private static Method getName;
+    private static Method hasAccount;
+    private static Method hasAccountOffline;
+    private static Method getBalance;
+    private static Method getBalanceOffline;
+    private static Method has;
+    private static Method hasOffline;
+    private static Method withdrawPlayer;
+    private static Method withdrawPlayerOffline;
+    private static Method depositPlayer;
+    private static Method depositPlayerOffline;
+    private static Method format;
+    private static Method currencyNamePlural;
+    private static Method currencyNameSingular;
+    private static Method createPlayerAccount;
+    private static Method createPlayerAccountOffline;
+    private static Method hasBankSupport;
+    private static Method getBanks;
+    private static Method bankBalance;
+    private static Method bankHas;
+    private static Method bankWithdraw;
+    private static Method bankDeposit;
+
+    // EconomyResponse methods
+    private static Method transactionSuccess;
+
+    // Cached economy instance
     private static Object economyInstance;
 
     /**
@@ -73,9 +70,51 @@ public class VaultUtil {
         }
 
         try {
+            Class<?> offlinePlayerClass = Class.forName("org.bukkit.OfflinePlayer");
+            if (offlinePlayerClass == null) {
+                logger.error("Could not get OfflinePlayer class from BukkitUtil");
+                return;
+            }
+
+            // Load Vault classes
+            Plugin vault = Bukkit.getPluginManager().getPlugin("Vault");
+            if (vault == null)
+                return;
+            ClassLoader vaultLoader = vault.getClass().getClassLoader();
+            economyClass = vaultLoader.loadClass("net.milkbowl.vault.economy.Economy");
+            economyResponseClass = vaultLoader.loadClass("net.milkbowl.vault.economy.EconomyResponse");
+
+            // Get Economy methods (using deprecated String methods for broader compatibility)
+            isEnabled = economyClass.getMethod("isEnabled");
+            getName = economyClass.getMethod("getName");
+            hasAccount = economyClass.getMethod("hasAccount", String.class);
+            hasAccountOffline = economyClass.getMethod("hasAccount", offlinePlayerClass);
+            getBalance = economyClass.getMethod("getBalance", String.class);
+            getBalanceOffline = economyClass.getMethod("getBalance", offlinePlayerClass);
+            has = economyClass.getMethod("has", String.class, double.class);
+            hasOffline = economyClass.getMethod("has", offlinePlayerClass, double.class);
+            withdrawPlayer = economyClass.getMethod("withdrawPlayer", String.class, double.class);
+            withdrawPlayerOffline = economyClass.getMethod("withdrawPlayer", offlinePlayerClass, double.class);
+            depositPlayer = economyClass.getMethod("depositPlayer", String.class, double.class);
+            depositPlayerOffline = economyClass.getMethod("depositPlayer", offlinePlayerClass, double.class);
+            format = economyClass.getMethod("format", double.class);
+            currencyNamePlural = economyClass.getMethod("currencyNamePlural");
+            currencyNameSingular = economyClass.getMethod("currencyNameSingular");
+            createPlayerAccount = economyClass.getMethod("createPlayerAccount", String.class);
+            createPlayerAccountOffline = economyClass.getMethod("createPlayerAccount", offlinePlayerClass);
+            hasBankSupport = economyClass.getMethod("hasBankSupport");
+            getBanks = economyClass.getMethod("getBanks");
+            bankBalance = economyClass.getMethod("bankBalance", String.class);
+            bankHas = economyClass.getMethod("bankHas", String.class, double.class);
+            bankWithdraw = economyClass.getMethod("bankWithdraw", String.class, double.class);
+            bankDeposit = economyClass.getMethod("bankDeposit", String.class, double.class);
+
+            // Get EconomyResponse methods
+            transactionSuccess = economyResponseClass.getMethod("transactionSuccess");
+
             // Get the economy instance
-            RegisteredServiceProvider<Economy> economyRegistration = Bukkit.getServicesManager().getRegistration(Economy.class);
-            economyInstance= economyRegistration.getProvider();
+            economyInstance = BukkitUtil.getServiceProvider(economyClass);
+
             if (economyInstance != null) {
                 vaultEnabled = true;
                 logger.info("Vault Economy integration enabled - Provider: " + getEconomyName());
@@ -83,6 +122,10 @@ public class VaultUtil {
                 logger.info("Vault found but no Economy provider registered");
             }
 
+        } catch (ClassNotFoundException e) {
+            logger.debug("Vault not found, economy integration disabled");
+        } catch (NoSuchMethodException e) {
+            logger.error("Vault API method not found, economy integration disabled", e);
         } catch (Exception e) {
             logger.error("Error initializing Vault integration", e);
         }
@@ -97,8 +140,7 @@ public class VaultUtil {
         }
 
         try {
-            RegisteredServiceProvider<Economy> economyRegistration = Bukkit.getServicesManager().getRegistration(Economy.class);
-            economyInstance = economyRegistration.getProvider();
+            economyInstance = BukkitUtil.getServiceProvider(economyClass);
             if (economyInstance != null) {
                 vaultEnabled = true;
                 logger.info("Vault Economy provider refreshed: " + getEconomyName());
@@ -115,7 +157,7 @@ public class VaultUtil {
         if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            return ((Economy) economyInstance).isEnabled();
+            return (Boolean) isEnabled.invoke(economyInstance);
         } catch (Exception e) {
             logger.error("Error checking if economy is enabled", e);
             return false;
@@ -129,7 +171,7 @@ public class VaultUtil {
         if (!vaultEnabled || economyInstance == null) return null;
 
         try {
-            return ((Economy) economyInstance).getName();
+            return (String) getName.invoke(economyInstance);
         } catch (Exception e) {
             logger.error("Error getting economy name", e);
             return null;
@@ -138,7 +180,6 @@ public class VaultUtil {
 
     /**
      * Checks if a player has an account in the economy system.
-     *
      * @param player the player to check
      * @return true if the player has an account
      */
@@ -148,7 +189,6 @@ public class VaultUtil {
 
     /**
      * Checks if a player has an account in the economy system.
-     *
      * @param playerName the player name to check
      * @return true if the player has an account
      */
@@ -156,11 +196,11 @@ public class VaultUtil {
         if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
+            Object offlinePlayer = BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return ((Economy) economyInstance).hasAccount(offlinePlayer);
+                return (Boolean) hasAccountOffline.invoke(economyInstance, offlinePlayer);
             }
-            return ((Economy) economyInstance).hasAccount(playerName);
+            return (Boolean) hasAccount.invoke(economyInstance, playerName);
         } catch (Exception e) {
             logger.error("Error checking if player has account: " + playerName, e);
             return false;
@@ -169,7 +209,6 @@ public class VaultUtil {
 
     /**
      * Gets the balance of a player.
-     *
      * @param player the player
      * @return the player's balance, or 0 if not available
      */
@@ -179,19 +218,18 @@ public class VaultUtil {
 
     /**
      * Gets the balance of a player by name.
-     *
      * @param playerName the player name
      * @return the player's balance, or 0 if not available
      */
     public static double getBalance(String playerName) {
-        if (!vaultEnabled || economyInstance== null) return 0;
+        if (!vaultEnabled || economyInstance == null) return 0;
 
         try {
-            OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
+            Object offlinePlayer = BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return ((Economy) economyInstance).getBalance(offlinePlayer);
+                return (Double) getBalanceOffline.invoke(economyInstance, offlinePlayer);
             }
-            return ((Economy) economyInstance).getBalance(playerName);
+            return (Double) getBalance.invoke(economyInstance, playerName);
         } catch (Exception e) {
             logger.error("Error getting balance for player: " + playerName, e);
             return 0;
@@ -200,7 +238,6 @@ public class VaultUtil {
 
     /**
      * Checks if a player has at least the specified amount.
-     *
      * @param player the player
      * @param amount the amount to check
      * @return true if the player has at least the specified amount
@@ -211,20 +248,19 @@ public class VaultUtil {
 
     /**
      * Checks if a player has at least the specified amount.
-     *
      * @param playerName the player name
-     * @param amount     the amount to check
+     * @param amount the amount to check
      * @return true if the player has at least the specified amount
      */
     public static boolean has(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
+            Object offlinePlayer = BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return ((Economy) economyInstance).has(offlinePlayer, amount);
+                return (Boolean) hasOffline.invoke(economyInstance, offlinePlayer, amount);
             }
-            return ((Economy) economyInstance).has(playerName, amount);
+            return (Boolean) has.invoke(economyInstance, playerName, amount);
         } catch (Exception e) {
             logger.error("Error checking if player has amount: " + playerName, e);
             return false;
@@ -233,7 +269,6 @@ public class VaultUtil {
 
     /**
      * Withdraws money from a player's account.
-     *
      * @param player the player
      * @param amount the amount to withdraw
      * @return true if the transaction was successful
@@ -244,23 +279,22 @@ public class VaultUtil {
 
     /**
      * Withdraws money from a player's account.
-     *
      * @param playerName the player name
-     * @param amount     the amount to withdraw
+     * @param amount the amount to withdraw
      * @return true if the transaction was successful
      */
     public static boolean withdrawMoney(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
-            EconomyResponse response;
+            Object offlinePlayer = BukkitUtil.getOfflinePlayer(playerName);
+            Object response;
             if (offlinePlayer != null) {
-                response = ((Economy) economyInstance).withdrawPlayer(offlinePlayer, amount);
+                response = withdrawPlayerOffline.invoke(economyInstance, offlinePlayer, amount);
             } else {
-                response = ((Economy) economyInstance).withdrawPlayer(playerName, amount);
+                response = withdrawPlayer.invoke(economyInstance, playerName, amount);
             }
-            return response.transactionSuccess();
+            return (Boolean) transactionSuccess.invoke(response);
         } catch (Exception e) {
             logger.error("Error withdrawing money from player: " + playerName, e);
             return false;
@@ -269,7 +303,6 @@ public class VaultUtil {
 
     /**
      * Adds money to a player's account (deposit).
-     *
      * @param player the player
      * @param amount the amount to add
      * @return true if the transaction was successful
@@ -280,23 +313,22 @@ public class VaultUtil {
 
     /**
      * Adds money to a player's account (deposit).
-     *
      * @param playerName the player name
-     * @param amount     the amount to add
+     * @param amount the amount to add
      * @return true if the transaction was successful
      */
     public static boolean addMoney(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
-            EconomyResponse response;
+            Object offlinePlayer = BukkitUtil.getOfflinePlayer(playerName);
+            Object response;
             if (offlinePlayer != null) {
-                response = ((Economy) economyInstance).depositPlayer(offlinePlayer, amount);
+                response = depositPlayerOffline.invoke(economyInstance, offlinePlayer, amount);
             } else {
-                response = ((Economy) economyInstance).depositPlayer(playerName, amount);
+                response = depositPlayer.invoke(economyInstance, playerName, amount);
             }
-            return response.transactionSuccess();
+            return (Boolean) transactionSuccess.invoke(response);
         } catch (Exception e) {
             logger.error("Error adding money to player: " + playerName, e);
             return false;
@@ -306,7 +338,6 @@ public class VaultUtil {
     /**
      * Sets a player's balance to the specified amount.
      * This withdraws all money first, then deposits the new amount.
-     *
      * @param player the player
      * @param amount the new balance
      * @return true if the transaction was successful
@@ -318,13 +349,12 @@ public class VaultUtil {
     /**
      * Sets a player's balance to the specified amount.
      * This withdraws all money first, then deposits the new amount.
-     *
      * @param playerName the player name
-     * @param amount     the new balance
+     * @param amount the new balance
      * @return true if the transaction was successful
      */
     public static boolean setBalance(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         double currentBalance = getBalance(playerName);
         if (currentBalance > 0) {
@@ -340,15 +370,14 @@ public class VaultUtil {
 
     /**
      * Formats an amount according to the economy plugin's settings.
-     *
      * @param amount the amount to format
      * @return the formatted string, or the raw number as string if not available
      */
     public static String format(double amount) {
-        if (!vaultEnabled || economyInstance== null) return String.valueOf(amount);
+        if (!vaultEnabled || economyInstance == null) return String.valueOf(amount);
 
         try {
-            return ((Economy) economyInstance).format(amount);
+            return (String) format.invoke(economyInstance, amount);
         } catch (Exception e) {
             logger.error("Error formatting amount", e);
             return String.valueOf(amount);
@@ -357,14 +386,13 @@ public class VaultUtil {
 
     /**
      * Gets the plural currency name (e.g., "Dollars").
-     *
      * @return the plural currency name, or "coins" if not available
      */
     public static String getCurrencyNamePlural() {
-        if (!vaultEnabled || economyInstance== null) return "coins";
+        if (!vaultEnabled || economyInstance == null) return "coins";
 
         try {
-            return ((Economy) economyInstance).currencyNamePlural();
+            return (String) currencyNamePlural.invoke(economyInstance);
         } catch (Exception e) {
             logger.error("Error getting currency name plural", e);
             return "coins";
@@ -373,14 +401,13 @@ public class VaultUtil {
 
     /**
      * Gets the singular currency name (e.g., "Dollar").
-     *
      * @return the singular currency name, or "coin" if not available
      */
     public static String getCurrencyNameSingular() {
-        if (!vaultEnabled || economyInstance== null) return "coin";
+        if (!vaultEnabled || economyInstance == null) return "coin";
 
         try {
-            return ((Economy) economyInstance).currencyNameSingular();
+            return (String) currencyNameSingular.invoke(economyInstance);
         } catch (Exception e) {
             logger.error("Error getting currency name singular", e);
             return "coin";
@@ -389,7 +416,6 @@ public class VaultUtil {
 
     /**
      * Creates an account for the player if one doesn't exist.
-     *
      * @param player the player
      * @return true if the account was created or already exists
      */
@@ -399,21 +425,20 @@ public class VaultUtil {
 
     /**
      * Creates an account for the player if one doesn't exist.
-     *
      * @param playerName the player name
      * @return true if the account was created or already exists
      */
     public static boolean createAccount(String playerName) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         if (hasAccount(playerName)) return true;
 
         try {
-            OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
+            Object offlinePlayer = BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return ((Economy) economyInstance).createPlayerAccount(offlinePlayer);
+                return (Boolean) createPlayerAccountOffline.invoke(economyInstance, offlinePlayer);
             }
-            return ((Economy) economyInstance).createPlayerAccount(playerName);
+            return (Boolean) createPlayerAccount.invoke(economyInstance, playerName);
         } catch (Exception e) {
             logger.error("Error creating account for player: " + playerName, e);
             return false;
@@ -424,10 +449,10 @@ public class VaultUtil {
      * @return true if the economy supports bank accounts
      */
     public static boolean hasBankSupport() {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            return ((Economy) economyInstance).hasBankSupport();
+            return (Boolean) hasBankSupport.invoke(economyInstance);
         } catch (Exception e) {
             logger.error("Error checking bank support", e);
             return false;
@@ -436,15 +461,14 @@ public class VaultUtil {
 
     /**
      * Gets a list of all bank names.
-     *
      * @return list of bank names, or empty list if not available
      */
     @SuppressWarnings("unchecked")
     public static java.util.List<String> getBanks() {
-        if (!vaultEnabled || economyInstance== null) return java.util.Collections.emptyList();
+        if (!vaultEnabled || economyInstance == null) return java.util.Collections.emptyList();
 
         try {
-            return ((Economy) economyInstance).getBanks();
+            return (java.util.List<String>) getBanks.invoke(economyInstance);
         } catch (Exception e) {
             logger.error("Error getting banks", e);
             return java.util.Collections.emptyList();
@@ -453,16 +477,15 @@ public class VaultUtil {
 
     /**
      * Gets the balance of a bank.
-     *
      * @param bankName the bank name
      * @return the bank balance, or 0 if not available
      */
     public static double getBankBalance(String bankName) {
-        if (!vaultEnabled || economyInstance== null) return 0;
+        if (!vaultEnabled || economyInstance == null) return 0;
 
         try {
-            EconomyResponse response = ((Economy) economyInstance).bankBalance(bankName);
-            return response.balance;
+            Object response = bankBalance.invoke(economyInstance, bankName);
+            return economyResponseClass.getField("balance").getDouble(response);
         } catch (Exception e) {
             logger.error("Error getting bank balance: " + bankName, e);
             return 0;
@@ -471,17 +494,16 @@ public class VaultUtil {
 
     /**
      * Checks if a bank has at least the specified amount.
-     *
      * @param bankName the bank name
-     * @param amount   the amount to check
+     * @param amount the amount to check
      * @return true if the bank has at least the specified amount
      */
     public static boolean bankHas(String bankName, double amount) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            EconomyResponse response = ((Economy) economyInstance).bankHas(bankName, amount);
-            return response.transactionSuccess();
+            Object response = bankHas.invoke(economyInstance, bankName, amount);
+            return (Boolean) transactionSuccess.invoke(response);
         } catch (Exception e) {
             logger.error("Error checking bank balance: " + bankName, e);
             return false;
@@ -490,17 +512,16 @@ public class VaultUtil {
 
     /**
      * Withdraws money from a bank.
-     *
      * @param bankName the bank name
-     * @param amount   the amount to withdraw
+     * @param amount the amount to withdraw
      * @return true if the transaction was successful
      */
     public static boolean bankWithdraw(String bankName, double amount) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            EconomyResponse response = ((Economy) economyInstance).bankWithdraw(bankName, amount);
-            return response.transactionSuccess();
+            Object response = bankWithdraw.invoke(economyInstance, bankName, amount);
+            return (Boolean) transactionSuccess.invoke(response);
         } catch (Exception e) {
             logger.error("Error withdrawing from bank: " + bankName, e);
             return false;
@@ -509,17 +530,16 @@ public class VaultUtil {
 
     /**
      * Deposits money into a bank.
-     *
      * @param bankName the bank name
-     * @param amount   the amount to deposit
+     * @param amount the amount to deposit
      * @return true if the transaction was successful
      */
     public static boolean bankDeposit(String bankName, double amount) {
-        if (!vaultEnabled || economyInstance== null) return false;
+        if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            EconomyResponse response = ((Economy) economyInstance).bankDeposit(bankName, amount);
-            return response.transactionSuccess();
+            Object response = bankDeposit.invoke(economyInstance, bankName, amount);
+            return (Boolean) transactionSuccess.invoke(response);
         } catch (Exception e) {
             logger.error("Error depositing to bank: " + bankName, e);
             return false;
@@ -528,9 +548,8 @@ public class VaultUtil {
 
     /**
      * Transfers money from one player to another.
-     *
-     * @param from   the player to take money from
-     * @param to     the player to give money to
+     * @param from the player to take money from
+     * @param to the player to give money to
      * @param amount the amount to transfer
      * @return true if the transfer was successful
      */
@@ -540,10 +559,9 @@ public class VaultUtil {
 
     /**
      * Transfers money from one player to another.
-     *
      * @param fromPlayerName the player name to take money from
-     * @param toPlayerName   the player name to give money to
-     * @param amount         the amount to transfer
+     * @param toPlayerName the player name to give money to
+     * @param amount the amount to transfer
      * @return true if the transfer was successful
      */
     public static boolean transfer(String fromPlayerName, String toPlayerName, double amount) {
