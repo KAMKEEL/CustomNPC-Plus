@@ -51,7 +51,7 @@ public class BukkitUtil {
             // Initialize Vault after Bukkit is confirmed
             VaultUtil.init();
 
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {
             logger.debug("Bukkit not found, Bukkit integration disabled");
         } catch (NoSuchMethodException e) {
             logger.error("Bukkit API method not found", e);
