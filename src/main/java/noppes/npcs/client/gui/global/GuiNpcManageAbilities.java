@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import java.util.UUID;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
@@ -15,6 +16,7 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityTypeSelect;
 import noppes.npcs.client.gui.util.AbilityPreviewExecutor;
 import noppes.npcs.client.gui.util.GuiAbilityInterface;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -87,13 +89,16 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     public void initGui() {
         super.initGui();
 
-        // Edit button (above Remove)
-        addButton(new GuiNpcButton(100, guiLeft + 368, guiTop + 8, 45, 20, "gui.edit"));
-        getButton(100).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
+        // Add button
+        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
 
         // Remove button
         addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
         getButton(1).setEnabled(selected != null && !selected.isEmpty() && displayToUuid.containsKey(selected));
+
+        // Edit button
+        addButton(new GuiNpcButton(100, guiLeft + 368, guiTop + 52, 45, 20, "gui.edit"));
+        getButton(100).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
 
         // Scroll list of saved abilities (right side)
         if (scroll == null) {
@@ -211,7 +216,10 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         int id = guibutton.id;
 
-        if (id == 1 && selected != null && selectedUuid != null) {
+        if (id == 2) {
+            // Add — open type selection
+            setSubGui(new SubGuiAbilityTypeSelect());
+        } else if (id == 1 && selected != null && selectedUuid != null) {
             GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), 1);
             displayGuiScreen(guiyesno);
         } else if (id == 100 && selectedAbility != null) {
@@ -329,6 +337,24 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiAbilityTypeSelect) {
+            String typeId = ((SubGuiAbilityTypeSelect) subgui).getSelectedTypeId();
+            if (typeId != null) {
+                Ability newAbility = AbilityController.Instance.create(typeId);
+                if (newAbility != null) {
+                    newAbility.setId(UUID.randomUUID().toString());
+                    newAbility.setName(newAbility.getTypeId());
+                    // Save to server, then open config GUI
+                    PacketClient.sendClient(new CustomAbilitySavePacket(newAbility.writeNBT()));
+                    selectedAbility = newAbility;
+                    selected = newAbility.getName();
+                    selectedUuid = newAbility.getId();
+                    previewExecutor.stop();
+                    setSubGui(selectedAbility.createConfigGui(this));
+                    return;
+                }
+            }
+        }
         initGui();
     }
 

@@ -246,7 +246,10 @@ public abstract class GuiContainerNPCInterface extends GuiContainer {
     }
 
     public void closeSubGui(SubGuiInterface gui) {
-        subgui = null;
+        // Only null out subgui if it wasn't replaced by a new one during subGuiClosed
+        if (subgui == gui) {
+            subgui = null;
+        }
     }
 
     public boolean hasSubGui() {
