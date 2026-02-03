@@ -297,4 +297,55 @@ public class FieldDef {
     public FieldDef getLeftChild() { return leftChild; }
     public FieldDef getRightChild() { return rightChild; }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // LIST MANIPULATION (for mod injection)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Insert a field before the first field matching the target label.
+     * Searches top-level labels and ROW children.
+     *
+     * @param fields      The field list to modify
+     * @param targetLabel The label of the field to insert before
+     * @param newField    The field to insert
+     * @return true if the target was found and the field was inserted
+     */
+    public static boolean insertBefore(java.util.List<FieldDef> fields, String targetLabel, FieldDef newField) {
+        for (int i = 0; i < fields.size(); i++) {
+            if (matchesLabel(fields.get(i), targetLabel)) {
+                fields.add(i, newField);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Insert a field after the first field matching the target label.
+     * Searches top-level labels and ROW children.
+     *
+     * @param fields      The field list to modify
+     * @param targetLabel The label of the field to insert after
+     * @param newField    The field to insert
+     * @return true if the target was found and the field was inserted
+     */
+    public static boolean insertAfter(java.util.List<FieldDef> fields, String targetLabel, FieldDef newField) {
+        for (int i = 0; i < fields.size(); i++) {
+            if (matchesLabel(fields.get(i), targetLabel)) {
+                fields.add(i + 1, newField);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean matchesLabel(FieldDef def, String targetLabel) {
+        if (targetLabel.equals(def.label)) return true;
+        if (def.type == FieldType.ROW) {
+            if (def.leftChild != null && targetLabel.equals(def.leftChild.label)) return true;
+            if (def.rightChild != null && targetLabel.equals(def.rightChild.label)) return true;
+        }
+        return false;
+    }
+
 }

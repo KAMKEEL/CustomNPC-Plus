@@ -92,6 +92,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
     // Runtime state
     private transient Vec3 dashDirection;
     private transient double startX, startY, startZ;
+    private transient double prevTickX, prevTickZ;
     private transient DashDirection chosenDirection;
 
     public AbilityDash() {
@@ -130,6 +131,8 @@ public class AbilityDash extends Ability implements IAbilityDash {
         startX = caster.posX;
         startY = caster.posY;
         startZ = caster.posZ;
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
 
         // Choose random direction based on mode
         DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
@@ -162,6 +165,22 @@ public class AbilityDash extends Ability implements IAbilityDash {
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (dashDirection == null) return;
+
+        // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
+        if (tick > 1) {
+            double movedThisTick = Math.sqrt(
+                Math.pow(caster.posX - prevTickX, 2) +
+                Math.pow(caster.posZ - prevTickZ, 2));
+            if (movedThisTick < 0.01) {
+                caster.motionX = 0;
+                caster.motionZ = 0;
+                caster.velocityChanged = true;
+                signalCompletion();
+                return;
+            }
+        }
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(

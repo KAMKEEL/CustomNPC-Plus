@@ -409,9 +409,26 @@ public abstract class Ability implements IAbility {
             FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v)).range(1, 100)
         ).tab("Target"));
         if (!isTargetingModeLocked()) {
-            defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
-                this::getTargetingMode, this::setTargetingMode)
-                .tab("Target").hover("ability.hover.targeting"));
+            TargetingMode[] allowed = getAllowedTargetingModes();
+            if (allowed != null && allowed.length > 0) {
+                // Build string enum from allowed targeting modes only
+                String[] allowedKeys = new String[allowed.length];
+                for (int i = 0; i < allowed.length; i++) {
+                    allowedKeys[i] = allowed[i].name();
+                }
+                defs.add(FieldDef.stringEnumField("ability.targetingMode", allowedKeys,
+                    () -> this.getTargetingMode().name(),
+                    v -> {
+                        try { this.setTargetingMode(TargetingMode.valueOf(v)); }
+                        catch (Exception ignored) {}
+                    })
+                    .tab("Target").hover("ability.hover.targeting"));
+            } else {
+                // No restrictions - show all modes
+                defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
+                    this::getTargetingMode, this::setTargetingMode)
+                    .tab("Target").hover("ability.hover.targeting"));
+            }
         }
 
         // Effects tab - Sounds
@@ -563,8 +580,12 @@ public abstract class Ability implements IAbility {
             instance.setEntityIdToFollow(caster.getEntityId());
 
             // For LINE/CONE telegraphs: track target direction during windup
+            // Only track if movement is NOT locked during windup (locked = NPC can't rotate)
             if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
-                instance.setTargetEntityId(target.getEntityId());
+                if (!lockMovement.locksWindup()) {
+                    instance.setTargetEntityId(target.getEntityId());
+                }
+                // If windup is locked, yaw stays fixed at creation time
             }
         } else if (target != null) {
             // AOE_TARGET abilities: telegraph follows target during windup

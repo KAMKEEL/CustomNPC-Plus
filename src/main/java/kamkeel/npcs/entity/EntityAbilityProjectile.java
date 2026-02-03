@@ -192,6 +192,19 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         // Skip lifetime/distance checks in preview mode
         if (!previewMode) {
+            // Failsafe: if owner entity is gone, dead, or NPC was killed/reset, self-destruct
+            if (ownerEntityId >= 0 && ticksExisted > 5) {
+                Entity owner = worldObj.getEntityByID(ownerEntityId);
+                if (owner == null || owner.isDead) {
+                    this.setDead();
+                    return;
+                }
+                if (owner instanceof EntityNPCInterface && ((EntityNPCInterface) owner).isKilled()) {
+                    this.setDead();
+                    return;
+                }
+            }
+
             // Set death time on first tick if not already set (handles chunk load/unload)
             if (deathWorldTime < 0 && worldObj != null) {
                 deathWorldTime = worldObj.getTotalWorldTime() + maxLifetime;
@@ -391,6 +404,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     }
 
     // ==================== ENTITY HELPERS ====================
+
+    public int getOwnerEntityId() {
+        return ownerEntityId;
+    }
 
     protected Entity getOwner() {
         // In preview mode, use direct reference (no world lookup)

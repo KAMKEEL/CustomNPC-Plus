@@ -281,11 +281,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         // Declarative field handling (effects list, booleans, enums, sub-guis, clear buttons)
         if (builder.handleButtonEvent(id, guibutton)) {
-            // SUB_GUI needs special handling: open the sub-gui
-            FieldDef subGuiDef = builder.getActiveSubGuiField();
-            if (subGuiDef != null && subGuiDef.getSubGuiFactory() != null) {
-                setSubGui(subGuiDef.getSubGuiFactory().get());
-            } else {
+            // SUB_GUI fields are opened directly by the builder via setSubGuiWithResult().
+            // Only rebuild if no sub-gui was opened (e.g. boolean toggle, enum change).
+            if (!hasSubGui()) {
                 initGui();
             }
             return;

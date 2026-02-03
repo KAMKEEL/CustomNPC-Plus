@@ -138,7 +138,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             double dz = destZ - entity.posZ;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-            if (dist <= 1.0f) {
+            if (dist <= 1.5f) {
                 getPulledEntities().remove(uuid);
                 onTargetArrived(caster, entity, world);
                 continue;
@@ -146,7 +146,10 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
             anyStillPulling = true;
 
-            double factor = pullStrength / dist;
+            // Clamp speed to never exceed half the remaining distance, preventing overshoot/slingshot
+            double maxSpeed = dist * 0.5;
+            double effectiveSpeed = Math.min(pullStrength, maxSpeed);
+            double factor = effectiveSpeed / dist;
             double nextX = dx * factor;
             double nextY = dy * factor * 0.5;
             double nextZ = dz * factor;
