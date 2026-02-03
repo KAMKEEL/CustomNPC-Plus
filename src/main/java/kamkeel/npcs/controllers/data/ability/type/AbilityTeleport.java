@@ -16,9 +16,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTeleport;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.List;
@@ -80,11 +83,6 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         this.showTelegraph = false;
         this.windUpSound = "mob.endermen.portal";
         this.activeSound = "mob.endermen.portal";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -559,6 +557,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         this.damageRadius = damageRadius;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -581,7 +580,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
                 .hover("ability.hover.dmgAtStart").column(ColumnHint.LEFT),
             FieldDef.boolField("ability.damageAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
                 .hover("ability.hover.dmgAtEnd").column(ColumnHint.RIGHT),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

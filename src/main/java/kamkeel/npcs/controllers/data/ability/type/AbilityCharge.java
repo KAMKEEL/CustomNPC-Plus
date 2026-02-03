@@ -16,9 +16,9 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityCharge;
 
 import java.util.Arrays;
@@ -57,11 +57,6 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         this.showTelegraph = true;
         this.windUpSound = "mob.zombie.wood";
         this.activeSound = "mob.zombie.attack";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -401,6 +396,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         this.hitWidth = hitWidth;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -408,7 +404,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
             FieldDef.floatField("ability.chargeSpeed", this::getChargeSpeed, this::setChargeSpeed).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).column(ColumnHint.LEFT),
             FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth).column(ColumnHint.RIGHT),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

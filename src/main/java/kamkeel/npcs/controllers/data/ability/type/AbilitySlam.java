@@ -18,9 +18,9 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.api.ability.type.IAbilitySlam;
 import somehussar.gui.annotationHandling.GuiEditable;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,7 +33,6 @@ import java.util.List;
  * - Landing: When NPC hits ground, deal AOE damage
  * - RECOVERY: Landing recovery animation
  */
-@GuiEditable
 public class AbilitySlam extends Ability implements IAbilitySlam {
 
     // Type-specific config
@@ -65,11 +64,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         // Default built-in animations
         this.windUpAnimationName = "Ability_Slam_Windup";
         this.activeAnimationName = "Ability_Slam_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     /**
@@ -579,6 +573,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         this.leapHeight = leapHeight;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -588,7 +583,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             FieldDef.section("ability.section.leap"),
             FieldDef.floatField("gui.speed", this::getLeapSpeed, this::setLeapSpeed).column(ColumnHint.LEFT),
             FieldDef.floatField("gui.height", this::getLeapHeight, this::setLeapHeight).column(ColumnHint.RIGHT),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

@@ -3,10 +3,9 @@ package noppes.npcs.client.gui.advanced;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.Condition;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDefinitionsBuilder;
-import kamkeel.npcs.controllers.data.ability.gui.FieldType;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldBuilder;
+import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.client.gui.builder.FieldType;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -36,6 +35,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private static final int TAB_EFFECTS = 3;
     // Custom tabs start at index 4
 
+    // Tab name strings (matching FieldDef.tab() values)
+    private static final String TAB_NAME_GENERAL = "General";
+    private static final String TAB_NAME_TYPE = "Type";
+    private static final String TAB_NAME_TARGET = "Target";
+    private static final String TAB_NAME_EFFECTS = "Effects";
+
     private static final int L_LABEL_X = 5;
     private static final int ROW_H = 24;
 
@@ -49,7 +54,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private List<Condition> conditions;
     private int editingConditionIndex = -1;
 
-    private FieldDefinitionsBuilder builder;
+    private AbilityFieldBuilder builder;
     private FieldDef activeSubGuiField = null;
 
     // Scroll position preservation per tab
@@ -71,9 +76,14 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private void discoverCustomTabs() {
         customTabNames = new ArrayList<>();
         for (FieldDef def : fieldDefs) {
-            if (def.getTab() == TabTarget.CUSTOM && def.getCustomTabName() != null
-                    && !customTabNames.contains(def.getCustomTabName())) {
-                customTabNames.add(def.getCustomTabName());
+            String tab = def.getTab();
+            if (tab != null
+                    && !TAB_NAME_GENERAL.equals(tab)
+                    && !TAB_NAME_TYPE.equals(tab)
+                    && !TAB_NAME_TARGET.equals(tab)
+                    && !TAB_NAME_EFFECTS.equals(tab)
+                    && !customTabNames.contains(tab)) {
+                customTabNames.add(tab);
             }
         }
         tabScrollY = new float[4 + customTabNames.size()];
@@ -125,40 +135,39 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         GuiMenuTopButton closeBtn = new GuiMenuTopButton(-1000, guiLeft + xSize - 22, guiTop - 17, "X");
         addTopButton(closeBtn);
 
-        // Scroll window
+        // Build scroll window dimensions
         int swX = guiLeft + 4;
         int swY = guiTop + 5;
         int swW = xSize - 8;
         int swH = ySize - 10;
 
-        GuiScrollWindow sw = new GuiScrollWindow(this, swX, swY, swW, swH, 0);
-        sw.backgroundColor = 0x88000000;
-        addScrollableGui(0, sw);
-
         int y = 5;
         int labelCounter = LABEL_ID_START;
 
-        // General tab: type label at top
+        // General tab: type label at top — need to reserve space before building
         if (activeTab == TAB_GENERAL) {
-            sw.addLabel(new GuiNpcLabel(labelCounter++, "gui.type", 5, y + 5, 0xFFFFFF));
-            sw.addLabel(new GuiNpcLabel(labelCounter++, ability.getTypeId(), 55, y + 5, 0xFFFFFF));
             y += ROW_H;
         }
 
-        // Build declarative fields using the builder
+        // Build declarative fields into an auto-created scroll window
         List<FieldDef> tabFields = getVisibleFieldsForTab(activeTab);
-        builder = new FieldDefinitionsBuilder(this, sw, fontRendererObj)
-            .startIds(DECLARATIVE_ID_START, CLEAR_ID_START, labelCounter)
-            .startY(y);
+        builder = new AbilityFieldBuilder(this, fontRendererObj);
+        builder.startIds(DECLARATIVE_ID_START, CLEAR_ID_START, labelCounter);
+        builder.startY(y);
 
-        y = builder.build(tabFields);
+        GuiScrollWindow sw = builder.buildScrollWindow(tabFields, swX, swY, swW, swH);
 
-        // Conditions on target tab
-        if (activeTab == TAB_TARGET) {
-            y = renderConditions(sw, y, builder.getNextLabelId());
+        // General tab: add type label at top of scroll window
+        if (activeTab == TAB_GENERAL) {
+            sw.addLabel(new GuiNpcLabel(builder.getNextLabelId(), "gui.type", 5, 5 + 5, 0xFFFFFF));
+            sw.addLabel(new GuiNpcLabel(builder.getNextLabelId() + 1, ability.getTypeId(), 55, 5 + 5, 0xFFFFFF));
         }
 
-        sw.maxScrollY = Math.max(y - swH, 0);
+        // Conditions on target tab — appended after field defs
+        if (activeTab == TAB_TARGET) {
+            int condY = renderConditions(sw, builder.getLastBuildY(), builder.getNextLabelId());
+            sw.maxScrollY = Math.max(condY - swH, 0);
+        }
 
         // Restore scroll position
         if (activeTab < tabScrollY.length) {
@@ -171,33 +180,27 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private List<FieldDef> getVisibleFieldsForTab(int tabIndex) {
         List<FieldDef> result = new ArrayList<>();
 
+        String tabName;
         if (tabIndex >= 4) {
-            // Custom tab — match by custom tab name
             int customIndex = tabIndex - 4;
             if (customIndex >= 0 && customIndex < customTabNames.size()) {
-                String tabName = customTabNames.get(customIndex);
-                for (FieldDef def : fieldDefs) {
-                    if (def.getTab() == TabTarget.CUSTOM
-                            && tabName.equals(def.getCustomTabName())
-                            && def.isVisible()) {
-                        result.add(def);
-                    }
-                }
+                tabName = customTabNames.get(customIndex);
+            } else {
+                return result;
             }
         } else {
-            // Fixed tab
-            TabTarget target;
             switch (tabIndex) {
-                case TAB_GENERAL: target = TabTarget.GENERAL; break;
-                case TAB_TYPE:    target = TabTarget.TYPE;    break;
-                case TAB_TARGET:  target = TabTarget.TARGET;  break;
-                case TAB_EFFECTS: target = TabTarget.EFFECTS; break;
-                default:          target = TabTarget.TYPE;    break;
+                case TAB_GENERAL: tabName = TAB_NAME_GENERAL; break;
+                case TAB_TYPE:    tabName = TAB_NAME_TYPE;    break;
+                case TAB_TARGET:  tabName = TAB_NAME_TARGET;  break;
+                case TAB_EFFECTS: tabName = TAB_NAME_EFFECTS; break;
+                default:          tabName = TAB_NAME_TYPE;    break;
             }
-            for (FieldDef def : fieldDefs) {
-                if (def.getTab() == target && def.isVisible()) {
-                    result.add(def);
-                }
+        }
+
+        for (FieldDef def : fieldDefs) {
+            if (tabName.equals(def.getTab()) && def.isVisible()) {
+                result.add(def);
             }
         }
 

@@ -10,10 +10,13 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityVortex;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -59,11 +62,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "mob.ghast.charge";
         this.activeSound = "mob.ghast.fireball";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -302,6 +300,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         this.pullDamage = pullDamage;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -320,7 +319,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
                 .hover("ability.hover.dmgOnPull"),
             FieldDef.floatField("enchantment.damage", this::getPullDamage, this::setPullDamage)
                 .visibleWhen(this::isDamageOnPull),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

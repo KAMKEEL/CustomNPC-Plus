@@ -14,9 +14,8 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityDash;
 
 import java.util.Arrays;
@@ -110,11 +109,6 @@ public class AbilityDash extends Ability implements IAbilityDash {
         this.showTelegraph = false;
         this.windUpSound = "mob.bat.takeoff";
         this.activeSound = "mob.endermen.portal";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -356,6 +350,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
         return chosenDirection;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(

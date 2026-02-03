@@ -1,26 +1,29 @@
-package kamkeel.npcs.controllers.data.ability.gui;
+package noppes.npcs.client.gui.builder;
 
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Declarative field definition for ability GUI rendering.
+ * Declarative field definition for GUI rendering.
  * Built via static factories and chaining methods.
+ * Client-side only — never instantiate or reference on the server.
  */
+@SideOnly(Side.CLIENT)
 public class FieldDef {
 
     private final String label;
     private final FieldType type;
-    private TabTarget tab = TabTarget.TYPE;
-    private String customTabName = null;
+    private String tab = null;
     private ColumnHint column = ColumnHint.FULL;
     private Supplier<Object> getter;
     private Consumer<Object> setter;
@@ -112,18 +115,22 @@ public class FieldDef {
         return def;
     }
 
-    @SuppressWarnings("unchecked")
-    public static FieldDef effectsListField(String label, Supplier<List<AbilityEffect>> getter, Consumer<List<AbilityEffect>> setter) {
-        FieldDef def = new FieldDef(label, FieldType.EFFECTS_LIST);
-        def.getter = () -> getter.get();
-        def.setter = v -> setter.accept((List<AbilityEffect>) v);
-        return def;
-    }
-
     public static FieldDef subGuiField(String label, Supplier<SubGuiInterface> factory, Consumer<SubGuiInterface> resultHandler) {
         FieldDef def = new FieldDef(label, FieldType.SUB_GUI);
         def.subGuiFactory = factory;
         def.subGuiResultHandler = resultHandler;
+        return def;
+    }
+
+    /**
+     * Creates a FieldDef with a custom FieldType. Used by extension code
+     * (e.g. AbilityFieldDefs) to create fields with types like EFFECTS_LIST
+     * that the base GuiFieldBuilder does not handle.
+     */
+    public static FieldDef custom(String label, FieldType type, Supplier<Object> getter, Consumer<Object> setter) {
+        FieldDef def = new FieldDef(label, type);
+        def.getter = getter;
+        def.setter = setter;
         return def;
     }
 
@@ -172,7 +179,14 @@ public class FieldDef {
                 String name = nameGetter.get();
                 if (name != null && !name.isEmpty()) return name;
                 int id = idGetter.get();
-                return id >= 0 ? "ID: " + id : "gui.none";
+                if (id >= 0) {
+                    Animation anim = AnimationController.Instance != null
+                        ? (Animation) AnimationController.Instance.get(id) : null;
+                    String animName = anim != null ? anim.getName() : "";
+                    return animName != null && !animName.isEmpty()
+                        ? "(ID: " + id + ") " + animName : "ID: " + id;
+                }
+                return "gui.none";
             })
             .clearable(() -> { idSetter.accept(-1); nameSetter.accept(""); });
     }
@@ -181,14 +195,8 @@ public class FieldDef {
     // CHAINING METHODS
     // ═══════════════════════════════════════════════════════════════════
 
-    public FieldDef tab(TabTarget tab) {
-        this.tab = tab;
-        return this;
-    }
-
-    public FieldDef customTab(String tabName) {
-        this.tab = TabTarget.CUSTOM;
-        this.customTabName = tabName;
+    public FieldDef tab(String tabName) {
+        this.tab = tabName;
         return this;
     }
 
@@ -244,8 +252,7 @@ public class FieldDef {
 
     public String getLabel() { return label; }
     public FieldType getType() { return type; }
-    public TabTarget getTab() { return tab; }
-    public String getCustomTabName() { return customTabName; }
+    public String getTab() { return tab; }
     public ColumnHint getColumn() { return column; }
     public boolean isVisible() { return visibleWhen.getAsBoolean(); }
     public boolean isEnabled() { return enabledWhen.getAsBoolean(); }

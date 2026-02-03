@@ -1,11 +1,14 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -59,11 +62,6 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         // Circle telegraph to show range
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -200,9 +198,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
+
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
             FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval).column(ColumnHint.RIGHT),
             FieldDef.section("ability.section.beam"),
@@ -215,17 +215,18 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
                 .hover("ability.hover.piercing").column(ColumnHint.LEFT),
             FieldDef.boolField("ability.lockTarget", this::isLockOnTarget, this::setLockOnTarget)
                 .hover("ability.hover.lockTarget").column(ColumnHint.RIGHT),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
+
             // Visual tab
-            FieldDef.section("ability.section.colors").customTab("ability.tab.visual"),
+            FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
             FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled)
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled)
         );
     }
 }
