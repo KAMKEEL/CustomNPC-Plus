@@ -410,8 +410,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
         for (GuiNpcTextField tf : textfields.values()) {
             tf.drawTextBox(i, j);
-            if (textField.hasHoverText()) 
-                textField.drawHover(i, j, subGui);
+            if (tf.hasHoverText())
+                tf.drawHover(i, j, subGui);
         }
         
         for (GuiScreen gui : extra.values())
