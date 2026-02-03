@@ -10,7 +10,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityVortex;
@@ -304,11 +303,15 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius),
+                FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength)
+            ),
             FieldDef.section("ability.section.damage"),
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
+            ),
             FieldDef.section("ability.section.aoe"),
             FieldDef.boolField("gui.enabled", this::isAoe, this::setAoe)
                 .hover("ability.hover.aoe"),

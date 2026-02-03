@@ -13,7 +13,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityCutter;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 
@@ -319,14 +318,18 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.range", this::getRange, this::setRange).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.range", this::getRange, this::setRange)
+            ),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
             FieldDef.section("ability.section.sweep"),
             FieldDef.enumField("ability.sweepMode", SweepMode.class, this::getSweepModeEnum, this::setSweepModeEnum)
                 .hover("ability.hover.sweepMode"),
-            FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle),
+                FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius)
+            ),
             FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
             FieldDef.intField("ability.spinDuration", this::getSpinDurationTicks, this::setSpinDurationTicks)
                 .range(1, 1000)

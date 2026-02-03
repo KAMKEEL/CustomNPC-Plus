@@ -17,7 +17,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityDisc;
@@ -277,14 +276,20 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
             // Type tab
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
+            ),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
             FieldDef.section("ability.section.disc"),
-            FieldDef.floatField("gui.radius", this::getDiscRadius, this::setDiscRadius).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.thickness", this::getDiscThickness, this::setDiscThickness).column(ColumnHint.RIGHT),
-            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).column(ColumnHint.LEFT),
-            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getDiscRadius, this::setDiscRadius),
+                FieldDef.floatField("gui.thickness", this::getDiscThickness, this::setDiscThickness)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
+                FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            ),
             FieldDef.section("ability.section.homing"),
             FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming)
                 .hover("ability.hover.homing"),
@@ -311,19 +316,23 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
                 .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
                 .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
-            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
-                .tab("ability.tab.visual").range(0, 1).visibleWhen(this::isOuterColorEnabled).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                    .visibleWhen(this::isOuterColorEnabled),
+                FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                    .range(0, 1).visibleWhen(this::isOuterColorEnabled)
+            ).tab("ability.tab.visual"),
             FieldDef.section("ability.section.effects").tab("ability.tab.visual"),
             FieldDef.floatField("ability.rotationSpeed", this::getRotationSpeed, this::setRotationSpeed)
                 .tab("ability.tab.visual"),
             FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect)
                 .tab("ability.tab.visual"),
-            FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                .tab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                .tab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.RIGHT)
+            FieldDef.row(
+                FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
+                    .range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect),
+                FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
+                    .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
+            ).tab("ability.tab.visual")
         );
     }
 }

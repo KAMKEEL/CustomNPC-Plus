@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
@@ -203,18 +202,26 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
 
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval)
+            ),
             FieldDef.section("ability.section.beam"),
-            FieldDef.floatField("gui.length", this::getBeamLength, this::setBeamLength).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.width", this::getBeamWidth, this::setBeamWidth).column(ColumnHint.RIGHT),
-            FieldDef.floatField("gui.height", this::getBeamHeight, this::setBeamHeight).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("gui.length", this::getBeamLength, this::setBeamLength),
+                FieldDef.floatField("gui.width", this::getBeamWidth, this::setBeamWidth)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("gui.height", this::getBeamHeight, this::setBeamHeight),
+                FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed)
+            ),
             FieldDef.intField("ability.rotations", this::getNumberOfRotations, this::setNumberOfRotations),
-            FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
-                .hover("ability.hover.piercing").column(ColumnHint.LEFT),
-            FieldDef.boolField("ability.lockTarget", this::isLockOnTarget, this::setLockOnTarget)
-                .hover("ability.hover.lockTarget").column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
+                    .hover("ability.hover.piercing"),
+                FieldDef.boolField("ability.lockTarget", this::isLockOnTarget, this::setLockOnTarget)
+                    .hover("ability.hover.lockTarget")
+            ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
 
             // Visual tab

@@ -11,7 +11,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityHeal;
 
@@ -289,13 +288,17 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
             FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
                 .range(1, 1000).visibleWhen(() -> !this.isInstantHeal()),
             FieldDef.section("ability.section.healing"),
-            FieldDef.floatField("ability.healAmount", this::getHealAmount, this::setHealAmount).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.healPercent", this::getHealPercent, this::setHealPercent).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.healAmount", this::getHealAmount, this::setHealAmount),
+                FieldDef.floatField("ability.healPercent", this::getHealPercent, this::setHealPercent)
+            ),
             FieldDef.floatField("ability.healRadius", this::getHealRadius, this::setHealRadius),
-            FieldDef.boolField("ability.healSelf", this::isHealSelf, this::setHealSelf)
-                .hover("ability.hover.healSelf").column(ColumnHint.LEFT),
-            FieldDef.boolField("ability.healAllies", this::isHealAllies, this::setHealAllies)
-                .hover("ability.hover.healAllies").column(ColumnHint.RIGHT)
+            FieldDef.row(
+                FieldDef.boolField("ability.healSelf", this::isHealSelf, this::setHealSelf)
+                    .hover("ability.hover.healSelf"),
+                FieldDef.boolField("ability.healAllies", this::isHealAllies, this::setHealAllies)
+                    .hover("ability.hover.healAllies")
+            )
         );
     }
 }

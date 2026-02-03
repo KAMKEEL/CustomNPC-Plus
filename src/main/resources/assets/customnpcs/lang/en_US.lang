@@ -1698,6 +1698,7 @@ gui.sound=Sound
 gui.animation=Animation
 gui.duration=Duration
 gui.amp=Amp
+gui.speed=Speed
 
 # Common Type Settings
 ability.radius=Radius
@@ -1735,9 +1736,13 @@ ability.firingSpeed=Firing Speed
 ability.amount=Amount
 ability.dualCharge=Dual Charging
 
-# Charge (no unique keys)
+# Charge
+ability.chargeSpeed=Charge Speed
 
-# Dash (no unique keys)
+# Dash
+ability.dashMode=Dash Mode
+ability.dashDistance=Dash Distance
+ability.dashSpeed=Dash Speed
 
 # Teleport
 ability.blinkRadius=Blink Radius

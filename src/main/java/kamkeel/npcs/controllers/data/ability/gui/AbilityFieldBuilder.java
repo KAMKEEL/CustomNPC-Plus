@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.builder.FieldType;
 import noppes.npcs.client.gui.builder.GuiFieldBuilder;
@@ -109,6 +110,70 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
         }
 
         return y;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // EVENT HANDLING OVERRIDES
+    // ═══════════════════════════════════════════════════════════════════
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean handleButtonEvent(int buttonId, GuiButton button) {
+        // Check effects list buttons via metadata
+        int[] meta = effectWidgetMeta.get(buttonId);
+        if (meta != null) {
+            FieldDef def = buttonFieldMap.get(buttonId);
+            if (def == null) def = clearFieldMap.get(buttonId);
+            if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
+                List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
+                if (effects == null) return false;
+                int effectIdx = meta[0];
+                int action = meta[1];
+
+                switch (action) {
+                    case 0: // Type changed
+                        if (effectIdx < effects.size()) {
+                            effects.get(effectIdx).setType(AbilityEffect.EffectType.fromOrdinal(((GuiNpcButton) button).getValue()));
+                        }
+                        return true;
+                    case 2: // Amp changed
+                        if (effectIdx < effects.size()) {
+                            effects.get(effectIdx).setAmplifier(((GuiNpcButton) button).getValue());
+                        }
+                        return true;
+                    case 3: // Delete
+                        if (effectIdx < effects.size()) {
+                            effects.remove(effectIdx);
+                        }
+                        return true;
+                    case 4: // Add
+                        if (effects.size() < 5) {
+                            effects.add(new AbilityEffect(AbilityEffect.EffectType.SLOWNESS, 60, 0));
+                        }
+                        return true;
+                }
+            }
+        }
+
+        return super.handleButtonEvent(buttonId, button);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean handleTextFieldEvent(int textFieldId, GuiNpcTextField field) {
+        int[] meta = effectWidgetMeta.get(textFieldId);
+        if (meta != null && meta[1] == 1) { // duration field
+            FieldDef def = textFieldMap.get(textFieldId);
+            if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
+                List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
+                if (effects != null && meta[0] < effects.size()) {
+                    effects.get(meta[0]).setDurationTicks(field.getInteger());
+                }
+                return true;
+            }
+        }
+
+        return super.handleTextFieldEvent(textFieldId, field);
     }
 
     public Map<Integer, int[]> getEffectWidgetMeta() { return effectWidgetMeta; }

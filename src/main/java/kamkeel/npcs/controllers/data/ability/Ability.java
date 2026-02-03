@@ -29,7 +29,6 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.ArrayList;
@@ -362,20 +361,25 @@ public abstract class Ability implements IAbility {
         // General tab
         defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
             .tab("General"));
-        defs.add(FieldDef.intField("ability.weight", this::getWeight, this::setWeight)
-            .tab("General").range(1, 1000).column(ColumnHint.LEFT));
-        defs.add(FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
-            .tab("General").column(ColumnHint.RIGHT));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
+            FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
+        ).tab("General"));
         defs.add(FieldDef.section("ability.section.timing").tab("General"));
+        // WindUp: 3 mutually exclusive entries based on animation/sync state
         defs.add(FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks)
-            .tab("General").range(0, 1000).column(ColumnHint.LEFT)
-            .visibleWhen(() -> !hasWindUpAnimation() || !isSyncWindupWithAnimation()));
-        defs.add(FieldDef.labelField("ability.windUpTicks", () -> getWindUpTicks() + "t")
-            .tab("General").column(ColumnHint.LEFT)
-            .visibleWhen(() -> hasWindUpAnimation() && isSyncWindupWithAnimation()));
-        defs.add(FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
-            .tab("General").hover("ability.hover.sync").column(ColumnHint.RIGHT)
-            .visibleWhen(this::hasWindUpAnimation));
+            .tab("General").range(0, 1000)
+            .visibleWhen(() -> !hasWindUpAnimation()));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks).range(0, 1000),
+            FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
+                .hover("ability.hover.sync")
+        ).tab("General").visibleWhen(() -> hasWindUpAnimation() && !isSyncWindupWithAnimation()));
+        defs.add(FieldDef.row(
+            FieldDef.labelField("ability.windUpTicks", () -> getWindUpTicks() + "t"),
+            FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
+                .hover("ability.hover.sync")
+        ).tab("General").visibleWhen(() -> hasWindUpAnimation() && isSyncWindupWithAnimation()));
         defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
             .tab("General").range(0, 10000));
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
@@ -388,17 +392,18 @@ public abstract class Ability implements IAbility {
                 }
             })
             .tab("General").hover("ability.hover.lockMove"));
-        defs.add(FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
-            .tab("General").hover("ability.hover.interruptible").column(ColumnHint.LEFT));
-        defs.add(FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
-            .tab("General").range(0, 1000)
-            .visibleWhen(this::isInterruptible).column(ColumnHint.RIGHT));
+        defs.add(FieldDef.row(
+            FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
+                .hover("ability.hover.interruptible"),
+            FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
+                .range(0, 1000).visibleWhen(this::isInterruptible)
+        ).tab("General"));
 
         // Target tab
-        defs.add(FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v))
-            .tab("Target").range(0, 100).column(ColumnHint.LEFT));
-        defs.add(FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v))
-            .tab("Target").range(1, 100).column(ColumnHint.RIGHT));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v)).range(0, 100),
+            FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v)).range(1, 100)
+        ).tab("Target"));
         if (!isTargetingModeLocked()) {
             defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
                 this::getTargetingMode, this::setTargetingMode)
@@ -426,7 +431,7 @@ public abstract class Ability implements IAbility {
         TelegraphType tType = getTelegraphType();
         if (tType != null && tType != TelegraphType.NONE) {
             defs.add(FieldDef.section("ability.section.telegraph").tab("Effects")
-                .tooltip("telegraph." + tType.name().toLowerCase()));
+                .hover("telegraph." + tType.name().toLowerCase()));
             defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
                 .tab("Effects").hover("ability.hover.showTelegraph"));
             defs.add(FieldDef.colorSubGui("ability.windUpColor", this::getWindUpColor, this::setWindUpColor)

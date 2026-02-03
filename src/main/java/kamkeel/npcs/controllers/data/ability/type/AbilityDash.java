@@ -14,7 +14,6 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityDash;
 
@@ -356,8 +355,10 @@ public class AbilityDash extends Ability implements IAbilityDash {
         return Arrays.asList(
             FieldDef.enumField("ability.dashMode", DashMode.class, this::getDashModeEnum, this::setDashModeEnum)
                 .hover("ability.hover.dashMode"),
-            FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed).column(ColumnHint.RIGHT)
+            FieldDef.row(
+                FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance),
+                FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
+            )
         );
     }
 }

@@ -14,5 +14,6 @@ public enum FieldType {
     STRING,
     SECTION_HEADER,
     LABEL,
-    EFFECTS_LIST
+    EFFECTS_LIST,
+    ROW
 }

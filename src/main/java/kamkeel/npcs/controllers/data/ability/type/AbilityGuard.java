@@ -13,7 +13,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityGuard;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 
@@ -306,10 +305,12 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
             FieldDef.boolField("gui.enabled", this::isCanCounter, this::setCanCounter).hover("ability.hover.canCounter"),
             FieldDef.enumField("gui.type", CounterType.class, this::getCounterTypeEnum, this::setCounterTypeEnum)
                 .hover("ability.hover.counterType").visibleWhen(this::isCanCounter),
-            FieldDef.floatField("gui.value", this::getCounterValue, this::setCounterValue)
-                .visibleWhen(this::isCanCounter).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.chance", this::getCounterChance, this::setCounterChance)
-                .visibleWhen(this::isCanCounter).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("gui.value", this::getCounterValue, this::setCounterValue)
+                    .visibleWhen(this::isCanCounter),
+                FieldDef.floatField("gui.chance", this::getCounterChance, this::setCounterChance)
+                    .visibleWhen(this::isCanCounter)
+            ),
             FieldDef.stringField("gui.sound", this::getCounterSound, this::setCounterSound)
                 .visibleWhen(this::isCanCounter),
             FieldDef.intField("gui.animation", this::getCounterAnimationId, this::setCounterAnimationId)

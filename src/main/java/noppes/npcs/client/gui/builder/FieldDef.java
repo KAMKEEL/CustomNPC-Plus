@@ -24,12 +24,10 @@ public class FieldDef {
     private final String label;
     private final FieldType type;
     private String tab = null;
-    private ColumnHint column = ColumnHint.FULL;
     private Supplier<Object> getter;
     private Consumer<Object> setter;
     private BooleanSupplier visibleWhen = () -> true;
     private BooleanSupplier enabledWhen = () -> true;
-    private String tooltip = null;
     private String hoverText = null;
 
     // Numeric range
@@ -50,6 +48,10 @@ public class FieldDef {
     private Supplier<String> buttonLabelSupplier;
     private Supplier<Integer> buttonTextColorSupplier;
     private Runnable clearAction;
+
+    // Row pairing (ROW type only)
+    private FieldDef leftChild;
+    private FieldDef rightChild;
 
     private FieldDef(String label, FieldType type) {
         this.label = label;
@@ -134,6 +136,17 @@ public class FieldDef {
         return def;
     }
 
+    /**
+     * Creates a two-column row pairing two fields side by side.
+     * If one child is hidden (via visibleWhen), the other renders full-width.
+     */
+    public static FieldDef row(FieldDef left, FieldDef right) {
+        FieldDef def = new FieldDef("", FieldType.ROW);
+        def.leftChild = left;
+        def.rightChild = right;
+        return def;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // CONVENIENCE FACTORIES (SUB_GUI wrappers)
     // ═══════════════════════════════════════════════════════════════════
@@ -206,11 +219,6 @@ public class FieldDef {
         return this;
     }
 
-    public FieldDef column(ColumnHint column) {
-        this.column = column;
-        return this;
-    }
-
     public FieldDef visibleWhen(BooleanSupplier condition) {
         this.visibleWhen = condition;
         return this;
@@ -218,11 +226,6 @@ public class FieldDef {
 
     public FieldDef enabledWhen(BooleanSupplier condition) {
         this.enabledWhen = condition;
-        return this;
-    }
-
-    public FieldDef tooltip(String tooltip) {
-        this.tooltip = tooltip;
         return this;
     }
 
@@ -253,10 +256,8 @@ public class FieldDef {
     public String getLabel() { return label; }
     public FieldType getType() { return type; }
     public String getTab() { return tab; }
-    public ColumnHint getColumn() { return column; }
     public boolean isVisible() { return visibleWhen.getAsBoolean(); }
     public boolean isEnabled() { return enabledWhen.getAsBoolean(); }
-    public String getTooltip() { return tooltip; }
     public String getHoverText() { return hoverText; }
     public float getMin() { return min; }
     public float getMax() { return max; }
@@ -292,5 +293,8 @@ public class FieldDef {
     public Integer getButtonTextColor() {
         return buttonTextColorSupplier != null ? buttonTextColorSupplier.get() : null;
     }
+
+    public FieldDef getLeftChild() { return leftChild; }
+    public FieldDef getRightChild() { return rightChild; }
 
 }
