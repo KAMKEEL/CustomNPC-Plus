@@ -11,10 +11,12 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityHeal;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,11 +57,6 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
         // No telegraph for heal - it's a self/ally buff
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -283,6 +280,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
         this.instantHeal = instantHeal;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(

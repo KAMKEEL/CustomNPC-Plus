@@ -13,9 +13,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityCutter;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -72,11 +75,6 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         this.activeSound = "random.break";
         this.windUpAnimationName = "Ability_Cutter_Windup";
         this.activeAnimationName = "Ability_Cutter_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -317,6 +315,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         return currentRotation;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -334,7 +333,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
                 .visibleWhen(() -> this.getSweepModeEnum() == SweepMode.SPIN),
             FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
                 .hover("ability.hover.piercing"),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

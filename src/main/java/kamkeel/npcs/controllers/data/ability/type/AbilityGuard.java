@@ -13,9 +13,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityGuard;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.List;
@@ -72,11 +75,6 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.windUpSound = "random.anvil_use";
         this.activeSound = "random.anvil_land";
         this.allowedBy = UserType.NPC_ONLY;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -298,6 +296,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.counterAnimationId = counterAnimationId;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -315,7 +314,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
                 .visibleWhen(this::isCanCounter),
             FieldDef.intField("gui.animation", this::getCounterAnimationId, this::setCounterAnimationId)
                 .visibleWhen(this::isCanCounter),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

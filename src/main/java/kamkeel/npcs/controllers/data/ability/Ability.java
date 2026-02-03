@@ -29,9 +29,8 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,18 +39,14 @@ import java.util.List;
 import net.minecraft.entity.Entity;
 import somehussar.gui.annotationHandling.GuiEditable;
 
-@GuiEditable
 public abstract class Ability implements IAbility {
 
     // ═══════════════════════════════════════════════════════════════════
     // CONFIGURATION (saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
-    @GuiEditable.Field("id")
     protected String id;
-    @GuiEditable.Field("name")
     protected String name;
-    @GuiEditable.Field("test")
     protected String typeId;                // e.g., "ability.cnpc.slam" (also used as lang key)
 
     // Selection
@@ -352,6 +347,7 @@ public abstract class Ability implements IAbility {
      * The GUI rendering engine in SubGuiAbilityConfig uses this list to
      * automatically build the Type and Visual tabs.
      */
+    @SideOnly(Side.CLIENT)
     public List<FieldDef> getFieldDefinitions() {
         return Collections.emptyList();
     }
@@ -365,24 +361,24 @@ public abstract class Ability implements IAbility {
 
         // General tab
         defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
-            .tab(TabTarget.GENERAL));
+            .tab("General"));
         defs.add(FieldDef.intField("ability.weight", this::getWeight, this::setWeight)
-            .tab(TabTarget.GENERAL).range(1, 1000).column(ColumnHint.LEFT));
+            .tab("General").range(1, 1000).column(ColumnHint.LEFT));
         defs.add(FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
-            .tab(TabTarget.GENERAL).column(ColumnHint.RIGHT));
-        defs.add(FieldDef.section("ability.section.timing").tab(TabTarget.GENERAL));
+            .tab("General").column(ColumnHint.RIGHT));
+        defs.add(FieldDef.section("ability.section.timing").tab("General"));
         defs.add(FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks)
-            .tab(TabTarget.GENERAL).range(0, 1000).column(ColumnHint.LEFT)
-            .visibleWhen(() -> !isSyncWindupWithAnimation()));
+            .tab("General").range(0, 1000).column(ColumnHint.LEFT)
+            .visibleWhen(() -> !hasWindUpAnimation() || !isSyncWindupWithAnimation()));
         defs.add(FieldDef.labelField("ability.windUpTicks", () -> getWindUpTicks() + "t")
-            .tab(TabTarget.GENERAL).column(ColumnHint.LEFT)
-            .visibleWhen(this::isSyncWindupWithAnimation));
+            .tab("General").column(ColumnHint.LEFT)
+            .visibleWhen(() -> hasWindUpAnimation() && isSyncWindupWithAnimation()));
         defs.add(FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
-            .tab(TabTarget.GENERAL).hover("ability.hover.sync").column(ColumnHint.RIGHT)
+            .tab("General").hover("ability.hover.sync").column(ColumnHint.RIGHT)
             .visibleWhen(this::hasWindUpAnimation));
         defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
-            .tab(TabTarget.GENERAL).range(0, 10000));
-        defs.add(FieldDef.section("ability.section.movement").tab(TabTarget.GENERAL));
+            .tab("General").range(0, 10000));
+        defs.add(FieldDef.section("ability.section.movement").tab("General"));
         defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
             () -> this.getLockMovement().getDisplayKey(),
             v -> {
@@ -391,52 +387,52 @@ public abstract class Ability implements IAbility {
                     if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
                 }
             })
-            .tab(TabTarget.GENERAL).hover("ability.hover.lockMove"));
+            .tab("General").hover("ability.hover.lockMove"));
         defs.add(FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
-            .tab(TabTarget.GENERAL).hover("ability.hover.interruptible").column(ColumnHint.LEFT));
+            .tab("General").hover("ability.hover.interruptible").column(ColumnHint.LEFT));
         defs.add(FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
-            .tab(TabTarget.GENERAL).range(0, 1000)
+            .tab("General").range(0, 1000)
             .visibleWhen(this::isInterruptible).column(ColumnHint.RIGHT));
 
         // Target tab
         defs.add(FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v))
-            .tab(TabTarget.TARGET).range(0, 100).column(ColumnHint.LEFT));
+            .tab("Target").range(0, 100).column(ColumnHint.LEFT));
         defs.add(FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v))
-            .tab(TabTarget.TARGET).range(1, 100).column(ColumnHint.RIGHT));
+            .tab("Target").range(1, 100).column(ColumnHint.RIGHT));
         if (!isTargetingModeLocked()) {
             defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
                 this::getTargetingMode, this::setTargetingMode)
-                .tab(TabTarget.TARGET).hover("ability.hover.targeting"));
+                .tab("Target").hover("ability.hover.targeting"));
         }
 
         // Effects tab - Sounds
-        defs.add(FieldDef.section("ability.section.sounds").tab(TabTarget.EFFECTS));
+        defs.add(FieldDef.section("ability.section.sounds").tab("Effects"));
         defs.add(FieldDef.soundSubGui("ability.windUpSound", this::getWindUpSound, this::setWindUpSound)
-            .tab(TabTarget.EFFECTS));
+            .tab("Effects"));
         defs.add(FieldDef.soundSubGui("ability.activeSound", this::getActiveSound, this::setActiveSound)
-            .tab(TabTarget.EFFECTS));
+            .tab("Effects"));
         // Effects tab - Animations
-        defs.add(FieldDef.section("ability.section.animations").tab(TabTarget.EFFECTS));
+        defs.add(FieldDef.section("ability.section.animations").tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.windUpAnimation",
             this::getWindUpAnimationId, this::setWindUpAnimationId,
             this::getWindUpAnimationName, this::setWindUpAnimationName)
-            .tab(TabTarget.EFFECTS));
+            .tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.activeAnimation",
             this::getActiveAnimationId, this::setActiveAnimationId,
             this::getActiveAnimationName, this::setActiveAnimationName)
-            .tab(TabTarget.EFFECTS));
+            .tab("Effects"));
 
         // Effects tab - Telegraph
         TelegraphType tType = getTelegraphType();
         if (tType != null && tType != TelegraphType.NONE) {
-            defs.add(FieldDef.section("ability.section.telegraph").tab(TabTarget.EFFECTS)
+            defs.add(FieldDef.section("ability.section.telegraph").tab("Effects")
                 .tooltip("telegraph." + tType.name().toLowerCase()));
             defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
-                .tab(TabTarget.EFFECTS).hover("ability.hover.showTelegraph"));
+                .tab("Effects").hover("ability.hover.showTelegraph"));
             defs.add(FieldDef.colorSubGui("ability.windUpColor", this::getWindUpColor, this::setWindUpColor)
-                .tab(TabTarget.EFFECTS).visibleWhen(this::isShowTelegraph));
+                .tab("Effects").visibleWhen(this::isShowTelegraph));
             defs.add(FieldDef.colorSubGui("ability.activeColor", this::getActiveColor, this::setActiveColor)
-                .tab(TabTarget.EFFECTS).visibleWhen(this::isShowTelegraph));
+                .tab("Effects").visibleWhen(this::isShowTelegraph));
         }
 
         return defs;
@@ -448,24 +444,15 @@ public abstract class Ability implements IAbility {
     @SideOnly(Side.CLIENT)
     public final List<FieldDef> getAllFieldDefinitions() {
         List<FieldDef> all = new ArrayList<>(getBaseFieldDefinitions());
-        all.addAll(getFieldDefinitions());
+        List<FieldDef> typeDefs = getFieldDefinitions();
+        // Default tab for type-specific fields that don't explicitly set one
+        for (FieldDef def : typeDefs) {
+            if (def.getTab() == null) {
+                def.tab("Type");
+            }
+        }
+        all.addAll(typeDefs);
         return all;
-    }
-
-    /**
-     * Returns true if this ability type has custom settings that need a Type-specific tab.
-     * Override to return true if the ability has settings beyond the base Ability fields.
-     */
-    public boolean hasTypeSettings() {
-        return false;
-    }
-
-    /**
-     * Get the number of rows needed for type-specific settings in the GUI.
-     * Each row is approximately 24 pixels. Used for GUI layout.
-     */
-    public int getTypeSettingsRowCount() {
-        return 0;
     }
 
     /**

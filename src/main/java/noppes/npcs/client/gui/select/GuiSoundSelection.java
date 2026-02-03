@@ -39,7 +39,6 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
     public static HashMap<String, List<String>> cachedDomains = new HashMap<>();
 
     public GuiSoundSelection(String sound) {
-        drawDefaultBackground = false;
         title = "";
         setBackground("menubg.png");
         xSize = 366;

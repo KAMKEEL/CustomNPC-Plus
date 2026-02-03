@@ -7,8 +7,9 @@ import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -36,7 +37,7 @@ public class AbilityDiscDual extends Ability {
     private int boomerangDelay = 40;
 
     // Dual properties
-    private boolean dualFire= true;
+    private boolean dualFire = true;
     private int dualFireDelay = 10;
 
     // Energy data classes
@@ -72,11 +73,6 @@ public class AbilityDiscDual extends Ability {
         // Default built-in animations
         this.windUpAnimationName = "Ability_DiscDual_Windup";
         this.activeAnimationName = "Ability_DiscDual_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -389,6 +385,7 @@ public class AbilityDiscDual extends Ability {
     public void setAnchorPoint(int orb, int point) { getAnchorData(orb).anchorPoint = AnchorPoint.fromOrdinal(point); }
     public void setAnchorPoint(int point) { getAnchorData(0).anchorPoint = AnchorPoint.fromOrdinal(point); }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -420,71 +417,71 @@ public class AbilityDiscDual extends Ability {
                 .hover("ability.hover.explosive"),
             FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
                 .visibleWhen(this::isExplosive),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
             // Visual tab - Disc 1
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(0), v -> setAnchorPointEnum(0, v))
-                .customTab("ability.tab.visual"),
-            FieldDef.section("ability.section.disc1").customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
+            FieldDef.section("ability.section.disc1").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(0), v -> setInnerColor(0, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled",
                 () -> isOuterColorEnabled(0), v -> setOuterColorEnabled(0, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.outerColor",
                 () -> getOuterColor(0), v -> setOuterColor(0, v))
-                .customTab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(0)),
+                .tab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(0)),
             FieldDef.floatField("ability.outerWidth",
                 () -> getOuterColorWidth(0), v -> setOuterColorWidth(0, v))
-                .customTab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(0)).column(ColumnHint.LEFT),
+                .tab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(0)).column(ColumnHint.LEFT),
             FieldDef.floatField("ability.outerAlpha",
                 () -> getOuterColorAlpha(0), v -> setOuterColorAlpha(0, v))
-                .customTab("ability.tab.visual").range(0, 1).visibleWhen(() -> isOuterColorEnabled(0)).column(ColumnHint.RIGHT),
+                .tab("ability.tab.visual").range(0, 1).visibleWhen(() -> isOuterColorEnabled(0)).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.rotationSpeed",
                 () -> getRotationSpeed(0), v -> setRotationSpeed(0, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.boolField("ability.lightning",
                 () -> hasLightningEffect(0), v -> setLightningEffect(0, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.floatField("gui.density",
                 () -> getLightningDensity(0), v -> setLightningDensity(0, v))
-                .customTab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(() -> hasLightningEffect(0)).column(ColumnHint.LEFT),
+                .tab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(() -> hasLightningEffect(0)).column(ColumnHint.LEFT),
             FieldDef.floatField("gui.radius",
                 () -> getLightningRadius(0), v -> setLightningRadius(0, v))
-                .customTab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(0)).column(ColumnHint.RIGHT),
+                .tab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(0)).column(ColumnHint.RIGHT),
             // Visual tab - Disc 2
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(1), v -> setAnchorPointEnum(1, v))
-                .customTab("ability.tab.visual"),
-            FieldDef.section("ability.section.disc2").customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
+            FieldDef.section("ability.section.disc2").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(1), v -> setInnerColor(1, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled",
                 () -> isOuterColorEnabled(1), v -> setOuterColorEnabled(1, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.outerColor",
                 () -> getOuterColor(1), v -> setOuterColor(1, v))
-                .customTab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(1)),
+                .tab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(1)),
             FieldDef.floatField("ability.outerWidth",
                 () -> getOuterColorWidth(1), v -> setOuterColorWidth(1, v))
-                .customTab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(1)).column(ColumnHint.LEFT),
+                .tab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(1)).column(ColumnHint.LEFT),
             FieldDef.floatField("ability.outerAlpha",
                 () -> getOuterColorAlpha(1), v -> setOuterColorAlpha(1, v))
-                .customTab("ability.tab.visual").range(0, 1).visibleWhen(() -> isOuterColorEnabled(1)).column(ColumnHint.RIGHT),
+                .tab("ability.tab.visual").range(0, 1).visibleWhen(() -> isOuterColorEnabled(1)).column(ColumnHint.RIGHT),
             FieldDef.floatField("ability.rotationSpeed",
                 () -> getRotationSpeed(1), v -> setRotationSpeed(1, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.boolField("ability.lightning",
                 () -> hasLightningEffect(1), v -> setLightningEffect(1, v))
-                .customTab("ability.tab.visual"),
+                .tab("ability.tab.visual"),
             FieldDef.floatField("gui.density",
                 () -> getLightningDensity(1), v -> setLightningDensity(1, v))
-                .customTab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(() -> hasLightningEffect(1)).column(ColumnHint.LEFT),
+                .tab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(() -> hasLightningEffect(1)).column(ColumnHint.LEFT),
             FieldDef.floatField("gui.radius",
                 () -> getLightningRadius(1), v -> setLightningRadius(1, v))
-                .customTab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(1)).column(ColumnHint.RIGHT)
+                .tab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(1)).column(ColumnHint.RIGHT)
         );
     }
 

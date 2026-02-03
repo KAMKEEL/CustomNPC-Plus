@@ -1,62 +1,68 @@
-package kamkeel.npcs.controllers.data.ability.gui;
+package noppes.npcs.client.gui.builder;
 
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Reusable builder that converts a list of {@link FieldDef} into positioned
+ * General-purpose builder that converts a list of {@link FieldDef} into positioned
  * GUI widgets inside a {@link GuiScrollWindow}.
+ * <p>
+ * Supports 1-column and 2-column layouts. Subclasses can override {@link #buildField}
+ * to handle custom field types.
  */
-public class FieldDefinitionsBuilder {
+@SideOnly(Side.CLIENT)
+public class GuiFieldBuilder {
 
-    // Layout defaults
-    private int contentRight = 330;
-    private int colLLabel = 5;
-    private int colLField = 75;
-    private int colLWidth = 70;
-    private int colRLabel = 178;
-    private int colRField = 248;
-    private int colRWidth = 70;
-    private int rowHeight = 24;
-    private int labelPadding = 8;
+    // Layout defaults (2-column mode)
+    protected int contentRight = 330;
+    protected int colLLabel = 5;
+    protected int colLField = 75;
+    protected int colLWidth = 70;
+    protected int colRLabel = 178;
+    protected int colRField = 248;
+    protected int colRWidth = 70;
+    protected int rowHeight = 24;
+    protected int labelPadding = 8;
+
+    // Column mode
+    protected int columnCount = 2;
 
     // Dependencies
-    private final GuiScreen parent;
-    private final GuiScrollWindow sw;
-    private final FontRenderer fontRenderer;
+    protected final GuiNPCInterface parent;
+    protected GuiScrollWindow sw;
+    protected final FontRenderer fontRenderer;
+
+    // Scroll window ID
+    protected int scrollWindowId = 0;
 
     // ID counters
-    private int widgetId;
-    private int clearId;
-    private int labelId;
+    protected int widgetId;
+    protected int clearId;
+    protected int labelId;
 
     // Starting Y
-    private int startY = 5;
+    protected int startY = 5;
+    protected int lastBuildY = 0;
 
     // Output maps
-    private final Map<Integer, FieldDef> buttonFieldMap = new HashMap<>();
-    private final Map<Integer, FieldDef> textFieldMap = new HashMap<>();
-    private final Map<Integer, FieldDef> clearFieldMap = new HashMap<>();
+    protected final Map<Integer, FieldDef> buttonFieldMap = new HashMap<>();
+    protected final Map<Integer, FieldDef> textFieldMap = new HashMap<>();
+    protected final Map<Integer, FieldDef> clearFieldMap = new HashMap<>();
 
-    // Effects list metadata: widgetId -> [effectIndex, action]
-    // action: 0=type, 1=duration(text), 2=amp, 3=delete, 4=add
-    private final Map<Integer, int[]> effectWidgetMeta = new HashMap<>();
-
-    public FieldDefinitionsBuilder(GuiScreen parent, GuiScrollWindow sw, FontRenderer fontRenderer) {
+    public GuiFieldBuilder(GuiNPCInterface parent, FontRenderer fontRenderer) {
         this.parent = parent;
-        this.sw = sw;
         this.fontRenderer = fontRenderer;
     }
 
@@ -64,31 +70,57 @@ public class FieldDefinitionsBuilder {
     // CONFIG CHAINING
     // ═══════════════════════════════════════════════════════════════════
 
-    public FieldDefinitionsBuilder contentRight(int v) { this.contentRight = v; return this; }
-    public FieldDefinitionsBuilder startIds(int widget, int clear, int label) {
+    public GuiFieldBuilder scrollWindowId(int id) { this.scrollWindowId = id; return this; }
+    public GuiFieldBuilder columns(int count) { this.columnCount = Math.max(1, Math.min(2, count)); return this; }
+    public GuiFieldBuilder contentRight(int v) { this.contentRight = v; return this; }
+    public GuiFieldBuilder startIds(int widget, int clear, int label) {
         this.widgetId = widget; this.clearId = clear; this.labelId = label; return this;
     }
-    public FieldDefinitionsBuilder startY(int y) { this.startY = y; return this; }
-    public FieldDefinitionsBuilder rowHeight(int h) { this.rowHeight = h; return this; }
+    public GuiFieldBuilder startY(int y) { this.startY = y; return this; }
+    public GuiFieldBuilder rowHeight(int h) { this.rowHeight = h; return this; }
 
     // ═══════════════════════════════════════════════════════════════════
     // BUILD
     // ═══════════════════════════════════════════════════════════════════
 
     /**
+     * Creates a {@link GuiScrollWindow} at the given position/size, builds all fields into it,
+     * and sets maxScrollY automatically. The returned window is ready to use.
+     */
+    public GuiScrollWindow buildScrollWindow(List<FieldDef> fields, int x, int y, int width, int height) {
+        this.sw = new GuiScrollWindow(parent, x, y, width, height, 0);
+        sw.backgroundColor = 0x88000000;
+        // Register with parent first — this calls initGui() which clears widget lists,
+        // so we must add widgets AFTER this point
+        parent.addScrollableGui(scrollWindowId, sw);
+        int finalY = build(fields);
+        sw.maxScrollY = Math.max(finalY - height, 0);
+        return sw;
+    }
+
+    /**
      * Processes all fields and adds widgets to the scroll window.
      * @return the final Y position after all fields
      */
-    public int build(List<FieldDef> fields) {
+    protected int build(List<FieldDef> fields) {
         buttonFieldMap.clear();
         textFieldMap.clear();
         clearFieldMap.clear();
-        effectWidgetMeta.clear();
 
         int y = startY;
 
         for (int i = 0; i < fields.size(); i++) {
             FieldDef def = fields.get(i);
+
+            // Let subclasses handle custom types; returns -1 if not handled
+            int customResult = buildField(def, y, fields, i);
+            if (customResult >= 0) {
+                // Subclass handled it, check if index was advanced
+                int newIndex = getLastHandledIndex();
+                if (newIndex > i) i = newIndex;
+                y = customResult;
+                continue;
+            }
 
             // Section header
             if (def.getType() == FieldType.SECTION_HEADER) {
@@ -102,14 +134,9 @@ public class FieldDefinitionsBuilder {
                 continue;
             }
 
-            // Effects list renders its own multi-row block
-            if (def.getType() == FieldType.EFFECTS_LIST) {
-                y = renderEffectsList(def, y);
-                continue;
-            }
-
-            // Two-column pair: LEFT followed by RIGHT
-            if (def.getColumn() == ColumnHint.LEFT
+            // Two-column pair: LEFT followed by RIGHT (only in 2-column mode)
+            if (columnCount == 2
+                    && def.getColumn() == ColumnHint.LEFT
                     && i + 1 < fields.size()
                     && fields.get(i + 1).getColumn() == ColumnHint.RIGHT
                     && fields.get(i + 1).getType() != FieldType.SECTION_HEADER) {
@@ -132,15 +159,29 @@ public class FieldDefinitionsBuilder {
             }
         }
 
+        lastBuildY = y;
         return y;
     }
+
+    /**
+     * Hook for subclasses to handle custom field types (e.g. EFFECTS_LIST).
+     * Return the new Y position if handled, or -1 if not handled (base class will process it).
+     * If handling advances the field index, call {@link #setLastHandledIndex(int)}.
+     */
+    protected int buildField(FieldDef def, int y, List<FieldDef> fields, int index) {
+        return -1;
+    }
+
+    private int lastHandledIndex = -1;
+    protected void setLastHandledIndex(int index) { this.lastHandledIndex = index; }
+    protected int getLastHandledIndex() { return lastHandledIndex; }
 
     // ═══════════════════════════════════════════════════════════════════
     // FIELD RENDERING
     // ═══════════════════════════════════════════════════════════════════
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void renderFieldAt(FieldDef def, int labelX, int fieldX, int fieldW, int y) {
+    protected void renderFieldAt(FieldDef def, int labelX, int fieldX, int fieldW, int y) {
         sw.addLabel(new GuiNpcLabel(labelId++, def.getLabel(), labelX, y + 5, 0xFFFFFF));
 
         String hover = def.getHoverText() != null ? def.getHoverText() : def.getTooltip();
@@ -193,9 +234,6 @@ public class FieldDefinitionsBuilder {
             case BOOLEAN: {
                 boolean bVal = def.getValue() instanceof Boolean ? (Boolean) def.getValue() : false;
                 GuiNpcButtonYesNo btn = new GuiNpcButtonYesNo(widgetId, fieldX, y, fieldW, 20, bVal);
-                if ("gui.enabled".equals(def.getLabel()) && def.getTab() == TabTarget.GENERAL) {
-                    btn.setTextColor(bVal ? 0x00FF00 : 0xFF0000);
-                }
                 if (!def.isEnabled()) btn.setEnabled(false);
                 if (hover != null) btn.setHoverText(hover);
                 sw.addButton(btn);
@@ -261,79 +299,15 @@ public class FieldDefinitionsBuilder {
                 clearId++;
                 break;
             }
+            default:
+                // Unknown type — skip, incrementing IDs to stay in sync
+                widgetId++;
+                clearId++;
+                break;
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // EFFECTS LIST RENDERING
-    // ═══════════════════════════════════════════════════════════════════
-
-    @SuppressWarnings("unchecked")
-    private int renderEffectsList(FieldDef def, int y) {
-        // Section header
-        y += 3;
-        sw.addLabel(new GuiNpcLabel(labelId++, def.getLabel(), colLLabel, y + 2, 0xFFFF55));
-        y += 15;
-
-        List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
-        if (effects == null) effects = new ArrayList<>();
-
-        String[] typeNames = AbilityEffect.EffectType.getLangKeys();
-        String[] ampValues = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
-
-        for (int e = 0; e < effects.size() && e < 5; e++) {
-            AbilityEffect effect = effects.get(e);
-
-            // Type selector button
-            int typeIdx = effect.getType().ordinal();
-            GuiNpcButton typeBtn = new GuiNpcButton(widgetId, colLLabel, y, 100, 20, typeNames, typeIdx);
-            sw.addButton(typeBtn);
-            buttonFieldMap.put(widgetId, def);
-            effectWidgetMeta.put(widgetId, new int[]{e, 0});
-            widgetId++;
-
-            // Duration text field
-            GuiNpcTextField durField = new GuiNpcTextField(widgetId, parent, fontRenderer,
-                colLLabel + 104, y, 50, 20, String.valueOf(effect.getDurationTicks()));
-            durField.setIntegersOnly();
-            durField.setMinMaxDefault(1, 12000, 60);
-            sw.addTextField(durField);
-            textFieldMap.put(widgetId, def);
-            effectWidgetMeta.put(widgetId, new int[]{e, 1});
-            widgetId++;
-
-            // Amplifier selector (0-10)
-            GuiNpcButton ampBtn = new GuiNpcButton(widgetId, colLLabel + 158, y, 40, 20, ampValues, effect.getAmplifier());
-            sw.addButton(ampBtn);
-            buttonFieldMap.put(widgetId, def);
-            effectWidgetMeta.put(widgetId, new int[]{e, 2});
-            widgetId++;
-
-            // Delete button
-            GuiNpcButton delBtn = new GuiNpcButton(clearId, colLLabel + 202, y, 20, 20, "X");
-            sw.addButton(delBtn);
-            clearFieldMap.put(clearId, def);
-            effectWidgetMeta.put(clearId, new int[]{e, 3});
-            clearId++;
-
-            y += rowHeight;
-        }
-
-        // Add button (if < 5 effects)
-        if (effects.size() < 5) {
-            GuiNpcButton addBtn = new GuiNpcButton(widgetId, colLLabel, y, 50, 20, "gui.add");
-            sw.addButton(addBtn);
-            buttonFieldMap.put(widgetId, def);
-            effectWidgetMeta.put(widgetId, new int[]{effects.size(), 4});
-            widgetId++;
-            clearId++;
-            y += rowHeight;
-        }
-
-        return y;
-    }
-
-    private int getFullFieldWidth(FieldDef def) {
+    protected int getFullFieldWidth(FieldDef def) {
         switch (def.getType()) {
             case FLOAT:
             case INT:         return 60;
@@ -354,6 +328,7 @@ public class FieldDefinitionsBuilder {
     public Map<Integer, FieldDef> getButtonFieldMap() { return buttonFieldMap; }
     public Map<Integer, FieldDef> getTextFieldMap() { return textFieldMap; }
     public Map<Integer, FieldDef> getClearFieldMap() { return clearFieldMap; }
-    public Map<Integer, int[]> getEffectWidgetMeta() { return effectWidgetMeta; }
+    public GuiScrollWindow getScrollWindow() { return sw; }
+    public int getLastBuildY() { return lastBuildY; }
     public int getNextLabelId() { return labelId; }
 }

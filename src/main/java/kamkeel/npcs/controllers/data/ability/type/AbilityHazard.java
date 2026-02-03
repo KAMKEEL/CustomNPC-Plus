@@ -16,9 +16,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityHazard;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -109,11 +112,6 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.CIRCLE;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -631,6 +629,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
         return zoneZ;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -651,7 +650,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
             FieldDef.intField("ability.poisonLevel", this::getPoisonLevel, this::setPoisonLevel),
             FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
                 .hover("ability.hover.affectsCaster"),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }

@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -11,9 +13,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
-import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityShockwave;
 
 import java.util.Arrays;
@@ -41,11 +43,6 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "random.explode";
         this.activeSound = "random.explode";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
     }
 
     @Override
@@ -168,6 +165,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.maxTargets = maxTargets;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public List<FieldDef> getFieldDefinitions() {
         return Arrays.asList(
@@ -176,7 +174,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
             FieldDef.floatField("gui.radius", this::getPushRadius, this::setPushRadius).column(ColumnHint.LEFT),
             FieldDef.floatField("gui.strength", this::getPushStrength, this::setPushStrength).column(ColumnHint.RIGHT),
             FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
-            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         );
     }
 }
