@@ -1,11 +1,9 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldBuilder;
 import noppes.npcs.client.gui.builder.FieldDef;
-import noppes.npcs.client.gui.builder.FieldType;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -55,7 +53,6 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private int editingConditionIndex = -1;
 
     private AbilityFieldBuilder builder;
-    private FieldDef activeSubGuiField = null;
 
     // Scroll position preservation per tab
     private float[] tabScrollY;
@@ -65,7 +62,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.callback = callback;
         this.conditions = new ArrayList<>(ability.getConditions());
 
-        this.fieldDefs = ability.getAllFieldDefinitions();
+        this.fieldDefs = ability.getAllDefinitions();
         discoverCustomTabs();
 
         setBackground("menubg.png", 217);
@@ -263,7 +260,6 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     // ═══════════════════════════════════════════════════════════════════════════
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
 
@@ -281,6 +277,20 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         if (id == -1000) { close(); return; }
 
         // Condition buttons (50-80)
+        if (handleConditionButton(id)) return;
+
+        // Declarative field handling (effects list, booleans, enums, sub-guis, clear buttons)
+        if (builder.handleButtonEvent(id, guibutton)) {
+            // SUB_GUI fields are opened directly by the builder via setSubGuiWithResult().
+            // Only rebuild if no sub-gui was opened (e.g. boolean toggle, enum change).
+            if (!hasSubGui()) {
+                initGui();
+            }
+            return;
+        }
+    }
+
+    private boolean handleConditionButton(int id) {
         if (id >= 50 && id < 80) {
             int condIndex = (id - 50) / 10;
             int action = (id - 50) % 10;
@@ -295,109 +305,16 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
                     initGui();
                 }
             }
-            return;
+            return true;
         }
         if (id == 80) {
             if (conditions.size() < 3) {
                 editingConditionIndex = conditions.size();
                 setSubGui(new SubGuiConditionEdit(null));
             }
-            return;
+            return true;
         }
-
-        // Clear buttons (effects delete or SUB_GUI clear)
-        if (id >= CLEAR_ID_START) {
-            // Check effects list delete first
-            int[] meta = builder.getEffectWidgetMeta().get(id);
-            if (meta != null && meta[1] == 3) {
-                FieldDef def = builder.getClearFieldMap().get(id);
-                if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
-                    handleEffectButton(def, meta, guibutton);
-                    return;
-                }
-            }
-            // SUB_GUI clear
-            FieldDef def = builder.getClearFieldMap().get(id);
-            if (def != null && def.hasClearAction()) {
-                def.getClearAction().run();
-                initGui();
-            }
-            return;
-        }
-
-        // Declarative field buttons
-        if (id >= DECLARATIVE_ID_START) {
-            FieldDef def = builder.getButtonFieldMap().get(id);
-            if (def == null) return;
-
-            // Effects list buttons (type, amp, add)
-            int[] meta = builder.getEffectWidgetMeta().get(id);
-            if (meta != null && def.getType() == FieldType.EFFECTS_LIST) {
-                handleEffectButton(def, meta, guibutton);
-                return;
-            }
-
-            switch (def.getType()) {
-                case BOOLEAN:
-                    def.setValue(((GuiNpcButton) guibutton).getValue() == 1);
-                    initGui();
-                    break;
-                case ENUM: {
-                    int idx = ((GuiNpcButton) guibutton).getValue();
-                    Class<? extends Enum<?>> ec = def.getEnumClass();
-                    if (ec != null) {
-                        Enum<?>[] constants = ec.getEnumConstants();
-                        if (idx >= 0 && idx < constants.length) def.setValue(constants[idx]);
-                    }
-                    initGui();
-                    break;
-                }
-                case STRING_ENUM: {
-                    int idx = ((GuiNpcButton) guibutton).getValue();
-                    String[] values = def.getStringEnumValues();
-                    if (values != null && idx >= 0 && idx < values.length) def.setStringEnumValue(values[idx]);
-                    initGui();
-                    break;
-                }
-                case SUB_GUI:
-                    activeSubGuiField = def;
-                    if (def.getSubGuiFactory() != null) setSubGui(def.getSubGuiFactory().get());
-                    break;
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void handleEffectButton(FieldDef def, int[] meta, GuiButton btn) {
-        List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
-        if (effects == null) return;
-        int effectIdx = meta[0];
-        int action = meta[1];
-
-        switch (action) {
-            case 0: // Type changed
-                if (effectIdx < effects.size()) {
-                    effects.get(effectIdx).setType(AbilityEffect.EffectType.fromOrdinal(((GuiNpcButton) btn).getValue()));
-                }
-                break;
-            case 2: // Amp changed
-                if (effectIdx < effects.size()) {
-                    effects.get(effectIdx).setAmplifier(((GuiNpcButton) btn).getValue());
-                }
-                break;
-            case 3: // Delete
-                if (effectIdx < effects.size()) {
-                    effects.remove(effectIdx);
-                    initGui();
-                }
-                break;
-            case 4: // Add
-                if (effects.size() < 5) {
-                    effects.add(new AbilityEffect(AbilityEffect.EffectType.SLOWNESS, 60, 0));
-                    initGui();
-                }
-                break;
-        }
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -405,38 +322,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     // ═══════════════════════════════════════════════════════════════════════════
 
     @Override
-    @SuppressWarnings("unchecked")
     public void unFocused(GuiNpcTextField textField) {
-        int id = textField.id;
-        if (id < DECLARATIVE_ID_START) return;
-
-        // Check effects list duration fields
-        int[] meta = builder.getEffectWidgetMeta().get(id);
-        if (meta != null && meta[1] == 1) {
-            FieldDef def = builder.getTextFieldMap().get(id);
-            if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
-                List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
-                if (effects != null && meta[0] < effects.size()) {
-                    effects.get(meta[0]).setDurationTicks(textField.getInteger());
-                }
-                return;
-            }
-        }
-
-        FieldDef def = builder.getTextFieldMap().get(id);
-        if (def == null) return;
-
-        switch (def.getType()) {
-            case FLOAT:
-                try { def.setValue(Float.parseFloat(textField.getText())); } catch (NumberFormatException ignored) {}
-                break;
-            case INT:
-                try { def.setValue(Integer.parseInt(textField.getText())); } catch (NumberFormatException ignored) {}
-                break;
-            case STRING:
-                def.setValue(textField.getText());
-                break;
-        }
+        if (textField.id < DECLARATIVE_ID_START) return;
+        builder.handleTextFieldEvent(textField.id, textField);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -445,12 +333,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if (activeSubGuiField != null) {
-            FieldDef def = activeSubGuiField;
-            activeSubGuiField = null;
-            if (def.getSubGuiResultHandler() != null) {
-                def.getSubGuiResultHandler().accept(subgui);
-            }
+        if (builder.handleSubGuiClosed(subgui)) {
             initGui();
             return;
         }
@@ -493,7 +376,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         ability.readNBT(nbt);
 
         this.conditions = new ArrayList<>(ability.getConditions());
-        this.fieldDefs = ability.getAllFieldDefinitions();
+        this.fieldDefs = ability.getAllDefinitions();
         discoverCustomTabs();
         initGui();
     }

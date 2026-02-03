@@ -13,7 +13,6 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityShockwave;
@@ -41,8 +40,10 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.cooldownTicks = 0;
         this.windUpTicks = 25;
         this.telegraphType = TelegraphType.CIRCLE;
-        this.windUpSound = "random.explode";
+        this.windUpSound = "game.tnt.primed";
         this.activeSound = "random.explode";
+        this.windUpAnimationName = "Ability_Shockwave_Windup";
+        this.activeAnimationName = "Ability_Shockwave_Active";
     }
 
     @Override
@@ -106,14 +107,12 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
                 applyEffects(entity);
             }
         }
-
-        // Shockwave completes instantly
-        signalCompletion();
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Shockwave is instant - nothing to do per-tick
+        if (tick == 10)
+            signalCompletion();
     }
 
     @Override
@@ -167,14 +166,16 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
             FieldDef.section("ability.section.push"),
-            FieldDef.floatField("gui.radius", this::getPushRadius, this::setPushRadius).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.strength", this::getPushStrength, this::setPushStrength).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getPushRadius, this::setPushRadius),
+                FieldDef.floatField("gui.strength", this::getPushStrength, this::setPushStrength)
+            ),
             FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

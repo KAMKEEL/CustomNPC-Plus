@@ -13,7 +13,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityCutter;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 
@@ -114,12 +113,16 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
         switch (sweepMode) {
             case SWIPE:
+                float prevRotation = currentRotation;
+                currentRotation += sweepSpeed;
                 if (currentRotation > arcAngle / 2.0f) {
-                    signalCompletion(); // Swipe arc complete
+                    // Final sweep — check from prevRotation to end of arc
+                    performSweepDamageRange(caster, world, innerRadius, range, prevRotation, arcAngle / 2.0f);
+                    signalCompletion();
                     return;
                 }
-                performSweepDamage(caster, world, innerRadius, range, currentRotation);
-                currentRotation += sweepSpeed;
+                // Check entities between previous and current sweep position
+                performSweepDamageRange(caster, world, innerRadius, range, prevRotation, currentRotation);
                 break;
 
             case SPIN:
@@ -127,15 +130,23 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
                     signalCompletion(); // Spin duration complete
                     return;
                 }
+                float prevSpin = currentRotation;
                 currentRotation = (currentRotation + sweepSpeed) % 360.0f;
                 hitEntities.clear();
-                performSweepDamage(caster, world, innerRadius, range, currentRotation);
+                performSweepDamageRange(caster, world, innerRadius, range, prevSpin, currentRotation);
                 break;
         }
     }
 
-    private void performSweepDamage(EntityLivingBase caster, World world, float minDist, float maxDist, float angleOffset) {
-        float casterYaw = caster.rotationYaw + angleOffset;
+    /**
+     * Check for entities between two sweep angles, ensuring no gaps between ticks.
+     * For SWIPE mode, this covers the continuous arc from startAngle to endAngle.
+     */
+    private void performSweepDamageRange(EntityLivingBase caster, World world, float minDist, float maxDist,
+                                          float startAngle, float endAngle) {
+        // Calculate the angular range covered this tick
+        float minAngle = Math.min(startAngle, endAngle);
+        float maxAngle = Math.max(startAngle, endAngle);
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
             caster.posX - maxDist, caster.posY - 1, caster.posZ - maxDist,
@@ -156,7 +167,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
             double dist = Math.sqrt(dx * dx + dz * dz);
 
             if (dist < minDist || dist > maxDist) continue;
-            if (!isInArc(dx, dz, casterYaw, arcAngle)) continue;
+            if (!isInSweepRange(dx, dz, caster.rotationYaw, minAngle, maxAngle)) continue;
 
             hitEntities.add(entity.getEntityId());
 
@@ -171,6 +182,16 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
                 applyEffects(entity);
             }
         }
+    }
+
+    /**
+     * Check if an entity falls within the angular range between two sweep positions.
+     * This ensures entities at long range can't slip between tick-gaps.
+     */
+    private boolean isInSweepRange(double dx, double dz, float casterYaw, float minAngle, float maxAngle) {
+        double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
+        double entityRelative = normalizeAngle(angleToEntity - casterYaw);
+        return entityRelative >= minAngle && entityRelative <= maxAngle;
     }
 
     private boolean isInArc(double dx, double dz, float casterYaw, float arcWidth) {
@@ -317,16 +338,20 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.range", this::getRange, this::setRange).column(ColumnHint.RIGHT),
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.range", this::getRange, this::setRange)
+            ),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
             FieldDef.section("ability.section.sweep"),
             FieldDef.enumField("ability.sweepMode", SweepMode.class, this::getSweepModeEnum, this::setSweepModeEnum)
                 .hover("ability.hover.sweepMode"),
-            FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle),
+                FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius)
+            ),
             FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
             FieldDef.intField("ability.spinDuration", this::getSpinDurationTicks, this::setSpinDurationTicks)
                 .range(1, 1000)
@@ -334,6 +359,6 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
             FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
                 .hover("ability.hover.piercing"),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

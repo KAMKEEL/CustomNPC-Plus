@@ -16,6 +16,7 @@ public class ItemElementalStaff extends ItemStaff {
     public ItemElementalStaff(int par1, EnumNpcToolMaterial material) {
         super(par1, material);
         setHasSubtypes(true);
+        this.color = OrbColor.GENERIC;
     }
 
     @Override

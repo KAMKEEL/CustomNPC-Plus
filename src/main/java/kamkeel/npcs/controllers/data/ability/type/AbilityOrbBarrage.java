@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -15,42 +16,48 @@ import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
-import noppes.npcs.api.ability.type.IAbilityOrb;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.util.ValueUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import noppes.npcs.entity.EntityNPCInterface;
 
-/**
- * Orb ability: Spawns a homing projectile sphere that tracks target.
- * The EntityAbilityOrb handles all movement, collision, and damage logic.
- * This ability just configures and spawns the orb entity.
- */
-public class AbilityOrb extends Ability implements IAbilityOrb {
+public class AbilityOrbBarrage extends Ability {
 
     // Ability-specific properties
-    private float orbSize = 1.0f;
+    private float orbSize = 0.5f;
+    private int orbAmount = 16;
+    private int firingSpeed = 2;
+    private boolean dualCharging = true;
 
     // Data classes for energy properties
     private final EnergyColorData colorData = new EnergyColorData();
-    private final EnergyCombatData combatData = new EnergyCombatData();
+    private final EnergyCombatData combatData = new EnergyCombatData(4.0f, 0.0f, 0.0f, false, 1.5f, 0.5f);
     private final EnergyHomingData homingData = new EnergyHomingData();
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData();
-    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
+        new EnergyAnchorData(AnchorPoint.RIGHT_HAND), new EnergyAnchorData(AnchorPoint.LEFT_HAND)
+    };
 
-    // Transient state for orb entity (used during windup charging)
-    private transient EntityAbilityOrb orbEntity = null;
+    // Array to store entities
+    private transient List<EntityAbilityOrb> orbEntities = new ArrayList<>();
+    private transient EntityAbilityOrb[] chargingEntities = null;
 
-    public AbilityOrb() {
-        this.typeId = "ability.cnpc.orb";
-        this.name = "Orb";
+    // Field to keep track of the currently firing orb
+    private int currentOrb = 0;
+
+    public AbilityOrbBarrage() {
+        this.typeId = "ability.cnpc.orb_barrage";
+        this.name = "Orb Barrage";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
-        this.maxRange = 25.0f;
+        this.maxRange = 75.0f;
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
@@ -58,9 +65,15 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         // Default built-in animation
-        this.windUpAnimationName = "Ability_Orb_Windup";
-        this.activeAnimationName = "Ability_Orb_Active";
+        this.windUpAnimationName = "Ability_BeamDual_Windup";
+        this.activeAnimationName = "Ability_BeamDual_Active";
     }
+
+//    @Override
+//    @SideOnly(Side.CLIENT)
+//    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
+//        return new SubGuiAbilityOrbBarrage(this, callback);
+//    }
 
     @Override
     public boolean isTargetingModeLocked() {
@@ -79,13 +92,15 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
             return;
         }
 
-        // Start moving the orb that was spawned during windup
-        if (orbEntity != null && !orbEntity.isDead) {
-            orbEntity.startMoving(target);
-        }
+        for (int i = 0; i < chargingEntities.length; i++) {
+            EntityAbilityOrb orbEntity = chargingEntities[i];
 
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
+            if (orbEntity != null && !orbEntity.isDead) {
+                orbEntity.setDead();
+            }
+
+            chargingEntities[i] = null;
+        }
     }
 
     @Override
@@ -95,39 +110,127 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
             // Create orb in charging mode - follows caster based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
-            orbEntity = new EntityAbilityOrb(
-                world, caster, target,
-                spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
-                colorData, combatData, homingData, lightningData, lifespanData);
-            orbEntity.setupCharging(anchorData, windUpTicks);
 
-            orbEntity.setEffects(this.effects);
-            world.spawnEntityInWorld(orbEntity);
+            if (dualCharging) {
+                chargingEntities = new EntityAbilityOrb[2];
+            } else {
+                chargingEntities = new EntityAbilityOrb[1];
+            }
+
+            for (int i = 0; i < chargingEntities.length; i++) {
+                Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData[i]);
+
+                EntityAbilityOrb orbEntity = new EntityAbilityOrb(
+                    world, caster, target,
+                    spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
+                    colorData, combatData, homingData, lightningData, lifespanData
+                );
+
+                orbEntity.setupCharging(anchorData[i], windUpTicks);
+
+                chargingEntities[i] = orbEntity;
+                world.spawnEntityInWorld(orbEntity);
+            }
         }
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Signal completion when entity dies
-        if (orbEntity == null || orbEntity.isDead) {
-            orbEntity = null;
-            signalCompletion();
+        if (!orbEntities.isEmpty()) {
+            boolean allDead = true;
+
+            for (EntityAbilityOrb orbEntity : orbEntities) {
+                if (orbEntity != null && !orbEntity.isDead) {
+                    allDead = false;
+                    break;
+                }
+            }
+
+            if (allDead && currentOrb >= orbAmount) {
+                signalCompletion();
+                return;
+            }
         }
+
+        if (currentOrb >= orbAmount) {
+            return;
+        }
+
+        int ticksPerOrb = Math.max(1, 20 / firingSpeed);
+
+        if (tick % ticksPerOrb != 0) {
+            return;
+        }
+
+        EnergyAnchorData anchor;
+
+        if (dualCharging) {
+            anchor = anchorData[currentOrb % 2];
+        } else {
+            anchor = anchorData[0];
+        }
+
+        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchor);
+
+        EntityAbilityOrb orb = new EntityAbilityOrb(
+            world, caster, target, spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
+            orbSize, colorData, combatData, homingData, lightningData, lifespanData
+        );
+
+        world.spawnEntityInWorld(orb);
+
+        orbEntities.add(orb);
+        currentOrb++;
     }
 
     @Override
-    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        // Nothing to clean up - entity manages itself
+    public boolean canInterrupt(DamageSource source) {
+        // Can be interrupted if the caster is hit when the beam is moving
+        if (!interruptible) {
+            return false;
+        }
+
+        // Only direct physical hits can interrupt, not magic, fire, or other indirect damage
+        if (source == null) {
+            return false;
+        }
+
+        // Reject indirect damage types
+        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion()) {
+            return false;
+        }
+
+        // Reject damage without a direct attacker entity
+        if (source.getEntity() == null) {
+            return false;
+        }
+
+        // Direct hit from an entity - can interrupt
+        return true;
     }
 
     @Override
     public void cleanup() {
-        // Despawn orb entity if still alive
-        if (orbEntity != null && !orbEntity.isDead) {
-            orbEntity.setDead();
+        currentOrb = 0;
+
+        if (chargingEntities != null) {
+            for (int i = 0; i < chargingEntities.length; i++) {
+                if (chargingEntities[i] != null && !chargingEntities[i].isDead) {
+                    chargingEntities[i].setDead();
+                }
+                chargingEntities[i] = null;
+            }
+            chargingEntities = null;
         }
-        orbEntity = null;
+
+        if (orbEntities != null && !orbEntities.isEmpty()) {
+            for (EntityAbilityOrb orbEntity : orbEntities) {
+                if (orbEntity != null && !orbEntity.isDead) {
+                    orbEntity.setDead();
+                }
+            }
+            orbEntities.clear();
+        }
     }
 
     @Override
@@ -160,28 +263,40 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("orbSize", orbSize);
-        anchorData.writeNBT(nbt);
+        nbt.setInteger("orbAmount", orbAmount);
+        nbt.setInteger("firingSpeed", firingSpeed);
+        nbt.setBoolean("dualCharging", dualCharging);
         colorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
         homingData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
-        // Backward compat: old key was "orbSpeed"
-        nbt.setFloat("orbSpeed", homingData.speed);
+
+        for (int i = 0; i < anchorData.length; i++) {
+            NBTTagCompound comp = new NBTTagCompound();
+            anchorData[i].writeNBT(comp);
+            nbt.setTag("Anchor_" + i, comp);
+        }
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         this.orbSize = nbt.hasKey("orbSize") ? nbt.getFloat("orbSize") : 1.0f;
-        anchorData.readNBT(nbt);
+        this.orbAmount = nbt.hasKey("orbAmount") ? nbt.getInteger("orbAmount") : 16;
+        this.firingSpeed = nbt.hasKey("firingSpeed") ? nbt.getInteger("firingSpeed") : 2;
+        this.dualCharging = !nbt.hasKey("dualCharging") || nbt.getBoolean("dualCharging");
         colorData.readNBT(nbt);
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
         lightningData.readNBT(nbt);
         lifespanData.readNBT(nbt);
-        // Backward compat: old key was "orbSpeed"
-        if (nbt.hasKey("orbSpeed")) {
-            homingData.speed = nbt.getFloat("orbSpeed");
+
+        for (int i = 0; i < anchorData.length; i++) {
+            if (nbt.hasKey("Anchor_" + i, Constants.NBT.TAG_COMPOUND)) {
+                anchorData[i].readNBT(nbt.getCompoundTag("Anchor_" + i));
+            } else {
+                anchorData[i] = new EnergyAnchorData(i == 0 ? AnchorPoint.RIGHT_HAND : AnchorPoint.LEFT_HAND);
+            }
         }
     }
 
@@ -201,6 +316,18 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     public void setOrbSize(float orbSize) {
         this.orbSize = orbSize;
     }
+
+    public int getOrbAmount() { return orbAmount; }
+
+    public void setOrbAmount(int orbAmount) { this.orbAmount = orbAmount; }
+
+    public int getFiringSpeed() { return firingSpeed; }
+
+    public void setFiringSpeed(int firingSpeed) { this.firingSpeed = firingSpeed; }
+
+    public boolean isDualCharging() { return dualCharging; }
+
+    public void setDualCharging(boolean dualCharging) { this.dualCharging = dualCharging; }
 
     public float getMaxDistance() {
         return lifespanData.maxDistance;
@@ -370,30 +497,36 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         lightningData.lightningFadeTime = lightningFadeTime;
     }
 
-    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
-
-    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
-
-    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
-
-    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
-
-    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
-
-    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
-
-    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
-
-    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
-
-    public int getAnchorPoint() {
-        return anchorData.anchorPoint.ordinal();
+    private EnergyAnchorData getAnchorData(int orb) {
+        orb = ValueUtil.clamp(orb, 0, 1);
+        return anchorData[orb];
     }
 
-    @Override
-    public void setAnchorPoint(int point) {
-        this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point);
-    }
+    public AnchorPoint getAnchorPointEnum(int orb) { return getAnchorData(orb).anchorPoint; }
+    public void setAnchorPointEnum(int orb, AnchorPoint anchorPoint) { getAnchorData(orb).anchorPoint = anchorPoint; }
+    public float getAnchorOffsetX(int orb) { return getAnchorData(orb).anchorOffsetX; }
+    public void setAnchorOffsetX(int orb, float x) { getAnchorData(orb).anchorOffsetX = x; }
+    public float getAnchorOffsetY(int orb) { return getAnchorData(orb).anchorOffsetY; }
+    public void setAnchorOffsetY(int orb, float y) { getAnchorData(orb).anchorOffsetY = y; }
+    public float getAnchorOffsetZ(int orb) { return getAnchorData(orb).anchorOffsetZ; }
+    public void setAnchorOffsetZ(int orb, float z) { getAnchorData(orb).anchorOffsetZ = z; }
+
+    public AnchorPoint getAnchorPointEnum() { return getAnchorPointEnum(0); }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { setAnchorPointEnum(0, anchorPoint); }
+    public float getAnchorOffsetX() { return getAnchorOffsetX(0); }
+    public void setAnchorOffsetX(float x) { setAnchorOffsetX(0, x); }
+    public float getAnchorOffsetY() { return getAnchorOffsetY(0); }
+    public void setAnchorOffsetY(float y) { setAnchorOffsetY(0, y); }
+    public float getAnchorOffsetZ() { return getAnchorOffsetZ(0); }
+    public void setAnchorOffsetZ(float z) { setAnchorOffsetZ(0, z); }
+
+    //@Override
+    public int getAnchorPoint(int orb) { return getAnchorData(orb).anchorPoint.ordinal(); }
+    public int getAnchorPoint() { return getAnchorData(0).anchorPoint.ordinal(); }
+
+    //@Override
+    public void setAnchorPoint(int orb, int point) { getAnchorData(orb).anchorPoint = AnchorPoint.fromOrdinal(point); }
+    public void setAnchorPoint(int point) { getAnchorData(0).anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -401,7 +534,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
-        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorData, windUpTicks);
+        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorData[0], windUpTicks);
         return orb;
     }
 
@@ -427,6 +560,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
                 FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
                 FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
             ),
+            FieldDef.section("ability.section.barrage"),
+            FieldDef.row(
+                FieldDef.intField("ability.amount", this::getOrbAmount, this::setOrbAmount),
+                FieldDef.intField("ability.firingSpeed", this::getFiringSpeed, this::setFiringSpeed)
+            ),
+            FieldDef.boolField("ability.dualCharge", this::isDualCharging, this::setDualCharging),
             FieldDef.section("ability.section.homing"),
             FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"),
             FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
@@ -455,7 +594,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
             FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect).tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                    .visibleWhen(this::hasLightningEffect).range(0.01f, 100f),
+                    .range(0.01f, 100f).visibleWhen(this::hasLightningEffect),
                 FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
                     .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
             ).tab("ability.tab.visual")

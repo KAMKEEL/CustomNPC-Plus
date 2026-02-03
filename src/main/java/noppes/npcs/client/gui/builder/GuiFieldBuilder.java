@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.builder;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -10,6 +11,7 @@ import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,8 +21,8 @@ import java.util.Map;
  * General-purpose builder that converts a list of {@link FieldDef} into positioned
  * GUI widgets inside a {@link GuiScrollWindow}.
  * <p>
- * Supports 1-column and 2-column layouts. Subclasses can override {@link #buildField}
- * to handle custom field types.
+ * Uses {@link FieldDef#row(FieldDef, FieldDef)} for two-column layouts.
+ * Subclasses can override {@link #buildField} to handle custom field types.
  */
 @SideOnly(Side.CLIENT)
 public class GuiFieldBuilder {
@@ -35,9 +37,6 @@ public class GuiFieldBuilder {
     protected int colRWidth = 70;
     protected int rowHeight = 24;
     protected int labelPadding = 8;
-
-    // Column mode
-    protected int columnCount = 2;
 
     // Dependencies
     protected final GuiNPCInterface parent;
@@ -71,7 +70,6 @@ public class GuiFieldBuilder {
     // ═══════════════════════════════════════════════════════════════════
 
     public GuiFieldBuilder scrollWindowId(int id) { this.scrollWindowId = id; return this; }
-    public GuiFieldBuilder columns(int count) { this.columnCount = Math.max(1, Math.min(2, count)); return this; }
     public GuiFieldBuilder contentRight(int v) { this.contentRight = v; return this; }
     public GuiFieldBuilder startIds(int widget, int clear, int label) {
         this.widgetId = widget; this.clearId = clear; this.labelId = label; return this;
@@ -125,38 +123,37 @@ public class GuiFieldBuilder {
             // Section header
             if (def.getType() == FieldType.SECTION_HEADER) {
                 y += 3;
-                String sectionText = StatCollector.translateToLocal(def.getLabel());
-                if (def.getTooltip() != null && !def.getTooltip().isEmpty()) {
-                    sectionText += " (" + StatCollector.translateToLocal(def.getTooltip()) + ")";
+                GuiNpcLabel sectionLabel = new GuiNpcLabel(labelId++, def.getLabel(), colLLabel, y + 2, 0xFFFF55);
+                if (def.getHoverText() != null && !def.getHoverText().isEmpty()) {
+                    sectionLabel.setHoverText(def.getHoverText());
                 }
-                sw.addLabel(new GuiNpcLabel(labelId++, sectionText, colLLabel, y + 2, 0xFFFF55));
+                sw.addLabel(sectionLabel);
                 y += 15;
                 continue;
             }
 
-            // Two-column pair: LEFT followed by RIGHT (only in 2-column mode)
-            if (columnCount == 2
-                    && def.getColumn() == ColumnHint.LEFT
-                    && i + 1 < fields.size()
-                    && fields.get(i + 1).getColumn() == ColumnHint.RIGHT
-                    && fields.get(i + 1).getType() != FieldType.SECTION_HEADER) {
-                renderFieldAt(def, colLLabel, colLField, colLWidth, y);
+            // ROW: explicit two-column pair
+            if (def.getType() == FieldType.ROW) {
+                FieldDef left = def.getLeftChild();
+                FieldDef right = def.getRightChild();
+                boolean leftVis = left != null && left.isVisible();
+                boolean rightVis = right != null && right.isVisible();
 
-                i++;
-                FieldDef rightDef = fields.get(i);
-                renderFieldAt(rightDef, colRLabel, colRField, colRWidth, y);
-
-                y += rowHeight;
-            } else {
-                // Full-width: compute fieldX from label pixel width
-                int fieldW = getFullFieldWidth(def);
-                String translated = StatCollector.translateToLocal(def.getLabel());
-                int labelW = fontRenderer.getStringWidth(translated);
-                int fieldX = colLLabel + labelW + labelPadding;
-
-                renderFieldAt(def, colLLabel, fieldX, fieldW, y);
-                y += rowHeight;
+                if (leftVis && rightVis) {
+                    renderFieldAt(left, colLLabel, colLField, colLWidth, y);
+                    renderFieldAt(right, colRLabel, colRField, colRWidth, y);
+                } else if (leftVis) {
+                    renderFullWidth(left, y);
+                } else if (rightVis) {
+                    renderFullWidth(right, y);
+                }
+                if (leftVis || rightVis) y += rowHeight;
+                continue;
             }
+
+            // Full-width field
+            renderFullWidth(def, y);
+            y += rowHeight;
         }
 
         lastBuildY = y;
@@ -182,9 +179,12 @@ public class GuiFieldBuilder {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected void renderFieldAt(FieldDef def, int labelX, int fieldX, int fieldW, int y) {
-        sw.addLabel(new GuiNpcLabel(labelId++, def.getLabel(), labelX, y + 5, 0xFFFFFF));
-
-        String hover = def.getHoverText() != null ? def.getHoverText() : def.getTooltip();
+        GuiNpcLabel fieldLabel = new GuiNpcLabel(labelId++, def.getLabel(), labelX, y + 5, 0xFFFFFF);
+        String hover = def.getHoverText();
+        if (hover != null && !hover.isEmpty()) {
+            fieldLabel.setHoverText(hover);
+        }
+        sw.addLabel(fieldLabel);
 
         switch (def.getType()) {
             case FLOAT: {
@@ -307,6 +307,14 @@ public class GuiFieldBuilder {
         }
     }
 
+    private void renderFullWidth(FieldDef def, int y) {
+        int fieldW = getFullFieldWidth(def);
+        String translated = StatCollector.translateToLocal(def.getLabel());
+        int labelW = fontRenderer.getStringWidth(translated);
+        int fieldX = colLLabel + labelW + labelPadding;
+        renderFieldAt(def, colLLabel, fieldX, fieldW, y);
+    }
+
     protected int getFullFieldWidth(FieldDef def) {
         switch (def.getType()) {
             case FLOAT:
@@ -319,6 +327,101 @@ public class GuiFieldBuilder {
             case SUB_GUI:     return def.hasClearAction() ? 175 : 200;
             default:          return 80;
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // EVENT HANDLING
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Handles button events for declarative fields.
+     * Call from parent GUI's buttonEvent(). Returns true if the event was handled.
+     * <p>
+     * For SUB_GUI fields, the sub-gui is opened directly via {@code parent.setSubGuiWithResult()},
+     * so the result handler survives initGui() rebuilds. After this returns true, check
+     * {@code parent.hasSubGui()} to determine if initGui() should be called.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public boolean handleButtonEvent(int buttonId, GuiButton button) {
+        // Check clear buttons first
+        if (clearFieldMap.containsKey(buttonId)) {
+            FieldDef def = clearFieldMap.get(buttonId);
+            if (def != null && def.hasClearAction()) {
+                def.getClearAction().run();
+                return true;
+            }
+        }
+
+        // Check field buttons
+        FieldDef def = buttonFieldMap.get(buttonId);
+        if (def == null) return false;
+
+        switch (def.getType()) {
+            case BOOLEAN:
+                def.setValue(((GuiNpcButton) button).getValue() == 1);
+                return true;
+            case ENUM: {
+                int idx = ((GuiNpcButton) button).getValue();
+                Class<? extends Enum<?>> ec = def.getEnumClass();
+                if (ec != null) {
+                    Enum<?>[] constants = ec.getEnumConstants();
+                    if (idx >= 0 && idx < constants.length) def.setValue(constants[idx]);
+                }
+                return true;
+            }
+            case STRING_ENUM: {
+                int idx = ((GuiNpcButton) button).getValue();
+                String[] values = def.getStringEnumValues();
+                if (values != null && idx >= 0 && idx < values.length) def.setStringEnumValue(values[idx]);
+                return true;
+            }
+            case SUB_GUI:
+                if (def.getSubGuiFactory() != null) {
+                    parent.setSubGuiWithResult(def.getSubGuiFactory().get(), sub -> {
+                        if (def.getSubGuiResultHandler() != null) {
+                            def.getSubGuiResultHandler().accept(sub);
+                        }
+                    });
+                }
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Handles text field unfocus events for declarative fields.
+     * Call from parent GUI's unFocused(). Returns true if the event was handled.
+     */
+    public boolean handleTextFieldEvent(int textFieldId, GuiNpcTextField field) {
+        FieldDef def = textFieldMap.get(textFieldId);
+        if (def == null) return false;
+
+        switch (def.getType()) {
+            case FLOAT:
+                try { def.setValue(Float.parseFloat(field.getText())); } catch (NumberFormatException ignored) {}
+                return true;
+            case INT:
+                try { def.setValue(Integer.parseInt(field.getText())); } catch (NumberFormatException ignored) {}
+                return true;
+            case STRING:
+                def.setValue(field.getText());
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Handles sub-gui close events. Call from parent GUI's subGuiClosed().
+     * <p>
+     * Note: SUB_GUI fields opened via handleButtonEvent use
+     * {@code parent.setSubGuiWithResult()}, so their results are handled
+     * automatically by {@code GuiNPCInterface.closeSubGui()}. This method
+     * only handles sub-guis opened through other means.
+     */
+    public boolean handleSubGuiClosed(SubGuiInterface subgui) {
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════

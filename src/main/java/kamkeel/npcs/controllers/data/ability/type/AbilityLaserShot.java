@@ -7,7 +7,6 @@ import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -248,38 +247,49 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             // Type tab
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.knockbackUp", this::getKnockbackUp, this::setKnockbackUp).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+                FieldDef.floatField("ability.knockbackUp", this::getKnockbackUp, this::setKnockbackUp)
+            ),
             FieldDef.section("ability.section.beam"),
-            FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed).column(ColumnHint.RIGHT),
-            FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks).column(ColumnHint.LEFT),
-            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth),
+                FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed)
+            ),
+            FieldDef.row(
+                FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks),
+                FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            ),
             FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
             FieldDef.section("ability.section.explosive"),
             FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
             FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
+
             // Visual tab
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
                 .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
-            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
-                .tab("ability.tab.visual").range(0, 1).visibleWhen(this::isOuterColorEnabled).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                    .visibleWhen(this::isOuterColorEnabled),
+                FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                    .range(0, 1).visibleWhen(this::isOuterColorEnabled)
+            ).tab("ability.tab.visual"),
             FieldDef.section("ability.section.effects").tab("ability.tab.visual"),
             FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect).tab("ability.tab.visual"),
-            FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                .tab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                .tab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.RIGHT)
-        );
+            FieldDef.row(
+                FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
+                    .range(0.01f, 100f).visibleWhen(this::hasLightningEffect),
+                FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
+                    .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
+            ).tab("ability.tab.visual")
+        ));
     }
 }

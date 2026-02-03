@@ -14,7 +14,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityProjectile;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 
@@ -252,10 +251,12 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed).column(ColumnHint.RIGHT),
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
+            ),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
             FieldDef.stringEnumField("ability.projectileType", new String[]{"fireball", "arrow", "magic"}, this::getProjectileType, this::setProjectileType),
             FieldDef.section("ability.section.homing"),
@@ -265,6 +266,6 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
             FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
             FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

@@ -14,7 +14,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTrap;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 
@@ -469,22 +468,28 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
                 .range(1, 2000),
             FieldDef.enumField("ability.placement", TrapPlacement.class, this::getPlacementEnum, this::setPlacementEnum)
                 .hover("ability.hover.placement"),
             FieldDef.section("ability.section.trigger"),
-            FieldDef.floatField("gui.radius", this::getTriggerRadius, this::setTriggerRadius).column(ColumnHint.LEFT),
-            FieldDef.intField("ability.armTime", this::getArmTime, this::setArmTime).column(ColumnHint.RIGHT),
-            FieldDef.intField("ability.maxTriggers", this::getMaxTriggers, this::setMaxTriggers).column(ColumnHint.LEFT),
-            FieldDef.intField("ability.triggerCooldown", this::getTriggerCooldown, this::setTriggerCooldown).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getTriggerRadius, this::setTriggerRadius),
+                FieldDef.intField("ability.armTime", this::getArmTime, this::setArmTime)
+            ),
+            FieldDef.row(
+                FieldDef.intField("ability.maxTriggers", this::getMaxTriggers, this::setMaxTriggers),
+                FieldDef.intField("ability.triggerCooldown", this::getTriggerCooldown, this::setTriggerCooldown)
+            ),
             FieldDef.section("ability.section.damage"),
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius)
+            ),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

@@ -9,6 +9,7 @@ import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -24,12 +25,10 @@ public class FieldDef {
     private final String label;
     private final FieldType type;
     private String tab = null;
-    private ColumnHint column = ColumnHint.FULL;
     private Supplier<Object> getter;
     private Consumer<Object> setter;
     private BooleanSupplier visibleWhen = () -> true;
     private BooleanSupplier enabledWhen = () -> true;
-    private String tooltip = null;
     private String hoverText = null;
 
     // Numeric range
@@ -50,6 +49,10 @@ public class FieldDef {
     private Supplier<String> buttonLabelSupplier;
     private Supplier<Integer> buttonTextColorSupplier;
     private Runnable clearAction;
+
+    // Row pairing (ROW type only)
+    private FieldDef leftChild;
+    private FieldDef rightChild;
 
     private FieldDef(String label, FieldType type) {
         this.label = label;
@@ -134,6 +137,17 @@ public class FieldDef {
         return def;
     }
 
+    /**
+     * Creates a two-column row pairing two fields side by side.
+     * If one child is hidden (via visibleWhen), the other renders full-width.
+     */
+    public static FieldDef row(FieldDef left, FieldDef right) {
+        FieldDef def = new FieldDef("", FieldType.ROW);
+        def.leftChild = left;
+        def.rightChild = right;
+        return def;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // CONVENIENCE FACTORIES (SUB_GUI wrappers)
     // ═══════════════════════════════════════════════════════════════════
@@ -206,8 +220,13 @@ public class FieldDef {
         return this;
     }
 
-    public FieldDef column(ColumnHint column) {
-        this.column = column;
+    public FieldDef min(float min) {
+        this.min = min;
+        return this;
+    }
+
+    public FieldDef max(float max) {
+        this.max = max;
         return this;
     }
 
@@ -218,11 +237,6 @@ public class FieldDef {
 
     public FieldDef enabledWhen(BooleanSupplier condition) {
         this.enabledWhen = condition;
-        return this;
-    }
-
-    public FieldDef tooltip(String tooltip) {
-        this.tooltip = tooltip;
         return this;
     }
 
@@ -253,10 +267,8 @@ public class FieldDef {
     public String getLabel() { return label; }
     public FieldType getType() { return type; }
     public String getTab() { return tab; }
-    public ColumnHint getColumn() { return column; }
     public boolean isVisible() { return visibleWhen.getAsBoolean(); }
     public boolean isEnabled() { return enabledWhen.getAsBoolean(); }
-    public String getTooltip() { return tooltip; }
     public String getHoverText() { return hoverText; }
     public float getMin() { return min; }
     public float getMax() { return max; }
@@ -291,6 +303,79 @@ public class FieldDef {
 
     public Integer getButtonTextColor() {
         return buttonTextColorSupplier != null ? buttonTextColorSupplier.get() : null;
+    }
+
+    public FieldDef getLeftChild() { return leftChild; }
+    public FieldDef getRightChild() { return rightChild; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LIST MANIPULATION (for mod injection)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Insert a field before the first field matching the target label.
+     * Searches top-level labels and ROW children.
+     *
+     * @param fields      The field list to modify
+     * @param targetLabel The label of the field to insert before
+     * @param newField    The field to insert
+     * @return true if the target was found and the field was inserted
+     */
+    public static boolean insertBefore(java.util.List<FieldDef> fields, String targetLabel, FieldDef newField) {
+        for (int i = 0; i < fields.size(); i++) {
+            if (matchesLabel(fields.get(i), targetLabel)) {
+                fields.add(i, newField);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Insert a field after the first field matching the target label.
+     * Searches top-level labels and ROW children.
+     *
+     * @param fields      The field list to modify
+     * @param targetLabel The label of the field to insert after
+     * @param newField    The field to insert
+     * @return true if the target was found and the field was inserted
+     */
+    public static boolean insertAfter(List<FieldDef> fields, String targetLabel, FieldDef newField) {
+        for (int i = 0; i < fields.size(); i++) {
+            if (matchesLabel(fields.get(i), targetLabel)) {
+                fields.add(i + 1, newField);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Modify the visibility condition of a field.
+     * Searches top-level labels and ROW children.
+     *
+     * @param fields      The field list to modify
+     * @param targetLabel The label of the field to modify
+     * @param condition    The condition to replace
+     * @return true if the target was found and the condition was modified
+     */
+    public static boolean modifyVisibility(List<FieldDef> fields, String targetLabel, BooleanSupplier condition) {
+        for (FieldDef field : fields) {
+            if (matchesLabel(field, targetLabel)) {
+                field.visibleWhen(condition);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean matchesLabel(FieldDef def, String targetLabel) {
+        if (targetLabel.equals(def.label)) return true;
+        if (def.type == FieldType.ROW) {
+            if (def.leftChild != null && targetLabel.equals(def.leftChild.label)) return true;
+            if (def.rightChild != null && targetLabel.equals(def.rightChild.label)) return true;
+        }
+        return false;
     }
 
 }

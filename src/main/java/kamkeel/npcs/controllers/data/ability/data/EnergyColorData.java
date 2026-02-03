@@ -16,6 +16,11 @@ public class EnergyColorData {
 
     public EnergyColorData() {}
 
+    public EnergyColorData(int innerColor, int outerColor) {
+        this.innerColor = innerColor;
+        this.outerColor = outerColor;
+    }
+
     public EnergyColorData(int innerColor, int outerColor, boolean outerColorEnabled,
                            float outerColorWidth, float outerColorAlpha, float rotationSpeed) {
         this.innerColor = innerColor;

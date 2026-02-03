@@ -1608,6 +1608,7 @@ ability.cnpc.beam_dual=Beam Dual
 ability.cnpc.projectile=Projectile
 ability.cnpc.orb=Orb
 ability.cnpc.orb_dual=Orb Dual
+ability.cnpc.orb_barrage=Orb Barrage
 ability.cnpc.charge=Charge
 ability.cnpc.dash=Dash
 ability.cnpc.teleport=Teleport
@@ -1643,8 +1644,10 @@ ability.conditions=Conditions
 # Effects Tab
 ability.windUpSound=Wind Up Sound
 ability.activeSound=Active Sound
+ability.counterSound=Counter Sound
 ability.windUpAnimation=Wind Up Animation
 ability.activeAnimation=Active Animation
+ability.counterAnimation=Counter Animation
 ability.showTelegraph=Show Telegraph
 ability.windUpColor=Wind Up Color
 ability.activeColor=Active Color
@@ -1672,6 +1675,7 @@ ability.section.disc1=Disc 1
 ability.section.disc2=Disc 2
 ability.section.orb1=Orb 1
 ability.section.orb2=Orb 2
+ability.section.barrage=Barrage
 ability.section.counter=Counter
 ability.section.area=Area
 ability.section.damage=Damage
@@ -1698,6 +1702,7 @@ gui.sound=Sound
 gui.animation=Animation
 gui.duration=Duration
 gui.amp=Amp
+gui.speed=Speed
 
 # Common Type Settings
 ability.radius=Radius
@@ -1735,9 +1740,13 @@ ability.firingSpeed=Firing Speed
 ability.amount=Amount
 ability.dualCharge=Dual Charging
 
-# Charge (no unique keys)
+# Charge
+ability.chargeSpeed=Charge Speed
 
-# Dash (no unique keys)
+# Dash
+ability.dashMode=Dash Mode
+ability.dashDistance=Dash Distance
+ability.dashSpeed=Dash Speed
 
 # Teleport
 ability.blinkRadius=Blink Radius
@@ -1758,6 +1767,7 @@ ability.pushStrength=Push Strength
 
 # Guard
 ability.damageReduction=Damage Reduction
+ability.counterWindow=Counter Ticks
 
 # Heal
 ability.instantHeal=Instant Heal

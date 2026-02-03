@@ -10,7 +10,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityVortex;
@@ -139,7 +138,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             double dz = destZ - entity.posZ;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-            if (dist <= 1.0f) {
+            if (dist <= 1.5f) {
                 getPulledEntities().remove(uuid);
                 onTargetArrived(caster, entity, world);
                 continue;
@@ -147,7 +146,10 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
             anyStillPulling = true;
 
-            double factor = pullStrength / dist;
+            // Clamp speed to never exceed half the remaining distance, preventing overshoot/slingshot
+            double maxSpeed = dist * 0.5;
+            double effectiveSpeed = Math.min(pullStrength, maxSpeed);
+            double factor = effectiveSpeed / dist;
             double nextX = dx * factor;
             double nextY = dy * factor * 0.5;
             double nextZ = dz * factor;
@@ -302,13 +304,17 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
-            FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength).column(ColumnHint.RIGHT),
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius),
+                FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength)
+            ),
             FieldDef.section("ability.section.damage"),
-            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).column(ColumnHint.RIGHT),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
+            ),
             FieldDef.section("ability.section.aoe"),
             FieldDef.boolField("gui.enabled", this::isAoe, this::setAoe)
                 .hover("ability.hover.aoe"),
@@ -320,6 +326,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             FieldDef.floatField("enchantment.damage", this::getPullDamage, this::setPullDamage)
                 .visibleWhen(this::isDamageOnPull),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

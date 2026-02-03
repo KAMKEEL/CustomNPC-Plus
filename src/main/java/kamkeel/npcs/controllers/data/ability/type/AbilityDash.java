@@ -14,7 +14,6 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.client.gui.builder.ColumnHint;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityDash;
 
@@ -93,6 +92,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
     // Runtime state
     private transient Vec3 dashDirection;
     private transient double startX, startY, startZ;
+    private transient double prevTickX, prevTickZ;
     private transient DashDirection chosenDirection;
 
     public AbilityDash() {
@@ -131,6 +131,8 @@ public class AbilityDash extends Ability implements IAbilityDash {
         startX = caster.posX;
         startY = caster.posY;
         startZ = caster.posZ;
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
 
         // Choose random direction based on mode
         DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
@@ -163,6 +165,22 @@ public class AbilityDash extends Ability implements IAbilityDash {
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (dashDirection == null) return;
+
+        // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
+        if (tick > 1) {
+            double movedThisTick = Math.sqrt(
+                Math.pow(caster.posX - prevTickX, 2) +
+                Math.pow(caster.posZ - prevTickZ, 2));
+            if (movedThisTick < 0.01) {
+                caster.motionX = 0;
+                caster.motionZ = 0;
+                caster.velocityChanged = true;
+                signalCompletion();
+                return;
+            }
+        }
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
@@ -352,12 +370,14 @@ public class AbilityDash extends Ability implements IAbilityDash {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.enumField("ability.dashMode", DashMode.class, this::getDashModeEnum, this::setDashModeEnum)
                 .hover("ability.hover.dashMode"),
-            FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance).column(ColumnHint.LEFT),
-            FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed).column(ColumnHint.RIGHT)
-        );
+            FieldDef.row(
+                FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance),
+                FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
+            )
+        ));
     }
 }

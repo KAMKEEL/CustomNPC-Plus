@@ -33,6 +33,8 @@ public class BukkitUtil {
     private static Method getPluginManager;
     private static Method isPluginEnabled;
 
+    private static Method getPlugin;
+
     /**
      * Initializes Bukkit integration using reflection.
      * Should be called during FMLServerStartedEvent to ensure Bukkit is fully loaded.
@@ -63,6 +65,7 @@ public class BukkitUtil {
 
             Class<?> pluginManagerClass = Class.forName("org.bukkit.plugin.PluginManager");
             isPluginEnabled = pluginManagerClass.getMethod("isPluginEnabled", String.class);
+            getPlugin = pluginManagerClass.getMethod("getPlugin", String.class);
 
             bukkitEnabled = true;
             logger.info("Bukkit integration enabled");
@@ -181,5 +184,14 @@ public class BukkitUtil {
 
     public static Class<?> getPlayerClass() {
         return playerClass;
+    }
+
+    public static Object getPlugin(String plugin) {
+        try {
+            return getPlugin.invoke(getPluginManager.invoke(null), plugin);
+        } catch (Throwable ignored) {
+
+        }
+        return null;
     }
 }

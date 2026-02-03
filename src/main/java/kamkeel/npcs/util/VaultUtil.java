@@ -75,8 +75,12 @@ public class VaultUtil {
             }
 
             // Load Vault classes
-            economyClass = Class.forName("net.milkbowl.vault.economy.Economy");
-            economyResponseClass = Class.forName("net.milkbowl.vault.economy.EconomyResponse");
+            Object vault = BukkitUtil.getPlugin("Vault");
+            if (vault == null)
+                return;
+            ClassLoader vaultLoader = vault.getClass().getClassLoader();
+            economyClass = vaultLoader.loadClass("net.milkbowl.vault.economy.Economy");
+            economyResponseClass = vaultLoader.loadClass("net.milkbowl.vault.economy.EconomyResponse");
 
             // Get Economy methods (using deprecated String methods for broader compatibility)
             isEnabled = economyClass.getMethod("isEnabled");
