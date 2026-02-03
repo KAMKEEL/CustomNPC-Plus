@@ -40,7 +40,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         }
 
         // Use ScriptDocument's resolveExpressionType - handles both Java and JS
-        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, context.prefixStart);
+        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, getMemberAccessResolvePosition(context));
         if (receiverType == null || !receiverType.isResolved()) {
             return;
         }

@@ -179,18 +179,27 @@ public class AutocompleteManager {
         
         // Check if we're typing an identifier
         if (Character.isJavaIdentifierPart(c)) {
+            // GuiScriptTextArea passes a cursor position captured BEFORE insertion while `text`
+            // is already the post-insert text. When this happens, cursorPosition points at the
+            // newly inserted character, not the caret-after-insert. Normalize to a caret position
+            // for prefix extraction/update.
+            int effectiveCursor = cursorPosition;
+            if (effectiveCursor >= 0 && effectiveCursor < text.length() && text.charAt(effectiveCursor) == c) {
+                effectiveCursor = effectiveCursor + 1;
+            }
+
             if (active) {
                 // Update existing autocomplete
-                updatePrefix(text, cursorPosition);
+                updatePrefix(text, effectiveCursor);
             } else if (Character.isJavaIdentifierStart(c)) {
                 // Check if we're after a dot with whitespace (e.g., "obj. |" where | is cursor)
-                int dotPos = findDotBeforeWhitespace(text, cursorPosition - 1);
+                int dotPos = findDotBeforeWhitespace(text, effectiveCursor - 1);
                 if (dotPos >= 0) {
                     // We're typing after a dot (with possible whitespace), trigger member access
-                    triggerAfterDot(text, cursorPosition);
+                    triggerAfterDot(text, effectiveCursor);
                 } else {
                     // Potentially start new autocomplete
-                    maybeStartAutocomplete(text, cursorPosition, false);
+                    maybeStartAutocomplete(text, effectiveCursor, false);
                 }
             }
             return;
@@ -283,29 +292,39 @@ public class AutocompleteManager {
      * Trigger autocomplete after a dot is typed.
      */
     private void triggerAfterDot(String text, int cursorPosition) {
-        // Find the receiver expression before the dot
-        // First check if immediately before cursor
-        int dotPos = cursorPosition - 1;
-        if (dotPos < 0 || text.charAt(dotPos) != '.') {
-            // Look backwards skipping whitespace to find dot
-            dotPos = findDotBeforeWhitespace(text, cursorPosition - 1);
+        // Normalize cursor semantics.
+        // Some callers pass a pre-insert cursor index (points at '.') even though the caret
+        // is visually after the inserted '.' in the current text.
+        int caretPos = Math.max(0, Math.min(cursorPosition, text.length()));
+
+        int dotPos = -1;
+        if (caretPos > 0 && caretPos <= text.length() && text.charAt(caretPos - 1) == '.') {
+            // Caret-after-dot case
+            dotPos = caretPos - 1;
+        } else if (caretPos >= 0 && caretPos < text.length() && text.charAt(caretPos) == '.') {
+            // Pre-insert cursor case: cursorPosition points at the dot itself
+            dotPos = caretPos;
+            caretPos = Math.min(caretPos + 1, text.length());
+        } else {
+            // Look backwards skipping whitespace/identifier to find dot
+            dotPos = findDotBeforeWhitespace(text, caretPos - 1);
         }
         
         if (dotPos < 0) return;
         
         String receiverExpr = findReceiverExpression(text, dotPos);
-        String prefix = findCurrentWord(text, cursorPosition);
+        String prefix = findCurrentWord(text, caretPos);
         
         // Find where the prefix actually starts (after dot + any whitespace)
         int prefixStart = dotPos + 1;
-        while (prefixStart < cursorPosition && Character.isWhitespace(text.charAt(prefixStart))) {
+        while (prefixStart < caretPos && Character.isWhitespace(text.charAt(prefixStart))) {
             prefixStart++;
         }
         
         prefixStartPosition = prefixStart;
         currentPrefix = prefix;
         
-        showSuggestions(text, cursorPosition, prefix, prefixStartPosition, true, receiverExpr);
+        showSuggestions(text, caretPos, prefix, prefixStartPosition, true, receiverExpr);
     }
     
     /**
@@ -379,7 +398,12 @@ public class AutocompleteManager {
         
         // Resolve receiver type if member access
         if (isMemberAccess && receiverExpr != null) {
-            TypeInfo receiverType = document.resolveExpressionType(receiverExpr, prefixStart);
+            // Use a position inside the receiver/scope for resolution.
+            // `prefixStart` can land on end-exclusive boundaries (e.g., right at bodyEnd),
+            // causing findInnermostScopeAt(prefixStart) to return null.
+            int dotPos = findDotBeforeWhitespace(text, prefixStart - 1);
+            int resolvePos = dotPos >= 0 ? dotPos : prefixStart;
+            TypeInfo receiverType = document.resolveExpressionType(receiverExpr, resolvePos);
             if (receiverType != null && receiverType.isResolved()) {
                 currentReceiverFullName = receiverType.getFullName();
             }

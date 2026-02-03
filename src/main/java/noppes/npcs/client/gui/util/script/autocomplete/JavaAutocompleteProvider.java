@@ -43,13 +43,14 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         String ownerFullName = null;
         boolean isStaticContext = false;
         if (context.isMemberAccess && context.receiverExpression != null) {
+            int resolvePos = getMemberAccessResolvePosition(context);
             TypeInfo receiverType = document.resolveExpressionType(
-                context.receiverExpression, context.prefixStart);
+                context.receiverExpression, resolvePos);
             if (receiverType != null && receiverType.isResolved()) {
                 ownerFullName = receiverType.getFullName();
             }
             // Check if accessing through a class (static context) vs instance
-            isStaticContext = isStaticAccess(context.receiverExpression, context.prefixStart);
+            isStaticContext = isStaticAccess(context.receiverExpression, resolvePos);
         }
         
         if (context.isMemberAccess) {
@@ -79,14 +80,14 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         }
         
         // Resolve the type of the receiver expression
-        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, context.prefixStart);
+        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, getMemberAccessResolvePosition(context));
         
         if (receiverType == null || !receiverType.isResolved()) {
             return;
         }
         
         // Determine if this is a static context (accessing a class type)
-        boolean isStaticContext = isStaticAccess(receiverExpr, context.prefixStart);
+        boolean isStaticContext = isStaticAccess(receiverExpr, getMemberAccessResolvePosition(context));
         
         Class<?> clazz = receiverType.getJavaClass();
         if (clazz == null) {
@@ -128,6 +129,36 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             }
         }
         
+    }
+
+    /**
+     * Pick a stable position for resolving member-access receiver types.
+     *
+     * Using `prefixStart` can land on end-exclusive scope boundaries (position == bodyEnd)
+     * depending on caller cursor semantics and surrounding syntax, causing scope lookups
+     * to fail. For member access we prefer the dot position (or nearest non-whitespace)
+     * immediately before prefixStart.
+     */
+    protected int getMemberAccessResolvePosition(Context context) {
+        if (context == null || context.text == null || context.text.isEmpty()) {
+            return 0;
+        }
+
+        int pos = Math.max(0, Math.min(context.prefixStart, context.text.length()));
+        int i = Math.min(pos - 1, context.text.length() - 1);
+
+        // Skip whitespace backwards
+        while (i >= 0 && Character.isWhitespace(context.text.charAt(i))) {
+            i--;
+        }
+
+        // Prefer the dot index if present
+        if (i >= 0 && context.text.charAt(i) == '.') {
+            return i;
+        }
+
+        // Fallback: use the provided prefixStart (caret context)
+        return Math.max(0, Math.min(context.prefixStart, context.text.length()));
     }
     
     /**
@@ -184,10 +215,10 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      */
     protected void addScopeSuggestions(Context context, List<AutocompleteItem> items) {
         int pos = context.cursorPosition;
-        
+
         // Find containing method
         MethodInfo containingMethod = document.findContainingMethod(pos);
-        
+
         // Add local variables
         if (containingMethod != null) {
             Map<String, FieldInfo> locals = document.getLocalsForMethod(containingMethod);
@@ -198,20 +229,20 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                     }
                 }
             }
-            
+
             // Add method parameters
             for (FieldInfo param : containingMethod.getParameters()) {
                 items.add(AutocompleteItem.fromField(param));
             }
         }
-        
+
         // Add global fields
         for (FieldInfo globalField : document.getGlobalFields().values()) {
             if (globalField.isVisibleAt(pos)) {
                 items.add(AutocompleteItem.fromField(globalField));
             }
         }
-        
+
         // Add enclosing type fields (find via script types map)
         ScriptTypeInfo enclosingType = findEnclosingType(pos);
         if (enclosingType != null) {
@@ -220,7 +251,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                     items.add(AutocompleteItem.fromField(field));
                 }
             }
-            
+
             // Add methods from enclosing type
             for (List<MethodInfo> overloads : enclosingType.getMethods().values()) {
                 for (MethodInfo method : overloads) {
