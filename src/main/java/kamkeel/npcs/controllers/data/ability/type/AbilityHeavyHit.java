@@ -6,37 +6,40 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityHeavyHit;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Heavy Hit ability: Single-target melee attack with optional stun.
- * Deals high damage to one target and can stun them.
+ * Heavy Hit ability: AOE rectangle melee attack in front of the caster.
+ * Deals high damage to all entities within a rectangular zone and can apply effects.
+ * Has a LINE telegraph showing the hit area during windup, making it dodgeable.
  */
 public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     private float damage = 8.0f;
     private float knockback = 2.0f;
+    private float hitLength = 4.0f;   // How far in front of the caster the hit reaches
+    private float hitWidth = 3.0f;    // How wide to each side (total width = hitWidth * 2)
 
     public AbilityHeavyHit() {
         this.typeId = "ability.cnpc.heavy_hit";
         this.name = "Heavy Hit";
-        this.targetingMode = TargetingMode.AGGRO_TARGET;
-        this.maxRange = 3.0f;
+        this.targetingMode = TargetingMode.AOE_SELF;
+        this.maxRange = 5.0f;
         this.minRange = 0.0f;
-        this.lockMovement = LockMovementType.NO;
+        this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.telegraphType = TelegraphType.POINT;
-        this.showTelegraph = false;
+        this.telegraphType = TelegraphType.LINE;
+        this.showTelegraph = true;
         this.windUpSound = "random.anvil_use";
         this.activeSound = "random.anvil_land";
         this.windUpAnimationName = "Ability_HeavyHit_Windup";
@@ -50,22 +53,66 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
+        return new TargetingMode[]{TargetingMode.AOE_SELF};
+    }
+
+    @Override
+    public float getTelegraphLength() {
+        return hitLength;
+    }
+
+    @Override
+    public float getTelegraphWidth() {
+        return hitWidth * 2.0f; // Total width (hitWidth is distance to each side)
     }
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote || target == null) {
+        if (world.isRemote) {
             signalCompletion();
             return;
         }
 
-        // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(caster, target, damage, knockback);
+        // Calculate forward and right vectors from caster yaw
+        float yawRad = (float) Math.toRadians(caster.rotationYaw);
+        double forwardX = -Math.sin(yawRad);
+        double forwardZ = Math.cos(yawRad);
+        double rightX = forwardZ;   // perpendicular right
+        double rightZ = -forwardX;
 
-        // Apply effects if hit wasn't cancelled
-        if (wasHit) {
-            applyEffects(target);
+        // Search area: AABB that encompasses the rectangle
+        float searchDist = Math.max(hitLength, hitWidth) + 1.0f;
+        @SuppressWarnings("unchecked")
+        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(
+            caster, caster.boundingBox.expand(searchDist, 2, searchDist));
+
+        boolean anyHit = false;
+        for (Entity entity : entities) {
+            if (!(entity instanceof EntityLivingBase) || entity == caster) continue;
+            EntityLivingBase livingTarget = (EntityLivingBase) entity;
+
+            double dx = livingTarget.posX - caster.posX;
+            double dz = livingTarget.posZ - caster.posZ;
+
+            // Project onto forward direction (must be in front, within hitLength)
+            double forwardDist = dx * forwardX + dz * forwardZ;
+            if (forwardDist < 0 || forwardDist > hitLength) continue;
+
+            // Project onto right direction (must be within hitWidth to each side)
+            double sideDist = dx * rightX + dz * rightZ;
+            if (Math.abs(sideDist) > hitWidth) continue;
+
+            // Entity is within the rectangle - apply damage
+            boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockback);
+            if (wasHit) {
+                applyEffects(livingTarget);
+                anyHit = true;
+            }
+        }
+
+        // Play hit sound even if nothing was hit (the attack still happens)
+        if (!anyHit) {
+            world.playSoundAtEntity(caster, "random.anvil_land", 0.5f, 1.2f);
         }
     }
 
@@ -80,12 +127,16 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
+        nbt.setFloat("hitLength", hitLength);
+        nbt.setFloat("hitWidth", hitWidth);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 2.0f;
+        this.hitLength = nbt.hasKey("hitLength") ? nbt.getFloat("hitLength") : 4.0f;
+        this.hitWidth = nbt.hasKey("hitWidth") ? nbt.getFloat("hitWidth") : 3.0f;
     }
 
     // Getters & Setters
@@ -105,15 +156,36 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.knockback = knockback;
     }
 
+    public float getHitLength() {
+        return hitLength;
+    }
+
+    public void setHitLength(float hitLength) {
+        this.hitLength = hitLength;
+    }
+
+    public float getHitWidth() {
+        return hitWidth;
+    }
+
+    public void setHitWidth(float hitWidth) {
+        this.hitWidth = hitWidth;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
                 FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
             ),
+            FieldDef.section("ability.section.hitZone"),
+            FieldDef.row(
+                FieldDef.floatField("ability.hitLength", this::getHitLength, this::setHitLength),
+                FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth)
+            ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

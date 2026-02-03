@@ -630,8 +630,8 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
             FieldDef.enumField("ability.shape", HazardShape.class, this::getShapeEnum, this::setShapeEnum)
                 .hover("ability.hover.shape"),
@@ -656,6 +656,6 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
             FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
                 .hover("ability.hover.affectsCaster"),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

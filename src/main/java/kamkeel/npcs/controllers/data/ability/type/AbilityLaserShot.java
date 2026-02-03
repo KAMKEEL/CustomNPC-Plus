@@ -247,8 +247,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             // Type tab
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
             FieldDef.row(
@@ -290,6 +290,6 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
                 FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
                     .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
             ).tab("ability.tab.visual")
-        );
+        ));
     }
 }

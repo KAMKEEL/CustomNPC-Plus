@@ -333,11 +333,13 @@ public class GuiFieldBuilder {
     // EVENT HANDLING
     // ═══════════════════════════════════════════════════════════════════
 
-    private FieldDef activeSubGuiField;
-
     /**
      * Handles button events for declarative fields.
      * Call from parent GUI's buttonEvent(). Returns true if the event was handled.
+     * <p>
+     * For SUB_GUI fields, the sub-gui is opened directly via {@code parent.setSubGuiWithResult()},
+     * so the result handler survives initGui() rebuilds. After this returns true, check
+     * {@code parent.hasSubGui()} to determine if initGui() should be called.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public boolean handleButtonEvent(int buttonId, GuiButton button) {
@@ -374,7 +376,13 @@ public class GuiFieldBuilder {
                 return true;
             }
             case SUB_GUI:
-                activeSubGuiField = def;
+                if (def.getSubGuiFactory() != null) {
+                    parent.setSubGuiWithResult(def.getSubGuiFactory().get(), sub -> {
+                        if (def.getSubGuiResultHandler() != null) {
+                            def.getSubGuiResultHandler().accept(sub);
+                        }
+                    });
+                }
                 return true;
             default:
                 return false;
@@ -406,31 +414,15 @@ public class GuiFieldBuilder {
 
     /**
      * Handles sub-gui close events. Call from parent GUI's subGuiClosed().
-     * Returns true if the event was handled (activeSubGuiField was set).
+     * <p>
+     * Note: SUB_GUI fields opened via handleButtonEvent use
+     * {@code parent.setSubGuiWithResult()}, so their results are handled
+     * automatically by {@code GuiNPCInterface.closeSubGui()}. This method
+     * only handles sub-guis opened through other means.
      */
     public boolean handleSubGuiClosed(SubGuiInterface subgui) {
-        if (activeSubGuiField != null) {
-            FieldDef def = activeSubGuiField;
-            activeSubGuiField = null;
-            if (def.getSubGuiResultHandler() != null) {
-                def.getSubGuiResultHandler().accept(subgui);
-            }
-            return true;
-        }
         return false;
     }
-
-    /**
-     * Returns the FieldDef for the currently active sub-gui, or null.
-     * After handleButtonEvent returns true for a SUB_GUI field, the parent
-     * should check this and call setSubGui(def.getSubGuiFactory().get()).
-     */
-    public FieldDef getActiveSubGuiField() { return activeSubGuiField; }
-
-    /**
-     * Clears the active sub-gui field tracking.
-     */
-    public void clearActiveSubGuiField() { activeSubGuiField = null; }
 
     // ═══════════════════════════════════════════════════════════════════
     // GETTERS

@@ -377,8 +377,8 @@ public class AbilityBeamDual extends Ability {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             // Type tab
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
@@ -485,7 +485,7 @@ public class AbilityBeamDual extends Ability {
                     () -> getLightningRadius(1), v -> setLightningRadius(1, v))
                     .range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(1))
             ).tab("ability.tab.visual")
-        );
+        ));
     }
 
     @Override

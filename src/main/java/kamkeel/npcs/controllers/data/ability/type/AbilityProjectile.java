@@ -251,8 +251,8 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
                 FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
@@ -266,6 +266,6 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
             FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
             FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

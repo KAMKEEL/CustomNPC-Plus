@@ -199,8 +199,8 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
 
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
@@ -234,6 +234,6 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
                 .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
             FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
                 .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled)
-        );
+        ));
     }
 }

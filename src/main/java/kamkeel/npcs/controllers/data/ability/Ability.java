@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.ability;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -32,7 +33,6 @@ import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
@@ -146,6 +146,9 @@ public abstract class Ability implements IAbility {
     }
 
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
     }
 
     /**
@@ -341,24 +344,31 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Returns the declarative field definitions for this ability's GUI.
-     * Override in subclasses to declare type-specific and visual fields.
-     * The GUI rendering engine in SubGuiAbilityConfig uses this list to
-     * automatically build the Type and Visual tabs.
+     * Add field definitions for this ability's GUI.
+     * Override in subclasses to add type-specific fields. The list already contains
+     * the base fields (General, Target, Effects tabs), so subclasses can also
+     * modify, insert into, or remove base fields using {@link FieldDef#insertBefore},
+     * {@link FieldDef#insertAfter}, or direct list manipulation.
+     * <p>
+     * Fields added here without an explicit {@code .tab()} will default to the "Type" tab.
+     *
+     * @param defs The mutable list of field definitions to add to or modify
      */
     @SideOnly(Side.CLIENT)
-    public List<FieldDef> getFieldDefinitions() {
-        return Collections.emptyList();
+    public void getAbilityDefinitions(List<FieldDef> defs) {
     }
 
     /**
-     * Returns field definitions for all base Ability fields (General, Target, Effects tabs).
+     * Builds and returns all field definitions for this ability's GUI.
+     * Base fields (General, Target, Effects) are added first, then
+     * {@link #getAbilityDefinitions(List)} is called so subclasses can add
+     * type-specific fields and modify any existing fields.
      */
     @SideOnly(Side.CLIENT)
-    public List<FieldDef> getBaseFieldDefinitions() {
+    public final List<FieldDef> getAllDefinitions() {
         List<FieldDef> defs = new ArrayList<>();
 
-        // General tab
+        // ── General tab ──────────────────────────────────────────────
         defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
             .tab("General"));
         defs.add(FieldDef.row(
@@ -366,7 +376,6 @@ public abstract class Ability implements IAbility {
             FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
         ).tab("General"));
         defs.add(FieldDef.section("ability.section.timing").tab("General"));
-        // WindUp: 3 mutually exclusive entries based on animation/sync state
         defs.add(FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks)
             .tab("General").range(0, 1000)
             .visibleWhen(() -> !hasWindUpAnimation()));
@@ -399,24 +408,38 @@ public abstract class Ability implements IAbility {
                 .range(0, 1000).visibleWhen(this::isInterruptible)
         ).tab("General"));
 
-        // Target tab
+        // ── Target tab ───────────────────────────────────────────────
         defs.add(FieldDef.row(
             FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v)).range(0, 100),
             FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v)).range(1, 100)
         ).tab("Target"));
         if (!isTargetingModeLocked()) {
-            defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
-                this::getTargetingMode, this::setTargetingMode)
-                .tab("Target").hover("ability.hover.targeting"));
+            TargetingMode[] allowed = getAllowedTargetingModes();
+            if (allowed != null && allowed.length > 0) {
+                String[] allowedKeys = new String[allowed.length];
+                for (int i = 0; i < allowed.length; i++) {
+                    allowedKeys[i] = allowed[i].name();
+                }
+                defs.add(FieldDef.stringEnumField("ability.targetingMode", allowedKeys,
+                    () -> this.getTargetingMode().name(),
+                    v -> {
+                        try { this.setTargetingMode(TargetingMode.valueOf(v)); }
+                        catch (Exception ignored) {}
+                    })
+                    .tab("Target").hover("ability.hover.targeting"));
+            } else {
+                defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
+                    this::getTargetingMode, this::setTargetingMode)
+                    .tab("Target").hover("ability.hover.targeting"));
+            }
         }
 
-        // Effects tab - Sounds
+        // ── Effects tab ──────────────────────────────────────────────
         defs.add(FieldDef.section("ability.section.sounds").tab("Effects"));
         defs.add(FieldDef.soundSubGui("ability.windUpSound", this::getWindUpSound, this::setWindUpSound)
             .tab("Effects"));
         defs.add(FieldDef.soundSubGui("ability.activeSound", this::getActiveSound, this::setActiveSound)
             .tab("Effects"));
-        // Effects tab - Animations
         defs.add(FieldDef.section("ability.section.animations").tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.windUpAnimation",
             this::getWindUpAnimationId, this::setWindUpAnimationId,
@@ -427,7 +450,6 @@ public abstract class Ability implements IAbility {
             this::getActiveAnimationName, this::setActiveAnimationName)
             .tab("Effects"));
 
-        // Effects tab - Telegraph
         TelegraphType tType = getTelegraphType();
         if (tType != null && tType != TelegraphType.NONE) {
             defs.add(FieldDef.section("ability.section.telegraph").tab("Effects")
@@ -440,24 +462,17 @@ public abstract class Ability implements IAbility {
                 .tab("Effects").visibleWhen(this::isShowTelegraph));
         }
 
-        return defs;
-    }
-
-    /**
-     * Returns ALL field definitions: base (General/Target/Effects) + type-specific (Type/Visual).
-     */
-    @SideOnly(Side.CLIENT)
-    public final List<FieldDef> getAllFieldDefinitions() {
-        List<FieldDef> all = new ArrayList<>(getBaseFieldDefinitions());
-        List<FieldDef> typeDefs = getFieldDefinitions();
-        // Default tab for type-specific fields that don't explicitly set one
-        for (FieldDef def : typeDefs) {
-            if (def.getTab() == null) {
-                def.tab("Type");
+        // ── Type-specific fields ─────────────────────────────────────
+        int baseSize = defs.size();
+        getAbilityDefinitions(defs);
+        // Default tab for ability-added fields that don't specify one
+        for (int i = baseSize; i < defs.size(); i++) {
+            if (defs.get(i).getTab() == null) {
+                defs.get(i).tab("Type");
             }
         }
-        all.addAll(typeDefs);
-        return all;
+
+        return defs;
     }
 
     /**
@@ -548,8 +563,12 @@ public abstract class Ability implements IAbility {
             instance.setEntityIdToFollow(caster.getEntityId());
 
             // For LINE/CONE telegraphs: track target direction during windup
+            // Only track if movement is NOT locked during windup (locked = NPC can't rotate)
             if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
-                instance.setTargetEntityId(target.getEntityId());
+                if (!lockMovement.locksWindup()) {
+                    instance.setTargetEntityId(target.getEntityId());
+                }
+                // If windup is locked, yaw stays fixed at creation time
             }
         } else if (target != null) {
             // AOE_TARGET abilities: telegraph follows target during windup

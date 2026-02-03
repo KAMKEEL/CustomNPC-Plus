@@ -429,6 +429,14 @@ public class DataAbilities {
         playAbilityAnimation((Animation) AnimationController.Instance.get(animation));
     }
 
+    public void playAbilityAnimation(String animation) {
+        if (animation.isEmpty()) return;
+        if (AnimationController.Instance == null) return;
+        if (AnimationController.Instance.get(animation, true) == null) return;
+
+        playAbilityAnimation((Animation) AnimationController.Instance.get(animation, true));
+    }
+
     /**
      * Stop any currently playing ability animation.
      */
@@ -501,17 +509,11 @@ public class DataAbilities {
         // Track hit for hit count condition
         recordHit();
 
-        // Check if currently executing a Guard ability and notify it of damage taken
-        if (currentAbility instanceof AbilityGuard) {
-            AbilityGuard guard = (AbilityGuard) currentAbility;
-            if (guard.isGuarding() && source.getEntity() instanceof EntityLivingBase) {
-                guard.onDamageTaken(npc, (EntityLivingBase) source.getEntity(), source, amount);
-            }
-        }
-
         if (currentAbility == null || !currentAbility.isExecuting()) {
             return false;
         }
+
+        currentAbility.onDamageTaken(npc, (EntityLivingBase) source.getEntity(), source, amount);
 
         if (currentAbility.canInterrupt(source)) {
             interruptCurrentAbility(source, amount);

@@ -131,8 +131,45 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     }
 
     /**
+     * Calculate the initial vertical velocity needed to reach a target height
+     * in Minecraft's physics (gravity=0.08, vertical drag=0.98).
+     * Uses iterative simulation since the drag makes a closed-form solution impractical.
+     */
+    private static double calculateLaunchVelocity(double targetHeight) {
+        // Binary search for the initial velocity that reaches targetHeight
+        double lo = 0.0, hi = 10.0;
+        for (int iter = 0; iter < 30; iter++) {
+            double mid = (lo + hi) / 2.0;
+            double maxY = simulateMaxHeight(mid);
+            if (maxY < targetHeight) {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        return (lo + hi) / 2.0;
+    }
+
+    /**
+     * Simulate Minecraft vertical physics to find peak height reached
+     * with a given initial upward velocity.
+     */
+    private static double simulateMaxHeight(double vy) {
+        double y = 0;
+        double maxY = 0;
+        for (int t = 0; t < 200 && vy > 0; t++) {
+            y += vy;
+            vy -= 0.08;  // gravity
+            vy *= 0.98;  // vertical drag
+            if (y > maxY) maxY = y;
+        }
+        return maxY;
+    }
+
+    /**
      * Calculate ballistic arc and launch caster toward target.
-     * Accounts for Minecraft's drag physics to actually reach the destination.
+     * leapHeight = exact peak height in blocks above launch point.
+     * leapSpeed = velocity multiplier (faster motion, same height).
      */
     private void launchTowardTarget(EntityLivingBase caster) {
         double dx = targetX - caster.posX;
@@ -140,11 +177,15 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         double dz = targetZ - caster.posZ;
         double horizontalDist = Math.sqrt(dx * dx + dz * dz);
 
+        // Calculate vertical velocity to reach exact leapHeight
+        double arcHeight = Math.max(1.0, leapHeight);
+        double vy = calculateLaunchVelocity(arcHeight);
+
         // For AOE_SELF or very close targets, just hop in place
         if (horizontalDist < 0.5) {
             caster.motionX = 0;
             caster.motionZ = 0;
-            caster.motionY = 0.8 * leapSpeed;
+            caster.motionY = vy;
             hasLaunched = true;
             if (caster instanceof EntityNPCInterface) {
                 ((EntityNPCInterface) caster).setNpcJumpingState(true);
@@ -164,8 +205,9 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             targetZ = caster.posZ + dz;
         }
 
-        // Choose flight time based on distance - shorter distances = faster
-        int flightTicks = (int) Math.max(15, Math.min(horizontalDist * 1.5, 30));
+        // Choose flight time based on distance, scaled by speed (faster = fewer ticks)
+        double speedFactor = Math.max(0.1, leapSpeed);
+        int flightTicks = (int) Math.max(10, Math.min(horizontalDist * 1.5 / speedFactor, 40));
 
         // Minecraft applies drag of 0.91 per tick to horizontal motion in air
         // Total distance traveled with initial velocity v0 over n ticks:
@@ -175,33 +217,15 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         double dragPowN = Math.pow(drag, flightTicks);
         double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN);
 
-        // Scale by leap speed
-        vHorizontal *= leapSpeed;
+        // Speed scales horizontal velocity to cover ground faster
+        vHorizontal *= speedFactor;
 
-        // Vertical velocity calculation:
-        // Minecraft gravity is 0.08 per tick, with 0.98 drag on vertical motion
-        // For a nice arc, we want to peak roughly in the middle of the flight
-        double gravity = 0.08;
-        double verticalDrag = 0.98;
-
-        // Calculate required upward velocity to create a nice arc and land at target height
-        // Peak height should be proportional to horizontal distance for visual appeal
-        double arcHeight = Math.max(1.0, leapHeight) * leapSpeed;
-
-        // Approximate the required initial vertical velocity
-        // Account for gravity and drag - use a simplified model
-        double peakTicks = flightTicks * 0.4; // Peak around 40% through flight
-        double vy = (arcHeight * 2.0 / peakTicks) + (gravity * peakTicks * 0.5);
-
-        // Adjust for height difference
+        // Adjust vertical velocity for height difference between start and target
         if (dy > 0) {
             vy += dy / flightTicks * 1.5; // Going up - need more velocity
         } else if (dy < 0) {
             vy += dy / flightTicks * 0.3; // Going down - gravity helps
         }
-
-        // Ensure minimum upward velocity for visible jump
-        vy = Math.max(vy, 0.6 * leapSpeed);
 
         // Normalize horizontal direction and apply velocity
         double dirX = dx / horizontalDist;
@@ -221,7 +245,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
         caster.rotationYaw = targetYaw;
         caster.rotationYawHead = targetYaw;
-
     }
 
     @Override
@@ -395,10 +418,14 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         double dz = tz - npc.posZ;
         double horizontalDist = Math.sqrt(dx * dx + dz * dz);
 
+        // Calculate vertical velocity for exact leapHeight
+        double arcHeight = Math.max(1.0, leapHeight);
+        double vy = calculateLaunchVelocity(arcHeight);
+
         if (horizontalDist < 0.5) {
             previewVelX = 0;
             previewVelZ = 0;
-            previewVelY = 0.8 * leapSpeed;
+            previewVelY = vy;
         } else {
             if (horizontalDist > maxRange) {
                 double scale = maxRange / horizontalDist;
@@ -407,15 +434,11 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 horizontalDist = maxRange;
             }
 
-            int flightTicks = (int) Math.max(15, Math.min(horizontalDist * 1.5, 30));
+            double speedFactor = Math.max(0.1, leapSpeed);
+            int flightTicks = (int) Math.max(10, Math.min(horizontalDist * 1.5 / speedFactor, 40));
             double drag = 0.91;
             double dragPowN = Math.pow(drag, flightTicks);
-            double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN) * leapSpeed;
-
-            double arcHeight = Math.max(1.0, leapHeight) * leapSpeed;
-            double peakTicks = flightTicks * 0.4;
-            double vy = (arcHeight * 2.0 / peakTicks) + (0.08 * peakTicks * 0.5);
-            vy = Math.max(vy, 0.6 * leapSpeed);
+            double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN) * speedFactor;
 
             double dirX = dx / horizontalDist;
             double dirZ = dz / horizontalDist;
@@ -574,8 +597,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
             FieldDef.row(
                 FieldDef.floatField("gui.radius", this::getRadius, this::setRadius),
@@ -587,6 +610,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 FieldDef.floatField("gui.height", this::getLeapHeight, this::setLeapHeight)
             ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

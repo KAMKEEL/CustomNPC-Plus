@@ -138,7 +138,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             double dz = destZ - entity.posZ;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-            if (dist <= 1.0f) {
+            if (dist <= 1.5f) {
                 getPulledEntities().remove(uuid);
                 onTargetArrived(caster, entity, world);
                 continue;
@@ -146,7 +146,10 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
             anyStillPulling = true;
 
-            double factor = pullStrength / dist;
+            // Clamp speed to never exceed half the remaining distance, preventing overshoot/slingshot
+            double maxSpeed = dist * 0.5;
+            double effectiveSpeed = Math.min(pullStrength, maxSpeed);
+            double factor = effectiveSpeed / dist;
             double nextX = dx * factor;
             double nextY = dy * factor * 0.5;
             double nextZ = dz * factor;
@@ -301,8 +304,8 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.row(
                 FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius),
                 FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength)
@@ -323,6 +326,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             FieldDef.floatField("enchantment.damage", this::getPullDamage, this::setPullDamage)
                 .visibleWhen(this::isDamageOnPull),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }
