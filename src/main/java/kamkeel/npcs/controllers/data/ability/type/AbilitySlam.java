@@ -597,8 +597,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
             FieldDef.row(
                 FieldDef.floatField("gui.radius", this::getRadius, this::setRadius),
@@ -610,6 +610,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 FieldDef.floatField("gui.height", this::getLeapHeight, this::setLeapHeight)
             ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

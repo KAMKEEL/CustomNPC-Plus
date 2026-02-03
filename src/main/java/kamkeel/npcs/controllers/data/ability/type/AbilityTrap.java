@@ -468,8 +468,8 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
                 .range(1, 2000),
             FieldDef.enumField("ability.placement", TrapPlacement.class, this::getPlacementEnum, this::setPlacementEnum)
@@ -490,6 +490,6 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
             ),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

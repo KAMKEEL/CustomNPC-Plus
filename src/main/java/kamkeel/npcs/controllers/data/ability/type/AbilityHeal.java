@@ -281,8 +281,8 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.boolField("ability.instantHeal", this::isInstantHeal, this::setInstantHeal)
                 .hover("ability.hover.instant"),
             FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
@@ -299,6 +299,6 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
                 FieldDef.boolField("ability.healAllies", this::isHealAllies, this::setHealAllies)
                     .hover("ability.hover.healAllies")
             )
-        );
+        ));
     }
 }

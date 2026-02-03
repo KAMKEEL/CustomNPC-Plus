@@ -397,8 +397,8 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
                 FieldDef.floatField("ability.chargeSpeed", this::getChargeSpeed, this::setChargeSpeed)
@@ -408,6 +408,6 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
                 FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth)
             ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

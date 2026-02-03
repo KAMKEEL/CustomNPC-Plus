@@ -341,8 +341,8 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 1000),
             FieldDef.floatField("ability.damageReduction", this::getDamageReduction, this::setDamageReduction),
             FieldDef.section("ability.section.counter"),
@@ -359,6 +359,6 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
                 .visibleWhen(this::canCounter),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
 
-        );
+        ));
     }
 }

@@ -338,8 +338,8 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
                 FieldDef.floatField("gui.range", this::getRange, this::setRange)
@@ -359,6 +359,6 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
             FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
                 .hover("ability.hover.piercing"),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

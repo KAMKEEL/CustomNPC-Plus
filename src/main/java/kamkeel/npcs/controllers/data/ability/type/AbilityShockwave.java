@@ -166,8 +166,8 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
             FieldDef.section("ability.section.push"),
             FieldDef.row(
@@ -176,6 +176,6 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
             ),
             FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

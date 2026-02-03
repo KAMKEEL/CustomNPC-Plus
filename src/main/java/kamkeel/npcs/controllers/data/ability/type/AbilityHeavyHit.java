@@ -174,8 +174,8 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
                 FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
@@ -186,6 +186,6 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
                 FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth)
             ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }

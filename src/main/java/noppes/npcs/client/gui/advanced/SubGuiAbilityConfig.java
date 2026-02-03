@@ -62,7 +62,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.callback = callback;
         this.conditions = new ArrayList<>(ability.getConditions());
 
-        this.fieldDefs = ability.getAllFieldDefinitions();
+        this.fieldDefs = ability.getAllDefinitions();
         discoverCustomTabs();
 
         setBackground("menubg.png", 217);
@@ -376,7 +376,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         ability.readNBT(nbt);
 
         this.conditions = new ArrayList<>(ability.getConditions());
-        this.fieldDefs = ability.getAllFieldDefinitions();
+        this.fieldDefs = ability.getAllDefinitions();
         discoverCustomTabs();
         initGui();
     }

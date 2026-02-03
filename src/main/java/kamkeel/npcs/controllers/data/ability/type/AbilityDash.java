@@ -370,14 +370,14 @@ public class AbilityDash extends Ability implements IAbilityDash {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.enumField("ability.dashMode", DashMode.class, this::getDashModeEnum, this::setDashModeEnum)
                 .hover("ability.hover.dashMode"),
             FieldDef.row(
                 FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance),
                 FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
             )
-        );
+        ));
     }
 }

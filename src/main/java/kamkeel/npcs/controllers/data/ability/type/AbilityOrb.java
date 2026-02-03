@@ -412,8 +412,8 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             // Type tab
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
@@ -459,6 +459,6 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
                 FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
                     .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
             ).tab("ability.tab.visual")
-        );
+        ));
     }
 }

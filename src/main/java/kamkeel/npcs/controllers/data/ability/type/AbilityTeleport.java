@@ -558,8 +558,8 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public List<FieldDef> getFieldDefinitions() {
-        return Arrays.asList(
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
             FieldDef.enumField("ability.mode", TeleportMode.class, this::getModeEnum, this::setModeEnum),
             FieldDef.floatField("ability.blinkRadius", this::getBlinkRadius, this::setBlinkRadius)
                 .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
@@ -586,6 +586,6 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
                     .hover("ability.hover.dmgAtEnd")
             ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
-        );
+        ));
     }
 }
