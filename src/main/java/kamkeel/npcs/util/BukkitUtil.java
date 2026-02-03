@@ -2,8 +2,8 @@ package kamkeel.npcs.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.RegisteredServiceProvider;
+
+import java.lang.reflect.Method;
 
 /**
  * Utility class for Bukkit integration detection and common operations.
@@ -14,6 +14,24 @@ public class BukkitUtil {
 
     private static boolean initialized = false;
     private static boolean bukkitEnabled = false;
+
+    // Bukkit classes
+    private static Class<?> bukkitClass;
+    private static Class<?> serverClass;
+    private static Class<?> servicesManagerClass;
+    private static Class<?> registeredServiceProviderClass;
+    private static Class<?> offlinePlayerClass;
+    private static Class<?> playerClass;
+
+    // Bukkit methods
+    private static Method getServer;
+    private static Method getServicesManager;
+    private static Method getRegistration;
+    private static Method getProvider;
+    private static Method getOfflinePlayer;
+    private static Method getPlayer;
+    private static Method getPluginManager;
+    private static Method isPluginEnabled;
 
     /**
      * Initializes Bukkit integration using reflection.
@@ -26,24 +44,25 @@ public class BukkitUtil {
         initialized = true;
 
         try {
-            // Make sure all necessary bukkit methods and classes are available.
-            Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
-            Class.forName("org.bukkit.Server");
-            Class<?> servicesManagerClass =Class.forName("org.bukkit.plugin.ServicesManager");
-            Class<?> registeredServiceProviderClass = Class.forName("org.bukkit.plugin.RegisteredServiceProvider");
-            Class.forName("org.bukkit.OfflinePlayer");
-            Class.forName("org.bukkit.entity.Player");
+            // Load Bukkit classes
+            bukkitClass = Class.forName("org.bukkit.Bukkit");
+            serverClass = Class.forName("org.bukkit.Server");
+            servicesManagerClass = Class.forName("org.bukkit.plugin.ServicesManager");
+            registeredServiceProviderClass = Class.forName("org.bukkit.plugin.RegisteredServiceProvider");
+            offlinePlayerClass = Class.forName("org.bukkit.OfflinePlayer");
+            playerClass = Class.forName("org.bukkit.entity.Player");
 
-            bukkitClass.getMethod("getServer");
-            bukkitClass.getMethod("getServicesManager");
-            servicesManagerClass.getMethod("getRegistration", Class.class);
-            registeredServiceProviderClass.getMethod("getProvider");
-            bukkitClass.getMethod("getOfflinePlayer", String.class);
-            bukkitClass.getMethod("getPlayer", String.class);
-            bukkitClass.getMethod("getPluginManager");
+            // Get Bukkit methods
+            getServer = bukkitClass.getMethod("getServer");
+            getServicesManager = bukkitClass.getMethod("getServicesManager");
+            getRegistration = servicesManagerClass.getMethod("getRegistration", Class.class);
+            getProvider = registeredServiceProviderClass.getMethod("getProvider");
+            getOfflinePlayer = bukkitClass.getMethod("getOfflinePlayer", String.class);
+            getPlayer = bukkitClass.getMethod("getPlayer", String.class);
+            getPluginManager = bukkitClass.getMethod("getPluginManager");
 
             Class<?> pluginManagerClass = Class.forName("org.bukkit.plugin.PluginManager");
-            pluginManagerClass.getMethod("isPluginEnabled", String.class);
+            isPluginEnabled = pluginManagerClass.getMethod("isPluginEnabled", String.class);
 
             bukkitEnabled = true;
             logger.info("Bukkit integration enabled");
@@ -51,7 +70,7 @@ public class BukkitUtil {
             // Initialize Vault after Bukkit is confirmed
             VaultUtil.init();
 
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {
+        } catch (ClassNotFoundException e) {
             logger.debug("Bukkit not found, Bukkit integration disabled");
         } catch (NoSuchMethodException e) {
             logger.error("Bukkit API method not found", e);
@@ -76,88 +95,91 @@ public class BukkitUtil {
 
     /**
      * Checks if a specific Bukkit plugin is enabled.
-     *
      * @param pluginName the plugin name to check
      * @return true if the plugin is enabled
      */
     public static boolean isPluginEnabled(String pluginName) {
-        if (!isEnabled()) return false;
+        if (!bukkitEnabled) return false;
 
         try {
-            return Bukkit.getPluginManager().isPluginEnabled(pluginName);
+            Object pluginManager = getPluginManager.invoke(null);
+            return (Boolean) isPluginEnabled.invoke(pluginManager, pluginName);
         } catch (Exception e) {
-            logger.error("Error checking if plugin is enabled: {}", pluginName, e);
+            logger.error("Error checking if plugin is enabled: " + pluginName, e);
             return false;
         }
     }
 
     /**
-     * @param pluginName name of the plugin to get.
-     * @return {@linkplain org.bukkit.plugin.Plugin Plugin} object for the name. Cast to correct class manually.
-     */
-    public static Object getPlugin(String pluginName) {
-        if (!isEnabled()) return null;
-
-        try {
-            return Bukkit.getPluginManager().getPlugin(pluginName);
-        } catch (Exception e) {
-            logger.error("Error getting plugin object: {}", pluginName, e);
-            return null;
-        }
-    }
-
-    /**
      * Gets a Bukkit OfflinePlayer by name.
-     *
      * @param playerName the player name
-     * @return the {@link org.bukkit.OfflinePlayer} object, or null if not available
+     * @return the OfflinePlayer object, or null if not available
      */
-    @SuppressWarnings({"deprecation"})
     public static Object getOfflinePlayer(String playerName) {
-        if (!isEnabled()) return null;
+        if (!bukkitEnabled) return null;
 
         try {
-            return Bukkit.getOfflinePlayer(playerName);
+            return getOfflinePlayer.invoke(null, playerName);
         } catch (Exception e) {
-            logger.error("Error getting OfflinePlayer: {}", playerName, e);
+            logger.error("Error getting OfflinePlayer: " + playerName, e);
             return null;
         }
     }
 
     /**
      * Gets a Bukkit Player by name (online players only).
-     *
      * @param playerName the player name
-     * @return the {@link org.bukkit.entity.Player} object, or null if not online or not available
+     * @return the Player object, or null if not online or not available
      */
     public static Object getPlayer(String playerName) {
-        if (!isEnabled()) return null;
+        if (!bukkitEnabled) return null;
 
         try {
-            return Bukkit.getPlayer(playerName);
+            return getPlayer.invoke(null, playerName);
         } catch (Exception e) {
-            logger.error("Error getting Player: {}", playerName, e);
+            logger.error("Error getting Player: " + playerName, e);
             return null;
         }
     }
 
     /**
      * Gets a service provider from Bukkit's ServicesManager.
-     *
      * @param serviceClass the service class to get
      * @return the service provider, or null if not available
      */
-    public static <T> T getServiceProvider(Class<T> serviceClass) {
-        if (!isEnabled()) return null;
+    public static Object getServiceProvider(Class<?> serviceClass) {
+        if (!bukkitEnabled) return null;
 
         try {
-            RegisteredServiceProvider<T> registration = Bukkit.getServicesManager().getRegistration(serviceClass);
+            Object servicesManager = getServicesManager.invoke(null);
+            Object registration = getRegistration.invoke(servicesManager, serviceClass);
             if (registration != null) {
-                return registration.getProvider();
+                return getProvider.invoke(registration);
             }
         } catch (Exception e) {
-            logger.error("Error getting service provider: {}", serviceClass.getName(), e);
+            logger.error("Error getting service provider: " + serviceClass.getName(), e);
         }
         return null;
+    }
+
+    // Getters for classes (for use by other utils like VaultUtil)
+    public static Class<?> getBukkitClass() {
+        return bukkitClass;
+    }
+
+    public static Class<?> getServicesManagerClass() {
+        return servicesManagerClass;
+    }
+
+    public static Class<?> getRegisteredServiceProviderClass() {
+        return registeredServiceProviderClass;
+    }
+
+    public static Class<?> getOfflinePlayerClass() {
+        return offlinePlayerClass;
+    }
+
+    public static Class<?> getPlayerClass() {
+        return playerClass;
     }
 }

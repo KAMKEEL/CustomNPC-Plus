@@ -7,7 +7,7 @@ import kamkeel.npcs.util.BukkitUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.apache.logging.log4j.LogManager;
-import org.bukkit.entity.Player;
+//import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -180,7 +180,7 @@ public class CustomNpcsPermissions {
         try {
             Object player = BukkitUtil.getPlayer(username);
             if (player == null) return false;
-            return ((Player) player).hasPermission(permission);
+            return false;//((Player) player).hasPermission(permission);
         } catch (Exception e) {
             e.printStackTrace();
         }
