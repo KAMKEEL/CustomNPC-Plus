@@ -4138,11 +4138,12 @@ public class ScriptDocument {
             return null;
         }
         
-        // Check if expression contains operators - if so, use the full expression resolver
-        // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc.
-        if (containsOperators(expr) || expr.startsWith("(")) {
-            return resolveExpressionWithParserAPI(expr, position);
-        }
+         // Check if expression contains operators - if so, use the full expression resolver
+         // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc.
+         // Also route JS function expressions and arrow lambdas through the parser
+         if (containsOperators(expr) || expr.startsWith("(") || looksLikeFunctionOrLambda(expr)) {
+             return resolveExpressionWithParserAPI(expr, position);
+         }
         
         // Invalid expressions starting with brackets
         if (expr.startsWith("[") || expr.startsWith("]")) {
@@ -4752,6 +4753,22 @@ public class ScriptDocument {
             return true;
         }
         
+        return false;
+    }
+    
+    /**
+     * Check if an expression looks like a JS function or arrow lambda.
+     * This is a fast heuristic to detect:
+     * - JS function expressions: function(...) {}
+     * - Arrow lambdas: (...) => ...
+     * These need to be routed through the parser for proper SAM typing.
+     */
+    private boolean looksLikeFunctionOrLambda(String expr) {
+        if (expr == null || expr.isEmpty()) return false;
+        String trimmed = expr.trim();
+        if (trimmed.startsWith("function")) return true;
+        if (trimmed.contains("=>")) return true;
+        if (trimmed.contains("->")) return true;
         return false;
     }
     
