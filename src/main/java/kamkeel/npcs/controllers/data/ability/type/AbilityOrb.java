@@ -38,7 +38,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     // Data classes for energy properties
     private final EnergyDisplayData colorData = new EnergyDisplayData();
     private final EnergyCombatData combatData = new EnergyCombatData();
-    private final EnergyTrajectoryData homingData = new EnergyTrajectoryData();
+    private final EnergyHomingData homingData = new EnergyHomingData();
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData();
     private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);

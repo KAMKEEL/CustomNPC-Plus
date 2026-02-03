@@ -42,7 +42,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     // Energy data classes
     private EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f);
     private EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
-    private EnergyTrajectoryData homingData = new EnergyTrajectoryData(0.6f, true, 0.12f, 18.0f);
+    private EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
     private EnergyLightningData lightningData = new EnergyLightningData();
     private EnergyLifespanData lifespanData = new EnergyLifespanData(35.0f, 200);
     private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);

@@ -1,82 +1,48 @@
 package kamkeel.npcs.controllers.data.ability.data;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.Vec3;
 import noppes.npcs.api.ability.data.IEnergyTrajectoryData;
 
-/**
- * Groups homing/movement properties for energy projectile abilities.
- * Used by Orb, Disc, and Beam (not Laser or Sweeper).
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     public float speed = 0.5f;
-    public boolean homing = true;
-    public float homingStrength = 0.15f;
-    public float homingRange = 20.0f;
+    public int currentPath = 0;
+    private List<Path> trajectory = new ArrayList<>();
 
-    public EnergyTrajectoryData() {}
-
-    public EnergyTrajectoryData(float speed, boolean homing, float homingStrength, float homingRange) {
-        this.speed = speed;
-        this.homing = homing;
-        this.homingStrength = homingStrength;
-        this.homingRange = homingRange;
+    public int getDelay(int path) {
+        if (path < 0 || path >= trajectory.size()) return -1;
+        return trajectory.get(path).delayTicks;
     }
 
-    @Override
-    public float getSpeed() {
-        return speed;
+    public Vec3 getVec(int path) {
+        if (path < 0 || path >= trajectory.size()) return null;
+        return trajectory.get(path).coords;
     }
 
-    @Override
-    public void setSpeed(float speed) {
-        this.speed = speed;
+    public double getX(int path) {
+        if (getVec(path) == null) return 0;
+        return getVec(path).xCoord;
     }
 
-    @Override
-    public boolean isHoming() {
-        return homing;
+    public double getY(int path) {
+        if (getVec(path) == null) return 0;
+        return getVec(path).yCoord;
     }
 
-    @Override
-    public void setHoming(boolean homing) {
-        this.homing = homing;
+    public double getZ(int path) {
+        if (getVec(path) == null) return 0;
+        return getVec(path).zCoord;
     }
 
-    @Override
-    public float getHomingStrength() {
-        return homingStrength;
-    }
+    public static class Path {
+        public Vec3 coords;
+        public int delayTicks;
 
-    @Override
-    public void setHomingStrength(float homingStrength) {
-        this.homingStrength = homingStrength;
-    }
-
-    @Override
-    public float getHomingRange() {
-        return homingRange;
-    }
-
-    @Override
-    public void setHomingRange(float homingRange) {
-        this.homingRange = homingRange;
-    }
-
-    public void writeNBT(NBTTagCompound nbt) {
-        nbt.setFloat("speed", speed);
-        nbt.setBoolean("homing", homing);
-        nbt.setFloat("homingStrength", homingStrength);
-        nbt.setFloat("homingRange", homingRange);
-    }
-
-    public void readNBT(NBTTagCompound nbt) {
-        speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 0.5f;
-        homing = !nbt.hasKey("homing") || nbt.getBoolean("homing");
-        homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.15f;
-        homingRange = nbt.hasKey("homingRange") ? nbt.getFloat("homingRange") : 20.0f;
-    }
-
-    public EnergyTrajectoryData copy() {
-        return new EnergyTrajectoryData(speed, homing, homingStrength, homingRange);
+        public Path(Vec3 coords, int delayTicks) {
+            this.coords = coords;
+            this.delayTicks = delayTicks;
+        }
     }
 }

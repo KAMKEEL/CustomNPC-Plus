@@ -271,6 +271,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
 
             // Visual tab
+            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
+                .tab("ability.tab.visual"),
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).tab("ability.tab.visual"),

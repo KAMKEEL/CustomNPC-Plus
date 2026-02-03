@@ -74,7 +74,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     public EntityAbilitySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
                                  float beamLength, float beamWidth, float beamHeight,
-                                 EnergyDisplayData colorData,
+                                 EnergyDisplayData displayData,
                                  float sweepSpeed, int numberOfRotations,
                                  float damage, int damageInterval, boolean piercing,
                                  boolean lockOnTarget) {
@@ -85,10 +85,10 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.beamLength = beamLength;
         this.beamWidth = beamWidth;
         this.beamHeight = beamHeight;
-        this.innerColor = colorData.innerColor;
-        this.outerColor = colorData.outerColor;
-        this.outerColorEnabled = colorData.outerColorEnabled;
-        this.outerColorWidth = colorData.outerColorWidth;
+        this.innerColor = displayData.innerColor;
+        this.outerColor = displayData.outerColor;
+        this.outerColorEnabled = displayData.outerColorEnabled;
+        this.outerColorWidth = displayData.outerColorWidth;
         this.sweepSpeed = sweepSpeed;
         this.numberOfRotations = numberOfRotations;
         this.damage = damage;

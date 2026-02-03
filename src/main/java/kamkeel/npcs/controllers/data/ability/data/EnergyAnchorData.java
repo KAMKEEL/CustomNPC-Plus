@@ -35,14 +35,22 @@ public class EnergyAnchorData implements IEnergyAnchorData {
         this.anchorOffsetZ = anchorOffsetZ;
     }
 
-    @Override
     public AnchorPoint getAnchorPoint() {
         return anchorPoint;
     }
 
-    @Override
     public void setAnchorPoint(AnchorPoint anchorPoint) {
         this.anchorPoint = anchorPoint;
+    }
+
+    @Override
+    public int getAnchor() {
+        return anchorPoint.ordinal();
+    }
+
+    @Override
+    public void setAnchor(int anchor) {
+        this.anchorPoint = AnchorPoint.fromOrdinal(anchor);
     }
 
     @Override

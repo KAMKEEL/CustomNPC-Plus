@@ -1,6 +1,5 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -12,7 +11,6 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Orb projectile - spherical homing energy ball.
@@ -22,23 +20,14 @@ import java.util.UUID;
  */
 public class EntityAbilityOrb extends EntityAbilityProjectile {
 
-    // Orb-specific movement properties
-    private float speed = 0.5f;
-    private boolean homing = true;
-    private float homingStrength = 0.35f;  // Increased from 0.15 for better tracking
-    private float homingRange = 20.0f;
-
     // Charging state (during windup)
     private boolean charging = false;
     private int chargeDuration = 40;
     private int chargeTick = 0;
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
     private float targetSize = 1.0f; // Full size to grow to during charging
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
-
-    private UUID siblingUUID = null;
 
     public EntityAbilityOrb(World world) {
         super(world);
@@ -77,19 +66,15 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      */
     public EntityAbilityOrb(World world, EntityLivingBase owner, EntityLivingBase target,
                             double x, double y, double z, float orbSize,
-                            EnergyDisplayData color, EnergyCombatData combat,
-                            EnergyTrajectoryData homing, EnergyLightningData lightning,
+                            EnergyDisplayData display, EnergyCombatData combat,
+                            EnergyHomingData homing, EnergyLightningData lightning,
                             EnergyLifespanData lifespan) {
         super(world);
 
         // Initialize base properties
-        initProjectile(owner, target, x, y, z, orbSize, color, combat, lightning, lifespan);
+        initProjectile(owner, target, x, y, z, orbSize, display, combat, lightning, lifespan);
 
-        // Orb-specific properties
-        this.speed = homing.speed;
-        this.homing = homing.homing;
-        this.homingStrength = homing.homingStrength;
-        this.homingRange = homing.homingRange;
+        this.homingData = homing;
 
         // Calculate initial velocity toward target
         if (target != null) {
@@ -136,20 +121,13 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityLivingBase owner, float orbSize, EnergyDisplayData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float orbSize, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
         // Set visual properties
-        this.innerColor = color.innerColor;
-        this.outerColor = color.outerColor;
-        this.outerColorEnabled = color.outerColorEnabled;
-        this.outerColorWidth = color.outerColorWidth;
-        this.rotationSpeed = color.rotationSpeed;
-        this.lightningEffect = lightning.lightningEffect;
-        this.lightningDensity = lightning.lightningDensity;
-        this.lightningRadius = lightning.lightningRadius;
-        this.lightningFadeTime = lightning.lightningFadeTime;
+        this.displayData = display;
+        this.lightningData = lightning;
 
         // Set charging state
         this.setCharging(true);
@@ -198,16 +176,16 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         prevPosZ = posZ;
 
         // Fire forward based on owner facing direction
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(0); // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            motionY = -Math.sin(pitch) * speed;
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            motionY = -Math.sin(pitch) * getSpeed();
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         } else {
             // Default: fire forward (positive X in model space)
-            motionX = speed;
+            motionX = getSpeed();
             motionY = 0;
             motionZ = 0;
         }
@@ -228,7 +206,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         startZ = posZ;
 
         // Calculate velocity toward target
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
 
         if (target != null) {
             double dx = target.posX - posX;
@@ -236,16 +214,16 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
             double dz = target.posZ - posZ;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
-                motionX = (dx / len) * speed;
-                motionY = (dy / len) * speed;
-                motionZ = (dz / len) * speed;
+                motionX = (dx / len) * getSpeed();
+                motionY = (dy / len) * getSpeed();
+                motionZ = (dz / len) * getSpeed();
             }
         } else if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            motionY = -Math.sin(pitch) * speed;
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            motionY = -Math.sin(pitch) * getSpeed();
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         }
     }
 
@@ -277,7 +255,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         if (this.isCollidedHorizontally || this.isCollidedVertically) {
             if (!worldObj.isRemote) {
                 hasHit = true;
-                if (explosive) {
+                if (isExplosive()) {
                     doExplosion();
                 }
             }
@@ -296,9 +274,9 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     }
 
     private void updateHoming() {
-        if (!homing) return;
+        if (!isHoming()) return;
 
-        Entity target = getTarget();
+        Entity target = getTargetEntity();
         if (target == null || !target.isEntityAlive()) return;
 
         double dx = target.posX - posX;
@@ -306,21 +284,21 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         double dz = target.posZ - posZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        if (dist <= homingRange && dist > 0) {
+        if (dist <= getHomingRange() && dist > 0) {
             // Calculate effective homing strength - increases when closer to commit to target
             // This prevents orbiting behavior at close range
-            float effectiveStrength = homingStrength;
-            if (dist < homingRange * 0.3) {
+            float effectiveStrength = getHomingStrength();
+            if (dist < getHomingRange() * 0.3) {
                 // Within 30% of homing range, dramatically increase strength to commit
-                effectiveStrength = Math.min(1.0f, homingStrength * 2.5f);
-            } else if (dist < homingRange * 0.6) {
+                effectiveStrength = Math.min(1.0f, getHomingStrength() * 2.5f);
+            } else if (dist < getHomingRange() * 0.6) {
                 // Within 60% of homing range, moderately increase strength
-                effectiveStrength = Math.min(0.8f, homingStrength * 1.5f);
+                effectiveStrength = Math.min(0.8f, getHomingStrength() * 1.5f);
             }
 
-            double desiredVX = (dx / dist) * speed;
-            double desiredVY = (dy / dist) * speed;
-            double desiredVZ = (dz / dist) * speed;
+            double desiredVX = (dx / dist) * getSpeed();
+            double desiredVY = (dy / dist) * getSpeed();
+            double desiredVZ = (dz / dist) * getSpeed();
 
             motionX += (desiredVX - motionX) * effectiveStrength;
             motionY += (desiredVY - motionY) * effectiveStrength;
@@ -329,9 +307,9 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
             // Normalize to maintain speed
             double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
             if (vLen > 0) {
-                motionX = (motionX / vLen) * speed;
-                motionY = (motionY / vLen) * speed;
-                motionZ = (motionZ / vLen) * speed;
+                motionX = (motionX / vLen) * getSpeed();
+                motionY = (motionY / vLen) * getSpeed();
+                motionZ = (motionZ / vLen) * getSpeed();
             }
         }
     }
@@ -344,7 +322,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             hasHit = true;
-            if (explosive) {
+            if (isExplosive()) {
                 posX = blockHit.hitVec.xCoord;
                 posY = blockHit.hitVec.yCoord;
                 posZ = blockHit.hitVec.zCoord;
@@ -369,7 +347,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
             hasHit = true;
 
-            if (explosive) {
+            if (isExplosive()) {
                 doExplosion();
             } else {
                 applyDamage(entity);
@@ -386,7 +364,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
     private void updateCharging() {
         chargeTick++;
 
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner == null || owner.isDead) {
             setDead();
             return;
@@ -423,47 +401,15 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
     // ==================== GETTERS ====================
 
-    public float getSpeed() {
-        return speed;
-    }
-
-    public boolean isHoming() {
-        return homing;
-    }
-
-    public float getHomingStrength() {
-        return homingStrength;
-    }
-
-    public float getHomingRange() {
-        return homingRange;
-    }
-
     // Legacy getter for renderer compatibility
     public float getOrbSize() {
         return size;
-    }
-
-    public UUID getSiblingUUID() {
-        return siblingUUID;
-    }
-
-    public void setSiblingUUID(UUID siblingUUID) {
-        if (siblingUUID == null)
-            return;
-
-        if (this.siblingUUID == null)
-            this.siblingUUID = siblingUUID;
     }
 
     // ==================== NBT ====================
 
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
-        this.speed = nbt.hasKey("OrbSpeed") ? nbt.getFloat("OrbSpeed") : 0.5f;
-        this.homing = !nbt.hasKey("Homing") || nbt.getBoolean("Homing");
-        this.homingStrength = nbt.hasKey("HomingStrength") ? nbt.getFloat("HomingStrength") : 0.15f;
-        this.homingRange = nbt.hasKey("HomingRange") ? nbt.getFloat("HomingRange") : 20.0f;
         // Charging state
         boolean isCharging = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
         this.charging = isCharging;
@@ -471,27 +417,15 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
         this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
-        // Anchor data
-        this.anchorData.readNBT(nbt);
-
-        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
     protected void writeProjectileNBT(NBTTagCompound nbt) {
-        nbt.setFloat("OrbSpeed", speed);
-        nbt.setBoolean("Homing", homing);
-        nbt.setFloat("HomingStrength", homingStrength);
-        nbt.setFloat("HomingRange", homingRange);
         // Charging state
         nbt.setBoolean("Charging", isCharging());
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
         anchorData.writeNBT(nbt);
         nbt.setFloat("TargetSize", targetSize);
-
-        if (siblingUUID instanceof UUID) {
-            nbt.setString("SiblingUUID", siblingUUID.toString());
-        }
     }
 }

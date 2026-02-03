@@ -109,7 +109,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             EnergyDisplayData colorData = new EnergyDisplayData(getOrbColor(stack, false), getOrbColor(stack, true));
             EnergyLightningData lightning = new EnergyLightningData();
             EnergyLifespanData lifespan = new EnergyLifespanData(100, 72000);
-            EnergyTrajectoryData homing = new EnergyTrajectoryData();
+            EnergyHomingData homing = new EnergyHomingData();
 
             homing.speed = 0.5f;
             homing.homingStrength = 0.35f;

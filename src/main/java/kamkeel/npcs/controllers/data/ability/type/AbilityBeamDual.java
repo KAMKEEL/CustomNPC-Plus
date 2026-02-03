@@ -37,7 +37,7 @@ public class AbilityBeamDual extends Ability {
         new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 6.0f),
     };
     private EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
-    private EnergyTrajectoryData homingData = new EnergyTrajectoryData(0.4f, true, 0.1f, 15.0f);
+    private EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
     private EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
@@ -125,8 +125,8 @@ public class AbilityBeamDual extends Ability {
                 colorData[1], combatData, homingData, lightningData[1], lifespanData,
                 lockMovement.locksActive());
 
-            beamEntity.setSiblingUUID(beamEntity2.getPersistentID());
-            beamEntity2.setSiblingUUID(beamEntity.getPersistentID());
+            beamEntity.setSiblingEntityId(beamEntity2.getEntityId());
+            beamEntity2.setSiblingEntityId(beamEntity.getEntityId());
 
             beamEntity.setupCharging(anchorData[0], windUpTicks, offsetDist);
             beamEntity2.setupCharging(anchorData[1], windUpTicks, offsetDist);

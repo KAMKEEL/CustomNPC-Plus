@@ -39,7 +39,7 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
     // Data classes
     private EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f);
     private EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
-    private EnergyTrajectoryData homingData = new EnergyTrajectoryData(0.4f, true, 0.1f, 15.0f);
+    private EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
     private EnergyLightningData lightningData = new EnergyLightningData();
     private EnergyLifespanData lifespanData = new EnergyLifespanData(25.0f, 200);
     private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);

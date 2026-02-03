@@ -36,7 +36,7 @@ public class AbilityOrbDual extends Ability {
         new EnergyDisplayData(), new EnergyDisplayData()
     };
     public final EnergyCombatData combatData = new EnergyCombatData();
-    public final EnergyTrajectoryData homingData = new EnergyTrajectoryData();
+    public final EnergyHomingData homingData = new EnergyHomingData();
     public final EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
@@ -118,8 +118,8 @@ public class AbilityOrbDual extends Ability {
                 spawnPos2.xCoord, spawnPos2.yCoord, spawnPos2.zCoord, orbSize,
                 colorData[1], combatData, homingData, lightningData[1], lifespanData);
 
-            orbEntity.setSiblingUUID(orbEntity2.getPersistentID());
-            orbEntity2.setSiblingUUID(orbEntity.getPersistentID());
+            orbEntity.setSiblingEntityId(orbEntity2.getEntityId());
+            orbEntity2.setSiblingEntityId(orbEntity.getEntityId());
 
             orbEntity.setupCharging(anchorData[0], windUpTicks);
             orbEntity2.setupCharging(anchorData[1], windUpTicks);

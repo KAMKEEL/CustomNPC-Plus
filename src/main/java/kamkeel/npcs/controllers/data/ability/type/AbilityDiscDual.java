@@ -45,7 +45,7 @@ public class AbilityDiscDual extends Ability {
         new EnergyDisplayData(0xFFFFFF, 0x8800FF, true, 0.4f, 0.5f, 5.0f)
     };
     private EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
-    private EnergyTrajectoryData homingData = new EnergyTrajectoryData(0.6f, true, 0.12f, 18.0f);
+    private EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
     public final EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
@@ -131,8 +131,8 @@ public class AbilityDiscDual extends Ability {
                 colorData[1], combatData, homingData, lightningData[1], lifespanData,
                 boomerang, boomerangDelay);
 
-            discEntity.setSiblingUUID(discEntity2.getPersistentID());
-            discEntity2.setSiblingUUID(discEntity.getPersistentID());
+            discEntity.setSiblingEntityId(discEntity2.getEntityId());
+            discEntity2.setSiblingEntityId(discEntity.getEntityId());
 
             discEntity.setupCharging(anchorData[0], windUpTicks);
             discEntity2.setupCharging(anchorData[1], windUpTicks);
