@@ -481,6 +481,7 @@ public abstract class Ability implements IAbility {
     @SideOnly(Side.CLIENT)
     public final List<FieldDef> getAllFieldDefinitions() {
         List<FieldDef> all = new ArrayList<>(getBaseFieldDefinitions());
+        modifyBaseFieldDefinitions(all);
         List<FieldDef> typeDefs = getFieldDefinitions();
         // Default tab for type-specific fields that don't explicitly set one
         for (FieldDef def : typeDefs) {
@@ -490,6 +491,17 @@ public abstract class Ability implements IAbility {
         }
         all.addAll(typeDefs);
         return all;
+    }
+
+    /**
+     * Override to modify the base field definitions before type-specific fields are added.
+     * Use {@link FieldDef#insertBefore}, {@link FieldDef#insertAfter}, or direct list
+     * manipulation to add, remove, or reorder base fields.
+     *
+     * @param baseFields The mutable list of base fields (General/Target/Effects tabs)
+     */
+    @SideOnly(Side.CLIENT)
+    protected void modifyBaseFieldDefinitions(List<FieldDef> baseFields) {
     }
 
     /**
