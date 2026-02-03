@@ -66,8 +66,8 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private AbilityPreviewExecutor previewExecutor;
     private long prevTick = 0;
 
-    public GuiNpcManageAbilities(EntityNPCInterface npc) {
-        super(npc);
+    public GuiNpcManageAbilities(EntityNPCInterface npc, boolean hasMenuNpc) {
+        super(npc, hasMenuNpc);
 
         // Layout offset
         this.xOffset = -148 + 110;
