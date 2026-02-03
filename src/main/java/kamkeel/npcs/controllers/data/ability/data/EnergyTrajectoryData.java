@@ -7,6 +7,7 @@ import noppes.npcs.scripted.NpcAPI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     public int currentPath = 0;
@@ -32,64 +33,63 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     @Override
     public int getDelay(int path) {
         if (getPath(path) == null) return -1;
-        return getPath(path).delayTicks;
+        return getPath(path).getDelay();
     }
 
     @Override
     public void setDelay(int path, int ticks) {
         if (getPath(path) == null) return;
-        getPath(path).delayTicks = ticks;
+        getPath(path).setDelay(ticks);
     }
 
     @Override
     public IPos getPos(int path) {
-        if (getPath(path) == null) return null;
-        return getPath(path).coords;
+        IPath p = getPath(path);
+        return p == null ? null : p.getPos();
     }
 
     @Override
-    public void setPos(int path, IPos coords) {
-        if (getPath(path) == null) return;
-        getPath(path).coords = coords;
+    public void setPos(int path, IPos pos) {
+        IPath p = getPath(path);
+        if (p != null) p.setPos(pos);
     }
 
     @Override
     public double getX(int path) {
-        if (getPos(path) == null) return 0;
-        return getPos(path).getX();
-    }
-
-    @Override
-    public void setX(int path, double x) {
-        if (getPos(path) == null) return;
-        setPos(path, NpcAPI.Instance().getIPos(x, getY(path), getZ(path)));
+        IPath p = getPath(path);
+        return p == null ? 0 : p.getX();
     }
 
     @Override
     public double getY(int path) {
-        if (getPos(path) == null) return 0;
-        return getPos(path).getY();
-    }
-
-    @Override
-    public void setY(int path, double y) {
-        if (getPos(path) == null) return;
-        setPos(path, NpcAPI.Instance().getIPos(getX(path), y, getZ(path)));
+        IPath p = getPath(path);
+        return p == null ? 0 : p.getY();
     }
 
     @Override
     public double getZ(int path) {
-        if (getPos(path) == null) return 0;
-        return getPos(path).getZ();
+        IPath p = getPath(path);
+        return p == null ? 0 : p.getZ();
+    }
+    @Override
+    public void setX(int path, double x) {
+        IPath p = getPath(path);
+        if (p != null) p.setX(x);
+    }
+
+    @Override
+    public void setY(int path, double y) {
+        IPath p = getPath(path);
+        if (p != null) p.setY(y);
     }
 
     @Override
     public void setZ(int path, double z) {
-        if (getPos(path) == null) return;
-        setPos(path, NpcAPI.Instance().getIPos(getX(path), getY(path), z));
+        IPath p = getPath(path);
+        if (p != null) p.setZ(z);
     }
 
-    public Path getPath(int path) {
+    public IPath getPath(int path) {
         if (path < 0 || path >= trajectory.size()) return null;
         return trajectory.get(path);
     }
@@ -111,23 +111,26 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
 
     @Override
     public void setPath(int path, double x, double y, double z, int delay) {
-        Path newPath = (Path) createPath(x, y, z, delay);
+        Path newPath = new Path(
+                NpcAPI.Instance().getIPos(x, y, z),
+                delay
+        );
 
-        if (trajectory.isEmpty()) {
-            trajectory.add(newPath);
-        } else {
-            trajectory.set(path, newPath);
+        while (trajectory.size() <= path) {
+            trajectory.add(null);
         }
+
+        trajectory.set(path, newPath);
     }
 
     @Override
-    public IPath createPath(IPos coords) {
-        return new Path(coords, 0);
+    public IPath createPath(IPos pos) {
+        return new Path(pos, 0);
     }
 
     @Override
-    public IPath createPath(IPos coords, int delay) {
-        return new Path(coords, delay);
+    public IPath createPath(IPos pos, int delay) {
+        return new Path(pos, delay);
     }
 
     @Override
@@ -140,13 +143,70 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         return new Path(NpcAPI.Instance().getIPos(x, y, z), delay);
     }
 
+    @Override
+    public void forEach(BiConsumer<Integer, IPath> lambda) {
+        for (int i = 0; i < trajectory.size(); i++) {
+            lambda.accept(i, trajectory.get(i));
+        }
+    }
+
     public static class Path implements IEnergyTrajectoryData.IPath{
-        public IPos coords;
+        public IPos pos;
         public int delayTicks;
 
-        public Path(IPos coords, int delayTicks) {
-            this.coords = coords;
+        public Path(IPos pos, int delayTicks) {
+            this.pos = pos;
             this.delayTicks = delayTicks;
+        }
+
+        @Override
+        public IPos getPos() {
+            return pos;
+        }
+
+        @Override
+        public void setPos(IPos pos) {
+            this.pos = pos;
+        }
+
+        @Override
+        public int getDelay() {
+            return delayTicks;
+        }
+
+        @Override
+        public void setDelay(int delayTicks) {
+            this.delayTicks = delayTicks;
+        }
+
+        @Override
+        public double getX() {
+            return pos.getX();
+        }
+
+        @Override
+        public void setX(double x) {
+            this.pos = NpcAPI.Instance().getIPos(x, getY(), getZ());
+        }
+
+        @Override
+        public double getY() {
+            return pos.getY();
+        }
+
+        @Override
+        public void setY(double y) {
+            this.pos = NpcAPI.Instance().getIPos(getX(), y, getZ());
+        }
+
+        @Override
+        public double getZ() {
+            return pos.getZ();
+        }
+
+        @Override
+        public void setZ(double z) {
+            this.pos = NpcAPI.Instance().getIPos(pos.getX(), pos.getY(), z);
         }
     }
 }
