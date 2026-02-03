@@ -3,8 +3,6 @@ package kamkeel.npcs.util;
 import net.minecraft.entity.player.EntityPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
 
@@ -70,14 +68,14 @@ public class VaultUtil {
         }
 
         try {
-            Class<?> offlinePlayerClass = Class.forName("org.bukkit.OfflinePlayer");
+            Class<?> offlinePlayerClass = BukkitUtil.getOfflinePlayerClass();
             if (offlinePlayerClass == null) {
                 logger.error("Could not get OfflinePlayer class from BukkitUtil");
                 return;
             }
 
             // Load Vault classes
-            Plugin vault = Bukkit.getPluginManager().getPlugin("Vault");
+            Object vault = BukkitUtil.getPlugin("Vault");
             if (vault == null)
                 return;
             ClassLoader vaultLoader = vault.getClass().getClassLoader();
