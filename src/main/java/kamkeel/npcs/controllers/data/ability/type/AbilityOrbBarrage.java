@@ -16,6 +16,7 @@ import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
@@ -183,17 +184,34 @@ public class AbilityOrbBarrage extends Ability {
     }
 
     @Override
+    public boolean canInterrupt(DamageSource source) {
+        // Can be interrupted if the caster is hit when the beam is moving
+        if (!interruptible) {
+            return false;
+        }
+
+        // Only direct physical hits can interrupt, not magic, fire, or other indirect damage
+        if (source == null) {
+            return false;
+        }
+
+        // Reject indirect damage types
+        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion()) {
+            return false;
+        }
+
+        // Reject damage without a direct attacker entity
+        if (source.getEntity() == null) {
+            return false;
+        }
+
+        // Direct hit from an entity - can interrupt
+        return true;
+    }
+
+    @Override
     public void cleanup() {
         currentOrb = 0;
-
-        if (orbEntities != null && !orbEntities.isEmpty()) {
-            for (EntityAbilityOrb orbEntity : orbEntities) {
-                if (orbEntity != null && !orbEntity.isDead) {
-                    orbEntity.setDead();
-                }
-            }
-            orbEntities.clear();
-        }
 
         if (chargingEntities != null) {
             for (int i = 0; i < chargingEntities.length; i++) {
@@ -203,6 +221,15 @@ public class AbilityOrbBarrage extends Ability {
                 chargingEntities[i] = null;
             }
             chargingEntities = null;
+        }
+
+        if (orbEntities != null && !orbEntities.isEmpty()) {
+            for (EntityAbilityOrb orbEntity : orbEntities) {
+                if (orbEntity != null && !orbEntity.isDead) {
+                    orbEntity.setDead();
+                }
+            }
+            orbEntities.clear();
         }
     }
 
@@ -567,9 +594,9 @@ public class AbilityOrbBarrage extends Ability {
             FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect).tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                    .range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect),
+                    .range(0.01f, 100f).visibleWhen(this::hasLightningEffect),
                 FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                    .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
+                    .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
             ).tab("ability.tab.visual")
         ));
     }

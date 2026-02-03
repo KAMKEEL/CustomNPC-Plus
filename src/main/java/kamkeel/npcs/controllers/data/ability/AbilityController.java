@@ -368,7 +368,7 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:dual_disc", AbilityDisc::new);
         registerType("cnpc:dual_disc", AbilityDiscDual::new);
         registerType("cnpc:laser_shot", AbilityLaserShot::new);
-        registerType("cnpc:beam", AbilityEnergyBeam::new);
+        registerType("cnpc:beam", AbilityBeam::new);
         registerType("cnpc:dual_beam", AbilityBeamDual::new);
 
         // Movement abilities

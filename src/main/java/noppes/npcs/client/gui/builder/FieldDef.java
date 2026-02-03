@@ -220,6 +220,16 @@ public class FieldDef {
         return this;
     }
 
+    public FieldDef min(float min) {
+        this.min = min;
+        return this;
+    }
+
+    public FieldDef max(float max) {
+        this.max = max;
+        return this;
+    }
+
     public FieldDef visibleWhen(BooleanSupplier condition) {
         this.visibleWhen = condition;
         return this;

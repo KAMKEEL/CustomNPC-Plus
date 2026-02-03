@@ -329,9 +329,9 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
                 .tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                    .range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect),
+                    .range(0.01f, 100f).visibleWhen(this::hasLightningEffect),
                 FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                    .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
+                    .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
             ).tab("ability.tab.visual")
         ));
     }
