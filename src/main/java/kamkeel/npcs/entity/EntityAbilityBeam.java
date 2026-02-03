@@ -460,13 +460,11 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             );
         }
 
-        // Offset downward by half headSize to center
-        double centeredY = pos.yCoord - headSize * 0.5;
-        setPosition(pos.xCoord, centeredY, pos.zCoord);
+        setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 
         // Also update origin for when firing starts
         startX = pos.xCoord;
-        startY = centeredY;
+        startY = pos.yCoord;
         startZ = pos.zCoord;
     }
 
