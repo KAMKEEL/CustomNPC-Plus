@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util;
 
 import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.RenderHelper;
@@ -151,8 +152,23 @@ public class GuiNpcButton extends GuiButton {
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (!this.visible)
             return;
+        // Auto-truncate display text if wider than button
+        String original = this.displayString;
+        FontRenderer fr = mc.fontRenderer;
+        if (fr != null) {
+            int maxTextWidth = this.width - 6;
+            if (fr.getStringWidth(original) > maxTextWidth) {
+                String ellipsis = "...";
+                int targetWidth = maxTextWidth - fr.getStringWidth(ellipsis);
+                if (targetWidth > 0) {
+                    this.displayString = fr.trimStringToWidth(original, targetWidth) + ellipsis;
+                }
+            }
+        }
         // First, draw the button normally using the superclass method.
         super.drawButton(mc, mouseX, mouseY);
+        // Restore original display string
+        this.displayString = original;
         // Then, if an icon texture is set, draw it.
         if (iconTexture != null) {
             mc.getTextureManager().bindTexture(iconTexture);

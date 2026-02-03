@@ -13,13 +13,14 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySlam;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilitySlam;
+import somehussar.gui.annotationHandling.GuiEditable;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -62,17 +63,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         // Default built-in animations
         this.windUpAnimationName = "Ability_Slam_Windup";
         this.activeAnimationName = "Ability_Slam_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilitySlam(this, callback);
     }
 
     /**
@@ -580,5 +570,23 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
 
     public void setLeapHeight(float leapHeight) {
         this.leapHeight = leapHeight;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getRadius, this::setRadius),
+                FieldDef.floatField("ability.knockback", this::getKnockbackStrength, this::setKnockbackStrength)
+            ),
+            FieldDef.section("ability.section.leap"),
+            FieldDef.row(
+                FieldDef.floatField("gui.speed", this::getLeapSpeed, this::setLeapSpeed),
+                FieldDef.floatField("gui.height", this::getLeapHeight, this::setLeapHeight)
+            ),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

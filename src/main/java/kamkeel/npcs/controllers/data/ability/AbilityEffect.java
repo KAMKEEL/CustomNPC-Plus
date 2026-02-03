@@ -38,6 +38,13 @@ public class AbilityEffect {
             return potionId;
         }
 
+        public static String[] getLangKeys() {
+            EffectType[] types = values();
+            String[] keys = new String[types.length];
+            for (int i = 0; i < types.length; i++) keys[i] = types[i].langKey;
+            return keys;
+        }
+
         public static EffectType fromOrdinal(int ordinal) {
             EffectType[] values = values();
             if (ordinal >= 0 && ordinal < values.length) {

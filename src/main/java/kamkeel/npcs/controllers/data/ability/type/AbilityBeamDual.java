@@ -7,6 +7,8 @@ import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -17,11 +19,11 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityBeamDual;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class AbilityBeamDual extends Ability {
     private float beamWidth = 0.4f;
@@ -62,17 +64,6 @@ public class AbilityBeamDual extends Ability {
         // Default built-in animations
         this.windUpAnimationName = "Ability_BeamDual_Windup";
         this.activeAnimationName = "Ability_BeamDual_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityBeamDual(this, callback);
     }
 
     @Override
@@ -383,6 +374,119 @@ public class AbilityBeamDual extends Ability {
     //@Override
     public void setAnchorPoint(int beam, int point) { getAnchorData(beam).anchorPoint = AnchorPoint.fromOrdinal(point); }
     public void setAnchorPoint(int point) { getAnchorData(0).anchorPoint = AnchorPoint.fromOrdinal(point); }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            // Type tab
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
+            ),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.section("ability.section.beam"),
+            FieldDef.row(
+                FieldDef.floatField("ability.beamWidth", this::getBeamWidth, this::setBeamWidth),
+                FieldDef.floatField("ability.headSize", this::getHeadSize, this::setHeadSize)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
+                FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            ),
+            FieldDef.section("ability.section.dual"),
+            FieldDef.boolField("ability.dualFire", this::isDualFire, this::setDualFire),
+            FieldDef.intField("ability.dualFireDelay", this::getDualFireDelay, this::setDualFireDelay)
+                .visibleWhen(this::isDualFire),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming)
+                .hover("ability.hover.homing"),
+            FieldDef.row(
+                FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength)
+                    .visibleWhen(this::isHoming),
+                FieldDef.floatField("gui.range", this::getHomingRange, this::setHomingRange)
+                    .visibleWhen(this::isHoming)
+            ),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive)
+                .hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
+                .visibleWhen(this::isExplosive),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
+            // Visual tab - Beam 1
+            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
+                () -> getAnchorPointEnum(0), v -> setAnchorPointEnum(0, v))
+                .tab("ability.tab.visual"),
+            FieldDef.section("ability.section.beam1").tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.innerColor",
+                () -> getInnerColor(0), v -> setInnerColor(0, v))
+                .tab("ability.tab.visual"),
+            FieldDef.boolField("ability.outerEnabled",
+                () -> isOuterColorEnabled(0), v -> setOuterColorEnabled(0, v))
+                .tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor",
+                () -> getOuterColor(0), v -> setOuterColor(0, v))
+                .tab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(0)),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth",
+                    () -> getOuterColorWidth(0), v -> setOuterColorWidth(0, v))
+                    .visibleWhen(() -> isOuterColorEnabled(0)),
+                FieldDef.floatField("ability.outerAlpha",
+                    () -> getOuterColorAlpha(0), v -> setOuterColorAlpha(0, v))
+                    .range(0, 1).visibleWhen(() -> isOuterColorEnabled(0))
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.rotationSpeed",
+                () -> getRotationSpeed(0), v -> setRotationSpeed(0, v))
+                .tab("ability.tab.visual"),
+            FieldDef.boolField("ability.lightning",
+                () -> hasLightningEffect(0), v -> setLightningEffect(0, v))
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("gui.density",
+                    () -> getLightningDensity(0), v -> setLightningDensity(0, v))
+                    .range(0.01f, 5.0f).visibleWhen(() -> hasLightningEffect(0)),
+                FieldDef.floatField("gui.radius",
+                    () -> getLightningRadius(0), v -> setLightningRadius(0, v))
+                    .range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(0))
+            ).tab("ability.tab.visual"),
+            // Visual tab - Beam 2
+            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
+                () -> getAnchorPointEnum(1), v -> setAnchorPointEnum(1, v))
+                .tab("ability.tab.visual"),
+            FieldDef.section("ability.section.beam2").tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.innerColor",
+                () -> getInnerColor(1), v -> setInnerColor(1, v))
+                .tab("ability.tab.visual"),
+            FieldDef.boolField("ability.outerEnabled",
+                () -> isOuterColorEnabled(1), v -> setOuterColorEnabled(1, v))
+                .tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor",
+                () -> getOuterColor(1), v -> setOuterColor(1, v))
+                .tab("ability.tab.visual").visibleWhen(() -> isOuterColorEnabled(1)),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth",
+                    () -> getOuterColorWidth(1), v -> setOuterColorWidth(1, v))
+                    .visibleWhen(() -> isOuterColorEnabled(1)),
+                FieldDef.floatField("ability.outerAlpha",
+                    () -> getOuterColorAlpha(1), v -> setOuterColorAlpha(1, v))
+                    .range(0, 1).visibleWhen(() -> isOuterColorEnabled(1))
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.rotationSpeed",
+                () -> getRotationSpeed(1), v -> setRotationSpeed(1, v))
+                .tab("ability.tab.visual"),
+            FieldDef.boolField("ability.lightning",
+                () -> hasLightningEffect(1), v -> setLightningEffect(1, v))
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("gui.density",
+                    () -> getLightningDensity(1), v -> setLightningDensity(1, v))
+                    .range(0.01f, 5.0f).visibleWhen(() -> hasLightningEffect(1)),
+                FieldDef.floatField("gui.radius",
+                    () -> getLightningRadius(1), v -> setLightningRadius(1, v))
+                    .range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(1))
+            ).tab("ability.tab.visual")
+        );
+    }
 
     @Override
     @SideOnly(Side.CLIENT)

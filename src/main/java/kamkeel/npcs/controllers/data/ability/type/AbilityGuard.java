@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -11,13 +9,18 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityGuard;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -45,7 +48,16 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     public enum CounterType {
         FLAT,
-        PERCENT
+        PERCENT;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case FLAT: return "ability.counter.flat";
+                case PERCENT: return "ability.counter.percent";
+                default: return name();
+            }
+        }
     }
 
     public AbilityGuard() {
@@ -62,18 +74,6 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.windUpSound = "random.anvil_use";
         this.activeSound = "random.anvil_land";
         this.allowedBy = UserType.NPC_ONLY;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityGuard(this, callback);
     }
 
     @Override
@@ -293,5 +293,29 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     public void setCounterAnimationId(int counterAnimationId) {
         this.counterAnimationId = counterAnimationId;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 1000),
+            FieldDef.floatField("ability.damageReduction", this::getDamageReduction, this::setDamageReduction),
+            FieldDef.section("ability.section.counter"),
+            FieldDef.boolField("gui.enabled", this::isCanCounter, this::setCanCounter).hover("ability.hover.canCounter"),
+            FieldDef.enumField("gui.type", CounterType.class, this::getCounterTypeEnum, this::setCounterTypeEnum)
+                .hover("ability.hover.counterType").visibleWhen(this::isCanCounter),
+            FieldDef.row(
+                FieldDef.floatField("gui.value", this::getCounterValue, this::setCounterValue)
+                    .visibleWhen(this::isCanCounter),
+                FieldDef.floatField("gui.chance", this::getCounterChance, this::setCounterChance)
+                    .visibleWhen(this::isCanCounter)
+            ),
+            FieldDef.stringField("gui.sound", this::getCounterSound, this::setCounterSound)
+                .visibleWhen(this::isCanCounter),
+            FieldDef.intField("gui.animation", this::getCounterAnimationId, this::setCounterAnimationId)
+                .visibleWhen(this::isCanCounter),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

@@ -55,7 +55,6 @@ public class GuiAnimationSelection extends SubGuiInterface implements ICustomScr
      * Constructor for selecting by name (built-in) or ID (user).
      */
     public GuiAnimationSelection(int animationId, String animationName) {
-        drawDefaultBackground = false;
         title = "";
         setBackground("menubg.png");
         xSize = 220;

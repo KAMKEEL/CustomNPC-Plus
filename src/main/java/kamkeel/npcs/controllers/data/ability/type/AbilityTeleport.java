@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -14,13 +12,17 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTeleport;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -35,7 +37,17 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     public enum TeleportMode {
         BLINK,
         BEHIND,
-        SINGLE
+        SINGLE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case BLINK: return "ability.teleport.blink";
+                case BEHIND: return "ability.teleport.behind";
+                case SINGLE: return "ability.teleport.single";
+                default: return name();
+            }
+        }
     }
 
     private static final Random RANDOM = new Random();
@@ -70,18 +82,6 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         this.showTelegraph = false;
         this.windUpSound = "mob.endermen.portal";
         this.activeSound = "mob.endermen.portal";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityTeleport(this, callback);
     }
 
     @Override
@@ -554,5 +554,38 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     public void setDamageRadius(float damageRadius) {
         this.damageRadius = damageRadius;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.enumField("ability.mode", TeleportMode.class, this::getModeEnum, this::setModeEnum),
+            FieldDef.floatField("ability.blinkRadius", this::getBlinkRadius, this::setBlinkRadius)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.row(
+                FieldDef.intField("ability.blinkCount", this::getBlinkCount, this::setBlinkCount)
+                    .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK),
+                FieldDef.intField("ability.blinkDelay", this::getBlinkDelayTicks, this::setBlinkDelayTicks)
+                    .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK)
+            ),
+            FieldDef.floatField("ability.behindDistance", this::getBehindDistance, this::setBehindDistance)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BEHIND),
+            FieldDef.boolField("ability.lineOfSight", this::isRequireLineOfSight, this::setRequireLineOfSight)
+                .hover("ability.hover.lineOfSight")
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius)
+            ),
+            FieldDef.row(
+                FieldDef.boolField("ability.damageAtStart", this::isDamageAtStart, this::setDamageAtStart)
+                    .hover("ability.hover.dmgAtStart"),
+                FieldDef.boolField("ability.damageAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
+                    .hover("ability.hover.dmgAtEnd")
+            ),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

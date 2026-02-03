@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -12,13 +10,17 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTrap;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTrap;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -34,7 +36,17 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
     public enum TrapPlacement {
         AT_CASTER,
         AT_TARGET,
-        AHEAD_OF_CASTER
+        AHEAD_OF_CASTER;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case AT_CASTER: return "ability.trapPlace.atCaster";
+                case AT_TARGET: return "ability.trapPlace.atTarget";
+                case AHEAD_OF_CASTER: return "ability.trapPlace.aheadOfCaster";
+                default: return name();
+            }
+        }
     }
 
     private int durationTicks = 200;
@@ -71,17 +83,6 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         this.telegraphType = TelegraphType.CIRCLE;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityTrap(this, callback);
     }
 
     @Override
@@ -463,5 +464,32 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
 
     public boolean isArmed() {
         return armed;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
+                .range(1, 2000),
+            FieldDef.enumField("ability.placement", TrapPlacement.class, this::getPlacementEnum, this::setPlacementEnum)
+                .hover("ability.hover.placement"),
+            FieldDef.section("ability.section.trigger"),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getTriggerRadius, this::setTriggerRadius),
+                FieldDef.intField("ability.armTime", this::getArmTime, this::setArmTime)
+            ),
+            FieldDef.row(
+                FieldDef.intField("ability.maxTriggers", this::getMaxTriggers, this::setMaxTriggers),
+                FieldDef.intField("ability.triggerCooldown", this::getTriggerCooldown, this::setTriggerCooldown)
+            ),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius)
+            ),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

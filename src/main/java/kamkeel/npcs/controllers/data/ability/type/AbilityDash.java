@@ -12,13 +12,13 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityDash;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -32,7 +32,16 @@ public class AbilityDash extends Ability implements IAbilityDash {
      */
     public enum DashMode {
         AGGRESSIVE,
-        DEFENSIVE
+        DEFENSIVE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case AGGRESSIVE: return "ability.dash.aggressive";
+                case DEFENSIVE: return "ability.dash.defensive";
+                default: return name();
+            }
+        }
     }
 
     /**
@@ -99,18 +108,6 @@ public class AbilityDash extends Ability implements IAbilityDash {
         this.showTelegraph = false;
         this.windUpSound = "mob.bat.takeoff";
         this.activeSound = "mob.endermen.portal";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityDash(this, callback);
     }
 
     @Override
@@ -350,5 +347,18 @@ public class AbilityDash extends Ability implements IAbilityDash {
 
     public DashDirection getChosenDirection() {
         return chosenDirection;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.enumField("ability.dashMode", DashMode.class, this::getDashModeEnum, this::setDashModeEnum)
+                .hover("ability.hover.dashMode"),
+            FieldDef.row(
+                FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance),
+                FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
+            )
+        );
     }
 }

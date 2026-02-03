@@ -104,8 +104,10 @@ public class GuiCustomScroll extends GuiScreen {
         GL11.glTranslatef(guiLeft, guiTop, 0.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-        if (selectable)
+        if (selectable && !hasSubGUI)
             hover = getMouseOver(i, j);
+        else if (hasSubGUI)
+            hover = -1;
 
         drawItems();
 

@@ -17,10 +17,12 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityOrb;
+
+import java.util.Arrays;
+import java.util.List;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -58,17 +60,6 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         // Default built-in animation
         this.windUpAnimationName = "Ability_Orb_Windup";
         this.activeAnimationName = "Ability_Orb_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityOrb(this, callback);
     }
 
     @Override
@@ -417,5 +408,57 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     @Override
     public int getPreviewActiveDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            // Type tab
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("stats.speed", this::getOrbSpeed, this::setOrbSpeed)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("stats.size", this::getOrbSize, this::setOrbSize),
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
+                FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            ),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"),
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
+
+
+            // Visual tab
+            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
+                .tab("ability.tab.visual"),
+            FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),
+            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                    .visibleWhen(this::isOuterColorEnabled),
+                FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                    .range(0, 1).visibleWhen(this::isOuterColorEnabled)
+            ).tab("ability.tab.visual"),
+            FieldDef.section("ability.section.effects").tab("ability.tab.visual"),
+            FieldDef.floatField("ability.rotationSpeed", this::getRotationSpeed, this::setRotationSpeed).tab("ability.tab.visual"),
+            FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect).tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
+                    .range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect),
+                FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
+                    .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
+            ).tab("ability.tab.visual")
+        );
     }
 }

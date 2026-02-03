@@ -7,6 +7,8 @@ import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.util.AnchorPointHelper;
@@ -16,10 +18,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityLaserShot;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.api.ability.type.IAbilityLaserShot;
+
+import java.util.Arrays;
+import java.util.List;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -57,17 +59,6 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         // Default built-in animations
         this.windUpAnimationName = "Ability_Laser_Windup";
         this.activeAnimationName = "Ability_Laser_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityLaserShot(this, callback);
     }
 
     @Override
@@ -252,5 +243,53 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     @Override
     public boolean spawnPreviewDuringWindup() {
         return false; // Laser has no charging, spawns at active phase
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            // Type tab
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.row(
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+                FieldDef.floatField("ability.knockbackUp", this::getKnockbackUp, this::setKnockbackUp)
+            ),
+            FieldDef.section("ability.section.beam"),
+            FieldDef.row(
+                FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth),
+                FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed)
+            ),
+            FieldDef.row(
+                FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks),
+                FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            ),
+            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
+
+            // Visual tab
+            FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),
+            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                    .visibleWhen(this::isOuterColorEnabled),
+                FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                    .range(0, 1).visibleWhen(this::isOuterColorEnabled)
+            ).tab("ability.tab.visual"),
+            FieldDef.section("ability.section.effects").tab("ability.tab.visual"),
+            FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect).tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
+                    .range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect),
+                FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
+                    .range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect)
+            ).tab("ability.tab.visual")
+        );
     }
 }

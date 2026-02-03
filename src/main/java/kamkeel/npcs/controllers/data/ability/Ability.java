@@ -29,10 +29,14 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
+import somehussar.gui.annotationHandling.GuiEditable;
 
 public abstract class Ability implements IAbility {
 
@@ -57,8 +61,8 @@ public abstract class Ability implements IAbility {
     // Timing (ticks)
     protected int cooldownTicks = 0;      // Added to global cooldown after ability completes
     protected int windUpTicks = 20;
-    protected int dazedTicks = 80;        // Only used when interrupted during WINDUP (if interruptible)
     protected boolean syncWindupWithAnimation = true;
+    protected int dazedTicks = 80;        // Only used when interrupted during WINDUP (if interruptible)
 
     // Interruption
     protected boolean interruptible = true;
@@ -337,19 +341,123 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Returns true if this ability type has custom settings that need a Type-specific tab.
-     * Override to return true if the ability has settings beyond the base Ability fields.
+     * Returns the declarative field definitions for this ability's GUI.
+     * Override in subclasses to declare type-specific and visual fields.
+     * The GUI rendering engine in SubGuiAbilityConfig uses this list to
+     * automatically build the Type and Visual tabs.
      */
-    public boolean hasTypeSettings() {
-        return false;
+    @SideOnly(Side.CLIENT)
+    public List<FieldDef> getFieldDefinitions() {
+        return Collections.emptyList();
     }
 
     /**
-     * Get the number of rows needed for type-specific settings in the GUI.
-     * Each row is approximately 24 pixels. Used for GUI layout.
+     * Returns field definitions for all base Ability fields (General, Target, Effects tabs).
      */
-    public int getTypeSettingsRowCount() {
-        return 0;
+    @SideOnly(Side.CLIENT)
+    public List<FieldDef> getBaseFieldDefinitions() {
+        List<FieldDef> defs = new ArrayList<>();
+
+        // General tab
+        defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
+            .tab("General"));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
+            FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
+        ).tab("General"));
+        defs.add(FieldDef.section("ability.section.timing").tab("General"));
+        // WindUp: 3 mutually exclusive entries based on animation/sync state
+        defs.add(FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks)
+            .tab("General").range(0, 1000)
+            .visibleWhen(() -> !hasWindUpAnimation()));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks).range(0, 1000),
+            FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
+                .hover("ability.hover.sync")
+        ).tab("General").visibleWhen(() -> hasWindUpAnimation() && !isSyncWindupWithAnimation()));
+        defs.add(FieldDef.row(
+            FieldDef.labelField("ability.windUpTicks", () -> getWindUpTicks() + "t"),
+            FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
+                .hover("ability.hover.sync")
+        ).tab("General").visibleWhen(() -> hasWindUpAnimation() && isSyncWindupWithAnimation()));
+        defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
+            .tab("General").range(0, 10000));
+        defs.add(FieldDef.section("ability.section.movement").tab("General"));
+        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
+            () -> this.getLockMovement().getDisplayKey(),
+            v -> {
+                String[] keys = LockMovementType.getDisplayKeys();
+                for (int i = 0; i < keys.length; i++) {
+                    if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
+                }
+            })
+            .tab("General").hover("ability.hover.lockMove"));
+        defs.add(FieldDef.row(
+            FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
+                .hover("ability.hover.interruptible"),
+            FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
+                .range(0, 1000).visibleWhen(this::isInterruptible)
+        ).tab("General"));
+
+        // Target tab
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v)).range(0, 100),
+            FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v)).range(1, 100)
+        ).tab("Target"));
+        if (!isTargetingModeLocked()) {
+            defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
+                this::getTargetingMode, this::setTargetingMode)
+                .tab("Target").hover("ability.hover.targeting"));
+        }
+
+        // Effects tab - Sounds
+        defs.add(FieldDef.section("ability.section.sounds").tab("Effects"));
+        defs.add(FieldDef.soundSubGui("ability.windUpSound", this::getWindUpSound, this::setWindUpSound)
+            .tab("Effects"));
+        defs.add(FieldDef.soundSubGui("ability.activeSound", this::getActiveSound, this::setActiveSound)
+            .tab("Effects"));
+        // Effects tab - Animations
+        defs.add(FieldDef.section("ability.section.animations").tab("Effects"));
+        defs.add(FieldDef.animSubGui("ability.windUpAnimation",
+            this::getWindUpAnimationId, this::setWindUpAnimationId,
+            this::getWindUpAnimationName, this::setWindUpAnimationName)
+            .tab("Effects"));
+        defs.add(FieldDef.animSubGui("ability.activeAnimation",
+            this::getActiveAnimationId, this::setActiveAnimationId,
+            this::getActiveAnimationName, this::setActiveAnimationName)
+            .tab("Effects"));
+
+        // Effects tab - Telegraph
+        TelegraphType tType = getTelegraphType();
+        if (tType != null && tType != TelegraphType.NONE) {
+            defs.add(FieldDef.section("ability.section.telegraph").tab("Effects")
+                .hover("telegraph." + tType.name().toLowerCase()));
+            defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
+                .tab("Effects").hover("ability.hover.showTelegraph"));
+            defs.add(FieldDef.colorSubGui("ability.windUpColor", this::getWindUpColor, this::setWindUpColor)
+                .tab("Effects").visibleWhen(this::isShowTelegraph));
+            defs.add(FieldDef.colorSubGui("ability.activeColor", this::getActiveColor, this::setActiveColor)
+                .tab("Effects").visibleWhen(this::isShowTelegraph));
+        }
+
+        return defs;
+    }
+
+    /**
+     * Returns ALL field definitions: base (General/Target/Effects) + type-specific (Type/Visual).
+     */
+    @SideOnly(Side.CLIENT)
+    public final List<FieldDef> getAllFieldDefinitions() {
+        List<FieldDef> all = new ArrayList<>(getBaseFieldDefinitions());
+        List<FieldDef> typeDefs = getFieldDefinitions();
+        // Default tab for type-specific fields that don't explicitly set one
+        for (FieldDef def : typeDefs) {
+            if (def.getTab() == null) {
+                def.tab("Type");
+            }
+        }
+        all.addAll(typeDefs);
+        return all;
     }
 
     /**
@@ -805,6 +913,7 @@ public abstract class Ability implements IAbility {
         nbt.setFloat("maxRange", maxRange);
         nbt.setInteger("cooldown", cooldownTicks);
         nbt.setInteger("windUp", windUpTicks);
+        nbt.setBoolean("syncWindup", syncWindupWithAnimation);
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
         nbt.setInteger("lockMovement", lockMovement.ordinal());
@@ -854,6 +963,7 @@ public abstract class Ability implements IAbility {
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
+        syncWindupWithAnimation = !nbt.hasKey("syncWindup") || nbt.getBoolean("syncWindup");
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
@@ -974,11 +1084,27 @@ public abstract class Ability implements IAbility {
     }
 
     public int getWindUpTicks() {
-        return this.calculateWindupFromAnimation();
+        return calculateWindupFromAnimation();
+    }
+
+    public int getRawWindUpTicks() {
+        return windUpTicks;
     }
 
     public void setWindUpTicks(int windUpTicks) {
         this.windUpTicks = Math.max(0, windUpTicks);
+    }
+
+    public boolean isSyncWindupWithAnimation() {
+        return syncWindupWithAnimation;
+    }
+
+    public boolean hasWindUpAnimation() {
+        return (windUpAnimationName != null && !windUpAnimationName.isEmpty()) || windUpAnimationId >= 0;
+    }
+
+    public void setSyncWindupWithAnimation(boolean syncWindupWithAnimation) {
+        this.syncWindupWithAnimation = syncWindupWithAnimation;
     }
 
     public int getDazedTicks() {
@@ -987,14 +1113,6 @@ public abstract class Ability implements IAbility {
 
     public void setDazedTicks(int dazedTicks) {
         this.dazedTicks = Math.max(0, dazedTicks);
-    }
-
-    public boolean isSyncWindupWithAnimation() {
-        return syncWindupWithAnimation;
-    }
-
-    public void setSyncWindupWithAnimation(boolean syncWindupWithAnimation) {
-        this.syncWindupWithAnimation = syncWindupWithAnimation;
     }
 
     public boolean isInterruptible() {

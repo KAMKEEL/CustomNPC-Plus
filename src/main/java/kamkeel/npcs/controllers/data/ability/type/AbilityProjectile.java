@@ -10,11 +10,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityProjectile;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.entity.EntityNPCInterface;
+
 import noppes.npcs.api.ability.type.IAbilityProjectile;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -45,17 +48,6 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
         // No telegraph for projectile - it's a ranged attack
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityProjectile(this, callback);
     }
 
     @Override
@@ -255,5 +247,25 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     public void setHomingStrength(float homingStrength) {
         this.homingStrength = homingStrength;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
+            ),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.stringEnumField("ability.projectileType", new String[]{"fireball", "arrow", "magic"}, this::getProjectileType, this::setProjectileType),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"),
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }

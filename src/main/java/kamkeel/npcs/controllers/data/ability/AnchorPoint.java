@@ -45,4 +45,17 @@ public enum AnchorPoint {
         }
         return names;
     }
+
+    @Override
+    public String toString() {
+        switch (this) {
+            case FRONT: return "ability.anchor.front";
+            case CENTER: return "ability.anchor.center";
+            case RIGHT_HAND: return "ability.anchor.rightHand";
+            case LEFT_HAND: return "ability.anchor.leftHand";
+            case ABOVE_HEAD: return "ability.anchor.aboveHead";
+            case CHEST: return "ability.anchor.chest";
+            default: return name();
+        }
+    }
 }

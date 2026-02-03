@@ -33,6 +33,8 @@ public class BukkitUtil {
     private static Method getPluginManager;
     private static Method isPluginEnabled;
 
+    private static Method getPlugin;
+
     /**
      * Initializes Bukkit integration using reflection.
      * Should be called during FMLServerStartedEvent to ensure Bukkit is fully loaded.
@@ -63,6 +65,7 @@ public class BukkitUtil {
 
             Class<?> pluginManagerClass = Class.forName("org.bukkit.plugin.PluginManager");
             isPluginEnabled = pluginManagerClass.getMethod("isPluginEnabled", String.class);
+            getPlugin = pluginManagerClass.getMethod("getPlugin", String.class);
 
             bukkitEnabled = true;
             logger.info("Bukkit integration enabled");
@@ -95,7 +98,6 @@ public class BukkitUtil {
 
     /**
      * Checks if a specific Bukkit plugin is enabled.
-     *
      * @param pluginName the plugin name to check
      * @return true if the plugin is enabled
      */
@@ -113,7 +115,6 @@ public class BukkitUtil {
 
     /**
      * Gets a Bukkit OfflinePlayer by name.
-     *
      * @param playerName the player name
      * @return the OfflinePlayer object, or null if not available
      */
@@ -130,7 +131,6 @@ public class BukkitUtil {
 
     /**
      * Gets a Bukkit Player by name (online players only).
-     *
      * @param playerName the player name
      * @return the Player object, or null if not online or not available
      */
@@ -147,7 +147,6 @@ public class BukkitUtil {
 
     /**
      * Gets a service provider from Bukkit's ServicesManager.
-     *
      * @param serviceClass the service class to get
      * @return the service provider, or null if not available
      */
@@ -185,5 +184,14 @@ public class BukkitUtil {
 
     public static Class<?> getPlayerClass() {
         return playerClass;
+    }
+
+    public static Object getPlugin(String plugin) {
+        try {
+            return getPlugin.invoke(getPluginManager.invoke(null), plugin);
+        } catch (Throwable ignored) {
+
+        }
+        return null;
     }
 }

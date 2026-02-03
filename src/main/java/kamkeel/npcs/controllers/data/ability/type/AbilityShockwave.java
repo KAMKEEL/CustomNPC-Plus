@@ -11,13 +11,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityShockwave;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityShockwave;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,17 +42,6 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "random.explode";
         this.activeSound = "random.explode";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityShockwave(this, callback);
     }
 
     @Override
@@ -175,4 +164,18 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.maxTargets = maxTargets;
     }
 
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.section("ability.section.push"),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getPushRadius, this::setPushRadius),
+                FieldDef.floatField("gui.strength", this::getPushStrength, this::setPushStrength)
+            ),
+            FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
+    }
 }

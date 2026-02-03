@@ -9,11 +9,13 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityHeavyHit;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Heavy Hit ability: Single-target melee attack with optional stun.
@@ -39,18 +41,6 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.activeSound = "random.anvil_land";
         this.windUpAnimationName = "Ability_HeavyHit_Windup";
         this.activeAnimationName = "Ability_HeavyHit_Active";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityHeavyHit(this, callback);
     }
 
     @Override
@@ -113,5 +103,17 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     public void setKnockback(float knockback) {
         this.knockback = knockback;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
+            ),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }
