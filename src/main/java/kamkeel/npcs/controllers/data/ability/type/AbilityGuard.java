@@ -58,7 +58,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         // No telegraph for guard - it's a defensive stance
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
-        this.windUpSound = "random.anvil_use";
+        this.activeSound = "random.anvil_use";
         this.allowedBy = UserType.BOTH;
 
         this.activeAnimationName = "Ability_Guard_Active";
@@ -128,11 +128,12 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
         caster.setHealth(newHealth);
 
-        if (!canCounter || !counterEligible || counterTriggered) return;
-        if (!isDirectHit(source)) return;
-
-        counterTriggered = true;
-        // Counter will be performed in onActiveTick - don't self-interrupt
+        if (!canCounter || !counterEligible || counterTriggered || !isDirectHit(source)) {
+            caster.setHealth(newHealth);
+        } else {
+            caster.setHealth(ValueUtil.clamp(caster.getHealth() + damage, 0, caster.getMaxHealth()));
+            counterTriggered = true;
+        }
     }
 
     private boolean isDirectHit(DamageSource source) {
@@ -360,5 +361,18 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
 
         ));
+
+        FieldDef.insertAfter(defs, "ability.activeSound",
+            FieldDef.soundSubGui("ability.counterSound", this::getCounterSound, this::setCounterSound)
+                .tab("Effects").visibleWhen(this::canCounter));
+
+        FieldDef.insertAfter(defs, "ability.activeAnimation",
+            FieldDef.animSubGui("ability.counterAnimation",
+                    this::getCounterAnimationId, this::setCounterAnimationId,
+                    this::getCounterAnimationName, this::setCounterAnimationName)
+                .tab("Effects").visibleWhen(this::canCounter));
+
+        FieldDef.modifyVisibility(defs, "ability.windUpAnimation", () -> false);
+        FieldDef.modifyVisibility(defs, "ability.windUpSound", () -> false);
     }
 }

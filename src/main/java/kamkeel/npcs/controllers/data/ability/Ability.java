@@ -450,17 +450,6 @@ public abstract class Ability implements IAbility {
             this::getActiveAnimationName, this::setActiveAnimationName)
             .tab("Effects"));
 
-        if (this instanceof AbilityGuard) {
-            defs.add(FieldDef.animSubGui("ability.counterAnimation",
-                () -> ((AbilityGuard) this).getCounterAnimationId(),
-                (id) -> ((AbilityGuard) this).setCounterAnimationId(id),
-                () -> ((AbilityGuard) this).getCounterAnimationName(),
-                (name) -> ((AbilityGuard) this).setCounterAnimationName(name))
-                .tab("Effects")
-                .visibleWhen(() -> ((AbilityGuard) this).canCounter())
-            );
-        }
-
         TelegraphType tType = getTelegraphType();
         if (tType != null && tType != TelegraphType.NONE) {
             defs.add(FieldDef.section("ability.section.telegraph").tab("Effects")

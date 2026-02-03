@@ -1644,6 +1644,7 @@ ability.conditions=Conditions
 # Effects Tab
 ability.windUpSound=Wind Up Sound
 ability.activeSound=Active Sound
+ability.counterSound=Counter Sound
 ability.windUpAnimation=Wind Up Animation
 ability.activeAnimation=Active Animation
 ability.counterAnimation=Counter Animation

@@ -9,6 +9,7 @@ import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -329,10 +330,29 @@ public class FieldDef {
      * @param newField    The field to insert
      * @return true if the target was found and the field was inserted
      */
-    public static boolean insertAfter(java.util.List<FieldDef> fields, String targetLabel, FieldDef newField) {
+    public static boolean insertAfter(List<FieldDef> fields, String targetLabel, FieldDef newField) {
         for (int i = 0; i < fields.size(); i++) {
             if (matchesLabel(fields.get(i), targetLabel)) {
                 fields.add(i + 1, newField);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Modify the visibility condition of a field.
+     * Searches top-level labels and ROW children.
+     *
+     * @param fields      The field list to modify
+     * @param targetLabel The label of the field to modify
+     * @param condition    The condition to replace
+     * @return true if the target was found and the condition was modified
+     */
+    public static boolean modifyVisibility(List<FieldDef> fields, String targetLabel, BooleanSupplier condition) {
+        for (FieldDef field : fields) {
+            if (matchesLabel(field, targetLabel)) {
+                field.visibleWhen(condition);
                 return true;
             }
         }
