@@ -7,10 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
-
-import java.lang.reflect.Method;
 
 /**
  * Utility class for Vault Economy integration.
@@ -56,9 +53,9 @@ public class VaultUtil {
 //    private static Method transactionSuccess;
 //
 //    // Cached economy instance
-//    private static Object economyInstance;
+//    private static Object ((Economy) economyInstance);
 
-    private static Economy economyInstance;
+    private static Object economyInstance;
 
     /**
      * Initializes the Vault integration using reflection.
@@ -78,7 +75,7 @@ public class VaultUtil {
         try {
             // Get the economy instance
             RegisteredServiceProvider<Economy> economyRegistration = Bukkit.getServicesManager().getRegistration(Economy.class);
-            economyInstance = economyRegistration.getProvider();
+            economyInstance= economyRegistration.getProvider();
             if (economyInstance != null) {
                 vaultEnabled = true;
                 logger.info("Vault Economy integration enabled - Provider: " + getEconomyName());
@@ -118,7 +115,7 @@ public class VaultUtil {
         if (!vaultEnabled || economyInstance == null) return false;
 
         try {
-            return economyInstance.isEnabled();
+            return ((Economy) economyInstance).isEnabled();
         } catch (Exception e) {
             logger.error("Error checking if economy is enabled", e);
             return false;
@@ -132,7 +129,7 @@ public class VaultUtil {
         if (!vaultEnabled || economyInstance == null) return null;
 
         try {
-            return economyInstance.getName();
+            return ((Economy) economyInstance).getName();
         } catch (Exception e) {
             logger.error("Error getting economy name", e);
             return null;
@@ -161,9 +158,9 @@ public class VaultUtil {
         try {
             OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return economyInstance.hasAccount(offlinePlayer);
+                return ((Economy) economyInstance).hasAccount(offlinePlayer);
             }
-            return economyInstance.hasAccount(playerName);
+            return ((Economy) economyInstance).hasAccount(playerName);
         } catch (Exception e) {
             logger.error("Error checking if player has account: " + playerName, e);
             return false;
@@ -187,14 +184,14 @@ public class VaultUtil {
      * @return the player's balance, or 0 if not available
      */
     public static double getBalance(String playerName) {
-        if (!vaultEnabled || economyInstance == null) return 0;
+        if (!vaultEnabled || economyInstance== null) return 0;
 
         try {
             OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return economyInstance.getBalance(offlinePlayer);
+                return ((Economy) economyInstance).getBalance(offlinePlayer);
             }
-            return economyInstance.getBalance(playerName);
+            return ((Economy) economyInstance).getBalance(playerName);
         } catch (Exception e) {
             logger.error("Error getting balance for player: " + playerName, e);
             return 0;
@@ -220,14 +217,14 @@ public class VaultUtil {
      * @return true if the player has at least the specified amount
      */
     public static boolean has(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         try {
             OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return economyInstance.has(offlinePlayer, amount);
+                return ((Economy) economyInstance).has(offlinePlayer, amount);
             }
-            return economyInstance.has(playerName, amount);
+            return ((Economy) economyInstance).has(playerName, amount);
         } catch (Exception e) {
             logger.error("Error checking if player has amount: " + playerName, e);
             return false;
@@ -253,15 +250,15 @@ public class VaultUtil {
      * @return true if the transaction was successful
      */
     public static boolean withdrawMoney(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         try {
             OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
             EconomyResponse response;
             if (offlinePlayer != null) {
-                response = economyInstance.withdrawPlayer(offlinePlayer, amount);
+                response = ((Economy) economyInstance).withdrawPlayer(offlinePlayer, amount);
             } else {
-                response = economyInstance.withdrawPlayer(playerName, amount);
+                response = ((Economy) economyInstance).withdrawPlayer(playerName, amount);
             }
             return response.transactionSuccess();
         } catch (Exception e) {
@@ -289,15 +286,15 @@ public class VaultUtil {
      * @return true if the transaction was successful
      */
     public static boolean addMoney(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         try {
             OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
             EconomyResponse response;
             if (offlinePlayer != null) {
-                response = economyInstance.depositPlayer(offlinePlayer, amount);
+                response = ((Economy) economyInstance).depositPlayer(offlinePlayer, amount);
             } else {
-                response = economyInstance.depositPlayer(playerName, amount);
+                response = ((Economy) economyInstance).depositPlayer(playerName, amount);
             }
             return response.transactionSuccess();
         } catch (Exception e) {
@@ -327,7 +324,7 @@ public class VaultUtil {
      * @return true if the transaction was successful
      */
     public static boolean setBalance(String playerName, double amount) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         double currentBalance = getBalance(playerName);
         if (currentBalance > 0) {
@@ -348,10 +345,10 @@ public class VaultUtil {
      * @return the formatted string, or the raw number as string if not available
      */
     public static String format(double amount) {
-        if (!vaultEnabled || economyInstance == null) return String.valueOf(amount);
+        if (!vaultEnabled || economyInstance== null) return String.valueOf(amount);
 
         try {
-            return economyInstance.format(amount);
+            return ((Economy) economyInstance).format(amount);
         } catch (Exception e) {
             logger.error("Error formatting amount", e);
             return String.valueOf(amount);
@@ -364,10 +361,10 @@ public class VaultUtil {
      * @return the plural currency name, or "coins" if not available
      */
     public static String getCurrencyNamePlural() {
-        if (!vaultEnabled || economyInstance == null) return "coins";
+        if (!vaultEnabled || economyInstance== null) return "coins";
 
         try {
-            return economyInstance.currencyNamePlural();
+            return ((Economy) economyInstance).currencyNamePlural();
         } catch (Exception e) {
             logger.error("Error getting currency name plural", e);
             return "coins";
@@ -380,10 +377,10 @@ public class VaultUtil {
      * @return the singular currency name, or "coin" if not available
      */
     public static String getCurrencyNameSingular() {
-        if (!vaultEnabled || economyInstance == null) return "coin";
+        if (!vaultEnabled || economyInstance== null) return "coin";
 
         try {
-            return economyInstance.currencyNameSingular();
+            return ((Economy) economyInstance).currencyNameSingular();
         } catch (Exception e) {
             logger.error("Error getting currency name singular", e);
             return "coin";
@@ -407,16 +404,16 @@ public class VaultUtil {
      * @return true if the account was created or already exists
      */
     public static boolean createAccount(String playerName) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         if (hasAccount(playerName)) return true;
 
         try {
             OfflinePlayer offlinePlayer = (OfflinePlayer) BukkitUtil.getOfflinePlayer(playerName);
             if (offlinePlayer != null) {
-                return economyInstance.createPlayerAccount(offlinePlayer);
+                return ((Economy) economyInstance).createPlayerAccount(offlinePlayer);
             }
-            return economyInstance.createPlayerAccount(playerName);
+            return ((Economy) economyInstance).createPlayerAccount(playerName);
         } catch (Exception e) {
             logger.error("Error creating account for player: " + playerName, e);
             return false;
@@ -427,10 +424,10 @@ public class VaultUtil {
      * @return true if the economy supports bank accounts
      */
     public static boolean hasBankSupport() {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         try {
-            return economyInstance.hasBankSupport();
+            return ((Economy) economyInstance).hasBankSupport();
         } catch (Exception e) {
             logger.error("Error checking bank support", e);
             return false;
@@ -444,10 +441,10 @@ public class VaultUtil {
      */
     @SuppressWarnings("unchecked")
     public static java.util.List<String> getBanks() {
-        if (!vaultEnabled || economyInstance == null) return java.util.Collections.emptyList();
+        if (!vaultEnabled || economyInstance== null) return java.util.Collections.emptyList();
 
         try {
-            return economyInstance.getBanks();
+            return ((Economy) economyInstance).getBanks();
         } catch (Exception e) {
             logger.error("Error getting banks", e);
             return java.util.Collections.emptyList();
@@ -461,10 +458,10 @@ public class VaultUtil {
      * @return the bank balance, or 0 if not available
      */
     public static double getBankBalance(String bankName) {
-        if (!vaultEnabled || economyInstance == null) return 0;
+        if (!vaultEnabled || economyInstance== null) return 0;
 
         try {
-            EconomyResponse response = economyInstance.bankBalance(bankName);
+            EconomyResponse response = ((Economy) economyInstance).bankBalance(bankName);
             return response.balance;
         } catch (Exception e) {
             logger.error("Error getting bank balance: " + bankName, e);
@@ -480,10 +477,10 @@ public class VaultUtil {
      * @return true if the bank has at least the specified amount
      */
     public static boolean bankHas(String bankName, double amount) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         try {
-            EconomyResponse response = economyInstance.bankHas(bankName, amount);
+            EconomyResponse response = ((Economy) economyInstance).bankHas(bankName, amount);
             return response.transactionSuccess();
         } catch (Exception e) {
             logger.error("Error checking bank balance: " + bankName, e);
@@ -499,10 +496,10 @@ public class VaultUtil {
      * @return true if the transaction was successful
      */
     public static boolean bankWithdraw(String bankName, double amount) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         try {
-            EconomyResponse response = economyInstance.bankWithdraw(bankName, amount);
+            EconomyResponse response = ((Economy) economyInstance).bankWithdraw(bankName, amount);
             return response.transactionSuccess();
         } catch (Exception e) {
             logger.error("Error withdrawing from bank: " + bankName, e);
@@ -518,10 +515,10 @@ public class VaultUtil {
      * @return true if the transaction was successful
      */
     public static boolean bankDeposit(String bankName, double amount) {
-        if (!vaultEnabled || economyInstance == null) return false;
+        if (!vaultEnabled || economyInstance== null) return false;
 
         try {
-            EconomyResponse response = economyInstance.bankDeposit(bankName, amount);
+            EconomyResponse response = ((Economy) economyInstance).bankDeposit(bankName, amount);
             return response.transactionSuccess();
         } catch (Exception e) {
             logger.error("Error depositing to bank: " + bankName, e);
