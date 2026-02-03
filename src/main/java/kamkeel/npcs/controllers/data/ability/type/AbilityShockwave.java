@@ -40,8 +40,10 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.cooldownTicks = 0;
         this.windUpTicks = 25;
         this.telegraphType = TelegraphType.CIRCLE;
-        this.windUpSound = "random.explode";
+        this.windUpSound = "game.tnt.primed";
         this.activeSound = "random.explode";
+        this.windUpAnimationName = "Ability_Shockwave_Windup";
+        this.activeAnimationName = "Ability_Shockwave_Active";
     }
 
     @Override
@@ -105,14 +107,12 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
                 applyEffects(entity);
             }
         }
-
-        // Shockwave completes instantly
-        signalCompletion();
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Shockwave is instant - nothing to do per-tick
+        if (tick == 10)
+            signalCompletion();
     }
 
     @Override
