@@ -29,7 +29,7 @@ public class AbilityOrbDual extends Ability {
     // Ability-specific properties
     private float orbSize = 1.0f;
     private boolean dualFire= true;
-    private int dualFireDelay = 20;
+    private int dualFireDelay = 5;
 
     // Data classes for energy properties
     public final EnergyColorData[] colorData = new EnergyColorData[]{
@@ -61,8 +61,8 @@ public class AbilityOrbDual extends Ability {
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         // Default built-in animation
-        this.windUpAnimationName = "Ability_BeamDual_Windup";
-        this.activeAnimationName = "Ability_BeamDual_Active";
+        this.windUpAnimationName = "Ability_OrbDual_Windup";
+        this.activeAnimationName = "Ability_OrbDual_Active";
     }
 
     @Override
@@ -484,10 +484,10 @@ public class AbilityOrbDual extends Ability {
             FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
             // Visual tab - Orb 1
+            FieldDef.section("ability.section.orb1").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(0), v -> setAnchorPointEnum(0, v))
                 .tab("ability.tab.visual"),
-            FieldDef.section("ability.section.orb1").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(0), v -> setInnerColor(0, v))
                 .tab("ability.tab.visual"),
@@ -520,10 +520,10 @@ public class AbilityOrbDual extends Ability {
                     .range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(0))
             ).tab("ability.tab.visual"),
             // Visual tab - Orb 2
+            FieldDef.section("ability.section.orb2").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(1), v -> setAnchorPointEnum(1, v))
                 .tab("ability.tab.visual"),
-            FieldDef.section("ability.section.orb2").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(1), v -> setInnerColor(1, v))
                 .tab("ability.tab.visual"),

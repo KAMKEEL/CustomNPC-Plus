@@ -414,10 +414,10 @@ public class AbilityBeamDual extends Ability {
                 .visibleWhen(this::isExplosive),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
             // Visual tab - Beam 1
+            FieldDef.section("ability.section.beam1").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(0), v -> setAnchorPointEnum(0, v))
                 .tab("ability.tab.visual"),
-            FieldDef.section("ability.section.beam1").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(0), v -> setInnerColor(0, v))
                 .tab("ability.tab.visual"),
@@ -450,10 +450,10 @@ public class AbilityBeamDual extends Ability {
                     .range(0.1f, 100f).visibleWhen(() -> hasLightningEffect(0))
             ).tab("ability.tab.visual"),
             // Visual tab - Beam 2
+            FieldDef.section("ability.section.beam2").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(1), v -> setAnchorPointEnum(1, v))
                 .tab("ability.tab.visual"),
-            FieldDef.section("ability.section.beam2").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(1), v -> setInnerColor(1, v))
                 .tab("ability.tab.visual"),
