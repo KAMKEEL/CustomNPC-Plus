@@ -32,12 +32,12 @@ public class AbilityBeamDual extends Ability {
     private int dualFireDelay = 0;
 
     // Data classes
-    private EnergyColorData[] colorData = new EnergyColorData[]{
-        new EnergyColorData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
-        new EnergyColorData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 6.0f),
+    private EnergyDisplayData[] colorData = new EnergyDisplayData[]{
+        new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
+        new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 6.0f),
     };
     private EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
-    private EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
+    private EnergyTrajectoryData homingData = new EnergyTrajectoryData(0.4f, true, 0.1f, 15.0f);
     private EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
@@ -261,7 +261,7 @@ public class AbilityBeamDual extends Ability {
     public int getDualFireDelay() { return dualFireDelay; }
     public void setDualFireDelay(int dualFireDelay) { this.dualFireDelay = dualFireDelay; }
 
-    private EnergyColorData getColorData(int beam) {
+    private EnergyDisplayData getColorData(int beam) {
         beam = ValueUtil.clamp(beam, 0, 1);
         return colorData[beam];
     }

@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
@@ -16,7 +16,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -104,9 +103,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      * Initialize common properties using data classes. Call from subclass constructors.
      */
     protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
-                                   double x, double y, double z, float size,
-                                   EnergyColorData color, EnergyCombatData combat,
-                                   EnergyLightningData lightning, EnergyLifespanData lifespan) {
+                                  double x, double y, double z, float size,
+                                  EnergyDisplayData color, EnergyCombatData combat,
+                                  EnergyLightningData lightning, EnergyLifespanData lifespan) {
         this.setPosition(x, y, z);
         this.startX = x;
         this.startY = y;

@@ -110,12 +110,12 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
      *                     If false, beam is free-moving with trailing length (no tail orb).
      */
     public EntityAbilityBeam(World world, EntityLivingBase owner, EntityLivingBase target,
-                              double x, double y, double z,
-                              float beamWidth, float headSize,
-                              EnergyColorData color, EnergyCombatData combat,
-                              EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan,
-                              boolean anchoredMode) {
+                             double x, double y, double z,
+                             float beamWidth, float headSize,
+                             EnergyDisplayData color, EnergyCombatData combat,
+                             EnergyTrajectoryData homing, EnergyLightningData lightning,
+                             EnergyLifespanData lifespan,
+                             boolean anchoredMode) {
         super(world);
 
         // Initialize base properties via parent
@@ -180,7 +180,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.motionZ = 0;
     }
 
-    public void setupPreview(EntityLivingBase owner, float beamWidth, float headSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
+    public void setupPreview(EntityLivingBase owner, float beamWidth, float headSize, EnergyDisplayData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 

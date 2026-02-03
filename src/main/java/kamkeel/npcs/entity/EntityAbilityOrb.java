@@ -77,8 +77,8 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      */
     public EntityAbilityOrb(World world, EntityLivingBase owner, EntityLivingBase target,
                             double x, double y, double z, float orbSize,
-                            EnergyColorData color, EnergyCombatData combat,
-                            EnergyHomingData homing, EnergyLightningData lightning,
+                            EnergyDisplayData color, EnergyCombatData combat,
+                            EnergyTrajectoryData homing, EnergyLightningData lightning,
                             EnergyLifespanData lifespan) {
         super(world);
 
@@ -136,7 +136,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityLivingBase owner, float orbSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float orbSize, EnergyDisplayData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 

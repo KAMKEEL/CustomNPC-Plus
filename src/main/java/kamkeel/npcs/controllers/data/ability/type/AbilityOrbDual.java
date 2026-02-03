@@ -32,11 +32,11 @@ public class AbilityOrbDual extends Ability {
     private int dualFireDelay = 5;
 
     // Data classes for energy properties
-    public final EnergyColorData[] colorData = new EnergyColorData[]{
-        new EnergyColorData(), new EnergyColorData()
+    public final EnergyDisplayData[] colorData = new EnergyDisplayData[]{
+        new EnergyDisplayData(), new EnergyDisplayData()
     };
     public final EnergyCombatData combatData = new EnergyCombatData();
-    public final EnergyHomingData homingData = new EnergyHomingData();
+    public final EnergyTrajectoryData homingData = new EnergyTrajectoryData();
     public final EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
@@ -253,7 +253,7 @@ public class AbilityOrbDual extends Ability {
     }
 
     // Getters & Setters
-    private EnergyColorData getColorData(int orb) {
+    private EnergyDisplayData getColorData(int orb) {
         orb = ValueUtil.clamp(orb, 0, 1);
         return colorData[orb];
     }

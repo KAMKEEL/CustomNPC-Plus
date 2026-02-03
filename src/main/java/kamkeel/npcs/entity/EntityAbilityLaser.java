@@ -88,11 +88,11 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
      * Full constructor with all parameters using data classes.
      */
     public EntityAbilityLaser(World world, EntityLivingBase owner, EntityLivingBase target,
-                               double x, double y, double z,
-                               float laserWidth,
-                               EnergyColorData color, EnergyCombatData combat,
-                               EnergyLightningData lightning, EnergyLifespanData lifespan,
-                               float expansionSpeed, int lingerTicks) {
+                              double x, double y, double z,
+                              float laserWidth,
+                              EnergyDisplayData color, EnergyCombatData combat,
+                              EnergyLightningData lightning, EnergyLifespanData lifespan,
+                              float expansionSpeed, int lingerTicks) {
         super(world);
 
         // Initialize base properties (laser doesn't rotate)
@@ -481,7 +481,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
      * Setup this laser in preview mode for GUI display.
      * Laser doesn't have charging state - spawns at active phase and fires immediately.
      */
-    public void setupPreview(EntityLivingBase owner, float laserWidth, EnergyColorData color,
+    public void setupPreview(EntityLivingBase owner, float laserWidth, EnergyDisplayData color,
                              EnergyLightningData lightning, float expansionSpeed, float maxDistance) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);

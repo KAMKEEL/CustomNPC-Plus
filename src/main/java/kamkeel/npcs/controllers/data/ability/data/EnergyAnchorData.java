@@ -2,8 +2,9 @@ package kamkeel.npcs.controllers.data.ability.data;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.ability.data.IEnergyAnchorData;
 
-public class EnergyAnchorData {
+public class EnergyAnchorData implements IEnergyAnchorData {
     public AnchorPoint anchorPoint = AnchorPoint.FRONT;
     public float anchorOffsetX = 0;
     public float anchorOffsetY = 0;
@@ -31,6 +32,46 @@ public class EnergyAnchorData {
         this.anchorPoint = AnchorPoint.fromOrdinal(anchorPoint);
         this.anchorOffsetX = anchorOffsetX;
         this.anchorOffsetY = anchorOffsetY;
+        this.anchorOffsetZ = anchorOffsetZ;
+    }
+
+    @Override
+    public AnchorPoint getAnchorPoint() {
+        return anchorPoint;
+    }
+
+    @Override
+    public void setAnchorPoint(AnchorPoint anchorPoint) {
+        this.anchorPoint = anchorPoint;
+    }
+
+    @Override
+    public float getAnchorOffsetX() {
+        return anchorOffsetX;
+    }
+
+    @Override
+    public void setAnchorOffsetX(float anchorOffsetX) {
+        this.anchorOffsetX = anchorOffsetX;
+    }
+
+    @Override
+    public float getAnchorOffsetY() {
+        return anchorOffsetY;
+    }
+
+    @Override
+    public void setAnchorOffsetY(float anchorOffsetY) {
+        this.anchorOffsetY = anchorOffsetY;
+    }
+
+    @Override
+    public float getAnchorOffsetZ() {
+        return anchorOffsetZ;
+    }
+
+    @Override
+    public void setAnchorOffsetZ(float anchorOffsetZ) {
         this.anchorOffsetZ = anchorOffsetZ;
     }
 

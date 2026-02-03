@@ -4,7 +4,7 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -74,7 +74,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     public EntityAbilitySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
                                  float beamLength, float beamWidth, float beamHeight,
-                                 EnergyColorData colorData,
+                                 EnergyDisplayData colorData,
                                  float sweepSpeed, int numberOfRotations,
                                  float damage, int damageInterval, boolean piercing,
                                  boolean lockOnTarget) {

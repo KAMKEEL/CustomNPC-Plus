@@ -40,12 +40,12 @@ public class AbilityDiscDual extends Ability {
     private int dualFireDelay = 10;
 
     // Energy data classes
-    private EnergyColorData[] colorData = new EnergyColorData[]{
-        new EnergyColorData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
-        new EnergyColorData(0xFFFFFF, 0x8800FF, true, 0.4f, 0.5f, 5.0f)
+    private EnergyDisplayData[] colorData = new EnergyDisplayData[]{
+        new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
+        new EnergyDisplayData(0xFFFFFF, 0x8800FF, true, 0.4f, 0.5f, 5.0f)
     };
     private EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
-    private EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
+    private EnergyTrajectoryData homingData = new EnergyTrajectoryData(0.6f, true, 0.12f, 18.0f);
     public final EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
@@ -265,7 +265,7 @@ public class AbilityDiscDual extends Ability {
     }
 
     // Getters & Setters
-    private EnergyColorData getColorData(int orb) {
+    private EnergyDisplayData getColorData(int orb) {
         orb = ValueUtil.clamp(orb, 0, 1);
         return colorData[orb];
     }

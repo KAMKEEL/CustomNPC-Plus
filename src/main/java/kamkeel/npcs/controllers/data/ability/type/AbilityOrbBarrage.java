@@ -37,9 +37,9 @@ public class AbilityOrbBarrage extends Ability {
     private boolean dualCharging = true;
 
     // Data classes for energy properties
-    private final EnergyColorData colorData = new EnergyColorData();
+    private final EnergyDisplayData colorData = new EnergyDisplayData();
     private final EnergyCombatData combatData = new EnergyCombatData(4.0f, 0.0f, 0.0f, false, 1.5f, 0.5f);
-    private final EnergyHomingData homingData = new EnergyHomingData();
+    private final EnergyTrajectoryData homingData = new EnergyTrajectoryData();
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData();
     private final EnergyAnchorData[] anchorData = new EnergyAnchorData[]{

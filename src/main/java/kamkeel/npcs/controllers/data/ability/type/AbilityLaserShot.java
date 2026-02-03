@@ -36,7 +36,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private int lingerTicks = 8;
 
     // Data classes
-    private final EnergyColorData colorData = new EnergyColorData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
+    private final EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
     private final EnergyCombatData combatData = new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f);
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);

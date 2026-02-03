@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
@@ -15,12 +15,10 @@ import kamkeel.npcs.entity.EntityAbilitySweeper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.LogWriter;
 import noppes.npcs.api.ability.type.IAbilitySweeper;
 
 import java.util.Arrays;
 import java.util.List;
-import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Sweeper ability: A low sweeping beam that rotates around the NPC.
@@ -44,7 +42,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     private boolean lockOnTarget = false;
 
     // Visual properties
-    private EnergyColorData colorData = new EnergyColorData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f);
+    private EnergyDisplayData colorData = new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f);
 
     // Runtime state (transient)
     private transient EntityAbilitySweeper activeEntity = null;

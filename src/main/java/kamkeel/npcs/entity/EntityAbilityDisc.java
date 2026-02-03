@@ -1,6 +1,5 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -87,12 +86,12 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Full constructor with all parameters using data classes.
      */
     public EntityAbilityDisc(World world, EntityLivingBase owner, EntityLivingBase target,
-                              double x, double y, double z,
-                              float discRadius, float discThickness,
-                              EnergyColorData color, EnergyCombatData combat,
-                              EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan,
-                              boolean boomerang, int boomerangDelay) {
+                             double x, double y, double z,
+                             float discRadius, float discThickness,
+                             EnergyDisplayData color, EnergyCombatData combat,
+                             EnergyTrajectoryData homing, EnergyLightningData lightning,
+                             EnergyLifespanData lifespan,
+                             boolean boomerang, int boomerangDelay) {
         super(world);
 
         // Initialize base properties
@@ -157,7 +156,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyDisplayData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
