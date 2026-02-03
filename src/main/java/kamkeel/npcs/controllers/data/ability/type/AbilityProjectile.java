@@ -1,30 +1,32 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityProjectile;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityProjectile;
+
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Projectile ability: Ranged attack that deals damage to target.
  * Currently instant damage - can be enhanced with custom projectile entities.
  */
-public class AbilityProjectile extends Ability {
+public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     // Type-specific parameters
-    private float damage = 8.0f;
+    private float damage = 6.0f;
     private float speed = 1.5f;
     private float knockback = 0.5f;
     private String projectileType = "fireball";
@@ -39,40 +41,37 @@ public class AbilityProjectile extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.minRange = 5.0f;
         this.maxRange = 20.0f;
-        this.cooldownTicks = 60;
+        this.cooldownTicks = 0;
         this.windUpTicks = 15;
-        this.activeTicks = 5;
-        this.recoveryTicks = 10;
+        this.lockMovement = LockMovementType.NO;
         // No telegraph for projectile - it's a ranged attack
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityProjectile(this, callback);
+    public boolean hasTypeSettings() {
+        return true;
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote || target == null) return;
 
         // Calculate direction to target
-        double dx = target.posX - npc.posX;
-        double dy = (target.posY + target.height / 2) - (npc.posY + npc.getEyeHeight());
-        double dz = target.posZ - npc.posZ;
+        double dx = target.posX - caster.posX;
+        double dy = (target.posY + target.height / 2) - (caster.posY + caster.getEyeHeight());
+        double dz = target.posZ - caster.posZ;
         double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
         if (len > 0) {
@@ -83,10 +82,10 @@ public class AbilityProjectile extends Ability {
 
         // Deal instant damage with scripted event support
         // TODO: Use custom EntityAbilityProjectile for actual tracking
-        applyAbilityDamageWithDirection(npc, target, damage, knockback, dx, dz);
+        applyAbilityDamageWithDirection(caster, target, damage, knockback, dx, dz);
 
         // Play sound
-        world.playSoundAtEntity(npc, "random.bow", 1.0f, 0.8f);
+        world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
 
         // Handle splash damage for explosive projectiles
         if (explosive && explosionRadius > 0) {
@@ -95,13 +94,13 @@ public class AbilityProjectile extends Ability {
                 target.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));
 
             for (Entity entity : entities) {
-                if (entity instanceof EntityLivingBase && entity != npc) {
+                if (entity instanceof EntityLivingBase && entity != caster) {
                     EntityLivingBase living = (EntityLivingBase) entity;
                     float dist = target.getDistanceToEntity(living);
                     if (dist < explosionRadius) {
                         float falloff = 1.0f - (dist / explosionRadius);
                         // Apply splash damage with scripted event support (no knockback)
-                        applyAbilityDamage(npc, living, damage * falloff * 0.5f, 0);
+                        applyAbilityDamage(caster, living, damage * falloff * 0.5f, 0);
                     }
                 }
             }
@@ -118,13 +117,16 @@ public class AbilityProjectile extends Ability {
         }
 
         // Spawn projectile particles (visual trail)
-        spawnProjectileParticles(world, npc, target);
+        spawnProjectileParticles(world, caster, target);
+
+        // Projectile is instant
+        signalCompletion();
     }
 
-    private void spawnProjectileParticles(World world, EntityNPCInterface npc, EntityLivingBase target) {
-        double startX = npc.posX;
-        double startY = npc.posY + npc.getEyeHeight();
-        double startZ = npc.posZ;
+    private void spawnProjectileParticles(World world, EntityLivingBase caster, EntityLivingBase target) {
+        double startX = caster.posX;
+        double startY = caster.posY + caster.getEyeHeight();
+        double startZ = caster.posZ;
         double endX = target.posX;
         double endY = target.posY + target.height / 2;
         double endZ = target.posZ;
@@ -153,7 +155,7 @@ public class AbilityProjectile extends Ability {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Projectile is instant, nothing to do per-tick
     }
 
@@ -176,7 +178,7 @@ public class AbilityProjectile extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 6.0f;
         this.speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 1.5f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
         this.projectileType = nbt.hasKey("projectileType") ? nbt.getString("projectileType") : "fireball";
@@ -187,27 +189,84 @@ public class AbilityProjectile extends Ability {
     }
 
     // Getters & Setters
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getDamage() {
+        return damage;
+    }
 
-    public float getSpeed() { return speed; }
-    public void setSpeed(float speed) { this.speed = speed; }
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public float getSpeed() {
+        return speed;
+    }
 
-    public String getProjectileType() { return projectileType; }
-    public void setProjectileType(String projectileType) { this.projectileType = projectileType; }
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
 
-    public boolean isExplosive() { return explosive; }
-    public void setExplosive(boolean explosive) { this.explosive = explosive; }
+    public float getKnockback() {
+        return knockback;
+    }
 
-    public float getExplosionRadius() { return explosionRadius; }
-    public void setExplosionRadius(float explosionRadius) { this.explosionRadius = explosionRadius; }
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
 
-    public boolean isHoming() { return homing; }
-    public void setHoming(boolean homing) { this.homing = homing; }
+    public String getProjectileType() {
+        return projectileType;
+    }
 
-    public float getHomingStrength() { return homingStrength; }
-    public void setHomingStrength(float homingStrength) { this.homingStrength = homingStrength; }
+    public void setProjectileType(String projectileType) {
+        this.projectileType = projectileType;
+    }
+
+    public boolean isExplosive() {
+        return explosive;
+    }
+
+    public void setExplosive(boolean explosive) {
+        this.explosive = explosive;
+    }
+
+    public float getExplosionRadius() {
+        return explosionRadius;
+    }
+
+    public void setExplosionRadius(float explosionRadius) {
+        this.explosionRadius = explosionRadius;
+    }
+
+    public boolean isHoming() {
+        return homing;
+    }
+
+    public void setHoming(boolean homing) {
+        this.homing = homing;
+    }
+
+    public float getHomingStrength() {
+        return homingStrength;
+    }
+
+    public void setHomingStrength(float homingStrength) {
+        this.homingStrength = homingStrength;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed).column(ColumnHint.RIGHT),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.stringEnumField("ability.projectileType", new String[]{"fireball", "arrow", "magic"}, this::getProjectileType, this::setProjectileType),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"),
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
+    }
 }

@@ -1,15 +1,19 @@
 package noppes.npcs.scripted.item;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import kamkeel.npcs.network.packets.request.script.item.ItemScriptErrorPacket;
+import kamkeel.npcs.network.packets.request.script.item.ItemScriptPacket;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandlerPacket;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.ArrayList;
@@ -18,12 +22,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, INpcScriptHandler {
-    public List<ScriptContainer> scripts = new ArrayList();
+public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, IScriptHandlerPacket {
+    public List<IScriptUnit> scripts = new ArrayList();
     public List<Integer> errored = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
     public boolean loaded = false;
+
+    private Map<Long, String> clientConsoleText = new TreeMap<>();
 
     public double durabilityValue = 1.0D;
     public int stackSize = 64;
@@ -60,6 +66,43 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         }
     }
 
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.ITEM;
+    }
+
+    @Override
+    public void requestData() {
+        ItemScriptErrorPacket.Get();
+        ItemScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        ItemScriptPacket.Save(nbt);
+    }
+
+    @Override
+    public GuiDataResult setGuiData(NBTTagCompound compound) {
+        if (compound.hasKey("LoadComplete")) {
+            return new GuiDataResult(GuiDataKind.LOAD_COMPLETE, -1);
+        }
+
+        if (compound.hasKey("ItemScriptConsole")) {
+            clientConsoleText = NBTTags.GetLongStringMap(compound.getTagList("ItemScriptConsole", 10));
+            return new GuiDataResult(GuiDataKind.TAB, -1);
+        }
+
+        setMCNbt(compound);
+        loadScriptData();
+        return new GuiDataResult(GuiDataKind.METADATA, -1);
+    }
+
+    @Override
+    public void sync() {
+        sendSavePacket(-1, getScripts().size(), getMCNbt());
+    }
+
     public int getType() {
         return 6;
     }
@@ -69,7 +112,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     @Override
-    public INpcScriptHandler getScriptHandler() {
+    public IScriptHandler getScriptHandler() {
         return this;
     }
 
@@ -95,14 +138,14 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         }
 
         for (int i = 0; i < this.scripts.size(); i++) {
-            ScriptContainer script = this.scripts.get(i);
+            IScriptUnit script = this.scripts.get(i);
             if (!this.errored.contains(i)) {
-                if (script == null || script.errored || !script.hasCode())
+                if (script == null || script.hasErrored() || !script.hasCode())
                     continue;
 
                 script.run(hookName, event);
 
-                if (script.errored) {
+                if (script.hasErrored()) {
                     this.errored.add(i);
                 }
             }
@@ -129,11 +172,11 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         this.scriptLanguage = lang;
     }
 
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         this.scripts = list;
     }
 
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return this.scripts;
     }
 
@@ -142,10 +185,12 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     public Map<Long, String> getConsoleText() {
-        return new TreeMap<>();
+        return clientConsoleText;
     }
 
     public void clearConsole() {
+        clientConsoleText.clear();
+        ItemScriptErrorPacket.Clear();
     }
 
     public int getMaxStackSize() {
@@ -234,7 +279,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     public void setAttackSpeed(int speed) {
-        if(speed <= 0) {
+        if (speed <= 0) {
             speed = 10;
         }
         this.attackSpeed = speed;

@@ -93,6 +93,7 @@ public enum EnumRequestPacket {
     AnimationGet,
     AnimationRemove,
     AnimationSave,
+    BuiltInAnimationGet,
 
     RemoteNpcsGet,
     RemoteTpToNpc,
@@ -172,6 +173,7 @@ public enum EnumRequestPacket {
     BlockScript,
     NPCScript,
     ScriptInfo,
+    ScriptFiles,
     EffectScript,
 
     DimensionTeleport,
@@ -196,6 +198,10 @@ public enum EnumRequestPacket {
     NpcAbilitiesGet,
     NpcAbilitiesSave,
     AbilitiesGetAll,
+    CustomAbilitiesGet,
+    CustomAbilityGet,
+    CustomAbilityRemove,
+    CustomAbilitySave,
     Hammer,
 
     RecipeScript,

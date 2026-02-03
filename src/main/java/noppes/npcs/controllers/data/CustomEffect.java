@@ -7,6 +7,7 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.ICustomEffect;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 
@@ -193,7 +194,7 @@ public class CustomEffect implements ICustomEffect {
                 return;
             }
 
-            script.callScript(EffectScript.ScriptType.OnEffectAdd, event);
+            script.callScript(EnumScriptType.ON_EFFECT_ADD, event);
         }
 
         EventHooks.onEffectAdded(iPlayer, playerEffect);
@@ -213,7 +214,7 @@ public class CustomEffect implements ICustomEffect {
                 return;
             }
 
-            script.callScript(EffectScript.ScriptType.OnEffectTick, event);
+            script.callScript(EnumScriptType.ON_EFFECT_TICK, event);
         }
 
         EventHooks.onEffectTick(iPlayer, playerEffect);
@@ -234,7 +235,7 @@ public class CustomEffect implements ICustomEffect {
                 return;
             }
 
-            script.callScript(EffectScript.ScriptType.OnEffectRemove, event);
+            script.callScript(EnumScriptType.ON_EFFECT_REMOVE, event);
         }
 
         EventHooks.onEffectRemove(iPlayer, playerEffect, type);

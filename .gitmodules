@@ -2,3 +2,6 @@
 	path = src/api
 	url = https://github.com/KAMKEEL/CustomNPC-Plus-API.git
 	branch = dev
+[submodule "gradle-plugins"]
+	path = gradle-plugins
+	url = https://github.com/bigguy345/dts-gradle-plugin

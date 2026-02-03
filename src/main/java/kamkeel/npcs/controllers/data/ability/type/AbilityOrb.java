@@ -2,55 +2,49 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.util.AnchorPointHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import noppes.npcs.api.ability.type.IAbilityOrb;
+
+import java.util.Arrays;
+import java.util.List;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.List;
-
 /**
- * Orb ability: Homing projectile sphere that tracks target.
- * Can be explosive on impact and/or apply debuffs.
+ * Orb ability: Spawns a homing projectile sphere that tracks target.
+ * The EntityAbilityOrb handles all movement, collision, and damage logic.
+ * This ability just configures and spawns the orb entity.
  */
-public class AbilityOrb extends Ability {
+public class AbilityOrb extends Ability implements IAbilityOrb {
 
-    private float orbSpeed = 0.5f;
+    // Ability-specific properties
     private float orbSize = 1.0f;
-    private float damage = 15.0f;
-    private float knockback = 1.0f;
-    private float maxDistance = 30.0f;
-    private int maxLifetime = 200;
 
-    private boolean homing = true;
-    private float homingStrength = 0.15f;
-    private float homingRange = 20.0f;
+    // Data classes for energy properties
+    private final EnergyColorData colorData = new EnergyColorData();
+    private final EnergyCombatData combatData = new EnergyCombatData();
+    private final EnergyHomingData homingData = new EnergyHomingData();
+    private final EnergyLightningData lightningData = new EnergyLightningData();
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData();
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
 
-    private boolean explosive = false;
-    private float explosionRadius = 3.0f;
-    private float explosionDamageFalloff = 0.5f;
-
-    private int stunDuration = 0;
-    private int slowDuration = 0;
-    private int slowLevel = 0;
-
-    // Runtime state
-    private transient double orbX, orbY, orbZ;
-    private transient double velocityX, velocityY, velocityZ;
-    private transient double startX, startY, startZ;
-    private transient boolean hasHit = false;
-    private transient int ticksAlive = 0;
+    // Transient state for orb entity (used during windup charging)
+    private transient EntityAbilityOrb orbEntity = null;
 
     public AbilityOrb() {
         this.typeId = "ability.cnpc.orb";
@@ -58,310 +52,405 @@ public class AbilityOrb extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 25.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 200;
-        this.recoveryTicks = 10;
-        this.telegraphType = TelegraphType.POINT;
-        this.showTelegraph = false;
+        this.lockMovement = LockMovementType.WINDUP;
+        this.telegraphType = TelegraphType.CIRCLE;
+        this.showTelegraph = true;
+        // Default built-in animation
+        this.windUpAnimationName = "Ability_Orb_Windup";
+        this.activeAnimationName = "Ability_Orb_Active";
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
-        return new SubGuiAbilityOrb(this, callback);
+    public boolean hasTypeSettings() {
+        return true;
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        startX = orbX = npc.posX;
-        startY = orbY = npc.posY + npc.getEyeHeight() * 0.8;
-        startZ = orbZ = npc.posZ;
-        hasHit = false;
-        ticksAlive = 0;
-
-        if (target != null) {
-            double dx = target.posX - orbX;
-            double dy = (target.posY + target.height * 0.5) - orbY;
-            double dz = target.posZ - orbZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                velocityX = (dx / len) * orbSpeed;
-                velocityY = (dy / len) * orbSpeed;
-                velocityZ = (dz / len) * orbSpeed;
-            }
-        } else {
-            float yaw = (float) Math.toRadians(npc.rotationYaw);
-            float pitch = (float) Math.toRadians(npc.rotationPitch);
-            velocityX = -Math.sin(yaw) * Math.cos(pitch) * orbSpeed;
-            velocityY = -Math.sin(pitch) * orbSpeed;
-            velocityZ = Math.cos(yaw) * Math.cos(pitch) * orbSpeed;
-        }
-    }
-
-    @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        if (hasHit) return;
-
-        ticksAlive++;
-
-        if (ticksAlive >= maxLifetime) {
-            hasHit = true;
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+        if (world.isRemote) {
+            signalCompletion();
             return;
         }
 
-        double distTraveled = Math.sqrt(
-            Math.pow(orbX - startX, 2) +
-            Math.pow(orbY - startY, 2) +
-            Math.pow(orbZ - startZ, 2)
-        );
-        if (distTraveled >= maxDistance) {
-            hasHit = true;
-            return;
+        // Start moving the orb that was spawned during windup
+        if (orbEntity != null && !orbEntity.isDead) {
+            orbEntity.startMoving(target);
         }
 
-        if (homing && target != null && target.isEntityAlive()) {
-            double targetX = target.posX;
-            double targetY = target.posY + target.height * 0.5;
-            double targetZ = target.posZ;
-
-            double distToTarget = Math.sqrt(
-                Math.pow(targetX - orbX, 2) +
-                Math.pow(targetY - orbY, 2) +
-                Math.pow(targetZ - orbZ, 2)
-            );
-
-            if (distToTarget <= homingRange) {
-                double dx = targetX - orbX;
-                double dy = targetY - orbY;
-                double dz = targetZ - orbZ;
-                double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                if (len > 0) {
-                    double desiredVX = (dx / len) * orbSpeed;
-                    double desiredVY = (dy / len) * orbSpeed;
-                    double desiredVZ = (dz / len) * orbSpeed;
-
-                    velocityX += (desiredVX - velocityX) * homingStrength;
-                    velocityY += (desiredVY - velocityY) * homingStrength;
-                    velocityZ += (desiredVZ - velocityZ) * homingStrength;
-
-                    double vLen = Math.sqrt(velocityX * velocityX + velocityY * velocityY + velocityZ * velocityZ);
-                    if (vLen > 0) {
-                        velocityX = (velocityX / vLen) * orbSpeed;
-                        velocityY = (velocityY / vLen) * orbSpeed;
-                        velocityZ = (velocityZ / vLen) * orbSpeed;
-                    }
-                }
-            }
-        }
-
-        orbX += velocityX;
-        orbY += velocityY;
-        orbZ += velocityZ;
-
-        if (!world.isRemote) {
-            checkCollision(npc, world);
-        }
+        // Ability stays active until entity dies (prevents firing another while projectile is alive)
+        // Movement locking is handled separately by the base class
     }
 
-    private void checkCollision(EntityNPCInterface npc, World world) {
-        AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
-            orbX - orbSize, orbY - orbSize, orbZ - orbSize,
-            orbX + orbSize, orbY + orbSize, orbZ + orbSize
-        );
+    @Override
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+        if (world.isRemote) return;
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+        // Spawn orb in charging mode on first tick of windup
+        if (tick == 1) {
+            // Create orb in charging mode - follows caster based on anchor point during windup
+            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
+            orbEntity = new EntityAbilityOrb(
+                world, caster, target,
+                spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
+                colorData, combatData, homingData, lightningData, lifespanData);
+            orbEntity.setupCharging(anchorData, windUpTicks);
 
-        for (EntityLivingBase entity : entities) {
-            if (entity == npc) continue;
-
-            hasHit = true;
-
-            if (explosive) {
-                doExplosion(npc, world);
-            } else {
-                // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback);
-                if (wasHit) {
-                    applyEffects(entity);
-                }
-            }
-            break;
-        }
-
-        if (!hasHit && world.getBlock((int)orbX, (int)orbY, (int)orbZ).getMaterial().isSolid()) {
-            hasHit = true;
-            if (explosive) {
-                doExplosion(npc, world);
-            }
-        }
-    }
-
-    private void doExplosion(EntityNPCInterface npc, World world) {
-        AxisAlignedBB explosionBox = AxisAlignedBB.getBoundingBox(
-            orbX - explosionRadius, orbY - explosionRadius, orbZ - explosionRadius,
-            orbX + explosionRadius, orbY + explosionRadius, orbZ + explosionRadius
-        );
-
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> blastTargets = world.getEntitiesWithinAABB(EntityLivingBase.class, explosionBox);
-
-        for (EntityLivingBase blastTarget : blastTargets) {
-            if (blastTarget == npc) continue;
-
-            double dist = Math.sqrt(
-                Math.pow(blastTarget.posX - orbX, 2) +
-                Math.pow(blastTarget.posY - orbY, 2) +
-                Math.pow(blastTarget.posZ - orbZ, 2)
-            );
-
-            if (dist <= explosionRadius) {
-                float falloff = 1.0f - (float)(dist / explosionRadius) * explosionDamageFalloff;
-                // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamage(npc, blastTarget, damage * falloff, knockback * falloff);
-                if (wasHit) {
-                    applyEffects(blastTarget);
-                }
-            }
-        }
-
-        world.playSoundEffect(orbX, orbY, orbZ, "random.explode", 1.0f, 1.0f);
-    }
-
-    private void applyKnockback(EntityLivingBase target, float strength, float upward) {
-        double dx = target.posX - orbX;
-        double dz = target.posZ - orbZ;
-        double dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist > 0) {
-            target.motionX += (dx / dist) * strength;
-            target.motionZ += (dz / dist) * strength;
-        }
-        target.motionY += upward;
-        target.velocityChanged = true;
-    }
-
-    private void applyEffects(EntityLivingBase target) {
-        if (stunDuration > 0) {
-            target.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-            target.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
-        }
-        if (slowDuration > 0 && slowLevel > 0) {
-            target.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, slowDuration, slowLevel));
+            orbEntity.setEffects(this.effects);
+            world.spawnEntityInWorld(orbEntity);
         }
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        hasHit = false;
-        ticksAlive = 0;
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+        // Signal completion when entity dies
+        if (orbEntity == null || orbEntity.isDead) {
+            orbEntity = null;
+            signalCompletion();
+        }
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        hasHit = false;
-        ticksAlive = 0;
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+        // Nothing to clean up - entity manages itself
+    }
+
+    @Override
+    public void cleanup() {
+        // Despawn orb entity if still alive
+        if (orbEntity != null && !orbEntity.isDead) {
+            orbEntity.setDead();
+        }
+        orbEntity = null;
+    }
+
+    @Override
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
+        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
+            return null;
+        }
+
+        // Create small circle telegraph at target position
+        Telegraph telegraph = Telegraph.circle(orbSize * 1.5f);
+        telegraph.setDurationTicks(windUpTicks);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        // Position at target and follow target during windup
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, caster.rotationYaw);
+        instance.setCasterEntityId(caster.getEntityId());
+        instance.setEntityIdToFollow(target.getEntityId());
+
+        return instance;
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return orbSize * 1.5f;
     }
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
-        nbt.setFloat("orbSpeed", orbSpeed);
         nbt.setFloat("orbSize", orbSize);
-        nbt.setFloat("damage", damage);
-        nbt.setFloat("knockback", knockback);
-        nbt.setFloat("maxDistance", maxDistance);
-        nbt.setInteger("maxLifetime", maxLifetime);
-        nbt.setBoolean("homing", homing);
-        nbt.setFloat("homingStrength", homingStrength);
-        nbt.setFloat("homingRange", homingRange);
-        nbt.setBoolean("explosive", explosive);
-        nbt.setFloat("explosionRadius", explosionRadius);
-        nbt.setFloat("explosionDamageFalloff", explosionDamageFalloff);
-        nbt.setInteger("stunDuration", stunDuration);
-        nbt.setInteger("slowDuration", slowDuration);
-        nbt.setInteger("slowLevel", slowLevel);
+        anchorData.writeNBT(nbt);
+        colorData.writeNBT(nbt);
+        combatData.writeNBT(nbt);
+        homingData.writeNBT(nbt);
+        lightningData.writeNBT(nbt);
+        lifespanData.writeNBT(nbt);
+        // Backward compat: old key was "orbSpeed"
+        nbt.setFloat("orbSpeed", homingData.speed);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.orbSpeed = nbt.hasKey("orbSpeed") ? nbt.getFloat("orbSpeed") : 0.5f;
         this.orbSize = nbt.hasKey("orbSize") ? nbt.getFloat("orbSize") : 1.0f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 15.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.0f;
-        this.maxDistance = nbt.hasKey("maxDistance") ? nbt.getFloat("maxDistance") : 30.0f;
-        this.maxLifetime = nbt.hasKey("maxLifetime") ? nbt.getInteger("maxLifetime") : 200;
-        this.homing = !nbt.hasKey("homing") || nbt.getBoolean("homing");
-        this.homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.15f;
-        this.homingRange = nbt.hasKey("homingRange") ? nbt.getFloat("homingRange") : 20.0f;
-        this.explosive = nbt.hasKey("explosive") && nbt.getBoolean("explosive");
-        this.explosionRadius = nbt.hasKey("explosionRadius") ? nbt.getFloat("explosionRadius") : 3.0f;
-        this.explosionDamageFalloff = nbt.hasKey("explosionDamageFalloff") ? nbt.getFloat("explosionDamageFalloff") : 0.5f;
-        this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
-        this.slowDuration = nbt.hasKey("slowDuration") ? nbt.getInteger("slowDuration") : 0;
-        this.slowLevel = nbt.hasKey("slowLevel") ? nbt.getInteger("slowLevel") : 0;
+        anchorData.readNBT(nbt);
+        colorData.readNBT(nbt);
+        combatData.readNBT(nbt);
+        homingData.readNBT(nbt);
+        lightningData.readNBT(nbt);
+        lifespanData.readNBT(nbt);
+        // Backward compat: old key was "orbSpeed"
+        if (nbt.hasKey("orbSpeed")) {
+            homingData.speed = nbt.getFloat("orbSpeed");
+        }
     }
 
     // Getters & Setters
-    public float getOrbSpeed() { return orbSpeed; }
-    public void setOrbSpeed(float orbSpeed) { this.orbSpeed = orbSpeed; }
+    public float getOrbSpeed() {
+        return homingData.speed;
+    }
 
-    public float getOrbSize() { return orbSize; }
-    public void setOrbSize(float orbSize) { this.orbSize = orbSize; }
+    public void setOrbSpeed(float orbSpeed) {
+        homingData.speed = orbSpeed;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getOrbSize() {
+        return orbSize;
+    }
 
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public void setOrbSize(float orbSize) {
+        this.orbSize = orbSize;
+    }
 
-    public float getMaxDistance() { return maxDistance; }
-    public void setMaxDistance(float maxDistance) { this.maxDistance = maxDistance; }
+    public float getMaxDistance() {
+        return lifespanData.maxDistance;
+    }
 
-    public int getMaxLifetime() { return maxLifetime; }
-    public void setMaxLifetime(int maxLifetime) { this.maxLifetime = maxLifetime; }
+    public void setMaxDistance(float maxDistance) {
+        lifespanData.maxDistance = maxDistance;
+    }
 
-    public boolean isHoming() { return homing; }
-    public void setHoming(boolean homing) { this.homing = homing; }
+    public int getMaxLifetime() {
+        return lifespanData.maxLifetime;
+    }
 
-    public float getHomingStrength() { return homingStrength; }
-    public void setHomingStrength(float homingStrength) { this.homingStrength = homingStrength; }
+    public void setMaxLifetime(int maxLifetime) {
+        lifespanData.maxLifetime = maxLifetime;
+    }
 
-    public float getHomingRange() { return homingRange; }
-    public void setHomingRange(float homingRange) { this.homingRange = homingRange; }
+    public float getDamage() {
+        return combatData.damage;
+    }
 
-    public boolean isExplosive() { return explosive; }
-    public void setExplosive(boolean explosive) { this.explosive = explosive; }
+    public void setDamage(float damage) {
+        combatData.damage = damage;
+    }
 
-    public float getExplosionRadius() { return explosionRadius; }
-    public void setExplosionRadius(float explosionRadius) { this.explosionRadius = explosionRadius; }
+    public float getKnockback() {
+        return combatData.knockback;
+    }
 
-    public float getExplosionDamageFalloff() { return explosionDamageFalloff; }
-    public void setExplosionDamageFalloff(float explosionDamageFalloff) { this.explosionDamageFalloff = explosionDamageFalloff; }
+    public void setKnockback(float knockback) {
+        combatData.knockback = knockback;
+    }
 
-    public int getStunDuration() { return stunDuration; }
-    public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }
+    public float getKnockbackUp() {
+        return combatData.knockbackUp;
+    }
 
-    public int getSlowDuration() { return slowDuration; }
-    public void setSlowDuration(int slowDuration) { this.slowDuration = slowDuration; }
+    public void setKnockbackUp(float knockbackUp) {
+        combatData.knockbackUp = knockbackUp;
+    }
 
-    public int getSlowLevel() { return slowLevel; }
-    public void setSlowLevel(int slowLevel) { this.slowLevel = slowLevel; }
+    public boolean isHoming() {
+        return homingData.homing;
+    }
 
-    // Runtime getters for rendering
-    public double getOrbX() { return orbX; }
-    public double getOrbY() { return orbY; }
-    public double getOrbZ() { return orbZ; }
-    public boolean hasHit() { return hasHit; }
+    public void setHoming(boolean homing) {
+        homingData.homing = homing;
+    }
+
+    public float getHomingStrength() {
+        return homingData.homingStrength;
+    }
+
+    public void setHomingStrength(float homingStrength) {
+        homingData.homingStrength = homingStrength;
+    }
+
+    public float getHomingRange() {
+        return homingData.homingRange;
+    }
+
+    public void setHomingRange(float homingRange) {
+        homingData.homingRange = homingRange;
+    }
+
+    public boolean isExplosive() {
+        return combatData.explosive;
+    }
+
+    public void setExplosive(boolean explosive) {
+        combatData.explosive = explosive;
+    }
+
+    public float getExplosionRadius() {
+        return combatData.explosionRadius;
+    }
+
+    public void setExplosionRadius(float explosionRadius) {
+        combatData.explosionRadius = explosionRadius;
+    }
+
+    public float getExplosionDamageFalloff() {
+        return combatData.explosionDamageFalloff;
+    }
+
+    public void setExplosionDamageFalloff(float explosionDamageFalloff) {
+        combatData.explosionDamageFalloff = explosionDamageFalloff;
+    }
+
+    public int getInnerColor() {
+        return colorData.innerColor;
+    }
+
+    public void setInnerColor(int innerColor) {
+        colorData.innerColor = innerColor;
+    }
+
+    public int getOuterColor() {
+        return colorData.outerColor;
+    }
+
+    public void setOuterColor(int outerColor) {
+        colorData.outerColor = outerColor;
+    }
+
+    public float getOuterColorWidth() {
+        return colorData.outerColorWidth;
+    }
+
+    public void setOuterColorWidth(float outerColorWidth) {
+        colorData.outerColorWidth = outerColorWidth;
+    }
+
+    public float getOuterColorAlpha() {
+        return colorData.outerColorAlpha;
+    }
+
+    public void setOuterColorAlpha(float outerColorAlpha) {
+        colorData.outerColorAlpha = outerColorAlpha;
+    }
+
+    public boolean isOuterColorEnabled() {
+        return colorData.outerColorEnabled;
+    }
+
+    public void setOuterColorEnabled(boolean outerColorEnabled) {
+        colorData.outerColorEnabled = outerColorEnabled;
+    }
+
+    public float getRotationSpeed() {
+        return colorData.rotationSpeed;
+    }
+
+    public void setRotationSpeed(float rotationSpeed) {
+        colorData.rotationSpeed = rotationSpeed;
+    }
+
+    public boolean hasLightningEffect() {
+        return lightningData.lightningEffect;
+    }
+
+    public void setLightningEffect(boolean lightningEffect) {
+        lightningData.lightningEffect = lightningEffect;
+    }
+
+    public float getLightningDensity() {
+        return lightningData.lightningDensity;
+    }
+
+    public void setLightningDensity(float lightningDensity) {
+        lightningData.lightningDensity = lightningDensity;
+    }
+
+    public float getLightningRadius() {
+        return lightningData.lightningRadius;
+    }
+
+    public void setLightningRadius(float lightningRadius) {
+        lightningData.lightningRadius = lightningRadius;
+    }
+
+    public int getLightningFadeTime() {
+        return lightningData.lightningFadeTime;
+    }
+
+    public void setLightningFadeTime(int lightningFadeTime) {
+        lightningData.lightningFadeTime = lightningFadeTime;
+    }
+
+    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
+
+    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
+
+    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
+
+    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
+
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
+
+    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
+
+    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
+
+    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
+
+    public int getAnchorPoint() {
+        return anchorData.anchorPoint.ordinal();
+    }
+
+    @Override
+    public void setAnchorPoint(int point) {
+        this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point);
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        if (npc == null || npc.worldObj == null) return null;
+
+        EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
+        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorData, windUpTicks);
+        return orb;
+    }
+
+    @Override
+    public int getPreviewActiveDuration() {
+        return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            // Type tab
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("stats.speed", this::getOrbSpeed, this::setOrbSpeed).column(ColumnHint.RIGHT),
+            FieldDef.floatField("stats.size", this::getOrbSize, this::setOrbSize).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).column(ColumnHint.RIGHT),
+            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"),
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects),
+            // Visual tab
+            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
+                .customTab("ability.tab.visual"),
+            FieldDef.section("ability.section.colors").customTab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).customTab("ability.tab.visual"),
+            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).customTab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
+            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                .customTab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                .customTab("ability.tab.visual").range(0, 1).visibleWhen(this::isOuterColorEnabled).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.effects").customTab("ability.tab.visual"),
+            FieldDef.floatField("ability.rotationSpeed", this::getRotationSpeed, this::setRotationSpeed).customTab("ability.tab.visual"),
+            FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect).customTab("ability.tab.visual"),
+            FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
+                .customTab("ability.tab.visual").range(0.01f, 5.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
+                .customTab("ability.tab.visual").range(0.1f, 10.0f).visibleWhen(this::hasLightningEffect).column(ColumnHint.RIGHT)
+        );
+    }
 }

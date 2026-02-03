@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.lang.reflect.Method;
@@ -44,6 +45,9 @@ public class CommandKamkeel extends CommandBase {
         registerCommand(new CommandCommand());
         registerCommand(new EffectCommand());
         registerCommand(new AbilityCommand());
+        registerCommand(new MoneyCommand());
+        if (ConfigMarket.AuctionEnabled)
+            registerCommand(new AuctionCommand());
         if (ConfigMain.AttributesEnabled)
             registerCommand(new AttributeCommand());
     }

@@ -1,346 +1,451 @@
 package noppes.npcs.controllers;
 
+import noppes.npcs.api.event.IAbilityEvent;
+import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IBlockEvent;
+import noppes.npcs.api.event.ICustomGuiEvent;
+import noppes.npcs.api.event.ICustomNPCsEvent;
+import noppes.npcs.api.event.IDialogEvent;
+import noppes.npcs.api.event.IFactionEvent;
+import noppes.npcs.api.event.IForgeEvent;
+import noppes.npcs.api.event.IItemEvent;
+import noppes.npcs.api.event.ILinkedItemEvent;
+import noppes.npcs.api.event.INpcEvent;
+import noppes.npcs.api.event.IPartyEvent;
+import noppes.npcs.api.event.IPlayerEvent;
+import noppes.npcs.api.event.IProjectileEvent;
+import noppes.npcs.api.event.IQuestEvent;
+import noppes.npcs.api.event.IRecipeEvent;
+import noppes.npcs.api.handler.IHookDefinition;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.data.EffectScript;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.RecipeScript;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static noppes.npcs.constants.EnumScriptType.*;
+import static noppes.npcs.constants.ScriptContext.BLOCK;
+import static noppes.npcs.constants.ScriptContext.EFFECT;
+import static noppes.npcs.constants.ScriptContext.FORGE;
+import static noppes.npcs.constants.ScriptContext.ITEM;
+import static noppes.npcs.constants.ScriptContext.LINKED_ITEM;
+import static noppes.npcs.constants.ScriptContext.NPC;
+import static noppes.npcs.constants.ScriptContext.PLAYER;
+import static noppes.npcs.constants.ScriptContext.RECIPE;
 
 /**
  * Controller for managing script hooks.
  * Allows addon mods to register custom hooks that appear in script editor GUIs.
+ *
+ * <h3>Addon Hook Registration</h3>
+ * <pre>{@code
+ * ScriptHookController.Instance.registerHook("player",
+ *     HookDefinition.of("onDBCTransform", IDBCEvent.TransformEvent.class));
+ * }</pre>
  */
 public class ScriptHookController implements IScriptHookHandler {
 
     public static ScriptHookController Instance;
 
-    // Built-in hooks per context
-    private final Map<String, List<String>> builtInHooks = new HashMap<>();
-
-    // Addon-registered hooks per context
-    private final Map<String, List<String>> addonHooks = new HashMap<>();
-
-    // All available contexts
-    private static final String[] CONTEXTS = {
-        CONTEXT_NPC,
-        CONTEXT_PLAYER,
-        CONTEXT_BLOCK,
-        CONTEXT_ITEM,
-        CONTEXT_LINKED_ITEM,
-        CONTEXT_FORGE,
-        CONTEXT_RECIPE,
-        CONTEXT_EFFECT
-    };
+    private final Map<String, Map<String, HookDefinition>> hookDefinitions = new HashMap<>();
+    private int hookRevision = 0;
 
     public ScriptHookController() {
         Instance = this;
         initializeBuiltInHooks();
     }
 
+    // ==================== INITIALIZATION ====================
+
     private void initializeBuiltInHooks() {
-        // Initialize empty lists for all contexts
-        for (String context : CONTEXTS) {
-            builtInHooks.put(context, new ArrayList<>());
-            addonHooks.put(context, new ArrayList<>());
-        }
-
-        // NPC hooks
-        registerBuiltIn(CONTEXT_NPC,
-            EnumScriptType.INIT.function,
-            EnumScriptType.TICK.function,
-            EnumScriptType.INTERACT.function,
-            EnumScriptType.DIALOG.function,
-            EnumScriptType.DAMAGED.function,
-            EnumScriptType.KILLED.function,
-            EnumScriptType.ATTACK_MELEE.function,
-            EnumScriptType.ATTACK_SWING.function,
-            EnumScriptType.RANGED_LAUNCHED.function,
-            EnumScriptType.TARGET.function,
-            EnumScriptType.COLLIDE.function,
-            EnumScriptType.KILLS.function,
-            EnumScriptType.DIALOG_CLOSE.function,
-            EnumScriptType.TIMER.function,
-            EnumScriptType.TARGET_LOST.function,
-            EnumScriptType.PROJECTILE_TICK.function,
-            EnumScriptType.PROJECTILE_IMPACT.function,
-            EnumScriptType.ABILITY_TICK.function,
-            EnumScriptType.ABILITY_EXECUTE.function,
-            EnumScriptType.ABILITY_HIT.function,
-            EnumScriptType.ABILITY_START.function,
-            EnumScriptType.ABILITY_INTERRUPT.function,
-            EnumScriptType.ABILITY_COMPLETE.function
-        );
-
-        // Player hooks
-        registerBuiltIn(CONTEXT_PLAYER,
-            EnumScriptType.INIT.function,
-            EnumScriptType.TICK.function,
-            EnumScriptType.INTERACT.function,
-            EnumScriptType.RIGHT_CLICK.function,
-            EnumScriptType.ATTACK.function,
-            EnumScriptType.ATTACKED.function,
-            EnumScriptType.DAMAGED_ENTITY.function,
-            EnumScriptType.DAMAGED.function,
-            EnumScriptType.KILLS.function,
-            EnumScriptType.KILLED.function,
-            EnumScriptType.DROP.function,
-            EnumScriptType.RESPAWN.function,
-            EnumScriptType.BREAK_BLOCK.function,
-            EnumScriptType.CHAT.function,
-            EnumScriptType.LOGIN.function,
-            EnumScriptType.LOGOUT.function,
-            EnumScriptType.KEY_PRESSED.function,
-            EnumScriptType.MOUSE_CLICKED.function,
-            EnumScriptType.TOSS.function,
-            EnumScriptType.PICKUP.function,
-            EnumScriptType.PICKUP_XP.function,
-            EnumScriptType.RANGED_CHARGE.function,
-            EnumScriptType.RANGED_LAUNCHED.function,
-            EnumScriptType.TIMER.function,
-            EnumScriptType.START_USING_ITEM.function,
-            EnumScriptType.USING_ITEM.function,
-            EnumScriptType.STOP_USING_ITEM.function,
-            EnumScriptType.FINISH_USING_ITEM.function,
-            EnumScriptType.CONTAINER_OPEN.function,
-            EnumScriptType.USE_HOE.function,
-            EnumScriptType.BONEMEAL.function,
-            EnumScriptType.FILL_BUCKET.function,
-            EnumScriptType.JUMP.function,
-            EnumScriptType.FALL.function,
-            EnumScriptType.WAKE_UP.function,
-            EnumScriptType.SLEEP.function,
-            EnumScriptType.PLAYSOUND.function,
-            EnumScriptType.LIGHTNING.function,
-            EnumScriptType.CHANGED_DIM.function,
-            EnumScriptType.QUEST_START.function,
-            EnumScriptType.QUEST_COMPLETED.function,
-            EnumScriptType.QUEST_TURNIN.function,
-            EnumScriptType.FACTION_POINTS.function,
-            EnumScriptType.DIALOG_OPEN.function,
-            EnumScriptType.DIALOG_OPTION.function,
-            EnumScriptType.DIALOG_CLOSE.function,
-            EnumScriptType.SCRIPT_COMMAND.function,
-            EnumScriptType.CUSTOM_GUI_CLOSED.function,
-            EnumScriptType.CUSTOM_GUI_BUTTON.function,
-            EnumScriptType.CUSTOM_GUI_SLOT.function,
-            EnumScriptType.CUSTOM_GUI_SLOT_CLICKED.function,
-            EnumScriptType.CUSTOM_GUI_SCROLL.function,
-            EnumScriptType.CUSTOM_GUI_TEXTFIELD.function,
-            EnumScriptType.PARTY_QUEST_COMPLETED.function,
-            EnumScriptType.PARTY_QUEST_SET.function,
-            EnumScriptType.PARTY_QUEST_TURNED_IN.function,
-            EnumScriptType.PARTY_INVITE.function,
-            EnumScriptType.PARTY_KICK.function,
-            EnumScriptType.PARTY_LEAVE.function,
-            EnumScriptType.PARTY_DISBAND.function,
-            EnumScriptType.ANIMATION_START.function,
-            EnumScriptType.ANIMATION_END.function,
-            EnumScriptType.ANIMATION_FRAME_ENTER.function,
-            EnumScriptType.ANIMATION_FRAME_EXIT.function,
-            EnumScriptType.PROFILE_CHANGE.function,
-            EnumScriptType.PROFILE_REMOVE.function,
-            EnumScriptType.PROFILE_CREATE.function,
-            EffectScript.ScriptType.OnEffectAdd.function,
-            EffectScript.ScriptType.OnEffectTick.function,
-            EffectScript.ScriptType.OnEffectRemove.function
-        );
-
-        // Block hooks
-        registerBuiltIn(CONTEXT_BLOCK,
-            EnumScriptType.INIT.function,
-            EnumScriptType.TICK.function,
-            EnumScriptType.INTERACT.function,
-            EnumScriptType.FALLEN_UPON.function,
-            EnumScriptType.REDSTONE.function,
-            EnumScriptType.BROKEN.function,
-            EnumScriptType.EXPLODED.function,
-            EnumScriptType.RAIN_FILLED.function,
-            EnumScriptType.NEIGHBOR_CHANGED.function,
-            EnumScriptType.CLICKED.function,
-            EnumScriptType.HARVESTED.function,
-            EnumScriptType.COLLIDE.function,
-            EnumScriptType.TIMER.function
-        );
-
-        // Item hooks
-        registerBuiltIn(CONTEXT_ITEM,
-            EnumScriptType.INIT.function,
-            EnumScriptType.TICK.function,
-            EnumScriptType.TOSSED.function,
-            EnumScriptType.PICKEDUP.function,
-            EnumScriptType.SPAWN.function,
-            EnumScriptType.INTERACT.function,
-            EnumScriptType.RIGHT_CLICK.function,
-            EnumScriptType.ATTACK.function,
-            EnumScriptType.START_USING_ITEM.function,
-            EnumScriptType.USING_ITEM.function,
-            EnumScriptType.STOP_USING_ITEM.function,
-            EnumScriptType.FINISH_USING_ITEM.function
-        );
-
-        // Linked item hooks
-        registerBuiltIn(CONTEXT_LINKED_ITEM,
-            EnumScriptType.LINKED_ITEM_BUILD.function,
-            EnumScriptType.LINKED_ITEM_VERSION.function,
-            EnumScriptType.INIT.function,
-            EnumScriptType.TICK.function,
-            EnumScriptType.TOSSED.function,
-            EnumScriptType.PICKEDUP.function,
-            EnumScriptType.SPAWN.function,
-            EnumScriptType.INTERACT.function,
-            EnumScriptType.RIGHT_CLICK.function,
-            EnumScriptType.ATTACK.function,
-            EnumScriptType.START_USING_ITEM.function,
-            EnumScriptType.USING_ITEM.function,
-            EnumScriptType.STOP_USING_ITEM.function,
-            EnumScriptType.FINISH_USING_ITEM.function
-        );
-
-        // Recipe hooks
-        registerBuiltIn(CONTEXT_RECIPE,
-            RecipeScript.ScriptType.PRE.function,
-            RecipeScript.ScriptType.POST.function
-        );
-
-        // Effect hooks
-        registerBuiltIn(CONTEXT_EFFECT,
-            EffectScript.ScriptType.OnEffectAdd.function,
-            EffectScript.ScriptType.OnEffectTick.function,
-            EffectScript.ScriptType.OnEffectRemove.function
-        );
-
-        // Forge hooks - just init, the rest are dynamically discovered
-        registerBuiltIn(CONTEXT_FORGE,
-            EnumScriptType.INIT.function
-        );
-    }
-
-    private void registerBuiltIn(String context, String... hooks) {
-        List<String> list = builtInHooks.get(context);
-        if (list != null) {
-            for (String hook : hooks) {
-                if (!list.contains(hook)) {
-                    list.add(hook);
-                }
+        for (ScriptContext context : ScriptContext.values()) {
+            if (!context.hookContext.isEmpty()) {
+                hookDefinitions.put(context.hookContext, new LinkedHashMap<>());
             }
         }
+
+        initializeNpcHooks();
+        initializePlayerHooks();
+        initializeBlockHooks();
+        initializeItemHooks();
+        initializeLinkedItemHooks();
+        initializeRecipeHooks();
+        initializeEffectHooks();
+        initializeForgeHooks();
     }
 
-    @Override
-    public void registerHook(String context, String functionName) {
-        if (context == null || functionName == null || functionName.isEmpty()) {
+    private void initializeNpcHooks() {
+        // Core lifecycle
+        hook(NPC, INIT, INpcEvent.InitEvent.class);
+        hook(NPC, TICK, INpcEvent.UpdateEvent.class);
+        hook(NPC, TIMER, INpcEvent.TimerEvent.class);
+
+        // Interaction
+        hook(NPC, INTERACT, INpcEvent.InteractEvent.class);
+        hook(NPC, DIALOG, INpcEvent.DialogEvent.class);
+        hook(NPC, DIALOG_CLOSE, INpcEvent.DialogClosedEvent.class);
+        hook(NPC, COLLIDE, INpcEvent.CollideEvent.class);
+
+        // Combat
+        hook(NPC, DAMAGED, INpcEvent.DamagedEvent.class);
+        hook(NPC, KILLED, INpcEvent.DiedEvent.class);
+        hook(NPC, KILLS, INpcEvent.KilledEntityEvent.class);
+        hook(NPC, ATTACK_MELEE, INpcEvent.MeleeAttackEvent.class);
+        hook(NPC, ATTACK_SWING, INpcEvent.SwingEvent.class);
+        hook(NPC, RANGED_LAUNCHED, INpcEvent.RangedLaunchedEvent.class);
+        hook(NPC, TARGET, INpcEvent.TargetEvent.class);
+        hook(NPC, TARGET_LOST, INpcEvent.TargetLostEvent.class);
+
+        // Projectile
+        hook(NPC, PROJECTILE_TICK, IProjectileEvent.UpdateEvent.class);
+        hook(NPC, PROJECTILE_IMPACT, IProjectileEvent.ImpactEvent.class);
+
+        // Ability
+        hook(NPC, ABILITY_START, IAbilityEvent.StartEvent.class);
+        hook(NPC, ABILITY_EXECUTE, IAbilityEvent.ExecuteEvent.class);
+        hook(NPC, ABILITY_HIT, IAbilityEvent.HitEvent.class);
+        hook(NPC, ABILITY_TICK, IAbilityEvent.TickEvent.class);
+        hook(NPC, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
+        hook(NPC, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
+    }
+
+    private void initializePlayerHooks() {
+        // Core lifecycle
+        hook(PLAYER, INIT, IPlayerEvent.InitEvent.class);
+        hook(PLAYER, TICK, IPlayerEvent.UpdateEvent.class);
+        hook(PLAYER, TIMER, IPlayerEvent.TimerEvent.class);
+
+        // Combat
+        hook(PLAYER, ATTACK, IPlayerEvent.AttackEvent.class);
+        hook(PLAYER, ATTACKED, IPlayerEvent.AttackedEvent.class);
+        hook(PLAYER, DAMAGED, IPlayerEvent.DamagedEvent.class);
+        hook(PLAYER, DAMAGED_ENTITY, IPlayerEvent.DamagedEntityEvent.class);
+        hook(PLAYER, KILLS, IPlayerEvent.KilledEntityEvent.class);
+        hook(PLAYER, KILLED, IPlayerEvent.DiedEvent.class);
+
+        // Interaction
+        hook(PLAYER, INTERACT, IPlayerEvent.InteractEvent.class);
+        hook(PLAYER, RIGHT_CLICK, IPlayerEvent.RightClickEvent.class);
+        hook(PLAYER, BREAK_BLOCK, IPlayerEvent.BreakEvent.class);
+        hook(PLAYER, CHAT, IPlayerEvent.ChatEvent.class);
+
+        // Connection
+        hook(PLAYER, LOGIN, IPlayerEvent.LoginEvent.class);
+        hook(PLAYER, LOGOUT, IPlayerEvent.LogoutEvent.class);
+        hook(PLAYER, RESPAWN, IPlayerEvent.RespawnEvent.class);
+
+        // Input
+        hook(PLAYER, KEY_PRESSED, IPlayerEvent.KeyPressedEvent.class);
+        hook(PLAYER, MOUSE_CLICKED, IPlayerEvent.MouseClickedEvent.class);
+
+        // Items
+        hook(PLAYER, PICKUP, IPlayerEvent.PickUpEvent.class);
+        hook(PLAYER, TOSS, IPlayerEvent.TossEvent.class);
+        hook(PLAYER, DROP, IPlayerEvent.DropEvent.class);
+        hook(PLAYER, PICKUP_XP, IPlayerEvent.PickupXPEvent.class);
+        hook(PLAYER, START_USING_ITEM, IPlayerEvent.StartUsingItem.class);
+        hook(PLAYER, USING_ITEM, IPlayerEvent.UsingItem.class);
+        hook(PLAYER, STOP_USING_ITEM, IPlayerEvent.StopUsingItem.class);
+        hook(PLAYER, FINISH_USING_ITEM, IPlayerEvent.FinishUsingItem.class);
+        hook(PLAYER, CONTAINER_OPEN, IPlayerEvent.ContainerOpen.class);
+
+        // Movement
+        hook(PLAYER, JUMP, IPlayerEvent.JumpEvent.class);
+        hook(PLAYER, FALL, IPlayerEvent.FallEvent.class);
+        hook(PLAYER, CHANGED_DIM, IPlayerEvent.ChangedDimension.class);
+
+        // World
+        hook(PLAYER, RANGED_CHARGE, IPlayerEvent.RangedChargeEvent.class);
+        hook(PLAYER, RANGED_LAUNCHED, IPlayerEvent.RangedLaunchedEvent.class);
+        hook(PLAYER, USE_HOE, IPlayerEvent.UseHoeEvent.class);
+        hook(PLAYER, BONEMEAL, IPlayerEvent.BonemealEvent.class);
+        hook(PLAYER, FILL_BUCKET, IPlayerEvent.FillBucketEvent.class);
+        hook(PLAYER, WAKE_UP, IPlayerEvent.WakeUpEvent.class);
+        hook(PLAYER, SLEEP, IPlayerEvent.SleepEvent.class);
+        hook(PLAYER, PLAYSOUND, IPlayerEvent.SoundEvent.class);
+        hook(PLAYER, LIGHTNING, IPlayerEvent.LightningEvent.class);
+        hook(PLAYER, SCRIPT_COMMAND, ICustomNPCsEvent.ScriptedCommandEvent.class);
+
+        // Quest
+        hook(PLAYER, QUEST_START, IQuestEvent.QuestStartEvent.class);
+        hook(PLAYER, QUEST_COMPLETED, IQuestEvent.QuestCompletedEvent.class);
+        hook(PLAYER, QUEST_TURNIN, IQuestEvent.QuestTurnedInEvent.class);
+
+        // Dialog
+        hook(PLAYER, DIALOG_OPEN, IDialogEvent.DialogOpen.class);
+        hook(PLAYER, DIALOG_OPTION, IDialogEvent.DialogOption.class);
+        hook(PLAYER, DIALOG_CLOSE, IDialogEvent.DialogClosed.class);
+
+        // Faction
+        hook(PLAYER, FACTION_POINTS, IFactionEvent.FactionPoints.class);
+
+        // Custom GUI
+        hook(PLAYER, CUSTOM_GUI_CLOSED, ICustomGuiEvent.CloseEvent.class);
+        hook(PLAYER, CUSTOM_GUI_BUTTON, ICustomGuiEvent.ButtonEvent.class);
+        hook(PLAYER, CUSTOM_GUI_SLOT, ICustomGuiEvent.SlotEvent.class);
+        hook(PLAYER, CUSTOM_GUI_SLOT_CLICKED, ICustomGuiEvent.SlotClickEvent.class);
+        hook(PLAYER, CUSTOM_GUI_SCROLL, ICustomGuiEvent.ScrollEvent.class);
+        hook(PLAYER, CUSTOM_GUI_TEXTFIELD, ICustomGuiEvent.UnfocusedEvent.class);
+
+        // Party
+        hook(PLAYER, PARTY_QUEST_COMPLETED, IPartyEvent.PartyQuestCompletedEvent.class);
+        hook(PLAYER, PARTY_QUEST_SET, IPartyEvent.PartyQuestSetEvent.class);
+        hook(PLAYER, PARTY_QUEST_TURNED_IN, IPartyEvent.PartyQuestTurnedInEvent.class);
+        hook(PLAYER, PARTY_INVITE, IPartyEvent.PartyInviteEvent.class);
+        hook(PLAYER, PARTY_KICK, IPartyEvent.PartyKickEvent.class);
+        hook(PLAYER, PARTY_LEAVE, IPartyEvent.PartyLeaveEvent.class);
+        hook(PLAYER, PARTY_DISBAND, IPartyEvent.PartyDisbandEvent.class);
+
+        // Animation
+        hook(PLAYER, ANIMATION_START, IAnimationEvent.Started.class);
+        hook(PLAYER, ANIMATION_END, IAnimationEvent.Ended.class);
+        hook(PLAYER, ANIMATION_FRAME_ENTER, IAnimationEvent.IFrameEvent.Entered.class);
+        hook(PLAYER, ANIMATION_FRAME_EXIT, IAnimationEvent.IFrameEvent.Exited.class);
+
+        // Profile
+        hook(PLAYER, PROFILE_CHANGE, IPlayerEvent.ProfileEvent.Changed.class);
+        hook(PLAYER, PROFILE_REMOVE, IPlayerEvent.ProfileEvent.Removed.class);
+        hook(PLAYER, PROFILE_CREATE, IPlayerEvent.ProfileEvent.Create.class);
+
+        // Effect (player context)
+        hook(PLAYER, ON_EFFECT_ADD, IPlayerEvent.EffectEvent.Added.class);
+        hook(PLAYER, ON_EFFECT_TICK, IPlayerEvent.EffectEvent.Ticked.class);
+        hook(PLAYER, ON_EFFECT_REMOVE, IPlayerEvent.EffectEvent.Removed.class);
+    }
+
+    private void initializeBlockHooks() {
+        hook(BLOCK, INIT, IBlockEvent.InitEvent.class);
+        hook(BLOCK, TICK, IBlockEvent.UpdateEvent.class);
+        hook(BLOCK, INTERACT, IBlockEvent.InteractEvent.class);
+        hook(BLOCK, FALLEN_UPON, IBlockEvent.EntityFallenUponEvent.class);
+        hook(BLOCK, REDSTONE, IBlockEvent.RedstoneEvent.class);
+        hook(BLOCK, BROKEN, IBlockEvent.BreakEvent.class);
+        hook(BLOCK, EXPLODED, IBlockEvent.ExplodedEvent.class);
+        hook(BLOCK, RAIN_FILLED, IBlockEvent.RainFillEvent.class);
+        hook(BLOCK, NEIGHBOR_CHANGED, IBlockEvent.NeighborChangedEvent.class);
+        hook(BLOCK, CLICKED, IBlockEvent.ClickedEvent.class);
+        hook(BLOCK, HARVESTED, IBlockEvent.HarvestedEvent.class);
+        hook(BLOCK, COLLIDE, IBlockEvent.CollidedEvent.class);
+        hook(BLOCK, TIMER, IBlockEvent.TimerEvent.class);
+    }
+
+    private void initializeItemHooks() {
+        hook(ITEM, INIT, IItemEvent.InitEvent.class);
+        hook(ITEM, TICK, IItemEvent.UpdateEvent.class);
+        hook(ITEM, TOSSED, IItemEvent.TossedEvent.class);
+        hook(ITEM, PICKEDUP, IItemEvent.PickedUpEvent.class);
+        hook(ITEM, SPAWN, IItemEvent.SpawnEvent.class);
+        hook(ITEM, INTERACT, IItemEvent.InteractEvent.class);
+        hook(ITEM, RIGHT_CLICK, IItemEvent.RightClickEvent.class);
+        hook(ITEM, ATTACK, IItemEvent.AttackEvent.class);
+        hook(ITEM, START_USING_ITEM, IItemEvent.StartUsingItem.class);
+        hook(ITEM, USING_ITEM, IItemEvent.UsingItem.class);
+        hook(ITEM, STOP_USING_ITEM, IItemEvent.StopUsingItem.class);
+        hook(ITEM, FINISH_USING_ITEM, IItemEvent.FinishUsingItem.class);
+    }
+
+    private void initializeLinkedItemHooks() {
+        // Linked item specific
+        hook(LINKED_ITEM, LINKED_ITEM_BUILD, ILinkedItemEvent.BuildEvent.class);
+        hook(LINKED_ITEM, LINKED_ITEM_VERSION, ILinkedItemEvent.VersionChangeEvent.class);
+
+        // Standard item hooks
+        hook(LINKED_ITEM, INIT, IItemEvent.InitEvent.class);
+        hook(LINKED_ITEM, TICK, IItemEvent.UpdateEvent.class);
+        hook(LINKED_ITEM, TOSSED, IItemEvent.TossedEvent.class);
+        hook(LINKED_ITEM, PICKEDUP, IItemEvent.PickedUpEvent.class);
+        hook(LINKED_ITEM, SPAWN, IItemEvent.SpawnEvent.class);
+        hook(LINKED_ITEM, INTERACT, IItemEvent.InteractEvent.class);
+        hook(LINKED_ITEM, RIGHT_CLICK, IItemEvent.RightClickEvent.class);
+        hook(LINKED_ITEM, ATTACK, IItemEvent.AttackEvent.class);
+        hook(LINKED_ITEM, START_USING_ITEM, IItemEvent.StartUsingItem.class);
+        hook(LINKED_ITEM, USING_ITEM, IItemEvent.UsingItem.class);
+        hook(LINKED_ITEM, STOP_USING_ITEM, IItemEvent.StopUsingItem.class);
+        hook(LINKED_ITEM, FINISH_USING_ITEM, IItemEvent.FinishUsingItem.class);
+    }
+
+    private void initializeRecipeHooks() {
+        hook(RECIPE, RecipeScript.ScriptType.PRE.function, IRecipeEvent.Pre.class);
+        hook(RECIPE, RecipeScript.ScriptType.POST.function, IRecipeEvent.Post.class);
+    }
+
+    private void initializeEffectHooks() {
+        // Effect context uses IPlayerEvent.EffectEvent (same as player context)
+        hook(EFFECT, ON_EFFECT_ADD, IPlayerEvent.EffectEvent.Added.class);
+        hook(EFFECT, ON_EFFECT_TICK, IPlayerEvent.EffectEvent.Ticked.class);
+        hook(EFFECT, ON_EFFECT_REMOVE, IPlayerEvent.EffectEvent.Removed.class);
+    }
+
+    private void initializeForgeHooks() {
+        hook(FORGE, INIT, IForgeEvent.InitEvent.class);
+        hook(FORGE, FORGE_WORLD, IForgeEvent.WorldEvent.class);
+        hook(FORGE, FORGE_ENTITY, IForgeEvent.EntityEvent.class);
+        hook(FORGE, CNPC_NATURAL_SPAWN, ICustomNPCsEvent.CNPCNaturalSpawnEvent.class);
+    }
+
+    // ==================== INTERNAL REGISTRATION ====================
+
+    private void hook(ScriptContext context, EnumScriptType type, Class<?> eventClass) {
+        hookDefinitions.get(context.hookContext)
+            .put(type.function, HookDefinition.of(type.function, eventClass));
+    }
+
+    private void hook(ScriptContext context, EnumScriptType type) {
+        hookDefinitions.get(context.hookContext)
+            .put(type.function, HookDefinition.simple(type.function));
+    }
+
+    private void hook(ScriptContext context, String hookName) {
+        hookDefinitions.get(context.hookContext)
+            .put(hookName, HookDefinition.simple(hookName));
+    }
+
+    private void hook(ScriptContext context, String hookName, Class<?> eventClass) {
+        hookDefinitions.get(context.hookContext)
+            .put(hookName, HookDefinition.of(hookName, eventClass));
+    }
+
+    // ==================== PUBLIC API ====================
+
+    /**
+     * Register a hook with event class (auto-derives imports).
+     * For addon mods to register custom hooks.
+     *
+     * @param context    Hook context (e.g., "npc", "player")
+     * @param hookName   Function name in scripts
+     * @param eventClass The event class (imports auto-derived from enclosing class)
+     */
+    public void registerHook(String context, String hookName, Class<?> eventClass) {
+        if (context == null || hookName == null)
             return;
+
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs == null) {
+            contextDefs = new LinkedHashMap<>();
+            hookDefinitions.put(context, contextDefs);
         }
 
-        List<String> hooks = addonHooks.get(context);
-        if (hooks == null) {
-            // Custom context - create it
-            hooks = new ArrayList<>();
-            addonHooks.put(context, hooks);
-        }
-
-        if (!hooks.contains(functionName) && !isBuiltInHook(context, functionName)) {
-            hooks.add(functionName);
-        }
+        contextDefs.put(hookName, HookDefinition.of(hookName, eventClass));
+        hookRevision++;
     }
 
-    @Override
-    public void registerHooks(String functionName, String... contexts) {
-        if (functionName == null || functionName.isEmpty() || contexts == null) {
+    public void registerHook(ScriptContext context, String hookName, Class<?> eventClass) {
+        registerHook(context.hookContext, hookName, eventClass);
+    }
+
+    /**
+     * Register a simple hook with no event class metadata.
+     */
+    public void registerHook(String context, String hookName) {
+        if (context == null || hookName == null)
             return;
+
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs == null) {
+            contextDefs = new LinkedHashMap<>();
+            hookDefinitions.put(context, contextDefs);
         }
 
-        for (String context : contexts) {
-            registerHook(context, functionName);
+        if (!contextDefs.containsKey(hookName)) {
+            contextDefs.put(hookName, HookDefinition.simple(hookName));
+            hookRevision++;
         }
     }
 
-    @Override
-    public void unregisterHook(String context, String functionName) {
-        if (context == null || functionName == null) {
+    public void registerHook(ScriptContext context, String hookName) {
+        registerHook(context.hookContext, hookName);
+    }
+
+    /**
+     * Register a hook definition for addon mods.
+     */
+    public void registerHook(String context, HookDefinition definition) {
+        if (context == null || definition == null)
             return;
+
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs == null) {
+            contextDefs = new LinkedHashMap<>();
+            hookDefinitions.put(context, contextDefs);
         }
 
-        List<String> hooks = addonHooks.get(context);
-        if (hooks != null) {
-            hooks.remove(functionName);
+        contextDefs.put(definition.hookName(), definition);
+        hookRevision++;
+    }
+
+    public void registerHook(ScriptContext context, HookDefinition definition) {
+        registerHook(context.hookContext, definition);
+    }
+
+    @Override
+    public void registerHookDefinition(String context, IHookDefinition definition) {
+        if (definition instanceof HookDefinition) {
+            registerHook(context, (HookDefinition) definition);
+        } else if (definition != null) {
+            registerHook(context, HookDefinition.builder(definition.hookName())
+                .eventClass(definition.eventClassName())
+                .paramNames(definition.paramNames())
+                .requiredImports(definition.requiredImports())
+                .cancelable(definition.isCancelable())
+                .build());
         }
     }
 
     @Override
-    public void unregisterHookFromAll(String functionName) {
-        if (functionName == null) {
-            return;
-        }
+    public IHookDefinition getHookDefinition(String context, String hookName) {
+        if (context == null || hookName == null)
+            return null;
 
-        for (List<String> hooks : addonHooks.values()) {
-            hooks.remove(functionName);
-        }
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        return contextDefs != null ? contextDefs.get(hookName) : null;
     }
 
     @Override
-    public List<String> getAddonHooks(String context) {
-        List<String> hooks = addonHooks.get(context);
-        return hooks != null ? Collections.unmodifiableList(hooks) : Collections.emptyList();
+    public List<IHookDefinition> getAllHookDefinitions(String context) {
+        if (context == null)
+            return Collections.emptyList();
+
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs == null || contextDefs.isEmpty())
+            return Collections.emptyList();
+
+        return new ArrayList<>(contextDefs.values());
     }
 
     @Override
     public List<String> getAllHooks(String context) {
-        List<String> result = new ArrayList<>();
+        if (context == null)
+            return Collections.emptyList();
 
-        // Add built-in hooks
-        List<String> builtIn = builtInHooks.get(context);
-        if (builtIn != null) {
-            result.addAll(builtIn);
-        }
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        if (contextDefs == null || contextDefs.isEmpty())
+            return Collections.emptyList();
 
-        // Add addon hooks
-        List<String> addon = addonHooks.get(context);
-        if (addon != null) {
-            for (String hook : addon) {
-                if (!result.contains(hook)) {
-                    result.add(hook);
-                }
-            }
-        }
-
-        return result;
+        return new ArrayList<>(contextDefs.keySet());
     }
 
     @Override
-    public boolean hasHook(String context, String functionName) {
-        if (context == null || functionName == null) {
+    public boolean hasHook(String context, String hookName) {
+        if (context == null || hookName == null)
             return false;
-        }
 
-        return isBuiltInHook(context, functionName) || isAddonHook(context, functionName);
+        Map<String, HookDefinition> contextDefs = hookDefinitions.get(context);
+        return contextDefs != null && contextDefs.containsKey(hookName);
+    }
+
+    @Override
+    public int getHookRevision() {
+        return hookRevision;
     }
 
     @Override
     public String[] getContexts() {
-        return CONTEXTS.clone();
-    }
-
-    private boolean isBuiltInHook(String context, String functionName) {
-        List<String> hooks = builtInHooks.get(context);
-        return hooks != null && hooks.contains(functionName);
-    }
-
-    private boolean isAddonHook(String context, String functionName) {
-        List<String> hooks = addonHooks.get(context);
-        return hooks != null && hooks.contains(functionName);
-    }
-
-    /**
-     * Get built-in hooks for a context (used by GUIs for backwards compatibility).
-     */
-    public List<String> getBuiltInHooks(String context) {
-        List<String> hooks = builtInHooks.get(context);
-        return hooks != null ? Collections.unmodifiableList(hooks) : Collections.emptyList();
+        return hookDefinitions.keySet().toArray(new String[0]);
     }
 }

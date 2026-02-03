@@ -12,6 +12,7 @@ public class ScriptCommand extends CommandKamkeelBase {
     @SubCommand(desc = "Reload scripts data and folders.")
     public Boolean reload(ICommandSender sender, String args[]) {
         ScriptController.Instance.loadCategories();
+        ScriptController.Instance.syncClientScripts(null);
 
         if (ScriptController.Instance.loadPlayerScripts())
             sendResult(sender, "Reload player scripts successfully");

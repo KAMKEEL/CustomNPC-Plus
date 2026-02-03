@@ -5,6 +5,8 @@ import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.TelegraphController;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -51,6 +53,7 @@ import noppes.npcs.api.IContainer;
 import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
+import noppes.npcs.api.ITelegraph;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ISkinOverlay;
 import noppes.npcs.api.ITileEntity;
@@ -59,9 +62,10 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
-import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.IAbilityHandler;
+import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.IAnimationHandler;
+import noppes.npcs.api.handler.IAuctionHandler;
 import noppes.npcs.api.handler.IAttributeHandler;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.api.handler.ICustomEffectHandler;
@@ -74,6 +78,7 @@ import noppes.npcs.api.handler.IProfileHandler;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.IRecipeHandler;
 import noppes.npcs.api.handler.IScriptHookHandler;
+import noppes.npcs.api.handler.ITelegraphHandler;
 import noppes.npcs.api.handler.ITransportHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
@@ -85,8 +90,8 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.DialogController;
@@ -96,8 +101,8 @@ import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.ScriptEntityData;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.TransportController;
@@ -368,6 +373,27 @@ public class NpcAPI extends AbstractNpcAPI {
     public IAbilityHandler getAbilities() {
         this.checkWorld();
         return AbilityController.Instance;
+    }
+
+    @Override
+    public ITelegraphHandler getTelegraphs() {
+        this.checkWorld();
+        return TelegraphController.Instance;
+    }
+
+    @Override
+    public ITelegraph createTelegraph(String type) {
+        this.checkWorld();
+        return TelegraphController.Instance.create(type);
+    }
+
+    @Override
+    public IAuctionHandler getAuctions() {
+        this.checkWorld();
+        if (!noppes.npcs.config.ConfigMarket.AuctionEnabled) {
+            return null;
+        }
+        return AuctionController.getInstance();
     }
 
     @Override

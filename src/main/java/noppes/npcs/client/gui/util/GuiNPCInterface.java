@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public abstract class GuiNPCInterface extends GuiScreen {
     public EntityClientPlayerMP player;
@@ -48,6 +49,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public String title;
     private ResourceLocation background = null;
     public boolean closeOnEsc = false;
+    public Supplier<Boolean> closeOnEscSupplier = null;
     public int guiLeft, guiTop, xSize, ySize;
     private SubGuiInterface subgui;
     public int mouseX, mouseY, mouseScroll;
@@ -55,6 +57,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public float bgScaleX = 1;
     public float bgScaleY = 1;
     public float bgScaleZ = 1;
+    public int bgTextureHeight = 256;  // Actual content height in texture (for bottom border stitching)
 
     public GuiNPCInterface(EntityNPCInterface npc) {
         this.player = Minecraft.getMinecraft().thePlayer;
@@ -70,6 +73,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     public void setBackground(String texture) {
         background = new ResourceLocation("customnpcs", "textures/gui/" + texture);
+    }
+
+    public void setBackground(String texture, int textureHeight) {
+        background = new ResourceLocation("customnpcs", "textures/gui/" + texture);
+        bgTextureHeight = textureHeight;
     }
 
     public ResourceLocation getResource(String texture) {
@@ -104,6 +112,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
             rotateLeft = new GuiNpcButton(0, guiLeft + 44 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "<");
             rotateRight = new GuiNpcButton(0, guiLeft + 66 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, ">");
         }
+
+        //Important for GuiScriptTextArea
+        for (GuiNpcTextField tf : textfields.values())
+            tf.initGui();
     }
 
     @Override
@@ -202,6 +214,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
             }
         }
     }
+
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (subgui != null) {
@@ -237,6 +250,29 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     @Override
     public void keyTyped(char c, int i) {
+           /*
+         Fixes closing sub with escape closes all of its parents.
+         The outermost GUI (root of all subs) closes the deepest open sub on ESC.
+         */
+        boolean isSub = this instanceof SubGuiInterface;
+
+        boolean shouldClose = closeOnEsc;
+        if (closeOnEscSupplier != null) {
+            try {
+                shouldClose = closeOnEscSupplier.get();
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (shouldClose && !isSub && (i == 1 || (!GuiNpcTextField.isFieldActive() && isInventoryKey(i)))) {
+            SubGuiInterface sub = getSubGui();
+            if (sub != null)
+                sub.close();
+            else
+                close();
+        }
+
+
         if (subgui != null)
             subgui.keyTyped(c, i);
         for (GuiNpcTextField tf : textfields.values())
@@ -246,27 +282,18 @@ public abstract class GuiNPCInterface extends GuiScreen {
             guiScrollableComponent.keyTyped(c, i);
         }
 
-        /*
-         Fixes closing sub with escape closes all of its parents.
-         The outermost GUI (root of all subs) closes the deepest open sub on ESC.
-         */
-        boolean isSub = this instanceof SubGuiInterface;
-
-        if (closeOnEsc && !isSub && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
-            SubGuiInterface sub = getSubGui();
-            if (sub != null)
-                sub.close();
-            else
-                close();
-        }
     }
 
     public void onGuiClosed() {
         GuiNpcTextField.unfocus();
     }
 
+    public void closeOnEsc(Supplier<Boolean> close) {
+        this.closeOnEscSupplier = close;
+    }
+
     public void close() {
-        if(GuiNpcTextField.activeTextfield != null)
+        if (GuiNpcTextField.activeTextfield != null)
             GuiNpcTextField.unfocus();
 
         Keyboard.enableRepeatEvents(false);
@@ -382,6 +409,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 button.drawHover(i, j, subGui);
             }
         }
+        for (GuiNpcTextField textField : textfields.values()) {
+            if (textField.hasHoverText()) {
+                textField.drawHover(i, j, subGui);
+            }
+        }
 
         for (GuiScreen gui : extra.values())
             gui.drawScreen(i, j, f);
@@ -400,23 +432,44 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GL11.glTranslatef(guiLeft, guiTop, 0);
         GL11.glScalef(bgScale * bgScaleX, bgScale * bgScaleY, bgScale * bgScaleZ);
         mc.renderEngine.bindTexture(background);
+
+        // Handle Y dimension: if ySize < texture content height, stitch bottom border
+        int topHeight = ySize;
+        int bottomHeight = 0;
+        int bottomTextureV = 0;
+        if (ySize < bgTextureHeight) {
+            // Keep bottom border from texture bottom (last 6 pixels of actual content)
+            bottomHeight = 6;
+            topHeight = ySize - bottomHeight;
+            bottomTextureV = bgTextureHeight - bottomHeight;
+        }
+
         if (xSize > 256) {
             // GUI wider than texture: draw left portion, then right portion from texture edge
-            drawTexturedModalRect(0, 0, 0, 0, 250, ySize);
-            drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, ySize);
+            drawTexturedModalRect(0, 0, 0, 0, 250, topHeight);
+            drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, topHeight);
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, 250, bottomHeight);
+                drawTexturedModalRect(250, topHeight, 256 - (xSize - 250), bottomTextureV, xSize - 250, bottomHeight);
+            }
         } else if (xSize < 256) {
             // GUI narrower than texture: stitch left and right edges together
-            // Left portion (first half of GUI)
             int leftWidth = xSize / 2;
-            // Right portion width (remaining)
             int rightWidth = xSize - leftWidth;
-            // Draw left side from texture start
-            drawTexturedModalRect(0, 0, 0, 0, leftWidth, ySize);
-            // Draw right side from texture end (256 - rightWidth)
-            drawTexturedModalRect(leftWidth, 0, 256 - rightWidth, 0, rightWidth, ySize);
+            // Draw top portion
+            drawTexturedModalRect(0, 0, 0, 0, leftWidth, topHeight);
+            drawTexturedModalRect(leftWidth, 0, 256 - rightWidth, 0, rightWidth, topHeight);
+            // Draw bottom border strip
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, leftWidth, bottomHeight);
+                drawTexturedModalRect(leftWidth, topHeight, 256 - rightWidth, bottomTextureV, rightWidth, bottomHeight);
+            }
         } else {
-            // GUI exactly 256px: draw full texture
-            drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
+            // GUI exactly 256px wide
+            drawTexturedModalRect(0, 0, 0, 0, xSize, topHeight);
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, xSize, bottomHeight);
+            }
         }
         GL11.glPopMatrix();
     }
@@ -517,6 +570,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void drawNpcWithExtras(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         drawNpc(entity, mouseX, mouseY, partialTicks);
     }
+
     public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         if (hasSubGui() && !drawNPConSub)
             return;

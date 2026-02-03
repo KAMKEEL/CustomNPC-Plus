@@ -26,6 +26,9 @@ import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.SwingPlayerArmPacket;
 import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
+import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
+import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
 import kamkeel.npcs.network.packets.data.gui.GuiErrorPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiOpenBookPacket;
@@ -49,8 +52,6 @@ import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
-import kamkeel.npcs.network.packets.data.ability.TelegraphSpawnPacket;
-import kamkeel.npcs.network.packets.data.ability.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.player.BankActionPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.CompanionActionPacket;
@@ -59,11 +60,13 @@ import kamkeel.npcs.network.packets.player.FollowerPacket;
 import kamkeel.npcs.network.packets.player.GetNPCRole;
 import kamkeel.npcs.network.packets.player.GetTraderData;
 import kamkeel.npcs.network.packets.player.InputDevicePacket;
+import kamkeel.npcs.network.packets.player.AuctionActionPacket;
 import kamkeel.npcs.network.packets.player.MailActionPacket;
 import kamkeel.npcs.network.packets.player.SaveBookPacket;
 import kamkeel.npcs.network.packets.player.SaveSignPacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
+import kamkeel.npcs.network.packets.player.SyncRevisionInfoPacket;
 import kamkeel.npcs.network.packets.player.TransportPacket;
 import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
 import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
@@ -75,7 +78,6 @@ import kamkeel.npcs.network.packets.player.item.MagicCyclesPacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileChangePacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileCreatePacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileGetInfoPacket;
-import kamkeel.npcs.network.packets.player.SyncRevisionInfoPacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileGetPacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileRemovePacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileRenamePacket;
@@ -88,10 +90,18 @@ import kamkeel.npcs.network.packets.request.MountPacket;
 import kamkeel.npcs.network.packets.request.TileEntityGetPacket;
 import kamkeel.npcs.network.packets.request.TileEntitySavePacket;
 import kamkeel.npcs.network.packets.request.TraderMarketSavePacket;
+import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
+import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
+import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
+import kamkeel.npcs.network.packets.request.animation.BuiltInAnimationGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
@@ -141,9 +151,6 @@ import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
-import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
-import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
-import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleRemovePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleSavePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
@@ -224,6 +231,7 @@ import kamkeel.npcs.network.packets.request.script.GlobalNPCScriptPacket;
 import kamkeel.npcs.network.packets.request.script.NPCScriptPacket;
 import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
 import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
+import kamkeel.npcs.network.packets.request.script.ScriptFilesPacket;
 import kamkeel.npcs.network.packets.request.script.ScriptInfoPacket;
 import kamkeel.npcs.network.packets.request.script.item.ItemScriptErrorPacket;
 import kamkeel.npcs.network.packets.request.script.item.ItemScriptPacket;
@@ -304,6 +312,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new NPCScriptPacket());
         REQUEST_PACKET.registerPacket(new PlayerScriptPacket());
         REQUEST_PACKET.registerPacket(new ScriptInfoPacket());
+        REQUEST_PACKET.registerPacket(new ScriptFilesPacket());
         REQUEST_PACKET.registerPacket(new EffectScriptPacket());
 
         // Cloner Packets
@@ -466,6 +475,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AnimationGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationRemovePacket());
         REQUEST_PACKET.registerPacket(new AnimationSavePacket());
+        REQUEST_PACKET.registerPacket(new BuiltInAnimationGetPacket());
 
         // Moving Path
         REQUEST_PACKET.registerPacket(new MovingPathSavePacket());
@@ -496,6 +506,10 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AbilitiesGetAllPacket());
         REQUEST_PACKET.registerPacket(new AbilitiesNpcGetPacket());
         REQUEST_PACKET.registerPacket(new AbilitiesNpcSavePacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilitiesGetPacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilityGetPacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilityRemovePacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilitySavePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());
@@ -565,6 +579,7 @@ public class PacketHandler {
         // Data | Ability Packets
         DATA_PACKET.registerPacket(new TelegraphSpawnPacket());
         DATA_PACKET.registerPacket(new TelegraphRemovePacket());
+        DATA_PACKET.registerPacket(new PlayerAbilitySyncPacket());
     }
 
     public void registerPlayerPackets() {
@@ -588,6 +603,9 @@ public class PacketHandler {
 
         PLAYER_PACKET.registerPacket(new GetNPCRole());
         PLAYER_PACKET.registerPacket(new GetTraderData());
+
+        // Auction Packets
+        PLAYER_PACKET.registerPacket(new AuctionActionPacket());
 
         PLAYER_PACKET.registerPacket(new InputDevicePacket());
 

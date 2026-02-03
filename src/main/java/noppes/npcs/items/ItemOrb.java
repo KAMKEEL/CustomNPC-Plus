@@ -5,7 +5,7 @@ import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 
 public class ItemOrb extends ItemNpcInterface {

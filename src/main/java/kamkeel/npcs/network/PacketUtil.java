@@ -15,6 +15,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.items.ItemNpcTool;
 
 import java.io.IOException;
@@ -221,9 +222,9 @@ public class PacketUtil {
         compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
         compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(data.getConsoleText()));
         GuiDataPacket.sendGuiData(player, compound);
-        List<ScriptContainer> containers = data.getScripts();
+        List<IScriptUnit> containers = data.getScripts();
         for (int i = 0; i < containers.size(); i++) {
-            ScriptContainer container = containers.get(i);
+            IScriptUnit container = containers.get(i);
             NBTTagCompound tabCompound = new NBTTagCompound();
             tabCompound.setInteger("Tab", i);
             tabCompound.setTag("Script", container.writeToNBT(new NBTTagCompound()));
@@ -250,8 +251,8 @@ public class PacketUtil {
                 data.getScripts().add(new ScriptContainer(data));
             }
             NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
-            ScriptContainer script = new ScriptContainer(data);
-            script.readFromNBT(tabCompound);
+            // Use factory method to create correct script unit type based on NBT
+            IScriptUnit script = IScriptUnit.createFromNBT(tabCompound, data);
             data.getScripts().set(tab, script);
         } else {
             NBTTagCompound compound = ByteBufUtils.readNBT(buffer);

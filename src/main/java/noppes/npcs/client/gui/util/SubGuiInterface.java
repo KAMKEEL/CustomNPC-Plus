@@ -12,6 +12,8 @@ public class SubGuiInterface extends GuiNPCInterface {
 
     @Override
     public void close() {
+        save();
+
         if (parent instanceof ISubGuiListener)
             ((ISubGuiListener) parent).subGuiClosed(this);
 

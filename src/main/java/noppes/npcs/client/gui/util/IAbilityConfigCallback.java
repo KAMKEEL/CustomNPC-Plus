@@ -9,6 +9,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 public interface IAbilityConfigCallback {
     /**
      * Called when an ability has been edited and saved.
+     *
      * @param ability The edited ability
      */
     void onAbilitySaved(Ability ability);

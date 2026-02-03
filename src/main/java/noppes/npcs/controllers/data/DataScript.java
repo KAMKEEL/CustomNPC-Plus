@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -16,9 +17,11 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.janino.EventJaninoScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
@@ -35,8 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class DataScript implements INpcScriptHandler {
-    public List<ScriptContainer> eventScripts = new ArrayList<>();
+public class DataScript implements IScriptHandlerPacket {
+    public List<IScriptUnit> eventScripts = new ArrayList<>();
 
     private HashMap<EnumScriptType, ScriptContainer> scripts = new HashMap<>();
     private final static EntityType entities = new EntityType();
@@ -146,13 +149,13 @@ public class DataScript implements INpcScriptHandler {
 
         if (!hasInited && !npc.isRemote() && type != EnumScriptType.INIT) {
             hasInited = true;
-            for (ScriptContainer scriptContainer : this.eventScripts) {
-                scriptContainer.errored = false;
+            for (IScriptUnit scriptUnit : this.eventScripts) {
+                scriptUnit.setErrored(false);
             }
             EventHooks.onNPCInit(this.npc);
         }
 
-        for (ScriptContainer script : this.eventScripts) {
+        for (IScriptUnit script : this.eventScripts) {
             script.run(type, event);
         }
 
@@ -209,6 +212,21 @@ public class DataScript implements INpcScriptHandler {
         return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
     }
 
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.NPC;
+    }
+
+    @Override
+    public void requestData() {
+        EventScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        EventScriptPacket.Save(index, totalCount, nbt);
+    }
+
     public Map<Long, String> getOldConsoleText() {
         Map<Long, String> map = new TreeMap<>();
 
@@ -221,24 +239,6 @@ public class DataScript implements INpcScriptHandler {
         return map;
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (ScriptContainer script : this.getScripts()) {
-            ++tab;
-
-            for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
-            }
-        }
-        return map;
-    }
-
-    public void clearConsole() {
-        for (ScriptContainer script : this.getScripts()) {
-            script.console.clear();
-        }
-    }
 
     @Override
     public void callScript(EnumScriptType type, Event event) {
@@ -274,11 +274,11 @@ public class DataScript implements INpcScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         this.eventScripts = list;
     }
 
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return this.eventScripts;
     }
 
@@ -311,5 +311,10 @@ public class DataScript implements INpcScriptHandler {
 
     public Collection<ScriptContainer> getNPCScripts() {
         return this.scripts.values();
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.NPC);
     }
 }

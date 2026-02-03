@@ -1,35 +1,40 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityGuard;
+
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
  * Guard ability: Defensive stance that reduces incoming damage.
  * Can optionally counter-attack when hit.
  */
-public class AbilityGuard extends Ability {
+public class AbilityGuard extends Ability implements IAbilityGuard {
 
     private static final Random RANDOM = new Random();
 
     // Type-specific parameters
+    private int durationTicks = 60;
     private float damageReduction = 0.5f;
     private boolean canCounter = false;
     private CounterType counterType = CounterType.FLAT;
-    private float counterValue = 10.0f;
+    private float counterValue = 6.0f;
     private float counterChance = 0.3f;
     private String counterSound = "random.wood_click";
     private int counterAnimationId = -1;
@@ -41,67 +46,77 @@ public class AbilityGuard extends Ability {
 
     public enum CounterType {
         FLAT,
-        PERCENT
+        PERCENT;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case FLAT: return "ability.counter.flat";
+                case PERCENT: return "ability.counter.percent";
+                default: return name();
+            }
+        }
     }
 
     public AbilityGuard() {
         this.typeId = "ability.cnpc.guard";
         this.name = "Guard";
         this.targetingMode = TargetingMode.SELF;
-        this.lockMovement = true;
-        this.cooldownTicks = 120;
+        this.lockMovement = LockMovementType.ACTIVE;
+        this.cooldownTicks = 0;
         this.windUpTicks = 10;
-        this.activeTicks = 60;
-        this.recoveryTicks = 20;
         this.interruptible = false; // Hard to interrupt while guarding
         // No telegraph for guard - it's a defensive stance
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
         this.windUpSound = "random.anvil_use";
         this.activeSound = "random.anvil_land";
+        this.allowedBy = UserType.NPC_ONLY;
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
-        return new SubGuiAbilityGuard(this, callback);
+    public boolean hasTypeSettings() {
+        return true;
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.SELF };
+        return new TargetingMode[]{TargetingMode.SELF};
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         lastAttacker = null;
         counterTriggered = false;
         lastDamageTaken = 0.0f;
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // Counter attack logic if triggered
         if (canCounter && counterTriggered && lastAttacker != null && !world.isRemote) {
-            performCounter(npc, world);
+            performCounter(caster, world);
+        }
+
+        // Check if guard duration has ended
+        if (tick >= durationTicks) {
+            signalCompletion();
         }
     }
 
     /**
-     * Called externally when the NPC takes damage while guarding.
+     * Called externally when the caster takes damage while guarding.
      * This should be called from the damage handling code.
      *
      * @param attacker The entity that attacked
-     * @param damage The damage amount (after reduction)
+     * @param damage   The damage amount (after reduction)
      */
-    public void onDamageTaken(EntityNPCInterface npc, EntityLivingBase attacker, DamageSource source, float damage) {
+    public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
         if (!canCounter || attacker == null) return;
         if (!isDirectHit(source)) return;
         if (RANDOM.nextFloat() >= counterChance) return;
@@ -109,32 +124,21 @@ public class AbilityGuard extends Ability {
         lastAttacker = attacker;
         lastDamageTaken = damage;
         counterTriggered = true;
-
-        if (interruptible) {
-            performCounter(npc, npc.worldObj);
-            npc.abilities.interruptCurrentAbility(source, damage);
-        }
+        // Counter will be performed in onActiveTick - don't self-interrupt
     }
 
-    private void performCounter(EntityNPCInterface npc, World world) {
+    private void performCounter(EntityLivingBase caster, World world) {
         float counterDamage = counterType == CounterType.PERCENT
             ? lastDamageTaken * (counterValue / 100.0f)
             : counterValue;
 
-        boolean wasHit = applyAbilityDamage(npc, lastAttacker, counterDamage, 0.5f);
+        boolean wasHit = applyAbilityDamage(caster, lastAttacker, counterDamage, 0.5f);
         if (wasHit && counterSound != null && !counterSound.isEmpty()) {
-            world.playSoundAtEntity(npc, counterSound, 1.0f, 1.2f);
+            world.playSoundAtEntity(caster, counterSound, 1.0f, 1.2f);
         }
-        if (counterAnimationId >= 0) {
-            if (noppes.npcs.controllers.AnimationController.Instance != null) {
-                noppes.npcs.controllers.data.Animation animation =
-                    noppes.npcs.controllers.AnimationController.Instance.animations.get(counterAnimationId);
-                if (animation != null) {
-                    npc.display.animationData.setEnabled(true);
-                    npc.display.animationData.setAnimation(animation);
-                    npc.display.animationData.updateClient();
-                }
-            }
+        // Use shared animation utility - only available for NPCs
+        if (caster instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) caster).abilities.playAbilityAnimation(counterAnimationId);
         }
 
         counterTriggered = false;
@@ -160,7 +164,7 @@ public class AbilityGuard extends Ability {
     }
 
     /**
-     * Check if the NPC is currently in guard stance.
+     * Check if the caster is currently in guard stance.
      */
     public boolean isGuarding() {
         return isExecuting() && getPhase() == kamkeel.npcs.controllers.data.ability.AbilityPhase.ACTIVE;
@@ -181,6 +185,7 @@ public class AbilityGuard extends Ability {
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("durationTicks", durationTicks);
         nbt.setFloat("damageReduction", damageReduction);
         nbt.setBoolean("canCounter", canCounter);
         nbt.setString("counterType", counterType.name());
@@ -192,6 +197,7 @@ public class AbilityGuard extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
+        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
         this.damageReduction = nbt.hasKey("damageReduction") ? nbt.getFloat("damageReduction") : 0.5f;
         this.canCounter = nbt.hasKey("canCounter") && nbt.getBoolean("canCounter");
         try {
@@ -204,7 +210,7 @@ public class AbilityGuard extends Ability {
         } else if (nbt.hasKey("counterDamage")) {
             this.counterValue = nbt.getFloat("counterDamage");
         } else {
-            this.counterValue = 10.0f;
+            this.counterValue = 6.0f;
         }
         this.counterChance = nbt.hasKey("counterChance") ? nbt.getFloat("counterChance") : 0.3f;
         this.counterSound = nbt.hasKey("counterSound") ? nbt.getString("counterSound") : "random.wood_click";
@@ -212,24 +218,104 @@ public class AbilityGuard extends Ability {
     }
 
     // Getters & Setters
-    public float getDamageReduction() { return damageReduction; }
-    public void setDamageReduction(float damageReduction) { this.damageReduction = damageReduction; }
+    public int getDurationTicks() {
+        return durationTicks;
+    }
 
-    public boolean isCanCounter() { return canCounter; }
-    public void setCanCounter(boolean canCounter) { this.canCounter = canCounter; }
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = Math.max(1, durationTicks);
+    }
 
-    public CounterType getCounterType() { return counterType; }
-    public void setCounterType(CounterType counterType) { this.counterType = counterType; }
+    public float getDamageReduction() {
+        return damageReduction;
+    }
 
-    public float getCounterValue() { return counterValue; }
-    public void setCounterValue(float counterValue) { this.counterValue = counterValue; }
+    public void setDamageReduction(float damageReduction) {
+        this.damageReduction = damageReduction;
+    }
 
-    public float getCounterChance() { return counterChance; }
-    public void setCounterChance(float counterChance) { this.counterChance = counterChance; }
+    public boolean isCanCounter() {
+        return canCounter;
+    }
 
-    public String getCounterSound() { return counterSound; }
-    public void setCounterSound(String counterSound) { this.counterSound = counterSound; }
+    @Override
+    public boolean canCounter() {
+        return canCounter;
+    }
 
-    public int getCounterAnimationId() { return counterAnimationId; }
-    public void setCounterAnimationId(int counterAnimationId) { this.counterAnimationId = counterAnimationId; }
+    public void setCanCounter(boolean canCounter) {
+        this.canCounter = canCounter;
+    }
+
+    public CounterType getCounterTypeEnum() {
+        return counterType;
+    }
+
+    public void setCounterTypeEnum(CounterType counterType) {
+        this.counterType = counterType;
+    }
+
+    @Override
+    public int getCounterType() {
+        return counterType.ordinal();
+    }
+
+    @Override
+    public void setCounterType(int type) {
+        CounterType[] values = CounterType.values();
+        this.counterType = type >= 0 && type < values.length ? values[type] : CounterType.FLAT;
+    }
+
+    public float getCounterValue() {
+        return counterValue;
+    }
+
+    public void setCounterValue(float counterValue) {
+        this.counterValue = counterValue;
+    }
+
+    public float getCounterChance() {
+        return counterChance;
+    }
+
+    public void setCounterChance(float counterChance) {
+        this.counterChance = counterChance;
+    }
+
+    public String getCounterSound() {
+        return counterSound;
+    }
+
+    public void setCounterSound(String counterSound) {
+        this.counterSound = counterSound;
+    }
+
+    public int getCounterAnimationId() {
+        return counterAnimationId;
+    }
+
+    public void setCounterAnimationId(int counterAnimationId) {
+        this.counterAnimationId = counterAnimationId;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 1000),
+            FieldDef.floatField("ability.damageReduction", this::getDamageReduction, this::setDamageReduction),
+            FieldDef.section("ability.section.counter"),
+            FieldDef.boolField("gui.enabled", this::isCanCounter, this::setCanCounter).hover("ability.hover.canCounter"),
+            FieldDef.enumField("gui.type", CounterType.class, this::getCounterTypeEnum, this::setCounterTypeEnum)
+                .hover("ability.hover.counterType").visibleWhen(this::isCanCounter),
+            FieldDef.floatField("gui.value", this::getCounterValue, this::setCounterValue)
+                .visibleWhen(this::isCanCounter).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.chance", this::getCounterChance, this::setCounterChance)
+                .visibleWhen(this::isCanCounter).column(ColumnHint.RIGHT),
+            FieldDef.stringField("gui.sound", this::getCounterSound, this::setCounterSound)
+                .visibleWhen(this::isCanCounter),
+            FieldDef.intField("gui.animation", this::getCounterAnimationId, this::setCounterAnimationId)
+                .visibleWhen(this::isCanCounter),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
+    }
 }

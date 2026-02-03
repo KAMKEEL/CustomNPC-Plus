@@ -306,18 +306,18 @@ public class NoppesUtilPlayer {
         if (dialog == null)
             return;
         DialogOption option = dialog.options.get(optionId);
-        if (EventHooks.onDialogOption(player, new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
+        if (EventHooks.onDialogOption(player, new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialogId, optionId, dialog)))
             return;
 
         if (!npc.isRemote()) {
             EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
 
             if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
-                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialogId, optionId, dialog));
                 return;
             }
             if (option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
-                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialogId, optionId, dialog));
                 return;
             }
         }

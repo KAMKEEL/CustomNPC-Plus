@@ -115,10 +115,15 @@ gui.play=Play
 gui.selectSound=Select Sound
 gui.selectnpc=Select NPC
 gui.select=Select
+gui.sync=Sync
 gui.range=Range
 gui.partly=Partially
 gui.copy=Copy
 gui.clear=Clear
+gui.builtin=Built-in
+gui.custom=Custom
+gui.builtinAnimations=Built-in Animations
+gui.customAnimations=Custom Animations
 gui.done=Done
 gui.paste=Paste
 gui.test=Test
@@ -157,6 +162,9 @@ gui.create=Create
 gui.rename=Rename
 gui.playerMap=Regen PlayerMap
 gui.unused=Unused
+gui.apply=Apply
+gui.cancel=Cancel
+gui.yes=Yes
 
 gui.lineColor1=Upper line color
 gui.lineColor2=Middle line color
@@ -681,6 +689,8 @@ global.naturalspawn=Spawns
 global.linked=Linked
 global.customeffects=Effects
 global.magic=Magic
+global.abilities=Abilities
+global.auction=Auction
 
 bank.slot=Slot
 bank.unlock=Unlock
@@ -1501,6 +1511,8 @@ menu.abilities=Abilities
 ability.availableTypes=Available Types
 ability.npcAbilities=NPC Abilities
 ability.globalCooldown=Global Cooldown
+ability.minCooldown=Min CD
+ability.maxCooldown=Max CD
 ability.edit=Edit Ability
 ability.weight=Weight
 ability.targeting=Targeting
@@ -1509,11 +1521,15 @@ ability.maxRange=Max Range
 ability.timing=Timing (ticks)
 ability.cooldown=Cooldown
 ability.windup=Wind Up
-ability.active=Active
-ability.recovery=Recovery
+ability.syncOn=Sync: On
+ability.syncOff=Sync: Off
+ability.dazed=Dazed Ticks
 ability.interruptible=Interruptible
 ability.threshold=Threshold
 ability.lockMove=Lock Move
+ability.lockMove.windup=Windup
+ability.lockMove.active=Active
+ability.lockMove.both=Both
 ability.telegraph=Telegraph
 ability.telegraphType=Telegraph Type
 
@@ -1521,6 +1537,48 @@ ability.target.aggro_target=Target
 ability.target.self=Self
 ability.target.aoe_self=AOE Self
 ability.target.aoe_target=AOE Target
+ability.syncWindup=Sync Windup
+
+# Anchor Point
+ability.anchor.front=Front
+ability.anchor.center=Center
+ability.anchor.rightHand=Right Hand
+ability.anchor.leftHand=Left Hand
+ability.anchor.aboveHead=Above Head
+ability.anchor.chest=Chest
+
+# Sweep Mode
+ability.sweep.swipe=Swipe
+ability.sweep.spin=Spin
+
+# Dash Mode
+ability.dash.aggressive=Aggressive
+ability.dash.defensive=Defensive
+
+# Counter Type
+ability.counter.flat=Flat
+ability.counter.percent=Percent
+
+# Hazard Shape
+ability.shape.circle=Circle
+ability.shape.ring=Ring
+ability.shape.cone=Cone
+
+# Placement Mode
+ability.placement.atCaster=At Caster
+ability.placement.atTarget=At Target
+ability.placement.followCaster=Follow Caster
+ability.placement.followTarget=Follow Target
+
+# Teleport Mode
+ability.teleport.blink=Blink
+ability.teleport.behind=Behind
+ability.teleport.single=Single
+
+# Trap Placement
+ability.trapPlace.atCaster=At Caster
+ability.trapPlace.atTarget=At Target
+ability.trapPlace.aheadOfCaster=Ahead of Caster
 
 telegraph.circle=Circle
 telegraph.ring=Ring
@@ -1531,6 +1589,7 @@ telegraph.point=Point
 ability.tab.timing=Timing
 ability.tab.effects=Effects
 ability.tab.telegraph=Telegraph
+ability.tab.visual=Visual
 ability.showTelegraph=Show Telegraph
 ability.telegraphColor=Color
 ability.telegraphSizeNote=Size is based on ability parameters
@@ -1545,8 +1604,10 @@ ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
 ability.cnpc.cutter=Cutter
 ability.cnpc.beam=Beam
+ability.cnpc.beam_dual=Beam Dual
 ability.cnpc.projectile=Projectile
 ability.cnpc.orb=Orb
+ability.cnpc.orb_dual=Orb Dual
 ability.cnpc.charge=Charge
 ability.cnpc.dash=Dash
 ability.cnpc.teleport=Teleport
@@ -1556,113 +1617,198 @@ ability.cnpc.guard=Guard
 ability.cnpc.heal=Heal
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
+ability.cnpc.disc=Disc
+ability.cnpc.disc_dual=Disc Dual
+ability.cnpc.laser_shot=Laser Shot
+ability.cnpc.sweeper=Sweeper
 
-# Ability GUI - Type Tab
+# ═══════════════════════════════════════════════════════════════
+# Ability Config GUI
+# ═══════════════════════════════════════════════════════════════
+
+# General Tab
+ability.weight=Weight
+ability.windUpTicks=Wind Up
+ability.cooldownTicks=Cooldown
+ability.lockMovement=Lock Movement
+ability.interruptible=Interruptible
+ability.dazedTicks=Dazed Ticks
+ability.targetingMode=Targeting
+
+# Target Tab
+ability.minRange=Min Range
+ability.maxRange=Max Range
+ability.conditions=Conditions
+
+# Effects Tab
+ability.windUpSound=Wind Up Sound
+ability.activeSound=Active Sound
+ability.windUpAnimation=Wind Up Animation
+ability.activeAnimation=Active Animation
+ability.showTelegraph=Show Telegraph
+ability.windUpColor=Wind Up Color
+ability.activeColor=Active Color
+
+# Section Headers
+ability.section.timing=Timing
+ability.section.movement=Movement
+ability.section.sounds=Sounds
+ability.section.animations=Animations
+ability.section.telegraph=Telegraph
+ability.section.beam=Beam
+ability.section.sweep=Sweep
+ability.section.push=Push
+ability.section.leap=Leap
+ability.section.disc=Disc
+ability.section.homing=Homing
+ability.section.boomerang=Boomerang
+ability.section.explosive=Explosive
+ability.section.colors=Colors
+ability.section.effects=Effects
+ability.section.dual=Dual
+ability.section.beam1=Beam 1
+ability.section.beam2=Beam 2
+ability.section.disc1=Disc 1
+ability.section.disc2=Disc 2
+ability.section.orb1=Orb 1
+ability.section.orb2=Orb 2
+ability.section.counter=Counter
+ability.section.area=Area
+ability.section.damage=Damage
+ability.section.debuffs=Debuffs
+ability.section.healing=Healing
+ability.section.trigger=Trigger
+ability.section.aoe=AOE
+ability.section.pullDamage=Pull Damage
+
+# Shared Sub-Section Labels (used under section headers)
+gui.radius=Radius
+gui.thickness=Thickness
+gui.rotationSpeed=Rotation Speed
+gui.strength=Strength
+gui.range=Range
+gui.delay=Delay
+gui.density=Density
+gui.length=Length
+gui.width=Width
+gui.height=Height
+gui.value=Value
+gui.chance=Chance
+gui.sound=Sound
+gui.animation=Animation
+gui.duration=Duration
+gui.amp=Amp
 
 # Common Type Settings
 ability.radius=Radius
 ability.knockback=Knockback
-ability.knockbackUp=KB Up
-ability.maxDist=Max Dist
-ability.minDist=Min Dist
+ability.knockbackUp=Knockback Up
 ability.distance=Distance
+ability.maxDistance=Max Distance
 ability.lifetime=Lifetime
-ability.stunTicks=Stun
-ability.stunDur=Stun Dur
-ability.rootDur=Root Dur
-ability.rootDuration=Root Duration
-ability.stunDuration=Stun Duration
-ability.leapHeight=Leap Height
+ability.stunTicks=Stun Ticks
 ability.hitWidth=Hit Width
-ability.potionTime=Potion Time (s)
-ability.weaknessLvl=Weakness Lvl
-ability.poisonTime=Poison Time (s)
-ability.slownessLvl=Slowness Lvl
-ability.poisonLvl=Poison Lvl
+ability.effects=Effects
+ability.mode=Mode
+ability.duration=Duration
+ability.anchorPoint=Anchor Point
+ability.rotationSpeed=Rotation Speed
 
-# Slam Settings
+# Slam
 ability.leapSpeed=Leap Speed
+ability.leapHeight=Leap Height
 
-# Charge Settings
-ability.hitRadius=Hit Radius
-
-# Cutter Settings
+# Cutter
+ability.range=Range
+ability.sweepMode=Sweep Mode
+ability.spinDuration=Spin Duration
 ability.arcAngle=Arc Angle
-ability.sweepWaves=Waves
-ability.rotSpeed=Rot Speed
-ability.piercing=Piercing
+ability.innerRadius=Inner Radius
+
+# Projectile
+ability.projectileType=Projectile Type
 
 # Orb Settings
 ability.homing=Homing
 ability.explosive=Explosive
+ability.firingSpeed=Firing Speed
+ability.amount=Amount
+ability.dualCharge=Dual Charging
 
-# Vortex Settings
-ability.pullRadius=Radius
-ability.pullStrength=Strength
-ability.pullTo=Pull To
-ability.aoe=AOE
+# Charge (no unique keys)
+
+# Dash (no unique keys)
+
+# Teleport
+ability.blinkRadius=Blink Radius
+ability.blinkCount=Blink Count
+ability.blinkDelay=Blink Delay
+ability.behindDistance=Behind Distance
+ability.lineOfSight=Line of Sight
+ability.damageAtStart=Damage At Start
+ability.damageAtEnd=Damage At End
+
+# Vortex
+ability.pullRadius=Pull Radius
+ability.pullStrength=Pull Strength
 ability.maxTargets=Max Targets
 
-# Dash Settings
-ability.dash.aggressive=Aggressive
-ability.dash.defensive=Defensive
-ability.mode=Mode
-ability.behindDistance=Behind Dist
+# Shockwave
+ability.pushStrength=Push Strength
 
-# Teleport Settings
-ability.blinkCount=Blinks
-ability.blinkDelay=Delay
-ability.blinkRadius=Radius
-ability.minRadius=Min Rad
-ability.dmgRadius=Dmg Radius
-ability.lineOfSight=Line Sight
-ability.dmgAtStart=Dmg Start
+# Guard
+ability.damageReduction=Damage Reduction
 
-# Projectile Settings
-ability.explRadius=Expl Rad
-
-# Beam Settings
-ability.beamLength=Length
-ability.beamWidth=Width
-ability.dmgInterval=Interval
-ability.sweepAngle=Sweep Ang
-ability.sweepSpeed=Sweep Spd
-ability.lockTarget=Lock Tgt
-
-# Guard Settings
-ability.dmgReduce=Dmg Reduce
-ability.counterDmg=Counter Dmg
-ability.canCounter=Counter
-ability.counterChance=Counter %
-ability.counterType=Counter Type
-ability.counterValue=Counter Value
-ability.counterSound=Counter Sound
-ability.counterAnim=Counter Anim
-
-# Heal Settings
-ability.healAmount=Amount
-ability.healPercent=Percent
-ability.healRadius=Radius
+# Heal
+ability.instantHeal=Instant Heal
+ability.healAmount=Heal Amount
+ability.healPercent=Heal Percent
+ability.healRadius=Heal Radius
 ability.healSelf=Heal Self
 ability.healAllies=Heal Allies
 
-# Hazard Settings
-ability.dmgPerTick=Dmg/Tick
-ability.debuffDur=Debuff Dur
+# Hazard
 ability.shape=Shape
 ability.placement=Placement
-ability.affectsCaster=Hit Caster
-ability.ignoreInvuln=Ign Invuln
-ability.place.caster=At Caster
-ability.place.target=At Target
-ability.place.followCaster=Follow Caster
-ability.place.followTarget=Follow Target
-ability.place.ahead=Ahead
+ability.damagePerSecond=Damage/Sec
+ability.damageInterval=Damage Interval
+ability.slownessLevel=Slowness Level
+ability.debuffDuration=Debuff Duration
+ability.poisonLevel=Poison Level
+ability.affectsCaster=Affects Caster
 
-# Trap Settings
-ability.triggerRadius=Trig Rad
+# Trap
 ability.armTime=Arm Time
-ability.maxTriggers=Max Trig
+ability.maxTriggers=Max Triggers
+ability.triggerCooldown=Trigger Cooldown
+
+# Sweeper
+ability.sweepSpeed=Sweep Speed
+ability.rotations=Rotations
+ability.piercing=Piercing
+ability.lockTarget=Lock Target
+
+# Beam / Laser
+ability.beamWidth=Beam Width
+ability.headSize=Head Size
+ability.attachedToOwner=Attached to Owner
+ability.laserWidth=Laser Width
+ability.expansionSpeed=Expansion Speed
+ability.lingerTicks=Linger Ticks
+
+# Visual Settings
+ability.innerColor=Inner Color
+ability.outerColor=Outer Color
+ability.outerEnabled=Outer Glow
+ability.outerWidth=Outer Width
+ability.outerAlpha=Outer Alpha
+ability.lightning=Lightning
+ability.lightningDensity=Density
+ability.lightningRadius=Radius
+
+# Dual Energy Projectile Settings
+ability.dualFire=Dual Fire
+ability.dualFireDelay=Fire Delay
 
 # Ability Save/Load
 ability.save.confirm=Save ability preset
@@ -1672,28 +1818,66 @@ ability.delete.confirm=Delete ability preset
 gui.load=Load
 
 # Global Abilities Manager
-global.abilities=Abilities
 ability.manager.title=Ability Manager
 
 # Explosive Hover Text
 ability.explosive.noBlockDamage=Explosions do not destroy blocks
 
-# Additional Orb Settings
-ability.explRadius=Expl Radius
-
-# Telegraph Colors (for abilities that support separate colors)
-ability.windUpColor=Wind Up Color
-ability.activeColor=Active Color
-
-# Shockwave Settings
-ability.pushRadius=Push Radius
-ability.pushStrength=Push Str
+# Shockwave Settings (dev)
 ability.shockwaveFalloff=Damage/knockback drop off with distance
 
-# Ability Config GUI
+# Ability Config GUI (dev)
 ability.typeId=Type ID
-ability.conditions=Conditions
 ability.noTypeSettings=No type-specific settings
+
+# ═══════════════════════════════════════════════════════════════
+# Ability Hover Tooltips
+# ═══════════════════════════════════════════════════════════════
+
+ability.hover.weight=Higher weight = more likely to be chosen when multiple abilities available
+ability.hover.lockMove=Prevents NPC from moving while ability is charging or active
+ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
+ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)
+ability.hover.windup=Charge-up time before ability activates (20 ticks = 1 second)
+ability.hover.cooldown=Time before ability can be used again (20 ticks = 1 second)
+ability.hover.sync=Set windup ticks to match animation duration
+ability.hover.minRange=Target must be at least this far away
+ability.hover.maxRange=Target must be within this distance
+ability.hover.targeting=How the ability selects its target
+ability.hover.conditions=Requirements that must be met for ability to activate
+ability.hover.showTelegraph=Show visual warning indicator during windup
+ability.hover.windUpColor=Color of telegraph during charge-up phase
+ability.hover.activeColor=Color of telegraph when ability is active
+ability.hover.homing=Projectile tracks toward target
+ability.hover.homingStr=How aggressively the projectile tracks (higher = tighter turns)
+ability.hover.explosive=Creates explosion on impact
+ability.hover.explosionRad=Size of explosion radius
+ability.hover.piercing=Hits multiple targets instead of stopping on first hit
+ability.hover.lightning=Add electrical effect to visuals
+ability.hover.outerGlow=Enable outer glow layer around projectile
+ability.hover.anchorPoint=Where on the NPC the ability spawns from
+ability.hover.dualCharge=Whether or not should create two anchor points
+ability.hover.damage=Base damage dealt to targets
+ability.hover.speed=Movement speed of projectile
+ability.hover.lifetime=Maximum ticks before despawning
+ability.hover.knockback=Push force applied to targets
+ability.hover.boomerang=Projectile returns to caster after reaching max distance
+ability.hover.dashMode=Aggressive dashes toward target, Defensive dashes away
+ability.hover.aoe=Affects all valid targets in range instead of just one
+ability.hover.dmgOnPull=Deal damage continuously while pulling targets
+ability.hover.lineOfSight=Requires clear line of sight to the target
+ability.hover.dmgAtStart=Deal damage at the teleport origin location
+ability.hover.dmgAtEnd=Deal damage at the teleport destination
+ability.hover.instant=Heals instantly instead of over time
+ability.hover.healSelf=Ability can heal the casting NPC
+ability.hover.healAllies=Ability can heal nearby allied NPCs
+ability.hover.placement=Where the ability effect is placed (Caster, Target, etc.)
+ability.hover.lockTarget=Sweeper beam tracks the target's position
+ability.hover.canCounter=Enable counterattack when blocking damage
+ability.hover.counterType=Flat = fixed damage, Percent = % of blocked damage
+ability.hover.shape=Shape of the hazard zone (Circle, Ring, Cone)
+ability.hover.affectsCaster=Hazard can damage the NPC that created it
+ability.hover.sweepMode=Swipe = single arc attack, Spin = continuous rotation
 
 # Conditions
 condition.edit=Edit Condition
@@ -1705,3 +1889,179 @@ condition.hit_count=Hit Count
 condition.percent=Threshold
 condition.hits=Required Hits
 condition.within=Within (ticks)
+
+# Condition Hover Tooltips
+condition.hover.type=Condition type that must be met for ability to activate
+condition.hover.hpAbove=Activates when NPC health is above this percentage
+condition.hover.hpBelow=Activates when NPC health is below this percentage
+condition.hover.targetHpAbove=Activates when target's health is above this percentage
+condition.hover.targetHpBelow=Activates when target's health is below this percentage
+condition.hover.hitCount=Activates after receiving X hits within the time window
+condition.hover.hits=Number of hits required to trigger condition
+condition.hover.within=Time window in ticks (20 ticks = 1 second)
+condition.hover.threshold=Health percentage threshold (1-99%)
+
+# Effect Hover Tooltips
+effect.hover.type=Potion effect type to apply to targets
+effect.hover.duration=Effect duration in ticks (20 ticks = 1 second)
+effect.hover.amplifier=Effect strength level (higher = stronger)
+
+# =========================================
+# Auction House
+# =========================================
+
+# Auction Status
+auction.status.active=Active
+auction.status.ended=Ended
+auction.status.cancelled=Cancelled
+auction.status.claimed=Claimed
+
+# Auction Sort
+auction.sort.newest=Newest
+auction.sort.endingSoon=Ending Soon
+auction.sort.priceLow=Price: Low to High
+auction.sort.priceHigh=Price: High to Low
+auction.sort.mostBids=Most Bids
+
+# Claim Types
+auction.claim.item=Item
+auction.claim.currency=Sale Proceeds
+auction.claim.refund=Bid Refund
+
+# Notifications
+auction.notify.won=You won an auction!
+auction.notify.outbid=You were outbid!
+auction.notify.sold=Your item sold!
+auction.notify.expired=Your auction expired.
+auction.notify.claim=You have items to claim.
+
+# Main GUI
+auction.title=Auction House
+
+# Listing Display
+auction.seller=Seller: %s
+auction.currentBid=Current Bid: %s
+auction.buyout=Buyout: %s
+auction.timeLeft=Time Left: %s
+auction.bids=%d bids
+auction.noBids=No bids
+auction.startingPrice=Starting: %s
+
+# Sell Page
+auction.sell.startingPrice=Starting Price
+auction.sell.buyoutPrice=Buyout Price
+auction.sell.fee=Listing Fee: %s
+auction.sell.noItem=Place an item to sell
+
+# Filter
+auction.filter.search=Search
+
+# Bid Dialog
+auction.bid.minimum=Minimum Bid: %s
+auction.bid.yourBid=Your Bid:
+auction.bid.place=Place Bid
+auction.bid.placeBid=Place Bid
+auction.bid.buyout=Buyout Now
+
+# Errors
+auction.error.notEnoughCurrency=Not enough currency!
+auction.error.bidTooLow=Bid must be at least %s.
+auction.error.blacklisted=This item cannot be listed on the Auction House.
+auction.error.boundItem=Bound items cannot be listed on the Auction House.
+
+# Navigation
+auction.nav.listings=Browse Auctions
+auction.nav.sell=Sell Item
+auction.nav.trades=My Trades
+auction.nav.filter=Filter
+
+# Claim Details
+auction.claim.amount=Amount: %s
+auction.claim.expires=Expires in %s days
+auction.claim.expiresSoon=Expires soon!
+auction.claim.clickToClaim=Click to claim
+
+# Filter
+auction.filter.sort=Sort By
+auction.filter.none=(none)
+auction.filter.leftClick=Left-click: Search
+auction.filter.rightClick=Right-click: Cycle Sort
+
+# Pagination
+auction.page.prev=Previous Page
+auction.page.next=Next Page
+
+# Sell Page
+auction.sell.confirm=Confirm Listing
+auction.sell.invalidPrice=Enter a valid starting price
+auction.sell.buyoutTooLow=Buyout must be higher than starting price
+auction.sell.placeItem=Place item here
+auction.sell.slotTitle=Item to Sell
+auction.sell.leftClear=Left-click to clear
+auction.sell.rightRemove=Right-click to remove 1
+auction.sell.leftAdd=Left-click to add stack
+auction.sell.rightAddOne=Right-click to add 1
+
+# Trades Page
+auction.trades.activeListing=Active Listing
+auction.trades.activeBid=Active Bid
+auction.trades.unavailable=Slot Unavailable
+auction.trades.rightClickToCancel=Right-click to cancel
+auction.trades.leftClickToClaim=Left-click to claim
+auction.trades.leftClickToIncrease=Left-click to increase bid
+auction.trades.winningBid=You are the highest bidder
+auction.trades.soldClaim=Item Sold!
+auction.trades.wonClaim=Auction Won!
+auction.trades.expiredClaim=Auction Expired
+auction.trades.refundClaim=Outbid - Refund Available
+auction.trades.confirmCancel=Cancel Listing?
+auction.trades.confirmClaim=Claim Item?
+auction.trades.rightClickConfirm=Right-click again to confirm
+auction.trades.leftClickConfirm=Left-click again to confirm
+auction.trades.otherClickCancel=Any other click to cancel
+auction.trades.buyer=Buyer
+auction.trades.outbidBy=Outbid by
+auction.trades.selling=Selling
+auction.trades.bidding=Bidding
+auction.trades.sold=Sold
+auction.trades.won=Won
+auction.trades.expired=Expired
+auction.trades.outbid=Outbid
+auction.trades.clickToRebid=Click to increase bid
+auction.trades.leftClickRebid=Left-click to rebid
+auction.trades.rightClickRefund=Right-click to claim refund
+auction.claim.soldItem=Item: %s
+auction.claim.buyer=Buyer: %s
+auction.claim.outbidItem=Item: %s
+auction.claim.outbidBy=Outbid by: %s
+
+# Sell Page - Buyout Toggle
+auction.sell.allowBuyout=Allow Buy Now
+auction.sell.buyoutEnabled=Enabled
+auction.sell.buyoutEnabledDesc=Buyers can purchase immediately
+auction.sell.buyoutEnabledDesc2=at the buyout price
+auction.sell.buyoutDisabled=Disabled
+auction.sell.buyoutDisabledDesc=Auction only - no instant buy
+auction.sell.clickToToggle=Click to toggle
+auction.sell.notEnoughItems=Not enough items in inventory
+
+# Auction Bidding Info
+auction.info.currentBid=Current Bid
+auction.info.highBidder=High Bidder
+auction.info.startingPrice=Starting Price
+auction.info.buyoutPrice=Buyout Price
+auction.info.timeLeft=Time Left
+auction.info.bidCount=Total Bids
+
+# Auction Bid SubGui
+auction.bid.yourBalance=Your Balance: %s
+
+# Auction Buyout SubGui
+auction.buyout.title=Buy Now
+auction.buyout.confirm=Purchase this item for:
+
+# Auction Status
+auction.ended=Ended
+
+# Role
+role.auctioneer=Auctioneer

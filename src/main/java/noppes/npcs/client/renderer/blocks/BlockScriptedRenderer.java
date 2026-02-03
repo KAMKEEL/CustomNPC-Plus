@@ -23,7 +23,7 @@ import noppes.npcs.blocks.tiles.TileScripted.TextPlane;
 import noppes.npcs.client.TextBlockClient;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Random;
 
 public class BlockScriptedRenderer extends BlockRendererInterface {

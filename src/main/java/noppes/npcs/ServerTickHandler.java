@@ -6,16 +6,13 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
+import noppes.npcs.controllers.AuctionController;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.client.AnalyticsTracking;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.controllers.data.action.ActionManager;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import noppes.npcs.entity.EntityNPCInterface;
 
 public class ServerTickHandler {
 
@@ -23,6 +20,11 @@ public class ServerTickHandler {
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == Phase.END) {
             ActionManager.GLOBAL.tick();
+
+            // Process auction system tick
+            if (AuctionController.Instance != null) {
+                AuctionController.Instance.onServerTick();
+            }
         }
     }
 
@@ -38,25 +40,6 @@ public class ServerTickHandler {
     @SubscribeEvent
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         EntityPlayerMP player = (EntityPlayerMP) event.player;
-        // Temporary Disabled
-//        if (serverName == null) {
-//            String e = "local";
-//            MinecraftServer server = MinecraftServer.getServer();
-//            if (server.isDedicatedServer()) {
-//                try {
-//                    e = InetAddress.getByName(server.getServerHostname()).getCanonicalHostName();
-//                } catch (UnknownHostException e1) {
-//                    e = MinecraftServer.getServer().getServerHostname();
-//                }
-//                if (server.getPort() != 25565)
-//                    e += ":" + server.getPort();
-//            }
-//            if (e == null || e.startsWith("192.168") || e.contains("127.0.0.1") || e.startsWith("localhost"))
-//                e = "local";
-//            serverName = e;
-//        }
-//        AnalyticsTracking.sendData(event.player, "join", serverName);
-
         PlayerData playerData = PlayerData.get(event.player);
         if (playerData != null) {
             playerData.onLogin();
@@ -65,6 +48,12 @@ public class ServerTickHandler {
         ProfileController.Instance.login(player);
         SyncController.beginLogin(player);
         SyncController.syncEffects(player);
+        ScriptController.Instance.syncClientScripts(player);
+
+        // Send auction notifications on login
+        if (AuctionController.Instance != null) {
+            AuctionController.Instance.onPlayerLogin(player);
+        }
     }
 
     @SubscribeEvent
@@ -77,6 +66,11 @@ public class ServerTickHandler {
         PlayerData playerData = PlayerData.get(event.player);
         if (playerData != null) {
             playerData.onLogout();
+        }
+
+        // Clear auction permission cache on logout
+        if (AuctionController.Instance != null) {
+            AuctionController.Instance.onPlayerLogout(event.player.getUniqueID());
         }
 
         // Save and unload the player's profile data on logout

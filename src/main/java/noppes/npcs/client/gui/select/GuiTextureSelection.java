@@ -371,6 +371,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
         selectedDomain = domain;
         this.location = location;
     }
+
     static class TextureData {
         String domain;
         String absoluteName;

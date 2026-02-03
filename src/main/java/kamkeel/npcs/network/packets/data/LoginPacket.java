@@ -12,8 +12,11 @@ import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.player.SyncRevisionInfoPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.controllers.AuctionConfigSync;
 
 import java.io.IOException;
 import java.util.EnumMap;
@@ -57,6 +60,11 @@ public final class LoginPacket extends AbstractPacket {
             out.writeInt(entry.getKey().ordinal());
             out.writeInt(entry.getValue());
         }
+
+        // Send auction config (server-side sync)
+        NBTTagCompound auctionConfig = new NBTTagCompound();
+        AuctionConfigSync.writeToNBT(auctionConfig);
+        ByteBufUtils.writeNBT(out, auctionConfig);
     }
 
     @SideOnly(Side.CLIENT)
@@ -75,6 +83,10 @@ public final class LoginPacket extends AbstractPacket {
         }
 
         ClientCacheHandler.setActiveServer(serverKey, serverRevisions);
+
+        // Read auction config
+        NBTTagCompound auctionConfig = ByteBufUtils.readNBT(in);
+        AuctionClientConfig.readFromNBT(auctionConfig);
 
         PacketClient.sendClient(new SyncRevisionInfoPacket(
             serverKey,

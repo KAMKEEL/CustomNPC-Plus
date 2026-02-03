@@ -5,6 +5,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
@@ -13,13 +14,18 @@ import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import foxz.command.CommandNoppes;
+import io.github.somehussar.janinoloader.api.IDynamicCompiler;
+import io.github.somehussar.janinoloader.api.IDynamicCompilerBuilder;
 import kamkeel.npcs.addon.AddonManager;
 import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.TelegraphController;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.network.PacketHandler;
@@ -50,6 +56,7 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
 import noppes.npcs.config.legacy.LegacyConfig;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.BankController;
 import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.controllers.CustomEffectController;
@@ -70,7 +77,6 @@ import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.enchants.EnchantInterface;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import noppes.npcs.entity.EntityChairMount;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityMagicProjectile;
@@ -80,6 +86,11 @@ import noppes.npcs.entity.EntityNpcDragon;
 import noppes.npcs.entity.EntityNpcPony;
 import noppes.npcs.entity.EntityNpcSlime;
 import noppes.npcs.entity.EntityProjectile;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilitySweeper;
 import noppes.npcs.entity.old.EntityNPCDwarfFemale;
 import noppes.npcs.entity.old.EntityNPCDwarfMale;
 import noppes.npcs.entity.old.EntityNPCElfFemale;
@@ -99,11 +110,14 @@ import noppes.npcs.entity.old.EntityNpcNagaFemale;
 import noppes.npcs.entity.old.EntityNpcNagaMale;
 import noppes.npcs.entity.old.EntityNpcSkeleton;
 import noppes.npcs.scripted.NpcAPI;
+import somehussar.janino.AdvancedClassFilter;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.3")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11-beta1")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -140,8 +154,54 @@ public class CustomNpcs {
 
     public static MinecraftServer Server;
 
+    private static IDynamicCompiler globalJaninoCompiler;
+    @SideOnly(Side.CLIENT)
+    private static IDynamicCompiler clientJaninoCompiler;
+    @SideOnly(Side.CLIENT)
+    private static Set<Consumer<AdvancedClassFilter>> clientClassFilterConsumer;
+
+    static {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            clientClassFilterConsumer = new HashSet<>();
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void addClassesToClientClassFilter(Consumer<AdvancedClassFilter> consumer) {
+        clientClassFilterConsumer.add(consumer);
+    }
+
     public CustomNpcs() {
         instance = this;
+    }
+
+    public static IDynamicCompiler getDynamicCompiler() {
+        if (globalJaninoCompiler == null) {
+            globalJaninoCompiler = IDynamicCompilerBuilder.createBuilder().getCompiler();
+        }
+
+        return globalJaninoCompiler;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static IDynamicCompiler getClientCompiler() {
+
+        if (clientJaninoCompiler == null) {
+            AdvancedClassFilter filter = new AdvancedClassFilter()
+                .addRegexes("noppes\\.npcs\\.api\\..*")
+                .banRegexes(".*ClassLoader.*",
+                    ".*File*.",
+                    "java\\.lang\\.reflect\\..*");
+
+            for (Consumer<AdvancedClassFilter> consumer : clientClassFilterConsumer) {
+                consumer.accept(filter);
+            }
+
+
+            clientJaninoCompiler = IDynamicCompilerBuilder.createBuilder().setClassFilter(filter).getCompiler();
+        }
+
+        return clientJaninoCompiler;
     }
 
     @EventHandler
@@ -227,6 +287,11 @@ public class CustomNpcs {
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
         registerNewEntity(EntityMagicProjectile.class, "magicprojectile", 64, 3, true);
+        registerNewEntity(EntityAbilityOrb.class, "abilityorb", 64, 3, true);
+        registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 3, true);
+        registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 3, true);
+        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 3, true);
+        registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
 
         new RecipeController();
 
@@ -260,7 +325,16 @@ public class CustomNpcs {
     }
 
     @EventHandler
+    public void loadComplete(FMLLoadCompleteEvent ev) {
+        proxy.buildPackageIndex();
+    }
+
+    @EventHandler
     public void setAboutToStart(FMLServerAboutToStartEvent event) {
+        globalJaninoCompiler = null;
+        if (FMLCommonHandler.instance().getSide().isClient())
+            clientJaninoCompiler = null;
+
         Server = event.getServer();
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
@@ -272,8 +346,8 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
-        new AbilityController();
         AbilityController.Instance.load();
+        TelegraphController.init();
 
         LinkedItemController.getInstance().load();
 
@@ -312,6 +386,7 @@ public class CustomNpcs {
     public void started(FMLServerStartedEvent event) {
         RecipeController.Instance.load();
         new BankController();
+        new AuctionController();
         DialogController.Instance.load();
         QuestController.Instance.load();
         ScriptController.HasStart = true;
@@ -332,6 +407,15 @@ public class CustomNpcs {
         ScriptController.Instance.saveForgeScripts();
         ScriptController.Instance.savePlayerScripts();
         ScriptController.Instance.saveGlobalNpcScripts();
+
+        // Save auction data synchronously on shutdown
+        if (AuctionController.Instance != null) {
+            AuctionController.Instance.save();
+        }
+
+        if (FMLCommonHandler.instance().getSide().isClient())
+            clientJaninoCompiler = null;
+        globalJaninoCompiler = null;
     }
 
     @EventHandler

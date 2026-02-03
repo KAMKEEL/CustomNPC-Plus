@@ -1,32 +1,33 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityTeleport;
+
+import kamkeel.npcs.controllers.data.ability.gui.ColumnHint;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.TabTarget;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 /**
  * Teleport ability: Instant reposition with wall/line-of-sight checks.
  */
-public class AbilityTeleport extends Ability {
+public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     /**
      * Teleport behavior mode.
@@ -34,7 +35,17 @@ public class AbilityTeleport extends Ability {
     public enum TeleportMode {
         BLINK,
         BEHIND,
-        SINGLE
+        SINGLE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case BLINK: return "ability.teleport.blink";
+                case BEHIND: return "ability.teleport.behind";
+                case SINGLE: return "ability.teleport.single";
+                default: return name();
+            }
+        }
     }
 
     private static final Random RANDOM = new Random();
@@ -61,10 +72,9 @@ public class AbilityTeleport extends Ability {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
-        this.cooldownTicks = 100;
+        this.cooldownTicks = 0;
         this.windUpTicks = 10;
-        this.activeTicks = 40;
-        this.recoveryTicks = 10;
+        this.lockMovement = LockMovementType.NO;
         // No telegraph for teleport - it's instant repositioning
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
@@ -73,57 +83,62 @@ public class AbilityTeleport extends Ability {
     }
 
     @Override
-    public boolean hasTypeSettings() { return true; }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-            IAbilityConfigCallback callback) {
-        return new SubGuiAbilityTeleport(this, callback);
+    public boolean hasTypeSettings() {
+        return true;
     }
 
     @Override
-    public boolean isTargetingModeLocked() { return true; }
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
 
     @Override
     public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         currentBlink = 0;
         ticksSinceLastBlink = blinkDelayTicks; // Trigger first blink immediately
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
-        if (currentBlink >= blinkLimit) return;
+        if (currentBlink >= blinkLimit) {
+            signalCompletion();
+            return;
+        }
 
         ticksSinceLastBlink++;
 
         if (ticksSinceLastBlink >= blinkDelayTicks) {
-            performBlink(npc, target, world);
+            performBlink(caster, target, world);
             currentBlink++;
             ticksSinceLastBlink = 0;
+
+            // Check if this was the last blink
+            if (currentBlink >= blinkLimit) {
+                signalCompletion();
+            }
         }
     }
 
-    private void performBlink(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    private void performBlink(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) return;
 
-        double oldX = npc.posX;
-        double oldY = npc.posY;
-        double oldZ = npc.posZ;
+        double oldX = caster.posX;
+        double oldY = caster.posY;
+        double oldZ = caster.posZ;
 
-        Vec3 destination = calculateDestination(npc, target, world);
+        Vec3 destination = calculateDestination(caster, target, world);
         if (destination == null) return;
 
         boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
-        if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + npc.getEyeHeight(), oldZ,
-            destination.xCoord, destination.yCoord + npc.getEyeHeight(), destination.zCoord)) {
-            destination = findValidPositionAlongLine(world, npc, oldX, oldY, oldZ,
+        if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + caster.getEyeHeight(), oldZ,
+            destination.xCoord, destination.yCoord + caster.getEyeHeight(), destination.zCoord)) {
+            destination = findValidPositionAlongLine(world, caster, oldX, oldY, oldZ,
                 destination.xCoord, destination.yCoord, destination.zCoord);
             if (destination == null) return;
         }
@@ -134,22 +149,22 @@ public class AbilityTeleport extends Ability {
 
         // Damage at origin
         if (damageAtStart) {
-            dealDamageAt(npc, world, oldX, oldY, oldZ);
+            dealDamageAt(caster, world, oldX, oldY, oldZ);
         }
 
         // Spawn particles at origin
         spawnTeleportParticles(world, oldX, oldY, oldZ);
 
         // Teleport
-        npc.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
-        npc.fallDistance = 0;
+        caster.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        caster.fallDistance = 0;
 
         // Spawn particles at destination
         spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
 
         // Damage at destination
         if (damageAtEnd) {
-            dealDamageAt(npc, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            dealDamageAt(caster, world, destination.xCoord, destination.yCoord, destination.zCoord);
         }
 
         // Face target after teleport
@@ -157,8 +172,8 @@ public class AbilityTeleport extends Ability {
             double dx = target.posX - destination.xCoord;
             double dz = target.posZ - destination.zCoord;
             float newYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-            npc.rotationYaw = newYaw;
-            npc.rotationYawHead = newYaw;
+            caster.rotationYaw = newYaw;
+            caster.rotationYawHead = newYaw;
         }
     }
 
@@ -174,35 +189,56 @@ public class AbilityTeleport extends Ability {
         }
     }
 
-    private Vec3 calculateDestination(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        if (target == null) return null;
-
+    private Vec3 calculateDestination(EntityLivingBase caster, EntityLivingBase target, World world) {
         double newX;
         double newY;
         double newZ;
 
+        if (target != null) {
+            switch (mode) {
+                case BEHIND:
+                    double yaw = Math.toRadians(target.rotationYaw);
+                    newX = target.posX + Math.sin(yaw) * behindDistance;
+                    newZ = target.posZ - Math.cos(yaw) * behindDistance;
+                    newY = target.posY;
+                    return Vec3.createVectorHelper(newX, newY, newZ);
+                case SINGLE:
+                case BLINK:
+                default:
+                    double angle = RANDOM.nextDouble() * Math.PI * 2;
+                    double dist = Math.min(blinkRadius, maxRange);
+                    double offset = RANDOM.nextDouble() * dist;
+                    newX = target.posX + Math.cos(angle) * offset;
+                    newZ = target.posZ + Math.sin(angle) * offset;
+                    newY = target.posY;
+                    return Vec3.createVectorHelper(newX, newY, newZ);
+            }
+        }
+
+        // No target (player use) - teleport in caster's look direction
+        Vec3 look = caster.getLookVec();
         switch (mode) {
             case BEHIND:
-                double yaw = Math.toRadians(target.rotationYaw);
-                newX = target.posX + Math.sin(yaw) * behindDistance;
-                newZ = target.posZ - Math.cos(yaw) * behindDistance;
-                newY = target.posY;
+                // Teleport forward in look direction by behindDistance
+                newX = caster.posX + look.xCoord * behindDistance;
+                newZ = caster.posZ + look.zCoord * behindDistance;
+                newY = caster.posY;
                 return Vec3.createVectorHelper(newX, newY, newZ);
             case SINGLE:
             case BLINK:
             default:
-                double angle = RANDOM.nextDouble() * Math.PI * 2;
+                // Teleport forward in look direction within blinkRadius
                 double dist = Math.min(blinkRadius, maxRange);
-                double offset = RANDOM.nextDouble() * dist;
-                newX = target.posX + Math.cos(angle) * offset;
-                newZ = target.posZ + Math.sin(angle) * offset;
-                newY = target.posY;
+                double offset = (RANDOM.nextDouble() * 0.5 + 0.5) * dist; // 50-100% of max distance
+                newX = caster.posX + look.xCoord * offset;
+                newZ = caster.posZ + look.zCoord * offset;
+                newY = caster.posY;
                 return Vec3.createVectorHelper(newX, newY, newZ);
         }
     }
 
     private Vec3 findSafeDestination(World world, double oldX, double oldY, double oldZ,
-                                      double destX, double destY, double destZ) {
+                                     double destX, double destY, double destZ) {
         int oldBlockX = (int) Math.floor(oldX);
         int oldBlockY = (int) Math.floor(oldY);
         int oldBlockZ = (int) Math.floor(oldZ);
@@ -259,8 +295,13 @@ public class AbilityTeleport extends Ability {
             int blockY = MathHelper.floor_double(checkY);
             int blockZ = MathHelper.floor_double(checkZ);
 
+            // Skip out-of-world coordinates
+            if (blockY < 0 || blockY >= 256) {
+                continue;
+            }
+
             Block block = world.getBlock(blockX, blockY, blockZ);
-            if (block.getMaterial().isSolid() && block.isOpaqueCube()) {
+            if (block != null && block.getMaterial().isSolid() && block.isOpaqueCube()) {
                 return false;
             }
         }
@@ -268,7 +309,7 @@ public class AbilityTeleport extends Ability {
         return true;
     }
 
-    private Vec3 findValidPositionAlongLine(World world, EntityNPCInterface npc,
+    private Vec3 findValidPositionAlongLine(World world, EntityLivingBase caster,
                                             double x1, double y1, double z1,
                                             double x2, double y2, double z2) {
         double dx = x2 - x1;
@@ -290,8 +331,8 @@ public class AbilityTeleport extends Ability {
             double checkY = y1 + dy * d;
             double checkZ = z1 + dz * d;
 
-            if (hasLineOfSight(world, x1, y1 + npc.getEyeHeight(), z1,
-                              checkX, checkY + npc.getEyeHeight(), checkZ)) {
+            if (hasLineOfSight(world, x1, y1 + caster.getEyeHeight(), z1,
+                checkX, checkY + caster.getEyeHeight(), checkZ)) {
                 int blockX = MathHelper.floor_double(checkX);
                 int blockY = MathHelper.floor_double(checkY);
                 int blockZ = MathHelper.floor_double(checkZ);
@@ -325,16 +366,26 @@ public class AbilityTeleport extends Ability {
     }
 
     private boolean isSafeLocation(World world, int x, int y, int z) {
+        // Bounds check - ensure we're within valid world coordinates
+        if (y < 1 || y >= 255) {
+            return false;
+        }
+
         Block groundBlock = world.getBlock(x, y - 1, z);
         Block feetBlock = world.getBlock(x, y, z);
         Block headBlock = world.getBlock(x, y + 1, z);
 
+        // Defensive null checks (shouldn't happen in MC 1.7.10, but safe)
+        if (groundBlock == null || feetBlock == null || headBlock == null) {
+            return false;
+        }
+
         return groundBlock.getMaterial().isSolid() &&
-               !feetBlock.getMaterial().isSolid() &&
-               !headBlock.getMaterial().isSolid();
+            !feetBlock.getMaterial().isSolid() &&
+            !headBlock.getMaterial().isSolid();
     }
 
-    private void dealDamageAt(EntityNPCInterface npc, World world, double x, double y, double z) {
+    private void dealDamageAt(EntityLivingBase caster, World world, double x, double y, double z) {
         AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(
             x - damageRadius, y - 1, z - damageRadius,
             x + damageRadius, y + 2, z + damageRadius
@@ -345,13 +396,16 @@ public class AbilityTeleport extends Ability {
 
         for (Entity entity : entities) {
             if (!(entity instanceof EntityLivingBase)) continue;
-            if (entity == npc) continue;
+            if (entity == caster) continue;
 
             EntityLivingBase living = (EntityLivingBase) entity;
             double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
             if (dist <= damageRadius) {
                 // Apply damage with scripted event support (no knockback for teleport damage)
-                applyAbilityDamage(npc, living, damage, 0);
+                boolean wasHit = applyAbilityDamage(caster, living, damage, 0);
+                if (wasHit) {
+                    applyEffects(living);
+                }
             }
         }
     }
@@ -414,33 +468,120 @@ public class AbilityTeleport extends Ability {
     }
 
     // Getters & Setters
-    public TeleportMode getMode() { return mode; }
-    public void setMode(TeleportMode mode) { this.mode = mode; }
+    public TeleportMode getModeEnum() {
+        return mode;
+    }
 
-    public int getBlinkCount() { return blinkCount; }
-    public void setBlinkCount(int blinkCount) { this.blinkCount = blinkCount; }
+    public void setModeEnum(TeleportMode mode) {
+        this.mode = mode;
+    }
 
-    public int getBlinkDelayTicks() { return blinkDelayTicks; }
-    public void setBlinkDelayTicks(int blinkDelayTicks) { this.blinkDelayTicks = blinkDelayTicks; }
+    @Override
+    public int getMode() {
+        return mode.ordinal();
+    }
 
-    public float getBlinkRadius() { return blinkRadius; }
-    public void setBlinkRadius(float blinkRadius) { this.blinkRadius = blinkRadius; }
+    @Override
+    public void setMode(int mode) {
+        TeleportMode[] values = TeleportMode.values();
+        this.mode = mode >= 0 && mode < values.length ? values[mode] : TeleportMode.BLINK;
+    }
 
-    public float getBehindDistance() { return behindDistance; }
-    public void setBehindDistance(float behindDistance) { this.behindDistance = behindDistance; }
+    public int getBlinkCount() {
+        return blinkCount;
+    }
 
-    public boolean isRequireLineOfSight() { return requireLineOfSight; }
-    public void setRequireLineOfSight(boolean requireLineOfSight) { this.requireLineOfSight = requireLineOfSight; }
+    public void setBlinkCount(int blinkCount) {
+        this.blinkCount = blinkCount;
+    }
 
-    public boolean isDamageAtStart() { return damageAtStart; }
-    public void setDamageAtStart(boolean damageAtStart) { this.damageAtStart = damageAtStart; }
+    public int getBlinkDelayTicks() {
+        return blinkDelayTicks;
+    }
 
-    public boolean isDamageAtEnd() { return damageAtEnd; }
-    public void setDamageAtEnd(boolean damageAtEnd) { this.damageAtEnd = damageAtEnd; }
+    public void setBlinkDelayTicks(int blinkDelayTicks) {
+        this.blinkDelayTicks = blinkDelayTicks;
+    }
 
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
+    public float getBlinkRadius() {
+        return blinkRadius;
+    }
 
-    public float getDamageRadius() { return damageRadius; }
-    public void setDamageRadius(float damageRadius) { this.damageRadius = damageRadius; }
+    public void setBlinkRadius(float blinkRadius) {
+        this.blinkRadius = blinkRadius;
+    }
+
+    public float getBehindDistance() {
+        return behindDistance;
+    }
+
+    public void setBehindDistance(float behindDistance) {
+        this.behindDistance = behindDistance;
+    }
+
+    public boolean isRequireLineOfSight() {
+        return requireLineOfSight;
+    }
+
+    public void setRequireLineOfSight(boolean requireLineOfSight) {
+        this.requireLineOfSight = requireLineOfSight;
+    }
+
+    public boolean isDamageAtStart() {
+        return damageAtStart;
+    }
+
+    public void setDamageAtStart(boolean damageAtStart) {
+        this.damageAtStart = damageAtStart;
+    }
+
+    public boolean isDamageAtEnd() {
+        return damageAtEnd;
+    }
+
+    public void setDamageAtEnd(boolean damageAtEnd) {
+        this.damageAtEnd = damageAtEnd;
+    }
+
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public float getDamageRadius() {
+        return damageRadius;
+    }
+
+    public void setDamageRadius(float damageRadius) {
+        this.damageRadius = damageRadius;
+    }
+
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.enumField("ability.mode", TeleportMode.class, this::getModeEnum, this::setModeEnum),
+            FieldDef.floatField("ability.blinkRadius", this::getBlinkRadius, this::setBlinkRadius)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.intField("ability.blinkCount", this::getBlinkCount, this::setBlinkCount)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.blinkDelay", this::getBlinkDelayTicks, this::setBlinkDelayTicks)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK).column(ColumnHint.RIGHT),
+            FieldDef.floatField("ability.behindDistance", this::getBehindDistance, this::setBehindDistance)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BEHIND),
+            FieldDef.boolField("ability.lineOfSight", this::isRequireLineOfSight, this::setRequireLineOfSight)
+                .hover("ability.hover.lineOfSight")
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage).column(ColumnHint.LEFT),
+            FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius).column(ColumnHint.RIGHT),
+            FieldDef.boolField("ability.damageAtStart", this::isDamageAtStart, this::setDamageAtStart)
+                .hover("ability.hover.dmgAtStart").column(ColumnHint.LEFT),
+            FieldDef.boolField("ability.damageAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
+                .hover("ability.hover.dmgAtEnd").column(ColumnHint.RIGHT),
+            FieldDef.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
+    }
 }

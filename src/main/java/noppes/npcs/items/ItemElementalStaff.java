@@ -9,7 +9,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 
 public class ItemElementalStaff extends ItemStaff {

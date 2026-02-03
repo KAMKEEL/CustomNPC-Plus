@@ -8,14 +8,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextContainer {
-    private final static char colorChar = '\u00A7';
+    protected final static char colorChar = '\u00A7';
 
     //public final Pattern regexString = Pattern.compile("\"(?:[^\"\\\\]|\\\\.)*?(\"|$)|'(?:[^'\\\\]|\\\\.)*?('|$)");
     //public final Pattern regexString = Pattern.compile("\"(.*?(?<![\\\\])(\\s)*?)*?\"");
     public final Pattern regexString = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1", Pattern.MULTILINE);
     public final Pattern regexFunction = Pattern.compile("\\b(if|else|switch|with|for|while|in|var|const|let|throw|then|function|continue|break|foreach|return|try|catch|finally|do|this|typeof|instanceof|new)(?=[^\\w])");
     public final Pattern regexType = Pattern.compile("\\b(Array|Date|eval|hasOwnProperty|Infinity|isFinite|isNaN|isPrototypeOf|Math|NaN|Number|Object|prototype|String|toString|undefined|valueOf|parseInt|parseFloat|print)(?=[^\\w])");
-    public final Pattern regexWord = Pattern.compile("[\\p{L}-]+|\\n|$");
+    // Include letters, numbers and underscore so single chars like "x" and numeric tokens match
+    public final Pattern regexWord = Pattern.compile("[\\p{L}\\p{N}_-]+|\\n|$");
     public final Pattern regexNumber = Pattern.compile("\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|unidentified|true|false)\\b");
     public final Pattern regexComment = Pattern.compile("\\/\\*[\\s\\S]*?(?:\\*\\/|$)|\\/\\/.*|#.*");
 
@@ -24,7 +25,7 @@ public class TextContainer {
     public List<MarkUp> makeup = new ArrayList<MarkUp>();
     public List<LineData> lines = new ArrayList<LineData>();
 
-    public int lineHeight;
+    public int lineHeight = 13;
     public int totalHeight;
     public int visibleLines = 1;
     public int linesCount;
@@ -73,7 +74,7 @@ public class TextContainer {
         }
     }
 
-    private MarkUp getNextMatching(int start) {
+    protected MarkUp getNextMatching(int start) {
         MarkUp markup = null;
         String s = text.substring(start);
         Matcher matcher = regexNumber.matcher(s);
@@ -128,7 +129,7 @@ public class TextContainer {
         makeup.add(new MarkUp(start, end, c, level));
     }
 
-    private boolean removeConflictingMarkUp(int start, int end, int level) {
+    protected boolean removeConflictingMarkUp(int start, int end, int level) {
         List<MarkUp> conflicting = new ArrayList<MarkUp>();
         for (MarkUp m : makeup) {
             if (start >= m.start && start <= m.end || end >= m.start && end <= m.end || start < m.start && end > m.start) {

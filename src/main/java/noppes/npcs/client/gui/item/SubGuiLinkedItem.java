@@ -12,7 +12,7 @@ import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
-import noppes.npcs.client.gui.script.GuiScriptLinkedItem;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.controllers.data.LinkedItemScript;
 import org.lwjgl.opengl.GL11;
 
 public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListener, GuiYesNoCallback, ISubGuiListener {
@@ -119,8 +120,8 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         GuiNpcTextField digSpeedField = new GuiNpcTextField(12, this, x + 110, y, 50, 20, "" + linkedItem.digSpeed);
         digSpeedField.setIntegersOnly().setMinMaxDefault(0, 20, 1);
         addTextField(digSpeedField);
-        GuiNpcTextField attackSpeedField = new GuiNpcTextField(14, this, x +165, y, 50, 20, "" +linkedItem.attackSpeed);
-        attackSpeedField.setIntegersOnly().setMinMaxDefault(0,999999999,20);
+        GuiNpcTextField attackSpeedField = new GuiNpcTextField(14, this, x + 165, y, 50, 20, "" + linkedItem.attackSpeed);
+        attackSpeedField.setIntegersOnly().setMinMaxDefault(0, 999999999, 20);
         addTextField(attackSpeedField);
 
         y += spacing;
@@ -307,10 +308,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             return;
         } else if (id == -3) {
             PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
-            GuiScriptLinkedItem scriptGUI = new GuiScriptLinkedItem((GuiNPCManageLinked) this.parent, linkedItem);
-            scriptGUI.setWorldAndResolution(mc, width, height);
-            scriptGUI.initGui();
-            mc.currentScreen = scriptGUI;
+            GuiScriptInterface.open(this.parent, new LinkedItemScript(linkedItem.id));
             return;
         } else if (id == 20) {
             // Open confirmation for version bump.

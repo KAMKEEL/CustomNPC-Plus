@@ -2,7 +2,11 @@ package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Condition;
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 
 /**
  * SubGui for editing a single ability condition.
@@ -84,7 +88,9 @@ public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldLi
 
         // Condition Type selector
         addLabel(new GuiNpcLabel(1, "gui.type", labelX, y + 5));
-        addButton(new GuiNpcButton(1, fieldX, y, 115, 20, CONDITION_TYPES, selectedTypeIndex));
+        GuiNpcButton typeBtn = new GuiNpcButton(1, fieldX, y, 115, 20, CONDITION_TYPES, selectedTypeIndex);
+        typeBtn.setHoverText("condition.hover.type");
+        addButton(typeBtn);
         y += 26;
 
         // Type-specific fields
@@ -92,24 +98,27 @@ public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldLi
         if (typeId.equals("hit_count")) {
             // Hit count fields
             addLabel(new GuiNpcLabel(2, "condition.hits", labelX, y + 5));
-            GuiNpcTextField hitsField = new GuiNpcTextField(2, this, fontRendererObj, fieldX, y, 40, 20, String.valueOf(requiredHits));
+            GuiNpcTextField hitsField = new GuiNpcTextField(2, this, fontRendererObj, fieldX, y, 40, 20, "" + requiredHits);
             hitsField.setIntegersOnly();
             hitsField.setMinMaxDefault(1, 100, 3);
+            hitsField.setHoverText("condition.hover.hits");
             addTextField(hitsField);
             y += 24;
 
             addLabel(new GuiNpcLabel(3, "condition.within", labelX, y + 5));
-            GuiNpcTextField ticksField = new GuiNpcTextField(3, this, fontRendererObj, fieldX, y, 40, 20, String.valueOf(withinTicks));
+            GuiNpcTextField ticksField = new GuiNpcTextField(3, this, fontRendererObj, fieldX, y, 40, 20, "" + withinTicks);
             ticksField.setIntegersOnly();
             ticksField.setMinMaxDefault(1, 1200, 60);
+            ticksField.setHoverText("condition.hover.within");
             addTextField(ticksField);
         } else {
             // HP threshold field (as percentage)
             addLabel(new GuiNpcLabel(2, "condition.percent", labelX, y + 5));
-            int percent = (int)(threshold * 100);
-            GuiNpcTextField thresholdField = new GuiNpcTextField(4, this, fontRendererObj, fieldX, y, 40, 20, String.valueOf(percent));
+            int percent = (int) (threshold * 100);
+            GuiNpcTextField thresholdField = new GuiNpcTextField(4, this, fontRendererObj, fieldX, y, 40, 20, "" + percent);
             thresholdField.setIntegersOnly();
             thresholdField.setMinMaxDefault(1, 99, 50);
+            thresholdField.setHoverText("condition.hover.threshold");
             addTextField(thresholdField);
             addLabel(new GuiNpcLabel(4, "%", fieldX + 45, y + 5));
         }

@@ -9,11 +9,11 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.advanced.GuiNPCAbilities;
 import noppes.npcs.client.gui.advanced.GuiNPCAdvancedLinkedNpc;
 import noppes.npcs.client.gui.advanced.GuiNPCDialogNpcOptions;
 import noppes.npcs.client.gui.advanced.GuiNPCFactionSetup;
 import noppes.npcs.client.gui.advanced.GuiNPCLinesMenu;
-import noppes.npcs.client.gui.advanced.GuiNPCAbilities;
 import noppes.npcs.client.gui.advanced.GuiNPCMagic;
 import noppes.npcs.client.gui.advanced.GuiNPCMarks;
 import noppes.npcs.client.gui.advanced.GuiNPCNightSetup;
@@ -25,8 +25,8 @@ import noppes.npcs.client.gui.roles.GuiNpcConversation;
 import noppes.npcs.client.gui.roles.GuiNpcFollowerJob;
 import noppes.npcs.client.gui.roles.GuiNpcGuard;
 import noppes.npcs.client.gui.roles.GuiNpcHealer;
-import noppes.npcs.client.gui.roles.GuiNpcSpawner;
 import noppes.npcs.client.gui.roles.GuiNpcMount;
+import noppes.npcs.client.gui.roles.GuiNpcSpawner;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -50,7 +50,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
         int y = guiTop + 10;
         this.addButton(new GuiNpcButton(3, guiLeft + 85 + 160, y, 52, 20, "selectServer.edit"));
         this.addButton(new GuiNpcButton(8, guiLeft + 85, y, 155, 20, new String[]{"role.none", "role.trader", "role.follower", "role.bank", "role.transporter", "role.mailman", NoppesStringUtils.translate("role.companion", "(WIP)"), "role.mount", "role.auctioneer"}, npc.advanced.role.ordinal()));
-        getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman);
+        getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman && npc.advanced.role != EnumRoleType.Auctioneer);
 
         this.addButton(new GuiNpcButton(4, guiLeft + 85 + 160, y += 22, 52, 20, "selectServer.edit"));
         this.addButton(new GuiNpcButton(5, guiLeft + 85, y, 155, 20, new String[]{"job.none", "job.bard", "job.healer", "job.guard", "job.itemgiver", "role.follower", "job.spawner", "job.conversation", "job.chunkloader"}, npc.advanced.job.ordinal()));
@@ -84,7 +84,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
             hasChanges = true;
             npc.advanced.setRole(button.getValue());
 
-            getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman);
+            getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman && npc.advanced.role != EnumRoleType.Auctioneer);
         }
         if (button.id == 4) {
             save();

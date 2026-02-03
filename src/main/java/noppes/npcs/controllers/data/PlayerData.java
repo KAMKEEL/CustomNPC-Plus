@@ -15,9 +15,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.IPlayerBankData;
-import noppes.npcs.api.handler.IPlayerCurrencyData;
+import noppes.npcs.api.handler.IPlayerTradeData;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.IPlayerDialogData;
 import noppes.npcs.api.handler.IPlayerFactionData;
@@ -46,6 +47,8 @@ import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.UUID;
 
+import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
+
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public PlayerDialogData dialogData = new PlayerDialogData(this);
     public PlayerBankData bankData = new PlayerBankData(this);
@@ -60,9 +63,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
-    // Currency data - NOT slot-bound, shared across all profile slots
-    public PlayerCurrencyData currencyData = new PlayerCurrencyData(this);
+    // Trade data (currency + auction claims) - shared across all profile slots
+    public PlayerTradeData tradeData = new PlayerTradeData(this);
 
+    public PlayerAbilityData abilityData = new PlayerAbilityData(this);
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
@@ -106,6 +110,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         if (!controller.playerEffects.containsKey(playerID)) {
             controller.playerEffects.put(playerID, effectData.getEffects());
         }
+
+        // Sync player ability data to client
+        abilityData.syncToClient();
     }
 
     public void onLogout() {
@@ -134,6 +141,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         animationData.readFromNBT(data);
         effectData.readFromNBT(data);
         magicData.readToNBT(data);
+        tradeData.readFromNBT(data);
+        abilityData.readFromNBT(data);
 
         if (player != null) {
             playername = player.getCommandSenderName();
@@ -176,6 +185,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         animationData.writeToNBT(compound);
         effectData.writeToNBT(compound);
         magicData.writeToNBT(compound);
+        tradeData.writeToNBT(compound);
+        abilityData.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
@@ -228,6 +239,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         transportData.saveNBTData(compound);
         factionData.saveNBTData(compound);
         mailData.saveNBTData(compound);
+        tradeData.writeToNBT(compound);
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
         DBCAddon.instance.writeToNBT(this, compound);
@@ -241,6 +253,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         transportData.loadNBTData(data);
         factionData.loadNBTData(data);
         mailData.loadNBTData(data);
+        tradeData.readFromNBT(data);
         if (player != null) {
             playername = player.getCommandSenderName();
             uuid = player.getPersistentID().toString();
@@ -401,8 +414,12 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         return mailData;
     }
 
-    public IPlayerCurrencyData getCurrencyData() {
-        return currencyData;
+    public IPlayerTradeData getTradeData() {
+        return tradeData;
+    }
+
+    public IPlayerAbilityData getAbilityData() {
+        return abilityData;
     }
 
     public synchronized void save() {
@@ -414,9 +431,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         }
 
         final NBTTagCompound compound = getNBT();
-        // Currency data is saved at player level, NOT per profile slot
-        currencyData.writeToNBT(compound);
-
         final String filename;
         if (ConfigMain.DatFormat) {
             filename = uuid + ".dat";
@@ -453,10 +467,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         if (data.hasNoTags()) {
             data = getNBT();
         }
-
-        // Load currency BEFORE setNBT - currency is player-level, NOT per profile slot
-        currencyData.readFromNBT(data);
-
         setNBT(data);
     }
 

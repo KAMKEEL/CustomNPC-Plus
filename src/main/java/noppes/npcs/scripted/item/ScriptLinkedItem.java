@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.item.IItemLinked;
 import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 
 public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLinked {
@@ -51,7 +51,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     }
 
     @Override
-    public INpcScriptHandler getScriptHandler() {
+    public IScriptHandler getScriptHandler() {
         if (this.getLinkedItem() == null)
             return null;
         return this.getLinkedItem().getScriptHandler();

@@ -41,6 +41,9 @@ dependencies {
     compileOnly(files("./tools/bukkit-api/spigot-api-ONLY.jar"))
     compileOnly(files("./tools/bukkit-api/Vault-1.4.1.jar"))
 
+    shadowImplementation(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
+    annotationProcessor(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
+
     if(embedMixin){
         // Normal Jar will include built in Mixins
         shadowImplementation("org.spongepowered:mixin:0.7.11-SNAPSHOT"){

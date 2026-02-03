@@ -5,11 +5,13 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import kamkeel.npcs.client.renderer.lightning.LightningBolt;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.InputDevicePacket;
-import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
+import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,7 +20,6 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptSoundController;
-import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
@@ -115,6 +116,9 @@ public class ClientTickHandler {
         if (TelegraphManager.ClientInstance != null) {
             TelegraphManager.ClientInstance.tick(mc.theWorld);
         }
+
+        // Update lightning bolts for ability effects
+        LightningBolt.updateAll();
         if (Minecraft.getMinecraft().thePlayer != null && (prevWidth != mc.displayWidth || prevHeight != mc.displayHeight)) {
             prevWidth = mc.displayWidth;
             prevHeight = mc.displayHeight;

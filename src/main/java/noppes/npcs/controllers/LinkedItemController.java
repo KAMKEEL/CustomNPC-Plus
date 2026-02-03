@@ -7,7 +7,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 import noppes.npcs.util.NBTJsonUtil;
@@ -90,12 +90,12 @@ public class LinkedItemController {
         return this.linkedItems.containsValue(linkedItem);
     }
 
-    public INpcScriptHandler getScriptHandler(int id) {
+    public IScriptHandler getScriptHandler(int id) {
         return this.linkedItemsScripts.get(id);
     }
 
-    ////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
 
     public void load() {
         lastUsedID = 0;
@@ -247,10 +247,9 @@ public class LinkedItemController {
     }
 
 
-    ////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
     // LINKED ITEMS MAP
-
     public File getMapDir() {
         File dir = CustomNpcs.getWorldSaveDirectory();
         if (!dir.exists())
