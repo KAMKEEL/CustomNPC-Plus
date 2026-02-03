@@ -509,7 +509,11 @@ public final class FieldInfo {
         return getEffectiveType(); 
     }
     public int getDeclarationOffset() { return declarationOffset; }
-    public boolean isResolved() { return resolved; }
+    public boolean isResolved() {
+        // Check if we have any resolved type (declared or inferred)
+        TypeInfo effectiveType = getEffectiveType();
+        return effectiveType != null && effectiveType.isResolved();
+    }
     public MethodInfo getContainingMethod() { return containingMethod; }
     public String getDocumentation() { return documentation; }
     public JSDocInfo getJSDocInfo() { return jsDocInfo; }

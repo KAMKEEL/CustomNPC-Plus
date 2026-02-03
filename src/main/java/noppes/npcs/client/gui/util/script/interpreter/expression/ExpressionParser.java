@@ -14,7 +14,119 @@ public class ExpressionParser {
     
     public ExpressionNode parse() {
         if (tokens.isEmpty()) return null;
-        return parseExpression(0);
+        return parseLambdaOrExpression();
+    }
+    
+    private ExpressionNode parseLambdaOrExpression() {
+        // Check if this is a lambda: (params) -> or param ->
+        // Look ahead to see if there's a -> after the next identifier/parens
+        
+        int checkpoint = pos;
+        List<String> paramNames = null;
+        int lambdaStart = current().getStart();
+        
+        // Try to parse parameter list
+        if (check(ExpressionToken.TokenKind.IDENTIFIER)) {
+            // Single param without parens
+            String paramName = current().getText();
+            advance();
+            if (check(ExpressionToken.TokenKind.LAMBDA_ARROW)) {
+                paramNames = new ArrayList<>();
+                paramNames.add(paramName);
+            } else {
+                // Not a lambda, rewind
+                pos = checkpoint;
+            }
+        } else if (check(ExpressionToken.TokenKind.LEFT_PAREN)) {
+            // Parenthesized params: (a, b) or ()
+            advance(); // consume '('
+            paramNames = new ArrayList<>();
+            
+            if (!check(ExpressionToken.TokenKind.RIGHT_PAREN)) {
+                // Parse param list
+                while (true) {
+                    if (!check(ExpressionToken.TokenKind.IDENTIFIER)) {
+                        // Not a valid lambda param list, rewind
+                        pos = checkpoint;
+                        paramNames = null;
+                        break;
+                    }
+                    paramNames.add(current().getText());
+                    advance();
+                    
+                    if (check(ExpressionToken.TokenKind.COMMA)) {
+                        advance();
+                    } else if (check(ExpressionToken.TokenKind.RIGHT_PAREN)) {
+                        break;
+                    } else {
+                        // Invalid syntax, rewind
+                        pos = checkpoint;
+                        paramNames = null;
+                        break;
+                    }
+                }
+            }
+            
+            if (paramNames != null) {
+                if (check(ExpressionToken.TokenKind.RIGHT_PAREN)) {
+                    advance(); // consume ')'
+                    if (check(ExpressionToken.TokenKind.LAMBDA_ARROW)) {
+                        // Valid lambda!
+                    } else {
+                        // Not a lambda, rewind
+                        pos = checkpoint;
+                        paramNames = null;
+                    }
+                } else {
+                    // No closing paren, rewind
+                    pos = checkpoint;
+                    paramNames = null;
+                }
+            }
+        }
+        
+        if (paramNames != null) {
+            // This is a lambda! Parse it
+            advance(); // consume '->'
+            
+            // Parse body
+            ExpressionNode body;
+            boolean isBlock = false;
+            int bodyEnd;
+            
+            if (check(ExpressionToken.TokenKind.LEFT_BRACE)) {
+                // Block lambda: { ... }
+                isBlock = true;
+                int braceStart = current().getStart();
+                advance(); // consume '{'
+                // Skip to matching '}'
+                int depth = 1;
+                while (depth > 0 && pos < tokens.size() && !check(ExpressionToken.TokenKind.EOF)) {
+                    if (check(ExpressionToken.TokenKind.LEFT_BRACE)) depth++;
+                    else if (check(ExpressionToken.TokenKind.RIGHT_BRACE)) depth--;
+                    if (depth > 0) advance();
+                }
+                bodyEnd = current().getEnd();
+                if (check(ExpressionToken.TokenKind.RIGHT_BRACE)) {
+                    advance(); // consume '}'
+                }
+                body = new ExpressionNode.StringLiteralNode("<block>", braceStart, bodyEnd); // Placeholder
+            } else {
+                // Expression lambda
+                body = parseExpressionInternal(0);
+                if (body == null) {
+                    // Failed to parse body, return error recovery
+                    return null;
+                }
+                bodyEnd = body.getEnd();
+            }
+            
+            // Create lambda node (scopeRef will be set during type resolution)
+            return new ExpressionNode.LambdaNode(paramNames, body, isBlock, lambdaStart, bodyEnd);
+        }
+        
+        // Not a lambda, parse as regular expression
+        return parseExpressionInternal(0);
     }
     
     private ExpressionToken current() {
@@ -36,6 +148,15 @@ public class ExpressionParser {
     }
     
     private ExpressionNode parseExpression(int minPrecedence) {
+        // For top-level expressions (minPrecedence = 0), check for lambda first
+        if (minPrecedence == 0) {
+            return parseLambdaOrExpression();
+        }
+        
+        return parseExpressionInternal(minPrecedence);
+    }
+    
+    private ExpressionNode parseExpressionInternal(int minPrecedence) {
         ExpressionNode left = parsePrefixExpression();
         if (left == null) return null;
         
@@ -108,6 +229,11 @@ public class ExpressionParser {
         ExpressionToken tok = current();
         int start = tok.getStart();
         
+        // Check for function expression (JS only)
+        if (tok.getKind() == ExpressionToken.TokenKind.FUNCTION) {
+            return parseFunctionExpression();
+        }
+        
         if (tok.getKind() == ExpressionToken.TokenKind.OPERATOR) {
             OperatorType op = tok.getOperatorType();
             if (op != null && isUnaryOperator(op)) {
@@ -124,6 +250,80 @@ public class ExpressionParser {
         }
         
         return parsePrimaryExpression();
+    }
+    
+    private ExpressionNode parseFunctionExpression() {
+        int start = current().getStart();
+        advance(); // consume 'function'
+        
+        // Optional function name
+        String functionName = null;
+        if (check(ExpressionToken.TokenKind.IDENTIFIER)) {
+            functionName = current().getText();
+            advance();
+        }
+        
+        // Expect '('
+        if (!check(ExpressionToken.TokenKind.LEFT_PAREN)) {
+            return null; // Invalid syntax
+        }
+        advance(); // consume '('
+        
+        // Parse parameters
+        List<String> params = new ArrayList<>();
+        while (!check(ExpressionToken.TokenKind.RIGHT_PAREN) && !check(ExpressionToken.TokenKind.EOF)) {
+            if (!check(ExpressionToken.TokenKind.IDENTIFIER)) {
+                return null; // Invalid parameter
+            }
+            params.add(current().getText());
+            advance();
+            
+            if (check(ExpressionToken.TokenKind.COMMA)) {
+                advance();
+            } else if (!check(ExpressionToken.TokenKind.RIGHT_PAREN)) {
+                return null; // Expected comma or closing paren
+            }
+        }
+        
+        if (!check(ExpressionToken.TokenKind.RIGHT_PAREN)) {
+            return null; // Expected closing paren
+        }
+        advance(); // consume ')'
+        
+        // Expect '{'
+        if (!check(ExpressionToken.TokenKind.LEFT_BRACE)) {
+            return null; // Invalid syntax
+        }
+        advance(); // consume '{'
+        
+        // Collect body tokens until matching '}'
+        StringBuilder bodyBuilder = new StringBuilder();
+        int depth = 1;
+        while (depth > 0 && !check(ExpressionToken.TokenKind.EOF)) {
+            ExpressionToken bodyToken = current();
+            if (bodyToken.getKind() == ExpressionToken.TokenKind.LEFT_BRACE) {
+                depth++;
+            } else if (bodyToken.getKind() == ExpressionToken.TokenKind.RIGHT_BRACE) {
+                depth--;
+                if (depth == 0) {
+                    break;
+                }
+            }
+            bodyBuilder.append(bodyToken.getText()).append(" ");
+            advance();
+        }
+        
+        String bodyText = bodyBuilder.toString().trim();
+        int end = current().getEnd();
+        
+        if (!check(ExpressionToken.TokenKind.RIGHT_BRACE)) {
+            return null; // Expected closing brace
+        }
+        advance(); // consume final '}'
+        
+        // Find the corresponding InnerCallableScope from ScriptDocument
+        // This will be set during type resolution when we have access to ScriptDocument
+        return new ExpressionNode.JSFunctionNode(functionName, params, bodyText, start, end);
     }
     
     private boolean isUnaryOperator(OperatorType op) {
@@ -250,7 +450,34 @@ public class ExpressionParser {
     
     private ExpressionNode parseAccessChain(ExpressionNode base) {
         while (true) {
-            if (check(ExpressionToken.TokenKind.LEFT_PAREN)) {
+            if (check(ExpressionToken.TokenKind.METHOD_REFERENCE)) {
+                advance(); // consume '::'
+                
+                if (!check(ExpressionToken.TokenKind.IDENTIFIER)) {
+                    // Invalid syntax, return what we have
+                    break;
+                }
+                
+                String methodName = current().getText();
+                int end = current().getEnd();
+                advance();
+                
+                // Determine if this is a static or instance method reference
+                boolean isStatic = false;
+                if (base instanceof ExpressionNode.IdentifierNode) {
+                    // Could be Class::method or obj::method
+                    // We'll determine this during type resolution
+                    String targetName = ((ExpressionNode.IdentifierNode) base).getName();
+                    // If targetName starts with uppercase, likely a class
+                    if (targetName.length() > 0) {
+                        isStatic = Character.isUpperCase(targetName.charAt(0));
+                    }
+                }
+                
+                base = new ExpressionNode.MethodReferenceNode(base, methodName, isStatic, base.getStart(), end);
+                // Method references don't chain further (can't do obj::method.something)
+                break;
+            } else if (check(ExpressionToken.TokenKind.LEFT_PAREN)) {
                 advance();
                 List<ExpressionNode> args = parseArgumentList();
                 int end = current().getStart();

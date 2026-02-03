@@ -5,10 +5,12 @@ public class ExpressionToken {
     public enum TokenKind {
         INT_LITERAL, LONG_LITERAL, FLOAT_LITERAL, DOUBLE_LITERAL,
         BOOLEAN_LITERAL, CHAR_LITERAL, STRING_LITERAL, NULL_LITERAL,
-        IDENTIFIER, NEW, INSTANCEOF,
+        IDENTIFIER, NEW, INSTANCEOF, FUNCTION,
         OPERATOR,
         LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET, RIGHT_BRACKET,
+        LEFT_BRACE, RIGHT_BRACE,
         DOT, COMMA, QUESTION, COLON, SEMICOLON,
+        LAMBDA_ARROW, METHOD_REFERENCE,
         EOF
     }
     
@@ -54,6 +56,9 @@ public class ExpressionToken {
         }
         if ("instanceof".equals(name)) {
             return new ExpressionToken(TokenKind.INSTANCEOF, name, start, end);
+        }
+        if ("function".equals(name)) {
+            return new ExpressionToken(TokenKind.FUNCTION, name, start, end);
         }
         return new ExpressionToken(TokenKind.IDENTIFIER, name, start, end);
     }

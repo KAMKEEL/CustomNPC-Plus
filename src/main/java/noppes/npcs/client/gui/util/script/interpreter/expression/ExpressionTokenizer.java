@@ -98,6 +98,21 @@ public class ExpressionTokenizer {
             
             int start = pos;
             String op = null;
+            
+            // Check for method reference :: (before lambda arrow and single colon)
+            if (pos + 1 < len && c == ':' && expr.charAt(pos + 1) == ':') {
+                tokens.add(new ExpressionToken(ExpressionToken.TokenKind.METHOD_REFERENCE, "::", pos, pos + 2));
+                pos += 2;
+                continue;
+            }
+            
+            // Check for lambda arrow
+            if (pos + 1 < len && c == '-' && expr.charAt(pos + 1) == '>') {
+                tokens.add(new ExpressionToken(ExpressionToken.TokenKind.LAMBDA_ARROW, "->", pos, pos + 2));
+                pos += 2;
+                continue;
+            }
+            
             if (pos + 3 <= len) {
                 String s3 = expr.substring(pos, pos + 3);
                 if (">>>".equals(s3) || "<<=".equals(s3) || ">>=".equals(s3)) op = s3;
@@ -133,6 +148,8 @@ public class ExpressionTokenizer {
                 case ')': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.RIGHT_PAREN, ")", pos, pos + 1)); break;
                 case '[': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.LEFT_BRACKET, "[", pos, pos + 1)); break;
                 case ']': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.RIGHT_BRACKET, "]", pos, pos + 1)); break;
+                case '{': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.LEFT_BRACE, "{", pos, pos + 1)); break;
+                case '}': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.RIGHT_BRACE, "}", pos, pos + 1)); break;
                 case '.': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.DOT, ".", pos, pos + 1)); break;
                 case ',': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.COMMA, ",", pos, pos + 1)); break;
                 case '?': tokens.add(new ExpressionToken(ExpressionToken.TokenKind.QUESTION, "?", pos, pos + 1)); break;

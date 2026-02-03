@@ -224,6 +224,133 @@ public abstract class ExpressionNode {
         public TypeInfo resolveType(TypeResolverContext resolver) { return inner.resolveType(resolver); }
     }
     
+    public static class LambdaNode extends ExpressionNode {
+        private final List<String> parameterNames;
+        private final ExpressionNode body;
+        private final boolean isBlock;
+        private noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope scopeRef;
+        
+        public LambdaNode(List<String> parameterNames, ExpressionNode body, boolean isBlock, int start, int end) {
+            super(start, end);
+            this.parameterNames = parameterNames != null ? new ArrayList<>(parameterNames) : new ArrayList<>();
+            this.body = body;
+            this.isBlock = isBlock;
+            this.scopeRef = null;
+        }
+        
+        public List<String> getParameterNames() { return Collections.unmodifiableList(parameterNames); }
+        public ExpressionNode getBody() { return body; }
+        public boolean isBlock() { return isBlock; }
+        public noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope getScopeRef() { return scopeRef; }
+        public void setScopeRef(noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope scope) { 
+            this.scopeRef = scope; 
+        }
+        
+        @Override
+        public TypeInfo resolveType(TypeResolverContext resolver) {
+            // Lambda type is determined by the expected functional interface type
+            // See ExpressionTypeResolver.resolveLambdaType()
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            if (parameterNames.size() == 1 && !isBlock) {
+                sb.append(parameterNames.get(0));
+            } else {
+                sb.append("(");
+                sb.append(String.join(", ", parameterNames));
+                sb.append(")");
+            }
+            sb.append(" -> ");
+            if (isBlock) {
+                sb.append("{ ... }");
+            } else {
+                sb.append(body);
+            }
+            return sb.toString();
+        }
+    }
+    
+    public static class JSFunctionNode extends ExpressionNode {
+        private final String name;  // Optional name for named function expressions
+        private final List<String> parameterNames;
+        private final String bodyText;  // Raw body text (for block functions)
+        private noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope scopeRef;
+        
+        public JSFunctionNode(String name, List<String> parameterNames, String bodyText, int start, int end) {
+            super(start, end);
+            this.name = name;
+            this.parameterNames = parameterNames != null ? new ArrayList<>(parameterNames) : new ArrayList<>();
+            this.bodyText = bodyText;
+            this.scopeRef = null;
+        }
+        
+        public String getName() { return name; }
+        public List<String> getParameterNames() { return Collections.unmodifiableList(parameterNames); }
+        public String getBodyText() { return bodyText; }
+        public noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope getScopeRef() { return scopeRef; }
+        public void setScopeRef(noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope scope) { 
+            this.scopeRef = scope; 
+        }
+        
+        @Override
+        public TypeInfo resolveType(TypeResolverContext resolver) {
+            // JS function type is determined by the expected functional interface type
+            // See ExpressionTypeResolver.resolveJSFunctionType()
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("function");
+            if (name != null && !name.isEmpty()) {
+                sb.append(" ").append(name);
+            }
+            sb.append("(");
+            sb.append(String.join(", ", parameterNames));
+            sb.append(") { ");
+            if (bodyText.length() > 30) {
+                sb.append(bodyText.substring(0, 30)).append("...");
+            } else {
+                sb.append(bodyText);
+            }
+            sb.append(" }");
+            return sb.toString();
+        }
+    }
+    
+    public static class MethodReferenceNode extends ExpressionNode {
+        private final ExpressionNode target;  // Object or class name
+        private final String methodName;
+        private final boolean isStatic;  // Whether it's Class::method vs obj::method
+        
+        public MethodReferenceNode(ExpressionNode target, String methodName, boolean isStatic, int start, int end) {
+            super(start, end);
+            this.target = target;
+            this.methodName = methodName;
+            this.isStatic = isStatic;
+        }
+        
+        public ExpressionNode getTarget() { return target; }
+        public String getMethodName() { return methodName; }
+        public boolean isStatic() { return isStatic; }
+        
+        @Override
+        public TypeInfo resolveType(TypeResolverContext resolver) {
+            // Method reference type is determined by the expected functional interface type
+            // See ExpressionTypeResolver.resolveMethodReferenceType()
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        @Override
+        public String toString() {
+            return target + "::" + methodName;
+        }
+    }
+    
     public interface TypeResolverContext {
         TypeInfo resolveIdentifier(String name);
         TypeInfo resolveMemberAccess(TypeInfo targetType, String memberName);

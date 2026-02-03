@@ -467,6 +467,15 @@ public class ScriptDocument {
         }
         return false;
     }
+    
+    /**
+     * Get the list of excluded ranges (comments, strings, etc.).
+     * Used by AutocompleteManager to skip over excluded regions.
+     * @return List of [start, end) ranges to exclude
+     */
+    public List<int[]> getExcludedRanges() {
+        return excludedRanges;
+    }
 
     /**
      * Check if a position is within a comment range (not string).
@@ -1329,6 +1338,144 @@ public class ScriptDocument {
                         locals.put(varName, fieldInfo);
                 }
             }
+        }
+        
+        // Also parse locals inside inner callable scopes
+        for (InnerCallableScope scope : innerScopes) {
+            parseLocalVariablesInScope(scope);
+        }
+    }
+    
+    /**
+     * Parse local variable declarations inside an inner callable scope (lambda or JS function expression).
+     */
+    private void parseLocalVariablesInScope(InnerCallableScope scope) {
+        int start = scope.getBodyStart();
+        int end = scope.getBodyEnd();
+        
+        if (start < 0 || end <= start) return;
+        
+        if (isJavaScript()) {
+            parseJSLocalsInRange(start, end, scope);
+        } else {
+            parseJavaLocalsInRange(start, end, scope);
+        }
+    }
+    
+    /**
+     * Parse Java local variable declarations in the range [start, end).
+     * Pattern: Type varName = ... or var varName = ...
+     */
+    private void parseJavaLocalsInRange(int start, int end, InnerCallableScope scope) {
+        String rangeText = text.substring(start, Math.min(end, text.length()));
+        
+        Matcher m = FIELD_DECL_PATTERN.matcher(rangeText);
+        while (m.find()) {
+            int declPos = start + m.start();
+            if (declPos < start || declPos >= end) continue;
+            if (isExcluded(declPos)) continue;
+            
+            String typeNameRaw = m.group(1);
+            String varName = m.group(2);
+            String delimiter = m.group(3);
+            
+            // Skip control flow keywords
+            if (typeNameRaw.equals("return") || typeNameRaw.equals("if") || typeNameRaw.equals("while") ||
+                typeNameRaw.equals("for") || typeNameRaw.equals("switch") || typeNameRaw.equals("catch") ||
+                typeNameRaw.equals("new") || typeNameRaw.equals("throw")) {
+                continue;
+            }
+            
+            String typeName = stripModifiers(typeNameRaw);
+            int modifiers = parseModifiers(typeNameRaw);
+            
+            TypeInfo varType = null;
+            if (!typeName.equals("var") && !typeName.equals("let") && !typeName.equals("const")) {
+                varType = resolveType(typeName);
+            } else if (delimiter.equals("=")) {
+                // Infer type from initializer
+                int rhsStart = start + m.end();
+                varType = inferTypeFromExpression(rhsStart);
+            }
+            
+            int initStart = -1, initEnd = -1;
+            if ("=".equals(delimiter)) {
+                initStart = start + m.start(3);
+                int searchPos = start + m.end(3);
+                int depth = 0;
+                int angleDepth = 0;
+                while (searchPos < end) {
+                    char c = text.charAt(searchPos);
+                    if (c == '(' || c == '[' || c == '{') depth++;
+                    else if (c == ')' || c == ']' || c == '}') depth--;
+                    else if (c == '<') angleDepth++;
+                    else if (c == '>') angleDepth--;
+                    else if ((c == ';' || c == ',') && depth == 0 && angleDepth == 0) {
+                        initEnd = searchPos;
+                        break;
+                    }
+                    searchPos++;
+                }
+            }
+            
+            int absPos = start + m.start(2);
+            FieldInfo localVar = FieldInfo.localField(varName, varType, absPos, null, initStart, initEnd, modifiers);
+            scope.addLocal(varName, localVar);
+        }
+    }
+    
+    /**
+     * Parse JS local variable declarations in the range [start, end).
+     * Pattern: var/let/const varName = ...
+     */
+    private void parseJSLocalsInRange(int start, int end, InnerCallableScope scope) {
+        String rangeText = text.substring(start, Math.min(end, text.length()));
+        
+        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
+        Matcher m = varPattern.matcher(rangeText);
+        
+        while (m.find()) {
+            int declPos = start + m.start();
+            if (declPos < start || declPos >= end) continue;
+            if (isExcluded(declPos)) continue;
+            
+            String varName = m.group(1);
+            String initializer = m.group(3);
+            
+            // Check for JSDoc type annotation
+            JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, declPos);
+            
+            TypeInfo varType = null;
+            
+            // Priority 1: JSDoc @type
+            if (jsDoc != null && jsDoc.hasTypeTag()) {
+                varType = jsDoc.getDeclaredType();
+            }
+            
+            // Priority 2: Infer from initializer
+            if (varType == null && initializer != null && !initializer.trim().isEmpty()) {
+                varType = resolveExpressionType(initializer.trim(), start + m.start(3));
+            }
+            
+            // Priority 3: Use "any" type
+            if (varType == null) {
+                varType = TypeInfo.ANY;
+            }
+            
+            int initStart = -1, initEnd = -1;
+            if (m.group(2) != null) {
+                initStart = start + m.start(2);
+                initEnd = start + m.end(3);
+            }
+            
+            int absPos = start + m.start(1);
+            FieldInfo localVar = FieldInfo.localField(varName, varType, absPos, null, initStart, initEnd, 0);
+            
+            if (jsDoc != null) {
+                localVar.setJSDocInfo(jsDoc);
+            }
+            
+            scope.addLocal(varName, localVar);
         }
     }
     
@@ -2429,10 +2576,224 @@ public class ScriptDocument {
             markUnusedImports(marks);
         }
         
+        // Mark lambda and method reference operators (-> and ::)
+        markLambdaOperators(marks);
+        
+        // Mark lambda/function parameters with type info
+        markInnerScopeParameters(marks);
+        
+        // Validate lambda return types
+        validateLambdaReturnTypes(marks);
+        
         // Final pass: Mark any remaining unmarked identifiers as undefined
         markUndefinedIdentifiers(marks);
 
         return marks;
+    }
+    
+    /**
+     * Mark lambda arrow (->) and method reference (::) operators.
+     */
+    private void markLambdaOperators(List<ScriptLine.Mark> marks) {
+        // Mark -> operators (lambda arrows)
+        for (int i = 0; i < text.length() - 1; i++) {
+            if (text.charAt(i) == '-' && text.charAt(i + 1) == '>') {
+                if (!isExcluded(i)) {
+                    marks.add(new ScriptLine.Mark(i, i + 2, TokenType.KEYWORD));
+                }
+            }
+        }
+        
+        // Mark :: operators (method references)
+        for (int i = 0; i < text.length() - 1; i++) {
+            if (text.charAt(i) == ':' && text.charAt(i + 1) == ':') {
+                if (!isExcluded(i)) {
+                    marks.add(new ScriptLine.Mark(i, i + 2, TokenType.KEYWORD));
+                }
+            }
+        }
+    }
+    
+    /**
+     * Mark parameters in all inner callable scopes (lambdas and JS function expressions).
+     */
+    private void markInnerScopeParameters(List<ScriptLine.Mark> marks) {
+        for (InnerCallableScope scope : innerScopes) {
+            for (FieldInfo param : scope.getParameters()) {
+                int start = param.getDeclarationOffset();
+                int end = start + param.getName().length();
+                
+                // Use FieldInfo as metadata - hover system will extract tooltip
+                marks.add(new ScriptLine.Mark(start, end, TokenType.PARAMETER, param));
+            }
+        }
+    }
+    
+    /**
+     * Validate lambda return types against expected SAM return type.
+     */
+    private void validateLambdaReturnTypes(List<ScriptLine.Mark> marks) {
+        for (InnerCallableScope scope : innerScopes) {
+            if (scope.getKind() == InnerCallableScope.Kind.JAVA_LAMBDA || 
+                scope.getKind() == InnerCallableScope.Kind.JS_FUNCTION_EXPR) {
+                validateLambdaReturnType(scope, marks);
+            }
+        }
+    }
+    
+    /**
+     * Validate that a lambda's body return type matches the expected SAM return type.
+     */
+    private void validateLambdaReturnType(InnerCallableScope lambda, List<ScriptLine.Mark> marks) {
+        TypeInfo expectedType = lambda.getExpectedType();
+        if (expectedType == null || !expectedType.isFunctionalInterface()) {
+            return; // No expected type to validate against
+        }
+        
+        MethodInfo sam = expectedType.getSingleAbstractMethod();
+        if (sam == null) {
+            return;
+        }
+        
+        TypeInfo expectedReturnType = sam.getReturnType();
+        
+        int bodyStart = lambda.getBodyStart();
+        int bodyEnd = lambda.getBodyEnd();
+        if (bodyStart < 0 || bodyEnd <= bodyStart || bodyEnd > text.length()) {
+            return;
+        }
+        
+        String bodyText = text.substring(bodyStart, bodyEnd).trim();
+        
+        if (bodyText.startsWith("{")) {
+            // Block lambda - validate return statements
+            validateBlockLambdaReturns(lambda, bodyStart, bodyEnd, expectedReturnType, marks);
+        } else {
+            // Expression lambda - validate expression type
+            try {
+                TypeInfo bodyType = resolveExpressionType(bodyText, bodyStart);
+                
+                if (bodyType != null && expectedReturnType != null) {
+                    // Check compatibility
+                    if (!isCompatibleType(bodyType, expectedReturnType)) {
+                        // Mark error at body start
+                        String error = "Incompatible return type: expected " + 
+                                      expectedReturnType.getSimpleName() + 
+                                      " but was " + bodyType.getSimpleName();
+                        marks.add(new ScriptLine.Mark(bodyStart, bodyEnd, TokenType.UNDEFINED_VAR, TokenErrorMessage.from(error)));
+                    }
+                }
+            } catch (Exception e) {
+                // Fail soft - don't crash on malformed expressions
+            }
+        }
+    }
+    
+    /**
+     * Validate return statements in a block lambda (one with { }).
+     * Checks that all return statements return compatible types with the expected SAM return type.
+     */
+    private void validateBlockLambdaReturns(InnerCallableScope lambda, int blockStart, int blockEnd, 
+                                            TypeInfo expectedReturnType, List<ScriptLine.Mark> marks) {
+        // Find all return statements in the block
+        String blockText = text.substring(blockStart, blockEnd);
+        Pattern returnPattern = Pattern.compile("\\breturn\\b(\\s*;|\\s+[^;]+;)");
+        Matcher m = returnPattern.matcher(blockText);
+        
+        while (m.find()) {
+            int returnStart = blockStart + m.start();
+            int returnEnd = blockStart + m.end();
+            
+            if (isExcluded(returnStart)) {
+                continue;
+            }
+            
+            // Get the return expression (if any)
+            String returnStmt = m.group(1).trim();
+            
+            if (returnStmt.equals(";")) {
+                // return; - void return
+                if (expectedReturnType != null && !expectedReturnType.getSimpleName().equals("void")) {
+                    String error = "Cannot return void from lambda expecting " + expectedReturnType.getSimpleName();
+                    marks.add(new ScriptLine.Mark(returnStart, returnEnd, TokenType.UNDEFINED_VAR, TokenErrorMessage.from(error)));
+                }
+            } else {
+                // return <expr>; - typed return
+                String expr = returnStmt.substring(0, returnStmt.length() - 1).trim();
+                
+                if (expectedReturnType != null && expectedReturnType.getSimpleName().equals("void")) {
+                    String error = "Cannot return a value from void lambda";
+                    marks.add(new ScriptLine.Mark(returnStart, returnEnd, TokenType.UNDEFINED_VAR, TokenErrorMessage.from(error)));
+                } else {
+                    try {
+                        // Validate return expression type
+                        int exprStart = returnStart + m.group(0).indexOf(expr);
+                        TypeInfo returnType = resolveExpressionType(expr, exprStart);
+                        
+                        if (returnType != null && expectedReturnType != null) {
+                            if (!isCompatibleType(returnType, expectedReturnType)) {
+                                String error = "Incompatible return type: expected " + 
+                                              expectedReturnType.getSimpleName() + 
+                                              " but returned " + returnType.getSimpleName();
+                                int exprEnd = exprStart + expr.length();
+                                marks.add(new ScriptLine.Mark(exprStart, exprEnd, TokenType.UNDEFINED_VAR, TokenErrorMessage.from(error)));
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Fail soft on malformed expressions
+                    }
+                }
+            }
+        }
+        
+        // Check for missing returns in non-void lambdas
+        // This is a warning rather than an error - Java allows it if the lambda throws or has infinite loop
+        // We skip this validation to avoid false positives
+    }
+    
+    /**
+     * Check if an actual type is compatible with an expected type.
+     * Includes boxing, subtype checking, and special cases like void.
+     */
+    private boolean isCompatibleType(TypeInfo actual, TypeInfo expected) {
+        if (actual == null || expected == null) return false;
+        if (actual.equals(expected)) return true;
+        if (actual.getSimpleName().equals(expected.getSimpleName())) return true;
+        
+        // void is compatible with anything (statement lambda)
+        if (expected.getSimpleName().equals("void")) return true;
+        
+        // Object is compatible with anything
+        if (expected.getSimpleName().equals("Object") || expected.getFullName().equals("java.lang.Object")) return true;
+        
+        // Check primitive boxing
+        if (isBoxingCompatible(actual.getSimpleName(), expected.getSimpleName())) return true;
+        
+        // Use TypeChecker for more complex compatibility
+        return TypeChecker.isTypeCompatible(expected, actual);
+    }
+    
+    /**
+     * Check if types are compatible via boxing/unboxing.
+     */
+    private boolean isBoxingCompatible(String actualName, String expectedName) {
+        if (actualName.equals("int") && expectedName.equals("Integer")) return true;
+        if (actualName.equals("Integer") && expectedName.equals("int")) return true;
+        if (actualName.equals("boolean") && expectedName.equals("Boolean")) return true;
+        if (actualName.equals("Boolean") && expectedName.equals("boolean")) return true;
+        if (actualName.equals("long") && expectedName.equals("Long")) return true;
+        if (actualName.equals("Long") && expectedName.equals("long")) return true;
+        if (actualName.equals("double") && expectedName.equals("Double")) return true;
+        if (actualName.equals("Double") && expectedName.equals("double")) return true;
+        if (actualName.equals("float") && expectedName.equals("Float")) return true;
+        if (actualName.equals("Float") && expectedName.equals("float")) return true;
+        if (actualName.equals("byte") && expectedName.equals("Byte")) return true;
+        if (actualName.equals("Byte") && expectedName.equals("byte")) return true;
+        if (actualName.equals("short") && expectedName.equals("Short")) return true;
+        if (actualName.equals("Short") && expectedName.equals("short")) return true;
+        if (actualName.equals("char") && expectedName.equals("Character")) return true;
+        if (actualName.equals("Character") && expectedName.equals("char")) return true;
+        return false;
     }
     
     /**
@@ -4403,7 +4764,8 @@ public class ScriptDocument {
         ExpressionNode.TypeResolverContext context = createExpressionResolverContext(position);
         
         // Use the expression resolver to parse and resolve the type
-        ExpressionTypeResolver resolver = new ExpressionTypeResolver(context);
+        // Pass the position as basePosition so lambda position calculations work correctly
+        ExpressionTypeResolver resolver = new ExpressionTypeResolver(context, this, position);
         TypeInfo result = resolver.resolve(expr);
         
         // Special case: null literal type is "unresolved" but valid
@@ -4744,10 +5106,17 @@ public class ScriptDocument {
         if (pos < 0) return null;
 
         while (pos >= 0) {
-            // Check if we're in a comment range (but not string range)
-            // Skip comments to avoid picking up types from comment text
-            if (isInCommentRange(pos)) {
-                return null;
+            // Check if we're in an excluded range (comment, string, etc.)
+            // Skip excluded regions to avoid picking up types from comment text
+            if (isExcluded(pos)) {
+                // Find the excluded range and skip to before it
+                for (int[] range : excludedRanges) {
+                    if (pos >= range[0] && pos < range[1]) {
+                        pos = range[0] - 1; // Jump to before the excluded range
+                        break;
+                    }
+                }
+                continue; // Continue scanning from before the excluded range
             }
             
             char c = text.charAt(pos);
@@ -4769,8 +5138,11 @@ public class ScriptDocument {
 
             if (Character.isJavaIdentifierPart(c)) {
                 while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) pos--;
+                // Skip whitespace to check for chained identifier (preceded by a dot)
+                int checkPos = pos;
+                while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) checkPos--;
                 // If it's part of a chained identifier (preceded by a dot), continue
-                if (pos >= 0 && text.charAt(pos) == '.') { pos--; continue; }
+                if (checkPos >= 0 && text.charAt(checkPos) == '.') { pos = checkPos - 1; continue; }
                 break;
             }
 
@@ -5045,13 +5417,32 @@ public class ScriptDocument {
             boolean isUppercase = Character.isUpperCase(name.charAt(0));
 
             // Scope resolution order:
-            // 1. Method parameters (if inside method)
-            // 2. Method local variables (if inside method)
-            // 3. Enclosing type fields (if inside method)
-            // 4. Global fields
-            // 5. Script type fields
+            // 1. Inner callable scope parameters (lambda/function expressions)
+            // 2. Inner callable scope locals
+            // 3. Method parameters (if inside method)
+            // 4. Method local variables (if inside method)
+            // 5. Enclosing type fields (if inside method)
+            // 6. Global fields
+            // 7. Script type fields
             
-            // Check parameters first (method scope)
+            // Check inner callable scope parameters first (lambda/function expressions)
+            Object innermostScope = findInnermostScopeAt(m.start(1));
+            if (innermostScope instanceof InnerCallableScope) {
+                InnerCallableScope innerScope = (InnerCallableScope) innermostScope;
+                FieldInfo innerParam = innerScope.getParameter(name);
+                if (innerParam != null) {
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER, innerParam));
+                    continue;
+                }
+                // Also check locals
+                FieldInfo innerLocal = innerScope.getLocals().get(name);
+                if (innerLocal != null) {
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, innerLocal));
+                    continue;
+                }
+            }
+            
+            // Check parameters (method scope) - fallback if not in inner scope
             if (containingMethod != null && containingMethod.hasParameter(name)) {
                 FieldInfo paramInfo = containingMethod.getParameter(name);
                 marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER, paramInfo));
@@ -6065,19 +6456,49 @@ public class ScriptDocument {
     /**
      * Resolve a variable by name at a given position.
      * Works for BOTH Java and JavaScript using unified data structures.
+     * Checks innermost scope first (lambda or method), then walks up parent chain.
      */
     public FieldInfo resolveVariable(String name, int position) {
-        // Find containing method/function
-        MethodInfo containingMethod = findMethodAtPosition(position);
+        // 1. Check innermost scope (lambda or method)
+        Object innermostScope = findInnermostScopeAt(position);
         
-        if (containingMethod != null) {
-            // Check parameters
-            if (containingMethod.hasParameter(name)) {
-                return containingMethod.getParameter(name);
+        if (innermostScope instanceof InnerCallableScope) {
+            InnerCallableScope scope = (InnerCallableScope) innermostScope;
+            
+            // Check lambda parameters and locals, walking up parent chain
+            InnerCallableScope currentScope = scope;
+            while (currentScope != null) {
+                // Check parameters
+                FieldInfo param = currentScope.getParameter(name);
+                if (param != null) {
+                    return param;
+                }
+                
+                // Check locals
+                FieldInfo local = currentScope.getLocals().get(name);
+                if (local != null) {
+                    return local;
+                }
+                
+                currentScope = currentScope.getParentScope();
             }
             
-            // Check local variables (methodLocals stores both Java locals and JS var/let/const inside functions)
-            Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
+            // Not found in lambda scopes - fall back to enclosing method
+            // Find which method this lambda is inside
+            innermostScope = findMethodAtPosition(position);
+        }
+        
+        // 2. Check method scope (params + locals)
+        if (innermostScope instanceof MethodInfo) {
+            MethodInfo method = (MethodInfo) innermostScope;
+            
+            // Check method parameters
+            if (method.hasParameter(name)) {
+                return method.getParameter(name);
+            }
+            
+            // Check method locals
+            Map<String, FieldInfo> locals = methodLocals.get(method.getDeclarationOffset());
             if (locals != null && locals.containsKey(name)) {
                 FieldInfo localInfo = locals.get(name);
                 if (localInfo.isVisibleAt(position)) {
@@ -6086,7 +6507,7 @@ public class ScriptDocument {
             }
         }
         
-        // For Java only: Check if we're inside a script type and look for fields there
+        // 3. For Java only: Check if we're inside a script type and look for fields there
         if (!isJavaScript()) {
             ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
             if (enclosingType != null && enclosingType.hasField(name)) {
@@ -6094,12 +6515,12 @@ public class ScriptDocument {
             }
         }
         
-        // Check global fields (stores both Java global fields and JS global var/let/const)
+        // 4. Check global fields (stores both Java global fields and JS global var/let/const)
         if (globalFields.containsKey(name)) {
             return globalFields.get(name);
         }
 
-        //  Check JS global objects from JSTypeRegistry (like API, DBCAPI)
+        // 5. Check JS global objects from JSTypeRegistry (like API, DBCAPI)
         if (isJavaScript()) {
             JSTypeRegistry registry = JSTypeRegistry.getInstance();
             String globalObjectType = registry.getGlobalObjectType(name);
@@ -6346,6 +6767,105 @@ public class ScriptDocument {
 
     public Map<String, FieldInfo> getGlobalFields() {
         return Collections.unmodifiableMap(globalFields);
+    }
+    
+    /**
+     * Get all variables available at a specific position.
+     * Used by autocomplete to show scope-aware suggestions.
+     * Returns variables from innermost scope first (parameters, then locals),
+     * walking up through parent scopes, then method scope, then globals.
+     * 
+     * @param position The cursor position
+     * @return List of FieldInfo for all available variables, ordered by priority
+     */
+    public List<FieldInfo> getAvailableVariablesAt(int position) {
+        List<FieldInfo> variables = new ArrayList<>();
+        
+        // Check innermost scope (lambda or method)
+        Object innermostScope = findInnermostScopeAt(position);
+        
+        if (innermostScope instanceof InnerCallableScope) {
+            InnerCallableScope scope = (InnerCallableScope) innermostScope;
+            
+            // Add lambda parameters and locals, walking up parent chain
+            InnerCallableScope currentScope = scope;
+            while (currentScope != null) {
+                // Add parameters from this scope
+                variables.addAll(currentScope.getParameters());
+                
+                // Add locals from this scope (only those visible at position)
+                for (FieldInfo local : currentScope.getLocals().values()) {
+                    if (local.isVisibleAt(position)) {
+                        variables.add(local);
+                    }
+                }
+                
+                currentScope = currentScope.getParentScope();
+            }
+            
+            // Fall back to enclosing method
+            innermostScope = findMethodAtPosition(position);
+        }
+        
+        // Add method scope variables
+        if (innermostScope instanceof MethodInfo) {
+            MethodInfo method = (MethodInfo) innermostScope;
+            
+            // Add method parameters
+            variables.addAll(method.getParameters());
+            
+            // Add method locals (only those visible at position)
+            Map<String, FieldInfo> locals = methodLocals.get(method.getDeclarationOffset());
+            if (locals != null) {
+                for (FieldInfo local : locals.values()) {
+                    if (local.isVisibleAt(position)) {
+                        variables.add(local);
+                    }
+                }
+            }
+        }
+        
+        // Add global fields (only those visible at position)
+        for (FieldInfo globalField : globalFields.values()) {
+            if (globalField.isVisibleAt(position)) {
+                variables.add(globalField);
+            }
+        }
+        
+        // For Java: add fields from enclosing type
+        if (!isJavaScript()) {
+            ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+            if (enclosingType != null) {
+                for (FieldInfo field : enclosingType.getFields().values()) {
+                    if (field.isVisibleAt(position)) {
+                        variables.add(field);
+                    }
+                }
+            }
+        }
+        
+        // For JS: add global engine objects and editor globals
+        if (isJavaScript()) {
+            JSTypeRegistry registry = JSTypeRegistry.getInstance();
+            
+            // Add global engine objects (like API, DBCAPI)
+            for (String globalName : registry.getGlobalEngineObjects().keySet()) {
+                FieldInfo field = resolveVariable(globalName, position);
+                if (field != null && field.isResolved()) {
+                    variables.add(field);
+                }
+            }
+            
+            // Add editor/DataScript global variables
+            for (String globalName : editorGlobals.keySet()) {
+                FieldInfo field = resolveVariable(globalName, position);
+                if (field != null && field.isResolved()) {
+                    variables.add(field);
+                }
+            }
+        }
+        
+        return variables;
     }
     
     /**
