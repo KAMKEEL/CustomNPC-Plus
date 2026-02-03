@@ -481,6 +481,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         super.onLivingUpdate();
 
+        // Apply locked rotation after super.onLivingUpdate() to override look helper changes
+        abilities.applyLockedRotation();
+
         handleMountRiderState();
 
         if (worldObj.isRemote) {
@@ -1929,6 +1932,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     @Override
     protected void fall(float distance) {
         if (NPCMountUtil.isFlyingMountWithFlightEnabled(this)) {
+            return;
+        }
+        // Skip fall damage during abilities that control NPC movement (e.g., Slam leap)
+        if (this.abilities != null && this.abilities.isExecutingAbility()
+            && this.abilities.getCurrentAbility() != null
+            && this.abilities.getCurrentAbility().hasAbilityMovement()) {
+            this.fallDistance = 0;
             return;
         }
         if (!this.stats.noFallDamage)

@@ -587,7 +587,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Dynamically calculate gutter width based on line count digits + icon space
         if (container != null && container.linesCount > 0) {
             int maxLineNum = container.linesCount;
-            String maxLineStr = String.valueOf(maxLineNum);
+            String maxLineStr = "" + maxLineNum;
             int digitWidth = ClientProxy.Font.width(maxLineStr);
             LINE_NUMBER_GUTTER_WIDTH = digitWidth + 10 + GutterIconRenderer.ICON_GUTTER_WIDTH; // 10px padding + icon space
         }
@@ -761,7 +761,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Render LINE GUTTER numbers
         for (int i = renderStart; i <= renderEnd; i++) {
             int posY = y + (i - scroll.getScrolledLine()) * container.lineHeight + stringYOffset;
-            String lineNum = String.valueOf(i + 1);
+            String lineNum = "" + (i + 1);
             int lineNumWidth = ClientProxy.Font.width(lineNum);
             int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5 - GutterIconRenderer.ICON_GUTTER_WIDTH; // right-align before icon space
             int lineNumY = posY + 1;

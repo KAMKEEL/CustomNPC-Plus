@@ -26,6 +26,7 @@ import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.SwingPlayerArmPacket;
 import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
@@ -92,10 +93,15 @@ import kamkeel.npcs.network.packets.request.TraderMarketSavePacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
+import kamkeel.npcs.network.packets.request.animation.BuiltInAnimationGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
@@ -469,6 +475,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AnimationGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationRemovePacket());
         REQUEST_PACKET.registerPacket(new AnimationSavePacket());
+        REQUEST_PACKET.registerPacket(new BuiltInAnimationGetPacket());
 
         // Moving Path
         REQUEST_PACKET.registerPacket(new MovingPathSavePacket());
@@ -499,6 +506,10 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AbilitiesGetAllPacket());
         REQUEST_PACKET.registerPacket(new AbilitiesNpcGetPacket());
         REQUEST_PACKET.registerPacket(new AbilitiesNpcSavePacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilitiesGetPacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilityGetPacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilityRemovePacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilitySavePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());
@@ -568,6 +579,7 @@ public class PacketHandler {
         // Data | Ability Packets
         DATA_PACKET.registerPacket(new TelegraphSpawnPacket());
         DATA_PACKET.registerPacket(new TelegraphRemovePacket());
+        DATA_PACKET.registerPacket(new PlayerAbilitySyncPacket());
     }
 
     public void registerPlayerPackets() {

@@ -87,6 +87,7 @@ import noppes.npcs.client.gui.global.GuiNPCManageAnimations;
 import noppes.npcs.client.gui.global.GuiNPCManageBanks;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCManageEffects;
+import noppes.npcs.client.gui.global.GuiNpcManageAbilities;
 import noppes.npcs.client.gui.global.GuiNPCManageFactions;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.global.GuiNPCManageQuest;
@@ -146,6 +147,17 @@ import noppes.npcs.client.renderer.RenderNpcCrystal;
 import noppes.npcs.client.renderer.RenderNpcDragon;
 import noppes.npcs.client.renderer.RenderNpcSlime;
 import noppes.npcs.client.renderer.RenderProjectile;
+import kamkeel.npcs.client.renderer.RenderAbilityOrb;
+import kamkeel.npcs.client.renderer.RenderAbilityDisc;
+import kamkeel.npcs.client.renderer.RenderAbilityLaser;
+import kamkeel.npcs.client.renderer.RenderAbilityBeam;
+import kamkeel.npcs.client.renderer.RenderAbilitySweeper;
+import kamkeel.npcs.client.renderer.lightning.LightningHandler;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilitySweeper;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -253,6 +265,11 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityNpcDragon.class, new RenderNpcDragon(new ModelNpcDragon(0.0F), 0.5F));
         RenderingRegistry.registerEntityRenderingHandler(EntityNpcSlime.class, new RenderNpcSlime(new ModelNpcSlime(16), new ModelNpcSlime(0), 0.25F));
         RenderingRegistry.registerEntityRenderingHandler(EntityProjectile.class, new RenderProjectile());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityOrb.class, new RenderAbilityOrb());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityDisc.class, new RenderAbilityDisc());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityLaser.class, new RenderAbilityLaser());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityBeam.class, new RenderAbilityBeam());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilitySweeper.class, new RenderAbilitySweeper());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 
@@ -305,7 +322,7 @@ public class ClientProxy extends CommonProxy {
         Minecraft mc = Minecraft.getMinecraft();
 
         NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_N, "key.categories.customnpc");
-        SpecialKey = new KeyBinding("key.customnpcs.special", Keyboard.KEY_C, "key.categories.customnpc");
+        SpecialKey = new KeyBinding("key.customnpcs.special", Keyboard.KEY_B, "key.categories.customnpc");
 
         ClientRegistry.registerKeyBinding(NPCButton);
         ClientRegistry.registerKeyBinding(SpecialKey);
@@ -325,6 +342,9 @@ public class ClientProxy extends CommonProxy {
         // Telegraph rendering system
         TelegraphManager.initClient();
         MinecraftForge.EVENT_BUS.register(new TelegraphRenderer());
+
+        // Lightning effect rendering system
+        MinecraftForge.EVENT_BUS.register(new LightningHandler());
 
         if (ConfigClient.InventoryGuiEnabled) {
             MinecraftForge.EVENT_BUS.register(new TabRegistry());
@@ -479,6 +499,20 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.ManageEffects)
             return new GuiNPCManageEffects(npc);
+
+        else if (gui == EnumGuiType.ManageAbilities) {
+            EntityCustomNpc abilityNpc;
+            if (npc != null) {
+                abilityNpc = new EntityCustomNpc(npc.worldObj);
+                abilityNpc.copyDataFrom(npc, true);
+                abilityNpc.display.showName = 1;
+                abilityNpc.display.showBossBar = 0;
+            } else {
+                abilityNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
+                abilityNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+            }
+            return new GuiNpcManageAbilities(abilityNpc);
+        }
 
         else if (gui == EnumGuiType.MainMenuGlobal)
             return new GuiNPCGlobalMainMenu(npc);

@@ -7,6 +7,7 @@ import kamkeel.npcs.util.BukkitUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.apache.logging.log4j.LogManager;
+import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -66,6 +67,7 @@ public class CustomNpcsPermissions {
     public static final Permission GLOBAL_NATURALSPAWN = new Permission("customnpcs.global.naturalspawn");
     public static final Permission GLOBAL_TAG = new Permission("customnpcs.global.tag");
     public static final Permission GLOBAL_ANIMATION = new Permission("customnpcs.global.animation");
+    public static final Permission GLOBAL_ABILITY = new Permission("customnpcs.global.ability");
     public static final Permission GLOBAL_MAGIC = new Permission("customnpcs.global.magic");
     public static final Permission GLOBAL_EFFECT = new Permission("customnpcs.global.effect");
 
@@ -114,7 +116,7 @@ public class CustomNpcsPermissions {
     public static final Permission AUCTION_TRADES_MAX = new Permission("customnpcs.auction.trades.*");
 
     public static CustomNpcsPermissions Instance;
-    private Method hasPermission;
+    private static boolean isEnabled;
 
     public CustomNpcsPermissions() {
         Instance = this;
@@ -130,16 +132,16 @@ public class CustomNpcsPermissions {
         }
 
         try {
-            hasPermission = BukkitUtil.getPlayerClass().getMethod("hasPermission", String.class);
+            Class.forName("org.bukkit.entity.Player").getMethod("hasPermission", String.class);
+            isEnabled = true;
+
             LogManager.getLogger(CustomNpcs.class).info("Bukkit permissions enabled");
             LogManager.getLogger(CustomNpcs.class).info("Permissions available:");
             Collections.sort(Permission.permissions, String.CASE_INSENSITIVE_ORDER);
             for (String p : Permission.permissions) {
                 LogManager.getLogger(CustomNpcs.class).info(p);
             }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -173,17 +175,13 @@ public class CustomNpcsPermissions {
     }
 
     private boolean bukkitPermission(String username, String permission) {
-        if (hasPermission == null) return false;
+        if (!BukkitUtil.isEnabled() || !isEnabled) return false;
 
         try {
             Object player = BukkitUtil.getPlayer(username);
             if (player == null) return false;
-            return (Boolean) hasPermission.invoke(player, permission);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+            return ((Player) player).hasPermission(permission);
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
@@ -208,6 +206,6 @@ public class CustomNpcsPermissions {
     }
 
     public static boolean enabled() {
-        return BukkitUtil.isEnabled();
+        return BukkitUtil.isEnabled() && isEnabled;
     }
 }

@@ -17,12 +17,27 @@ import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
+import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
+import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
+
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import net.minecraft.entity.Entity;
+import somehussar.gui.annotationHandling.GuiEditable;
 
 public abstract class Ability implements IAbility {
 
@@ -45,17 +60,16 @@ public abstract class Ability implements IAbility {
     protected float maxRange = 20;
 
     // Timing (ticks)
-    protected int cooldownTicks = 100;
+    protected int cooldownTicks = 0;      // Added to global cooldown after ability completes
     protected int windUpTicks = 20;
-    protected int dazedTicks = 0;
-    protected int activeTicks = 10;
-    protected int recoveryTicks = 20;
+    protected boolean syncWindupWithAnimation = true;
+    protected int dazedTicks = 80;        // Only used when interrupted during WINDUP (if interruptible)
 
     // Interruption
     protected boolean interruptible = true;
 
     // Feedback
-    protected boolean lockMovement = true;
+    protected LockMovementType lockMovement = LockMovementType.WINDUP;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -64,8 +78,12 @@ public abstract class Ability implements IAbility {
     protected String activeSound = "";        // Sound to play when active phase starts
 
     // Animations (global animation IDs, -1 = none)
-    protected int windUpAnimationId = -1;     // Animation to play during wind up
-    protected int activeAnimationId = -1;     // Animation to play during active phase
+    protected int windUpAnimationId = -1;     // Animation to play during wind up (user animations)
+    protected int activeAnimationId = -1;     // Animation to play during active phase (user animations)
+
+    // Built-in animation names (empty = none, takes priority over IDs if set)
+    protected String windUpAnimationName = "";   // Built-in animation name for wind up
+    protected String activeAnimationName = "";   // Built-in animation name for active phase
 
     // Telegraph configuration
     protected boolean showTelegraph = true;
@@ -75,13 +93,21 @@ public abstract class Ability implements IAbility {
     // Custom data for external mods
     protected NBTTagCompound customData = new NBTTagCompound();
 
+    // User type restriction
+    protected UserType allowedBy = UserType.BOTH;
+
+    // Cooldown override
+    protected boolean ignoreCooldown = false;
+
+    // Configurable potion effects
+    protected List<AbilityEffect> effects = new ArrayList<>();
+
     // ═══════════════════════════════════════════════════════════════════
     // EXECUTION STATE (not saved, reset each combat)
     // ═══════════════════════════════════════════════════════════════════
 
     protected transient AbilityPhase phase = AbilityPhase.IDLE;
     protected transient int currentTick = 0;
-    protected transient long cooldownEndTime = 0;
     protected transient EntityLivingBase currentTarget;
     protected transient long executionStartTime;
     protected transient TelegraphInstance telegraphInstance;
@@ -93,12 +119,12 @@ public abstract class Ability implements IAbility {
     /**
      * Called first tick of ACTIVE phase
      */
-    public abstract void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world);
+    public abstract void onExecute(EntityLivingBase caster, EntityLivingBase target, World world);
 
     /**
      * Called every tick of ACTIVE phase
      */
-    public abstract void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick);
+    public abstract void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick);
 
     /**
      * Write type-specific config to NBT
@@ -114,111 +140,155 @@ public abstract class Ability implements IAbility {
     // OPTIONAL OVERRIDES
     // ═══════════════════════════════════════════════════════════════════
 
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
     }
 
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
     }
 
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
     }
 
     /**
      * Apply damage to an entity with ability hit event support.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc       The NPC executing the ability
+     * @param caster    The entity executing the ability (NPC or Player)
      * @param hitEntity The entity being hit
      * @param damage    The damage amount
      * @param knockback The horizontal knockback
      * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamage(EntityLivingBase caster, EntityLivingBase hitEntity,
                                          float damage, float knockback) {
-        return applyAbilityDamage(npc, hitEntity, damage, knockback, 0.0f);
+        double dx = hitEntity.posX - caster.posX;
+        double dz = hitEntity.posZ - caster.posZ;
+        return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, 0.0f, dx, dz);
     }
 
     /**
-     * Backward-compatible signature (vertical knockback is ignored).
+     * Apply damage to an entity with ability hit event support and vertical knockback.
+     * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
+     *
+     * @param caster      The entity executing the ability (NPC or Player)
+     * @param hitEntity   The entity being hit
+     * @param damage      The damage amount
+     * @param knockback   The horizontal knockback
+     * @param knockbackUp The vertical knockback
+     * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamage(EntityLivingBase caster, EntityLivingBase hitEntity,
                                          float damage, float knockback, float knockbackUp) {
-        DataAbilities dataAbilities = npc.abilities;
-        AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
-            this, currentTarget, hitEntity, damage, knockback, knockbackUp);
-
-        if (event == null) {
-            return false; // Cancelled
-        }
-
-        // Apply damage with potentially modified values
-        float finalDamage = event.getDamage();
-        float finalKnockback = event.getKnockback();
-
-        // Apply damage
-        if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(new NpcDamageSource("mob", npc), finalDamage);
-        }
-
-        // Apply knockback if any
-        if (finalKnockback > 0) {
-            double dx = hitEntity.posX - npc.posX;
-            double dz = hitEntity.posZ - npc.posZ;
-            applyNpcKnockback(hitEntity, dx, dz, finalKnockback);
-        }
-
-        return true;
+        double dx = hitEntity.posX - caster.posX;
+        double dz = hitEntity.posZ - caster.posZ;
+        return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, knockbackUp, dx, dz);
     }
 
     /**
      * Apply damage to an entity with ability hit event support and custom knockback direction.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc           The NPC executing the ability
+     * @param caster        The entity executing the ability (NPC or Player)
      * @param hitEntity     The entity being hit
      * @param damage        The damage amount
      * @param knockback     The horizontal knockback
-     * @param knockbackDirX The X component of knockback direction (normalized)
-     * @param knockbackDirZ The Z component of knockback direction (normalized)
+     * @param knockbackDirX The X component of knockback direction
+     * @param knockbackDirZ The Z component of knockback direction
      * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamageWithDirection(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamageWithDirection(EntityLivingBase caster, EntityLivingBase hitEntity,
                                                       float damage, float knockback,
                                                       double knockbackDirX, double knockbackDirZ) {
-        DataAbilities dataAbilities = npc.abilities;
-        AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
-            this, currentTarget, hitEntity, damage, knockback, 0.0f);
+        return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, 0.0f, knockbackDirX, knockbackDirZ);
+    }
 
-        if (event == null) {
-            return false; // Cancelled
+    /**
+     * Internal unified damage application method.
+     * All public damage methods delegate to this.
+     * Supports both NPC and Player casters.
+     */
+    private boolean applyAbilityDamageInternal(EntityLivingBase caster, EntityLivingBase hitEntity,
+                                               float damage, float knockback, float knockbackUp,
+                                               double knockbackDirX, double knockbackDirZ) {
+        // Fire hit event for NPC casters (NPC event system)
+        if (caster instanceof EntityNPCInterface) {
+            EntityNPCInterface npc = (EntityNPCInterface) caster;
+            DataAbilities dataAbilities = npc.abilities;
+            AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
+                this, currentTarget, hitEntity, damage, knockback, knockbackUp);
+
+            if (event == null) {
+                return false; // Cancelled
+            }
+
+            damage = event.getDamage();
+            knockback = event.getKnockback();
+            knockbackUp = event.getKnockbackUp();
         }
+        // Fire hit event for Player casters (Player event system)
+        else if (caster instanceof EntityPlayer && ScriptController.Instance != null) {
+            EntityPlayer player = (EntityPlayer) caster;
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            if (handler != null) {
+                IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+                PlayerAbilityEvent.HitEvent event = new PlayerAbilityEvent.HitEvent(
+                    iPlayer, this, currentTarget, hitEntity, damage, knockback, knockbackUp);
 
-        // Apply damage with potentially modified values
-        float finalDamage = event.getDamage();
-        float finalKnockback = event.getKnockback();
+                if (noppes.npcs.EventHooks.onPlayerAbilityHit(handler, event)) {
+                    return false; // Cancelled
+                }
+
+                damage = event.getDamage();
+                knockback = event.getKnockback();
+                knockbackUp = event.getKnockbackUp();
+            }
+        }
 
         // Apply damage
-        if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(DamageSource.causeMobDamage(npc), finalDamage);
+        if (damage > 0) {
+            if (caster instanceof EntityNPCInterface) {
+                hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
+            } else if (caster instanceof EntityPlayer) {
+                hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
+            } else {
+                hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+            }
         }
 
-        // Apply knockback in specified direction
-        if (finalKnockback > 0) {
-            applyNpcKnockback(hitEntity, knockbackDirX, knockbackDirZ, finalKnockback);
+        // Apply knockback if any
+        if (knockback > 0 || knockbackUp > 0) {
+            applyKnockback(hitEntity, knockbackDirX, knockbackDirZ, knockback, knockbackUp);
         }
 
         return true;
     }
 
-    private void applyNpcKnockback(EntityLivingBase hitEntity, double dirX, double dirZ, float knockback) {
+    private void applyKnockback(EntityLivingBase hitEntity, double dirX, double dirZ, float knockback, float knockbackUp) {
         double len = Math.sqrt(dirX * dirX + dirZ * dirZ);
-        if (len <= 0) {
+        double x = 0;
+        double z = 0;
+        if (len > 0) {
+            x = (dirX / len) * knockback * 0.5;
+            z = (dirZ / len) * knockback * 0.5;
+        }
+        double y = knockbackUp > 0 ? knockbackUp : 0.1D;
+        hitEntity.addVelocity(x, y, z);
+        hitEntity.velocityChanged = true;
+    }
+
+    /**
+     * Applies all configured effects to the given entity.
+     * Call this after damage is applied to the target.
+     *
+     * @param entity The entity to apply effects to
+     */
+    protected void applyEffects(EntityLivingBase entity) {
+        if (entity == null || effects.isEmpty()) {
             return;
         }
-        double x = (dirX / len) * knockback * 0.5;
-        double z = (dirZ / len) * knockback * 0.5;
-        hitEntity.addVelocity(x, 0.1D, z);
-        hitEntity.velocityChanged = true;
+        for (AbilityEffect effect : effects) {
+            effect.apply(entity);
+        }
     }
 
     public float getTelegraphRadius() {
@@ -272,19 +342,117 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Returns true if this ability type has custom settings that need a Type-specific tab.
-     * Override to return true if the ability has settings beyond the base Ability fields.
+     * Returns the declarative field definitions for this ability's GUI.
+     * Override in subclasses to declare type-specific and visual fields.
+     * The GUI rendering engine in SubGuiAbilityConfig uses this list to
+     * automatically build the Type and Visual tabs.
      */
-    public boolean hasTypeSettings() {
-        return false;
+    @SideOnly(Side.CLIENT)
+    public List<FieldDef> getFieldDefinitions() {
+        return Collections.emptyList();
     }
 
     /**
-     * Get the number of rows needed for type-specific settings in the GUI.
-     * Each row is approximately 24 pixels. Used for GUI layout.
+     * Returns field definitions for all base Ability fields (General, Target, Effects tabs).
      */
-    public int getTypeSettingsRowCount() {
-        return 0;
+    @SideOnly(Side.CLIENT)
+    public List<FieldDef> getBaseFieldDefinitions() {
+        List<FieldDef> defs = new ArrayList<>();
+
+        // General tab
+        defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
+            .tab("General"));
+        defs.add(FieldDef.intField("ability.weight", this::getWeight, this::setWeight)
+            .tab("General").range(1, 1000).column(ColumnHint.LEFT));
+        defs.add(FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
+            .tab("General").column(ColumnHint.RIGHT));
+        defs.add(FieldDef.section("ability.section.timing").tab("General"));
+        defs.add(FieldDef.intField("ability.windUpTicks", this::getRawWindUpTicks, this::setWindUpTicks)
+            .tab("General").range(0, 1000).column(ColumnHint.LEFT)
+            .visibleWhen(() -> !hasWindUpAnimation() || !isSyncWindupWithAnimation()));
+        defs.add(FieldDef.labelField("ability.windUpTicks", () -> getWindUpTicks() + "t")
+            .tab("General").column(ColumnHint.LEFT)
+            .visibleWhen(() -> hasWindUpAnimation() && isSyncWindupWithAnimation()));
+        defs.add(FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
+            .tab("General").hover("ability.hover.sync").column(ColumnHint.RIGHT)
+            .visibleWhen(this::hasWindUpAnimation));
+        defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
+            .tab("General").range(0, 10000));
+        defs.add(FieldDef.section("ability.section.movement").tab("General"));
+        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
+            () -> this.getLockMovement().getDisplayKey(),
+            v -> {
+                String[] keys = LockMovementType.getDisplayKeys();
+                for (int i = 0; i < keys.length; i++) {
+                    if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
+                }
+            })
+            .tab("General").hover("ability.hover.lockMove"));
+        defs.add(FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
+            .tab("General").hover("ability.hover.interruptible").column(ColumnHint.LEFT));
+        defs.add(FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
+            .tab("General").range(0, 1000)
+            .visibleWhen(this::isInterruptible).column(ColumnHint.RIGHT));
+
+        // Target tab
+        defs.add(FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v))
+            .tab("Target").range(0, 100).column(ColumnHint.LEFT));
+        defs.add(FieldDef.intField("ability.maxRange", () -> (int) getMaxRange(), v -> setMaxRange(v))
+            .tab("Target").range(1, 100).column(ColumnHint.RIGHT));
+        if (!isTargetingModeLocked()) {
+            defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
+                this::getTargetingMode, this::setTargetingMode)
+                .tab("Target").hover("ability.hover.targeting"));
+        }
+
+        // Effects tab - Sounds
+        defs.add(FieldDef.section("ability.section.sounds").tab("Effects"));
+        defs.add(FieldDef.soundSubGui("ability.windUpSound", this::getWindUpSound, this::setWindUpSound)
+            .tab("Effects"));
+        defs.add(FieldDef.soundSubGui("ability.activeSound", this::getActiveSound, this::setActiveSound)
+            .tab("Effects"));
+        // Effects tab - Animations
+        defs.add(FieldDef.section("ability.section.animations").tab("Effects"));
+        defs.add(FieldDef.animSubGui("ability.windUpAnimation",
+            this::getWindUpAnimationId, this::setWindUpAnimationId,
+            this::getWindUpAnimationName, this::setWindUpAnimationName)
+            .tab("Effects"));
+        defs.add(FieldDef.animSubGui("ability.activeAnimation",
+            this::getActiveAnimationId, this::setActiveAnimationId,
+            this::getActiveAnimationName, this::setActiveAnimationName)
+            .tab("Effects"));
+
+        // Effects tab - Telegraph
+        TelegraphType tType = getTelegraphType();
+        if (tType != null && tType != TelegraphType.NONE) {
+            defs.add(FieldDef.section("ability.section.telegraph").tab("Effects")
+                .tooltip("telegraph." + tType.name().toLowerCase()));
+            defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
+                .tab("Effects").hover("ability.hover.showTelegraph"));
+            defs.add(FieldDef.colorSubGui("ability.windUpColor", this::getWindUpColor, this::setWindUpColor)
+                .tab("Effects").visibleWhen(this::isShowTelegraph));
+            defs.add(FieldDef.colorSubGui("ability.activeColor", this::getActiveColor, this::setActiveColor)
+                .tab("Effects").visibleWhen(this::isShowTelegraph));
+        }
+
+        return defs;
+    }
+
+    /**
+     * Returns ALL field definitions: base (General/Target/Effects) + type-specific (Type/Visual).
+     */
+    @SideOnly(Side.CLIENT)
+    public final List<FieldDef> getAllFieldDefinitions() {
+        List<FieldDef> all = new ArrayList<>(getBaseFieldDefinitions());
+        List<FieldDef> typeDefs = getFieldDefinitions();
+        // Default tab for type-specific fields that don't explicitly set one
+        for (FieldDef def : typeDefs) {
+            if (def.getTab() == null) {
+                def.tab("Type");
+            }
+        }
+        all.addAll(typeDefs);
+        return all;
     }
 
     /**
@@ -306,37 +474,37 @@ public abstract class Ability implements IAbility {
      * Create a telegraph instance for this ability.
      * Override for custom telegraph shapes.
      *
-     * @param npc    The caster
+     * @param caster    The caster
      * @param target The target (for position calculation)
      * @return The telegraph instance, or null if no telegraph
      */
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
         if (!showTelegraph || telegraphType == TelegraphType.NONE) {
             return null;
         }
 
         Telegraph telegraph;
         double x, y, z;
-        float yaw = npc.rotationYaw;
+        float yaw = caster.rotationYaw;
 
         // Determine position based on targeting mode
-        boolean positionAtNpc = targetingMode == TargetingMode.AOE_SELF ||
+        boolean positionAtCaster = targetingMode == TargetingMode.AOE_SELF ||
             targetingMode == TargetingMode.SELF ||
             telegraphType == TelegraphType.LINE ||
             telegraphType == TelegraphType.CONE;
 
-        if (positionAtNpc) {
-            x = npc.posX;
-            y = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
-            z = npc.posZ;
+        if (positionAtCaster) {
+            x = caster.posX;
+            y = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+            z = caster.posZ;
         } else if (target != null) {
             x = target.posX;
-            y = findGroundLevel(npc.worldObj, target.posX, target.posY, target.posZ);
+            y = findGroundLevel(caster.worldObj, target.posX, target.posY, target.posZ);
             z = target.posZ;
         } else {
-            x = npc.posX;
-            y = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
-            z = npc.posZ;
+            x = caster.posX;
+            y = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+            z = caster.posZ;
         }
 
         // Create telegraph based on type
@@ -367,12 +535,17 @@ public abstract class Ability implements IAbility {
         telegraph.setHeightOffset(telegraphHeightOffset);
 
         TelegraphInstance instance = new TelegraphInstance(telegraph, x, y, z, yaw);
-        instance.setCasterEntityId(npc.getEntityId());
+        instance.setCasterEntityId(caster.getEntityId());
 
         // Set entity to follow based on targeting mode
-        if (positionAtNpc) {
-            // AOE_SELF abilities: telegraph follows NPC during windup
-            instance.setEntityIdToFollow(npc.getEntityId());
+        if (positionAtCaster) {
+            // AOE_SELF abilities: telegraph follows caster during windup
+            instance.setEntityIdToFollow(caster.getEntityId());
+
+            // For LINE/CONE telegraphs: track target direction during windup
+            if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
+                instance.setTargetEntityId(target.getEntityId());
+            }
         } else if (target != null) {
             // AOE_TARGET abilities: telegraph follows target during windup
             instance.setEntityIdToFollow(target.getEntityId());
@@ -391,7 +564,7 @@ public abstract class Ability implements IAbility {
      * @param z      Z coordinate
      * @return The Y coordinate of the ground surface
      */
-    protected double findGroundLevel(World world, double x, double startY, double z) {
+    public static double findGroundLevel(World world, double x, double startY, double z) {
         if (world == null) return startY;
 
         int blockX = (int) Math.floor(x);
@@ -409,6 +582,43 @@ public abstract class Ability implements IAbility {
 
         // No ground found, use original position
         return startY;
+    }
+
+    /**
+     * Calculates offset position near the given coordinates.
+     * Used to place effects near a target rather than exactly on them.
+     *
+     * @param baseX        Base X coordinate
+     * @param baseY        Base Y coordinate
+     * @param baseZ        Base Z coordinate
+     * @param minOffset    Minimum offset distance
+     * @param maxOffset    Maximum offset distance
+     * @param randomOffset Whether to use random offset within range, or fixed at max
+     * @param random       Random instance to use
+     * @return Array of [x, y, z] with offset applied
+     */
+    public static double[] calculateOffsetPosition(double baseX, double baseY, double baseZ,
+                                                   float minOffset, float maxOffset,
+                                                   boolean randomOffset, java.util.Random random) {
+        if (maxOffset <= 0) {
+            return new double[]{baseX, baseY, baseZ};
+        }
+
+        double offsetDist;
+        double offsetAngle;
+
+        if (randomOffset) {
+            offsetDist = minOffset + random.nextDouble() * (maxOffset - minOffset);
+            offsetAngle = random.nextDouble() * Math.PI * 2;
+        } else {
+            offsetDist = maxOffset;
+            offsetAngle = random.nextDouble() * Math.PI * 2;
+        }
+
+        double offsetX = Math.cos(offsetAngle) * offsetDist;
+        double offsetZ = Math.sin(offsetAngle) * offsetDist;
+
+        return new double[]{baseX + offsetX, baseY, baseZ + offsetZ};
     }
 
     /**
@@ -440,13 +650,17 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Tick the ability. Returns true if phase changed.
+     * Tick the ability forward. Called every game tick while executing.
+     * <p>
+     * Normal flow: WINDUP -> ACTIVE -> IDLE
+     * Interrupted flow: WINDUP -> DAZED -> IDLE (dazed only on interrupt during WINDUP)
+     *
+     * @return true if phase changed this tick
      */
     public boolean tick() {
         if (phase == AbilityPhase.IDLE) return false;
 
         currentTick++;
-        AbilityPhase oldPhase = phase;
 
         switch (phase) {
             case WINDUP:
@@ -457,16 +671,15 @@ public abstract class Ability implements IAbility {
                 }
                 break;
             case ACTIVE:
-                if (currentTick >= activeTicks) {
-                    phase = AbilityPhase.RECOVERY;
-                    currentTick = 0;
-                    return true;
-                }
+                // Abilities control their own completion by calling signalCompletion()
+                // No auto-complete - each ability determines when it's done
                 break;
-            case RECOVERY:
-                if (currentTick >= recoveryTicks) {
+            case DAZED:
+                // Dazed phase is only entered on interrupt during WINDUP
+                // NPC cannot attack during this time
+                if (currentTick >= dazedTicks) {
                     phase = AbilityPhase.IDLE;
-                    startCooldown();
+                    currentTick = 0;
                     return true;
                 }
                 break;
@@ -475,27 +688,39 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Interrupt this ability
+     * Signal that the ability has completed its active phase.
+     * Called by abilities when they are done.
+     * For example, AbilitySlam calls this when the NPC lands.
+     *
+     * @return true if phase changed to IDLE
+     */
+    public boolean signalCompletion() {
+        if (phase == AbilityPhase.ACTIVE) {
+            cleanup();
+            phase = AbilityPhase.IDLE;
+            currentTick = 0;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Interrupt this ability. Transitions to DAZED phase if interruptible during WINDUP.
+     * Called when NPC takes direct damage during WINDUP.
      */
     public void interrupt() {
-        phase = AbilityPhase.IDLE;
-        currentTick = 0;
+        cleanup();
+        if (interruptible && phase == AbilityPhase.WINDUP) {
+            // Interrupted during windup - go to dazed state
+            phase = AbilityPhase.DAZED;
+            currentTick = 0;
+        } else {
+            // Force stop - go directly to IDLE
+            phase = AbilityPhase.IDLE;
+            currentTick = 0;
+        }
         currentTarget = null;
         telegraphInstance = null;
-    }
-
-    /**
-     * Start cooldown timer
-     */
-    public void startCooldown() {
-        cooldownEndTime = System.currentTimeMillis() + (cooldownTicks * 50L);
-    }
-
-    /**
-     * Check if on cooldown
-     */
-    public boolean isOnCooldown() {
-        return System.currentTimeMillis() < cooldownEndTime;
     }
 
     /**
@@ -538,40 +763,134 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Reset all execution state (called on combat end)
+     * Reset all execution state (called on combat end, NPC death, target lost, etc.)
      */
     public void reset() {
+        cleanup();
         phase = AbilityPhase.IDLE;
         currentTick = 0;
         currentTarget = null;
-        cooldownEndTime = 0;
         telegraphInstance = null;
+    }
+
+    /**
+     * Cleanup any resources created by this ability.
+     * Override this to kill spawned entities, cancel telegraphs, etc.
+     * Called when ability ends for any reason (completion, interrupt, reset, NPC death).
+     */
+    public void cleanup() {
+        // Override in subclasses to clean up spawned entities, etc.
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CLIENT-SIDE PREVIEW METHODS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Get total active phase duration for preview (in ticks).
+     * Override in subclasses to provide accurate preview duration.
+     *
+     * @return Duration of active phase in ticks (default: 40 = 2 seconds)
+     */
+    public int getPreviewActiveDuration() {
+        return 40;
+    }
+
+    /**
+     * Called during preview windup tick (client-side only).
+     * Override for visual updates during windup preview.
+     * Do NOT apply damage or world effects here.
+     *
+     * @param npc  The preview NPC
+     * @param tick Current tick within windup phase
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewWindUpTick(EntityNPCInterface npc, int tick) {
+        // Default: no-op. Override in subclasses for visual effects.
+    }
+
+    /**
+     * Called during preview active tick (client-side only).
+     * Override for visual updates during active preview.
+     * Do NOT apply damage or world effects here.
+     *
+     * @param npc  The preview NPC
+     * @param tick Current tick within active phase
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
+        // Default: no-op. Override in subclasses for visual effects.
+    }
+
+    /**
+     * Create a preview entity for GUI display (client-side only).
+     * The entity should be in preview mode and not apply damage.
+     * Override in abilities that spawn entities (Beam, Orb, Disc, etc.)
+     *
+     * @param npc The preview NPC
+     * @return Preview entity, or null if ability doesn't spawn entities
+     */
+    @SideOnly(Side.CLIENT)
+    public Entity createPreviewEntity(EntityNPCInterface npc) {
+        return null; // Override in entity-spawning abilities
+    }
+
+    /**
+     * Whether to spawn preview entity during WINDUP phase (true) or ACTIVE phase (false).
+     * Most abilities (Orb, Beam, Disc) spawn during windup for charging effect.
+     * Laser spawns at active phase since it has no charging state.
+     */
+    public boolean spawnPreviewDuringWindup() {
+        return true; // Default: spawn during windup for charging
+    }
+
+    // ── Preview target (set by executor for abilities that need targeting) ──
+
+    protected transient EntityLivingBase previewTarget;
+
+    /**
+     * Set the fake target entity for preview mode.
+     * Called by AbilityPreviewExecutor before starting preview.
+     */
+    public void setPreviewTarget(EntityLivingBase target) {
+        this.previewTarget = target;
+    }
+
+    public EntityLivingBase getPreviewTarget() {
+        return previewTarget;
+    }
+
+    /**
+     * Called once when transitioning from WINDUP to ACTIVE in preview mode.
+     * Override in movement-based abilities to initiate movement.
+     */
+    @SideOnly(Side.CLIENT)
+    public void onPreviewExecute(EntityNPCInterface npc) {
+        // Default: no-op. Override in movement abilities.
     }
 
     // ═══════════════════════════════════════════════════════════════════
     // CONDITION CHECKING
     // ═══════════════════════════════════════════════════════════════════
 
-    public boolean checkConditions(EntityNPCInterface npc, EntityLivingBase target) {
+    public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
         for (Condition c : conditions) {
-            if (!c.check(npc, target)) return false;
+            if (!c.check(caster, target)) return false;
         }
         return true;
     }
 
     /**
-     * Full eligibility check
+     * Check conditions for a player caster, skipping target-requiring conditions.
      */
-    public boolean canUse(EntityNPCInterface npc, EntityLivingBase target) {
-        if (!enabled) return false;
-        if (isOnCooldown()) return false;
-        if (isExecuting()) return false;
-
-        float distance = npc.getDistanceToEntity(target);
-        if (distance < minRange || distance > maxRange) return false;
-
-        return checkConditions(npc, target);
+    public boolean checkConditionsForPlayer(EntityLivingBase caster) {
+        for (Condition c : conditions) {
+            if (c.requiresTarget()) continue;
+            if (!c.check(caster, null)) return false;
+        }
+        return true;
     }
+
 
     // ═══════════════════════════════════════════════════════════════════
     // NBT (config only, execution state is transient)
@@ -589,26 +908,36 @@ public abstract class Ability implements IAbility {
         nbt.setFloat("maxRange", maxRange);
         nbt.setInteger("cooldown", cooldownTicks);
         nbt.setInteger("windUp", windUpTicks);
-        nbt.setInteger("dazed", dazedTicks);
-        nbt.setInteger("active", activeTicks);
-        nbt.setInteger("recovery", recoveryTicks);
+        nbt.setBoolean("syncWindup", syncWindupWithAnimation);
+        nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
-        nbt.setBoolean("lockMovement", lockMovement);
+        nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
         nbt.setString("activeSound", activeSound);
         nbt.setInteger("windUpAnimationId", windUpAnimationId);
         nbt.setInteger("activeAnimationId", activeAnimationId);
+        nbt.setString("windUpAnimationName", windUpAnimationName);
+        nbt.setString("activeAnimationName", activeAnimationName);
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
         nbt.setTag("customData", customData);
+        nbt.setInteger("allowedBy", allowedBy.ordinal());
+        nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
         // Conditions
         NBTTagList condList = new NBTTagList();
         for (Condition c : conditions) condList.appendTag(c.writeNBT());
         nbt.setTag("conditions", condList);
+
+        // Effects
+        NBTTagList effectList = new NBTTagList();
+        for (AbilityEffect effect : effects) {
+            effectList.appendTag(effect.writeNBT());
+        }
+        nbt.setTag("effects", effectList);
 
         // Type-specific
         NBTTagCompound typeNBT = new NBTTagCompound();
@@ -629,41 +958,18 @@ public abstract class Ability implements IAbility {
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
-        dazedTicks = nbt.hasKey("dazed") ? nbt.getInteger("dazed") : 0;
-        activeTicks = nbt.getInteger("active");
-        recoveryTicks = nbt.getInteger("recovery");
+        syncWindupWithAnimation = !nbt.hasKey("syncWindup") || nbt.getBoolean("syncWindup");
+        dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
-        lockMovement = nbt.getBoolean("lockMovement");
-        // Support old telegraphColor key for backwards compatibility
-        if (nbt.hasKey("windUpColor")) {
-            windUpColor = nbt.getInteger("windUpColor");
-        } else if (nbt.hasKey("telegraphColor")) {
-            windUpColor = nbt.getInteger("telegraphColor");
-        }
-        if (nbt.hasKey("activeColor")) {
-            activeColor = nbt.getInteger("activeColor");
-        } else {
-            // Default active color to windUpColor with higher alpha
-            activeColor = (windUpColor & 0x00FFFFFF) | 0xC0000000;
-        }
-        // Sound fields (with backwards compatibility for old castSound)
-        if (nbt.hasKey("windUpSound")) {
-            windUpSound = nbt.getString("windUpSound");
-        } else if (nbt.hasKey("castSound")) {
-            windUpSound = nbt.getString("castSound"); // Migrate old field
-        } else {
-            windUpSound = "";
-        }
-        activeSound = nbt.hasKey("activeSound") ? nbt.getString("activeSound") : "";
-        // Animation fields (with backwards compatibility for old animationId)
-        if (nbt.hasKey("windUpAnimationId")) {
-            windUpAnimationId = nbt.getInteger("windUpAnimationId");
-        } else if (nbt.hasKey("animationId")) {
-            windUpAnimationId = nbt.getInteger("animationId"); // Migrate old field
-        } else {
-            windUpAnimationId = -1;
-        }
+        lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
+        windUpColor = nbt.getInteger("windUpColor");
+        activeColor = nbt.getInteger("activeColor");
+        windUpSound = nbt.getString("windUpSound");
+        activeSound = nbt.getString("activeSound");
+        windUpAnimationId = nbt.hasKey("windUpAnimationId") ? nbt.getInteger("windUpAnimationId") : -1;
         activeAnimationId = nbt.hasKey("activeAnimationId") ? nbt.getInteger("activeAnimationId") : -1;
+        windUpAnimationName = nbt.getString("windUpAnimationName");
+        activeAnimationName = nbt.getString("activeAnimationName");
         showTelegraph = !nbt.hasKey("showTelegraph") || nbt.getBoolean("showTelegraph");
         if (nbt.hasKey("telegraphType")) {
             try {
@@ -674,6 +980,8 @@ public abstract class Ability implements IAbility {
         }
         telegraphHeightOffset = nbt.hasKey("telegraphHeightOffset") ? nbt.getFloat("telegraphHeightOffset") : 0.1f;
         customData = nbt.getCompoundTag("customData");
+        allowedBy = nbt.hasKey("allowedBy") ? UserType.fromOrdinal(nbt.getInteger("allowedBy")) : UserType.BOTH;
+        ignoreCooldown = nbt.hasKey("ignoreCooldown") && nbt.getBoolean("ignoreCooldown");
 
         // Conditions
         conditions.clear();
@@ -681,6 +989,18 @@ public abstract class Ability implements IAbility {
         for (int i = 0; i < condList.tagCount(); i++) {
             Condition c = Condition.fromNBT(condList.getCompoundTagAt(i));
             if (c != null) conditions.add(c);
+        }
+
+        // Effects
+        effects.clear();
+        if (nbt.hasKey("effects")) {
+            NBTTagList effectList = nbt.getTagList("effects", 10);
+            for (int i = 0; i < effectList.tagCount(); i++) {
+                AbilityEffect effect = AbilityEffect.fromNBT(effectList.getCompoundTagAt(i));
+                if (effect != null && effect.isValid()) {
+                    effects.add(effect);
+                }
+            }
         }
 
         readTypeNBT(nbt.getCompoundTag("typeData"));
@@ -755,41 +1075,39 @@ public abstract class Ability implements IAbility {
     }
 
     public void setCooldownTicks(int cooldownTicks) {
-        this.cooldownTicks = cooldownTicks;
+        this.cooldownTicks = Math.max(0, cooldownTicks);
     }
 
     public int getWindUpTicks() {
+        return calculateWindupFromAnimation();
+    }
+
+    public int getRawWindUpTicks() {
         return windUpTicks;
     }
 
     public void setWindUpTicks(int windUpTicks) {
-        this.windUpTicks = windUpTicks;
+        this.windUpTicks = Math.max(0, windUpTicks);
     }
 
-    @Override
+    public boolean isSyncWindupWithAnimation() {
+        return syncWindupWithAnimation;
+    }
+
+    public boolean hasWindUpAnimation() {
+        return (windUpAnimationName != null && !windUpAnimationName.isEmpty()) || windUpAnimationId >= 0;
+    }
+
+    public void setSyncWindupWithAnimation(boolean syncWindupWithAnimation) {
+        this.syncWindupWithAnimation = syncWindupWithAnimation;
+    }
+
     public int getDazedTicks() {
         return dazedTicks;
     }
 
-    @Override
-    public void setDazedTicks(int ticks) {
-        this.dazedTicks = ticks;
-    }
-
-    public int getActiveTicks() {
-        return activeTicks;
-    }
-
-    public void setActiveTicks(int activeTicks) {
-        this.activeTicks = activeTicks;
-    }
-
-    public int getRecoveryTicks() {
-        return recoveryTicks;
-    }
-
-    public void setRecoveryTicks(int recoveryTicks) {
-        this.recoveryTicks = recoveryTicks;
+    public void setDazedTicks(int dazedTicks) {
+        this.dazedTicks = Math.max(0, dazedTicks);
     }
 
     public boolean isInterruptible() {
@@ -800,12 +1118,60 @@ public abstract class Ability implements IAbility {
         this.interruptible = interruptible;
     }
 
-    public boolean isLockMovement() {
+    public LockMovementType getLockMovement() {
         return lockMovement;
     }
 
-    public void setLockMovement(boolean lockMovement) {
+    public void setLockMovement(LockMovementType lockMovement) {
         this.lockMovement = lockMovement;
+    }
+
+    /**
+     * API method: Get lock movement type as integer.
+     * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public int getLockMovementType() {
+        return lockMovement.ordinal();
+    }
+
+    /**
+     * API method: Set lock movement type from integer.
+     * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public void setLockMovementType(int type) {
+        this.lockMovement = LockMovementType.fromOrdinal(type);
+    }
+
+    /**
+     * Check if movement should be locked during WINDUP phase.
+     */
+    @Override
+    public boolean isMovementLockedDuringWindup() {
+        return lockMovement.locksWindup();
+    }
+
+    /**
+     * Check if movement should be locked during ACTIVE phase.
+     */
+    @Override
+    public boolean isMovementLockedDuringActive() {
+        return lockMovement.locksActive();
+    }
+
+    /**
+     * Check if movement should be locked during the current phase.
+     */
+    public boolean isMovementLockedForCurrentPhase() {
+        switch (phase) {
+            case WINDUP:
+                return lockMovement.locksWindup();
+            case ACTIVE:
+                return lockMovement.locksActive();
+            default:
+                return false;
+        }
     }
 
     public int getWindUpColor() {
@@ -824,22 +1190,6 @@ public abstract class Ability implements IAbility {
         this.activeColor = activeColor;
     }
 
-    /**
-     * @deprecated Use getWindUpColor() instead
-     */
-    @Deprecated
-    public int getTelegraphColor() {
-        return windUpColor;
-    }
-
-    /**
-     * @deprecated Use setWindUpColor() instead
-     */
-    @Deprecated
-    public void setTelegraphColor(int telegraphColor) {
-        this.windUpColor = telegraphColor;
-    }
-
     public String getWindUpSound() {
         return windUpSound;
     }
@@ -856,12 +1206,48 @@ public abstract class Ability implements IAbility {
         this.activeSound = activeSound;
     }
 
+    public Animation getWindUpAnimation() {
+        if (AnimationController.Instance == null) return null;
+
+        // Built-in animation by name takes priority
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(windUpAnimationName, true);
+        }
+        // Fall back to user animation by ID
+        if (windUpAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+        return null;
+    }
+
     public int getWindUpAnimationId() {
         return windUpAnimationId;
     }
 
     public void setWindUpAnimationId(int windUpAnimationId) {
         this.windUpAnimationId = windUpAnimationId;
+    }
+
+    public String getWindUpAnimationName() {
+        return windUpAnimationName;
+    }
+
+    public void setWindUpAnimationName(String windUpAnimationName) {
+        this.windUpAnimationName = windUpAnimationName != null ? windUpAnimationName : "";
+    }
+
+    public Animation getActiveAnimation() {
+        if (AnimationController.Instance == null) return null;
+
+        // Built-in animation by name takes priority
+        if (activeAnimationName != null && !activeAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(activeAnimationName, true);
+        }
+        // Fall back to user animation by ID
+        if (activeAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(activeAnimationId);
+        }
+        return null;
     }
 
     public int getActiveAnimationId() {
@@ -872,36 +1258,12 @@ public abstract class Ability implements IAbility {
         this.activeAnimationId = activeAnimationId;
     }
 
-    /**
-     * @deprecated Use getWindUpSound() instead
-     */
-    @Deprecated
-    public String getCastSound() {
-        return windUpSound;
+    public String getActiveAnimationName() {
+        return activeAnimationName;
     }
 
-    /**
-     * @deprecated Use setWindUpSound() instead
-     */
-    @Deprecated
-    public void setCastSound(String castSound) {
-        this.windUpSound = castSound;
-    }
-
-    /**
-     * @deprecated Use getWindUpAnimationId() instead
-     */
-    @Deprecated
-    public int getAnimationId() {
-        return windUpAnimationId;
-    }
-
-    /**
-     * @deprecated Use setWindUpAnimationId() instead
-     */
-    @Deprecated
-    public void setAnimationId(int animationId) {
-        this.windUpAnimationId = animationId;
+    public void setActiveAnimationName(String activeAnimationName) {
+        this.activeAnimationName = activeAnimationName != null ? activeAnimationName : "";
     }
 
     public boolean isShowTelegraph() {
@@ -933,7 +1295,7 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Get the current execution phase as int (0=IDLE, 1=WINDUP, 2=ACTIVE, 3=RECOVERY).
+     * Get the current execution phase as int (0=IDLE, 1=WINDUP, 2=ACTIVE, 3=DAZED).
      * Required for IAbility interface.
      */
     @Override
@@ -961,9 +1323,90 @@ public abstract class Ability implements IAbility {
         conditions.add(c);
     }
 
+    public UserType getAllowedBy() {
+        return allowedBy;
+    }
+
+    public void setAllowedBy(UserType allowedBy) {
+        this.allowedBy = allowedBy;
+    }
+
+    public boolean isIgnoreCooldown() {
+        return ignoreCooldown;
+    }
+
+    public void setIgnoreCooldown(boolean ignoreCooldown) {
+        this.ignoreCooldown = ignoreCooldown;
+    }
+
+    public List<AbilityEffect> getEffects() {
+        return effects;
+    }
+
+    public void setEffects(List<AbilityEffect> effects) {
+        this.effects = effects != null ? effects : new ArrayList<>();
+    }
+
+    public void addEffect(AbilityEffect effect) {
+        if (effect != null && effect.isValid()) {
+            effects.add(effect);
+        }
+    }
+
+    public void clearEffects() {
+        effects.clear();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SHIT FROM THE ASS
+    // ═══════════════════════════════════════════════════════════════════
+
+    private int calculateWindupFromAnimation() {
+        if (!syncWindupWithAnimation) {
+            return windUpTicks;
+        }
+
+        if (AnimationController.Instance == null) {
+            return this.windUpTicks;
+        }
+
+        Animation animation = null;
+        // Check for built-in animation (by name) first
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationName, true);
+        }
+        // Fall back to user animation (by ID)
+        else if (windUpAnimationId >= 0) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+
+        if (animation == null || animation.frames.isEmpty()) {
+            return this.windUpTicks;
+        }
+
+        // Calculate total duration by summing all frame durations
+        int totalDuration = 0;
+        for (Frame frame : animation.frames) {
+            totalDuration += frame.getDuration();
+        }
+
+        // Return total duration
+        return totalDuration;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // IAbility API METHODS
     // ═══════════════════════════════════════════════════════════════════
+
+    @Override
+    public int getAllowedByType() {
+        return allowedBy.ordinal();
+    }
+
+    @Override
+    public void setAllowedByType(int type) {
+        this.allowedBy = UserType.fromOrdinal(type);
+    }
 
     @Override
     public INbt getNbt() {

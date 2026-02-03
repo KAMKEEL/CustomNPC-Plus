@@ -67,7 +67,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         // Starting Price label and field
         addLabel(new GuiNpcLabel(1, "auction.sell.startingPrice", guiLeft + contentX, y + 5, 0xFFFFFF));
         GuiNpcTextField startingField = new GuiNpcTextField(txtStartingPriceId, this, fontRendererObj,
-            guiLeft + contentX + 80, y, 80, 18, startingPrice > 0 ? String.valueOf(startingPrice) : "");
+            guiLeft + contentX + 80, y, 80, 18, startingPrice > 0 ? "" + startingPrice : "");
         startingField.setIntegersOnly();
         addTextField(startingField);
 
@@ -78,7 +78,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         addLabel(lblBuyout);
 
         txtBuyout = new GuiNpcTextField(txtBuyoutPriceId, this, fontRendererObj,
-            guiLeft + contentX + 80, y, 80, 18, buyoutPrice > 0 ? String.valueOf(buyoutPrice) : "");
+            guiLeft + contentX + 80, y, 80, 18, buyoutPrice > 0 ? "" + buyoutPrice : "");
         txtBuyout.setIntegersOnly();
         addTextField(txtBuyout);
 

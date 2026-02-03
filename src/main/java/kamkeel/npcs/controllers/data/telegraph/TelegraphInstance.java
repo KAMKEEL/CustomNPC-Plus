@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.telegraph;
 
-import net.minecraft.block.Block;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -17,15 +17,22 @@ public class TelegraphInstance {
     private String instanceId;
     private Telegraph telegraph;
 
-    // Position
+    // Position (current)
     private double x;
     private double y;
     private double z;
     private float yaw;
 
+    // Position (previous tick - for interpolation)
+    private double prevX;
+    private double prevY;
+    private double prevZ;
+    private float prevYaw;
+
     // Entity tracking
     private int entityIdToFollow = -1;
     private int casterEntityId = -1;
+    private int targetEntityId = -1;  // For LINE telegraphs: entity to face (yaw tracking)
 
     // Timing
     private int remainingTicks;
@@ -49,6 +56,11 @@ public class TelegraphInstance {
         this.y = y;
         this.z = z;
         this.yaw = yaw;
+        // Initialize prev positions to current for first frame
+        this.prevX = x;
+        this.prevY = y;
+        this.prevZ = z;
+        this.prevYaw = yaw;
         this.remainingTicks = telegraph.getDurationTicks();
         this.totalTicks = telegraph.getDurationTicks();
     }
@@ -68,6 +80,12 @@ public class TelegraphInstance {
             return false;
         }
 
+        // Save previous position for interpolation
+        this.prevX = this.x;
+        this.prevY = this.y;
+        this.prevZ = this.z;
+        this.prevYaw = this.yaw;
+
         remainingTicks--;
 
         // Update position if following an entity
@@ -77,7 +95,17 @@ public class TelegraphInstance {
                 this.x = entity.posX;
                 this.z = entity.posZ;
                 // Find ground level below the entity for proper telegraph placement
-                this.y = findGroundLevel(world, entity.posX, entity.posY, entity.posZ);
+                this.y = Ability.findGroundLevel(world, entity.posX, entity.posY, entity.posZ);
+            }
+        }
+
+        // Update yaw to face target entity (for LINE telegraphs)
+        if (targetEntityId >= 0 && world != null) {
+            Entity target = world.getEntityByID(targetEntityId);
+            if (target != null) {
+                double dx = target.posX - this.x;
+                double dz = target.posZ - this.z;
+                this.yaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
             }
         }
 
@@ -89,34 +117,6 @@ public class TelegraphInstance {
         }
 
         return true;
-    }
-
-    /**
-     * Find the ground level at a given position.
-     * Searches downward from the given Y to find a solid block.
-     *
-     * @param world  The world
-     * @param x      X coordinate
-     * @param startY Starting Y coordinate (entity feet position)
-     * @param z      Z coordinate
-     * @return The Y coordinate of the ground surface
-     */
-    private double findGroundLevel(World world, double x, double startY, double z) {
-        int blockX = (int) Math.floor(x);
-        int blockZ = (int) Math.floor(z);
-        int startBlockY = (int) Math.floor(startY);
-
-        // Search downward for solid ground (max 10 blocks down)
-        for (int checkY = startBlockY; checkY >= startBlockY - 10 && checkY >= 0; checkY--) {
-            Block block = world.getBlock(blockX, checkY, blockZ);
-            if (block != null && block.getMaterial().isSolid()) {
-                // Found solid block, telegraph goes on top of it
-                return checkY + 1;
-            }
-        }
-
-        // No ground found, use original position
-        return startY;
     }
 
     /**
@@ -136,7 +136,7 @@ public class TelegraphInstance {
     }
 
     /**
-     * Get alpha-modulated color for pulsing animation.
+     * Get alpha-modulated color for breathing animation.
      */
     public int getAnimatedColor(float partialTicks) {
         int baseColor = getCurrentColor();
@@ -144,9 +144,12 @@ public class TelegraphInstance {
             return baseColor;
         }
 
-        // Pulsing animation: modulate alpha based on time
+        // Breathing animation: slow, smooth modulation of alpha
         float time = (totalTicks - remainingTicks) + partialTicks;
-        float pulse = (float) (Math.sin(time * 0.3) * 0.3 + 0.7); // 0.4 to 1.0 range
+        // Slower breathing: 0.08 for ~4 second cycle, smoother sine curve
+        float breathPhase = (float) Math.sin(time * 0.08);
+        // Smooth easing: square the sine for more organic feel, range 0.5 to 1.0
+        float pulse = 0.5f + (breathPhase * breathPhase * 0.5f * Math.signum(breathPhase));
 
         int alpha = (baseColor >> 24) & 0xFF;
         int r = (baseColor >> 16) & 0xFF;
@@ -156,6 +159,43 @@ public class TelegraphInstance {
         alpha = (int) (alpha * pulse);
 
         return (alpha << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // INTERPOLATED POSITION (for smooth rendering)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Get interpolated X position for smooth rendering.
+     */
+    public double getInterpolatedX(float partialTicks) {
+        return prevX + (x - prevX) * partialTicks;
+    }
+
+    /**
+     * Get interpolated Y position for smooth rendering.
+     */
+    public double getInterpolatedY(float partialTicks) {
+        return prevY + (y - prevY) * partialTicks;
+    }
+
+    /**
+     * Get interpolated Z position for smooth rendering.
+     */
+    public double getInterpolatedZ(float partialTicks) {
+        return prevZ + (z - prevZ) * partialTicks;
+    }
+
+    /**
+     * Get interpolated yaw for smooth rendering.
+     * Handles angle wrapping for smooth rotation.
+     */
+    public float getInterpolatedYaw(float partialTicks) {
+        // Handle angle wrapping to prevent spinning the wrong way
+        float diff = yaw - prevYaw;
+        while (diff > 180.0f) diff -= 360.0f;
+        while (diff < -180.0f) diff += 360.0f;
+        return prevYaw + diff * partialTicks;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -177,6 +217,7 @@ public class TelegraphInstance {
 
         nbt.setInteger("entityIdToFollow", entityIdToFollow);
         nbt.setInteger("casterEntityId", casterEntityId);
+        nbt.setInteger("targetEntityId", targetEntityId);
 
         nbt.setInteger("remainingTicks", remainingTicks);
         nbt.setInteger("totalTicks", totalTicks);
@@ -201,6 +242,7 @@ public class TelegraphInstance {
 
         this.entityIdToFollow = nbt.getInteger("entityIdToFollow");
         this.casterEntityId = nbt.getInteger("casterEntityId");
+        this.targetEntityId = nbt.getInteger("targetEntityId");
 
         this.remainingTicks = nbt.getInteger("remainingTicks");
         this.totalTicks = nbt.getInteger("totalTicks");
@@ -269,11 +311,12 @@ public class TelegraphInstance {
     }
 
     /**
-     * Locks the telegraph at its current position.
+     * Locks the telegraph at its current position and direction.
      * Stops following any entity - used when ability commits to action.
      */
     public void lockPosition() {
         this.entityIdToFollow = -1;
+        this.targetEntityId = -1;
     }
 
     public int getCasterEntityId() {
@@ -282,6 +325,14 @@ public class TelegraphInstance {
 
     public void setCasterEntityId(int casterEntityId) {
         this.casterEntityId = casterEntityId;
+    }
+
+    public int getTargetEntityId() {
+        return targetEntityId;
+    }
+
+    public void setTargetEntityId(int targetEntityId) {
+        this.targetEntityId = targetEntityId;
     }
 
     public int getRemainingTicks() {

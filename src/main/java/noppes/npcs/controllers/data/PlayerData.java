@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.IPlayerBankData;
 import noppes.npcs.api.handler.IPlayerTradeData;
@@ -65,6 +66,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     // Trade data (currency + auction claims) - shared across all profile slots
     public PlayerTradeData tradeData = new PlayerTradeData(this);
 
+    public PlayerAbilityData abilityData = new PlayerAbilityData(this);
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
@@ -108,6 +110,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         if (!controller.playerEffects.containsKey(playerID)) {
             controller.playerEffects.put(playerID, effectData.getEffects());
         }
+
+        // Sync player ability data to client
+        abilityData.syncToClient();
     }
 
     public void onLogout() {
@@ -137,6 +142,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         effectData.readFromNBT(data);
         magicData.readToNBT(data);
         tradeData.readFromNBT(data);
+        abilityData.readFromNBT(data);
 
         if (player != null) {
             playername = player.getCommandSenderName();
@@ -180,6 +186,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         effectData.writeToNBT(compound);
         magicData.writeToNBT(compound);
         tradeData.writeToNBT(compound);
+        abilityData.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
@@ -409,6 +416,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public IPlayerTradeData getTradeData() {
         return tradeData;
+    }
+
+    public IPlayerAbilityData getAbilityData() {
+        return abilityData;
     }
 
     public synchronized void save() {

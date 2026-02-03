@@ -163,7 +163,16 @@ public class NoppesUtilServer {
         for (Animation animation : AnimationController.getInstance().animations.values()) {
             map.put(animation.name, animation.id);
         }
-        sendScrollData(player, map, EnumScrollData.OPTIONAL);
+        sendScrollData(player, map, EnumScrollData.ANIMATIONS);
+    }
+
+    public static void sendBuiltInAnimationData(EntityPlayerMP player) {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        for (String name : AnimationController.getInstance().builtInAnimations.keySet()) {
+            // Use -1 as a marker for built-in animations (they have no ID)
+            map.put(AnimationController.getInstance().builtInAnimations.get(name).getName(), -1);
+        }
+        sendScrollData(player, map, EnumScrollData.BUILTIN_ANIMATIONS);
     }
 
     public static void sendTagDataAll(EntityPlayerMP player) {
@@ -241,7 +250,7 @@ public class NoppesUtilServer {
             if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
                 return;
             }
-            if (EventHooks.onDialogOpen(player, new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog))) {
+            if (EventHooks.onDialogOpen(player, new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog.id, optionId, dialog))) {
                 return;
             }
         }
@@ -774,6 +783,20 @@ public class NoppesUtilServer {
             }
         }
         sendScrollData(player, map, EnumScrollData.ABILITY_TYPES);
+    }
+
+    public static void sendCustomAbilitiesData(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        kamkeel.npcs.controllers.data.ability.AbilityController controller = kamkeel.npcs.controllers.data.ability.AbilityController.Instance;
+        if (controller != null) {
+            int index = 0;
+            for (String uuid : controller.getCustomAbilityIds()) {
+                String name = controller.getCustomAbilityName(uuid);
+                if (name == null || name.isEmpty()) name = uuid;
+                map.put(name + "\t" + uuid, index++);
+            }
+        }
+        sendScrollData(player, map, EnumScrollData.CUSTOM_ABILITIES);
     }
 
     public static DialogOption setNpcDialog(int slot, int dialogId, EntityPlayer player) throws IOException {

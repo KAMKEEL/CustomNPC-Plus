@@ -1,8 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -13,11 +12,18 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHazard;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.api.ability.type.IAbilityHazard;
+
+import noppes.npcs.client.gui.builder.ColumnHint;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -27,21 +33,43 @@ import java.util.Set;
  * Hazard ability: Creates persistent ground effect zones.
  * Deals damage and/or applies debuffs to entities in the zone over time.
  */
-public class AbilityHazard extends Ability {
+public class AbilityHazard extends Ability implements IAbilityHazard {
 
     public enum HazardShape {
         CIRCLE,
         RING,
-        CONE
+        CONE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case CIRCLE: return "ability.shape.circle";
+                case RING: return "ability.shape.ring";
+                case CONE: return "ability.shape.cone";
+                default: return name();
+            }
+        }
     }
 
     public enum PlacementMode {
         AT_CASTER,
         AT_TARGET,
         FOLLOW_CASTER,
-        FOLLOW_TARGET
+        FOLLOW_TARGET;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case AT_CASTER: return "ability.placement.atCaster";
+                case AT_TARGET: return "ability.placement.atTarget";
+                case FOLLOW_CASTER: return "ability.placement.followCaster";
+                case FOLLOW_TARGET: return "ability.placement.followTarget";
+                default: return name();
+            }
+        }
     }
 
+    private int durationTicks = 100;
     private float radius = 4.0f;
     private float innerRadius = 0.0f;
     private float coneAngle = 45.0f;
@@ -80,24 +108,10 @@ public class AbilityHazard extends Ability {
         this.name = "Hazard";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
-        this.lockMovement = true;
-        this.cooldownTicks = 200;
+        this.lockMovement = LockMovementType.WINDUP;
+        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.activeTicks = 100;
-        this.recoveryTicks = 10;
         this.telegraphType = TelegraphType.CIRCLE;
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityHazard(this, callback);
     }
 
     @Override
@@ -116,8 +130,8 @@ public class AbilityHazard extends Ability {
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
-        TelegraphInstance instance = super.createTelegraph(npc, target);
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
+        TelegraphInstance instance = super.createTelegraph(caster, target);
         if (instance == null) return null;
 
         // Control telegraph following based on placement mode
@@ -126,9 +140,9 @@ public class AbilityHazard extends Ability {
             case FOLLOW_CASTER:
                 // Telegraph stays at caster position, no following
                 instance.setEntityIdToFollow(-1);
-                instance.setX(npc.posX);
-                instance.setY(npc.posY);
-                instance.setZ(npc.posZ);
+                instance.setX(caster.posX);
+                instance.setY(caster.posY);
+                instance.setZ(caster.posZ);
                 break;
             case AT_TARGET:
                 // Telegraph follows target during windup, locks on execute
@@ -146,43 +160,15 @@ public class AbilityHazard extends Ability {
         return instance;
     }
 
-    /**
-     * Calculates offset position near the given coordinates.
-     * Used to place hazard near target rather than exactly on them.
-     */
-    private double[] calculateOffsetPosition(double baseX, double baseY, double baseZ) {
-        if (maxOffset <= 0) {
-            return new double[]{baseX, baseY, baseZ};
-        }
-
-        double offsetDist;
-        double offsetAngle;
-
-        if (randomOffset) {
-            // Random offset within min-max range
-            offsetDist = minOffset + RANDOM.nextDouble() * (maxOffset - minOffset);
-            offsetAngle = RANDOM.nextDouble() * Math.PI * 2;
-        } else {
-            // Fixed offset (use max, random angle)
-            offsetDist = maxOffset;
-            offsetAngle = RANDOM.nextDouble() * Math.PI * 2;
-        }
-
-        double offsetX = Math.cos(offsetAngle) * offsetDist;
-        double offsetZ = Math.sin(offsetAngle) * offsetDist;
-
-        return new double[]{baseX + offsetX, baseY, baseZ + offsetZ};
-    }
-
     @Override
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         // AT_CASTER locks immediately, AT_TARGET follows during windup and locks on execute
         if (tick == 0) {
             switch (placement) {
                 case AT_CASTER:
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                     positionLocked = true;
                     break;
                 case AT_TARGET:
@@ -198,7 +184,7 @@ public class AbilityHazard extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         // Lock position from telegraph (which was following target) or calculate it now
         TelegraphInstance telegraph = getTelegraphInstance();
 
@@ -206,33 +192,39 @@ public class AbilityHazard extends Ability {
             case AT_CASTER:
                 // Already locked during windup
                 if (!positionLocked) {
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                 }
                 break;
             case AT_TARGET:
                 // Use telegraph position if available, apply offset
                 if (telegraph != null) {
-                    double[] pos = calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ());
+                    double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
+                        minOffset, maxOffset, randomOffset, RANDOM);
                     zoneX = pos[0];
                     zoneY = pos[1];
                     zoneZ = pos[2];
+                    // Update telegraph to show actual hazard position
+                    telegraph.setX(zoneX);
+                    telegraph.setY(zoneY);
+                    telegraph.setZ(zoneZ);
                 } else if (target != null) {
-                    double[] pos = calculateOffsetPosition(target.posX, target.posY, target.posZ);
+                    double[] pos = Ability.calculateOffsetPosition(target.posX, target.posY, target.posZ,
+                        minOffset, maxOffset, randomOffset, RANDOM);
                     zoneX = pos[0];
                     zoneY = pos[1];
                     zoneZ = pos[2];
                 } else {
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                 }
                 break;
             case FOLLOW_CASTER:
-                zoneX = npc.posX;
-                zoneY = npc.posY;
-                zoneZ = npc.posZ;
+                zoneX = caster.posX;
+                zoneY = caster.posY;
+                zoneZ = caster.posZ;
                 break;
             case FOLLOW_TARGET:
                 if (target != null) {
@@ -240,9 +232,9 @@ public class AbilityHazard extends Ability {
                     zoneY = target.posY;
                     zoneZ = target.posZ;
                 } else {
-                    zoneX = npc.posX;
-                    zoneY = npc.posY;
-                    zoneZ = npc.posZ;
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
                 }
                 break;
         }
@@ -251,17 +243,23 @@ public class AbilityHazard extends Ability {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
+
+        // Check if hazard duration has ended
+        if (tick >= durationTicks) {
+            signalCompletion();
+            return;
+        }
 
         damagedThisTick.clear();
         ticksSinceDamage++;
 
         switch (placement) {
             case FOLLOW_CASTER:
-                zoneX = npc.posX;
-                zoneY = npc.posY;
-                zoneZ = npc.posZ;
+                zoneX = caster.posX;
+                zoneY = caster.posY;
+                zoneZ = caster.posZ;
                 break;
             case FOLLOW_TARGET:
                 if (target != null) {
@@ -286,16 +284,16 @@ public class AbilityHazard extends Ability {
             List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
 
             for (EntityLivingBase entity : entities) {
-                if (entity == npc && !affectsCaster) continue;
+                if (entity == caster && !affectsCaster) continue;
                 if (damagedThisTick.contains(entity.getEntityId())) continue;
-                if (!isInZone(entity, npc)) continue;
+                if (!isInZone(entity, caster)) continue;
 
                 if (damagePerSecond > 0) {
                     if (ignoreInvulnFrames) {
                         entity.hurtResistantTime = 0;
                     }
                     // Apply damage with scripted event support (no knockback for hazard)
-                    boolean wasHit = applyAbilityDamage(npc, entity, damagePerSecond, 0);
+                    boolean wasHit = applyAbilityDamage(caster, entity, damagePerSecond, 0);
                     if (!wasHit) continue; // Skip debuffs if hit was cancelled
                 }
 
@@ -305,7 +303,7 @@ public class AbilityHazard extends Ability {
         }
     }
 
-    private boolean isInZone(EntityLivingBase entity, EntityNPCInterface npc) {
+    private boolean isInZone(EntityLivingBase entity, EntityLivingBase caster) {
         double dx = entity.posX - zoneX;
         double dz = entity.posZ - zoneZ;
         double dist = Math.sqrt(dx * dx + dz * dz);
@@ -317,7 +315,7 @@ public class AbilityHazard extends Ability {
                 return dist >= innerRadius && dist <= radius;
             case CONE:
                 if (dist > radius) return false;
-                float casterYaw = npc.rotationYaw;
+                float casterYaw = caster.rotationYaw;
                 double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
                 double angleDiff = Math.abs(normalizeAngle(angleToEntity - casterYaw));
                 return angleDiff <= coneAngle / 2;
@@ -351,19 +349,20 @@ public class AbilityHazard extends Ability {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
         damagedThisTick.clear();
         positionLocked = false;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
         damagedThisTick.clear();
         positionLocked = false;
     }
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("durationTicks", durationTicks);
         nbt.setFloat("radius", radius);
         nbt.setFloat("innerRadius", innerRadius);
         nbt.setFloat("coneAngle", coneAngle);
@@ -388,6 +387,7 @@ public class AbilityHazard extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
+        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 100;
         this.radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 4.0f;
         this.innerRadius = nbt.hasKey("innerRadius") ? nbt.getFloat("innerRadius") : 0.0f;
         this.coneAngle = nbt.hasKey("coneAngle") ? nbt.getFloat("coneAngle") : 45.0f;
@@ -426,6 +426,14 @@ public class AbilityHazard extends Ability {
     }
 
     // Getters & Setters
+    public int getDurationTicks() {
+        return durationTicks;
+    }
+
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = Math.max(1, durationTicks);
+    }
+
     public float getRadius() {
         return radius;
     }
@@ -450,20 +458,42 @@ public class AbilityHazard extends Ability {
         this.coneAngle = coneAngle;
     }
 
-    public HazardShape getShape() {
+    public HazardShape getShapeEnum() {
         return shape;
     }
 
-    public void setShape(HazardShape shape) {
+    public void setShapeEnum(HazardShape shape) {
         this.shape = shape;
     }
 
-    public PlacementMode getPlacement() {
+    @Override
+    public int getShape() {
+        return shape.ordinal();
+    }
+
+    @Override
+    public void setShape(int shape) {
+        HazardShape[] values = HazardShape.values();
+        this.shape = shape >= 0 && shape < values.length ? values[shape] : HazardShape.CIRCLE;
+    }
+
+    public PlacementMode getPlacementEnum() {
         return placement;
     }
 
-    public void setPlacement(PlacementMode placement) {
+    public void setPlacementEnum(PlacementMode placement) {
         this.placement = placement;
+    }
+
+    @Override
+    public int getPlacement() {
+        return placement.ordinal();
+    }
+
+    @Override
+    public void setPlacement(int placement) {
+        PlacementMode[] values = PlacementMode.values();
+        this.placement = placement >= 0 && placement < values.length ? values[placement] : PlacementMode.AT_CASTER;
     }
 
     public float getDamagePerSecond() {
@@ -472,18 +502,6 @@ public class AbilityHazard extends Ability {
 
     public void setDamagePerSecond(float damagePerSecond) {
         this.damagePerSecond = damagePerSecond;
-    }
-
-    /** @deprecated Use {@link #getDamagePerSecond()} instead */
-    @Deprecated
-    public float getDamagePerTick() {
-        return damagePerSecond;
-    }
-
-    /** @deprecated Use {@link #setDamagePerSecond(float)} instead */
-    @Deprecated
-    public void setDamagePerTick(float damage) {
-        this.damagePerSecond = damage;
     }
 
     public int getDamageInterval() {
@@ -609,5 +627,30 @@ public class AbilityHazard extends Ability {
 
     public double getZoneZ() {
         return zoneZ;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public List<FieldDef> getFieldDefinitions() {
+        return Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
+            FieldDef.enumField("ability.shape", HazardShape.class, this::getShapeEnum, this::setShapeEnum)
+                .hover("ability.hover.shape"),
+            FieldDef.enumField("ability.placement", PlacementMode.class, this::getPlacementEnum, this::setPlacementEnum)
+                .hover("ability.hover.placement"),
+            FieldDef.section("ability.section.area"),
+            FieldDef.floatField("gui.radius", this::getRadius, this::setRadius).column(ColumnHint.LEFT),
+            FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.floatField("ability.damagePerSecond", this::getDamagePerSecond, this::setDamagePerSecond).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval).column(ColumnHint.RIGHT),
+            FieldDef.section("ability.section.debuffs"),
+            FieldDef.intField("ability.slownessLevel", this::getSlownessLevel, this::setSlownessLevel).column(ColumnHint.LEFT),
+            FieldDef.intField("ability.debuffDuration", this::getDebuffDuration, this::setDebuffDuration).column(ColumnHint.RIGHT),
+            FieldDef.intField("ability.poisonLevel", this::getPoisonLevel, this::setPoisonLevel),
+            FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
+                .hover("ability.hover.affectsCaster"),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        );
     }
 }
