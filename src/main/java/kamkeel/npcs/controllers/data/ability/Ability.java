@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.ability;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -146,6 +147,9 @@ public abstract class Ability implements IAbility {
     }
 
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
     }
 
     /**
@@ -426,6 +430,17 @@ public abstract class Ability implements IAbility {
             this::getActiveAnimationId, this::setActiveAnimationId,
             this::getActiveAnimationName, this::setActiveAnimationName)
             .tab("Effects"));
+
+        if (this instanceof AbilityGuard) {
+            defs.add(FieldDef.animSubGui("ability.counterAnimation",
+                () -> ((AbilityGuard) this).getCounterAnimationId(),
+                (id) -> ((AbilityGuard) this).setCounterAnimationId(id),
+                () -> ((AbilityGuard) this).getCounterAnimationName(),
+                (name) -> ((AbilityGuard) this).setCounterAnimationName(name))
+                .tab("Effects")
+                .visibleWhen(() -> ((AbilityGuard) this).canCounter())
+            );
+        }
 
         // Effects tab - Telegraph
         TelegraphType tType = getTelegraphType();

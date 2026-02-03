@@ -453,11 +453,27 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     // ANIMATION
     // ═══════════════════════════════════════════════════════════════════
 
-    private void playAbilityAnimation(Animation animation) {
+    public void playAbilityAnimation(Animation animation) {
         if (animation == null || AnimationController.Instance == null) return;
         playerData.animationData.setEnabled(true);
         playerData.animationData.setAnimation(animation);
         playerData.animationData.updateClient();
+    }
+
+    public void playAbilityAnimation(int animation) {
+        if (animation < 0) return;
+        if (AnimationController.Instance == null) return;
+        if (AnimationController.Instance.get(animation) == null) return;
+
+        playAbilityAnimation((Animation) AnimationController.Instance.get(animation));
+    }
+
+    public void playAbilityAnimation(String animation) {
+        if (animation.isEmpty()) return;
+        if (AnimationController.Instance == null) return;
+        if (AnimationController.Instance.get(animation, true) == null) return;
+
+        playAbilityAnimation((Animation) AnimationController.Instance.get(animation, true));
     }
 
     private void stopAbilityAnimation() {
