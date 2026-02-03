@@ -342,5 +342,10 @@ public class ScriptContainer implements IScriptUnit {
     public void setErrored(boolean errored) {
         this.errored = errored;
     }
+
+    @Override
+    public boolean isJanino() {
+        return false;
+    }
 }
 
