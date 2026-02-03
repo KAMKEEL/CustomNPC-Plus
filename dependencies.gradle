@@ -38,6 +38,9 @@ dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.5.4-GTNH:dev")
     runtimeOnlyNonPublishable("curse.maven:Nashorn-374413:2924946")
 
+    compileOnly(files("./tools/bukkit-api/spigot-api-ONLY.jar"))
+    compileOnly(files("./tools/bukkit-api/Vault-1.4.1.jar"))
+
     if(embedMixin){
         // Normal Jar will include built in Mixins
         shadowImplementation("org.spongepowered:mixin:0.7.11-SNAPSHOT"){
