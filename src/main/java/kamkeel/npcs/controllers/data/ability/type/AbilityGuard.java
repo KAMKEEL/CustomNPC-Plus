@@ -109,6 +109,11 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         if (tick >= durationTicks) {
             signalCompletion();
         }
+
+        // Just enough to see the counter animation
+        if (counterTriggered && tick >= counterWindow + 10) {
+            signalCompletion();
+        }
     }
 
     public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
@@ -148,7 +153,6 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
             }
         }
 
-        counterTriggered = false;
         counterEligible = false;
         lastAttacker = null;
         lastDamageTaken = 0.0f;
