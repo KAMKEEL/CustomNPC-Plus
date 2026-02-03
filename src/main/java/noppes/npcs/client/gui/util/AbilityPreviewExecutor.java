@@ -81,7 +81,6 @@ public class AbilityPreviewExecutor {
 
         this.previewAbility = ability;
         this.previewNpc = npc;
-        this.phase = AbilityPhase.WINDUP;
         this.currentTick = 0;
         this.playing = true;
         this.paused = false;
@@ -103,21 +102,30 @@ public class AbilityPreviewExecutor {
             parentGui.startTrackingMovement();
         }
 
-        // Create telegraph for preview
-        previewTelegraph = ability.createTelegraph(npc, fakeTarget);
+        if (ability.getWindUpTicks() <= 0) {
+            // No windup — go straight to active
+            this.phase = AbilityPhase.ACTIVE;
+            transitionToActive();
+        } else {
+            // Normal windup flow
+            this.phase = AbilityPhase.WINDUP;
 
-        // Start windup animation
-        Animation windUpAnim = ability.getWindUpAnimation();
-        if (windUpAnim != null) {
-            AnimationData data = npc.display.animationData;
-            data.setEnabled(true);
-            data.setAnimation(windUpAnim);
-            data.animation.paused = false;
-        }
+            // Create telegraph for preview
+            previewTelegraph = ability.createTelegraph(npc, fakeTarget);
 
-        // Spawn preview entity on first tick if ability spawns during windup
-        if (ability.spawnPreviewDuringWindup()) {
-            spawnPreviewEntity();
+            // Start windup animation
+            Animation windUpAnim = ability.getWindUpAnimation();
+            if (windUpAnim != null) {
+                AnimationData data = npc.display.animationData;
+                data.setEnabled(true);
+                data.setAnimation(windUpAnim);
+                data.animation.paused = false;
+            }
+
+            // Spawn preview entity on first tick if ability spawns during windup
+            if (ability.spawnPreviewDuringWindup()) {
+                spawnPreviewEntity();
+            }
         }
     }
 
