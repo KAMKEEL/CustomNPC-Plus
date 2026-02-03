@@ -3,11 +3,11 @@ package dts
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
-import org.gradle.api.file.FileCollection
 
 /**
  * Gradle task that generates TypeScript definition (.d.ts) files from Java API sources.
@@ -37,6 +37,9 @@ abstract class GenerateTypeScriptTask extends DefaultTask {
     
     @Input
     List<String> excludePatterns = []
+
+    @Internal
+    Object patchesDirectory
     
     // Provide task input/output properties that Gradle can validate
     @InputFiles
@@ -71,6 +74,24 @@ abstract class GenerateTypeScriptTask extends DefaultTask {
         }
         return f
     }
+
+    @Optional
+    @InputDirectory
+    protected File getResolvedDtsPatchesDirectory() {
+        if (patchesDirectory == null) return null
+        def obj = patchesDirectory
+        if (obj instanceof File) return obj
+        String pathStr = obj.toString()
+        if (pathStr.contains('${modid}')) {
+            String modid = project.archivesBaseName ?: 'mod'
+            pathStr = pathStr.replace('${modid}', modid)
+        }
+        File f = new File(pathStr)
+        if (!f.isAbsolute()) {
+            f = new File(project.projectDir, pathStr)
+        }
+        return f
+    }
     
     /**
      * Converts a value (String or File) to a File object.
@@ -87,6 +108,7 @@ abstract class GenerateTypeScriptTask extends DefaultTask {
     void generate() {
         List<File> srcDirs = getResolvedSourceDirectories()
         File outDir = getResolvedOutputDirectory()
+        File patchesDir = getResolvedDtsPatchesDirectory()
         
         logger.lifecycle("=".multiply(60))
         logger.lifecycle("Generating TypeScript definitions...")
@@ -129,6 +151,22 @@ abstract class GenerateTypeScriptTask extends DefaultTask {
         }
         
         converter.processDirectories(validDirs, logger)
+
+        if (patchesDir != null) {
+            if (!patchesDir.exists()) {
+                logger.lifecycle("Patches directory does not exist: ${patchesDir}")
+            } else {
+                File patchOutputDir = new File(outDir, "patches")
+                if (patchOutputDir.exists()) {
+                    patchOutputDir.deleteDir()
+                }
+                project.copy {
+                    from patchesDir
+                    into patchOutputDir
+                }
+                logger.lifecycle("Copied .d.ts patches to: ${patchOutputDir}")
+            }
+        }
         
         logger.lifecycle("=".multiply(60))
         logger.lifecycle("TypeScript definition generation complete!")

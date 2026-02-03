@@ -60,6 +60,9 @@ tasks.named("generateTypeScriptDefinitions").configure {
     
     // Whether to clean old generated files before regenerating
     cleanOutputFirst = true 
+
+    // Optional: copy external patch .d.ts files into assets/<modid>/api/patches
+    patchesDirectory = "dts-patches"
 }
 
 
@@ -67,3 +70,25 @@ tasks.named("generateTypeScriptDefinitions").configure {
 // But in most cases, you may want to run the task manually when needed
 // processResources.dependsOn generateTypeScriptDefinitions
 ```
+
+---
+
+## Patches (optional overrides)
+
+Use `dts-patches/` to override or refine generated types. Files in this folder are copied to
+`assets/<modid>/api/patches` after generation.
+
+### Example: override `IPlayer.getDBCPlayer()` to return `IDBCAddon` instead of `IDBCPlayer`
+
+File: `dts-patches/IPlayer.d.ts`
+
+```ts
+/**
+ * DBC Addon patch for IPlayer
+ * @javaFqn noppes.npcs.api.entity.IPlayer
+ */
+export interface IPlayer<T> {
+  getDBCPlayer(): IDBCAddon;
+}
+```
+
