@@ -61,6 +61,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     // ==================== HOMING PROPERTIES ====================
     protected EnergyHomingData homingData = new EnergyHomingData();
 
+    // ==================== TRAJECTORY PROPERTIES ====================
+    protected EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
+
     // ==================== TRACKING ====================
     protected double startX, startY, startZ;
     protected int ownerEntityId = -1;
@@ -576,10 +579,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     @Override
     public float getExplosionDamageFalloff() { return combatData.explosionDamageFalloff; }
 
-    // ==================== VISUAL GETTERS ====================
-
-    @Override
-    public float getSpeed() { return homingData.getSpeed(); }
+    // ==================== HOMING GETTERS ====================
 
     @Override
     public boolean isHoming() { return homingData.isHoming(); }
@@ -590,7 +590,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     @Override
     public float getHomingRange() { return homingData.getHomingRange(); }
 
+    // ==================== TRAJECTORY GETTERS ====================
+
+
+
     // ==================== ANCHOR GETTERS ====================
+
+    @Override
+    public float getSpeed() { return homingData.getSpeed(); }
 
     public AnchorPoint getAnchorPoint() { return anchorData.getAnchorPoint(); }
 
