@@ -142,7 +142,7 @@ public abstract class SingleScriptHandler extends ScriptHandler {
      * Normalize the language to a valid one if the current language is not available.
      */
     protected void normalizeLanguage() {
-        if (!ScriptController.Instance.languages.containsKey(this.getLanguage())) {
+        if (this.getLanguage() == null || this.getLanguage().isEmpty()) {
             if (!ScriptController.Instance.languages.isEmpty()) {
                 this.setLanguage((String) ScriptController.Instance.languages.keySet().toArray()[0]);
             } else {

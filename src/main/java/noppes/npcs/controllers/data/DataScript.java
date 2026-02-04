@@ -74,7 +74,7 @@ public class DataScript implements IScriptHandlerPacket {
     public void readFromNBT(NBTTagCompound compound) {
         scripts = readScript(compound.getTagList("ScriptsContainers", 10));
         this.scriptLanguage = compound.getString("ScriptLanguage");
-        if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
+        if (scriptLanguage == null || scriptLanguage.isEmpty()) {
             if (!ScriptController.Instance.languages.isEmpty()) {
                 this.scriptLanguage = (String) ScriptController.Instance.languages.keySet().toArray()[0];
             } else {
