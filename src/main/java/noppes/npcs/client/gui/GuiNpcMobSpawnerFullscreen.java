@@ -291,36 +291,38 @@ public class GuiNpcMobSpawnerFullscreen extends GuiDirectory implements IGuiData
     protected void initRightPanel(int startY) {
         if (GuiNpcMobSpawner.showingClones >= 3) return;
 
-        int btnY = startY;
         int btnGap = 4;
+        int panelH = contentH - 4;
+        int midY = startY + (panelH / 2);
+        int bottomY = contentY + contentH - btnH;
 
-        GuiNpcButton spawnBtn = new GuiNpcButton(1, rightX, btnY, rightPanelW, btnH, "item.monsterPlacer.name");
+        // Spawn — top
+        GuiNpcButton spawnBtn = new GuiNpcButton(1, rightX, startY, rightPanelW, btnH, "item.monsterPlacer.name");
         if (movePhase > 0) spawnBtn.enabled = false;
         addButton(spawnBtn);
-        btnY += btnH + btnGap;
 
-        GuiNpcButton spawnerBtn = new GuiNpcButton(2, rightX, btnY, rightPanelW, btnH, "spawner.mobspawner");
+        // Spawner — below midpoint
+        GuiNpcButton spawnerBtn = new GuiNpcButton(2, rightX, midY + btnGap / 2, rightPanelW, btnH, "spawner.mobspawner");
         if (movePhase > 0) spawnerBtn.enabled = false;
         addButton(spawnerBtn);
-        btnY += btnH + btnGap;
 
         if (GuiNpcMobSpawner.showingClones == 0 || GuiNpcMobSpawner.showingClones == 2) {
-            GuiNpcButton removeBtn = new GuiNpcButton(6, rightX, btnY, rightPanelW, btnH, "gui.remove");
-            if (movePhase > 0) removeBtn.enabled = false;
-            addButton(removeBtn);
-            btnY += btnH + btnGap;
-
-            // Move button
+            // Move — above midpoint
             String moveLabel = movePhase > 0 ? "Moving" : "Move";
-            addButton(new GuiNpcButton(50, rightX, btnY, rightPanelW, btnH, moveLabel));
-            btnY += btnH + btnGap;
+            GuiNpcButton moveBtn = new GuiNpcButton(50, rightX, midY - btnH - btnGap / 2, rightPanelW, btnH, moveLabel);
+            addButton(moveBtn);
 
-            // Confirm button (only visible during phase 1)
+            // Confirm — below Move (only visible during phase 1)
             if (movePhase == 1) {
-                GuiNpcButton confirmBtn = new GuiNpcButton(51, rightX, btnY, rightPanelW, btnH, "Confirm");
+                GuiNpcButton confirmBtn = new GuiNpcButton(51, rightX, midY - btnH - btnGap / 2 + btnH + btnGap, rightPanelW, btnH, "Confirm");
                 confirmBtn.enabled = !moveSelection.isEmpty();
                 addButton(confirmBtn);
             }
+
+            // Remove — bottom
+            GuiNpcButton removeBtn = new GuiNpcButton(6, rightX, bottomY, rightPanelW, btnH, "gui.remove");
+            if (movePhase > 0) removeBtn.enabled = false;
+            addButton(removeBtn);
         }
     }
 

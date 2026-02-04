@@ -2,6 +2,7 @@ package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.clone.CloneAllTagsShortPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneFolderListPacket;
 import kamkeel.npcs.network.packets.request.clone.ClonePreSavePacket;
 import kamkeel.npcs.network.packets.request.clone.CloneSavePacket;
 import net.minecraft.client.Minecraft;
@@ -29,6 +30,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ISubGuiListener {
@@ -41,8 +43,10 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
     private static String folder = null;
     public boolean isNPC = false;
 
-    // Folder names cache for the selector
-    private String[] folderLabels = new String[0];
+    // Client-side folder names
+    private ArrayList<String> clientFolderNames = new ArrayList<>();
+    // Server-side folder names (populated via CloneFolderListPacket)
+    private static ArrayList<String> serverFolderNames = new ArrayList<>();
 
     // Selected Tags to Add
     public static NBTTagList tagsCompound;
@@ -75,17 +79,36 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
             PacketClient.sendClient(new CloneAllTagsShortPacket());
         }
 
-        buildFolderLabels();
+        buildClientFolderNames();
+
+        // Request server folders if in server mode
+        if (serverSide) {
+            PacketClient.sendClient(new CloneFolderListPacket());
+        }
+
+        // Validate saved folder selection
+        validateFolder();
     }
 
-    private void buildFolderLabels() {
-        ArrayList<String> names = new ArrayList<>();
+    private void buildClientFolderNames() {
+        clientFolderNames.clear();
         if (ClientCloneController.Instance != null) {
             for (CloneFolder f : ClientCloneController.Instance.getFolderList()) {
-                names.add(f.name);
+                clientFolderNames.add(f.name);
             }
         }
-        folderLabels = names.toArray(new String[0]);
+    }
+
+    private List<String> getActiveFolderList() {
+        return serverSide ? serverFolderNames : clientFolderNames;
+    }
+
+    private void validateFolder() {
+        if (saveMode == 1 && folder != null) {
+            if (!getActiveFolderList().contains(folder)) {
+                folder = null;
+            }
+        }
     }
 
     @Override
@@ -107,26 +130,20 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
             int selectedTab = (tab >= 1 && tab <= 15) ? tab - 1 : 0;
             addButton(new GuiButtonBiDirectional(2, guiLeft + 56, guiTop + 45, 90, 20, tabLabels, selectedTab));
         } else {
-            // Folder selector
-            if (folderLabels.length > 0) {
-                int selectedFolder = 0;
-                if (folder != null) {
-                    for (int i = 0; i < folderLabels.length; i++) {
-                        if (folder.equals(folderLabels[i])) {
-                            selectedFolder = i;
-                            break;
-                        }
-                    }
-                }
-                addButton(new GuiButtonBiDirectional(2, guiLeft + 56, guiTop + 45, 90, 20, folderLabels, selectedFolder));
-            } else {
-                addLabel(new GuiNpcLabel(7, "No folders", guiLeft + 60, guiTop + 51));
-            }
+            // Folder selector button — opens SubGuiFolderSelect
+            String btnText = folder != null ? folder : "Select a Folder";
+            addButton(new GuiNpcButton(2, guiLeft + 56, guiTop + 45, 148, 20, btnText));
         }
 
-        addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 70, 80, 20, "gui.save"));
+        // Save / Cancel
+        GuiNpcButton saveBtn = new GuiNpcButton(0, guiLeft + 4, guiTop + 70, 80, 20, "gui.save");
+        if (saveMode == 1 && folder == null) {
+            saveBtn.enabled = false;
+        }
+        addButton(saveBtn);
         addButton(new GuiNpcButton(1, guiLeft + 86, guiTop + 70, 80, 20, "gui.cancel"));
 
+        // Client / Server toggle
         addButton(new GuiNpcButton(3, guiLeft + 4, guiTop + 95, new String[]{"Client side", "Server side"}, serverSide ? 1 : 0));
 
         if (isNPC) {
@@ -139,32 +156,26 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
     }
 
     private void updateDestinationFromSelector() {
-        GuiNpcButton selector = getButton(2);
-        if (selector == null) return;
-
-        int index = selector.getValue();
         if (saveMode == 0) {
-            // Tab mode
-            tab = index + 1;
+            GuiNpcButton selector = getButton(2);
+            if (selector == null) return;
+            tab = selector.getValue() + 1;
             folder = null;
-        } else {
-            // Folder mode
-            if (index >= 0 && index < folderLabels.length) {
-                folder = folderLabels[index];
-                tab = -1;
-            }
         }
+        // In folder mode, folder is already set via SubGuiFolderSelect
     }
 
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
+
+        // Save
         if (id == 0) {
             updateDestinationFromSelector();
             String name = getTextField(0).getText();
             if (name.isEmpty())
                 return;
 
-            if (saveMode == 1 && folderLabels.length == 0)
+            if (saveMode == 1 && folder == null)
                 return;
 
             if (!serverSide) {
@@ -186,31 +197,59 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
                 }
             }
         }
+
+        // Cancel
         if (id == 1) {
             close();
         }
+
+        // Destination selector
         if (id == 2) {
-            updateDestinationFromSelector();
+            if (saveMode == 0) {
+                // Tab mode — update from BiDirectional
+                updateDestinationFromSelector();
+            } else {
+                // Folder mode — open folder selector Sub GUI
+                List<String> folders = getActiveFolderList();
+                setSubGui(new SubGuiFolderSelect(folders, folder));
+            }
         }
+
+        // Client / Server toggle
         if (id == 3) {
+            boolean wasServerSide = serverSide;
             serverSide = ((GuiNpcButton) guibutton).getValue() == 1;
+
+            if (serverSide && !wasServerSide) {
+                // Switching to server mode — request fresh folder list
+                PacketClient.sendClient(new CloneFolderListPacket());
+            }
+
+            // Validate folder exists on the new side
+            validateFolder();
+            initGui();
         }
+
+        // Wand Tags
         if (id == 4) {
             if (isNPC) {
                 this.setSubGui(new SubGuiClonerQuickTags(this));
             }
         }
+
+        // NPC Tags
         if (id == 5) {
             if (isNPC) {
                 this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone, this));
             }
         }
+
+        // Tab/Folder mode toggle
         if (id == 6) {
             saveMode = ((GuiNpcButton) guibutton).getValue();
             initGui();
         }
     }
-
 
     @Override
     public void confirmClicked(boolean confirm, int id) {
@@ -246,7 +285,6 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
             displayGuiScreen(this);
     }
 
-
     @Override
     public void save() {
     }
@@ -258,6 +296,17 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
                 displayGuiScreen(new GuiYesNo(this, "Warning", "You are about to overwrite a clone", 1));
             else
                 confirmClicked(true, 0);
+        } else if (compound.hasKey("CloneFolders")) {
+            // Server folder list arrived
+            NBTTagList folderList = compound.getTagList("CloneFolders", 10);
+            serverFolderNames.clear();
+            for (int i = 0; i < folderList.tagCount(); i++) {
+                CloneFolder f = new CloneFolder();
+                f.readNBT(folderList.getCompoundTagAt(i));
+                serverFolderNames.add(f.name);
+            }
+            validateFolder();
+            initGui();
         } else if (compound.hasKey("ShortTags")) {
             NBTTagList validTags = compound.getTagList("ShortTags", 10);
             tagMap.clear();
@@ -280,6 +329,12 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiFolderSelect) {
+            SubGuiFolderSelect sel = (SubGuiFolderSelect) subgui;
+            if (sel.selectedFolder != null) {
+                folder = sel.selectedFolder;
+            }
+        }
         initGui();
     }
 
