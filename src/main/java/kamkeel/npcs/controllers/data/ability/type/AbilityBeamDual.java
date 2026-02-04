@@ -95,7 +95,7 @@ public class AbilityBeamDual extends Ability {
             if (beamEntity2 != null && !beamEntity2.isDead && dualFireDelay <= 0) {
                 beamEntity2.startFiring(target);
             }
-        } else {
+        } else if (beamEntity2 != null) {
             beamEntity2.setDead();
         }
 

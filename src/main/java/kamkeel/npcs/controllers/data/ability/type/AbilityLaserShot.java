@@ -107,6 +107,12 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
+            return;
+        }
+
+        if (laserEntity == null) {
+            signalCompletion();
+            return;
         }
 
         laserEntity.startMoving(target);

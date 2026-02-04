@@ -94,7 +94,7 @@ public class AbilityOrbDual extends Ability {
             if (orbEntity2 != null && !orbEntity2.isDead && dualFireDelay <= 0) {
                 orbEntity2.startMoving(target);
             }
-        } else {
+        } else if (orbEntity2 != null) {
             orbEntity2.setDead();
         }
 

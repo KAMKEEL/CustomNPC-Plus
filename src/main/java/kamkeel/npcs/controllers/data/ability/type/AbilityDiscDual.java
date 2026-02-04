@@ -103,7 +103,7 @@ public class AbilityDiscDual extends Ability {
             if (discEntity2 != null && !discEntity2.isDead && dualFireDelay <= 0) {
                 discEntity2.startMoving(target);
             }
-        } else {
+        } else if (discEntity2 != null) {
             discEntity2.setDead();
         }
 
