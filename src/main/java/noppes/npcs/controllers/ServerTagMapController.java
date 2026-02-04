@@ -36,7 +36,7 @@ public class ServerTagMapController {
     }
 
     public File getCloneFolderDir(String folderName) {
-        File dir = new File(getDir(), "folder_" + folderName);
+        File dir = new File(getDir(), folderName);
         if (!dir.exists())
             dir.mkdir();
         return dir;

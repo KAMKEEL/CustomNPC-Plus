@@ -27,10 +27,6 @@ public class CloneFolder {
         return compound;
     }
 
-    public String getDirName() {
-        return "folder_" + name;
-    }
-
     public static boolean isValidName(String name) {
         if (name == null || name.isEmpty()) {
             return false;
@@ -39,6 +35,12 @@ public class CloneFolder {
             return false;
         }
         if (!name.equals(name.trim())) {
+            return false;
+        }
+        if (name.equals(".") || name.equals("..")) {
+            return false;
+        }
+        if (name.startsWith("___")) {
             return false;
         }
         try {

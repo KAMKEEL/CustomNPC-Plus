@@ -205,42 +205,27 @@ public class ServerCloneController implements ICloneHandler {
 
     public void loadFolders() {
         folders.clear();
-        try {
-            File file = new File(getDir(), "___folders.json");
-            if (file.exists()) {
-                NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
-                NBTTagList list = compound.getTagList("Folders", 10);
-                for (int i = 0; i < list.tagCount(); i++) {
-                    CloneFolder folder = new CloneFolder();
-                    folder.readNBT(list.getCompoundTagAt(i));
-                    if (CloneFolder.isValidName(folder.name)) {
-                        folders.put(folder.name, folder);
-                    }
+        File dir = getDir();
+        File[] files = dir.listFiles();
+        if (files != null) {
+            List<File> folderDirs = new ArrayList<>();
+            for (File f : files) {
+                if (!f.isDirectory()) continue;
+                String name = f.getName();
+                if (name.startsWith("___")) continue;
+                try {
+                    Integer.parseInt(name);
+                    continue;
+                } catch (NumberFormatException ignored) {
                 }
+                folderDirs.add(f);
             }
-        } catch (Exception e) {
-            LogWriter.except(e);
-        }
-    }
-
-    public void saveFolders() {
-        try {
-            NBTTagCompound compound = new NBTTagCompound();
-            NBTTagList list = new NBTTagList();
-            for (CloneFolder folder : folders.values()) {
-                list.appendTag(folder.writeNBT(new NBTTagCompound()));
+            folderDirs.sort(Comparator.comparing(File::getName));
+            for (File f : folderDirs) {
+                CloneFolder folder = new CloneFolder(f.getName());
+                folder.createdDate = f.lastModified();
+                folders.put(f.getName(), folder);
             }
-            compound.setTag("Folders", list);
-
-            File file = new File(getDir(), "___folders.json_new");
-            File file2 = new File(getDir(), "___folders.json");
-            NBTJsonUtil.SaveFile(file, compound);
-            if (file2.exists()) {
-                file2.delete();
-            }
-            file.renameTo(file2);
-        } catch (Exception e) {
-            LogWriter.except(e);
         }
     }
 
@@ -268,7 +253,6 @@ public class ServerCloneController implements ICloneHandler {
             dir.mkdir();
         }
         folders.put(name, folder);
-        saveFolders();
         return folder;
     }
 
@@ -278,14 +262,13 @@ public class ServerCloneController implements ICloneHandler {
         }
         CloneFolder folder = folders.get(oldName);
         File oldDir = getFolderDir(oldName);
-        File newDir = new File(getDir(), "folder_" + newName);
+        File newDir = new File(getDir(), newName);
         if (!oldDir.renameTo(newDir)) {
             return false;
         }
         folders.remove(oldName);
         folder.name = newName;
         folders.put(newName, folder);
-        saveFolders();
         return true;
     }
 
@@ -308,17 +291,13 @@ public class ServerCloneController implements ICloneHandler {
             dir.delete();
         }
         folders.remove(name);
-        saveFolders();
         return true;
     }
 
     // ==================== Folder-Based Clone Operations ====================
 
     public File getFolderDir(String folderName) {
-        File dir = new File(getDir(), "folder_" + folderName);
-        if (!dir.exists())
-            dir.mkdir();
-        return dir;
+        return new File(getDir(), folderName);
     }
 
     public List<String> getClones(String folderName) {
@@ -373,6 +352,7 @@ public class ServerCloneController implements ICloneHandler {
     public void saveClone(String folderName, String name, NBTTagCompound compound) {
         try {
             File dir = getFolderDir(folderName);
+            if (!dir.exists()) dir.mkdir();
             String filename = name + ".json";
             File file = new File(dir, filename + "_new");
             File file2 = new File(dir, filename);

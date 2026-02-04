@@ -39,16 +39,17 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                         text += "...";
                 } else
                     text = displayString;
-                if ((multipleSelection && selectedList.contains(text)) || (!multipleSelection && selected == i)) {
+                int itemColor = this.colors.getOrDefault(list.get(i), 0xffffff);
+                if ((multipleSelection && selectedList.contains(list.get(i))) || (!multipleSelection && selected == i)) {
                     drawVerticalLine(j - 2, k - 4, k + 10, 0xffffffff);
                     drawVerticalLine(j + xSize - 18 + xOffset, k - 4, k + 10, 0xffffffff);
                     drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k - 3, 0xffffffff);
                     drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k + 10, 0xffffffff);
-                    fontRendererObj.drawString(text, j, k, this.colors.getOrDefault(text, 0xffffff));
+                    fontRendererObj.drawString(text, j, k, itemColor);
                 } else if (i == hover) {
                     fontRendererObj.drawString(text, j, k, 0x00ff00);
                 } else {
-                    fontRendererObj.drawString(text, j, k, this.colors.getOrDefault(text, 0xffffff));
+                    fontRendererObj.drawString(text, j, k, itemColor);
                 }
 
                 if ((parent.getShowingClones() == 0 || parent.getShowingClones() == 2) && parent.getTagMap() != null) {

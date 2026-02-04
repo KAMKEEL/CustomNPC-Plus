@@ -85,11 +85,13 @@ public final class CloneFolderCrudPacket extends AbstractPacket {
         boolean success = false;
         switch (action) {
             case ACTION_CREATE:
-                success = ServerCloneController.Instance.createFolder(name) != null;
+                if (CloneFolder.isValidName(name))
+                    success = ServerCloneController.Instance.createFolder(name) != null;
                 break;
             case ACTION_RENAME:
                 String newName = ByteBufUtils.readString(in);
-                success = ServerCloneController.Instance.renameFolder(name, newName);
+                if (CloneFolder.isValidName(newName))
+                    success = ServerCloneController.Instance.renameFolder(name, newName);
                 break;
             case ACTION_DELETE:
                 success = ServerCloneController.Instance.deleteFolder(name);

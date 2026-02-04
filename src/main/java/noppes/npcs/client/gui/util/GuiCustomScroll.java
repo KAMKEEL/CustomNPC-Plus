@@ -367,6 +367,13 @@ public class GuiCustomScroll extends GuiScreen {
         return this;
     }
 
+    public void setSelectable(boolean selectable) {
+        this.selectable = selectable;
+        if (!selectable) {
+            hover = -1;
+        }
+    }
+
     public boolean isMouseOver(int x, int y) {
         return x >= this.guiLeft && x <= this.guiLeft + this.xSize && y >= this.guiTop && y <= this.guiTop + this.ySize;
     }
