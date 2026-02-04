@@ -54,4 +54,5 @@ tasks.named("generateTypeScriptDefinitions").configure {
     apiPackages = ['noppes.npcs.api', 'net.minecraft'] as Set
     cleanOutputFirst = true  // Clean old generated files before regenerating
 }
+processResources.dependsOn generateTypeScriptDefinitions
 
