@@ -70,4 +70,5 @@ tasks.named("generateTypeScriptDefinitions").configure {
     cleanOutputFirst = true  // Clean old generated files before regenerating
 }
 processResources.dependsOn generateTypeScriptDefinitions
+sourcesJar.dependsOn generateTypeScriptDefinitions
 
