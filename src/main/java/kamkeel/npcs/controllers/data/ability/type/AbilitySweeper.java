@@ -101,6 +101,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
+    }
+
+    @Override
     public void cleanup() {
         // Clean up entity if still alive
         if (activeEntity != null && !activeEntity.isDead) {

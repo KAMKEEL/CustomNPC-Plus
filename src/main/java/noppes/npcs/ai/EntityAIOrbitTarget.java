@@ -91,7 +91,9 @@ public class EntityAIOrbitTarget extends EntityAIBase {
      * Updates the task
      */
     public void updateTask() {
-        this.theEntity.getLookHelper().setLookPositionWithEntity(targetEntity, 30.0F, 30.0F);
+        if (!this.theEntity.abilities.isRotationLocked()) {
+            this.theEntity.getLookHelper().setLookPositionWithEntity(targetEntity, 30.0F, 30.0F);
+        }
         if (this.theEntity.getNavigator().noPath() && this.tick >= 0) {
             if (this.theEntity.onGround && !this.theEntity.isInWater()) {
                 double d0 = this.targetDistance * (double) (MathHelper.cos(angle / 180.0F * (float) Math.PI));

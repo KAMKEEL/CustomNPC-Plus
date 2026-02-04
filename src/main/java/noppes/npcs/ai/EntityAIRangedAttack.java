@@ -100,7 +100,9 @@ public class EntityAIRangedAttack extends EntityAIBase {
      * Updates the task
      */
     public void updateTask() {
-        this.entityHost.getLookHelper().setLookPositionWithEntity(this.attackTarget, 30.0F, 30.0F);
+        if (!this.entityHost.abilities.isRotationLocked()) {
+            this.entityHost.getLookHelper().setLookPositionWithEntity(this.attackTarget, 30.0F, 30.0F);
+        }
         double var1 = this.entityHost.getDistanceSq(this.attackTarget.posX, this.attackTarget.boundingBox.minY, this.attackTarget.posZ);
         float field_82642_h = this.entityHost.stats.rangedRange * this.entityHost.stats.rangedRange;
 

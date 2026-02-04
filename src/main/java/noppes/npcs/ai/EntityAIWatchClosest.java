@@ -31,7 +31,7 @@ public class EntityAIWatchClosest extends EntityAIBase {
      */
     @Override
     public boolean shouldExecute() {
-        if (this.theWatcher.getRNG().nextFloat() >= this.field_75331_e || theWatcher.isInteracting()) {
+        if (this.theWatcher.abilities.isRotationLocked() || this.theWatcher.getRNG().nextFloat() >= this.field_75331_e || theWatcher.isInteracting()) {
             return false;
         } else {
             if (this.theWatcher.getAttackTarget() != null) {

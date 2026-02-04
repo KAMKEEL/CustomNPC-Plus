@@ -136,6 +136,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

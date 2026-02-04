@@ -127,6 +127,11 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
     }
 
     @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
+    }
+
+    @Override
     public void cleanup() {
         // Despawn beam entity if still alive
         if (beamEntity != null && !beamEntity.isDead) {

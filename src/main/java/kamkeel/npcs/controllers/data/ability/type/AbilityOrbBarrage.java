@@ -212,6 +212,11 @@ public class AbilityOrbBarrage extends Ability {
     }
 
     @Override
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        cleanup();
+    }
+
+    @Override
     public void cleanup() {
         currentOrb = 0;
 
