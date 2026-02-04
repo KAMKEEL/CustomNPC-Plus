@@ -662,13 +662,19 @@ public abstract class Ability implements IAbility {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Start executing this ability
+     * Start executing this ability.
+     * If windUpTicks is 0, skips WINDUP and goes directly to ACTIVE.
      */
     public void start(EntityLivingBase target) {
-        this.phase = AbilityPhase.WINDUP;
         this.currentTick = 0;
         this.currentTarget = target;
         this.executionStartTime = System.currentTimeMillis();
+
+        if (windUpTicks <= 0) {
+            this.phase = AbilityPhase.ACTIVE;
+        } else {
+            this.phase = AbilityPhase.WINDUP;
+        }
     }
 
     /**

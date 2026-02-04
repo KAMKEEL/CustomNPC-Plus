@@ -1824,8 +1824,19 @@ ability.dualFireDelay=Fire Delay
 ability.save.confirm=Save ability preset
 ability.save.overwrite=Overwrite existing preset
 ability.load.select=Select ability to load:
+ability.load.mode=How should this ability be loaded?
+ability.clone=Clone
+ability.reference=Reference
 ability.delete.confirm=Delete ability preset
 gui.load=Load
+
+# Ability Edit Mode
+ability.edit.mode=How should this ability be edited?
+ability.cloneModify=Clone & Edit
+ability.modifyParent=Edit Parent
+
+# Ability Type Selection
+ability.selectType=Select Ability Type:
 
 # Global Abilities Manager
 ability.manager.title=Ability Manager

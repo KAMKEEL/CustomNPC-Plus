@@ -475,7 +475,7 @@ public class ClientProxy extends CommonProxy {
                 animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
                 save = false;
             }
-            return new GuiNPCManageAnimations(animNpc, save);
+            return new GuiNPCManageAnimations(animNpc, save, npc != null);
         } else if (gui == EnumGuiType.ManageLinked)
             return new GuiNPCManageLinked(npc);
 
@@ -511,7 +511,7 @@ public class ClientProxy extends CommonProxy {
                 abilityNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
                 abilityNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
             }
-            return new GuiNpcManageAbilities(abilityNpc);
+            return new GuiNpcManageAbilities(abilityNpc, npc != null);
         }
 
         else if (gui == EnumGuiType.MainMenuGlobal)

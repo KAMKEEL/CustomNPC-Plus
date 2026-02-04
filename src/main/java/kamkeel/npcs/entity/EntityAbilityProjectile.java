@@ -5,10 +5,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,13 +14,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
+import noppes.npcs.api.entity.IEnergyProjectile;
+import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for all ability projectiles (Orb, Disc, Beam, Laser).
@@ -30,49 +31,46 @@ import java.util.List;
  *
  * Design inspired by LouisXIV's energy attack system.
  */
-public abstract class EntityAbilityProjectile extends Entity implements IEntityAdditionalSpawnData {
+public abstract class EntityAbilityProjectile extends Entity implements IEnergyProjectile, IEntityAdditionalSpawnData {
 
     // ==================== VISUAL PROPERTIES ====================
     protected float size = 1.0f;
-    protected int innerColor = 0xFFFFFF;
-    protected int outerColor = 0x8888FF;
-    protected boolean outerColorEnabled = true;
-    protected float outerColorWidth = 0.4f; // Additive offset from inner size
-    protected float outerColorAlpha = 0.5f;
-    protected float rotationSpeed = 4.0f;
 
     // ==================== COMBAT PROPERTIES ====================
-    protected float damage = 7.0f;
-    protected float knockback = 1.0f;
-    protected float knockbackUp = 0.1f;
+    protected EnergyCombatData combatData = new EnergyCombatData();
 
     // ==================== EFFECT PROPERTIES ====================
     protected List<AbilityEffect> effects = new ArrayList<>();
 
-    // ==================== EXPLOSION PROPERTIES ====================
-    protected boolean explosive = false;
-    protected float explosionRadius = 3.0f;
-    protected float explosionDamageFalloff = 0.5f;
-
     // ==================== LIGHTNING EFFECT PROPERTIES ====================
-    protected boolean lightningEffect = false;
-    protected float lightningDensity = 0.15f;     // Bolts spawned per tick (0.15 = ~15% chance per frame)
-    protected float lightningRadius = 0.5f;       // Max distance lightning can arc from center
-    protected int lightningFadeTime = 6;          // Ticks before lightning fades out
+    protected EnergyLightningData lightningData = new EnergyLightningData();
 
     // Client-side lightning state (not saved to NBT)
     @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
     public transient Object lightningState; // Actually AttachedLightningRenderer.LightningState
 
-    // ==================== LIFESPAN ====================
-    protected float maxDistance = 30.0f;
-    protected int maxLifetime = 200;
+    // ==================== DISPLAY PROPERTIES ====================
+    protected EnergyDisplayData displayData = new EnergyDisplayData();
+
+    // ==================== ANCHOR PROPERTIES ====================
+    protected EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
+
+    // ==================== LIFESPAN PROPERTIES ====================
+    protected EnergyLifespanData lifespanData = new EnergyLifespanData();
     protected long deathWorldTime = -1;  // World time when entity should die (-1 = not set)
+
+    // ==================== HOMING PROPERTIES ====================
+    protected EnergyHomingData homingData = new EnergyHomingData();
+
+    // ==================== TRAJECTORY PROPERTIES ====================
+    protected EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
+    protected Map<Integer, Integer> pathDelays;
 
     // ==================== TRACKING ====================
     protected double startX, startY, startZ;
     protected int ownerEntityId = -1;
     protected int targetEntityId = -1;
+    protected int siblingEntityId = -1;
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
@@ -103,10 +101,11 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     /**
      * Initialize common properties using data classes. Call from subclass constructors.
      */
-    protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
-                                   double x, double y, double z, float size,
-                                   EnergyColorData color, EnergyCombatData combat,
-                                   EnergyLightningData lightning, EnergyLifespanData lifespan) {
+    protected void initProjectile(EntityLivingBase owner, EntityLivingBase target, EntityAbilityProjectile sibling,
+                                  double x, double y, double z, float size,
+                                  EnergyDisplayData display, EnergyCombatData combat,
+                                  EnergyLightningData lightning, EnergyLifespanData lifespan,
+                                  EnergyTrajectoryData trajectory) {
         this.setPosition(x, y, z);
         this.startX = x;
         this.startY = y;
@@ -114,40 +113,29 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         this.ownerEntityId = owner.getEntityId();
         this.targetEntityId = target != null ? target.getEntityId() : -1;
+        this.siblingEntityId = sibling != null ? sibling.getEntityId() : -1;
 
         // Visual
         this.size = size;
-        this.innerColor = color.innerColor;
-        this.outerColor = color.outerColor;
-        this.outerColorEnabled = color.outerColorEnabled;
-        this.outerColorWidth = color.outerColorWidth;
-        this.outerColorAlpha = color.outerColorAlpha;
-        this.rotationSpeed = color.rotationSpeed;
 
-        // Combat
-        this.damage = combat.damage;
-        this.knockback = combat.knockback;
-        this.knockbackUp = combat.knockbackUp;
-
-        // Explosion
-        this.explosive = combat.explosive;
-        this.explosionRadius = combat.explosionRadius;
-        this.explosionDamageFalloff = combat.explosionDamageFalloff;
-
-        // Lifespan
-        this.maxDistance = lifespan.maxDistance;
-        this.maxLifetime = lifespan.maxLifetime;
-        // deathWorldTime will be set on first tick when world is available
-
-        // Lightning
-        this.lightningEffect = lightning.lightningEffect;
-        this.lightningDensity = lightning.lightningDensity;
-        this.lightningRadius = lightning.lightningRadius;
-        this.lightningFadeTime = lightning.lightningFadeTime;
+        this.displayData = display;
+        this.combatData = combat;
+        this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
+        this.lightningData = lightning;
+        this.trajectoryData = trajectory;
 
         // Initialize render size
         this.renderCurrentSize = size;
         this.prevRenderSize = size;
+    }
+
+    // Initialize projectile without a sibling
+    protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
+                                  double x, double y, double z, float size,
+                                  EnergyDisplayData display, EnergyCombatData combat,
+                                  EnergyLightningData lightning, EnergyLifespanData lifespan,
+                                  EnergyTrajectoryData trajectory) {
+        initProjectile(owner, target, null, x, y, z, size, display, combat, lightning, lifespan, trajectory);
     }
 
     @Override
@@ -207,7 +195,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
             // Set death time on first tick if not already set (handles chunk load/unload)
             if (deathWorldTime < 0 && worldObj != null) {
-                deathWorldTime = worldObj.getTotalWorldTime() + maxLifetime;
+                deathWorldTime = worldObj.getTotalWorldTime() + getMaxLifetime();
             }
 
             // Check lifespan using world time (survives chunk unload/reload)
@@ -236,9 +224,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      * Update rotation values. Override for custom rotation behavior.
      */
     protected void updateRotation() {
-        this.rotationValX += rotationSpeed * 0.7f;
-        this.rotationValY += rotationSpeed;
-        this.rotationValZ += rotationSpeed * 0.5f;
+        this.rotationValX += getRotationSpeed() * 0.7f;
+        this.rotationValY += getRotationSpeed();
+        this.rotationValZ += getRotationSpeed() * 0.5f;
 
         if (this.rotationValX > 360.0f) this.rotationValX -= 360.0f;
         if (this.rotationValY > 360.0f) this.rotationValY -= 360.0f;
@@ -255,7 +243,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             (posY - startY) * (posY - startY) +
             (posZ - startZ) * (posZ - startZ)
         );
-        return distTraveled >= maxDistance;
+        return distTraveled >= getMaxDistance();
     }
 
     /**
@@ -327,12 +315,12 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     protected void applyDamage(EntityLivingBase target) {
         if (previewMode) return; // Skip damage in preview mode
-        applyDamage(target, this.damage, this.knockback);
+        applyDamage(target, this.getDamage(), this.getKnockback());
     }
 
     protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
         if (previewMode) return; // Skip damage in preview mode
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
 
         if (owner instanceof EntityNPCInterface) {
             target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
@@ -351,7 +339,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             if (len > 0) {
                 double kbX = (dx / len) * kb * 0.5;
                 double kbZ = (dz / len) * kb * 0.5;
-                double kbY = knockbackUp > 0 ? knockbackUp : 0.1;
+                double kbY = getKnockbackUp() > 0 ? getKnockbackUp() : 0.1;
                 target.addVelocity(kbX, kbY, kbZ);
                 target.velocityChanged = true;
             }
@@ -377,11 +365,11 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         if (previewMode) return; // Skip explosion in preview mode
         worldObj.playSoundEffect(posX, posY, posZ, "random.explode", 1.0f, 1.0f);
 
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
 
         AxisAlignedBB explosionBox = AxisAlignedBB.getBoundingBox(
-            posX - explosionRadius, posY - explosionRadius, posZ - explosionRadius,
-            posX + explosionRadius, posY + explosionRadius, posZ + explosionRadius
+            posX - getExplosionRadius(), posY - getExplosionRadius(), posZ - getExplosionRadius(),
+            posX + getExplosionRadius(), posY + getExplosionRadius(), posZ + getExplosionRadius()
         );
 
         @SuppressWarnings("unchecked")
@@ -396,26 +384,34 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
                 Math.pow(target.posZ - posZ, 2)
             );
 
-            if (dist <= explosionRadius) {
-                float falloff = 1.0f - (float) (dist / explosionRadius) * explosionDamageFalloff;
-                applyDamage(target, damage * falloff, knockback * falloff);
+            if (dist <= getExplosionRadius()) {
+                float falloff = 1.0f - (float) (dist / getExplosionRadius()) * getExplosionDamageFalloff();
+                applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
             }
         }
     }
 
     // ==================== ENTITY HELPERS ====================
 
-    public int getOwnerEntityId() {
-        return ownerEntityId;
-    }
-
-    protected Entity getOwner() {
+    public Entity getOwnerEntity() {
         // In preview mode, use direct reference (no world lookup)
         if (previewMode && previewOwner != null) {
             return previewOwner;
         }
         if (ownerEntityId == -1) return null;
         return worldObj.getEntityByID(ownerEntityId);
+    }
+
+    @Override
+    public int getOwnerEntityId() {
+        return ownerEntityId;
+    }
+
+    @Override
+    public IEntity getOwner() {
+        if (previewMode) return null;
+        if (getOwnerEntity() == null) return null;
+        return NpcAPI.Instance().getIEntity(getOwnerEntity());
     }
 
     /**
@@ -426,16 +422,45 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.previewOwner = owner;
     }
 
-    protected Entity getTarget() {
+    @Override
+    public int getTargetEntityId() {
+        return targetEntityId;
+    }
+
+    public Entity getTargetEntity() {
         if (targetEntityId == -1) return null;
         return worldObj.getEntityByID(targetEntityId);
+    }
+
+    @Override
+    public IEntity getTarget() {
+        if (getTargetEntity() == null) return null;
+        return NpcAPI.Instance().getIEntity(getTargetEntity());
+    }
+
+    @Override
+    public int getSiblingEntityId() {
+        return siblingEntityId;
+    }
+
+    @Override
+    public void setSiblingEntityId(int siblingEntityId) {
+        if (!(worldObj.getEntityByID(siblingEntityId) instanceof EntityAbilityProjectile)) return;
+
+        this.siblingEntityId = siblingEntityId;
+    }
+
+    @Override
+    public IEnergyProjectile getSibling() {
+        if (siblingEntityId == -1) return null;
+        return (EntityAbilityProjectile) worldObj.getEntityByID(siblingEntityId);
     }
 
     /**
      * Check if an entity should be ignored for collision.
      */
     protected boolean shouldIgnoreEntity(Entity entity) {
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (entity == owner) return true;
 
         if (owner instanceof EntityNPCInterface && entity instanceof EntityNPCInterface) {
@@ -443,72 +468,169 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             EntityNPCInterface targetNpc = (EntityNPCInterface) entity;
             if (ownerNpc.faction.id == targetNpc.faction.id) return true;
         }
+
+        if (entity.getEntityId() == getSiblingEntityId())
+            return true;
+
         return false;
     }
 
     // ==================== VISUAL GETTERS ====================
 
+    @Override
     public float getSize() {
         return size;
     }
 
+    @Override
     public int getInnerColor() {
-        return innerColor;
+        return displayData.getInnerColor();
     }
 
+    @Override
     public int getOuterColor() {
-        return outerColor;
+        return displayData.getOuterColor();
     }
 
+    @Override
     public boolean isOuterColorEnabled() {
-        return outerColorEnabled;
+        return displayData.isOuterColorEnabled();
     }
 
+    @Override
     public float getOuterColorWidth() {
-        return outerColorWidth;
+        return displayData.getOuterColorWidth();
     }
 
+    @Override
     public float getOuterColorAlpha() {
-        return outerColorAlpha;
+        return displayData.getOuterColorAlpha();
     }
 
+    @Override
     public float getRotationSpeed() {
-        return rotationSpeed;
+        return displayData.getRotationSpeed();
     }
 
+    // ==================== ROTATION GETTERS ====================
+
+    @Override
     public float getInterpolatedRotationX(float partialTicks) {
         return this.prevRotationValX + (this.rotationValX - this.prevRotationValX) * partialTicks;
     }
 
+    @Override
     public float getInterpolatedRotationY(float partialTicks) {
         return this.prevRotationValY + (this.rotationValY - this.prevRotationValY) * partialTicks;
     }
 
+    @Override
     public float getInterpolatedRotationZ(float partialTicks) {
         return this.prevRotationValZ + (this.rotationValZ - this.prevRotationValZ) * partialTicks;
     }
 
+    @Override
     public float getInterpolatedSize(float partialTicks) {
         return this.prevRenderSize + (this.renderCurrentSize - this.prevRenderSize) * partialTicks;
     }
 
     // ==================== LIGHTNING GETTERS ====================
 
+    @Override
     public boolean hasLightningEffect() {
-        return lightningEffect;
+        return lightningData.isLightningEffect();
     }
 
+    @Override
     public float getLightningDensity() {
-        return lightningDensity;
+        return lightningData.getLightningDensity();
     }
 
+    @Override
     public float getLightningRadius() {
-        return lightningRadius;
+        return lightningData.getLightningRadius();
     }
 
+    @Override
     public int getLightningFadeTime() {
-        return lightningFadeTime;
+        return lightningData.getLightningFadeTime();
     }
+
+    // ==================== LIFESPAN GETTERS ====================
+
+    @Override
+    public float getMaxDistance() { return lifespanData.getMaxDistance(); }
+
+    @Override
+    public int getMaxLifetime() { return lifespanData.getMaxLifetime(); }
+
+    // ==================== COMBAT GETTERS ====================
+
+    @Override
+    public float getDamage() { return combatData.getDamage(); }
+
+    @Override
+    public float getKnockback() { return combatData.knockback; }
+
+    @Override
+    public float getKnockbackUp() { return combatData.knockbackUp; }
+
+    @Override
+    public boolean isExplosive() { return combatData.isExplosive(); }
+
+    @Override
+    public float getExplosionRadius() { return combatData.explosionRadius; }
+
+    @Override
+    public float getExplosionDamageFalloff() { return combatData.explosionDamageFalloff; }
+
+    // ==================== HOMING GETTERS ====================
+
+    @Override
+    public boolean isHoming() { return homingData.isHoming(); }
+
+    @Override
+    public float getHomingStrength() { return homingData.getHomingStrength(); }
+
+    @Override
+    public float getHomingRange() { return homingData.getHomingRange(); }
+
+    // ==================== TRAJECTORY GETTERS ====================
+
+
+
+    // ==================== ANCHOR GETTERS ====================
+
+    @Override
+    public float getSpeed() { return homingData.getSpeed(); }
+
+    public AnchorPoint getAnchorPoint() { return anchorData.getAnchorPoint(); }
+
+    @Override
+    public int getAnchor() { return anchorData.getAnchor(); }
+
+    @Override
+    public float getAnchorOffsetX() { return anchorData.getAnchorOffsetX(); }
+
+    @Override
+    public float getAnchorOffsetY() { return anchorData.getAnchorOffsetY(); }
+
+    @Override
+    public float getAnchorOffsetZ() { return anchorData.getAnchorOffsetZ(); }
+
+    // ==================== MOVEMENT GETTERS ====================
+
+    @Override public double getStartX() { return startX; }
+
+    @Override public double getStartY() { return startY; }
+
+    @Override public double getStartZ() { return startZ; }
+
+    @Override public double getMotionX() { return motionX; }
+
+    @Override public double getMotionY() { return motionY; }
+
+    @Override public double getMotionZ() { return motionZ; }
 
     // ==================== BRIGHTNESS ====================
 
@@ -542,20 +664,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      */
     protected void readBaseNBT(NBTTagCompound nbt) {
         this.size = nbt.getFloat("Size");
-        this.innerColor = nbt.getInteger("InnerColor");
-        this.outerColor = nbt.getInteger("OuterColor");
-        this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
-        this.outerColorAlpha = nbt.hasKey("OuterColorAlpha") ? nbt.getFloat("OuterColorAlpha") : 0.5f;
-        this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 0.4f;
-        this.rotationSpeed = nbt.hasKey("RotationSpeed") ? nbt.getFloat("RotationSpeed") : 4.0f;
-
-        this.damage = nbt.getFloat("Damage");
-        this.knockback = nbt.getFloat("Knockback");
-        this.knockbackUp = nbt.getFloat("KnockbackUp");
-
-        this.explosive = nbt.getBoolean("Explosive");
-        this.explosionRadius = nbt.getFloat("ExplosionRadius");
-        this.explosionDamageFalloff = nbt.getFloat("ExplosionDamageFalloff");
 
         // Read effects list
         this.effects.clear();
@@ -566,8 +674,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             }
         }
 
-        this.maxDistance = nbt.getFloat("MaxDistance");
-        this.maxLifetime = nbt.getInteger("MaxLifetime");
         this.deathWorldTime = nbt.hasKey("DeathWorldTime") ? nbt.getLong("DeathWorldTime") : -1;
 
         this.startX = nbt.getDouble("StartX");
@@ -576,21 +682,24 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         this.ownerEntityId = nbt.getInteger("OwnerId");
         this.targetEntityId = nbt.getInteger("TargetId");
+        this.siblingEntityId = nbt.getInteger("SiblingId");
 
         this.motionX = nbt.getDouble("MotionX");
         this.motionY = nbt.getDouble("MotionY");
         this.motionZ = nbt.getDouble("MotionZ");
 
-        // Lightning
-        this.lightningEffect = nbt.getBoolean("LightningEffect");
-        this.lightningDensity = nbt.hasKey("LightningDensity") ? nbt.getFloat("LightningDensity") : 0.15f;
-        this.lightningRadius = nbt.hasKey("LightningRadius") ? nbt.getFloat("LightningRadius") : 0.5f;
-        this.lightningFadeTime = nbt.hasKey("LightningFadeTime") ? nbt.getInteger("LightningFadeTime") : 6;
-
         if (this.worldObj != null && this.worldObj.isRemote) {
             this.renderCurrentSize = this.size;
             this.prevRenderSize = this.size;
         }
+
+        anchorData.readNBT(nbt);
+        combatData.readNBT(nbt);
+        displayData.readNBT(nbt);
+        homingData.readNBT(nbt);
+        lifespanData.readNBT(nbt);
+        lightningData.readNBT(nbt);
+        trajectoryData.readNBT(nbt);
     }
 
     /**
@@ -598,20 +707,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      */
     protected void writeBaseNBT(NBTTagCompound nbt) {
         nbt.setFloat("Size", size);
-        nbt.setInteger("InnerColor", innerColor);
-        nbt.setInteger("OuterColor", outerColor);
-        nbt.setBoolean("OuterColorEnabled", outerColorEnabled);
-        nbt.setFloat("OuterColorWidth", outerColorWidth);
-        nbt.setFloat("OuterColorAlpha", outerColorAlpha);
-        nbt.setFloat("RotationSpeed", rotationSpeed);
-
-        nbt.setFloat("Damage", damage);
-        nbt.setFloat("Knockback", knockback);
-        nbt.setFloat("KnockbackUp", knockbackUp);
-
-        nbt.setBoolean("Explosive", explosive);
-        nbt.setFloat("ExplosionRadius", explosionRadius);
-        nbt.setFloat("ExplosionDamageFalloff", explosionDamageFalloff);
 
         // Write effects list
         if (!effects.isEmpty()) {
@@ -622,9 +717,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             nbt.setTag("Effects", effectsList);
         }
 
-        nbt.setFloat("MaxDistance", maxDistance);
         nbt.setLong("DeathWorldTime", deathWorldTime);
-        nbt.setInteger("MaxLifetime", maxLifetime);
 
         nbt.setDouble("StartX", startX);
         nbt.setDouble("StartY", startY);
@@ -632,16 +725,19 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         nbt.setInteger("OwnerId", ownerEntityId);
         nbt.setInteger("TargetId", targetEntityId);
+        nbt.setInteger("SiblingId", targetEntityId);
 
         nbt.setDouble("MotionX", motionX);
         nbt.setDouble("MotionY", motionY);
         nbt.setDouble("MotionZ", motionZ);
 
-        // Lightning
-        nbt.setBoolean("LightningEffect", lightningEffect);
-        nbt.setFloat("LightningDensity", lightningDensity);
-        nbt.setFloat("LightningRadius", lightningRadius);
-        nbt.setInteger("LightningFadeTime", lightningFadeTime);
+        anchorData.writeNBT(nbt);
+        combatData.writeNBT(nbt);
+        displayData.writeNBT(nbt);
+        homingData.writeNBT(nbt);
+        lifespanData.writeNBT(nbt);
+        lightningData.writeNBT(nbt);
+        trajectoryData.writeNBT(nbt);
     }
 
     /**

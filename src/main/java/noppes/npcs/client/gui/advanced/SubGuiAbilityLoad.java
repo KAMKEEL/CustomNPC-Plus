@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IScrollData;
@@ -39,6 +40,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
     private HashMap<String, Integer> rawData = new HashMap<>();
     private GuiCustomScroll scroll;
 
+    private String search = "";
     private boolean waitingForLoad = false;
     private int pendingLoadMode = -1;
 
@@ -48,7 +50,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
 
         setBackground("menubg.png");
         xSize = 220;
-        ySize = 180;
+        ySize = 216;
 
         PacketClient.sendClient(new CustomAbilitiesGetPacket());
     }
@@ -59,7 +61,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
 
         setBackground("menubg.png");
         xSize = 220;
-        ySize = 180;
+        ySize = 216;
 
         PacketClient.sendClient(new CustomAbilitiesGetPacket());
     }
@@ -75,7 +77,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
 
         if (scroll == null) {
             scroll = new GuiCustomScroll(this, 0);
-            scroll.setSize(200, 110);
+            scroll.setSize(200, 140);
         }
         scroll.guiLeft = guiLeft + 10;
         scroll.guiTop = y;
@@ -85,7 +87,12 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
         }
         addScroll(scroll);
 
-        y += 115;
+        y += 143;
+
+        // Search bar
+        addTextField(new GuiNpcTextField(10, this, fontRendererObj, guiLeft + 10, y, 200, 20, search));
+
+        y += 24;
 
         addButton(new GuiNpcButton(0, guiLeft + 10, y, 95, 20, "gui.load"));
         addButton(new GuiNpcButton(2, guiLeft + 115, y, 95, 20, "gui.cancel"));
@@ -94,7 +101,16 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
     }
 
     private List<String> getFilteredList() {
-        return new ArrayList<>(displayToUuid.keySet());
+        if (search.isEmpty()) {
+            return new ArrayList<>(displayToUuid.keySet());
+        }
+        List<String> list = new ArrayList<>();
+        for (String name : displayToUuid.keySet()) {
+            if (name.toLowerCase().contains(search.toLowerCase())) {
+                list.add(name);
+            }
+        }
+        return list;
     }
 
     @Override
@@ -113,6 +129,19 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
             }
         } else if (id == 2) {
             close();
+        }
+    }
+
+    @Override
+    public void keyTyped(char c, int i) {
+        super.keyTyped(c, i);
+        if (getTextField(10) != null && getTextField(10).isFocused()) {
+            String newSearch = getTextField(10).getText();
+            if (!search.equals(newSearch)) {
+                search = newSearch;
+                scroll.resetScroll();
+                scroll.setList(getFilteredList());
+            }
         }
     }
 

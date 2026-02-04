@@ -535,7 +535,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
             pendingSubGuiResult = null;
             handler.accept(gui);
         }
-        subgui = null;
+        // Only null out subgui if it wasn't replaced by a new one during subGuiClosed
+        if (subgui == gui) {
+            subgui = null;
+        }
         initGui();
     }
 

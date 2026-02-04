@@ -229,14 +229,35 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         currentTarget = null; // Players don't have auto-targets
         ability.start(null);
 
-        // Spawn telegraph
-        spawnTelegraph(ability, player, null);
-
-        // Play wind up sound and animation
-        playAbilitySound(player, ability.getWindUpSound());
-        playAbilityAnimation(ability.getWindUpAnimation());
+        if (ability.getPhase() == AbilityPhase.ACTIVE) {
+            // Windup was 0 — skip telegraph/windup and go straight to active
+            executeImmediate(ability, player);
+        } else {
+            // Normal windup flow
+            spawnTelegraph(ability, player, null);
+            playAbilitySound(player, ability.getWindUpSound());
+            playAbilityAnimation(ability.getWindUpAnimation());
+        }
 
         return true;
+    }
+
+    /**
+     * Execute an ability immediately (no windup).
+     * Called when windUpTicks is 0.
+     */
+    private void executeImmediate(Ability ability, EntityPlayer player) {
+        // Play active sound and animation
+        playAbilitySound(player, ability.getActiveSound());
+        playAbilityAnimation(ability.getActiveAnimation());
+
+        // Call onExecute
+        ability.onExecute(player, currentTarget, player.worldObj);
+
+        // Check if ability completed during onExecute
+        if (ability.getPhase() == AbilityPhase.IDLE) {
+            handleAbilityCompletion(player);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

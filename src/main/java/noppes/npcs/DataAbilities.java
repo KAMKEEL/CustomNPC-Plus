@@ -385,16 +385,47 @@ public class DataAbilities {
         lastTarget = target;
         ability.start(target);
 
-        // Spawn telegraph and send to clients
-        spawnTelegraph(ability, target);
-
-        // Play wind up sound if configured
-        playAbilitySound(ability.getWindUpSound());
-
-        // Play wind up animation if configured
-        playAbilityAnimation(ability.getWindUpAnimation());
+        if (ability.getPhase() == AbilityPhase.ACTIVE) {
+            // Windup was 0 — skip telegraph/windup and go straight to active
+            executeImmediate(ability, target);
+        } else {
+            // Normal windup flow
+            spawnTelegraph(ability, target);
+            playAbilitySound(ability.getWindUpSound());
+            playAbilityAnimation(ability.getWindUpAnimation());
+        }
 
         return true;
+    }
+
+    /**
+     * Execute an ability immediately (no windup).
+     * Called when windUpTicks is 0.
+     */
+    private void executeImmediate(Ability ability, EntityLivingBase target) {
+        // Lock rotation if movement is locked during ACTIVE phase
+        if (ability.isMovementLockedDuringActive()) {
+            captureLockedRotation();
+        }
+
+        // Play active sound and animation
+        playAbilitySound(ability.getActiveSound());
+        playAbilityAnimation(ability.getActiveAnimation());
+
+        // Fire execute event (cancelable)
+        AbilityEvent.ExecuteEvent executeEvent = new AbilityEvent.ExecuteEvent(
+            npc.wrappedNPC, ability, target);
+        if (NpcAPI.EVENT_BUS.post(executeEvent)) {
+            return;
+        }
+
+        // Call onExecute
+        ability.onExecute(npc, target, npc.worldObj);
+
+        // Check if ability completed during onExecute
+        if (ability.getPhase() == AbilityPhase.IDLE) {
+            handleAbilityCompletion(target);
+        }
     }
 
     /**

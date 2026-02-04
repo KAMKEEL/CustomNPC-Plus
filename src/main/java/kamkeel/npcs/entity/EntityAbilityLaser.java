@@ -88,16 +88,16 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
      * Full constructor with all parameters using data classes.
      */
     public EntityAbilityLaser(World world, EntityLivingBase owner, EntityLivingBase target,
-                               double x, double y, double z,
-                               float laserWidth,
-                               EnergyColorData color, EnergyCombatData combat,
-                               EnergyLightningData lightning, EnergyLifespanData lifespan,
-                               float expansionSpeed, int lingerTicks) {
+                              double x, double y, double z,
+                              float laserWidth,
+                              EnergyDisplayData display, EnergyCombatData combat,
+                              EnergyLightningData lightning, EnergyLifespanData lifespan,
+                              EnergyTrajectoryData trajectory, float expansionSpeed, int lingerTicks) {
         super(world);
 
         // Initialize base properties (laser doesn't rotate)
-        initProjectile(owner, target, x, y, z, laserWidth, color, combat, lightning, lifespan);
-        this.rotationSpeed = 0.0f;
+        initProjectile(owner, target, x, y, z, laserWidth, display, combat, lightning, lifespan, trajectory);
+        this.displayData.rotationSpeed = 0.0f;
 
         // Laser-specific properties
         this.laserWidth = laserWidth;
@@ -171,8 +171,8 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             // Expand the laser
             currentLength += expansionSpeed;
 
-            if (currentLength >= maxDistance) {
-                currentLength = maxDistance;
+            if (currentLength >= getMaxDistance()) {
+                currentLength = getMaxDistance();
                 fullyExtended = true;
             }
 
@@ -206,7 +206,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         startZ = posZ;
 
         // Calculate velocity toward target
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
 
         if (target != null) {
             double dx = target.posX - startX;
@@ -253,7 +253,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             endZ = blockHit.hitVec.zCoord;
             fullyExtended = true;
 
-            if (explosive) {
+            if (isExplosive()) {
                 // Explode at hit point
                 double oldPosX = posX;
                 double oldPosY = posY;
@@ -275,7 +275,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     private void updateCharging() {
         chargeTick++;
 
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner == null || owner.isDead) {
             setDead();
             return;
@@ -481,7 +481,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
      * Setup this laser in preview mode for GUI display.
      * Laser doesn't have charging state - spawns at active phase and fires immediately.
      */
-    public void setupPreview(EntityLivingBase owner, float laserWidth, EnergyColorData color,
+    public void setupPreview(EntityLivingBase owner, float laserWidth, EnergyDisplayData display,
                              EnergyLightningData lightning, float expansionSpeed, float maxDistance) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
@@ -489,15 +489,10 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         // Set visual properties
         this.laserWidth = laserWidth;
         this.size = laserWidth;
-        this.innerColor = color.innerColor;
-        this.outerColor = color.outerColor;
-        this.outerColorEnabled = color.outerColorEnabled;
-        this.outerColorWidth = color.outerColorWidth;
+        this.displayData = display;
         this.expansionSpeed = expansionSpeed;
-        this.maxDistance = Math.min(maxDistance, 5.0f); // Limit for GUI preview
-        this.lightningEffect = lightning.lightningEffect;
-        this.lightningDensity = lightning.lightningDensity;
-        this.lightningRadius = lightning.lightningRadius;
+        this.lifespanData.maxDistance = Math.min(maxDistance, 5.0f); // Limit for GUI preview
+        this.lightningData = lightning;
 
         // Position at chest height
         double x = owner.posX;

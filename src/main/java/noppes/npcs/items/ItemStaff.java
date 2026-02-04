@@ -12,14 +12,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 import noppes.npcs.enchants.EnchantInterface;
-import noppes.npcs.entity.EntityMagicProjectile;
 import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.util.IProjectileCallback;
 import org.lwjgl.opengl.GL11;
@@ -108,10 +106,11 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             combat.damage = damage;
             combat.explosive = true;
 
-            EnergyColorData colorData = new EnergyColorData(getOrbColor(stack, false), getOrbColor(stack, true));
+            EnergyDisplayData colorData = new EnergyDisplayData(getOrbColor(stack, false), getOrbColor(stack, true));
             EnergyLightningData lightning = new EnergyLightningData();
             EnergyLifespanData lifespan = new EnergyLifespanData(100, 72000);
             EnergyHomingData homing = new EnergyHomingData();
+            EnergyTrajectoryData trajectory = new EnergyTrajectoryData();
 
             homing.speed = 0.5f;
             homing.homingStrength = 0.35f;
@@ -120,7 +119,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             EntityAbilityOrb orb = new EntityAbilityOrb(
                 player.worldObj, player, null,
                 player.posX, player.posY + player.getEyeHeight(), player.posZ,
-                1.0f, colorData, combat, homing, lightning, lifespan
+                1.0f, colorData, combat, homing, lightning, lifespan, trajectory
             );
 
             orb.setupCharging(

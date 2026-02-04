@@ -74,7 +74,16 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
     public int yOffset = 0;
 
     public GuiAbilityInterface(EntityNPCInterface npc) {
-        super(npc);
+        this(npc, true);
+    }
+
+    /**
+     * @param npc       The NPC for preview rendering
+     * @param hasMenuNpc If false, the top menu tabs (Display, Stats, etc.) are hidden.
+     *                   Use false when opened from the global menu without a real NPC.
+     */
+    public GuiAbilityInterface(EntityNPCInterface npc, boolean hasMenuNpc) {
+        super(hasMenuNpc ? npc : null);
         this.npc = npc;
         this.playerdata = ((EntityCustomNpc) npc).modelData;
         this.drawDefaultBackground = false;

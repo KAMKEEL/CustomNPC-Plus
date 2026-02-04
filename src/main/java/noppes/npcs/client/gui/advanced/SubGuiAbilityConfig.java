@@ -359,6 +359,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     @Override
     public void close() {
+        GuiNpcTextField.unfocus();
         applyToAbility();
         callback.onAbilitySaved(ability);
         super.close();
