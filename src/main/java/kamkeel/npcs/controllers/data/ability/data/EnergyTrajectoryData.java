@@ -1,14 +1,13 @@
 package kamkeel.npcs.controllers.data.ability.data;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ability.data.IEnergyTrajectoryData;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -43,6 +42,18 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     public void setDelay(int path, int ticks) {
         if (getPath(path) == null) return;
         getPath(path).setDelay(ticks);
+    }
+
+    @Override
+    public IPos getPos(int path) {
+        IPath p = getPath(path);
+        return p == null ? null : p.getPos();
+    }
+
+    @Override
+    public void setPos(int path, IPos pos) {
+        IPath p = getPath(path);
+        if (p != null) p.setPos(pos);
     }
 
     @Override
@@ -98,13 +109,26 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     }
 
     @Override
+    public void setPath(int path, IPos pos) {
+        setPath(path, pos, 0);
+    }
+
+    @Override
+    public void setPath(int path, IPos pos, int delay) {
+        setPath(path, pos.getX(), pos.getY(), pos.getZ(), delay);
+    }
+
+    @Override
     public void setPath(int path, double x, double y, double z) {
         setPath(path, x, y, z, 0);
     }
 
     @Override
     public void setPath(int path, double x, double y, double z, int delay) {
-        Path newPath = new Path(x, y, z, delay);
+        Path newPath = new Path(
+                NpcAPI.Instance().getIPos(x, y, z),
+                delay
+        );
 
         while (trajectory.size() <= path) {
             trajectory.add(null);
@@ -114,13 +138,23 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     }
 
     @Override
+    public IPath createPath(IPos pos) {
+        return new Path(pos, 0);
+    }
+
+    @Override
+    public IPath createPath(IPos pos, int delay) {
+        return new Path(pos, delay);
+    }
+
+    @Override
     public IPath createPath(double x, double y, double z) {
         return createPath(x, y, z, 0);
     }
 
     @Override
     public IPath createPath(double x, double y, double z, int delay) {
-        return new Path(x, y, z, delay);
+        return new Path(NpcAPI.Instance().getIPos(x, y, z), delay);
     }
 
     @Override
@@ -128,6 +162,14 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         for (int i = 0; i < trajectory.size(); i++) {
             lambda.accept(i, trajectory.get(i));
         }
+    }
+
+    public int size() {
+        return trajectory.size();
+    }
+
+    public boolean isEmpty() {
+        return trajectory.isEmpty();
     }
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -154,18 +196,24 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         }
     }
 
-    public EnergyTrajectoryData copy() {
-        return new EnergyTrajectoryData(currentPath, Collections.singletonList(trajectory).toArray(trajectory.toArray(new Path[0])));
-    }
-
     public static class Path implements IEnergyTrajectoryData.IPath{
-        public Vec3 pos;
+        public IPos pos;
         public int delayTicks;
         public boolean concluded;
 
-        public Path(double x, double y, double z, int delayTicks) {
-            this.pos = Vec3.createVectorHelper(x,y,z);
+        public Path(IPos pos, int delayTicks) {
+            this.pos = pos;
             this.delayTicks = delayTicks;
+        }
+
+        @Override
+        public IPos getPos() {
+            return pos;
+        }
+
+        @Override
+        public void setPos(IPos pos) {
+            this.pos = pos;
         }
 
         @Override
@@ -190,32 +238,32 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
 
         @Override
         public double getX() {
-            return pos.xCoord;
+            return pos.getX();
         }
 
         @Override
         public void setX(double x) {
-            this.pos.xCoord = x;
+            this.pos = NpcAPI.Instance().getIPos(x, getY(), getZ());
         }
 
         @Override
         public double getY() {
-            return pos.yCoord;
+            return pos.getY();
         }
 
         @Override
         public void setY(double y) {
-            this.pos.yCoord = y;
+            this.pos = NpcAPI.Instance().getIPos(getX(), y, getZ());
         }
 
         @Override
         public double getZ() {
-            return pos.zCoord;
+            return pos.getZ();
         }
 
         @Override
         public void setZ(double z) {
-            this.pos.zCoord = z;
+            this.pos = NpcAPI.Instance().getIPos(pos.getX(), pos.getY(), z);
         }
 
         public void writeNBT(NBTTagCompound nbt) {
@@ -234,7 +282,7 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
             double y = nbt.getDouble("Y");
             double z = nbt.getDouble("Z");
 
-            this.pos = Vec3.createVectorHelper(x, y, z);
+            this.pos = NpcAPI.Instance().getIPos(x, y, z);
         }
     }
 }

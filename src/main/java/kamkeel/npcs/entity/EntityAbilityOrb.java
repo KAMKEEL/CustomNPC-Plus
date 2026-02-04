@@ -245,7 +245,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
             handleClientInterpolation();
         } else {
             // Server-side logic
-            updateHoming();
+            updateMovement();
             checkBlockCollision();
             checkEntityCollision();
             this.moveEntity(motionX, motionY, motionZ);
@@ -273,8 +273,30 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.posZ += motionZ;
     }
 
-    private void updateTrajectory() {
+    private void updateMovement() {
+        if (!isTrajectoryConcluded()) {
+            updateTrajectory();
+        } else {
+            updateHoming();
+        }
+    }
 
+    private void updateTrajectory() {
+        if (isTrajectoryConcluded()) return;
+        // i really fucking hate math
+
+    }
+
+    private boolean isTrajectoryConcluded() {
+        if (trajectoryData.isEmpty()) return true;
+
+        for (int i = 0; i < trajectoryData.size(); i++) {
+            if (!trajectoryData.getPath(i).isConcluded()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void updateHoming() {
