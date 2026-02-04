@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.player;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.GetTraderData;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -330,6 +331,22 @@ public class GuiNPCTrader extends GuiContainerNPCInterface implements IGuiData {
             count++;
         }
         return sb.toString();
+    }
+
+    @Override
+    protected void handleMouseClick(Slot slot, int slotId, int mouseButton, int modifier) {
+        // Client-side balance prediction: immediately subtract currency cost on click
+        // so the displayed balance updates instantly without waiting for server response.
+        if (slotId >= 0 && slotId < 18 && mouseButton == 0) {
+            long cost = currencyCost[slotId];
+            if (cost > 0 && playerBalance >= cost) {
+                ItemStack sold = role.inventorySold.items.get(slotId);
+                if (sold != null && container.canBuy(slotId, player)) {
+                    playerBalance -= cost;
+                }
+            }
+        }
+        super.handleMouseClick(slot, slotId, mouseButton, modifier);
     }
 
     @Override
