@@ -99,6 +99,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             laserEntity.setupCharging(anchorData, windUpTicks);
 
             laserEntity.setEffects(this.effects);
+            laserEntity.setSourceAbility(this);
             world.spawnEntityInWorld(laserEntity);
         }
     }

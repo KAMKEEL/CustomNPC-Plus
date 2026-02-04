@@ -110,6 +110,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
             discEntity.setupCharging(anchorData, windUpTicks);
 
             discEntity.setEffects(this.effects);
+            discEntity.setSourceAbility(this);
             world.spawnEntityInWorld(discEntity);
         }
     }

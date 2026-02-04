@@ -39,6 +39,12 @@ public class AbilityController implements IAbilityHandler {
      *  Used by AbilitySlot for cache invalidation. */
     private int version = 0;
 
+    /** External damage handler (e.g., DBC Addon). */
+    private IAbilityDamageHandler damageHandler = null;
+
+    /** External field providers for ability GUI (e.g., DBC Addon). Client-side only. */
+    private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
+
     public AbilityController() {
         registerBuiltinTypes();
     }
@@ -385,5 +391,40 @@ public class AbilityController implements IAbilityHandler {
         // Zone/Trap abilities
         registerType("cnpc:hazard", AbilityHazard::new);
         registerType("cnpc:trap", AbilityTrap::new);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EXTERNAL DAMAGE HANDLER
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Register an external damage handler for abilities.
+     * When set, the handler is called before default damage application.
+     * If the handler returns true, default damage is skipped.
+     */
+    public void registerDamageHandler(IAbilityDamageHandler handler) {
+        this.damageHandler = handler;
+    }
+
+    /** Get the registered damage handler, or null if none. */
+    public IAbilityDamageHandler getDamageHandler() {
+        return damageHandler;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EXTERNAL FIELD PROVIDERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Register an external field provider for ability GUIs.
+     * Providers are called during getAllDefinitions() to inject custom tabs/fields.
+     */
+    public void registerFieldProvider(IAbilityFieldProvider provider) {
+        fieldProviders.add(provider);
+    }
+
+    /** Get all registered field providers. */
+    public List<IAbilityFieldProvider> getFieldProviders() {
+        return fieldProviders;
     }
 }

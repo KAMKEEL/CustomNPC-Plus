@@ -104,6 +104,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
             orbEntity.setupCharging(anchorData, windUpTicks);
 
             orbEntity.setEffects(this.effects);
+            orbEntity.setSourceAbility(this);
             world.spawnEntityInWorld(orbEntity);
         }
     }

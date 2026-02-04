@@ -138,6 +138,16 @@ public abstract class Ability implements IAbility {
     // OPTIONAL OVERRIDES
     // ═══════════════════════════════════════════════════════════════════
 
+    /**
+     * Returns true if this ability type deals damage.
+     * Override in non-damaging subclasses to return false.
+     * Used by external mods to determine whether to show
+     * damage-related configuration (e.g., DBC stats tab).
+     */
+    public boolean hasDamage() {
+        return true;
+    }
+
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
     }
 
@@ -247,12 +257,22 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (damage > 0) {
-            if (caster instanceof EntityNPCInterface) {
-                hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
-            } else if (caster instanceof EntityPlayer) {
-                hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
-            } else {
-                hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+            // Check for external damage handler first (e.g., DBC Addon)
+            IAbilityDamageHandler handler = AbilityController.Instance.getDamageHandler();
+            boolean handled = false;
+            if (handler != null) {
+                handled = handler.handleDamage(this, caster, hitEntity, damage, knockback, knockbackUp,
+                                               knockbackDirX, knockbackDirZ);
+            }
+            if (!handled) {
+                // Default damage path
+                if (caster instanceof EntityNPCInterface) {
+                    hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
+                } else if (caster instanceof EntityPlayer) {
+                    hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
+                } else {
+                    hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+                }
             }
         }
 
@@ -481,6 +501,11 @@ public abstract class Ability implements IAbility {
             if (defs.get(i).getTab() == null) {
                 defs.get(i).tab("Type");
             }
+        }
+
+        // External field providers (e.g., DBC Addon injecting a "DBC" tab)
+        for (IAbilityFieldProvider provider : AbilityController.Instance.getFieldProviders()) {
+            provider.addFieldDefinitions(this, defs);
         }
 
         return defs;
