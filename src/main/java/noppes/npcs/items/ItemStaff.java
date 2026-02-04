@@ -110,6 +110,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             EnergyLightningData lightning = new EnergyLightningData();
             EnergyLifespanData lifespan = new EnergyLifespanData(100, 72000);
             EnergyHomingData homing = new EnergyHomingData();
+            EnergyTrajectoryData trajectory = new EnergyTrajectoryData();
 
             homing.speed = 0.5f;
             homing.homingStrength = 0.35f;
@@ -118,7 +119,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             EntityAbilityOrb orb = new EntityAbilityOrb(
                 player.worldObj, player, null,
                 player.posX, player.posY + player.getEyeHeight(), player.posZ,
-                1.0f, colorData, combat, homing, lightning, lifespan
+                1.0f, colorData, combat, homing, lightning, lifespan, trajectory
             );
 
             orb.setupCharging(

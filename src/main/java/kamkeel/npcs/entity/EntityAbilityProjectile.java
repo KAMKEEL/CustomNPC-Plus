@@ -23,6 +23,7 @@ import noppes.npcs.scripted.NpcAPI;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for all ability projectiles (Orb, Disc, Beam, Laser).
@@ -63,6 +64,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
     // ==================== TRAJECTORY PROPERTIES ====================
     protected EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
+    protected Map<Integer, Integer> pathDelays;
 
     // ==================== TRACKING ====================
     protected double startX, startY, startZ;
@@ -102,7 +104,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     protected void initProjectile(EntityLivingBase owner, EntityLivingBase target, EntityAbilityProjectile sibling,
                                   double x, double y, double z, float size,
                                   EnergyDisplayData display, EnergyCombatData combat,
-                                  EnergyLightningData lightning, EnergyLifespanData lifespan) {
+                                  EnergyLightningData lightning, EnergyLifespanData lifespan,
+                                  EnergyTrajectoryData trajectory) {
         this.setPosition(x, y, z);
         this.startX = x;
         this.startY = y;
@@ -119,6 +122,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         this.combatData = combat;
         this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
         this.lightningData = lightning;
+        this.trajectoryData = trajectory;
 
         // Initialize render size
         this.renderCurrentSize = size;
@@ -129,8 +133,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
                                   double x, double y, double z, float size,
                                   EnergyDisplayData display, EnergyCombatData combat,
-                                  EnergyLightningData lightning, EnergyLifespanData lifespan) {
-        initProjectile(owner, target, null, x, y, z, size, display, combat, lightning, lifespan);
+                                  EnergyLightningData lightning, EnergyLifespanData lifespan,
+                                  EnergyTrajectoryData trajectory) {
+        initProjectile(owner, target, null, x, y, z, size, display, combat, lightning, lifespan, trajectory);
     }
 
     @Override
@@ -694,6 +699,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
         lightningData.readNBT(nbt);
+        trajectoryData.readNBT(nbt);
     }
 
     /**
@@ -731,6 +737,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         homingData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
+        trajectoryData.writeNBT(nbt);
     }
 
     /**

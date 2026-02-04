@@ -32,18 +32,21 @@ public class AbilityBeamDual extends Ability {
     private int dualFireDelay = 0;
 
     // Data classes
-    private EnergyDisplayData[] colorData = new EnergyDisplayData[]{
+    private final EnergyDisplayData[] displayData = new EnergyDisplayData[]{
         new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
         new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 6.0f),
     };
-    private EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
-    private EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
-    private EnergyLightningData[] lightningData = new EnergyLightningData[]{
+    private final EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
+    private final EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
+    private final EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
-    private EnergyLifespanData lifespanData = new EnergyLifespanData(25.0f, 200);
-    private EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData(25.0f, 200);
+    private final EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
         new EnergyAnchorData(AnchorPoint.RIGHT_HAND), new EnergyAnchorData(AnchorPoint.LEFT_HAND)
+    };
+    private final EnergyTrajectoryData[] trajectoryData = new EnergyTrajectoryData[]{
+        new EnergyTrajectoryData(), new EnergyTrajectoryData()
     };
 
     // Transient state for beam entity (used during windup charging)
@@ -114,7 +117,7 @@ public class AbilityBeamDual extends Ability {
                 world, caster, target,
                 spawnPos1.xCoord, spawnPos1.yCoord, spawnPos1.zCoord,
                 beamWidth, headSize,
-                colorData[0], combatData, homingData, lightningData[0], lifespanData,
+                displayData[0], combatData, homingData, lightningData[0], lifespanData, trajectoryData[0],
                 lockMovement.locksActive());
 
             Vec3 spawnPos2 = AnchorPointHelper.calculateAnchorPosition(caster, anchorData[1], offsetDist);
@@ -122,7 +125,7 @@ public class AbilityBeamDual extends Ability {
                 world, caster, target,
                 spawnPos2.xCoord, spawnPos2.yCoord, spawnPos2.zCoord,
                 beamWidth, headSize,
-                colorData[1], combatData, homingData, lightningData[1], lifespanData,
+                displayData[1], combatData, homingData, lightningData[1], lifespanData, trajectoryData[1],
                 lockMovement.locksActive());
 
             beamEntity.setSiblingEntityId(beamEntity2.getEntityId());
@@ -219,12 +222,13 @@ public class AbilityBeamDual extends Ability {
         NBTTagCompound beam1 = new NBTTagCompound();
         NBTTagCompound beam2 = new NBTTagCompound();
 
-        anchorData[0].writeNBT(beam1);
-        anchorData[1].writeNBT(beam2);
-        colorData[0].writeNBT(beam1);
-        colorData[1].writeNBT(beam2);
-        lightningData[0].writeNBT(beam1);
-        lightningData[1].writeNBT(beam2);
+        for (int i = 0; i < 2; i++) {
+            NBTTagCompound beam = i == 0 ? beam1 : beam2;
+            anchorData[i].writeNBT(beam);
+            displayData[i].writeNBT(beam);
+            lightningData[i].writeNBT(beam);
+            trajectoryData[i].writeNBT(beam);
+        }
 
         nbt.setTag("Beam_1", beam1);
         nbt.setTag("Beam_2", beam2);
@@ -243,12 +247,13 @@ public class AbilityBeamDual extends Ability {
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
 
-        anchorData[0].readNBT(beam1);
-        anchorData[1].readNBT(beam2);
-        colorData[0].readNBT(beam1);
-        colorData[1].readNBT(beam2);
-        lightningData[0].readNBT(beam1);
-        lightningData[1].readNBT(beam2);
+        for (int i = 0; i < 2; i++) {
+            NBTTagCompound beam = i == 0 ? beam1 : beam2;
+            anchorData[i].readNBT(beam);
+            displayData[i].readNBT(beam);
+            lightningData[i].readNBT(beam);
+            trajectoryData[i].readNBT(beam);
+        }
     }
 
     // Getters & Setters - Standalone fields
@@ -263,7 +268,7 @@ public class AbilityBeamDual extends Ability {
 
     private EnergyDisplayData getColorData(int beam) {
         beam = ValueUtil.clamp(beam, 0, 1);
-        return colorData[beam];
+        return displayData[beam];
     }
     private EnergyLightningData getLightningData(int beam) {
         beam = ValueUtil.clamp(beam, 0, 1);
@@ -494,7 +499,7 @@ public class AbilityBeamDual extends Ability {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityBeam beam = new EntityAbilityBeam(npc.worldObj);
-        beam.setupPreview(npc, beamWidth, headSize, colorData[0], lightningData[0], anchorData[0], windUpTicks, 1.0f);
+        beam.setupPreview(npc, beamWidth, headSize, displayData[0], lightningData[0], anchorData[0], windUpTicks, 1.0f);
         return beam;
     }
 

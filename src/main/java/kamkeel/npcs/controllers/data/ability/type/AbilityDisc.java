@@ -40,12 +40,13 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     private int boomerangDelay = 40;
 
     // Energy data classes
-    private EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f);
-    private EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
-    private EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
-    private EnergyLightningData lightningData = new EnergyLightningData();
-    private EnergyLifespanData lifespanData = new EnergyLifespanData(35.0f, 200);
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f);
+    private final EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
+    private final EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
+    private final EnergyLightningData lightningData = new EnergyLightningData();
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData(35.0f, 200);
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
 
     // Transient state for disc entity (used during windup charging)
     private transient EntityAbilityDisc discEntity = null;
@@ -104,7 +105,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
                 world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 discRadius, discThickness,
-                colorData, combatData, homingData, lightningData, lifespanData,
+                colorData, combatData, homingData, lightningData, lifespanData, trajectoryData,
                 boomerang, boomerangDelay);
             discEntity.setupCharging(anchorData, windUpTicks);
 

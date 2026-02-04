@@ -68,11 +68,11 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
                             double x, double y, double z, float orbSize,
                             EnergyDisplayData display, EnergyCombatData combat,
                             EnergyHomingData homing, EnergyLightningData lightning,
-                            EnergyLifespanData lifespan) {
+                            EnergyLifespanData lifespan, EnergyTrajectoryData trajectory) {
         super(world);
 
         // Initialize base properties
-        initProjectile(owner, target, x, y, z, orbSize, display, combat, lightning, lifespan);
+        initProjectile(owner, target, x, y, z, orbSize, display, combat, lightning, lifespan, trajectory);
 
         this.homingData = homing;
 
@@ -271,6 +271,10 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.posX += motionX;
         this.posY += motionY;
         this.posZ += motionZ;
+    }
+
+    private void updateTrajectory() {
+
     }
 
     private void updateHoming() {

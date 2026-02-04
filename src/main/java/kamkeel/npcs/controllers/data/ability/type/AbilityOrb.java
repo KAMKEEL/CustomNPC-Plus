@@ -36,12 +36,13 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     private float orbSize = 1.0f;
 
     // Data classes for energy properties
-    private final EnergyDisplayData colorData = new EnergyDisplayData();
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
     private final EnergyCombatData combatData = new EnergyCombatData();
+    private final EnergyDisplayData displayData = new EnergyDisplayData();
     private final EnergyHomingData homingData = new EnergyHomingData();
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData();
-    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
 
     // Transient state for orb entity (used during windup charging)
     private transient EntityAbilityOrb orbEntity = null;
@@ -99,7 +100,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
             orbEntity = new EntityAbilityOrb(
                 world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
-                colorData, combatData, homingData, lightningData, lifespanData);
+                displayData, combatData, homingData, lightningData, lifespanData, trajectoryData);
             orbEntity.setupCharging(anchorData, windUpTicks);
 
             orbEntity.setEffects(this.effects);
@@ -161,11 +162,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("orbSize", orbSize);
         anchorData.writeNBT(nbt);
-        colorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
+        displayData.writeNBT(nbt);
         homingData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
+        trajectoryData.writeNBT(nbt);
         // Backward compat: old key was "orbSpeed"
         nbt.setFloat("orbSpeed", homingData.speed);
     }
@@ -174,11 +176,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.orbSize = nbt.hasKey("orbSize") ? nbt.getFloat("orbSize") : 1.0f;
         anchorData.readNBT(nbt);
-        colorData.readNBT(nbt);
         combatData.readNBT(nbt);
+        displayData.readNBT(nbt);
         homingData.readNBT(nbt);
         lightningData.readNBT(nbt);
         lifespanData.readNBT(nbt);
+        trajectoryData.readNBT(nbt);
         // Backward compat: old key was "orbSpeed"
         if (nbt.hasKey("orbSpeed")) {
             homingData.speed = nbt.getFloat("orbSpeed");
@@ -291,51 +294,51 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     public int getInnerColor() {
-        return colorData.innerColor;
+        return displayData.innerColor;
     }
 
     public void setInnerColor(int innerColor) {
-        colorData.innerColor = innerColor;
+        displayData.innerColor = innerColor;
     }
 
     public int getOuterColor() {
-        return colorData.outerColor;
+        return displayData.outerColor;
     }
 
     public void setOuterColor(int outerColor) {
-        colorData.outerColor = outerColor;
+        displayData.outerColor = outerColor;
     }
 
     public float getOuterColorWidth() {
-        return colorData.outerColorWidth;
+        return displayData.outerColorWidth;
     }
 
     public void setOuterColorWidth(float outerColorWidth) {
-        colorData.outerColorWidth = outerColorWidth;
+        displayData.outerColorWidth = outerColorWidth;
     }
 
     public float getOuterColorAlpha() {
-        return colorData.outerColorAlpha;
+        return displayData.outerColorAlpha;
     }
 
     public void setOuterColorAlpha(float outerColorAlpha) {
-        colorData.outerColorAlpha = outerColorAlpha;
+        displayData.outerColorAlpha = outerColorAlpha;
     }
 
     public boolean isOuterColorEnabled() {
-        return colorData.outerColorEnabled;
+        return displayData.outerColorEnabled;
     }
 
     public void setOuterColorEnabled(boolean outerColorEnabled) {
-        colorData.outerColorEnabled = outerColorEnabled;
+        displayData.outerColorEnabled = outerColorEnabled;
     }
 
     public float getRotationSpeed() {
-        return colorData.rotationSpeed;
+        return displayData.rotationSpeed;
     }
 
     public void setRotationSpeed(float rotationSpeed) {
-        colorData.rotationSpeed = rotationSpeed;
+        displayData.rotationSpeed = rotationSpeed;
     }
 
     public boolean hasLightningEffect() {
@@ -401,7 +404,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
-        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorData, windUpTicks);
+        orb.setupPreview(npc, orbSize, displayData, lightningData, anchorData, windUpTicks);
         return orb;
     }
 

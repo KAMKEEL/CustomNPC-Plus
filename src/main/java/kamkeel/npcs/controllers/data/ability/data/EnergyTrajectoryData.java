@@ -1,11 +1,14 @@
 package kamkeel.npcs.controllers.data.ability.data;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.Vec3;
+import net.minecraftforge.common.util.Constants;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ability.data.IEnergyTrajectoryData;
-import noppes.npcs.scripted.NpcAPI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -43,15 +46,15 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     }
 
     @Override
-    public IPos getPos(int path) {
+    public boolean isConcluded(int path) {
         IPath p = getPath(path);
-        return p == null ? null : p.getPos();
+        return p != null && p.isConcluded();
     }
 
     @Override
-    public void setPos(int path, IPos pos) {
+    public void setConcluded(int path, boolean concluded) {
         IPath p = getPath(path);
-        if (p != null) p.setPos(pos);
+        if (p != null) p.setConcluded(concluded);
     }
 
     @Override
@@ -95,26 +98,13 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     }
 
     @Override
-    public void setPath(int path, IPos pos) {
-        setPath(path, pos, 0);
-    }
-
-    @Override
-    public void setPath(int path, IPos pos, int delay) {
-        setPath(path, pos.getX(), pos.getY(), pos.getZ(), delay);
-    }
-
-    @Override
     public void setPath(int path, double x, double y, double z) {
         setPath(path, x, y, z, 0);
     }
 
     @Override
     public void setPath(int path, double x, double y, double z, int delay) {
-        Path newPath = new Path(
-                NpcAPI.Instance().getIPos(x, y, z),
-                delay
-        );
+        Path newPath = new Path(x, y, z, delay);
 
         while (trajectory.size() <= path) {
             trajectory.add(null);
@@ -124,23 +114,13 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     }
 
     @Override
-    public IPath createPath(IPos pos) {
-        return new Path(pos, 0);
-    }
-
-    @Override
-    public IPath createPath(IPos pos, int delay) {
-        return new Path(pos, delay);
-    }
-
-    @Override
     public IPath createPath(double x, double y, double z) {
         return createPath(x, y, z, 0);
     }
 
     @Override
     public IPath createPath(double x, double y, double z, int delay) {
-        return new Path(NpcAPI.Instance().getIPos(x, y, z), delay);
+        return new Path(x, y, z, delay);
     }
 
     @Override
@@ -150,23 +130,42 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         }
     }
 
+    public void writeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("currentPath", currentPath);
+
+        for (int i = 0; i < trajectory.size(); i++) {
+            Path path = trajectory.get(i);
+            NBTTagCompound pathNbt = new NBTTagCompound();
+            path.writeNBT(pathNbt);
+            nbt.setTag("Path_" + i, pathNbt);
+        }
+    }
+
+    public void readNBT(NBTTagCompound nbt) {
+        this.currentPath = nbt.hasKey("currentPath") ? nbt.getInteger("currentPath") : 0;
+
+        int i = 0;
+        while (nbt.hasKey("Path_" + i, Constants.NBT.TAG_COMPOUND)) {
+            NBTTagCompound pathNbt = nbt.getCompoundTag("Path_" + i);
+            Path path = (Path) createPath(0, 0, 0);
+            path.readNBT(pathNbt);
+            trajectory.add(path);
+            i++;
+        }
+    }
+
+    public EnergyTrajectoryData copy() {
+        return new EnergyTrajectoryData(currentPath, Collections.singletonList(trajectory).toArray(trajectory.toArray(new Path[0])));
+    }
+
     public static class Path implements IEnergyTrajectoryData.IPath{
-        public IPos pos;
+        public Vec3 pos;
         public int delayTicks;
+        public boolean concluded;
 
-        public Path(IPos pos, int delayTicks) {
-            this.pos = pos;
+        public Path(double x, double y, double z, int delayTicks) {
+            this.pos = Vec3.createVectorHelper(x,y,z);
             this.delayTicks = delayTicks;
-        }
-
-        @Override
-        public IPos getPos() {
-            return pos;
-        }
-
-        @Override
-        public void setPos(IPos pos) {
-            this.pos = pos;
         }
 
         @Override
@@ -180,33 +179,62 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         }
 
         @Override
+        public boolean isConcluded() {
+            return concluded;
+        }
+
+        @Override
+        public void setConcluded(boolean concluded) {
+            this.concluded = concluded;
+        }
+
+        @Override
         public double getX() {
-            return pos.getX();
+            return pos.xCoord;
         }
 
         @Override
         public void setX(double x) {
-            this.pos = NpcAPI.Instance().getIPos(x, getY(), getZ());
+            this.pos.xCoord = x;
         }
 
         @Override
         public double getY() {
-            return pos.getY();
+            return pos.yCoord;
         }
 
         @Override
         public void setY(double y) {
-            this.pos = NpcAPI.Instance().getIPos(getX(), y, getZ());
+            this.pos.yCoord = y;
         }
 
         @Override
         public double getZ() {
-            return pos.getZ();
+            return pos.zCoord;
         }
 
         @Override
         public void setZ(double z) {
-            this.pos = NpcAPI.Instance().getIPos(pos.getX(), pos.getY(), z);
+            this.pos.zCoord = z;
+        }
+
+        public void writeNBT(NBTTagCompound nbt) {
+            nbt.setInteger("delay", delayTicks);
+            nbt.setBoolean("concluded", concluded);
+            nbt.setDouble("X", getX());
+            nbt.setDouble("Y", getY());
+            nbt.setDouble("Z", getZ());
+        }
+
+        public void readNBT(NBTTagCompound nbt) {
+            this.delayTicks = nbt.hasKey("delay") ? nbt.getInteger("delay") : 0;
+            this.concluded = nbt.hasKey("concluded") && nbt.getBoolean("concluded");
+
+            double x = nbt.getDouble("X");
+            double y = nbt.getDouble("Y");
+            double z = nbt.getDouble("Z");
+
+            this.pos = Vec3.createVectorHelper(x, y, z);
         }
     }
 }

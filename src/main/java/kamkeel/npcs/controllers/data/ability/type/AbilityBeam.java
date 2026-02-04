@@ -37,12 +37,13 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
     private float headSize = 0.6f;
 
     // Data classes
-    private EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f);
-    private EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
-    private EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
-    private EnergyLightningData lightningData = new EnergyLightningData();
-    private EnergyLifespanData lifespanData = new EnergyLifespanData(25.0f, 200);
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f);
+    private final EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
+    private final EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
+    private final EnergyLightningData lightningData = new EnergyLightningData();
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData(25.0f, 200);
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
 
     // Transient state for beam entity (used during windup charging)
     private transient EntityAbilityBeam beamEntity = null;
@@ -103,7 +104,7 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
                 world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 beamWidth, headSize,
-                colorData, combatData, homingData, lightningData, lifespanData,
+                colorData, combatData, homingData, lightningData, lifespanData, trajectoryData,
                 lockMovement.locksActive());
             beamEntity.setupCharging(anchorData, windUpTicks, offsetDist);
 

@@ -83,12 +83,12 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
                              float discRadius, float discThickness,
                              EnergyDisplayData display, EnergyCombatData combat,
                              EnergyHomingData homing, EnergyLightningData lightning,
-                             EnergyLifespanData lifespan,
+                             EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
                              boolean boomerang, int boomerangDelay) {
         super(world);
 
         // Initialize base properties
-        initProjectile(owner, target, x, y, z, discRadius, display, combat, lightning, lifespan);
+        initProjectile(owner, target, x, y, z, discRadius, display, combat, lightning, lifespan, trajectory);
 
         this.homingData = homing;
 
