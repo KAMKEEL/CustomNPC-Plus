@@ -43,6 +43,7 @@ import noppes.npcs.containers.ContainerNpcQuestReward;
 import noppes.npcs.containers.ContainerNpcQuestTypeItem;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class CommonProxy implements IGuiHandler {
@@ -219,5 +220,25 @@ public class CommonProxy implements IGuiHandler {
     }
 
     public void buildPackageIndex() {
+    }
+
+    public boolean isScriptingEnabled() {
+        return ConfigScript.ScriptingEnabled;
+    }
+
+    public boolean isRunLoadedScriptsFirst() {
+        return ConfigScript.RunLoadedScriptsFirst;
+    }
+
+    public boolean isGlobalPlayerScripts() {
+        return ConfigScript.GlobalPlayerScripts;
+    }
+
+    public boolean isGlobalForgeScripts() {
+        return ConfigScript.GlobalForgeScripts;
+    }
+
+    public boolean isGlobalNPCScripts() {
+        return ConfigScript.GlobalNPCScripts;
     }
 }

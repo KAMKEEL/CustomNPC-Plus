@@ -112,16 +112,16 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         mc.renderEngine.bindTexture(AUCTION_BACKGROUND);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+        drawAuctionContent(partialTicks, mouseX, mouseY);
+
         RenderHelper.enableGUIStandardItemLighting();
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glEnable(GL11.GL_LIGHTING);
-
-        drawAuctionContent(partialTicks, mouseX, mouseY);
-
-        GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        RenderHelper.enableStandardItemLighting();
 
         super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
     }
@@ -167,12 +167,12 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         Gui.drawRect(x + 1, y + 1, x + 17, y + 17, color);
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     /** Draw dark overlay for unavailable slots */
     protected void drawDarkenedOverlay(int x, int y) {
-        drawColoredOverlay(x, y, 0x80000000);
+        drawColoredOverlay(x, y, 0xC0000000);
     }
 
     /** Draw icon texture on slot (16x16) */

@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
-import noppes.npcs.config.ConfigScript;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public abstract class SingleScriptHandler extends ScriptHandler {
     }
 
     protected boolean canRunScripts() {
-        return enabled && ScriptController.HasStart && ConfigScript.ScriptingEnabled && container != null;
+        return enabled && ScriptController.HasStart && CustomNpcs.proxy.isScriptingEnabled() && container != null;
     }
 
     @Override

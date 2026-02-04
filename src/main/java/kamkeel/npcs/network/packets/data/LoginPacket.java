@@ -16,7 +16,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.client.ScriptClientConfig;
 import noppes.npcs.controllers.AuctionConfigSync;
+import noppes.npcs.controllers.ScriptConfigSync;
 
 import java.io.IOException;
 import java.util.EnumMap;
@@ -65,6 +67,11 @@ public final class LoginPacket extends AbstractPacket {
         NBTTagCompound auctionConfig = new NBTTagCompound();
         AuctionConfigSync.writeToNBT(auctionConfig);
         ByteBufUtils.writeNBT(out, auctionConfig);
+
+        // Send script config (server-side sync)
+        NBTTagCompound scriptConfig = new NBTTagCompound();
+        ScriptConfigSync.writeToNBT(scriptConfig);
+        ByteBufUtils.writeNBT(out, scriptConfig);
     }
 
     @SideOnly(Side.CLIENT)
@@ -87,6 +94,10 @@ public final class LoginPacket extends AbstractPacket {
         // Read auction config
         NBTTagCompound auctionConfig = ByteBufUtils.readNBT(in);
         AuctionClientConfig.readFromNBT(auctionConfig);
+
+        // Read script config
+        NBTTagCompound scriptConfig = ByteBufUtils.readNBT(in);
+        ScriptClientConfig.readFromNBT(scriptConfig);
 
         PacketClient.sendClient(new SyncRevisionInfoPacket(
             serverKey,

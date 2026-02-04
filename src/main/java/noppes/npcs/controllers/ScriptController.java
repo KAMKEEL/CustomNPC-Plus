@@ -73,7 +73,7 @@ public class ScriptController {
     public ScriptController() {
         Instance = this;
         manager = new ScriptEngineManager();
-        if (!ConfigScript.ScriptingEnabled)
+        if (!CustomNpcs.proxy.isScriptingEnabled())
             return;
         LogWriter.info("Script Engines Available:");
 
