@@ -40,18 +40,21 @@ public class AbilityDiscDual extends Ability {
     private int dualFireDelay = 10;
 
     // Energy data classes
-    private EnergyColorData[] colorData = new EnergyColorData[]{
-        new EnergyColorData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
-        new EnergyColorData(0xFFFFFF, 0x8800FF, true, 0.4f, 0.5f, 5.0f)
+    private final EnergyDisplayData[] displayData = new EnergyDisplayData[]{
+        new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
+        new EnergyDisplayData(0xFFFFFF, 0x8800FF, true, 0.4f, 0.5f, 5.0f)
     };
-    private EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
-    private EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
-    public final EnergyLightningData[] lightningData = new EnergyLightningData[]{
+    private final EnergyCombatData combatData = new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f);
+    private final EnergyHomingData homingData = new EnergyHomingData(0.6f, true, 0.12f, 18.0f);
+    private final EnergyLightningData[] lightningData = new EnergyLightningData[]{
         new EnergyLightningData(), new EnergyLightningData()
     };
-    private EnergyLifespanData lifespanData = new EnergyLifespanData(35.0f, 200);
-    private EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData(35.0f, 200);
+    private final EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
         new EnergyAnchorData(AnchorPoint.LEFT_HAND), new EnergyAnchorData(AnchorPoint.RIGHT_HAND)
+    };
+    private final EnergyTrajectoryData[] trajectoryData = new EnergyTrajectoryData[]{
+        new EnergyTrajectoryData(), new EnergyTrajectoryData()
     };
 
     // Transient state for disc entity (used during windup charging)
@@ -100,7 +103,7 @@ public class AbilityDiscDual extends Ability {
             if (discEntity2 != null && !discEntity2.isDead && dualFireDelay <= 0) {
                 discEntity2.startMoving(target);
             }
-        } else {
+        } else if (discEntity2 != null) {
             discEntity2.setDead();
         }
 
@@ -120,7 +123,7 @@ public class AbilityDiscDual extends Ability {
                 world, caster, target,
                 spawnPos1.xCoord, spawnPos1.yCoord, spawnPos1.zCoord,
                 discRadius, discThickness,
-                colorData[0], combatData, homingData, lightningData[0], lifespanData,
+                displayData[0], combatData, homingData, lightningData[0], lifespanData, trajectoryData[0],
                 boomerang, boomerangDelay);
 
             Vec3 spawnPos2 = AnchorPointHelper.calculateAnchorPosition(caster, anchorData[1]);
@@ -128,11 +131,11 @@ public class AbilityDiscDual extends Ability {
                 world, caster, target,
                 spawnPos2.xCoord, spawnPos2.yCoord, spawnPos2.zCoord,
                 discRadius, discThickness,
-                colorData[1], combatData, homingData, lightningData[1], lifespanData,
+                displayData[1], combatData, homingData, lightningData[1], lifespanData, trajectoryData[1],
                 boomerang, boomerangDelay);
 
-            discEntity.setSiblingUUID(discEntity2.getPersistentID());
-            discEntity2.setSiblingUUID(discEntity.getPersistentID());
+            discEntity.setSiblingEntityId(discEntity2.getEntityId());
+            discEntity2.setSiblingEntityId(discEntity.getEntityId());
 
             discEntity.setupCharging(anchorData[0], windUpTicks);
             discEntity2.setupCharging(anchorData[1], windUpTicks);
@@ -230,12 +233,13 @@ public class AbilityDiscDual extends Ability {
         NBTTagCompound disc1 = new NBTTagCompound();
         NBTTagCompound disc2 = new NBTTagCompound();
 
-        anchorData[0].writeNBT(disc1);
-        anchorData[1].writeNBT(disc2);
-        colorData[0].writeNBT(disc1);
-        colorData[1].writeNBT(disc2);
-        lightningData[0].writeNBT(disc1);
-        lightningData[1].writeNBT(disc2);
+        for (int i = 0; i < 2; i++) {
+            NBTTagCompound disc = i == 0 ? disc1 : disc2;
+            anchorData[i].writeNBT(disc);
+            displayData[i].writeNBT(disc);
+            lightningData[i].writeNBT(disc);
+            trajectoryData[i].writeNBT(disc);
+        }
 
         nbt.setTag("Disc_1", disc1);
         nbt.setTag("Disc_2", disc2);
@@ -256,18 +260,19 @@ public class AbilityDiscDual extends Ability {
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
 
-        anchorData[0].readNBT(disc1);
-        anchorData[1].readNBT(disc2);
-        colorData[0].readNBT(disc1);
-        colorData[1].readNBT(disc2);
-        lightningData[0].readNBT(disc1);
-        lightningData[1].readNBT(disc2);
+        for (int i = 0; i < 2; i++) {
+            NBTTagCompound disc = i == 0 ? disc1 : disc2;
+            anchorData[i].readNBT(disc);
+            displayData[i].readNBT(disc);
+            lightningData[i].readNBT(disc);
+            trajectoryData[i].readNBT(disc);
+        }
     }
 
     // Getters & Setters
-    private EnergyColorData getColorData(int orb) {
+    private EnergyDisplayData getColorData(int orb) {
         orb = ValueUtil.clamp(orb, 0, 1);
-        return colorData[orb];
+        return displayData[orb];
     }
     private EnergyLightningData getLightningData(int orb) {
         orb = ValueUtil.clamp(orb, 0, 1);
@@ -424,10 +429,10 @@ public class AbilityDiscDual extends Ability {
                 .visibleWhen(this::isExplosive),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
             // Visual tab - Disc 1
+            FieldDef.section("ability.section.disc1").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(0), v -> setAnchorPointEnum(0, v))
                 .tab("ability.tab.visual"),
-            FieldDef.section("ability.section.disc1").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(0), v -> setInnerColor(0, v))
                 .tab("ability.tab.visual"),
@@ -460,10 +465,10 @@ public class AbilityDiscDual extends Ability {
                     .range(0.1f, 10.0f).visibleWhen(() -> hasLightningEffect(0))
             ).tab("ability.tab.visual"),
             // Visual tab - Disc 2
+            FieldDef.section("ability.section.disc2").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(1), v -> setAnchorPointEnum(1, v))
                 .tab("ability.tab.visual"),
-            FieldDef.section("ability.section.disc2").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(1), v -> setInnerColor(1, v))
                 .tab("ability.tab.visual"),
@@ -504,7 +509,7 @@ public class AbilityDiscDual extends Ability {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityDisc disc = new EntityAbilityDisc(npc.worldObj);
-        disc.setupPreview(npc, discRadius, discThickness, colorData[0], lightningData[0], anchorData[0], windUpTicks);
+        disc.setupPreview(npc, discRadius, discThickness, displayData[0], lightningData[0], anchorData[0], windUpTicks);
         return disc;
     }
 

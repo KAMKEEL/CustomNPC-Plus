@@ -7,6 +7,7 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
@@ -568,7 +569,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
             if (slot.isReference()) {
                 // For reference slots, save back to controller
-                // (The resolved copy was edited in-place)
+                PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
             } else {
                 // For inline slots, replace with the updated ability
                 npcSlots.set(selectedAbilityIndex, AbilitySlot.inline(ability));

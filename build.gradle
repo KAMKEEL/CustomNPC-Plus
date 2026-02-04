@@ -31,6 +31,21 @@ tasks.create('buildNoMixin', Exec) {
     commandLine gradleWrapper, 'build', '-Pnomixin'
 }
 
+// No Nashorn Run Tasks
+tasks.create('runClientNoNashorn', Exec) {
+    description 'Runs the client without Nashorn'
+    group 'CustomNPC+'
+    workingDir project.rootDir
+    commandLine gradleWrapper, 'runClient', '-PnoNashorn'
+}
+
+tasks.create('runServerNoNashorn', Exec) {
+    description 'Runs the server without Nashorn'
+    group 'CustomNPC+'
+    workingDir project.rootDir
+    commandLine gradleWrapper, 'runServer', '-PnoNashorn'
+}
+
 sourceSets.main.java {
     def apiDir = file('src/api/java')
 

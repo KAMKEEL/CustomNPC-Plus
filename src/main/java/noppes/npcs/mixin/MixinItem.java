@@ -17,7 +17,7 @@ import java.util.List;
  * Mixin to inject auction information into item tooltips when viewing auction GUIs.
  */
 @Mixin(Item.class)
-public class MixinItem {
+public abstract class MixinItem {
 
     @SideOnly(Side.CLIENT)
     @Inject(method = "addInformation", at = @At("HEAD"))

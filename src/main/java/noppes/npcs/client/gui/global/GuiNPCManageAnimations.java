@@ -51,8 +51,8 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     // Track if current animation is built-in
     private boolean currentIsBuiltIn = false;
 
-    public GuiNPCManageAnimations(EntityNPCInterface npc, boolean save) {
-        super(npc);
+    public GuiNPCManageAnimations(EntityNPCInterface npc, boolean save, boolean hasMenuNpc) {
+        super(npc, hasMenuNpc);
         this.setSave(save);
         this.xOffset = -148 + 70;
         this.yOffset = -170 + 137;

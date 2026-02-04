@@ -1,6 +1,5 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -12,7 +11,6 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Disc projectile - flat spinning disc with optional boomerang behavior.
@@ -22,11 +20,7 @@ import java.util.UUID;
  */
 public class EntityAbilityDisc extends EntityAbilityProjectile {
 
-    // Disc-specific movement properties
-    private float speed = 0.5f;
-    private boolean homing = true;
-    private float homingStrength = 0.35f;  // Increased from 0.15 for better tracking
-    private float homingRange = 20.0f;
+    // Disc-specific movement propertie
 
     // Boomerang properties
     private boolean boomerang = false;
@@ -48,8 +42,6 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
-
-    private UUID siblingUUID = null;
 
     public EntityAbilityDisc(World world) {
         super(world);
@@ -87,22 +79,18 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Full constructor with all parameters using data classes.
      */
     public EntityAbilityDisc(World world, EntityLivingBase owner, EntityLivingBase target,
-                              double x, double y, double z,
-                              float discRadius, float discThickness,
-                              EnergyColorData color, EnergyCombatData combat,
-                              EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan,
-                              boolean boomerang, int boomerangDelay) {
+                             double x, double y, double z,
+                             float discRadius, float discThickness,
+                             EnergyDisplayData display, EnergyCombatData combat,
+                             EnergyHomingData homing, EnergyLightningData lightning,
+                             EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
+                             boolean boomerang, int boomerangDelay) {
         super(world);
 
         // Initialize base properties
-        initProjectile(owner, target, x, y, z, discRadius, color, combat, lightning, lifespan);
+        initProjectile(owner, target, x, y, z, discRadius, display, combat, lightning, lifespan, trajectory);
 
-        // Disc-specific properties from homing data
-        this.speed = homing.speed;
-        this.homing = homing.homing;
-        this.homingStrength = homing.homingStrength;
-        this.homingRange = homing.homingRange;
+        this.homingData = homing;
 
         this.boomerang = boomerang;
         this.boomerangDelay = boomerangDelay;
@@ -117,16 +105,16 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
             double dz = target.posZ - z;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
-                this.motionX = (dx / len) * speed;
-                this.motionY = (dy / len) * speed;
-                this.motionZ = (dz / len) * speed;
+                this.motionX = (dx / len) * getSpeed();
+                this.motionY = (dy / len) * getSpeed();
+                this.motionZ = (dz / len) * getSpeed();
             }
         } else {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
-            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            this.motionY = -Math.sin(pitch) * speed;
-            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            this.motionY = -Math.sin(pitch) * getSpeed();
+            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         }
     }
 
@@ -157,19 +145,13 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
         // Set visual properties
-        this.innerColor = color.innerColor;
-        this.outerColor = color.outerColor;
-        this.outerColorEnabled = color.outerColorEnabled;
-        this.outerColorWidth = color.outerColorWidth;
-        this.rotationSpeed = color.rotationSpeed;
-        this.lightningEffect = lightning.lightningEffect;
-        this.lightningDensity = lightning.lightningDensity;
-        this.lightningRadius = lightning.lightningRadius;
+        this.displayData = display;
+        this.lightningData = lightning;
 
         // Set charging state
         this.setCharging(true);
@@ -219,15 +201,15 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         prevPosZ = posZ;
 
         // Fire forward based on owner facing direction
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = 0; // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            motionY = -Math.sin(pitch) * speed;
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            motionY = -Math.sin(pitch) * getSpeed();
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         } else {
-            motionX = speed;
+            motionX = getSpeed();
             motionY = 0;
             motionZ = 0;
         }
@@ -248,7 +230,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         startZ = posZ;
 
         // Calculate velocity toward target
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
 
         if (target != null) {
             double dx = target.posX - posX;
@@ -256,23 +238,23 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
             double dz = target.posZ - posZ;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
-                motionX = (dx / len) * speed;
-                motionY = (dy / len) * speed;
-                motionZ = (dz / len) * speed;
+                motionX = (dx / len) * getSpeed();
+                motionY = (dy / len) * getSpeed();
+                motionZ = (dz / len) * getSpeed();
             }
         } else if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            motionY = -Math.sin(pitch) * speed;
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            motionY = -Math.sin(pitch) * getSpeed();
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         }
     }
 
     @Override
     protected void updateRotation() {
         // Disc spins ONLY on Y axis (flat spin like a saw blade)
-        this.rotationValY += rotationSpeed;
+        this.rotationValY += getRotationSpeed();
         // No wobble - keep X and Z at 0 for stable flight
         if (this.rotationValY > 360.0f) this.rotationValY -= 360.0f;
     }
@@ -315,7 +297,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         if (this.isCollidedHorizontally || this.isCollidedVertically) {
             if (!worldObj.isRemote) {
                 hasHit = true;
-                if (explosive) {
+                if (isExplosive()) {
                     doExplosion();
                 }
             }
@@ -334,14 +316,14 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         if (boomerang) {
             // If not returning yet, check if we should start returning
             if (!returning && !hasHit) {
-                if (distTraveled >= maxDistance * 0.8 || ticksSinceMiss >= boomerangDelay) {
+                if (distTraveled >= getMaxDistance() * 0.8 || ticksSinceMiss >= boomerangDelay) {
                     returning = true;
                 }
             }
 
             // If returning, only die when close to owner
             if (returning) {
-                Entity owner = getOwner();
+                Entity owner = getOwnerEntity();
                 if (owner != null) {
                     double distToOwner = Math.sqrt(
                         (posX - owner.posX) * (posX - owner.posX) +
@@ -359,7 +341,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         }
 
         // Non-boomerang: standard max distance check
-        return distTraveled >= maxDistance;
+        return distTraveled >= getMaxDistance();
     }
 
     /**
@@ -373,9 +355,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     }
 
     private void updateHoming() {
-        if (!homing) return;
+        if (!isHoming()) return;
 
-        Entity target = getTarget();
+        Entity target = getTargetEntity();
         if (target == null || !target.isEntityAlive()) return;
 
         double dx = target.posX - posX;
@@ -383,18 +365,18 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         double dz = target.posZ - posZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        if (dist <= homingRange && dist > 0) {
+        if (dist <= getHomingRange() && dist > 0) {
             // Calculate effective homing strength - increases when closer to commit to target
-            float effectiveStrength = homingStrength;
-            if (dist < homingRange * 0.3) {
-                effectiveStrength = Math.min(1.0f, homingStrength * 2.5f);
-            } else if (dist < homingRange * 0.6) {
-                effectiveStrength = Math.min(0.8f, homingStrength * 1.5f);
+            float effectiveStrength = getHomingStrength();
+            if (dist < getHomingRange() * 0.3) {
+                effectiveStrength = Math.min(1.0f, getHomingStrength() * 2.5f);
+            } else if (dist < getHomingRange() * 0.6) {
+                effectiveStrength = Math.min(0.8f, getHomingStrength() * 1.5f);
             }
 
-            double desiredVX = (dx / dist) * speed;
-            double desiredVY = (dy / dist) * speed;
-            double desiredVZ = (dz / dist) * speed;
+            double desiredVX = (dx / dist) * getSpeed();
+            double desiredVY = (dy / dist) * getSpeed();
+            double desiredVZ = (dz / dist) * getSpeed();
 
             motionX += (desiredVX - motionX) * effectiveStrength;
             motionY += (desiredVY - motionY) * effectiveStrength;
@@ -402,15 +384,15 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
             double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
             if (vLen > 0) {
-                motionX = (motionX / vLen) * speed;
-                motionY = (motionY / vLen) * speed;
-                motionZ = (motionZ / vLen) * speed;
+                motionX = (motionX / vLen) * getSpeed();
+                motionY = (motionY / vLen) * getSpeed();
+                motionZ = (motionZ / vLen) * getSpeed();
             }
         }
     }
 
     private void updateReturnToOwner() {
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
 
         // If owner is gone (unloaded/dead), head back toward start position
         double targetX, targetY, targetZ;
@@ -432,10 +414,10 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         if (dist > 0) {
             // Stronger homing when returning
-            double returnStrength = Math.min(1.0, homingStrength * 2.5);
-            double desiredVX = (dx / dist) * speed;
-            double desiredVY = (dy / dist) * speed;
-            double desiredVZ = (dz / dist) * speed;
+            double returnStrength = Math.min(1.0, getHomingStrength() * 2.5);
+            double desiredVX = (dx / dist) * getSpeed();
+            double desiredVY = (dy / dist) * getSpeed();
+            double desiredVZ = (dz / dist) * getSpeed();
 
             motionX += (desiredVX - motionX) * returnStrength;
             motionY += (desiredVY - motionY) * returnStrength;
@@ -443,9 +425,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
             double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
             if (vLen > 0) {
-                motionX = (motionX / vLen) * speed;
-                motionY = (motionY / vLen) * speed;
-                motionZ = (motionZ / vLen) * speed;
+                motionX = (motionX / vLen) * getSpeed();
+                motionY = (motionY / vLen) * getSpeed();
+                motionZ = (motionZ / vLen) * getSpeed();
             }
         }
     }
@@ -458,7 +440,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             hasHit = true;
-            if (explosive) {
+            if (isExplosive()) {
                 posX = blockHit.hitVec.xCoord;
                 posY = blockHit.hitVec.yCoord;
                 posZ = blockHit.hitVec.zCoord;
@@ -485,7 +467,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
             hasHit = true;
 
-            if (explosive) {
+            if (isExplosive()) {
                 doExplosion();
             } else {
                 applyDamage(entity);
@@ -502,7 +484,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     private void updateCharging() {
         chargeTick++;
 
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner == null || owner.isDead) {
             setDead();
             return;
@@ -544,14 +526,6 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     // ==================== GETTERS ====================
 
-    public float getSpeed() {
-        return speed;
-    }
-
-    public boolean isHoming() {
-        return homing;
-    }
-
     public float getDiscRadius() {
         return discRadius;
     }
@@ -568,26 +542,10 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         return returning;
     }
 
-    public UUID getSiblingUUID() {
-        return siblingUUID;
-    }
-
-    public void setSiblingUUID(UUID siblingUUID) {
-        if (siblingUUID == null)
-            return;
-
-        if (this.siblingUUID == null)
-            this.siblingUUID = siblingUUID;
-    }
-
     // ==================== NBT ====================
 
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
-        this.speed = nbt.hasKey("Speed") ? nbt.getFloat("Speed") : 0.5f;
-        this.homing = !nbt.hasKey("Homing") || nbt.getBoolean("Homing");
-        this.homingStrength = nbt.hasKey("HomingStrength") ? nbt.getFloat("HomingStrength") : 0.15f;
-        this.homingRange = nbt.hasKey("HomingRange") ? nbt.getFloat("HomingRange") : 20.0f;
         this.boomerang = nbt.hasKey("Boomerang") && nbt.getBoolean("Boomerang");
         this.boomerangDelay = nbt.hasKey("BoomerangDelay") ? nbt.getInteger("BoomerangDelay") : 40;
         this.discRadius = nbt.hasKey("DiscRadius") ? nbt.getFloat("DiscRadius") : 1.0f;
@@ -601,16 +559,10 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
         this.targetDiscRadius = nbt.hasKey("TargetDiscRadius") ? nbt.getFloat("TargetDiscRadius") : this.discRadius;
         this.targetDiscThickness = nbt.hasKey("TargetDiscThickness") ? nbt.getFloat("TargetDiscThickness") : this.discThickness;
-        this.anchorData.readNBT(nbt);
-        this.siblingUUID = nbt.hasKey("SiblingUUID") ? UUID.fromString(nbt.getString("SiblingUUID")) : null;
     }
 
     @Override
     protected void writeProjectileNBT(NBTTagCompound nbt) {
-        nbt.setFloat("Speed", speed);
-        nbt.setBoolean("Homing", homing);
-        nbt.setFloat("HomingStrength", homingStrength);
-        nbt.setFloat("HomingRange", homingRange);
         nbt.setBoolean("Boomerang", boomerang);
         nbt.setInteger("BoomerangDelay", boomerangDelay);
         nbt.setFloat("DiscRadius", discRadius);
@@ -622,12 +574,5 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         nbt.setInteger("ChargeTick", chargeTick);
         nbt.setFloat("TargetDiscRadius", targetDiscRadius);
         nbt.setFloat("TargetDiscThickness", targetDiscThickness);
-
-        // Anchor data
-        this.anchorData.writeNBT(nbt);
-
-        if (siblingUUID instanceof UUID) {
-            nbt.setString("SiblingUUID", siblingUUID.toString());
-        }
     }
 }

@@ -36,11 +36,12 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private int lingerTicks = 8;
 
     // Data classes
-    private final EnergyColorData colorData = new EnergyColorData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
+    private final EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
     private final EnergyCombatData combatData = new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f);
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);
     private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
 
     // Transient state for laser entity (used for movement locking)
     private transient EntityAbilityLaser laserEntity = null;
@@ -53,7 +54,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.minRange = 3.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 15;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
         // Default built-in animations
@@ -91,7 +92,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
                 world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 laserWidth,
-                colorData, combatData, lightningData, lifespanData,
+                colorData, combatData, lightningData, lifespanData, trajectoryData,
                 expansionSpeed, lingerTicks
             );
 
@@ -106,6 +107,12 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         if (world.isRemote) {
             signalCompletion();
+            return;
+        }
+
+        if (laserEntity == null) {
+            signalCompletion();
+            return;
         }
 
         laserEntity.startMoving(target);
@@ -271,6 +278,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
 
             // Visual tab
+            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
+                .tab("ability.tab.visual"),
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).tab("ability.tab.visual"),

@@ -229,9 +229,8 @@ public class AnchorPointHelper {
         double blockZ = modelZ * MODEL_SCALE * scale;
 
         // Apply body yaw rotation
-        // Renderer uses glRotate(180 - yaw), so: cos(180-yaw) = -cos(yaw), sin(180-yaw) = sin(yaw)
-        // Y-axis rotation: x' = x*cos + z*sin, z' = -x*sin + z*cos
-        // Substituting: x' = -x*cos(yaw) + z*sin(yaw), z' = -x*sin(yaw) - z*cos(yaw)
+        // Renderer applies glRotatef(180 - yaw) then glScalef(-1, -1, 1).
+        // Combined transform: x' = mx*cos(yaw) + mz*sin(yaw), z' = mx*sin(yaw) - mz*cos(yaw)
         float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
         double cosYaw = Math.cos(bodyYaw);
         double sinYaw = Math.sin(bodyYaw);
