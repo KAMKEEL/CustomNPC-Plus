@@ -32,7 +32,7 @@ public class AbilityOrbDual extends Ability {
     private int dualFireDelay = 5;
 
     // Data classes for energy properties
-    public final EnergyDisplayData[] colorData = new EnergyDisplayData[]{
+    public final EnergyDisplayData[] displayData = new EnergyDisplayData[]{
         new EnergyDisplayData(), new EnergyDisplayData()
     };
     public final EnergyCombatData combatData = new EnergyCombatData();
@@ -41,8 +41,11 @@ public class AbilityOrbDual extends Ability {
         new EnergyLightningData(), new EnergyLightningData()
     };
     public final EnergyLifespanData lifespanData = new EnergyLifespanData();
-    private EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
+    private final EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
         new EnergyAnchorData(AnchorPoint.RIGHT_HAND), new EnergyAnchorData(AnchorPoint.LEFT_HAND)
+    };
+    private EnergyTrajectoryData[] trajectoryData = new EnergyTrajectoryData[]{
+        new EnergyTrajectoryData(), new EnergyTrajectoryData()
     };
 
     // Transient state for orb entity (used during windup charging)
@@ -110,13 +113,13 @@ public class AbilityOrbDual extends Ability {
             orbEntity = new EntityAbilityOrb(
                 world, caster, target,
                 spawnPos1.xCoord, spawnPos1.yCoord, spawnPos1.zCoord, orbSize,
-                colorData[0], combatData, homingData, lightningData[0], lifespanData);
+                displayData[0], combatData, homingData, lightningData[0], lifespanData, trajectoryData[0]);
 
             Vec3 spawnPos2 = AnchorPointHelper.calculateAnchorPosition(caster, anchorData[1]);
             orbEntity2 = new EntityAbilityOrb(
                 world, caster, target,
                 spawnPos2.xCoord, spawnPos2.yCoord, spawnPos2.zCoord, orbSize,
-                colorData[1], combatData, homingData, lightningData[1], lifespanData);
+                displayData[1], combatData, homingData, lightningData[1], lifespanData, trajectoryData[1]);
 
             orbEntity.setSiblingEntityId(orbEntity2.getEntityId());
             orbEntity2.setSiblingEntityId(orbEntity.getEntityId());
@@ -217,12 +220,13 @@ public class AbilityOrbDual extends Ability {
         NBTTagCompound orb1 = new NBTTagCompound();
         NBTTagCompound orb2 = new NBTTagCompound();
 
-        anchorData[0].writeNBT(orb1);
-        anchorData[1].writeNBT(orb2);
-        colorData[0].writeNBT(orb1);
-        colorData[1].writeNBT(orb2);
-        lightningData[0].writeNBT(orb1);
-        lightningData[1].writeNBT(orb2);
+        for (int i = 0; i < 2; i++) {
+            NBTTagCompound orb = i == 0 ? orb1 : orb2;
+            anchorData[i].writeNBT(orb);
+            displayData[i].writeNBT(orb);
+            lightningData[i].writeNBT(orb);
+            trajectoryData[i].writeNBT(orb);
+        }
 
         nbt.setTag("Orb_1", orb1);
         nbt.setTag("Orb_2", orb2);
@@ -244,18 +248,19 @@ public class AbilityOrbDual extends Ability {
             homingData.speed = nbt.getFloat("orbSpeed");
         }
 
-        anchorData[0].readNBT(orb1);
-        anchorData[1].readNBT(orb2);
-        colorData[0].readNBT(orb1);
-        colorData[1].readNBT(orb2);
-        lightningData[0].readNBT(orb1);
-        lightningData[1].readNBT(orb2);
+        for (int i = 0; i < 2; i++) {
+            NBTTagCompound orb = i == 0 ? orb1 : orb2;
+            anchorData[i].readNBT(orb);
+            displayData[i].readNBT(orb);
+            lightningData[i].readNBT(orb);
+            trajectoryData[i].readNBT(orb);
+        }
     }
 
     // Getters & Setters
     private EnergyDisplayData getColorData(int orb) {
         orb = ValueUtil.clamp(orb, 0, 1);
-        return colorData[orb];
+        return displayData[orb];
     }
     private EnergyLightningData getLightningData(int orb) {
         orb = ValueUtil.clamp(orb, 0, 1);
@@ -564,7 +569,7 @@ public class AbilityOrbDual extends Ability {
         if (npc == null || npc.worldObj == null) return null;
 
         EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
-        orb.setupPreview(npc, orbSize, colorData[0], lightningData[0], anchorData[0], windUpTicks);
+        orb.setupPreview(npc, orbSize, displayData[0], lightningData[0], anchorData[0], windUpTicks);
         return orb;
     }
 

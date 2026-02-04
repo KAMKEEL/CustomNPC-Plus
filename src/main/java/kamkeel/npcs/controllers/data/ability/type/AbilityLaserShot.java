@@ -41,6 +41,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);
     private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
 
     // Transient state for laser entity (used for movement locking)
     private transient EntityAbilityLaser laserEntity = null;
@@ -91,7 +92,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
                 world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
                 laserWidth,
-                colorData, combatData, lightningData, lifespanData,
+                colorData, combatData, lightningData, lifespanData, trajectoryData,
                 expansionSpeed, lingerTicks
             );
 

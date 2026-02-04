@@ -104,12 +104,12 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                              float beamWidth, float headSize,
                              EnergyDisplayData display, EnergyCombatData combat,
                              EnergyHomingData homing, EnergyLightningData lightning,
-                             EnergyLifespanData lifespan,
+                             EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
                              boolean anchoredMode) {
         super(world);
 
         // Initialize base properties via parent
-        initProjectile(owner, target, x, y, z, headSize, display, combat, lightning, lifespan);
+        initProjectile(owner, target, x, y, z, headSize, display, combat, lightning, lifespan, trajectory);
 
         // Beam-specific properties from homing data
 

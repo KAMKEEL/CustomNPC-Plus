@@ -45,6 +45,8 @@ public class AbilityOrbBarrage extends Ability {
     private final EnergyAnchorData[] anchorData = new EnergyAnchorData[]{
         new EnergyAnchorData(AnchorPoint.RIGHT_HAND), new EnergyAnchorData(AnchorPoint.LEFT_HAND)
     };
+    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
+
 
     // Array to store entities
     private transient List<EntityAbilityOrb> orbEntities = new ArrayList<>();
@@ -123,7 +125,7 @@ public class AbilityOrbBarrage extends Ability {
                 EntityAbilityOrb orbEntity = new EntityAbilityOrb(
                     world, caster, target,
                     spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
-                    colorData, combatData, homingData, lightningData, lifespanData
+                    colorData, combatData, homingData, lightningData, lifespanData, trajectoryData
                 );
 
                 orbEntity.setupCharging(anchorData[i], windUpTicks);
@@ -174,7 +176,7 @@ public class AbilityOrbBarrage extends Ability {
 
         EntityAbilityOrb orb = new EntityAbilityOrb(
             world, caster, target, spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
-            orbSize, colorData, combatData, homingData, lightningData, lifespanData
+            orbSize, colorData, combatData, homingData, lightningData, lifespanData, trajectoryData
         );
 
         world.spawnEntityInWorld(orb);
@@ -271,6 +273,7 @@ public class AbilityOrbBarrage extends Ability {
         homingData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
+        trajectoryData.writeNBT(nbt);
 
         for (int i = 0; i < anchorData.length; i++) {
             NBTTagCompound comp = new NBTTagCompound();
@@ -290,6 +293,7 @@ public class AbilityOrbBarrage extends Ability {
         homingData.readNBT(nbt);
         lightningData.readNBT(nbt);
         lifespanData.readNBT(nbt);
+        trajectoryData.readNBT(nbt);
 
         for (int i = 0; i < anchorData.length; i++) {
             if (nbt.hasKey("Anchor_" + i, Constants.NBT.TAG_COMPOUND)) {

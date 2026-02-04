@@ -92,11 +92,11 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
                               float laserWidth,
                               EnergyDisplayData display, EnergyCombatData combat,
                               EnergyLightningData lightning, EnergyLifespanData lifespan,
-                              float expansionSpeed, int lingerTicks) {
+                              EnergyTrajectoryData trajectory, float expansionSpeed, int lingerTicks) {
         super(world);
 
         // Initialize base properties (laser doesn't rotate)
-        initProjectile(owner, target, x, y, z, laserWidth, display, combat, lightning, lifespan);
+        initProjectile(owner, target, x, y, z, laserWidth, display, combat, lightning, lifespan, trajectory);
         this.displayData.rotationSpeed = 0.0f;
 
         // Laser-specific properties
