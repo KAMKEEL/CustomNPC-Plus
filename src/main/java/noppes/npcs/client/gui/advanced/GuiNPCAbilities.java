@@ -306,7 +306,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 List<String> list = Register.REGISTERED_NAMESPACES.get("ability");
 
                 if (list != null && !list.isEmpty()) {
-                    modIndex = (modIndex + 1) % list.size();
+                    if (modIndex == list.size() - 1) {
+                        scrollType = ScrollType.ALL;
+                    } else {
+                        modIndex = (modIndex + 1) % list.size();
+                    }
                 } else {
                     modIndex = 0;
                     scrollType = ScrollType.ALL;
