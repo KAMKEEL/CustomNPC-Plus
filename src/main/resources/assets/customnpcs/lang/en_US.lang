@@ -1631,7 +1631,11 @@ ability.cnpc.sweeper=Sweeper
 ability.weight=Weight
 ability.windUpTicks=Wind Up
 ability.cooldownTicks=Cooldown
-ability.lockMovement=Lock Movement
+ability.lockPosition=Lock Position
+ability.lockType=Lock Type
+ability.lockType.movement=Movement
+ability.lockType.rotation=Rotation
+ability.lockType.both=Both
 ability.interruptible=Interruptible
 ability.dazedTicks=Dazed Ticks
 ability.targetingMode=Targeting
@@ -1684,6 +1688,7 @@ ability.section.healing=Healing
 ability.section.trigger=Trigger
 ability.section.aoe=AOE
 ability.section.pullDamage=Pull Damage
+ability.section.hitZone=Hit Zone
 
 # Shared Sub-Section Labels (used under section headers)
 gui.radius=Radius
@@ -1713,6 +1718,7 @@ ability.maxDistance=Max Distance
 ability.lifetime=Lifetime
 ability.stunTicks=Stun Ticks
 ability.hitWidth=Hit Width
+ability.hitLength=Hit Length
 ability.effects=Effects
 ability.mode=Mode
 ability.duration=Duration
@@ -1856,7 +1862,8 @@ ability.noTypeSettings=No type-specific settings
 # ═══════════════════════════════════════════════════════════════
 
 ability.hover.weight=Higher weight = more likely to be chosen when multiple abilities available
-ability.hover.lockMove=Prevents NPC from moving while ability is charging or active
+ability.hover.lockPosition=Prevents NPC from moving or rotating while ability is charging or active
+ability.hover.lockType=What to lock: Movement (pathfinding), Rotation (facing direction), or Both
 ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
 ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)
 ability.hover.windup=Charge-up time before ability activates (20 ticks = 1 second)
