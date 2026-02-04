@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.ParticlePacket;
 import kamkeel.npcs.network.packets.data.PlayerDataInfoPacket;
@@ -775,7 +776,7 @@ public class NoppesUtilServer {
 
     public static void sendAbilityTypesInfo(EntityPlayerMP player) {
         HashMap<String, Integer> map = new HashMap<String, Integer>();
-        kamkeel.npcs.controllers.data.ability.AbilityController controller = kamkeel.npcs.controllers.data.ability.AbilityController.Instance;
+        AbilityController controller = AbilityController.Instance;
         if (controller != null) {
             int index = 0;
             for (String typeId : controller.getTypes()) {
