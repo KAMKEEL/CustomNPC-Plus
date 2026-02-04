@@ -9,13 +9,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
@@ -207,7 +207,7 @@ public class DataScript implements IScriptHandlerPacket {
     }
 
     public boolean isEnabled() {
-        return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
+        return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && CustomNpcs.proxy.isScriptingEnabled();
     }
 
     @Override

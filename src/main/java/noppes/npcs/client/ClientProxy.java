@@ -194,6 +194,7 @@ import noppes.npcs.client.renderer.items.ItemShortLampRenderer;
 import noppes.npcs.client.renderer.items.ItemTallLampRenderer;
 import noppes.npcs.client.renderer.items.ItemToolRenderer;
 import noppes.npcs.client.renderer.items.ScriptedBlockItemRenderer;
+import noppes.npcs.client.ScriptClientConfig;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigItem;
 import noppes.npcs.config.ConfigMain;
@@ -826,6 +827,31 @@ public class ClientProxy extends CommonProxy {
             JSTypeRegistry.getInstance().initializeFromResources();
         } catch (IOException e) {
         }
+    }
+
+    @Override
+    public boolean isScriptingEnabled() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isScriptingEnabled();
+    }
+
+    @Override
+    public boolean isRunLoadedScriptsFirst() {
+        return ScriptClientConfig.isRunLoadedScriptsFirst();
+    }
+
+    @Override
+    public boolean isGlobalPlayerScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalPlayerScripts();
+    }
+
+    @Override
+    public boolean isGlobalForgeScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalForgeScripts();
+    }
+
+    @Override
+    public boolean isGlobalNPCScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalNPCScripts();
     }
 
     public static class FontContainer {

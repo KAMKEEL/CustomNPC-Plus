@@ -65,6 +65,11 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.counterAnimationName = "Ability_Guard_Counter";
     }
 
+    @Override
+    public boolean hasDamage() {
+        return false;
+    }
+
     public enum CounterType {
         FLAT,
         PERCENT;

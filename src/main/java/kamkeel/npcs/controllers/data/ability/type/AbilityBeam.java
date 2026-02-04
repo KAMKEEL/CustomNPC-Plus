@@ -109,6 +109,7 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
             beamEntity.setupCharging(anchorData, windUpTicks, offsetDist);
 
             beamEntity.setEffects(this.effects);
+            beamEntity.setSourceAbility(this);
             world.spawnEntityInWorld(beamEntity);
         }
     }

@@ -137,6 +137,8 @@ public class AbilityBeamDual extends Ability {
             beamEntity.setEffects(this.effects);
             if (dualFire) beamEntity2.setEffects(this.effects);
 
+            beamEntity.setSourceAbility(this);
+            beamEntity2.setSourceAbility(this);
             world.spawnEntityInWorld(beamEntity);
             world.spawnEntityInWorld(beamEntity2);
         }

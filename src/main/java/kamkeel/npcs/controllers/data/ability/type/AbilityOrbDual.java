@@ -133,6 +133,8 @@ public class AbilityOrbDual extends Ability {
                 orbEntity2.setEffects(this.effects);
             }
 
+            orbEntity.setSourceAbility(this);
+            orbEntity2.setSourceAbility(this);
             world.spawnEntityInWorld(orbEntity);
             world.spawnEntityInWorld(orbEntity2);
         }

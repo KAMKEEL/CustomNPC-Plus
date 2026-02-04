@@ -7,7 +7,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IHookDefinition;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
@@ -154,9 +153,9 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     private String getFullCode() {
         StringBuilder sb = new StringBuilder();
-        if (ConfigScript.RunLoadedScriptsFirst) appendExternalScripts(sb);
+        if (CustomNpcs.proxy.isRunLoadedScriptsFirst()) appendExternalScripts(sb);
         if (script != null && !script.isEmpty()) sb.append(script).append("\n");
-        if (!ConfigScript.RunLoadedScriptsFirst) appendExternalScripts(sb);
+        if (!CustomNpcs.proxy.isRunLoadedScriptsFirst()) appendExternalScripts(sb);
         return sb.toString();
     }
 

@@ -146,6 +146,8 @@ public class AbilityDiscDual extends Ability {
                 discEntity2.setEffects(this.effects);
             }
 
+            discEntity.setSourceAbility(this);
+            discEntity2.setSourceAbility(this);
             world.spawnEntityInWorld(discEntity);
             world.spawnEntityInWorld(discEntity2);
         }

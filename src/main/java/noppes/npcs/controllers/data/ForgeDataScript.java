@@ -12,8 +12,8 @@ import net.minecraftforge.event.world.ChunkDataEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -36,7 +36,7 @@ public class ForgeDataScript extends MultiScriptHandler {
     }
 
     public boolean isEnabled() {
-        return this.enabled && ConfigScript.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
+        return this.enabled && CustomNpcs.proxy.isGlobalForgeScripts() && ScriptController.HasStart && this.scripts.size() > 0;
     }
 
     @Override
