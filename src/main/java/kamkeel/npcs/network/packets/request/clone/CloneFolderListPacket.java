@@ -10,40 +10,24 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcsPermissions;
+import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.controllers.data.CloneFolder;
 
 import java.io.IOException;
 
-public final class ClonePreSavePacket extends AbstractPacket {
-    public static String packetName = "Request|ClonePreSave";
+public final class CloneFolderListPacket extends AbstractPacket {
+    public static String packetName = "Request|CloneFolderList";
 
-    private String name;
-    private int tab;
-    private String folderName;
-
-    public ClonePreSavePacket() {
-    }
-
-    public ClonePreSavePacket(String name, int tab) {
-        this.name = name;
-        this.tab = tab;
-        this.folderName = null;
-    }
-
-    public ClonePreSavePacket(String name, String folderName) {
-        this.name = name;
-        this.tab = -1;
-        this.folderName = folderName;
+    public CloneFolderListPacket() {
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.ClonePreSave;
+        return EnumRequestPacket.CloneFolderList;
     }
 
     @Override
@@ -51,19 +35,9 @@ public final class ClonePreSavePacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
-    @Override
-    public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_CLONE;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, this.name);
-        out.writeInt(tab);
-        if (tab == -1) {
-            ByteBufUtils.writeString(out, this.folderName);
-        }
     }
 
     @Override
@@ -73,17 +47,13 @@ public final class ClonePreSavePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.CLONER))
             return;
 
-        String name = ByteBufUtils.readString(in);
-        int tab = in.readInt();
-        boolean bo;
-        if (tab == -1) {
-            String folder = ByteBufUtils.readString(in);
-            bo = ServerCloneController.Instance.getCloneData(null, name, folder) != null;
-        } else {
-            bo = ServerCloneController.Instance.getCloneData(null, name, tab) != null;
-        }
         NBTTagCompound compound = new NBTTagCompound();
-        compound.setBoolean("NameExists", bo);
+        NBTTagList folderList = new NBTTagList();
+        for (CloneFolder folder : ServerCloneController.Instance.getFolderList()) {
+            folderList.appendTag(folder.writeNBT(new NBTTagCompound()));
+        }
+        compound.setTag("CloneFolders", folderList);
+
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 }

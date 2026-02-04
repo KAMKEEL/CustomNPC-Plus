@@ -3,7 +3,6 @@ package noppes.npcs.client.gui;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.clone.CloneAllTagsPacket;
 import kamkeel.npcs.network.packets.request.clone.CloneFolderCrudPacket;
-import kamkeel.npcs.network.packets.request.clone.CloneFolderListPacket;
 import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
 import kamkeel.npcs.network.packets.request.clone.CloneMovePacket;
 import kamkeel.npcs.network.packets.request.clone.CloneRemovePacket;
@@ -19,12 +18,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.controllers.ClientTagMapController;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiCustomScrollCloner;
-import noppes.npcs.client.gui.util.GuiMenuSideButton;
+import noppes.npcs.client.gui.util.GuiCustomScrollIcons;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -38,8 +36,6 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.CloneFolder;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TagMap;
-import noppes.npcs.util.ValueUtil;
-import org.lwjgl.input.Mouse;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -49,51 +45,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICustomScrollListener, ISubGuiListener, IClonerGui {
+public class GuiNpcMobSpawnerFullscreen extends GuiNPCInterface implements IGuiData, ICustomScrollListener, ISubGuiListener, IClonerGui {
 
-    // ==================== STATIC STATE (persists across GUI opens, shared with fullscreen) ====================
-    private static int sidebarMode = 0; // 0=Tabs, 1=Folders
-    public static int activeTab = 1;
-    public static String activeFolder = null;
-    public static int showingClones = 0; // 0=Clones, 1=Entities, 2=Server, 3=Filters
-    public static String search = "";
-    public static String tagSearch = "";
-
-    public static HashMap<UUID, Tag> tags = new HashMap<>();
-    public static HashMap<String, UUID> tagNames = new HashMap<>();
-    public static HashSet<String> tagFilters = new HashSet<>();
-    public static byte displayTags = 0;
-    // 0 - Any, 1 - All, 2 - Not Any, 3 - Not All
-    public static byte filterCondition = 0;
-    public static byte ascending = 0;
-    // 0 - By Name, 1 - By Date
-    public static byte sortType = 0;
+    // ==================== LAYOUT CONSTANTS ====================
+    private static final int PAD = 10;
+    private static final int LEFT_NAV_W = 120;
+    private static final int RIGHT_ACT_W = 60;
+    private static final int TOP_BAR_H = 22;
+    private static final int GAP = 2;
 
     // ==================== INSTANCE STATE ====================
     public TagMap tagMap;
     private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this, 0);
     private final GuiCustomScroll filterScroll = new GuiCustomScroll(this, 1);
+    private final GuiCustomScrollIcons navScroll = new GuiCustomScrollIcons(this, 2);
 
-    public int posX, posY, posZ;
+    private int posX, posY, posZ;
     private List<String> list;
     private List<String> rawList;
     private List<String> tagList;
     private List<String> folderNames = new ArrayList<>();
 
-    // Scrollable folder side buttons (folders mode only)
-    private HashMap<Integer, GuiMenuSideButton> folderSideButtons = new HashMap<>();
-    private float folderScroll = 0;
-    private float destFolderScroll = 0;
+    // Left nav list data
+    private List<String> navNames = new ArrayList<>();
+    private List<Integer> navIcons = new ArrayList<>();
+    private String navSearch = "";
 
     // ==================== CONSTRUCTOR ====================
-    public GuiNpcMobSpawner(int i, int j, int k) {
+    public GuiNpcMobSpawnerFullscreen(int posX, int posY, int posZ) {
         super();
-        posX = i;
-        posY = j;
-        posZ = k;
+        this.posX = posX;
+        this.posY = posY;
+        this.posZ = posZ;
         closeOnEsc = true;
-        xSize = 354;
-        setBackground("menubg.png");
+        drawDefaultBackground = true;
+        // No setBackground() call — no menubg.png tiling
         PacketClient.sendClient(new CloneAllTagsPacket());
         loadFolderNames();
     }
@@ -110,12 +96,12 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
     // ==================== IClonerGui ====================
     @Override
     public int getShowingClones() {
-        return showingClones;
+        return GuiNpcMobSpawner.showingClones;
     }
 
     @Override
     public HashMap<UUID, Tag> getTags() {
-        return tags;
+        return GuiNpcMobSpawner.tags;
     }
 
     @Override
@@ -124,55 +110,76 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
     }
 
     // ==================== INIT GUI ====================
+    @Override
     public void initGui() {
         super.initGui();
-        guiTop += 10;
-        guiLeft += 30;
 
-        scroll.clear();
-        scroll.setSize(293, 188);
-        scroll.guiLeft = guiLeft + 4;
-        scroll.guiTop = guiTop + 26;
+        int originX = PAD;
+        int originY = PAD;
+        int usableW = width - 2 * PAD;
+        int usableH = height - 2 * PAD;
 
-        filterScroll.clear();
-        filterScroll.setSize(140, 166);
-        filterScroll.guiLeft = guiLeft + 4;
-        filterScroll.guiTop = guiTop + 19;
-        filterScroll.multipleSelection = true;
-        filterScroll.setSelectedList(tagFilters);
+        int contentX = originX + LEFT_NAV_W + GAP;
+        int contentY = originY + TOP_BAR_H + GAP;
+        int contentW = usableW - LEFT_NAV_W - RIGHT_ACT_W - 3 * GAP;
+        int contentH = usableH - TOP_BAR_H - GAP;
+        int rightX = contentX + contentW + GAP;
 
-        // Top buttons
+        // Top bar — mode buttons
         GuiMenuTopButton btn;
-        addTopButton(btn = new GuiMenuTopButton(3, guiLeft + 4, guiTop - 17, "spawner.clones"));
-        btn.active = showingClones == 0;
+        addTopButton(btn = new GuiMenuTopButton(3, originX, originY, "spawner.clones"));
+        btn.active = GuiNpcMobSpawner.showingClones == 0;
         addTopButton(btn = new GuiMenuTopButton(5, btn, "gui.server"));
-        btn.active = showingClones == 2;
+        btn.active = GuiNpcMobSpawner.showingClones == 2;
         addTopButton(btn = new GuiMenuTopButton(4, btn, "spawner.entities"));
-        btn.active = showingClones == 1;
-        addTopButton(btn = new GuiMenuTopButton(16, guiLeft + (xSize - 82), guiTop - 17, "gui.filters"));
-        btn.active = showingClones == 3;
-        addTopButton(new GuiMenuTopButton(61, guiLeft + (xSize - 37), guiTop - 17, "+"));
-        addTopButton(new GuiMenuTopButton(17, guiLeft + (xSize - 22), guiTop - 17, "X"));
+        btn.active = GuiNpcMobSpawner.showingClones == 1;
 
-        if (showingClones < 3) {
+        // Top bar — right side
+        int topRight = originX + usableW;
+        addTopButton(new GuiMenuTopButton(17, topRight - 22, originY, "X"));
+        addTopButton(new GuiMenuTopButton(61, topRight - 38, originY, "-"));
+        addTopButton(btn = new GuiMenuTopButton(16, topRight - 82, originY, "gui.filters"));
+        btn.active = GuiNpcMobSpawner.showingClones == 3;
+
+        if (GuiNpcMobSpawner.showingClones < 3) {
+            // Search field in top bar
+            addTextField(new GuiNpcTextField(1, this, fontRendererObj,
+                contentX, originY + 2, contentW, 20, GuiNpcMobSpawner.search));
+
+            // Left navigation panel
+            buildNavList();
+            navScroll.clear();
+            navScroll.setSize(LEFT_NAV_W, contentH - 44);
+            navScroll.guiLeft = originX;
+            navScroll.guiTop = contentY;
+            navScroll.setListWithIcons(navNames, navIcons);
+            navScroll.setSelected(getNavSelection());
+            addScroll(navScroll);
+
+            // Nav search field
+            addTextField(new GuiNpcTextField(3, this, fontRendererObj,
+                originX, contentY + contentH - 42, LEFT_NAV_W, 20, navSearch));
+
+            // Add folder button
+            addButton(new GuiNpcButton(40, originX, contentY + contentH - 20, LEFT_NAV_W, 20, "+ Add Folder"));
+
+            // Center content — clone/entity list
+            scroll.clear();
+            scroll.setSize(contentW, contentH);
+            scroll.guiLeft = contentX;
+            scroll.guiTop = contentY;
             addScroll(scroll);
-            addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 293, 20, search));
-            addButton(new GuiNpcButton(1, guiLeft + 298, guiTop + 6, 52, 20, "item.monsterPlacer.name"));
-            addButton(new GuiNpcButton(2, guiLeft + 298, guiTop + 140, 52, 20, "spawner.mobspawner"));
 
-            if (showingClones == 0 || showingClones == 2) {
-                addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 52, 20, "gui.remove"));
+            // Right action panel
+            int btnW = RIGHT_ACT_W;
+            int btnH = 20;
+            int btnGap = 2;
+            addButton(new GuiNpcButton(1, rightX, contentY, btnW, btnH, "item.monsterPlacer.name"));
+            addButton(new GuiNpcButton(2, rightX, contentY + btnH + btnGap, btnW, btnH, "spawner.mobspawner"));
 
-                // Tabs/Folders toggle above side buttons
-                addButton(new GuiNpcButton(60, guiLeft - 70, guiTop - 18, 70, 16,
-                    new String[]{"Tabs", "Folders"}, sidebarMode));
-
-                if (sidebarMode == 0) {
-                    initTabSideButtons();
-                } else {
-                    initFolderSideButtons();
-                }
-
+            if (GuiNpcMobSpawner.showingClones == 0 || GuiNpcMobSpawner.showingClones == 2) {
+                addButton(new GuiNpcButton(6, rightX, contentY + 2 * (btnH + btnGap), btnW, btnH, "gui.remove"));
+                addButton(new GuiNpcButton(50, rightX, contentY + 3 * (btnH + btnGap), btnW, btnH, "Move"));
                 showClones();
             } else {
                 showEntities();
@@ -182,95 +189,100 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
         }
     }
 
-    private void initTabSideButtons() {
-        // Tabs 1-5: full width (70px)
-        addSideButton(new GuiMenuSideButton(21, guiLeft - 70, guiTop + 2, 70, 22, "1"));
-        addSideButton(new GuiMenuSideButton(22, guiLeft - 70, guiTop + 23, 70, 22, "2"));
-        addSideButton(new GuiMenuSideButton(23, guiLeft - 70, guiTop + 44, 70, 22, "3"));
-        addSideButton(new GuiMenuSideButton(24, guiLeft - 70, guiTop + 65, 70, 22, "4"));
-        addSideButton(new GuiMenuSideButton(25, guiLeft - 70, guiTop + 86, 70, 22, "5"));
-        // Tabs 6-15: half width (35px), 2-column grid
-        addSideButton(new GuiMenuSideButton(26, guiLeft - 70, guiTop + 107, 35, 22, "6"));
-        addSideButton(new GuiMenuSideButton(27, guiLeft - 35, guiTop + 107, 35, 22, "7"));
-        addSideButton(new GuiMenuSideButton(28, guiLeft - 70, guiTop + 128, 35, 22, "8"));
-        addSideButton(new GuiMenuSideButton(29, guiLeft - 35, guiTop + 128, 35, 22, "9"));
-        addSideButton(new GuiMenuSideButton(30, guiLeft - 70, guiTop + 149, 35, 22, "10"));
-        addSideButton(new GuiMenuSideButton(31, guiLeft - 35, guiTop + 149, 35, 22, "11"));
-        addSideButton(new GuiMenuSideButton(32, guiLeft - 70, guiTop + 170, 35, 22, "12"));
-        addSideButton(new GuiMenuSideButton(33, guiLeft - 35, guiTop + 170, 35, 22, "13"));
-        addSideButton(new GuiMenuSideButton(34, guiLeft - 70, guiTop + 191, 35, 22, "14"));
-        addSideButton(new GuiMenuSideButton(35, guiLeft - 35, guiTop + 191, 35, 22, "15"));
+    // ==================== LEFT NAVIGATION ====================
+    private void buildNavList() {
+        navNames.clear();
+        navIcons.clear();
 
-        if (activeFolder == null && activeTab >= 1 && activeTab <= 15) {
-            GuiMenuSideButton active = getSideButton(20 + activeTab);
-            if (active != null) active.active = true;
+        String searchLower = navSearch.toLowerCase();
+
+        for (int i = 1; i <= 15; i++) {
+            String name = "Tab " + i;
+            if (searchLower.isEmpty() || name.toLowerCase().contains(searchLower)) {
+                navNames.add(name);
+                navIcons.add(GuiCustomScrollIcons.ICON_TAB);
+            }
+        }
+        for (String folder : folderNames) {
+            if (searchLower.isEmpty() || folder.toLowerCase().contains(searchLower)) {
+                navNames.add(folder);
+                navIcons.add(GuiCustomScrollIcons.ICON_FOLDER);
+            }
         }
     }
 
-    private void initFolderSideButtons() {
-        folderSideButtons.clear();
-        for (int i = 0; i < folderNames.size(); i++) {
-            String name = folderNames.get(i);
-            GuiMenuSideButton btn = new GuiMenuSideButton(i, guiLeft - 70, guiTop + 2 + i * 21, 70, 22, name);
-            if (name.equals(activeFolder)) {
-                btn.active = true;
+    private String getNavSelection() {
+        if (GuiNpcMobSpawner.activeFolder != null) return GuiNpcMobSpawner.activeFolder;
+        if (GuiNpcMobSpawner.activeTab >= 1 && GuiNpcMobSpawner.activeTab <= 15) {
+            return "Tab " + GuiNpcMobSpawner.activeTab;
+        }
+        return "Tab 1";
+    }
+
+    private void handleNavClick(String selected) {
+        if (selected == null) return;
+
+        // Check if it's a tab
+        if (selected.startsWith("Tab ")) {
+            try {
+                int tabNum = Integer.parseInt(selected.substring(4));
+                if (tabNum >= 1 && tabNum <= 15) {
+                    GuiNpcMobSpawner.activeTab = tabNum;
+                    GuiNpcMobSpawner.activeFolder = null;
+                    initGui();
+                    return;
+                }
+            } catch (NumberFormatException ignored) {
             }
-            folderSideButtons.put(i, btn);
         }
 
-        // Folder CRUD buttons below visible scroll area (8 slots)
-        int crudY = guiTop + 2 + 8 * 21;
-        addButton(new GuiNpcButton(40, guiLeft - 70, crudY, 22, 20, "+"));
-        if (activeFolder != null) {
-            addButton(new GuiNpcButton(41, guiLeft - 47, crudY, 28, 20, "Ren"));
-            GuiNpcButton delBtn = new GuiNpcButton(42, guiLeft - 18, crudY, 22, 20, "-");
-            if (ClientCloneController.Instance != null) {
-                List<String> clones = ClientCloneController.Instance.getClones(activeFolder);
-                delBtn.enabled = clones == null || clones.isEmpty();
-            }
-            addButton(delBtn);
-        }
+        // It's a folder name
+        GuiNpcMobSpawner.activeFolder = selected;
+        GuiNpcMobSpawner.activeTab = -1;
+        initGui();
     }
 
     // ==================== FILTERS PAGE ====================
     private void showFiltersPage() {
-        int baseY = guiTop;
+        int originX = PAD;
+        int originY = PAD;
+        int baseY = originY + TOP_BAR_H + GAP;
 
         addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("cloner.tagFilters"),
-            guiLeft + 7, baseY + 7));
+            originX + 7, baseY + 7));
 
         filterScroll.clear();
         filterScroll.setSize(140, 166);
-        filterScroll.guiLeft = guiLeft + 4;
+        filterScroll.guiLeft = originX + 4;
         filterScroll.guiTop = baseY + 19;
         filterScroll.multipleSelection = true;
-        filterScroll.setSelectedList(tagFilters);
+        filterScroll.setSelectedList(GuiNpcMobSpawner.tagFilters);
         addScroll(filterScroll);
 
         addTextField(new GuiNpcTextField(2, this, fontRendererObj,
-            guiLeft + 4, baseY + 190, 140, 20, tagSearch));
+            originX + 4, baseY + 190, 140, 20, GuiNpcMobSpawner.tagSearch));
 
         addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("cloner.tagVisibility"),
-            guiLeft + 150, baseY + 27));
-        addButton(new GuiNpcButton(12, guiLeft + 215, baseY + 20,
-            new String[]{"display.show", "display.all", "display.hide"}, displayTags));
+            originX + 150, baseY + 27));
+        addButton(new GuiNpcButton(12, originX + 215, baseY + 20,
+            new String[]{"display.show", "display.all", "display.hide"}, GuiNpcMobSpawner.displayTags));
 
         addLabel(new GuiNpcLabel(3, StatCollector.translateToLocal("filter.contains"),
-            guiLeft + 150, baseY + 50));
-        addButton(new GuiNpcButton(13, guiLeft + 215, baseY + 43,
-            new String[]{"filter.any", "filter.all", "filter.notany", "filter.notall"}, filterCondition));
+            originX + 150, baseY + 50));
+        addButton(new GuiNpcButton(13, originX + 215, baseY + 43,
+            new String[]{"filter.any", "filter.all", "filter.notany", "filter.notall"}, GuiNpcMobSpawner.filterCondition));
 
-        addButton(new GuiNpcButton(11, guiLeft + 150, baseY + 66, 130, 20, "gui.deselectAll"));
+        addButton(new GuiNpcButton(11, originX + 150, baseY + 66, 130, 20, "gui.deselectAll"));
 
         addLabel(new GuiNpcLabel(4, StatCollector.translateToLocal("cloner.order"),
-            guiLeft + 150, baseY + 112));
-        addButton(new GuiNpcButton(14, guiLeft + 215, baseY + 105,
-            new String[]{"cloner.ascending", "cloner.descending"}, ascending));
+            originX + 150, baseY + 112));
+        addButton(new GuiNpcButton(14, originX + 215, baseY + 105,
+            new String[]{"cloner.ascending", "cloner.descending"}, GuiNpcMobSpawner.ascending));
 
         addLabel(new GuiNpcLabel(5, StatCollector.translateToLocal("cloner.type"),
-            guiLeft + 150, baseY + 135));
-        addButton(new GuiNpcButton(15, guiLeft + 215, baseY + 128,
-            new String[]{"cloner.name", "cloner.date"}, sortType));
+            originX + 150, baseY + 135));
+        addButton(new GuiNpcButton(15, originX + 215, baseY + 128,
+            new String[]{"cloner.name", "cloner.date"}, GuiNpcMobSpawner.sortType));
 
         getButton(12).width = 65;
         getButton(12).height = 20;
@@ -286,49 +298,49 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
 
     // ==================== CLONE / ENTITY DISPLAY ====================
     private void showClones() {
-        if (activeFolder != null) {
+        if (GuiNpcMobSpawner.activeFolder != null) {
             showFolderClones();
             return;
         }
 
-        if (showingClones == 2) {
-            PacketClient.sendClient(new CloneTagListPacket(activeTab));
-            PacketClient.sendClient(new CloneListPacket(activeTab));
+        if (GuiNpcMobSpawner.showingClones == 2) {
+            PacketClient.sendClient(new CloneTagListPacket(GuiNpcMobSpawner.activeTab));
+            PacketClient.sendClient(new CloneListPacket(GuiNpcMobSpawner.activeTab));
             return;
         }
 
-        if (sortType == 0) {
-            this.list = ClientCloneController.Instance.getClones(activeTab);
+        if (GuiNpcMobSpawner.sortType == 0) {
+            this.list = ClientCloneController.Instance.getClones(GuiNpcMobSpawner.activeTab);
         } else {
-            this.list = ClientCloneController.Instance.getClonesDate(activeTab);
+            this.list = ClientCloneController.Instance.getClonesDate(GuiNpcMobSpawner.activeTab);
         }
 
-        this.tagMap = ClientTagMapController.Instance.getTagMap(activeTab);
+        this.tagMap = ClientTagMapController.Instance.getTagMap(GuiNpcMobSpawner.activeTab);
         populateRawListWithTags();
-        scroll.setList(getSearchList(), ascending == 0, sortType == 0);
+        scroll.setList(getSearchList(), GuiNpcMobSpawner.ascending == 0, GuiNpcMobSpawner.sortType == 0);
     }
 
     private void showFolderClones() {
-        if (showingClones == 2) {
-            PacketClient.sendClient(new CloneTagListPacket(activeFolder));
-            PacketClient.sendClient(new CloneListPacket(activeFolder));
+        if (GuiNpcMobSpawner.showingClones == 2) {
+            PacketClient.sendClient(new CloneTagListPacket(GuiNpcMobSpawner.activeFolder));
+            PacketClient.sendClient(new CloneListPacket(GuiNpcMobSpawner.activeFolder));
             return;
         }
 
         if (ClientCloneController.Instance != null) {
-            if (sortType == 0) {
-                this.list = ClientCloneController.Instance.getClones(activeFolder);
+            if (GuiNpcMobSpawner.sortType == 0) {
+                this.list = ClientCloneController.Instance.getClones(GuiNpcMobSpawner.activeFolder);
             } else {
-                this.list = ClientCloneController.Instance.getClonesDate(activeFolder);
+                this.list = ClientCloneController.Instance.getClonesDate(GuiNpcMobSpawner.activeFolder);
             }
-            this.tagMap = ClientTagMapController.Instance.getTagMap(activeFolder);
+            this.tagMap = ClientTagMapController.Instance.getTagMap(GuiNpcMobSpawner.activeFolder);
         } else {
             this.list = new ArrayList<>();
             this.tagMap = null;
         }
 
         populateRawListWithTags();
-        scroll.setList(getSearchList(), ascending == 0, sortType == 0);
+        scroll.setList(getSearchList(), GuiNpcMobSpawner.ascending == 0, GuiNpcMobSpawner.sortType == 0);
     }
 
     private void showEntities() {
@@ -348,20 +360,20 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
         }
         this.list = list;
         this.rawList = new ArrayList<String>(this.list);
-        scroll.setList(getSearchList(), ascending == 0, sortType == 0);
+        scroll.setList(getSearchList(), GuiNpcMobSpawner.ascending == 0, GuiNpcMobSpawner.sortType == 0);
     }
 
     private void populateRawListWithTags() {
         this.rawList = new ArrayList<>(this.list);
         if (this.tagMap != null) {
-            if (displayTags == 0 || displayTags == 1) {
+            if (GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1) {
                 for (int i = 0; i < this.list.size(); i++) {
                     StringBuilder npcName = new StringBuilder(list.get(i));
                     if (this.tagMap.hasClone(list.get(i))) {
                         for (UUID tagUUID : this.tagMap.getUUIDsList(list.get(i))) {
-                            Tag tag = tags.get(tagUUID);
+                            Tag tag = GuiNpcMobSpawner.tags.get(tagUUID);
                             if (tag != null) {
-                                if (displayTags == 1 || !tag.getIsHidden()) {
+                                if (GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()) {
                                     npcName.append(" [" + tag.name + "]");
                                 }
                             }
@@ -378,11 +390,11 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
         if (sel == null)
             return null;
 
-        if (showingClones == 0) {
-            if (activeFolder != null && ClientCloneController.Instance != null) {
-                return ClientCloneController.Instance.getCloneData(player, sel, activeFolder);
+        if (GuiNpcMobSpawner.showingClones == 0) {
+            if (GuiNpcMobSpawner.activeFolder != null && ClientCloneController.Instance != null) {
+                return ClientCloneController.Instance.getCloneData(player, sel, GuiNpcMobSpawner.activeFolder);
             }
-            return ClientCloneController.Instance.getCloneData(player, sel, activeTab);
+            return ClientCloneController.Instance.getCloneData(player, sel, GuiNpcMobSpawner.activeTab);
         } else {
             Entity entity = EntityList.createEntityByName(sel, Minecraft.getMinecraft().theWorld);
             if (entity == null)
@@ -402,14 +414,13 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
             this.rawList = new ArrayList<String>();
         }
 
-        // No Filters - or - Entities
-        if (tagFilters.size() == 0 || showingClones == 1) {
-            if (search.isEmpty())
+        if (GuiNpcMobSpawner.tagFilters.size() == 0 || GuiNpcMobSpawner.showingClones == 1) {
+            if (GuiNpcMobSpawner.search.isEmpty())
                 return new ArrayList<String>(this.list);
             else {
                 List<String> list = new ArrayList<String>();
                 for (int i = 0; i < this.list.size(); i++) {
-                    if (this.rawList.get(i).toLowerCase().contains(search)) {
+                    if (this.rawList.get(i).toLowerCase().contains(GuiNpcMobSpawner.search)) {
                         list.add(this.list.get(i));
                     }
                 }
@@ -417,8 +428,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
             }
         }
 
-        // With Filters
-        if (search.isEmpty()) {
+        if (GuiNpcMobSpawner.search.isEmpty()) {
             List<String> list = new ArrayList<String>();
             for (String name : this.list) {
                 if (tagMap.hasClone(name)) {
@@ -432,7 +442,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
 
         List<String> list = new ArrayList<String>();
         for (int i = 0; i < this.list.size(); i++) {
-            if (this.rawList.get(i).toLowerCase().contains(search)) {
+            if (this.rawList.get(i).toLowerCase().contains(GuiNpcMobSpawner.search)) {
                 String npcName = this.list.get(i);
                 if (tagMap.hasClone(npcName)) {
                     if (meetsCondition(npcName)) {
@@ -449,25 +459,25 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
             return true;
         }
         boolean conditionMet = true;
-        boolean allRequirement = filterCondition == 1 || filterCondition == 3;
+        boolean allRequirement = GuiNpcMobSpawner.filterCondition == 1 || GuiNpcMobSpawner.filterCondition == 3;
 
-        for (String tagName : tagFilters) {
-            UUID tagUUID = tagNames.get(tagName);
+        for (String tagName : GuiNpcMobSpawner.tagFilters) {
+            UUID tagUUID = GuiNpcMobSpawner.tagNames.get(tagName);
             if (tagUUID != null) {
                 boolean hasTag = tagMap.hasTag(name, tagUUID);
                 if (!allRequirement) {
-                    if (!hasTag && filterCondition == 0) {
+                    if (!hasTag && GuiNpcMobSpawner.filterCondition == 0) {
                         conditionMet = false;
                         break;
-                    } else if (hasTag && filterCondition == 2) {
+                    } else if (hasTag && GuiNpcMobSpawner.filterCondition == 2) {
                         conditionMet = false;
                         break;
                     }
                 } else {
-                    if (!hasTag && filterCondition == 1) {
+                    if (!hasTag && GuiNpcMobSpawner.filterCondition == 1) {
                         conditionMet = false;
                         break;
-                    } else if (hasTag && filterCondition == 3) {
+                    } else if (hasTag && GuiNpcMobSpawner.filterCondition == 3) {
                         conditionMet = false;
                         break;
                     }
@@ -481,105 +491,53 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
         if (this.tagList == null) {
             this.tagList = new ArrayList<String>();
         }
-        if (tagSearch.isEmpty())
-            return new ArrayList<String>(tagNames.keySet());
+        if (GuiNpcMobSpawner.tagSearch.isEmpty())
+            return new ArrayList<String>(GuiNpcMobSpawner.tagNames.keySet());
 
         List<String> list = new ArrayList<String>();
         for (String name : this.tagList) {
-            if (name.toLowerCase().contains(tagSearch))
+            if (name.toLowerCase().contains(GuiNpcMobSpawner.tagSearch))
                 list.add(name);
         }
         return list;
     }
 
-    // ==================== RENDERING ====================
-    @Override
-    public void drawScreen(int i, int j, float f) {
-        super.drawScreen(i, j, f);
-
-        // Render scrollable folder side buttons (folders mode only)
-        if (sidebarMode == 1 && (showingClones == 0 || showingClones == 2)) {
-            renderFolderSideButtons(i, j);
-        }
-    }
-
-    private void renderFolderSideButtons(int mouseX, int mouseY) {
-        final float SMOOTHING_FACTOR = 0.1F;
-        int maxScroll = Math.max(0, folderSideButtons.size() - 8) * 21;
-
-        if (isMouseInFolderScrollZone(mouseX, mouseY)) {
-            int wheel = Mouse.getDWheel();
-            if (wheel != 0) {
-                destFolderScroll = ValueUtil.clamp(
-                    destFolderScroll - Math.signum(wheel) * 21, -maxScroll, 0);
-            }
-        }
-
-        folderScroll += (destFolderScroll - folderScroll) * SMOOTHING_FACTOR;
-
-        for (Map.Entry<Integer, GuiMenuSideButton> entry : folderSideButtons.entrySet()) {
-            int idx = entry.getKey();
-            GuiMenuSideButton button = entry.getValue();
-
-            float rawY = guiTop + 2 + idx * 21 + folderScroll;
-            int smoothedY = Math.round(rawY);
-
-            if (smoothedY >= guiTop && smoothedY < guiTop + 8 * 21) {
-                button.yPosition = smoothedY;
-                button.drawButton(mc, mouseX, mouseY);
-            }
-        }
-    }
-
-    private boolean isMouseInFolderScrollZone(int x, int y) {
-        return x >= guiLeft - 70 && x <= guiLeft
-            && y >= guiTop + 2 && y <= guiTop + 2 + 8 * 21;
-    }
-
-    // ==================== MOUSE / KEYBOARD EVENTS ====================
-    @Override
-    public void mouseClicked(int i, int j, int k) {
-        super.mouseClicked(i, j, k);
-
-        // Handle folder side button clicks (folders mode)
-        if (sidebarMode == 1 && (showingClones == 0 || showingClones == 2) && k == 0) {
-            for (GuiMenuSideButton button : new ArrayList<>(folderSideButtons.values())) {
-                if (button.mousePressed(mc, i, j)) {
-                    folderSideButtonPressed(button);
-                }
-            }
-        }
-    }
-
-    private void folderSideButtonPressed(GuiMenuSideButton button) {
-        if (button.active) return;
-        NoppesUtil.clickSound();
-        activeFolder = button.displayString;
-        activeTab = -1;
-        initGui();
-    }
-
+    // ==================== SCROLL EVENTS ====================
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+        if (guiCustomScroll.id == 2) {
+            String selected = navScroll.getSelected();
+            handleNavClick(selected);
+        }
     }
 
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll guiCustomScroll) {
     }
 
+    // ==================== KEYBOARD ====================
     public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
         if (getTextField(1) != null) {
-            if (search.equals(getTextField(1).getText()))
+            if (GuiNpcMobSpawner.search.equals(getTextField(1).getText()))
                 return;
-            search = getTextField(1).getText().toLowerCase();
-            scroll.setList(getSearchList(), ascending == 0, sortType == 0);
+            GuiNpcMobSpawner.search = getTextField(1).getText().toLowerCase();
+            scroll.setList(getSearchList(), GuiNpcMobSpawner.ascending == 0, GuiNpcMobSpawner.sortType == 0);
         }
         if (getTextField(2) != null) {
-            if (tagSearch.equals(getTextField(2).getText()))
+            if (GuiNpcMobSpawner.tagSearch.equals(getTextField(2).getText()))
                 return;
-            tagSearch = getTextField(2).getText().toLowerCase();
+            GuiNpcMobSpawner.tagSearch = getTextField(2).getText().toLowerCase();
             filterScroll.setList(getTagList());
+        }
+        if (getTextField(3) != null) {
+            String newNavSearch = getTextField(3).getText().toLowerCase();
+            if (!navSearch.equals(newNavSearch)) {
+                navSearch = newNavSearch;
+                buildNavList();
+                navScroll.setListWithIcons(navNames, navIcons);
+                navScroll.setSelected(getNavSelection());
+            }
         }
     }
 
@@ -588,64 +546,42 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
     protected void actionPerformed(GuiButton guibutton) {
         int id = guibutton.id;
 
-        // Tab side buttons (IDs 21-35)
-        if (id >= 21 && id <= 35) {
-            activeTab = id - 20;
-            activeFolder = null;
-            initGui();
-            return;
-        }
-
         // Mode buttons
         if (id == 3) {
-            showingClones = 0;
+            GuiNpcMobSpawner.showingClones = 0;
             initGui();
         }
         if (id == 4) {
-            showingClones = 1;
+            GuiNpcMobSpawner.showingClones = 1;
             initGui();
         }
         if (id == 5) {
-            showingClones = 2;
+            GuiNpcMobSpawner.showingClones = 2;
             initGui();
         }
         if (id == 16) {
-            showingClones = 3;
+            GuiNpcMobSpawner.showingClones = 3;
             initGui();
         }
         if (id == 17) {
             close();
         }
 
-        // Open fullscreen GUI
+        // Minimize — return to normal GUI
         if (id == 61) {
             Minecraft.getMinecraft().displayGuiScreen(
-                new GuiNpcMobSpawnerFullscreen(posX, posY, posZ));
-        }
-
-        // Tabs/Folders toggle
-        if (id == 60) {
-            sidebarMode = ((GuiNpcButton) guibutton).getValue();
-            if (sidebarMode == 1 && activeFolder == null && !folderNames.isEmpty()) {
-                activeFolder = folderNames.get(0);
-                activeTab = -1;
-            }
-            if (sidebarMode == 0 && (activeTab < 1 || activeTab > 15)) {
-                activeTab = 1;
-                activeFolder = null;
-            }
-            initGui();
+                new GuiNpcMobSpawner(posX, posY, posZ));
         }
 
         // Spawn
         if (id == 1) {
-            if (showingClones == 2) {
+            if (GuiNpcMobSpawner.showingClones == 2) {
                 String sel = scroll.getSelected();
                 if (sel == null) return;
-                if (activeFolder != null)
-                    SpawnMobPacket.ServerFolder(posX, posY, posZ, sel, activeFolder);
+                if (GuiNpcMobSpawner.activeFolder != null)
+                    SpawnMobPacket.ServerFolder(posX, posY, posZ, sel, GuiNpcMobSpawner.activeFolder);
                 else
-                    SpawnMobPacket.Server(posX, posY, posZ, sel, activeTab);
+                    SpawnMobPacket.Server(posX, posY, posZ, sel, GuiNpcMobSpawner.activeTab);
                 close();
             } else {
                 NBTTagCompound compound = getCompound();
@@ -657,13 +593,13 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
 
         // Mob Spawner
         if (id == 2) {
-            if (showingClones == 2) {
+            if (GuiNpcMobSpawner.showingClones == 2) {
                 String sel = scroll.getSelected();
                 if (sel == null) return;
-                if (activeFolder != null)
-                    MobSpawnerPacket.ServerFolder(posX, posY, posZ, sel, activeFolder);
+                if (GuiNpcMobSpawner.activeFolder != null)
+                    MobSpawnerPacket.ServerFolder(posX, posY, posZ, sel, GuiNpcMobSpawner.activeFolder);
                 else
-                    MobSpawnerPacket.Server(posX, posY, posZ, sel, activeTab);
+                    MobSpawnerPacket.Server(posX, posY, posZ, sel, GuiNpcMobSpawner.activeTab);
                 close();
             } else {
                 NBTTagCompound compound = getCompound();
@@ -676,17 +612,17 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
         // Remove
         if (id == 6) {
             if (scroll.getSelected() != null) {
-                if (showingClones == 2) {
-                    if (activeFolder != null)
-                        PacketClient.sendClient(new CloneRemovePacket(activeFolder, scroll.getSelected()));
+                if (GuiNpcMobSpawner.showingClones == 2) {
+                    if (GuiNpcMobSpawner.activeFolder != null)
+                        PacketClient.sendClient(new CloneRemovePacket(GuiNpcMobSpawner.activeFolder, scroll.getSelected()));
                     else
-                        PacketClient.sendClient(new CloneRemovePacket(activeTab, scroll.getSelected()));
+                        PacketClient.sendClient(new CloneRemovePacket(GuiNpcMobSpawner.activeTab, scroll.getSelected()));
                     return;
                 }
-                if (activeFolder != null && ClientCloneController.Instance != null)
-                    ClientCloneController.Instance.removeClone(scroll.getSelected(), activeFolder);
+                if (GuiNpcMobSpawner.activeFolder != null && ClientCloneController.Instance != null)
+                    ClientCloneController.Instance.removeClone(scroll.getSelected(), GuiNpcMobSpawner.activeFolder);
                 else
-                    ClientCloneController.Instance.removeClone(scroll.getSelected(), activeTab);
+                    ClientCloneController.Instance.removeClone(scroll.getSelected(), GuiNpcMobSpawner.activeTab);
                 scroll.selected = -1;
                 initGui();
             }
@@ -701,46 +637,26 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
 
         // Filter controls
         if (id == 11) {
-            tagFilters = new HashSet<>();
-            filterScroll.setSelectedList(tagFilters);
+            GuiNpcMobSpawner.tagFilters = new HashSet<>();
+            filterScroll.setSelectedList(GuiNpcMobSpawner.tagFilters);
             initGui();
         }
         if (id == 12) {
-            displayTags = (byte) ((GuiNpcButton) guibutton).getValue();
+            GuiNpcMobSpawner.displayTags = (byte) ((GuiNpcButton) guibutton).getValue();
         }
         if (id == 13) {
-            filterCondition = (byte) ((GuiNpcButton) guibutton).getValue();
+            GuiNpcMobSpawner.filterCondition = (byte) ((GuiNpcButton) guibutton).getValue();
         }
         if (id == 14) {
-            ascending = (byte) ((GuiNpcButton) guibutton).getValue();
+            GuiNpcMobSpawner.ascending = (byte) ((GuiNpcButton) guibutton).getValue();
         }
         if (id == 15) {
-            sortType = (byte) ((GuiNpcButton) guibutton).getValue();
+            GuiNpcMobSpawner.sortType = (byte) ((GuiNpcButton) guibutton).getValue();
         }
 
         // Create folder
         if (id == 40) {
             setSubGui(new SubGuiCloneFolderName(""));
-        }
-        // Rename folder
-        if (id == 41) {
-            if (activeFolder != null)
-                setSubGui(new SubGuiCloneFolderName(activeFolder));
-        }
-        // Delete folder
-        if (id == 42) {
-            if (activeFolder != null && ClientCloneController.Instance != null) {
-                if (showingClones == 2) {
-                    PacketClient.sendClient(new CloneFolderCrudPacket(
-                        CloneFolderCrudPacket.ACTION_DELETE, activeFolder));
-                } else {
-                    ClientCloneController.Instance.deleteFolder(activeFolder);
-                    loadFolderNames();
-                }
-                activeFolder = null;
-                activeTab = 1;
-                initGui();
-            }
         }
     }
 
@@ -755,25 +671,25 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
             if (newName == null || newName.isEmpty()) return;
 
             if (folderGui.isRename()) {
-                if (showingClones == 2) {
+                if (GuiNpcMobSpawner.showingClones == 2) {
                     PacketClient.sendClient(new CloneFolderCrudPacket(
                         CloneFolderCrudPacket.ACTION_RENAME, folderGui.getOriginalName(), newName));
                 } else if (ClientCloneController.Instance != null) {
                     ClientCloneController.Instance.renameFolder(folderGui.getOriginalName(), newName);
                     loadFolderNames();
                 }
-                activeFolder = newName;
-                activeTab = -1;
+                GuiNpcMobSpawner.activeFolder = newName;
+                GuiNpcMobSpawner.activeTab = -1;
             } else {
-                if (showingClones == 2) {
+                if (GuiNpcMobSpawner.showingClones == 2) {
                     PacketClient.sendClient(new CloneFolderCrudPacket(
                         CloneFolderCrudPacket.ACTION_CREATE, newName));
                 } else if (ClientCloneController.Instance != null) {
                     ClientCloneController.Instance.createFolder(newName);
                     loadFolderNames();
                 }
-                activeFolder = newName;
-                activeTab = -1;
+                GuiNpcMobSpawner.activeFolder = newName;
+                GuiNpcMobSpawner.activeTab = -1;
             }
             initGui();
         }
@@ -783,12 +699,12 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
             if (!moveGui.cancelled) {
                 String cloneName = scroll.getSelected();
                 if (cloneName != null) {
-                    int fromTab = activeFolder != null ? -1 : activeTab;
-                    String fromFolder = activeFolder;
+                    int fromTab = GuiNpcMobSpawner.activeFolder != null ? -1 : GuiNpcMobSpawner.activeTab;
+                    String fromFolder = GuiNpcMobSpawner.activeFolder;
                     int toTab = moveGui.getDestTab();
                     String toFolder = moveGui.getDestFolder();
 
-                    if (showingClones == 2) {
+                    if (GuiNpcMobSpawner.showingClones == 2) {
                         PacketClient.sendClient(new CloneMovePacket(
                             cloneName, fromTab, fromFolder, toTab, toFolder));
                     } else if (ClientCloneController.Instance != null) {
@@ -827,10 +743,10 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
         } else if (compound.hasKey("MoveSuccess")) {
             initGui();
         } else if (compound.hasKey("CloneTags")) {
-            if (activeFolder != null) {
-                this.tagMap = new TagMap(activeFolder);
+            if (GuiNpcMobSpawner.activeFolder != null) {
+                this.tagMap = new TagMap(GuiNpcMobSpawner.activeFolder);
             } else {
-                this.tagMap = new TagMap(activeTab);
+                this.tagMap = new TagMap(GuiNpcMobSpawner.activeTab);
             }
             NBTTagCompound cloneTags = compound.getCompoundTag("CloneTags");
             this.tagMap.readNBT(cloneTags);
@@ -846,14 +762,14 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
                     tagsUpdate.put(tag.uuid, tag);
                     tagNamesUpdate.put(tag.name, tag.uuid);
                 }
-                tags = tagsUpdate;
-                tagNames = tagNamesUpdate;
-                this.tagList = new ArrayList<String>(tagNames.keySet());
+                GuiNpcMobSpawner.tags = tagsUpdate;
+                GuiNpcMobSpawner.tagNames = tagNamesUpdate;
+                this.tagList = new ArrayList<String>(GuiNpcMobSpawner.tagNames.keySet());
                 filterScroll.setList(getTagList());
             }
         } else {
             List<String> list = new ArrayList<String>();
-            if (sortType == 1) {
+            if (GuiNpcMobSpawner.sortType == 1) {
                 NBTTagList nbtlist = compound.getTagList("ListDate", 8);
                 for (int i = 0; i < nbtlist.tagCount(); i++) {
                     list.add(nbtlist.getStringTagAt(i));
@@ -867,7 +783,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
 
             this.list = list;
             populateRawListWithTags();
-            scroll.setList(getSearchList(), ascending == 0, sortType == 0);
+            scroll.setList(getSearchList(), GuiNpcMobSpawner.ascending == 0, GuiNpcMobSpawner.sortType == 0);
         }
     }
 }

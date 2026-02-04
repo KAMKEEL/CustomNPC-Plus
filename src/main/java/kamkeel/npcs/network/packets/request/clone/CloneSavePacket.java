@@ -25,6 +25,7 @@ public final class CloneSavePacket extends AbstractPacket {
 
     private String name;
     private int tab;
+    private String folderName;
     private NBTTagCompound tagExtra;
     private NBTTagCompound tagCompound;
 
@@ -34,6 +35,15 @@ public final class CloneSavePacket extends AbstractPacket {
     public CloneSavePacket(String name, int tab, NBTTagCompound tagExtra, NBTTagCompound tagCompound) {
         this.name = name;
         this.tab = tab;
+        this.folderName = null;
+        this.tagExtra = tagExtra;
+        this.tagCompound = tagCompound;
+    }
+
+    public CloneSavePacket(String name, String folderName, NBTTagCompound tagExtra, NBTTagCompound tagCompound) {
+        this.name = name;
+        this.tab = -1;
+        this.folderName = folderName;
         this.tagExtra = tagExtra;
         this.tagCompound = tagCompound;
     }
@@ -58,6 +68,9 @@ public final class CloneSavePacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         ByteBufUtils.writeString(out, this.name);
         out.writeInt(tab);
+        if (tab == -1) {
+            ByteBufUtils.writeString(out, this.folderName);
+        }
         ByteBufUtils.writeNBT(out, this.tagExtra);
         ByteBufUtils.writeNBT(out, this.tagCompound);
     }
@@ -75,11 +88,20 @@ public final class CloneSavePacket extends AbstractPacket {
 
         String name = ByteBufUtils.readString(in);
         int tab = in.readInt();
+        String folder = null;
+        if (tab == -1) {
+            folder = ByteBufUtils.readString(in);
+        }
         NBTTagCompound tagExtra = ByteBufUtils.readNBT(in);
         NBTTagCompound tagCompound = ByteBufUtils.readNBT(in);
 
         NBTTagList tagList = tagCompound.getTagList("TagUUIDs", 8);
         data.cloned.setTag("TagUUIDs", tagList);
-        ServerCloneController.Instance.addClone(data.cloned, name, tab, tagExtra);
+
+        if (folder != null) {
+            ServerCloneController.Instance.addClone(data.cloned, name, folder, tagExtra);
+        } else {
+            ServerCloneController.Instance.addClone(data.cloned, name, tab, tagExtra);
+        }
     }
 }

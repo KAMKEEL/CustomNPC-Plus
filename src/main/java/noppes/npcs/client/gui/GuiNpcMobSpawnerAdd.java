@@ -22,6 +22,7 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.ISubGuiListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.controllers.data.CloneFolder;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -35,8 +36,13 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
     private Entity toClone;
     private NBTTagCompound compound;
     private static boolean serverSide = false;
+    private static int saveMode = 0; // 0=Tab, 1=Folder
     private static int tab = 1;
+    private static String folder = null;
     public boolean isNPC = false;
+
+    // Folder names cache for the selector
+    private String[] folderLabels = new String[0];
 
     // Selected Tags to Add
     public static NBTTagList tagsCompound;
@@ -68,6 +74,18 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
         if (isNPC) {
             PacketClient.sendClient(new CloneAllTagsShortPacket());
         }
+
+        buildFolderLabels();
+    }
+
+    private void buildFolderLabels() {
+        ArrayList<String> names = new ArrayList<>();
+        if (ClientCloneController.Instance != null) {
+            for (CloneFolder f : ClientCloneController.Instance.getFolderList()) {
+                names.add(f.name);
+            }
+        }
+        folderLabels = names.toArray(new String[0]);
     }
 
     @Override
@@ -77,21 +95,63 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
         addLabel(new GuiNpcLabel(0, "Save as", guiLeft + 4, guiTop + 6));
         addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 4, guiTop + 18, 200, 20, name));
 
+        // Tab/Folder toggle
+        addButton(new GuiNpcButton(6, guiLeft + 4, guiTop + 45, 50, 20,
+            new String[]{"Tab", "Folder"}, saveMode));
 
-        addLabel(new GuiNpcLabel(1, "Tab", guiLeft + 10, guiTop + 50));
-        addButton(new GuiButtonBiDirectional(2, guiLeft + 40, guiTop + 45, 60, 20, new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"}, tab - 1));
-
-        addButton(new GuiNpcButton(3, guiLeft + 4, guiTop + 95, new String[]{"Client side", "Server side"}, serverSide ? 1 : 0));
-        addLabel(new GuiNpcLabel(1, "Tab", guiLeft + 10, guiTop + 50));
+        // Destination selector based on saveMode
+        if (saveMode == 0) {
+            // Tab selector: 1-15
+            String[] tabLabels = new String[15];
+            for (int i = 0; i < 15; i++) tabLabels[i] = String.valueOf(i + 1);
+            int selectedTab = (tab >= 1 && tab <= 15) ? tab - 1 : 0;
+            addButton(new GuiButtonBiDirectional(2, guiLeft + 56, guiTop + 45, 90, 20, tabLabels, selectedTab));
+        } else {
+            // Folder selector
+            if (folderLabels.length > 0) {
+                int selectedFolder = 0;
+                if (folder != null) {
+                    for (int i = 0; i < folderLabels.length; i++) {
+                        if (folder.equals(folderLabels[i])) {
+                            selectedFolder = i;
+                            break;
+                        }
+                    }
+                }
+                addButton(new GuiButtonBiDirectional(2, guiLeft + 56, guiTop + 45, 90, 20, folderLabels, selectedFolder));
+            } else {
+                addLabel(new GuiNpcLabel(7, "No folders", guiLeft + 60, guiTop + 51));
+            }
+        }
 
         addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 70, 80, 20, "gui.save"));
         addButton(new GuiNpcButton(1, guiLeft + 86, guiTop + 70, 80, 20, "gui.cancel"));
+
+        addButton(new GuiNpcButton(3, guiLeft + 4, guiTop + 95, new String[]{"Client side", "Server side"}, serverSide ? 1 : 0));
 
         if (isNPC) {
             addButton(new GuiNpcButton(4, guiLeft + 4, guiTop + 120, 99, 20, "cloner.wandTags"));
             addButton(new GuiNpcButton(5, guiLeft + 106, guiTop + 120, 99, 20, "cloner.npcTags"));
             if (addTags.size() > 0) {
-                addLabel(new GuiNpcLabel(6, "cloner.wandtagsapplied", guiLeft + 10, guiTop + 160));
+                addLabel(new GuiNpcLabel(8, "cloner.wandtagsapplied", guiLeft + 10, guiTop + 160));
+            }
+        }
+    }
+
+    private void updateDestinationFromSelector() {
+        GuiNpcButton selector = getButton(2);
+        if (selector == null) return;
+
+        int index = selector.getValue();
+        if (saveMode == 0) {
+            // Tab mode
+            tab = index + 1;
+            folder = null;
+        } else {
+            // Folder mode
+            if (index >= 0 && index < folderLabels.length) {
+                folder = folderLabels[index];
+                tab = -1;
             }
         }
     }
@@ -99,23 +159,38 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
         if (id == 0) {
+            updateDestinationFromSelector();
             String name = getTextField(0).getText();
             if (name.isEmpty())
                 return;
-            int tab = ((GuiNpcButton) guibutton).getValue() + 1;
+
+            if (saveMode == 1 && folderLabels.length == 0)
+                return;
+
             if (!serverSide) {
-                if (ClientCloneController.Instance.getCloneData(null, name, tab) != null)
+                boolean exists;
+                if (saveMode == 1 && folder != null && ClientCloneController.Instance != null) {
+                    exists = ClientCloneController.Instance.getCloneData(null, name, folder) != null;
+                } else {
+                    exists = ClientCloneController.Instance.getCloneData(null, name, tab) != null;
+                }
+                if (exists)
                     displayGuiScreen(new GuiYesNo(this, "Warning", "You are about to overwrite a clone", 1));
                 else
                     confirmClicked(true, 0);
-            } else
-                PacketClient.sendClient(new ClonePreSavePacket(name, tab));
+            } else {
+                if (saveMode == 1 && folder != null) {
+                    PacketClient.sendClient(new ClonePreSavePacket(name, folder));
+                } else {
+                    PacketClient.sendClient(new ClonePreSavePacket(name, tab));
+                }
+            }
         }
         if (id == 1) {
             close();
         }
         if (id == 2) {
-            tab = ((GuiNpcButton) guibutton).getValue() + 1;
+            updateDestinationFromSelector();
         }
         if (id == 3) {
             serverSide = ((GuiNpcButton) guibutton).getValue() == 1;
@@ -129,6 +204,10 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
             if (isNPC) {
                 this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone, this));
             }
+        }
+        if (id == 6) {
+            saveMode = ((GuiNpcButton) guibutton).getValue();
+            initGui();
         }
     }
 
@@ -145,13 +224,21 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
                 if (isNPC) {
                     compound.setTag("TagUUIDs", tagsCompound);
                 }
-                ClientCloneController.Instance.addClone(compound, name, tab, extraTags);
+                if (saveMode == 1 && folder != null && ClientCloneController.Instance != null) {
+                    ClientCloneController.Instance.addClone(compound, name, folder, extraTags);
+                } else {
+                    ClientCloneController.Instance.addClone(compound, name, tab, extraTags);
+                }
             } else {
                 NBTTagCompound compounder = new NBTTagCompound();
                 if (isNPC) {
                     compounder.setTag("TagUUIDs", tagsCompound);
                 }
-                PacketClient.sendClient(new CloneSavePacket(name, tab, extraTags, compounder));
+                if (saveMode == 1 && folder != null) {
+                    PacketClient.sendClient(new CloneSavePacket(name, folder, extraTags, compounder));
+                } else {
+                    PacketClient.sendClient(new CloneSavePacket(name, tab, extraTags, compounder));
+                }
             }
 
             close();

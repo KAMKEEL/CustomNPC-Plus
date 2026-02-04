@@ -35,6 +35,13 @@ public class ServerTagMapController {
         return dir;
     }
 
+    public File getCloneFolderDir(String folderName) {
+        File dir = new File(getDir(), "folder_" + folderName);
+        if (!dir.exists())
+            dir.mkdir();
+        return dir;
+    }
+
     public TagMap getTagMap(int tab) {
         this.tagMap = new TagMap(tab);
         try {
@@ -65,9 +72,33 @@ public class ServerTagMapController {
         this.tagMap.readNBT(nbtCompound);
     }
 
+    public TagMap getTagMap(String folderName) {
+        this.tagMap = new TagMap(folderName);
+        try {
+            File file = new File(getCloneFolderDir(folderName), "___tagmap.dat");
+            if (file.exists()) {
+                loadTagMapFile(file);
+            }
+        } catch (Exception e) {
+            try {
+                File file = new File(getCloneFolderDir(folderName), "___tagmap.dat_old");
+                if (file.exists()) {
+                    loadTagMapFile(file);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return this.tagMap;
+    }
+
     public void saveTagMap(TagMap tagMap) {
         try {
-            File saveDir = getCloneTabDir(tagMap.cloneTab);
+            File saveDir;
+            if (tagMap.cloneFolder != null) {
+                saveDir = getCloneFolderDir(tagMap.cloneFolder);
+            } else {
+                saveDir = getCloneTabDir(tagMap.cloneTab);
+            }
             File file = new File(saveDir, "___tagmap.dat_new");
             File file1 = new File(saveDir, "___tagmap.dat_old");
             File file2 = new File(saveDir, "___tagmap.dat");

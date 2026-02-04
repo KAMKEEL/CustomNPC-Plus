@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util;
 
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.GuiNpcMobSpawner;
 import noppes.npcs.controllers.data.Tag;
@@ -7,10 +8,10 @@ import noppes.npcs.controllers.data.Tag;
 import java.util.UUID;
 
 public class GuiCustomScrollCloner extends GuiCustomScroll {
-    private final GuiNpcMobSpawner parent;
+    private final IClonerGui parent;
 
-    public GuiCustomScrollCloner(GuiNpcMobSpawner parent, int id) {
-        super(parent, id);
+    public GuiCustomScrollCloner(IClonerGui parent, int id) {
+        super((GuiScreen) parent, id);
         this.parent = parent;
     }
 
@@ -50,12 +51,12 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                     fontRendererObj.drawString(text, j, k, this.colors.getOrDefault(text, 0xffffff));
                 }
 
-                if ((this.parent.getShowingClones() == 0 || this.parent.getShowingClones() == 2) && this.parent.tagMap != null) {
+                if ((parent.getShowingClones() == 0 || parent.getShowingClones() == 2) && parent.getTagMap() != null) {
                     int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 3;
                     if (GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1) {
-                        if (this.parent.tagMap.hasClone(list.get(i))) {
-                            for (UUID tagUUID : this.parent.tagMap.getUUIDsList(list.get(i))) {
-                                Tag tag = this.parent.tags.get(tagUUID);
+                        if (parent.getTagMap().hasClone(list.get(i))) {
+                            for (UUID tagUUID : parent.getTagMap().getUUIDsList(list.get(i))) {
+                                Tag tag = parent.getTags().get(tagUUID);
                                 if (tag != null) {
                                     if (GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()) {
                                         fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);

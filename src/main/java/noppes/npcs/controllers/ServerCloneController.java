@@ -15,6 +15,7 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.handler.ICloneHandler;
+import noppes.npcs.controllers.data.CloneFolder;
 import noppes.npcs.controllers.data.TagMap;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
@@ -27,6 +28,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,8 +36,11 @@ import java.util.UUID;
 public class ServerCloneController implements ICloneHandler {
     public static ServerCloneController Instance;
 
+    protected Map<String, CloneFolder> folders = new LinkedHashMap<>();
+
     public ServerCloneController() {
         loadClones();
+        loadFolders();
     }
 
     private void loadClones() {
@@ -102,6 +107,8 @@ public class ServerCloneController implements ICloneHandler {
         }
         return clones;
     }
+
+    // ==================== Tab-Based Clone Operations ====================
 
     public NBTTagCompound getCloneData(ICommandSender player, String name, int tab) {
         File file = new File(new File(getDir(), tab + ""), name + ".json");
@@ -194,6 +201,270 @@ public class ServerCloneController implements ICloneHandler {
         return name;
     }
 
+    // ==================== Folder Registry ====================
+
+    public void loadFolders() {
+        folders.clear();
+        try {
+            File file = new File(getDir(), "___folders.json");
+            if (file.exists()) {
+                NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+                NBTTagList list = compound.getTagList("Folders", 10);
+                for (int i = 0; i < list.tagCount(); i++) {
+                    CloneFolder folder = new CloneFolder();
+                    folder.readNBT(list.getCompoundTagAt(i));
+                    if (CloneFolder.isValidName(folder.name)) {
+                        folders.put(folder.name, folder);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+    }
+
+    public void saveFolders() {
+        try {
+            NBTTagCompound compound = new NBTTagCompound();
+            NBTTagList list = new NBTTagList();
+            for (CloneFolder folder : folders.values()) {
+                list.appendTag(folder.writeNBT(new NBTTagCompound()));
+            }
+            compound.setTag("Folders", list);
+
+            File file = new File(getDir(), "___folders.json_new");
+            File file2 = new File(getDir(), "___folders.json");
+            NBTJsonUtil.SaveFile(file, compound);
+            if (file2.exists()) {
+                file2.delete();
+            }
+            file.renameTo(file2);
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+    }
+
+    public List<CloneFolder> getFolderList() {
+        return new ArrayList<>(folders.values());
+    }
+
+    public List<String> getFolderNames() {
+        return new ArrayList<>(folders.keySet());
+    }
+
+    public boolean hasFolder(String name) {
+        return folders.containsKey(name);
+    }
+
+    // ==================== Folder CRUD ====================
+
+    public CloneFolder createFolder(String name) {
+        if (!CloneFolder.isValidName(name) || folders.containsKey(name)) {
+            return null;
+        }
+        CloneFolder folder = new CloneFolder(name);
+        File dir = getFolderDir(name);
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        folders.put(name, folder);
+        saveFolders();
+        return folder;
+    }
+
+    public boolean renameFolder(String oldName, String newName) {
+        if (!folders.containsKey(oldName) || !CloneFolder.isValidName(newName) || folders.containsKey(newName)) {
+            return false;
+        }
+        CloneFolder folder = folders.get(oldName);
+        File oldDir = getFolderDir(oldName);
+        File newDir = new File(getDir(), "folder_" + newName);
+        if (!oldDir.renameTo(newDir)) {
+            return false;
+        }
+        folders.remove(oldName);
+        folder.name = newName;
+        folders.put(newName, folder);
+        saveFolders();
+        return true;
+    }
+
+    public boolean deleteFolder(String name) {
+        if (!folders.containsKey(name)) {
+            return false;
+        }
+        List<String> clones = getClones(name);
+        if (!clones.isEmpty()) {
+            return false;
+        }
+        File dir = getFolderDir(name);
+        if (dir.exists()) {
+            File tagMapFile = new File(dir, "___tagmap.dat");
+            if (tagMapFile.exists()) tagMapFile.delete();
+            File tagMapOld = new File(dir, "___tagmap.dat_old");
+            if (tagMapOld.exists()) tagMapOld.delete();
+            File tagMapNew = new File(dir, "___tagmap.dat_new");
+            if (tagMapNew.exists()) tagMapNew.delete();
+            dir.delete();
+        }
+        folders.remove(name);
+        saveFolders();
+        return true;
+    }
+
+    // ==================== Folder-Based Clone Operations ====================
+
+    public File getFolderDir(String folderName) {
+        File dir = new File(getDir(), "folder_" + folderName);
+        if (!dir.exists())
+            dir.mkdir();
+        return dir;
+    }
+
+    public List<String> getClones(String folderName) {
+        List<String> list = new ArrayList<>();
+        File dir = getFolderDir(folderName);
+        if (!dir.exists() || !dir.isDirectory())
+            return list;
+        for (String file : dir.list()) {
+            if (file.endsWith(".json"))
+                list.add(file.substring(0, file.length() - 5));
+        }
+        return list;
+    }
+
+    public List<String> getClonesDate(String folderName) {
+        List<String> list = new ArrayList<>();
+        File dir = getFolderDir(folderName);
+        if (!dir.exists() || !dir.isDirectory())
+            return list;
+        File[] files = dir.listFiles();
+        if (files == null) return list;
+        Arrays.sort(files, new Comparator<File>() {
+            public int compare(File f1, File f2) {
+                return Long.compare(f1.lastModified(), f2.lastModified());
+            }
+        });
+        for (File file : files) {
+            String fileName = file.getName();
+            if (fileName.endsWith(".json"))
+                list.add(fileName.substring(0, fileName.length() - 5));
+        }
+        return list;
+    }
+
+    public NBTTagCompound getCloneData(ICommandSender player, String name, String folderName) {
+        File file = new File(getFolderDir(folderName), name + ".json");
+        if (!file.exists()) {
+            if (player != null)
+                player.addChatMessage(new ChatComponentText("Could not find clone file"));
+            return null;
+        }
+        try {
+            return NBTJsonUtil.LoadFile(file);
+        } catch (Exception e) {
+            LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            if (player != null)
+                player.addChatMessage(new ChatComponentText(e.getMessage()));
+        }
+        return null;
+    }
+
+    public void saveClone(String folderName, String name, NBTTagCompound compound) {
+        try {
+            File dir = getFolderDir(folderName);
+            String filename = name + ".json";
+            File file = new File(dir, filename + "_new");
+            File file2 = new File(dir, filename);
+            NBTJsonUtil.SaveFile(file, compound);
+            addToTagMap(compound, name, folderName);
+            if (file2.exists()) {
+                file2.delete();
+            }
+            file.renameTo(file2);
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+    }
+
+    public boolean removeClone(String name, String folderName) {
+        File file = new File(getFolderDir(folderName), name + ".json");
+        if (!file.exists())
+            return false;
+        file.delete();
+        removeFromTagMap(name, folderName);
+        return true;
+    }
+
+    public String addClone(NBTTagCompound nbttagcompound, String name, String folderName) {
+        cleanTags(nbttagcompound);
+        saveClone(folderName, name, nbttagcompound);
+        return name;
+    }
+
+    public String addClone(NBTTagCompound nbttagcompound, String name, String folderName, NBTTagCompound tempTags) {
+        cleanTagList(nbttagcompound, tempTags);
+        cleanTags(nbttagcompound);
+        saveClone(folderName, name, nbttagcompound);
+        return name;
+    }
+
+    // ==================== Move Operations ====================
+
+    public boolean moveClone(String cloneName, int fromTab, String toFolder) {
+        NBTTagCompound data = getCloneData(null, cloneName, fromTab);
+        if (data == null) return false;
+
+        HashSet<UUID> tagUUIDs = getTagUUIDsFromTab(cloneName, fromTab);
+
+        saveClone(toFolder, cloneName, data);
+        setTagUUIDsForFolder(cloneName, toFolder, tagUUIDs);
+
+        removeClone(cloneName, fromTab);
+        return true;
+    }
+
+    public boolean moveClone(String cloneName, String fromFolder, int toTab) {
+        NBTTagCompound data = getCloneData(null, cloneName, fromFolder);
+        if (data == null) return false;
+
+        HashSet<UUID> tagUUIDs = getTagUUIDsFromFolder(cloneName, fromFolder);
+
+        saveClone(toTab, cloneName, data);
+        setTagUUIDsForTab(cloneName, toTab, tagUUIDs);
+
+        removeClone(cloneName, fromFolder);
+        return true;
+    }
+
+    public boolean moveClone(String cloneName, String fromFolder, String toFolder) {
+        NBTTagCompound data = getCloneData(null, cloneName, fromFolder);
+        if (data == null) return false;
+
+        HashSet<UUID> tagUUIDs = getTagUUIDsFromFolder(cloneName, fromFolder);
+
+        saveClone(toFolder, cloneName, data);
+        setTagUUIDsForFolder(cloneName, toFolder, tagUUIDs);
+
+        removeClone(cloneName, fromFolder);
+        return true;
+    }
+
+    public boolean moveClone(String cloneName, int fromTab, int toTab) {
+        NBTTagCompound data = getCloneData(null, cloneName, fromTab);
+        if (data == null) return false;
+
+        HashSet<UUID> tagUUIDs = getTagUUIDsFromTab(cloneName, fromTab);
+
+        saveClone(toTab, cloneName, data);
+        setTagUUIDsForTab(cloneName, toTab, tagUUIDs);
+
+        removeClone(cloneName, fromTab);
+        return true;
+    }
+
+    // ==================== Tag Utilities ====================
+
     public NBTTagCompound cleanTagList(NBTTagCompound nbttagcompound, NBTTagCompound tempTags) {
         HashSet<UUID> tagUUIDs = new HashSet<UUID>();
         if (nbttagcompound.hasKey("TagUUIDs")) {
@@ -243,6 +514,25 @@ public class ServerCloneController implements ICloneHandler {
         return true;
     }
 
+    public boolean addToTagMap(NBTTagCompound nbttagcompound, String name, String folderName) {
+        HashSet<UUID> tagUUIDs = new HashSet<>();
+        if (nbttagcompound.hasKey("TagUUIDs")) {
+            NBTTagList nbtTagList = nbttagcompound.getTagList("TagUUIDs", 8);
+            for (int i = 0; i < nbtTagList.tagCount(); i++) {
+                tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+            }
+        }
+
+        TagMap tagMap = ServerTagMapController.Instance.getTagMap(folderName);
+        if (!tagUUIDs.isEmpty()) {
+            tagMap.putClone(name, tagUUIDs);
+        } else {
+            tagMap.removeClone(name);
+        }
+        ServerTagMapController.Instance.saveTagMap(tagMap);
+        return true;
+    }
+
     public boolean removeFromTagMap(String name, int tab) {
         TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
         if (tagMap.removeClone(name)) {
@@ -250,6 +540,41 @@ public class ServerCloneController implements ICloneHandler {
             return true;
         }
         return false;
+    }
+
+    public boolean removeFromTagMap(String name, String folderName) {
+        TagMap tagMap = ServerTagMapController.Instance.getTagMap(folderName);
+        if (tagMap.removeClone(name)) {
+            ServerTagMapController.Instance.saveTagMap(tagMap);
+            return true;
+        }
+        return false;
+    }
+
+    protected HashSet<UUID> getTagUUIDsFromTab(String cloneName, int tab) {
+        TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
+        HashSet<UUID> uuids = tagMap.getUUIDs(cloneName);
+        return uuids != null ? new HashSet<>(uuids) : new HashSet<>();
+    }
+
+    protected HashSet<UUID> getTagUUIDsFromFolder(String cloneName, String folderName) {
+        TagMap tagMap = ServerTagMapController.Instance.getTagMap(folderName);
+        HashSet<UUID> uuids = tagMap.getUUIDs(cloneName);
+        return uuids != null ? new HashSet<>(uuids) : new HashSet<>();
+    }
+
+    protected void setTagUUIDsForTab(String cloneName, int tab, HashSet<UUID> tagUUIDs) {
+        if (tagUUIDs == null || tagUUIDs.isEmpty()) return;
+        TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
+        tagMap.putClone(cloneName, tagUUIDs);
+        ServerTagMapController.Instance.saveTagMap(tagMap);
+    }
+
+    protected void setTagUUIDsForFolder(String cloneName, String folderName, HashSet<UUID> tagUUIDs) {
+        if (tagUUIDs == null || tagUUIDs.isEmpty()) return;
+        TagMap tagMap = ServerTagMapController.Instance.getTagMap(folderName);
+        tagMap.putClone(cloneName, tagUUIDs);
+        ServerTagMapController.Instance.saveTagMap(tagMap);
     }
 
     public void cleanTags(NBTTagCompound nbttagcompound) {
@@ -287,6 +612,8 @@ public class ServerCloneController implements ICloneHandler {
             nbttagcompound.setTag("TransformAI", adv);
         }
     }
+
+    // ==================== API Methods (ICloneHandler) ====================
 
     public IEntity spawn(double x, double y, double z, int tab, String name, IWorld world, boolean ignoreProtection) {
         NBTTagCompound compound = this.getCloneData((ICommandSender) null, name, tab);
@@ -327,7 +654,7 @@ public class ServerCloneController implements ICloneHandler {
             for (File file : dir.listFiles()) {
                 if (file.getName().endsWith(".json")) {
                     NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
-                    Instance.cleanTags(compound);
+                    cleanTags(compound);
                     Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
                     arrayList.add(entity == null ? null : NpcAPI.Instance().getIEntity(entity));
                 }
@@ -343,7 +670,7 @@ public class ServerCloneController implements ICloneHandler {
         if (compound == null) {
             throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
         } else {
-            Instance.cleanTags(compound);
+            cleanTags(compound);
             Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
             return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
         }
@@ -353,7 +680,6 @@ public class ServerCloneController implements ICloneHandler {
         NBTTagCompound compound = this.getCloneData((ICommandSender) null, name, tab);
         return compound != null;
     }
-
 
     public void set(int tab, String name, IEntity entity) {
         NBTTagCompound compound = new NBTTagCompound();
@@ -366,5 +692,86 @@ public class ServerCloneController implements ICloneHandler {
 
     public void remove(int tab, String name) {
         this.removeClone(name, tab);
+    }
+
+    // --- Folder API Methods ---
+
+    public String[] getFolders() {
+        return getFolderNames().toArray(new String[0]);
+    }
+
+    public IEntity spawn(double x, double y, double z, String folderName, String name, IWorld world, boolean ignoreProtection) {
+        NBTTagCompound compound = getCloneData(null, name, folderName);
+        if (compound == null) {
+            throw new CustomNPCsException("Unknown clone folder:" + folderName + " name:" + name, new Object[0]);
+        }
+        Entity entity;
+        if (!ignoreProtection) {
+            entity = NoppesUtilServer.spawnCloneWithProtection(compound, (int) x, (int) y, (int) z, world.getMCWorld());
+        } else {
+            entity = NoppesUtilServer.spawnClone(compound, (int) x, (int) y, (int) z, world.getMCWorld());
+        }
+        return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
+    }
+
+    public IEntity spawn(IPos pos, String folderName, String name, IWorld world, boolean ignoreProtection) {
+        return this.spawn(pos.getX(), pos.getY(), pos.getZ(), folderName, name, world, ignoreProtection);
+    }
+
+    public IEntity spawn(double x, double y, double z, String folderName, String name, IWorld world) {
+        return spawn(x, y, z, folderName, name, world, true);
+    }
+
+    public IEntity spawn(IPos pos, String folderName, String name, IWorld world) {
+        return this.spawn(pos.getX(), pos.getY(), pos.getZ(), folderName, name, world);
+    }
+
+    public IEntity[] getFolder(String folderName, IWorld world) {
+        File dir = getFolderDir(folderName);
+        if (!dir.exists() || !dir.isDirectory() || dir.listFiles() == null) {
+            return new IEntity[]{};
+        }
+
+        ArrayList<IEntity> arrayList = new ArrayList<>();
+        try {
+            for (File file : dir.listFiles()) {
+                if (file.getName().endsWith(".json")) {
+                    NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+                    cleanTags(compound);
+                    Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
+                    arrayList.add(entity == null ? null : NpcAPI.Instance().getIEntity(entity));
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return arrayList.toArray(new IEntity[]{});
+    }
+
+    public IEntity get(String folderName, String name, IWorld world) {
+        NBTTagCompound compound = getCloneData(null, name, folderName);
+        if (compound == null) {
+            throw new CustomNPCsException("Unknown clone folder:" + folderName + " name:" + name, new Object[0]);
+        }
+        cleanTags(compound);
+        Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
+        return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
+    }
+
+    public boolean has(String folderName, String name) {
+        NBTTagCompound compound = getCloneData(null, name, folderName);
+        return compound != null;
+    }
+
+    public void set(String folderName, String name, IEntity entity) {
+        NBTTagCompound compound = new NBTTagCompound();
+        if (!entity.getMCEntity().writeMountToNBT(compound))
+            throw new CustomNPCsException("Cannot save dead entities", new Object[0]);
+
+        this.cleanTags(compound);
+        this.saveClone(folderName, name, compound);
+    }
+
+    public void remove(String folderName, String name) {
+        this.removeClone(name, folderName);
     }
 }

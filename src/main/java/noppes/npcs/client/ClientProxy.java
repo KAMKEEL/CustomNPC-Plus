@@ -334,7 +334,6 @@ public class ClientProxy extends CommonProxy {
 
         ClientCloneController.Instance = new ClientCloneController();
         ClientTagMapController.Instance = new ClientTagMapController();
-
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
 
         // Telegraph rendering system
