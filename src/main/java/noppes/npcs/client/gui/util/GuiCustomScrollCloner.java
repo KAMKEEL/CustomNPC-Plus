@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util;
 
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.GuiNpcMobSpawner;
 import noppes.npcs.controllers.data.Tag;
@@ -7,10 +8,10 @@ import noppes.npcs.controllers.data.Tag;
 import java.util.UUID;
 
 public class GuiCustomScrollCloner extends GuiCustomScroll {
-    private final GuiNpcMobSpawner parent;
+    private final IClonerGui parent;
 
-    public GuiCustomScrollCloner(GuiNpcMobSpawner parent, int id) {
-        super(parent, id);
+    public GuiCustomScrollCloner(IClonerGui parent, int id) {
+        super((GuiScreen) parent, id);
         this.parent = parent;
     }
 
@@ -38,24 +39,25 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                         text += "...";
                 } else
                     text = displayString;
-                if ((multipleSelection && selectedList.contains(text)) || (!multipleSelection && selected == i)) {
+                int itemColor = this.colors.getOrDefault(list.get(i), 0xffffff);
+                if ((multipleSelection && selectedList.contains(list.get(i))) || (!multipleSelection && selected == i)) {
                     drawVerticalLine(j - 2, k - 4, k + 10, 0xffffffff);
                     drawVerticalLine(j + xSize - 18 + xOffset, k - 4, k + 10, 0xffffffff);
                     drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k - 3, 0xffffffff);
                     drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k + 10, 0xffffffff);
-                    fontRendererObj.drawString(text, j, k, this.colors.getOrDefault(text, 0xffffff));
+                    fontRendererObj.drawString(text, j, k, itemColor);
                 } else if (i == hover) {
                     fontRendererObj.drawString(text, j, k, 0x00ff00);
                 } else {
-                    fontRendererObj.drawString(text, j, k, this.colors.getOrDefault(text, 0xffffff));
+                    fontRendererObj.drawString(text, j, k, itemColor);
                 }
 
-                if ((this.parent.getShowingClones() == 0 || this.parent.getShowingClones() == 2) && this.parent.tagMap != null) {
+                if ((parent.getShowingClones() == 0 || parent.getShowingClones() == 2) && parent.getTagMap() != null) {
                     int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 3;
                     if (GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1) {
-                        if (this.parent.tagMap.hasClone(list.get(i))) {
-                            for (UUID tagUUID : this.parent.tagMap.getUUIDsList(list.get(i))) {
-                                Tag tag = this.parent.tags.get(tagUUID);
+                        if (parent.getTagMap().hasClone(list.get(i))) {
+                            for (UUID tagUUID : parent.getTagMap().getUUIDsList(list.get(i))) {
+                                Tag tag = parent.getTags().get(tagUUID);
                                 if (tag != null) {
                                     if (GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()) {
                                         fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
