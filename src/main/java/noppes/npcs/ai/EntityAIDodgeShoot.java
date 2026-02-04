@@ -63,7 +63,7 @@ public class EntityAIDodgeShoot extends EntityAIBase {
      * Updates the task
      */
     public void updateTask() {
-        if (this.entity.getAttackTarget() != null)
+        if (this.entity.getAttackTarget() != null && !this.entity.abilities.isRotationLocked())
             this.entity.getLookHelper().setLookPositionWithEntity(this.entity.getAttackTarget(), 30.0F, 30.0F);
     }
 }

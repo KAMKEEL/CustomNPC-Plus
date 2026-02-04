@@ -55,7 +55,7 @@ public abstract class MultiScriptHandler extends ScriptHandler implements IScrip
      * Normalize the language to a valid one if the current language is not available.
      */
     protected void normalizeLanguage() {
-        if (!ScriptController.Instance.languages.containsKey(this.scriptLanguage)) {
+        if (this.scriptLanguage == null || this.scriptLanguage.isEmpty()) {
             if (!ScriptController.Instance.languages.isEmpty()) {
                 this.scriptLanguage = (String) ScriptController.Instance.languages.keySet().toArray()[0];
             } else {

@@ -108,6 +108,9 @@ import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
 import kamkeel.npcs.network.packets.request.clone.CloneAllTagsPacket;
 import kamkeel.npcs.network.packets.request.clone.CloneAllTagsShortPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneFolderCrudPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneFolderListPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneMovePacket;
 import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
 import kamkeel.npcs.network.packets.request.clone.ClonePreSavePacket;
 import kamkeel.npcs.network.packets.request.clone.CloneRemovePacket;
@@ -325,6 +328,9 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new CloneTagListPacket());
         REQUEST_PACKET.registerPacket(new CloneAllTagsPacket());
         REQUEST_PACKET.registerPacket(new CloneAllTagsShortPacket());
+        REQUEST_PACKET.registerPacket(new CloneFolderListPacket());
+        REQUEST_PACKET.registerPacket(new CloneFolderCrudPacket());
+        REQUEST_PACKET.registerPacket(new CloneMovePacket());
 
 
         // Linked Packets

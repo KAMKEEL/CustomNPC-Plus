@@ -123,6 +123,11 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
+    }
+
+    @Override
     public void cleanup() {
         // Despawn orb entity if still alive
         if (orbEntity != null && !orbEntity.isDead) {

@@ -26,7 +26,7 @@ public class EntityAILook extends EntityAIBase {
      */
     @Override
     public boolean shouldExecute() {
-        return !npc.isAttacking() && npc.getNavigator().noPath() && !npc.isPlayerSleeping() && npc.isEntityAlive();
+        return !npc.abilities.isRotationLocked() && !npc.isAttacking() && npc.getNavigator().noPath() && !npc.isPlayerSleeping() && npc.isEntityAlive();
     }
 
     /**

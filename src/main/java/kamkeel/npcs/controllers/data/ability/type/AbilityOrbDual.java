@@ -161,7 +161,11 @@ public class AbilityOrbDual extends Ability {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        // Nothing to clean up - entity manages itself
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

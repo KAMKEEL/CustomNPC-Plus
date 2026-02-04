@@ -8,6 +8,7 @@ import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
+import kamkeel.npcs.util.Register;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,11 +28,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * GUI for managing NPC abilities.
@@ -44,6 +41,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     // All available ability types (typeId -> index)
     private final HashMap<String, Integer> allAbilityTypes = new HashMap<>();
+    private final HashMap<String, Integer> filteredAbilityTypes = new HashMap<>();
 
     // Display name to typeId mapping for the available types scroll
     private final HashMap<String, String> displayNameToTypeId = new HashMap<>();
@@ -59,10 +57,33 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     private String search = "";
     private int selectedAbilityIndex = -1;
 
+    public static int modIndex = 0;
+    public static ScrollType scrollType = ScrollType.CNPC;
+
     public GuiNPCAbilities(EntityNPCInterface npc) {
         super(npc);
         PacketClient.sendClient(new AbilitiesGetAllPacket());
         PacketClient.sendClient(new AbilitiesNpcGetPacket());
+    }
+
+    public enum ScrollType {
+        CNPC,
+        MODDED,
+        ALL;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case CNPC: return "CustomNPCs";
+                case MODDED:
+                    if (Register.isEmpty("ability"))
+                        return "modded";
+
+                    return Register.REGISTERED_NAMESPACES.get("ability").get(modIndex);
+                case ALL: return "filter.all";
+                default: return name();
+            }
+        }
     }
 
     @Override
@@ -94,12 +115,14 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         addLabel(new GuiNpcLabel(1, "ability.availableTypes", guiLeft + 5, y));
         if (availableTypesScroll == null) {
             availableTypesScroll = new GuiCustomScroll(this, 0);
-            availableTypesScroll.setSize(140, 130);
+            availableTypesScroll.setSize(140, 103);
         }
         availableTypesScroll.guiLeft = guiLeft + 5;
         availableTypesScroll.guiTop = y + 12;
         availableTypesScroll.setList(getFilteredTypeList());
         addScroll(availableTypesScroll);
+
+        addButton(new GuiNpcButton(50, guiLeft + 5, y + 120, 140, 20, scrollType.toString()));
 
         // Search bar for types
         addTextField(new GuiNpcTextField(4, this, fontRendererObj, guiLeft + 5, y + 145, 140, 18, search));
@@ -275,6 +298,31 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             return;
         }
 
+        if (id == 50) {
+            if (scrollType != ScrollType.MODDED) {
+                ScrollType[] values = ScrollType.values();
+                scrollType = values[(scrollType.ordinal() + 1) % values.length];
+            } else {
+                List<String> list = Register.REGISTERED_NAMESPACES.get("ability");
+
+                if (list != null && !list.isEmpty()) {
+                    if (modIndex == list.size() - 1) {
+                        scrollType = ScrollType.ALL;
+                    } else {
+                        modIndex = (modIndex + 1) % list.size();
+                    }
+                } else {
+                    modIndex = 0;
+                    scrollType = ScrollType.ALL;
+                }
+            }
+
+            Map<String, Integer> dummyMap = new HashMap<>(allAbilityTypes);
+            filteredAbilityTypes.clear();
+            filteredAbilityTypes.putAll(getFilteredData(dummyMap));
+        }
+
+
         initGui();
     }
 
@@ -283,6 +331,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         if (type == EnumScrollData.ABILITY_TYPES) {
             allAbilityTypes.clear();
             allAbilityTypes.putAll(data);
+
+            filteredAbilityTypes.putAll(getFilteredData(allAbilityTypes));
             if (availableTypesScroll != null) {
                 availableTypesScroll.setList(getFilteredTypeList());
             }
@@ -341,10 +391,35 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         }
     }
 
+    private HashMap<String, Integer> getFilteredData(Map<String, Integer> data) {
+        HashMap<String, Integer> filteredData = new HashMap<>();
+        if (scrollType == ScrollType.CNPC) {
+            data.entrySet().stream()
+                .filter(e -> e.getKey().startsWith("ability.cnpc."))
+                .forEach(e -> filteredData.put(e.getKey(), e.getValue()));
+        } else if (scrollType == ScrollType.MODDED) {
+            if (!Register.isEmpty("ability")) {
+                List<String> registerList = Register.REGISTERED_NAMESPACES.get("ability");
+
+                if (!registerList.isEmpty()) {
+                    String namespace = registerList.get(modIndex);
+
+                    data.entrySet().stream()
+                        .filter(e -> e.getKey().startsWith("ability." + namespace + "."))
+                        .forEach(e -> filteredData.put(e.getKey(), e.getValue()));
+                }
+            }
+        } else {
+            filteredData.putAll(data);
+        }
+
+        return filteredData;
+    }
+
     private List<String> getFilteredTypeList() {
         List<String> list = new ArrayList<>();
         displayNameToTypeId.clear();
-        for (String typeId : allAbilityTypes.keySet()) {
+        for (String typeId : filteredAbilityTypes.keySet()) {
             String displayName = I18n.format(typeId);
             // Search matches either the display name or the typeId
             if (search.isEmpty() || displayName.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {

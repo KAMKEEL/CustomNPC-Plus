@@ -23,9 +23,16 @@ public final class CloneListPacket extends AbstractPacket {
     public static String packetName = "Request|CloneList";
 
     private int tab;
+    private String folderName;
 
     public CloneListPacket(int tab) {
         this.tab = tab;
+        this.folderName = null;
+    }
+
+    public CloneListPacket(String folderName) {
+        this.tab = -1;
+        this.folderName = folderName;
     }
 
     public CloneListPacket() {
@@ -45,6 +52,9 @@ public final class CloneListPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(tab);
+        if (tab == -1) {
+            kamkeel.npcs.util.ByteBufUtils.writeString(out, folderName);
+        }
     }
 
     @Override
@@ -54,14 +64,26 @@ public final class CloneListPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.MOUNTER, EnumItemPacketType.CLONER))
             return;
 
-        NBTTagList list = new NBTTagList();
         int tab = in.readInt();
-        for (String name : ServerCloneController.Instance.getClones(tab))
-            list.appendTag(new NBTTagString(name));
+        String folder = null;
+        if (tab == -1) {
+            folder = kamkeel.npcs.util.ByteBufUtils.readString(in);
+        }
 
+        NBTTagList list = new NBTTagList();
         NBTTagList listDate = new NBTTagList();
-        for (String name : ServerCloneController.Instance.getClonesDate(tab))
-            listDate.appendTag(new NBTTagString(name));
+
+        if (folder != null) {
+            for (String name : ServerCloneController.Instance.getClones(folder))
+                list.appendTag(new NBTTagString(name));
+            for (String name : ServerCloneController.Instance.getClonesDate(folder))
+                listDate.appendTag(new NBTTagString(name));
+        } else {
+            for (String name : ServerCloneController.Instance.getClones(tab))
+                list.appendTag(new NBTTagString(name));
+            for (String name : ServerCloneController.Instance.getClonesDate(tab))
+                listDate.appendTag(new NBTTagString(name));
+        }
 
         NBTTagCompound compound = new NBTTagCompound();
         compound.setTag("List", list);

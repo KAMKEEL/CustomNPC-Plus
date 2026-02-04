@@ -68,7 +68,9 @@ public class EntityAIStalkTarget extends EntityAIBase {
      * Updates the task
      */
     public void updateTask() {
-        this.theEntity.getLookHelper().setLookPositionWithEntity(targetEntity, 30.0F, 30.0F);
+        if (!this.theEntity.abilities.isRotationLocked()) {
+            this.theEntity.getLookHelper().setLookPositionWithEntity(targetEntity, 30.0F, 30.0F);
+        }
 
         if (this.theEntity.getNavigator().noPath() || this.overRide) {
             if (this.isLookingAway()) {

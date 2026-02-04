@@ -128,6 +128,11 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     }
 
     @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
+    }
+
+    @Override
     public void cleanup() {
         // Despawn disc entity if still alive
         if (discEntity != null && !discEntity.isDead) {

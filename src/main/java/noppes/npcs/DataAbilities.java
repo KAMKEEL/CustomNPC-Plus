@@ -18,6 +18,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -147,10 +148,15 @@ public class DataAbilities {
                     // Remove telegraph - it has served its purpose
                     removeTelegraph(currentAbility);
 
-                    // Lock rotation if movement is locked during ACTIVE phase
-                    // Capture current rotation values to force them every tick
-                    if (currentAbility.isMovementLockedDuringActive()) {
-                        captureLockedRotation();
+                    // Handle rotation lock transition from WINDUP to ACTIVE
+                    if (currentAbility.isRotationLockedDuringActive()) {
+                        // ACTIVE or WINDUP_AND_ACTIVE: capture (or keep) rotation lock
+                        if (!rotationLocked) {
+                            captureLockedRotation();
+                        }
+                    } else if (rotationLocked) {
+                        // WINDUP only: release the lock now that windup is over
+                        releaseLockedRotation();
                     }
 
                     // Play active sound and animation
@@ -390,6 +396,9 @@ public class DataAbilities {
             executeImmediate(ability, target);
         } else {
             // Normal windup flow
+            if (ability.isRotationLockedDuringWindup()) {
+                captureLockedRotation();
+            }
             spawnTelegraph(ability, target);
             playAbilitySound(ability.getWindUpSound());
             playAbilityAnimation(ability.getWindUpAnimation());
@@ -403,8 +412,8 @@ public class DataAbilities {
      * Called when windUpTicks is 0.
      */
     private void executeImmediate(Ability ability, EntityLivingBase target) {
-        // Lock rotation if movement is locked during ACTIVE phase
-        if (ability.isMovementLockedDuringActive()) {
+        // Lock rotation if rotation is locked during ACTIVE phase
+        if (ability.isRotationLockedDuringActive()) {
             captureLockedRotation();
         }
 
@@ -934,9 +943,12 @@ public class DataAbilities {
     // ROTATION LOCKING
     // ═══════════════════════════════════════════════════════════════════
 
+    /** Bit flag for rotation lock in the existing data watcher slot 15 bitfield */
+    private static final int ROTATION_LOCKED_FLAG = 16;
+
     /**
      * Capture current rotation values to lock NPC's look direction.
-     * Called when entering ACTIVE phase with movement locked during active.
+     * Called when entering a locked phase (WINDUP or ACTIVE depending on LockMovementType).
      */
     private void captureLockedRotation() {
         lockedYaw = npc.rotationYaw;
@@ -944,22 +956,53 @@ public class DataAbilities {
         lockedRenderYawOffset = npc.renderYawOffset;
         lockedPitch = npc.rotationPitch;
         rotationLocked = true;
+        npc.setBoolFlag(true, ROTATION_LOCKED_FLAG);
     }
 
     /**
      * Release the rotation lock.
-     * Called when leaving ACTIVE phase or ability completes.
+     * Called when leaving the locked phase or ability completes.
      */
     private void releaseLockedRotation() {
         rotationLocked = false;
+        npc.setBoolFlag(false, ROTATION_LOCKED_FLAG);
     }
 
     /**
      * Apply locked rotation values to the NPC.
      * Called AFTER super.onLivingUpdate() in EntityNPCInterface to override
-     * any rotation changes made by the look helper or AI tasks.
+     * any rotation changes made by the look helper, AI tasks, or body smoothing.
+     * Runs on both client and server.
      */
     public void applyLockedRotation() {
+        if (npc.worldObj.isRemote) {
+            // Client-side: check bit 16 in the existing flags data watcher (slot 15)
+            boolean flagActive = npc.getBoolFlag(ROTATION_LOCKED_FLAG);
+            if (!flagActive) {
+                rotationLocked = false;
+                return;
+            }
+            // First tick the flag is active: capture current rotation values
+            if (!rotationLocked) {
+                lockedYaw = npc.rotationYaw;
+                lockedYawHead = npc.rotationYawHead;
+                lockedRenderYawOffset = npc.renderYawOffset;
+                lockedPitch = npc.rotationPitch;
+                rotationLocked = true;
+            }
+            // Force all rotation values back to locked state
+            npc.rotationYaw = lockedYaw;
+            npc.rotationYawHead = lockedYawHead;
+            npc.renderYawOffset = lockedRenderYawOffset;
+            npc.rotationPitch = lockedPitch;
+            npc.prevRotationYaw = lockedYaw;
+            npc.prevRotationYawHead = lockedYawHead;
+            npc.prevRenderYawOffset = lockedRenderYawOffset;
+            npc.prevRotationPitch = lockedPitch;
+            return;
+        }
+
+        // Server-side: use stored locked values
         if (!rotationLocked) {
             return;
         }

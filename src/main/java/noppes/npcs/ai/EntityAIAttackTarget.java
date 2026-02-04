@@ -118,7 +118,9 @@ public class EntityAIAttackTarget extends EntityAIBase {
      * Updates the task
      */
     public void updateTask() {
-        this.npc.getLookHelper().setLookPositionWithEntity(this.entityTarget, 30.0F, 30.0F);
+        if (!this.npc.abilities.isRotationLocked()) {
+            this.npc.getLookHelper().setLookPositionWithEntity(this.entityTarget, 30.0F, 30.0F);
+        }
 
         // Skip pathfinding updates if ability is controlling movement
         if (!navOverride && !this.npc.abilities.isAbilityControllingMovement() && --this.field_75445_i <= 0) {

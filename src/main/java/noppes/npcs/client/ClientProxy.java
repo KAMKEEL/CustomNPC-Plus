@@ -76,6 +76,7 @@ import noppes.npcs.client.gui.GuiBorderBlock;
 import noppes.npcs.client.gui.GuiMerchantAdd;
 import noppes.npcs.client.gui.GuiNpcDimension;
 import noppes.npcs.client.gui.GuiNpcMobSpawner;
+import noppes.npcs.client.gui.GuiNpcMobSpawnerFullscreen;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerMounter;
 import noppes.npcs.client.gui.GuiNpcPather;
 import noppes.npcs.client.gui.GuiNpcRedstoneBlock;
@@ -336,7 +337,6 @@ public class ClientProxy extends CommonProxy {
 
         ClientCloneController.Instance = new ClientCloneController();
         ClientTagMapController.Instance = new ClientTagMapController();
-
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
 
         // Telegraph rendering system
@@ -605,7 +605,9 @@ public class ClientProxy extends CommonProxy {
             return new GuiNpcRedstoneBlock(x, y, z);
 
         else if (gui == EnumGuiType.Cloner)
-            return new GuiNpcMobSpawner(x, y, z);
+            return GuiNpcMobSpawner.isFullscreen
+                ? new GuiNpcMobSpawnerFullscreen(x, y, z)
+                : new GuiNpcMobSpawner(x, y, z);
 
         else if (gui == EnumGuiType.MobSpawnerMounter)
             return new GuiNpcMobSpawnerMounter(x, y, z);
