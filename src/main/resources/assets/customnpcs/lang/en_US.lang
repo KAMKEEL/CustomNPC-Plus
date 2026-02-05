@@ -164,6 +164,7 @@ gui.playerMap=Regen PlayerMap
 gui.unused=Unused
 gui.apply=Apply
 gui.cancel=Cancel
+gui.continue=Continue
 gui.yes=Yes
 
 gui.lineColor1=Upper line color
@@ -1829,6 +1830,7 @@ ability.dualFireDelay=Fire Delay
 # Ability Save/Load
 ability.save.confirm=Save ability preset
 ability.save.overwrite=Overwrite existing preset
+ability.duplicate.name=A preset with this name already exists
 ability.load.select=Select ability to load:
 ability.load.mode=How should this ability be loaded?
 ability.clone=Clone
