@@ -1,8 +1,6 @@
 # CNPC+ 1.11 Beta - Market Update
 
-🟡  **In Testing**
-
-## Features: ⚒️
+## Auction Features: ⚒️
 
 - **Built-in Currency System:**
 > Fully configurable economy currency used across all Market features. Profile persistent across character slots with Vault support for Bukkit-compatible plugins.
@@ -50,7 +48,6 @@
 > `/kam auction open` for players. Admin commands for listing view and player activity inspection.
 
 **Extras**
-
 - Auction logging for server admins (tracks creates, bids, buyouts, sales, expirations, cancellations, claims).
 - Lifetime currency tracking per player (total earned and spent).
 - Configurable starting balance and max balance cap.
