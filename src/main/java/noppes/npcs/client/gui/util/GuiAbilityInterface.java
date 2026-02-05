@@ -135,6 +135,9 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
      * Draw the 3D preview with NPC and entities.
      */
     protected void drawPreview(int mouseX, int mouseY, float partialTicks) {
+        if (hasSubGui())
+            return;
+
         GL11.glColor4f(1, 1, 1, 1);
 
         // Enable scissor to clip rendering to preview area

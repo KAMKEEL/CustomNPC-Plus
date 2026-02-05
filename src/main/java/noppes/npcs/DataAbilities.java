@@ -44,7 +44,7 @@ public class DataAbilities {
     /**
      * Whether the ability system is enabled for this NPC
      */
-    public boolean enabled = false;
+    public boolean enabled = true;
 
     /**
      * Minimum cooldown ticks between abilities (global minimum)
@@ -89,6 +89,16 @@ public class DataAbilities {
     private transient float lockedYawHead = 0;
     private transient float lockedRenderYawOffset = 0;
     private transient float lockedPitch = 0;
+
+    /**
+     * Locked position values for movement lock.
+     * Stored when entering a locked phase, applied after super.onLivingUpdate()
+     * to override any position changes from AI/physics.
+     */
+    private transient boolean positionLocked = false;
+    private transient double lockedPosX = 0;
+    private transient double lockedPosY = 0;
+    private transient double lockedPosZ = 0;
 
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
@@ -150,13 +160,20 @@ public class DataAbilities {
 
                     // Handle rotation lock transition from WINDUP to ACTIVE
                     if (currentAbility.isRotationLockedDuringActive()) {
-                        // ACTIVE or WINDUP_AND_ACTIVE: capture (or keep) rotation lock
                         if (!rotationLocked) {
                             captureLockedRotation();
                         }
                     } else if (rotationLocked) {
-                        // WINDUP only: release the lock now that windup is over
                         releaseLockedRotation();
+                    }
+
+                    // Handle position lock transition from WINDUP to ACTIVE
+                    if (currentAbility.isMovementLockedDuringActive() && !currentAbility.hasAbilityMovement()) {
+                        if (!positionLocked) {
+                            captureLockedPosition();
+                        }
+                    } else if (positionLocked) {
+                        releaseLockedPosition();
                     }
 
                     // Play active sound and animation
@@ -243,8 +260,9 @@ public class DataAbilities {
             npc.wrappedNPC, currentAbility, target);
         NpcAPI.EVENT_BUS.post(completeEvent);
 
-        // Release rotation lock before cleanup
+        // Release locks before cleanup
         releaseLockedRotation();
+        releaseLockedPosition();
 
         // Clean up and roll cooldown (this sets currentAbility to null)
         onAbilityComplete();
@@ -259,8 +277,9 @@ public class DataAbilities {
             // Stop any ability animation
             stopAbilityAnimation();
 
-            // Release rotation lock
+            // Release locks
             releaseLockedRotation();
+            releaseLockedPosition();
 
             // Calculate cooldown: random(min, max) + ability offset
             int abilityCooldownOffset = currentAbility.getCooldownTicks();
@@ -399,6 +418,9 @@ public class DataAbilities {
             if (ability.isRotationLockedDuringWindup()) {
                 captureLockedRotation();
             }
+            if (ability.isMovementLockedDuringWindup() && !ability.hasAbilityMovement()) {
+                captureLockedPosition();
+            }
             spawnTelegraph(ability, target);
             playAbilitySound(ability.getWindUpSound());
             playAbilityAnimation(ability.getWindUpAnimation());
@@ -415,6 +437,9 @@ public class DataAbilities {
         // Lock rotation if rotation is locked during ACTIVE phase
         if (ability.isRotationLockedDuringActive()) {
             captureLockedRotation();
+        }
+        if (ability.isMovementLockedDuringActive() && !ability.hasAbilityMovement()) {
+            captureLockedPosition();
         }
 
         // Play active sound and animation
@@ -625,8 +650,9 @@ public class DataAbilities {
             // Stop any ability animation
             stopAbilityAnimation();
 
-            // Release rotation lock
+            // Release locks
             releaseLockedRotation();
+            releaseLockedPosition();
 
             // Fire interrupt event
             AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(
@@ -649,6 +675,7 @@ public class DataAbilities {
             removeTelegraph(currentAbility);
             stopAbilityAnimation();
             releaseLockedRotation();
+            releaseLockedPosition();
             currentAbility.interrupt();
             currentAbility = null;
             lastTarget = null;
@@ -1025,6 +1052,80 @@ public class DataAbilities {
      */
     public boolean isRotationLocked() {
         return rotationLocked;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // POSITION LOCKING
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Bit flag for position lock in the existing data watcher slot 15 bitfield */
+    private static final int POSITION_LOCKED_FLAG = 32;
+
+    /**
+     * Capture current position to lock NPC in place.
+     * Called when entering a phase with movement lock.
+     */
+    private void captureLockedPosition() {
+        lockedPosX = npc.posX;
+        lockedPosY = npc.posY;
+        lockedPosZ = npc.posZ;
+        positionLocked = true;
+        npc.setBoolFlag(true, POSITION_LOCKED_FLAG);
+    }
+
+    /**
+     * Release the position lock.
+     * Called when leaving the locked phase or ability completes.
+     */
+    private void releaseLockedPosition() {
+        positionLocked = false;
+        npc.setBoolFlag(false, POSITION_LOCKED_FLAG);
+    }
+
+    /**
+     * Apply locked position values to the NPC.
+     * Called AFTER super.onLivingUpdate() in EntityNPCInterface to override
+     * any position changes from AI pathfinding, physics, or entity collisions.
+     * Runs on both client and server.
+     */
+    public void applyLockedPosition() {
+        if (npc.worldObj.isRemote) {
+            // Client-side: check flag via data watcher
+            boolean flagActive = npc.getBoolFlag(POSITION_LOCKED_FLAG);
+            if (!flagActive) {
+                positionLocked = false;
+                return;
+            }
+            // First tick the flag is active: capture current position
+            if (!positionLocked) {
+                lockedPosX = npc.posX;
+                lockedPosY = npc.posY;
+                lockedPosZ = npc.posZ;
+                positionLocked = true;
+            }
+            // Snap position back and set prev to prevent interpolation jitter
+            npc.setPosition(lockedPosX, lockedPosY, lockedPosZ);
+            npc.prevPosX = lockedPosX;
+            npc.prevPosY = lockedPosY;
+            npc.prevPosZ = lockedPosZ;
+            npc.motionX = 0;
+            npc.motionY = 0;
+            npc.motionZ = 0;
+            return;
+        }
+
+        // Server-side: use stored locked values
+        if (!positionLocked) {
+            return;
+        }
+
+        npc.setPosition(lockedPosX, lockedPosY, lockedPosZ);
+        npc.prevPosX = lockedPosX;
+        npc.prevPosY = lockedPosY;
+        npc.prevPosZ = lockedPosZ;
+        npc.motionX = 0;
+        npc.motionY = 0;
+        npc.motionZ = 0;
     }
 
     // ═══════════════════════════════════════════════════════════════════

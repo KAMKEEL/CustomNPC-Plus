@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 
 public class Register<T> {
     public static final Map<String, List<String>> REGISTERED_NAMESPACES = new LinkedHashMap<>();
+    public static final Map<String, String> NAMESPACE_DISPLAY_NAMES = new LinkedHashMap<>();
     private final String registryKey;
     protected final String namespace;
     protected final Map<String, Supplier<T>> entries = new LinkedHashMap<>();
@@ -71,7 +72,7 @@ public class Register<T> {
             }
         }
 
-        public static Register.Abilities create(String namespace) {
+        public static Register.Abilities create(String namespace, String displayName) {
             if (!REGISTERED_NAMESPACES.containsKey("ability"))
                 REGISTERED_NAMESPACES.put("ability", new ArrayList<>());
 
@@ -80,6 +81,7 @@ public class Register<T> {
             }
 
             REGISTERED_NAMESPACES.get("ability").add(namespace);
+            NAMESPACE_DISPLAY_NAMES.put(namespace, displayName);
 
             return new Register.Abilities(namespace);
         }

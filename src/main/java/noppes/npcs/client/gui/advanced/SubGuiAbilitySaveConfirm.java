@@ -7,24 +7,29 @@ import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.ISubGuiListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+
+import java.util.Set;
 
 /**
  * Confirmation dialog for saving an ability preset.
  * Uses packet-based communication for proper client-server architecture.
  */
-public class SubGuiAbilitySaveConfirm extends SubGuiInterface {
+public class SubGuiAbilitySaveConfirm extends SubGuiInterface implements ISubGuiListener {
 
     private final Ability ability;
     private final IAbilityConfigCallback callback;
+    private final Set<String> existingNames;
 
     public SubGuiAbilitySaveConfirm(Ability ability) {
-        this(ability, null);
+        this(ability, null, null);
     }
 
-    public SubGuiAbilitySaveConfirm(Ability ability, IAbilityConfigCallback callback) {
+    public SubGuiAbilitySaveConfirm(Ability ability, IAbilityConfigCallback callback, Set<String> existingNames) {
         this.ability = ability;
         this.callback = callback;
+        this.existingNames = existingNames;
 
         setBackground("menubg.png");
         xSize = 200;
@@ -52,14 +57,32 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface {
         int id = guibutton.id;
 
         if (id == 0) {
-            // Save the ability via packet
-            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
-            if (callback != null) {
-                callback.onAbilitySaved(ability);
+            if (existingNames != null && existingNames.contains(ability.getName())) {
+                setSubGui(new SubGuiDuplicateNameConfirm());
+                return;
             }
-            close();
+            doSave();
         } else if (id == 1) {
             close();
+        }
+    }
+
+    private void doSave() {
+        PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+        if (callback != null) {
+            callback.onAbilitySaved(ability);
+        }
+        close();
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiDuplicateNameConfirm) {
+            if (((SubGuiDuplicateNameConfirm) subgui).isConfirmed()) {
+                doSave();
+            } else {
+                close();
+            }
         }
     }
 }

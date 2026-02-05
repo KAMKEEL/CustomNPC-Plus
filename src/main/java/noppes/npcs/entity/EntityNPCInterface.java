@@ -481,8 +481,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         super.onLivingUpdate();
 
-        // Apply locked rotation after super.onLivingUpdate() to override look helper changes
+        // Apply locks after super.onLivingUpdate() to override AI/physics changes
         abilities.applyLockedRotation();
+        abilities.applyLockedPosition();
 
         handleMountRiderState();
 
