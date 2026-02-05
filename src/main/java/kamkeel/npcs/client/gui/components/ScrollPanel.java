@@ -70,6 +70,15 @@ public class ScrollPanel extends Gui {
         }
     }
 
+    public void setBackgroundColor(int color) {
+        this.backgroundColor = color;
+    }
+
+    public void resetScroll() {
+        this.scrollY = 0;
+        this.targetScrollY = 0;
+    }
+
     public int getContentHeight() {
         return contentHeight;
     }

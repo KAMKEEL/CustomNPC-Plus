@@ -94,6 +94,74 @@ public class GuiNpcTextArea extends GuiNpcTextField {
     public boolean textboxKeyTyped(char c, int i) {
         if (isFocused() && canEdit) {
             String originalText = getText();
+
+            // Handle Ctrl+A (Select All) - char code 1
+            if (GuiScreen.isCtrlKeyDown() && (i == Keyboard.KEY_A || c == 1)) {
+                cursorPosition = originalText.length();
+                setSelectionPos(0);
+                return true;
+            }
+
+            // Handle Ctrl+C (Copy) - char code 3
+            if (GuiScreen.isCtrlKeyDown() && (i == Keyboard.KEY_C || c == 3)) {
+                String selected = getSelectedText();
+                if (selected != null && !selected.isEmpty()) {
+                    GuiScreen.setClipboardString(selected);
+                }
+                return true;
+            }
+
+            // Handle Ctrl+V (Paste) - char code 22
+            if (GuiScreen.isCtrlKeyDown() && (i == Keyboard.KEY_V || c == 22)) {
+                String clipboard = GuiScreen.getClipboardString();
+                if (clipboard != null && !clipboard.isEmpty()) {
+                    // Delete selected text first if any
+                    String selected = getSelectedText();
+                    int selStart = getSelectionEnd();
+                    int selEnd = cursorPosition;
+                    if (selStart > selEnd) {
+                        int tmp = selStart;
+                        selStart = selEnd;
+                        selEnd = tmp;
+                    }
+                    if (selected != null && !selected.isEmpty()) {
+                        String before = originalText.substring(0, selStart);
+                        String after = originalText.substring(selEnd);
+                        this.setText(before + clipboard + after);
+                        cursorPosition = selStart + clipboard.length();
+                    } else {
+                        String before = originalText.substring(0, cursorPosition);
+                        String after = originalText.substring(cursorPosition);
+                        this.setText(before + clipboard + after);
+                        cursorPosition += clipboard.length();
+                    }
+                    updateLineList();
+                }
+                return true;
+            }
+
+            // Handle Ctrl+X (Cut) - char code 24
+            if (GuiScreen.isCtrlKeyDown() && (i == Keyboard.KEY_X || c == 24)) {
+                String selected = getSelectedText();
+                if (selected != null && !selected.isEmpty()) {
+                    GuiScreen.setClipboardString(selected);
+                    // Delete selected text
+                    int selStart = getSelectionEnd();
+                    int selEnd = cursorPosition;
+                    if (selStart > selEnd) {
+                        int tmp = selStart;
+                        selStart = selEnd;
+                        selEnd = tmp;
+                    }
+                    String before = originalText.substring(0, selStart);
+                    String after = originalText.substring(selEnd);
+                    this.setText(before + after);
+                    cursorPosition = selStart;
+                    updateLineList();
+                }
+                return true;
+            }
+
             // Handle newline specially - insert and return immediately
             if (c == '\r' || c == '\n') {
                 this.setText(originalText.substring(0, cursorPosition) + c + originalText.substring(cursorPosition));

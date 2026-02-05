@@ -195,14 +195,27 @@ public class ModernColorPicker extends ModernSubGuiInterface {
 
     /**
      * Check if mouse is inside the color wheel area.
+     * Uses circular bounds for accurate detection.
      */
     private boolean isInsideWheel(int mouseX, int mouseY) {
-        return mouseX >= wheelX && mouseX < wheelX + wheelSize &&
-               mouseY >= wheelY && mouseY < wheelY + wheelSize;
+        // First check rectangle bounds
+        if (mouseX < wheelX || mouseX >= wheelX + wheelSize ||
+            mouseY < wheelY || mouseY >= wheelY + wheelSize) {
+            return false;
+        }
+        // Then check circular bounds (wheel is circular)
+        int centerX = wheelX + wheelSize / 2;
+        int centerY = wheelY + wheelSize / 2;
+        int radius = wheelSize / 2;
+        int dx = mouseX - centerX;
+        int dy = mouseY - centerY;
+        return (dx * dx + dy * dy) <= (radius * radius);
     }
 
     /**
      * Pick color from the wheel texture at clicked position.
+     * Uses the same 4x multiplier as the original SubGuiColorSelector
+     * since the texture is 480x480 and we display at variable size.
      */
     private void pickColorFromWheel(int mouseX, int mouseY) {
         InputStream stream = null;
@@ -210,8 +223,9 @@ public class ModernColorPicker extends ModernSubGuiInterface {
             IResource resource = mc.getResourceManager().getResource(COLOR_WHEEL);
             BufferedImage image = ImageIO.read(stream = resource.getInputStream());
 
-            // Scale mouse position to texture coordinates
-            // The texture is assumed to be a certain size, compute ratio
+            // Calculate texture coordinates using the same ratio as original
+            // Original: draws 120x120, texture is 480x480, uses *4 multiplier
+            // We draw wheelSize x wheelSize, so scale proportionally
             int texX = (mouseX - wheelX) * image.getWidth() / wheelSize;
             int texY = (mouseY - wheelY) * image.getHeight() / wheelSize;
 
@@ -219,8 +233,13 @@ public class ModernColorPicker extends ModernSubGuiInterface {
             texX = Math.max(0, Math.min(texX, image.getWidth() - 1));
             texY = Math.max(0, Math.min(texY, image.getHeight() - 1));
 
-            color = image.getRGB(texX, texY) & 0xFFFFFF;
-            hexField.setText(getHexString());
+            // Get pixel color, ignoring alpha and transparent pixels
+            int pixel = image.getRGB(texX, texY);
+            int alpha = (pixel >> 24) & 0xFF;
+            if (alpha > 0) {
+                color = pixel & 0xFFFFFF;
+                hexField.setText(getHexString());
+            }
 
         } catch (IOException e) {
             // Ignore errors

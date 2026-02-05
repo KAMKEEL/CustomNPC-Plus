@@ -17,6 +17,8 @@ public class ModernSubGuiInterface extends SubGuiInterface {
 
     // Overlay color (semi-transparent black)
     protected int overlayColor = 0x80000000;
+    // Whether to draw overlay over entire screen (true) or just around panel (false)
+    protected boolean fullScreenOverlay = false;
 
     // Panel colors
     protected int panelBg = ModernColors.PANEL_BG_SOLID;
@@ -36,8 +38,20 @@ public class ModernSubGuiInterface extends SubGuiInterface {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        // Draw semi-transparent overlay over entire screen
-        Gui.drawRect(0, 0, width, height, overlayColor);
+        // Draw semi-transparent overlay
+        // Only darken a region around the panel, not the entire screen
+        // This allows the diagram/tree view to remain visible
+        if (fullScreenOverlay) {
+            Gui.drawRect(0, 0, width, height, overlayColor);
+        } else {
+            // Draw overlay only behind and slightly around the panel
+            int margin = 20;
+            int overlayLeft = Math.max(0, guiLeft - margin);
+            int overlayTop = Math.max(0, guiTop - margin);
+            int overlayRight = Math.min(width, guiLeft + xSize + margin);
+            int overlayBottom = Math.min(height, guiTop + ySize + margin);
+            Gui.drawRect(overlayLeft, overlayTop, overlayRight, overlayBottom, overlayColor);
+        }
 
         // Draw modern panel background
         drawModernPanel();
@@ -142,6 +156,14 @@ public class ModernSubGuiInterface extends SubGuiInterface {
      */
     public void setOverlayColor(int color) {
         this.overlayColor = color;
+    }
+
+    /**
+     * Set whether to draw overlay over entire screen or just around panel.
+     * Default is false (localized overlay to preserve visibility of parent content).
+     */
+    public void setFullScreenOverlay(boolean fullScreen) {
+        this.fullScreenOverlay = fullScreen;
     }
 
     /**

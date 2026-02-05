@@ -399,7 +399,9 @@ public abstract class GuiAdvancedDiagram extends Gui {
 
     // ===== Drawing =====
     public void drawDiagram(int mouseX, int mouseY) {
-        if (parent != null && parent.hasSubGui()) return;
+        // Note: We removed the hasSubGui() check here. The diagram should continue
+        // drawing even when a SubGui is open - the SubGui renders on top via z-order.
+        // Previously this caused the entire diagram to disappear when opening dialogs.
 
         if (isWithin(mouseX, mouseY)) {
             handleMouseScroll(Mouse.getDWheel());

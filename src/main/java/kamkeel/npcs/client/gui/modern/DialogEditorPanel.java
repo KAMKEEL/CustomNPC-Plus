@@ -7,9 +7,7 @@ import noppes.npcs.client.gui.util.IDialogEditorListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
 import noppes.npcs.controllers.data.Dialog;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +36,9 @@ public class DialogEditorPanel extends Gui {
     protected Dialog dialog;
     protected boolean dirty = false;
     protected int currentTab = 0;
-    protected float scrollY = 0;
-    protected float targetScrollY = 0;
-    protected int contentHeight = 0;
+
+    // === Scroll Panel (replaces manual scroll logic) ===
+    protected ScrollPanel scrollPanel;
 
     // === Tab Names ===
     protected static final String[] TAB_NAMES = {"Text", "Options", "Feedback", "Settings", "Availability"};
@@ -59,12 +57,6 @@ public class DialogEditorPanel extends Gui {
     // === Listener ===
     protected IDialogEditorListener listener;
 
-    // === Scrollbar ===
-    protected int scrollbarWidth = 6;
-    protected boolean isDraggingScrollbar = false;
-    protected int dragStartY;
-    protected float dragStartScroll;
-
     // === Footer ===
     protected boolean hoverTestBtn = false;
     protected boolean hoverSaveBtn = false;
@@ -76,6 +68,18 @@ public class DialogEditorPanel extends Gui {
         this.width = width;
         this.height = height;
         initTabs();
+        initScrollPanel();
+    }
+
+    protected void initScrollPanel() {
+        int contentY = y + headerHeight + tabBarHeight;
+        int contentAreaH = height - headerHeight - tabBarHeight - footerHeight;
+        scrollPanel = new ScrollPanel(x, contentY, width, contentAreaH);
+        scrollPanel.setBackgroundColor(0); // Transparent - we draw our own background
+    }
+
+    protected int getScrollbarWidth() {
+        return scrollPanel != null ? 6 : 0;
     }
 
     // === Tab Initialization ===
@@ -97,8 +101,7 @@ public class DialogEditorPanel extends Gui {
     public void setDialog(Dialog dialog) {
         this.dialog = dialog;
         this.dirty = false;
-        this.scrollY = 0;
-        this.targetScrollY = 0;
+        scrollPanel.resetScroll();
 
         for (DialogEditorTab tab : tabs) {
             tab.setDialog(dialog);
@@ -128,13 +131,6 @@ public class DialogEditorPanel extends Gui {
 
         FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
 
-        // Update scroll animation
-        if (Math.abs(scrollY - targetScrollY) > 0.5f) {
-            scrollY += (targetScrollY - scrollY) * 0.3f;
-        } else {
-            scrollY = targetScrollY;
-        }
-
         // Background
         drawRect(x, y, x + width, y + height, ModernColors.PANEL_BG_SOLID);
 
@@ -144,44 +140,24 @@ public class DialogEditorPanel extends Gui {
         // Tab bar
         drawTabBar(mouseX, mouseY, fr);
 
-        // Content area with scissor
-        int contentY = y + headerHeight + tabBarHeight;
-        int contentAreaH = height - headerHeight - tabBarHeight - footerHeight;
-
-        Minecraft mc = Minecraft.getMinecraft();
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int scale = sr.getScaleFactor();
-
         // Update screen positions for all dropdowns BEFORE scroll translation
         updateDropdownScreenPositions();
 
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glScissor(x * scale, mc.displayHeight - (contentY + contentAreaH) * scale,
-                      (width - scrollbarWidth) * scale, contentAreaH * scale);
+        // Draw scrollable content using ScrollPanel
+        int contentX = x + padding;
+        int contentW = width - padding * 2 - getScrollbarWidth();
+        int startY = y + headerHeight + tabBarHeight + padding;
 
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0, -scrollY, 0);
+        scrollPanel.beginDraw();
 
         // Draw current tab content
-        int contentX = x + padding;
-        int contentW = width - padding * 2 - scrollbarWidth;
-        int startY = y + headerHeight + tabBarHeight + padding;
-        contentHeight = tabs[currentTab].draw(contentX, contentW, startY, mouseX, (int)(mouseY + scrollY), fr);
+        int contentHeight = tabs[currentTab].draw(contentX, contentW, startY,
+            mouseX, scrollPanel.toContentY(mouseY), fr);
 
-        GL11.glPopMatrix();
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        // Update scroll panel's content height
+        scrollPanel.setContentHeight(contentHeight);
 
-        // Clamp scroll position when content height changes
-        int maxScroll = Math.max(0, contentHeight - contentAreaH);
-        if (scrollY > maxScroll) {
-            scrollY = maxScroll;
-            targetScrollY = maxScroll;
-        }
-
-        // Draw scrollbar
-        if (contentHeight > contentAreaH) {
-            drawScrollbar(mouseX, mouseY, contentY, contentAreaH);
-        }
+        scrollPanel.endDraw(mouseX, mouseY);
 
         // Draw expanded dropdowns in SCREEN SPACE (no translation!)
         drawExpandedDropdownsScreenSpace(mouseX, mouseY);
@@ -242,21 +218,6 @@ public class DialogEditorPanel extends Gui {
         }
     }
 
-    protected void drawScrollbar(int mouseX, int mouseY, int contentY, int contentAreaH) {
-        int sbX = x + width - scrollbarWidth;
-        drawRect(sbX, contentY, sbX + scrollbarWidth, contentY + contentAreaH, ModernColors.SCROLLBAR_BG);
-
-        float viewRatio = (float) contentAreaH / contentHeight;
-        int thumbH = Math.max(20, (int)(contentAreaH * viewRatio));
-        int maxScroll = contentHeight - contentAreaH;
-        int thumbY = maxScroll > 0 ? (int)((contentAreaH - thumbH) * (scrollY / maxScroll)) : 0;
-
-        boolean hoverThumb = mouseX >= sbX && mouseX < sbX + scrollbarWidth &&
-                            mouseY >= contentY + thumbY && mouseY < contentY + thumbY + thumbH;
-        int thumbColor = (hoverThumb || isDraggingScrollbar) ? ModernColors.SCROLLBAR_THUMB_HOVER : ModernColors.SCROLLBAR_THUMB;
-        drawRect(sbX + 1, contentY + thumbY, sbX + scrollbarWidth - 1, contentY + thumbY + thumbH, thumbColor);
-    }
-
     protected void drawFooter(int mouseX, int mouseY, FontRenderer fr) {
         int footerY = y + height - footerHeight;
         drawRect(x, footerY, x + width, y + height, ModernColors.SECTION_HEADER_BG);
@@ -301,7 +262,7 @@ public class DialogEditorPanel extends Gui {
 
     protected void updateDropdownScreenPositions() {
         for (ModernDropdown dropdown : getAllDropdowns()) {
-            int screenDropdownY = dropdown.getY() - (int)scrollY;
+            int screenDropdownY = scrollPanel.toScreenY(dropdown.getY());
             dropdown.setScreenPosition(dropdown.getX(), screenDropdownY);
         }
     }
@@ -336,8 +297,7 @@ public class DialogEditorPanel extends Gui {
         // Tab clicks
         if (hoveredTab >= 0 && mouseY >= y + headerHeight && mouseY < y + headerHeight + tabBarHeight) {
             currentTab = hoveredTab;
-            scrollY = 0;
-            targetScrollY = 0;
+            scrollPanel.resetScroll();
             closeAllDropdowns();
             return true;
         }
@@ -356,14 +316,8 @@ public class DialogEditorPanel extends Gui {
             return true;
         }
 
-        // Scrollbar
-        int contentY = y + headerHeight + tabBarHeight;
-        int contentAreaH = height - headerHeight - tabBarHeight - footerHeight;
-        int sbX = x + width - scrollbarWidth;
-        if (contentHeight > contentAreaH && mouseX >= sbX && mouseX < sbX + scrollbarWidth) {
-            isDraggingScrollbar = true;
-            dragStartY = mouseY;
-            dragStartScroll = scrollY;
+        // Scrollbar - delegate to ScrollPanel
+        if (scrollPanel.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
 
@@ -381,7 +335,7 @@ public class DialogEditorPanel extends Gui {
         }
 
         // Adjust mouseY for scroll (for components inside scrollable content)
-        int adjMouseY = (int)(mouseY + scrollY);
+        int adjMouseY = scrollPanel.toContentY(mouseY);
 
         // Delegate to current tab
         return tabs[currentTab].mouseClicked(mouseX, adjMouseY, button);
@@ -393,37 +347,18 @@ public class DialogEditorPanel extends Gui {
     }
 
     public void mouseScrolled(int delta) {
-        int contentAreaH = height - headerHeight - tabBarHeight - footerHeight;
-        if (contentHeight <= contentAreaH) return;
-
-        int maxScroll = contentHeight - contentAreaH;
-        targetScrollY = Math.max(0, Math.min(targetScrollY - delta * 20, maxScroll));
+        scrollPanel.mouseScrolled(delta);
     }
 
     public void mouseReleased(int mouseX, int mouseY) {
-        isDraggingScrollbar = false;
+        scrollPanel.mouseReleased(mouseX, mouseY);
         // Let text areas handle mouse release
         textTab.getTextArea().mouseReleased(mouseX, mouseY);
         settingsTab.getCommandArea().mouseReleased(mouseX, mouseY);
     }
 
     public void mouseDragged(int mouseX, int mouseY) {
-        if (isDraggingScrollbar) {
-            int contentY = y + headerHeight + tabBarHeight;
-            int contentAreaH = height - headerHeight - tabBarHeight - footerHeight;
-            int maxScroll = contentHeight - contentAreaH;
-
-            float viewRatio = (float) contentAreaH / contentHeight;
-            int thumbH = Math.max(20, (int)(contentAreaH * viewRatio));
-            int trackH = contentAreaH - thumbH;
-
-            if (trackH > 0) {
-                int deltaY = mouseY - dragStartY;
-                float scrollDelta = (deltaY / (float)trackH) * maxScroll;
-                scrollY = Math.max(0, Math.min(dragStartScroll + scrollDelta, maxScroll));
-                targetScrollY = scrollY;
-            }
-        }
+        scrollPanel.mouseDragged(mouseX, mouseY);
         textTab.getTextArea().mouseDragged(mouseX, mouseY);
         settingsTab.getCommandArea().mouseDragged(mouseX, mouseY);
     }
@@ -457,6 +392,10 @@ public class DialogEditorPanel extends Gui {
         this.y = y;
         this.width = width;
         this.height = height;
+        // Update scroll panel bounds
+        int contentY = y + headerHeight + tabBarHeight;
+        int contentAreaH = height - headerHeight - tabBarHeight - footerHeight;
+        scrollPanel.setBounds(x, contentY, width, contentAreaH);
     }
 
     public void setListener(IDialogEditorListener listener) {
