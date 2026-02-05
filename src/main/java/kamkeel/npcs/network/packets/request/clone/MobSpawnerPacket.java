@@ -31,6 +31,7 @@ public class MobSpawnerPacket extends AbstractPacket {
 
     private String selectedName;
     private int tab;
+    private String folderName;
 
     private NBTTagCompound compound;
 
@@ -44,6 +45,17 @@ public class MobSpawnerPacket extends AbstractPacket {
         this.posz = posz;
         this.selectedName = selectedName;
         this.tab = tab;
+        this.folderName = null;
+    }
+
+    public MobSpawnerPacket(Action type, int posX, int posY, int posz, String selectedName, String folderName) {
+        this.type = type;
+        this.posX = posX;
+        this.posY = posY;
+        this.posz = posz;
+        this.selectedName = selectedName;
+        this.tab = -1;
+        this.folderName = folderName;
     }
 
     public MobSpawnerPacket(Action type, int posX, int posY, int posz, NBTTagCompound compound) {
@@ -56,6 +68,10 @@ public class MobSpawnerPacket extends AbstractPacket {
 
     public static void Server(int x, int y, int z, String name, int tab) {
         PacketClient.sendClient(new MobSpawnerPacket(Action.Server, x, y, z, name, tab));
+    }
+
+    public static void ServerFolder(int x, int y, int z, String name, String folderName) {
+        PacketClient.sendClient(new MobSpawnerPacket(Action.Server, x, y, z, name, folderName));
     }
 
     public static void Client(int x, int y, int z, NBTTagCompound compound) {
@@ -88,6 +104,9 @@ public class MobSpawnerPacket extends AbstractPacket {
         if (type == Action.Server) {
             ByteBufUtils.writeString(out, this.selectedName);
             out.writeInt(this.tab);
+            if (this.tab == -1) {
+                ByteBufUtils.writeString(out, this.folderName);
+            }
         } else {
             ByteBufUtils.writeNBT(out, this.compound);
         }
@@ -107,10 +126,18 @@ public class MobSpawnerPacket extends AbstractPacket {
         int z = in.readInt();
         NBTTagCompound compound;
 
-        if (requestedAction == Action.Server)
-            compound = ServerCloneController.Instance.getCloneData(player, ByteBufUtils.readString(in), in.readInt());
-        else
+        if (requestedAction == Action.Server) {
+            String name = ByteBufUtils.readString(in);
+            int tab = in.readInt();
+            if (tab == -1) {
+                String folder = ByteBufUtils.readString(in);
+                compound = ServerCloneController.Instance.getCloneData(player, name, folder);
+            } else {
+                compound = ServerCloneController.Instance.getCloneData(player, name, tab);
+            }
+        } else {
             compound = ByteBufUtils.readNBT(in);
+        }
 
         if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
             return;

@@ -129,6 +129,7 @@ public class AbilityOrbBarrage extends Ability {
                 );
 
                 orbEntity.setupCharging(anchorData[i], windUpTicks);
+                orbEntity.setSourceAbility(this);
 
                 chargingEntities[i] = orbEntity;
                 world.spawnEntityInWorld(orbEntity);
@@ -179,6 +180,7 @@ public class AbilityOrbBarrage extends Ability {
             orbSize, colorData, combatData, homingData, lightningData, lifespanData, trajectoryData
         );
 
+        orb.setSourceAbility(this);
         world.spawnEntityInWorld(orb);
 
         orbEntities.add(orb);
@@ -209,6 +211,11 @@ public class AbilityOrbBarrage extends Ability {
 
         // Direct hit from an entity - can interrupt
         return true;
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.config.ConfigScript;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.controllers.ScriptController;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ public abstract class ScriptHandler implements IScriptHandler {
     protected long lastInited = -1;
 
     protected boolean canRunScripts() {
-        return enabled && ScriptController.HasStart && ConfigScript.ScriptingEnabled && scripts != null && !scripts.isEmpty();
+        return enabled && ScriptController.HasStart && CustomNpcs.proxy.isScriptingEnabled() && scripts != null && !scripts.isEmpty();
     }
 
     @Override

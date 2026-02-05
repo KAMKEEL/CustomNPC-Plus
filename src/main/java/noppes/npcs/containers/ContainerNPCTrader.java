@@ -127,15 +127,11 @@ public class ContainerNPCTrader extends ContainerNpcInterface {
         givePlayer(soldItem, entityplayer);
         role.addPurchase(i, entityplayer.getDisplayName());
 
-        // Sync updated data after purchase
-        // For per-player stocks: sync only to the purchasing player
-        // For shared stocks: consumeStock() handles sync (market-wide or local)
+        // Always sync the purchasing player's data (balance + stock) after trade.
+        // For shared stocks, consumeStock() syncs stock to other viewers,
+        // but the purchasing player's balance still needs an explicit sync.
         if (entityplayer instanceof EntityPlayerMP) {
-            if (role.stock.perPlayer) {
-                // Per-player: only sync to purchasing player (their own stock/balance)
-                role.syncToPlayer((EntityPlayerMP) entityplayer);
-            }
-            // Shared stock sync is already handled in consumeStock()
+            role.syncToPlayer((EntityPlayerMP) entityplayer);
         }
 
         return soldItem;

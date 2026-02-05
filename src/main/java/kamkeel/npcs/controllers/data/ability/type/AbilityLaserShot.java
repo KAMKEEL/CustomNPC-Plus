@@ -99,6 +99,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             laserEntity.setupCharging(anchorData, windUpTicks);
 
             laserEntity.setEffects(this.effects);
+            laserEntity.setSourceAbility(this);
             world.spawnEntityInWorld(laserEntity);
         }
     }
@@ -136,6 +137,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

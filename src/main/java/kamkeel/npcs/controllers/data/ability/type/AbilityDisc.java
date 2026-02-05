@@ -110,6 +110,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
             discEntity.setupCharging(anchorData, windUpTicks);
 
             discEntity.setEffects(this.effects);
+            discEntity.setSourceAbility(this);
             world.spawnEntityInWorld(discEntity);
         }
     }
@@ -125,6 +126,11 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

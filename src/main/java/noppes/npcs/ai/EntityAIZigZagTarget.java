@@ -8,6 +8,7 @@ import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import noppes.npcs.constants.AiMutex;
+import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIZigZagTarget extends EntityAIBase {
     private EntityCreature theEntity;
@@ -82,6 +83,8 @@ public class EntityAIZigZagTarget extends EntityAIBase {
      * Updates the task
      */
     public void updateTask() {
-        this.theEntity.getLookHelper().setLookPositionWithEntity(targetEntity, 30.0F, 30.0F);
+        if (!(this.theEntity instanceof EntityNPCInterface) || !((EntityNPCInterface) this.theEntity).abilities.isRotationLocked()) {
+            this.theEntity.getLookHelper().setLookPositionWithEntity(targetEntity, 30.0F, 30.0F);
+        }
     }
 }

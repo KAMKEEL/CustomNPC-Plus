@@ -19,6 +19,8 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import noppes.npcs.client.gui.player.AuctionTooltipHandler;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
@@ -73,6 +75,11 @@ public class ClientEventHandler {
         } catch (ClassNotFoundException e) {
             renderPlayerJBRA = null;
         }
+    }
+
+    @SubscribeEvent
+    public void onItemTooltip(ItemTooltipEvent event) {
+        AuctionTooltipHandler.onItemTooltip(event);
     }
 
     @SubscribeEvent

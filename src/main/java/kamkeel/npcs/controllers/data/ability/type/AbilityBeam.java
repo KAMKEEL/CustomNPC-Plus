@@ -109,6 +109,7 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
             beamEntity.setupCharging(anchorData, windUpTicks, offsetDist);
 
             beamEntity.setEffects(this.effects);
+            beamEntity.setSourceAbility(this);
             world.spawnEntityInWorld(beamEntity);
         }
     }
@@ -124,6 +125,11 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

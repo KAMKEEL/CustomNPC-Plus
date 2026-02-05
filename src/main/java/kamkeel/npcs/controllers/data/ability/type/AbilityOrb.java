@@ -104,6 +104,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
             orbEntity.setupCharging(anchorData, windUpTicks);
 
             orbEntity.setEffects(this.effects);
+            orbEntity.setSourceAbility(this);
             world.spawnEntityInWorld(orbEntity);
         }
     }
@@ -120,6 +121,11 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
         // Nothing to clean up - entity manages itself
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

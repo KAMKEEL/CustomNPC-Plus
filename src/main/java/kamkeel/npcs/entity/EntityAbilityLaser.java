@@ -205,10 +205,19 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         startY = posY;
         startZ = posZ;
 
-        // Calculate velocity toward target
+        // Always derive direction from the owner's current yaw/pitch.
+        // This ensures the laser fires in the direction the NPC is visually facing,
+        // which matches the telegraph line direction regardless of Lock Movement mode.
         Entity owner = getOwnerEntity();
 
-        if (target != null) {
+        if (owner != null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = (float) Math.toRadians(owner.rotationPitch);
+            this.dirX = -Math.sin(yaw) * Math.cos(pitch);
+            this.dirY = -Math.sin(pitch);
+            this.dirZ = Math.cos(yaw) * Math.cos(pitch);
+        } else if (target != null) {
+            // Fallback: aim at target if owner is somehow unavailable
             double dx = target.posX - startX;
             double dy = (target.posY + target.getEyeHeight() - 0.4) - startY;
             double dz = target.posZ - startZ;
@@ -218,13 +227,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
                 this.dirY = dy / len;
                 this.dirZ = dz / len;
             }
-        } else if (owner != null) {
-            // Fire in NPC's facing direction
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            this.dirX = -Math.sin(yaw) * Math.cos(pitch);
-            this.dirY = -Math.sin(pitch);
-            this.dirZ = Math.cos(yaw) * Math.cos(pitch);;
         }
 
         setPosition(endX, endY, endZ);

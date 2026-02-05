@@ -4,8 +4,11 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.IAbilityDamageHandler;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -76,6 +79,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     protected boolean hasHit = false;
     protected boolean previewMode = false; // Client-side preview mode (no damage/effects)
     protected EntityLivingBase previewOwner = null; // Direct reference for GUI preview (no world lookup)
+
+    /** The ability that spawned this projectile. Transient, not saved to NBT. */
+    protected transient Ability sourceAbility = null;
 
     // ==================== ROTATION INTERPOLATION ====================
     public float prevRotationValX, prevRotationValY, prevRotationValZ;
@@ -322,14 +328,30 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         if (previewMode) return; // Skip damage in preview mode
         Entity owner = getOwnerEntity();
 
-        if (owner instanceof EntityNPCInterface) {
-            target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
-        } else if (owner instanceof EntityPlayer) {
-            target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
-        } else if (owner instanceof EntityLivingBase) {
-            target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
-        } else {
-            target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+        // Check for external damage handler (e.g., DBC Addon)
+        boolean handled = false;
+        if (sourceAbility != null && owner instanceof EntityLivingBase) {
+            IAbilityDamageHandler handler = AbilityController.Instance.getDamageHandler();
+            if (handler != null) {
+                double dx = target.posX - posX;
+                double dz = target.posZ - posZ;
+                float kbUp = getKnockbackUp() > 0 ? getKnockbackUp() : 0.1f;
+                handled = handler.handleDamage(sourceAbility, (EntityLivingBase) owner, target,
+                                               dmg, kb, kbUp, dx, dz);
+            }
+        }
+
+        if (!handled) {
+            // Default damage path
+            if (owner instanceof EntityNPCInterface) {
+                target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+            } else if (owner instanceof EntityPlayer) {
+                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+            } else if (owner instanceof EntityLivingBase) {
+                target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+            } else {
+                target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+            }
         }
 
         if (kb > 0) {
@@ -359,6 +381,21 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
      */
     public void setEffects(List<AbilityEffect> effects) {
         this.effects = effects != null ? effects : new ArrayList<>();
+    }
+
+    /**
+     * Set the source ability that spawned this projectile.
+     * Used by external damage handlers to access ability-specific data.
+     */
+    public void setSourceAbility(Ability ability) {
+        this.sourceAbility = ability;
+    }
+
+    /**
+     * Get the source ability that spawned this projectile.
+     */
+    public Ability getSourceAbility() {
+        return sourceAbility;
     }
 
     protected void doExplosion() {

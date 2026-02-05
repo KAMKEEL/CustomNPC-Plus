@@ -15,6 +15,7 @@ public class GuiMenuSideButton extends GuiNpcButton {
 
     public boolean active;
     public boolean rightSided;
+    public int textColor = -1;
     public ItemStack renderStack;
     public ResourceLocation renderResource;
     public int renderIconPosX = 0;
@@ -96,13 +97,15 @@ public class GuiMenuSideButton extends GuiNpcButton {
             text += "...";
         } else
             text = displayString;
-        if (active) {
-            drawCenteredString(fontrenderer, text, xPosition + width / 2, yPosition + (height - 8) / 2, 0xffffa0);
-        } else if (field_146123_n) {
-            drawCenteredString(fontrenderer, text, xPosition + width / 2, yPosition + (height - 8) / 2, 0xffffa0);
+        int color;
+        if (textColor != -1) {
+            color = textColor;
+        } else if (active || field_146123_n) {
+            color = 0xffffa0;
         } else {
-            drawCenteredString(fontrenderer, text, xPosition + width / 2, yPosition + (height - 8) / 2, 0xe0e0e0);
+            color = 0xe0e0e0;
         }
+        drawCenteredString(fontrenderer, text, xPosition + width / 2, yPosition + (height - 8) / 2, color);
     }
 
     @Override

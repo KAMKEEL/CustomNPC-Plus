@@ -85,6 +85,11 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     }
 
     @Override
+    public boolean hasDamage() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

@@ -112,6 +112,11 @@ public class AbilityDash extends Ability implements IAbilityDash {
     }
 
     @Override
+    public boolean hasDamage() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

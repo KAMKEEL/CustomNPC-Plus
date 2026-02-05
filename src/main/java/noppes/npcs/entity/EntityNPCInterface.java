@@ -1693,7 +1693,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     /**
-     * 1: walking, 2:interacting, 4:attacking, 8:killed
+     * 1: walking, 2:interacting, 4:attacking, 8:killed, 16:rotationLocked
      */
     public boolean getBoolFlag(int id) {
         return (dataWatcher.getWatchableObjectInt(15) & id) != 0;

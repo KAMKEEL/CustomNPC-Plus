@@ -3,8 +3,8 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.network.packets.request.script.GlobalNPCScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -28,7 +28,7 @@ public class GlobalNPCDataScript extends MultiScriptHandler {
     }
 
     public boolean isEnabled() {
-        return ConfigScript.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
+        return CustomNpcs.proxy.isGlobalNPCScripts() && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
     }
 
     @Override

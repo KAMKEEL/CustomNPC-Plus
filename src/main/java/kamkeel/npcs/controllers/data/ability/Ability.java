@@ -67,6 +67,7 @@ public abstract class Ability implements IAbility {
 
     // Feedback
     protected LockMovementType lockMovement = LockMovementType.WINDUP;
+    protected LockType lockType = LockType.BOTH;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -136,6 +137,16 @@ public abstract class Ability implements IAbility {
     // ═══════════════════════════════════════════════════════════════════
     // OPTIONAL OVERRIDES
     // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Returns true if this ability type deals damage.
+     * Override in non-damaging subclasses to return false.
+     * Used by external mods to determine whether to show
+     * damage-related configuration (e.g., DBC stats tab).
+     */
+    public boolean hasDamage() {
+        return true;
+    }
 
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
     }
@@ -246,12 +257,22 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (damage > 0) {
-            if (caster instanceof EntityNPCInterface) {
-                hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
-            } else if (caster instanceof EntityPlayer) {
-                hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
-            } else {
-                hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+            // Check for external damage handler first (e.g., DBC Addon)
+            IAbilityDamageHandler handler = AbilityController.Instance.getDamageHandler();
+            boolean handled = false;
+            if (handler != null) {
+                handled = handler.handleDamage(this, caster, hitEntity, damage, knockback, knockbackUp,
+                                               knockbackDirX, knockbackDirZ);
+            }
+            if (!handled) {
+                // Default damage path
+                if (caster instanceof EntityNPCInterface) {
+                    hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
+                } else if (caster instanceof EntityPlayer) {
+                    hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
+                } else {
+                    hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+                }
             }
         }
 
@@ -390,15 +411,27 @@ public abstract class Ability implements IAbility {
         defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
             .tab("General").range(0, 10000));
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
-        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
-            () -> this.getLockMovement().getDisplayKey(),
-            v -> {
-                String[] keys = LockMovementType.getDisplayKeys();
-                for (int i = 0; i < keys.length; i++) {
-                    if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
-                }
-            })
-            .tab("General").hover("ability.hover.lockMove"));
+        defs.add(FieldDef.row(
+            FieldDef.stringEnumField("ability.lockPosition", LockMovementType.getDisplayKeys(),
+                () -> this.getLockMovement().getDisplayKey(),
+                v -> {
+                    String[] keys = LockMovementType.getDisplayKeys();
+                    for (int i = 0; i < keys.length; i++) {
+                        if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
+                    }
+                })
+                .hover("ability.hover.lockPosition"),
+            FieldDef.stringEnumField("ability.lockType", LockType.getDisplayKeys(),
+                () -> this.getLockType().getDisplayKey(),
+                v -> {
+                    String[] keys = LockType.getDisplayKeys();
+                    for (int i = 0; i < keys.length; i++) {
+                        if (keys[i].equals(v)) { this.setLockType(LockType.fromOrdinal(i)); break; }
+                    }
+                })
+                .hover("ability.hover.lockType")
+                .visibleWhen(() -> this.lockMovement != LockMovementType.NO)
+        ).tab("General"));
         defs.add(FieldDef.row(
             FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
                 .hover("ability.hover.interruptible"),
@@ -468,6 +501,11 @@ public abstract class Ability implements IAbility {
             if (defs.get(i).getTab() == null) {
                 defs.get(i).tab("Type");
             }
+        }
+
+        // External field providers (e.g., DBC Addon injecting a "DBC" tab)
+        for (IAbilityFieldProvider provider : AbilityController.Instance.getFieldProviders()) {
+            provider.addFieldDefinitions(this, defs);
         }
 
         return defs;
@@ -940,6 +978,7 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
         nbt.setInteger("lockMovement", lockMovement.ordinal());
+        nbt.setInteger("lockType", lockType.ordinal());
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
@@ -990,6 +1029,7 @@ public abstract class Ability implements IAbility {
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
+        lockType = nbt.hasKey("lockType") ? LockType.fromOrdinal(nbt.getInteger("lockType")) : LockType.BOTH;
         windUpColor = nbt.getInteger("windUpColor");
         activeColor = nbt.getInteger("activeColor");
         windUpSound = nbt.getString("windUpSound");
@@ -1154,6 +1194,14 @@ public abstract class Ability implements IAbility {
         this.lockMovement = lockMovement;
     }
 
+    public LockType getLockType() {
+        return lockType;
+    }
+
+    public void setLockType(LockType lockType) {
+        this.lockType = lockType;
+    }
+
     /**
      * API method: Get lock movement type as integer.
      * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
@@ -1173,19 +1221,53 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Check if movement should be locked during WINDUP phase.
+     * API method: Get lock type as integer.
+     * @return 0=MOVEMENT, 1=ROTATION, 2=BOTH
      */
     @Override
-    public boolean isMovementLockedDuringWindup() {
-        return lockMovement.locksWindup();
+    public int getLockTypeOrdinal() {
+        return lockType.ordinal();
     }
 
     /**
-     * Check if movement should be locked during ACTIVE phase.
+     * API method: Set lock type from integer.
+     * @param type 0=MOVEMENT, 1=ROTATION, 2=BOTH
+     */
+    @Override
+    public void setLockTypeOrdinal(int type) {
+        this.lockType = LockType.fromOrdinal(type);
+    }
+
+    /**
+     * Check if movement (pathfinding/motion) should be locked during WINDUP phase.
+     */
+    @Override
+    public boolean isMovementLockedDuringWindup() {
+        return lockMovement.locksWindup() && lockType.locksMovement();
+    }
+
+    /**
+     * Check if movement (pathfinding/motion) should be locked during ACTIVE phase.
      */
     @Override
     public boolean isMovementLockedDuringActive() {
-        return lockMovement.locksActive();
+        return lockMovement.locksActive() && lockType.locksMovement();
+    }
+
+    /**
+     * Check if rotation (yaw/pitch) should be locked during WINDUP phase.
+     */
+    @Override
+    public boolean isRotationLockedDuringWindup() {
+        return lockMovement.locksWindup() && lockType.locksRotation();
+    }
+
+    /**
+     * Check if rotation (yaw/pitch) should be locked during ACTIVE phase.
+     */
+    @Override
+    public boolean isRotationLockedDuringActive() {
+        return lockMovement.locksActive() && lockType.locksRotation();
     }
 
     /**
@@ -1194,9 +1276,23 @@ public abstract class Ability implements IAbility {
     public boolean isMovementLockedForCurrentPhase() {
         switch (phase) {
             case WINDUP:
-                return lockMovement.locksWindup();
+                return isMovementLockedDuringWindup();
             case ACTIVE:
-                return lockMovement.locksActive();
+                return isMovementLockedDuringActive();
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if rotation should be locked during the current phase.
+     */
+    public boolean isRotationLockedForCurrentPhase() {
+        switch (phase) {
+            case WINDUP:
+                return isRotationLockedDuringWindup();
+            case ACTIVE:
+                return isRotationLockedDuringActive();
             default:
                 return false;
         }

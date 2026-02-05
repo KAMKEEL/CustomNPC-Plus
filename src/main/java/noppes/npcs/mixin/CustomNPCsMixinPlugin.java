@@ -56,7 +56,6 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
             }
 
             mixins.add("MixinItemStack");
-            mixins.add("MixinItem");
         }
         return mixins;
     }

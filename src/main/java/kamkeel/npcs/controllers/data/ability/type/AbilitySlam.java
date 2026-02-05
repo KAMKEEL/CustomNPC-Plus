@@ -217,9 +217,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         double dragPowN = Math.pow(drag, flightTicks);
         double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN);
 
-        // Speed scales horizontal velocity to cover ground faster
-        vHorizontal *= speedFactor;
-
         // Adjust vertical velocity for height difference between start and target
         if (dy > 0) {
             vy += dy / flightTicks * 1.5; // Going up - need more velocity
@@ -438,7 +435,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             int flightTicks = (int) Math.max(10, Math.min(horizontalDist * 1.5 / speedFactor, 40));
             double drag = 0.91;
             double dragPowN = Math.pow(drag, flightTicks);
-            double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN) * speedFactor;
+            double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN);
 
             double dirX = dx / horizontalDist;
             double dirZ = dz / horizontalDist;

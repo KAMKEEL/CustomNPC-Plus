@@ -146,6 +146,8 @@ public class AbilityDiscDual extends Ability {
                 discEntity2.setEffects(this.effects);
             }
 
+            discEntity.setSourceAbility(this);
+            discEntity2.setSourceAbility(this);
             world.spawnEntityInWorld(discEntity);
             world.spawnEntityInWorld(discEntity2);
         }
@@ -174,6 +176,11 @@ public class AbilityDiscDual extends Ability {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override

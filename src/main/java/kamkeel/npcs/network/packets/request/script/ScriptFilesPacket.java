@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NBTTags;
+import noppes.npcs.client.ScriptClientConfig;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
 
@@ -69,8 +70,8 @@ public final class ScriptFilesPacket extends AbstractPacket {
         }
 
         //Set client side configs
-        ConfigScript.ScriptingEnabled = compound.getBoolean("ScriptingEnabled");
-        ConfigScript.RunLoadedScriptsFirst = compound.getBoolean("LoadedFirst");
+        ScriptClientConfig.setScriptingEnabled(compound.getBoolean("ScriptingEnabled"));
+        ScriptClientConfig.setRunLoadedScriptsFirst(compound.getBoolean("LoadedFirst"));
         ScriptController.Instance.globalRevision = compound.getInteger("GlobalRevision");
     }
 

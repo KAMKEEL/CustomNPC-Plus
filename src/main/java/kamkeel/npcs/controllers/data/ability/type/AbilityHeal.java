@@ -59,6 +59,11 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
+    public boolean hasDamage() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

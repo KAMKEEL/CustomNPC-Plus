@@ -133,6 +133,8 @@ public class AbilityOrbDual extends Ability {
                 orbEntity2.setEffects(this.effects);
             }
 
+            orbEntity.setSourceAbility(this);
+            orbEntity2.setSourceAbility(this);
             world.spawnEntityInWorld(orbEntity);
             world.spawnEntityInWorld(orbEntity2);
         }
@@ -161,7 +163,11 @@ public class AbilityOrbDual extends Ability {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        // Nothing to clean up - entity manages itself
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override
