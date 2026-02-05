@@ -1,14 +1,22 @@
-package noppes.npcs.client.gui.util;
+package kamkeel.npcs.client.gui.modern;
+
+import noppes.npcs.client.gui.util.ModernColors;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.GuiUtil;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.ISubGuiListener;
 
 /**
- * Abstract base class for fullscreen directory-browsing GUIs.
+ * Abstract base class for fullscreen modern GUIs.
  * Provides a configurable three-panel layout (left nav, center content, right actions)
  * with percentage-based sizing, panel backgrounds/borders, and an optional resizable divider.
  *
  * Subclasses override abstract hooks to populate each panel region.
- * Designed for reuse across Cloner, Quest Manager, Dialog Manager, etc.
+ * Designed for reuse across Dialog Tree, Cloner, Quest Manager, etc.
+ *
+ * Renamed from GuiDirectory for the Modern GUI system.
  */
-public abstract class GuiDirectory extends GuiNPCInterface implements ICustomScrollListener, ISubGuiListener {
+public abstract class GuiModernScreen extends GuiNPCInterface implements ICustomScrollListener, ISubGuiListener {
 
     // ===== LAYOUT CONFIG (subclasses may override in constructor) =====
     protected float leftPanelPercent  = 0.20f;
@@ -23,10 +31,10 @@ public abstract class GuiDirectory extends GuiNPCInterface implements ICustomScr
     protected int gap     = 4;
     protected int btnH    = 20;
 
-    // ===== PANEL COLORS =====
-    protected int panelBg     = 0xC0101010;
-    protected int panelBorder = 0xFF333333;
-    protected int topBarBg    = 0xC0181818;
+    // ===== PANEL COLORS (using ModernColors) =====
+    protected int panelBg     = ModernColors.PANEL_BG;
+    protected int panelBorder = ModernColors.PANEL_BORDER;
+    protected int topBarBg    = ModernColors.TOP_BAR_BG;
 
     // ===== COMPUTED LAYOUT (populated by computeLayout) =====
     protected int originX, originY, usableW, usableH;
@@ -44,7 +52,7 @@ public abstract class GuiDirectory extends GuiNPCInterface implements ICustomScr
     private int dragStartX;
 
     // ===== CONSTRUCTOR =====
-    public GuiDirectory() {
+    public GuiModernScreen() {
         super();
         closeOnEsc = true;
         drawDefaultBackground = true;

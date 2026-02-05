@@ -23,6 +23,7 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IDialogEditorParent;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.ISubGuiListener;
@@ -37,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback {
+public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback, IDialogEditorParent {
     private GuiCustomScroll catScroll;
     public GuiCustomScroll dialogScroll;
 
@@ -106,6 +107,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
         this.addButton(new GuiNpcButton(4, guiLeft + 3, guiTop + 38, 58, 20, "gui.add"));
         this.addButton(new GuiNpcButton(5, guiLeft + 3, guiTop + 61, 58, 20, "gui.remove"));
         this.addButton(new GuiNpcButton(6, guiLeft + 3, guiTop + 94, 58, 20, "gui.edit"));
+        this.addButton(new GuiNpcButton(9, guiLeft + 3, guiTop + 117, 58, 20, "gui.graph"));
 
         this.addButton(new GuiNpcButton(33, guiLeft + 358, guiTop + 8, 58, 20, "dialog.dialogs"));
         getButton(33).setEnabled(false);
@@ -113,6 +115,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
         this.addButton(new GuiNpcButton(1, guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
         this.addButton(new GuiNpcButton(2, guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
         this.addButton(new GuiNpcButton(3, guiLeft + 358, guiTop + 117, 58, 20, "gui.copy"));
+        this.addButton(new GuiNpcButton(8, guiLeft + 358, guiTop + 140, 58, 20, "gui.graph"));
 
         if (dialog != null) {
             if (dialog.id != -1) {
@@ -344,6 +347,18 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
                 }
             }
         }
+        // Graph (category) - left side button
+        if (id == 9) {
+            if (category != null && category.id >= 0) {
+                NoppesUtil.openGUI(player, new GuiDialogTree(npc, category.id, dialogData));
+            }
+        }
+        // Graph (individual dialog) - right side button
+        if (id == 8) {
+            if (category != null && category.id >= 0 && dialog != null && dialog.id >= 0) {
+                NoppesUtil.openGUI(player, new GuiDialogTree(npc, dialog.id, 10));
+            }
+        }
         updateButtons();
     }
 
@@ -368,6 +383,8 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
 
         getButton(0).setEnabled(enabled && diagEnabled);
         getButton(3).setEnabled(enabled && diagEnabled);
+        getButton(9).setEnabled(enabled);
+        getButton(8).setEnabled(enabled && diagEnabled);
     }
 
     @Override
@@ -487,6 +504,19 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
 
     public void save() {
     }
+
+    // IDialogEditorParent
+    @Override
+    public HashMap<String, Integer> getDialogData() { return dialogData; }
+
+    @Override
+    public GuiCustomScroll getDialogScroll() { return dialogScroll; }
+
+    @Override
+    public String getDialogQuestName() { return dialogQuestName; }
+
+    @Override
+    public void setDialogQuestName(String name) { dialogQuestName = name; }
 
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {

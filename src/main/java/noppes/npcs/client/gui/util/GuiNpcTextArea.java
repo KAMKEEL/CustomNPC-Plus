@@ -17,7 +17,7 @@ import java.util.List;
 public class GuiNpcTextArea extends GuiNpcTextField {
     public boolean inMenu = true;
     public boolean numbersOnly = false;
-    private int posX, posY, width, height;
+    protected int posX, posY, width, height;
     private int cursorCounter;
     private FontContainer font;
     private int cursorPosition = 0;
@@ -27,6 +27,7 @@ public class GuiNpcTextArea extends GuiNpcTextField {
     private boolean clickVerticalBar = false;
     private boolean wrapLine = true;
     private List<String> lines = new ArrayList<>();
+    protected int storedMaxLength = Integer.MAX_VALUE;
 
     public GuiNpcTextArea(int id, GuiScreen guiscreen, int i, int j, int k, int l, String s) {
         super(id, guiscreen, i, j, k, l, s);
@@ -37,6 +38,30 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         this.font = ClientProxy.Font;
         setMaxStringLength(Integer.MAX_VALUE);
         this.setText(s);
+    }
+
+    public void setBounds(int x, int y, int w, int h) {
+        this.posX = x;
+        this.posY = y;
+        this.width = w;
+        this.height = h;
+        this.xPosition = x;
+        this.yPosition = y;
+        updateLineList();
+    }
+
+    public int getCharacterCount() {
+        return getText().length();
+    }
+
+    public int getMaxLength() {
+        return storedMaxLength;
+    }
+
+    @Override
+    public void setMaxStringLength(int length) {
+        super.setMaxStringLength(length);
+        this.storedMaxLength = length;
     }
 
     @Override
@@ -69,10 +94,14 @@ public class GuiNpcTextArea extends GuiNpcTextField {
     public boolean textboxKeyTyped(char c, int i) {
         if (isFocused() && canEdit) {
             String originalText = getText();
-            this.setText(originalText);
+            // Handle newline specially - insert and return immediately
             if (c == '\r' || c == '\n') {
                 this.setText(originalText.substring(0, cursorPosition) + c + originalText.substring(cursorPosition));
+                cursorPosition++;
+                updateLineList();
+                return true;
             }
+            // For all other characters, let parent handle
             this.setCursorPositionZero();
             this.moveCursorBy(cursorPosition);
             boolean bo = super.textboxKeyTyped(c, i);
@@ -85,7 +114,6 @@ public class GuiNpcTextArea extends GuiNpcTextField {
             if (i == Keyboard.KEY_RIGHT && cursorPosition < newText.length())
                 cursorPosition++;
             return bo;
-
         }
         return false;
     }

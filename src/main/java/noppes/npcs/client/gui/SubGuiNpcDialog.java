@@ -6,7 +6,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
@@ -15,6 +14,7 @@ import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiSelectionListener;
+import noppes.npcs.client.gui.util.IDialogEditorParent;
 import noppes.npcs.client.gui.util.ISubGuiListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
@@ -25,9 +25,9 @@ import noppes.npcs.entity.EntityDialogNpc;
 public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener, GuiSelectionListener, ITextfieldListener {
     public int dialogCategoryID;
     public Dialog dialog;
-    private final GuiNPCManageDialogs parent;
+    private final IDialogEditorParent parent;
 
-    public SubGuiNpcDialog(GuiNPCManageDialogs parent, Dialog dialog, int catId) {
+    public SubGuiNpcDialog(IDialogEditorParent parent, Dialog dialog, int catId) {
         this.parent = parent;
         this.dialog = dialog;
         this.dialogCategoryID = catId;
@@ -79,8 +79,8 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
         addButton(new GuiNpcButton(16, guiLeft + 303, guiTop + 192, 50, 20, "gui.done"));
         addButton(new GuiNpcButton(17, guiLeft + 303 - 55, guiTop + 192, 50, 20, "gui.test"));
 
-        if (!parent.dialogQuestName.equals(""))
-            getButton(7).setDisplayText(parent.dialogQuestName);
+        if (!parent.getDialogQuestName().equals(""))
+            getButton(7).setDisplayText(parent.getDialogQuestName());
 
         if (!dialog.mail.subject.isEmpty())
             getButton(13).setDisplayText(dialog.mail.subject);
@@ -105,7 +105,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
         }
         if (id == 8 && dialog.id >= 0) {
             dialog.quest = -1;
-            parent.dialogQuestName = "";
+            parent.setDialogQuestName("");
             initGui();
         }
         if (id == 9 && dialog.id >= 0) {
@@ -148,14 +148,14 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
                 guiNpcTextField.setText("");
             else {
                 String name = guiNpcTextField.getText();
-                if (name.isEmpty() || this.parent.dialogData.containsKey(name)) {
+                if (name.isEmpty() || this.parent.getDialogData().containsKey(name)) {
                     guiNpcTextField.setText(dialog.title);
                 } else if (dialog.id >= 0) {
                     String old = dialog.title;
-                    this.parent.dialogData.remove(old);
+                    this.parent.getDialogData().remove(old);
                     dialog.title = name;
-                    this.parent.dialogData.put(dialog.title, dialog.id);
-                    this.parent.dialogScroll.replace(old, dialog.title);
+                    this.parent.getDialogData().put(dialog.title, dialog.id);
+                    this.parent.getDialogScroll().replace(old, dialog.title);
                 }
             }
         }
@@ -192,7 +192,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
     @Override
     public void selected(int ob, String name) {
         dialog.quest = ob;
-        parent.dialogQuestName = name;
+        parent.setDialogQuestName(name);
         initGui();
         PacketClient.sendClient(new DialogSavePacket(this.dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
     }
