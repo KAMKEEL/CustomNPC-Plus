@@ -47,6 +47,7 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         this.height = h;
         this.xPosition = x;
         this.yPosition = y;
+        syncGuiTextFieldBounds(w, h);
         updateLineList();
     }
 

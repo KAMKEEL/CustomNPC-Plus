@@ -15,5 +15,11 @@ public enum FieldType {
     SECTION_HEADER,
     LABEL,
     EFFECTS_LIST,
-    ROW
+    ROW,
+    TEXT_AREA,
+    COLOR,
+    SELECT,
+    AVAILABILITY_ROW,
+    FACTION_ROW,
+    ACTION_BUTTON
 }

@@ -361,4 +361,13 @@ public class GuiNpcTextField extends GuiTextField {
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
+
+    /**
+     * Sync GuiTextField.width/height for subclasses that shadow these fields.
+     * Since GuiNpcTextField does NOT shadow width/height, this.width writes to GuiTextField.width.
+     */
+    protected void syncGuiTextFieldBounds(int w, int h) {
+        this.width = w;
+        this.height = h;
+    }
 }

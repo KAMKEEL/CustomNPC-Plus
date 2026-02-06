@@ -321,17 +321,10 @@ public class DialogEditorPanel extends Gui {
             return true;
         }
 
-        // CHECK EXPANDED DROPDOWNS FIRST - use SCREEN coordinates
-        for (ModernDropdown dropdown : getAllDropdowns()) {
-            if (dropdown.isExpanded()) {
-                int prevIndex = dropdown.getSelectedIndex();
-                if (dropdown.mouseClickedScreenSpace(mouseX, mouseY, button)) {
-                    if (dropdown.getSelectedIndex() != prevIndex) {
-                        markDirty();
-                    }
-                    return true;
-                }
-            }
+        // CHECK EXPANDED DROPDOWNS FIRST - delegate to current tab's field panel
+        if (tabs[currentTab].handleExpandedDropdownScreenClick(mouseX, mouseY, button)) {
+            markDirty();
+            return true;
         }
 
         // Adjust mouseY for scroll (for components inside scrollable content)
@@ -353,26 +346,24 @@ public class DialogEditorPanel extends Gui {
     public void mouseReleased(int mouseX, int mouseY) {
         scrollPanel.mouseReleased(mouseX, mouseY);
         // Let text areas handle mouse release
-        textTab.getTextArea().mouseReleased(mouseX, mouseY);
-        settingsTab.getCommandArea().mouseReleased(mouseX, mouseY);
+        ModernTextArea textArea = textTab.getTextArea();
+        if (textArea != null) textArea.mouseReleased(mouseX, mouseY);
+        ModernTextArea cmdArea = settingsTab.getCommandArea();
+        if (cmdArea != null) cmdArea.mouseReleased(mouseX, mouseY);
     }
 
     public void mouseDragged(int mouseX, int mouseY) {
         scrollPanel.mouseDragged(mouseX, mouseY);
-        textTab.getTextArea().mouseDragged(mouseX, mouseY);
-        settingsTab.getCommandArea().mouseDragged(mouseX, mouseY);
+        ModernTextArea textArea = textTab.getTextArea();
+        if (textArea != null) textArea.mouseDragged(mouseX, mouseY);
+        ModernTextArea cmdArea = settingsTab.getCommandArea();
+        if (cmdArea != null) cmdArea.mouseDragged(mouseX, mouseY);
     }
 
     public void updateScreen() {
         for (DialogEditorTab tab : tabs) {
             tab.updateScreen();
         }
-    }
-
-    // === Option Management ===
-
-    public void removeOption(int slot) {
-        optionsTab.removeOption(slot);
     }
 
     // === Utility ===
@@ -432,18 +423,10 @@ public class DialogEditorPanel extends Gui {
     }
 
     public void onColorSelected(int slot, int color) {
-        if (slot < 100) {
-            feedbackTab.onColorSelected(slot, color);
+        if (slot >= 100) {
+            optionsTab.onColorSelected(slot, color);
         } else {
-            // Option color (slot 100+)
-            int optionSlot = slot - 100;
-            for (OptionEditorV2 editor : optionsTab.getOptionEditors()) {
-                if (editor.getSlot() == optionSlot) {
-                    editor.getColorBtn().setColor(color);
-                    markDirty();
-                    return;
-                }
-            }
+            feedbackTab.onColorSelected(slot, color);
         }
     }
 

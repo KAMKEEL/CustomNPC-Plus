@@ -1,146 +1,190 @@
 package kamkeel.npcs.client.gui.modern.tabs;
 
-import kamkeel.npcs.client.gui.components.ModernButton;
 import kamkeel.npcs.client.gui.components.ModernDropdown;
 import kamkeel.npcs.client.gui.modern.DialogEditorPanel;
-import noppes.npcs.client.gui.util.ModernColors;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.client.gui.builder.ModernFieldPanel;
+import noppes.npcs.client.gui.builder.ModernFieldPanelListener;
+import noppes.npcs.client.gui.util.IDialogEditorListener;
 import noppes.npcs.constants.EnumOptionType;
+import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Options tab for the dialog editor.
- * Contains up to 6 dialog option editors.
+ * Contains up to 6 dialog option editors rendered via ModernFieldPanel.
+ * Uses FieldDef sections with dynamic titles, remove buttons, and visibility predicates.
  */
 public class DialogOptionsTab extends DialogEditorTab {
 
-    private List<OptionEditorV2> optionEditors = new ArrayList<>();
-    private ModernButton addOptionBtn;
-    private int componentGap = 3;
+    private static final String[] OPTION_TYPES = {"Quit", "Dialog", "Disabled", "Role", "Command"};
+
+    private ModernFieldPanel fieldPanel;
+    private Map<Integer, Boolean> sectionExpandState = new HashMap<>();
 
     public DialogOptionsTab(DialogEditorPanel parent) {
         super(parent);
-        initComponents();
+        fieldPanel = new ModernFieldPanel();
+        fieldPanel.setListener(new ModernFieldPanelListener() {
+            @Override
+            public void onSelectAction(String action, int slot) {
+                IDialogEditorListener listener = parent.getListener();
+                if (listener == null) return;
+                if ("optionDialog".equals(action)) {
+                    listener.onOptionDialogSelectRequested(slot);
+                }
+            }
+
+            @Override
+            public void onColorSelect(int slot, int currentColor) {
+                IDialogEditorListener listener = parent.getListener();
+                if (listener != null) {
+                    listener.onColorSelectRequested(slot, currentColor);
+                }
+            }
+
+            @Override
+            public void onFieldChanged() {
+                markDirty();
+            }
+        });
     }
 
-    private void initComponents() {
-        addOptionBtn = new ModernButton(200, 0, 0, 80, 16, "+ Add Option");
+    private List<FieldDef> createFieldDefs() {
+        List<FieldDef> defs = new ArrayList<>();
+
+        for (int slot = 0; slot < 6; slot++) {
+            DialogOption opt = dialog.options.get(slot);
+            if (opt == null || opt.optionType == EnumOptionType.Disabled) continue;
+
+            final int s = slot;
+            boolean expanded = sectionExpandState.getOrDefault(slot, true);
+
+            defs.add(FieldDef.section("Option " + s)
+                .collapsed(expanded)
+                .titleSupplier(() -> "Option " + s + ": " + dialog.options.get(s).title)
+                .removeAction(() -> removeOption(s)));
+
+            defs.add(FieldDef.stringField("Title",
+                () -> dialog.options.get(s).title, v -> dialog.options.get(s).title = v)
+                .maxLength(64));
+
+            defs.add(FieldDef.row(
+                FieldDef.stringEnumField("Type", OPTION_TYPES,
+                    () -> OPTION_TYPES[dialog.options.get(s).optionType.ordinal()],
+                    v -> {
+                        for (int i = 0; i < OPTION_TYPES.length; i++) {
+                            if (OPTION_TYPES[i].equals(v)) {
+                                dialog.options.get(s).optionType = EnumOptionType.values()[i];
+                                break;
+                            }
+                        }
+                    }),
+                FieldDef.colorField("Color",
+                    () -> dialog.options.get(s).optionColor, v -> dialog.options.get(s).optionColor = v)
+                    .slot(100 + s)
+            ));
+
+            defs.add(FieldDef.selectField("Target",
+                () -> {
+                    int did = dialog.options.get(s).dialogId;
+                    if (did < 0) return "";
+                    Dialog d = DialogController.Instance.dialogs.get(did);
+                    return d != null ? "(ID: " + did + ") " + d.title : "Dialog #" + did;
+                })
+                .action("optionDialog").slot(s)
+                .visibleWhen(() -> dialog.options.get(s).optionType == EnumOptionType.DialogOption));
+
+            defs.add(FieldDef.stringField("Cmd",
+                () -> dialog.options.get(s).command, v -> dialog.options.get(s).command = v)
+                .maxLength(32767)
+                .visibleWhen(() -> dialog.options.get(s).optionType == EnumOptionType.CommandBlock));
+        }
+
+        if (countActiveOptions() < 6) {
+            defs.add(FieldDef.actionButton("+ Add Option", this::addNewOption));
+        }
+
+        return defs;
+    }
+
+    private int countActiveOptions() {
+        int count = 0;
+        for (int i = 0; i < 6; i++) {
+            DialogOption opt = dialog.options.get(i);
+            if (opt != null && opt.optionType != EnumOptionType.Disabled) count++;
+        }
+        return count;
+    }
+
+    private List<Integer> getActiveSlots() {
+        List<Integer> slots = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            DialogOption opt = dialog.options.get(i);
+            if (opt != null && opt.optionType != EnumOptionType.Disabled) slots.add(i);
+        }
+        return slots;
+    }
+
+    private void saveExpandStates() {
+        List<Integer> activeSlots = getActiveSlots();
+        List<ModernFieldPanel.SectionInfo> sections = fieldPanel.getSections();
+        for (int i = 0; i < Math.min(activeSlots.size(), sections.size()); i++) {
+            sectionExpandState.put(activeSlots.get(i), sections.get(i).section.isExpanded());
+        }
     }
 
     @Override
     public void loadFromDialog(Dialog dialog) {
         this.dialog = dialog;
-        rebuildOptionEditors();
+        if (dialog == null) return;
+        saveExpandStates();
+        fieldPanel.setFields(createFieldDefs());
     }
 
     @Override
     public void saveToDialog(Dialog dialog) {
-        if (dialog == null) return;
-
-        for (OptionEditorV2 editor : optionEditors) {
-            DialogOption opt = dialog.options.get(editor.getSlot());
-            if (opt != null) {
-                opt.title = editor.getTitleField().getText();
-                int typeIdx = editor.getTypeIndex();
-                opt.optionType = EnumOptionType.values()[typeIdx];
-                opt.optionColor = editor.getColorBtn().getColor();
-                opt.dialogId = editor.getTargetDialogId();
-                opt.command = editor.getCommand();
-            }
-        }
-    }
-
-    public void rebuildOptionEditors() {
-        optionEditors.clear();
-
-        if (dialog == null) return;
-
-        for (int i = 0; i < 6; i++) {
-            DialogOption opt = dialog.options.get(i);
-            if (opt != null && opt.optionType != EnumOptionType.Disabled) {
-                OptionEditorV2 editor = new OptionEditorV2(1000 + i * 20, i, opt);
-                optionEditors.add(editor);
-            }
-        }
+        // No-op: immediate binding via FieldDef closures
     }
 
     @Override
     public int draw(int cx, int cw, int startY, int mouseX, int mouseY, FontRenderer fr) {
-        int y = startY;
-
-        if (optionEditors.isEmpty()) {
-            fr.drawString("No options defined.", cx, y, ModernColors.TEXT_DARK);
-            y += 14;
-        } else {
-            for (OptionEditorV2 editor : optionEditors) {
-                editor.setBounds(cx, y, cw);
-                editor.draw(mouseX, mouseY, fr);
-                y += editor.getHeight() + componentGap;
-            }
-        }
-
-        // Add option button
-        if (optionEditors.size() < 6) {
-            y += 4;
-            addOptionBtn.xPosition = cx;
-            addOptionBtn.yPosition = y;
-            addOptionBtn.width = 100;
-            addOptionBtn.height = 18;
-            addOptionBtn.drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
-            y += 22;
-        }
-
-        return y - startY;
+        return fieldPanel.draw(cx, cw, startY, mouseX, mouseY, fr);
     }
 
     @Override
     public boolean mouseClicked(int mouseX, int mouseY, int button) {
-        for (OptionEditorV2 editor : optionEditors) {
-            if (editor.mouseClicked(mouseX, mouseY, button, parent)) {
-                markDirty();
-                return true;
-            }
-        }
-        if (addOptionBtn.mousePressed(Minecraft.getMinecraft(), mouseX, mouseY)) {
-            addNewOption();
-            return true;
-        }
-        return false;
+        return fieldPanel.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean keyTyped(char c, int keyCode) {
-        for (OptionEditorV2 editor : optionEditors) {
-            if (editor.keyTyped(c, keyCode)) { markDirty(); return true; }
-        }
-        return false;
+        return fieldPanel.keyTyped(c, keyCode);
     }
 
     @Override
     public void updateScreen() {
-        for (OptionEditorV2 editor : optionEditors) {
-            editor.updateCursorCounter();
-        }
+        fieldPanel.updateScreen();
     }
 
     @Override
     public List<ModernDropdown> getDropdowns() {
-        List<ModernDropdown> dropdowns = new ArrayList<>();
-        for (OptionEditorV2 editor : optionEditors) {
-            dropdowns.add(editor.getTypeDropdown());
-        }
-        return dropdowns;
+        return fieldPanel.getDropdowns();
+    }
+
+    @Override
+    public boolean handleExpandedDropdownScreenClick(int mouseX, int mouseY, int button) {
+        return fieldPanel.handleExpandedDropdownScreenClick(mouseX, mouseY, button);
     }
 
     // === Option Management ===
 
     private void addNewOption() {
-        if (dialog == null || optionEditors.size() >= 6) return;
+        if (dialog == null) return;
 
         for (int i = 0; i < 6; i++) {
             DialogOption opt = dialog.options.get(i);
@@ -149,7 +193,8 @@ public class DialogOptionsTab extends DialogEditorTab {
                 newOpt.title = "New Option";
                 newOpt.optionType = EnumOptionType.QuitOption;
                 dialog.options.put(i, newOpt);
-                rebuildOptionEditors();
+                saveExpandStates();
+                fieldPanel.setFields(createFieldDefs());
                 markDirty();
                 return;
             }
@@ -161,24 +206,33 @@ public class DialogOptionsTab extends DialogEditorTab {
         DialogOption opt = dialog.options.get(slot);
         if (opt != null) {
             opt.optionType = EnumOptionType.Disabled;
-            rebuildOptionEditors();
+            saveExpandStates();
+            sectionExpandState.remove(slot);
+            fieldPanel.setFields(createFieldDefs());
             markDirty();
         }
     }
 
-    // === Accessors ===
-
-    public List<OptionEditorV2> getOptionEditors() {
-        return optionEditors;
-    }
+    // === Selection Callbacks ===
 
     public void onOptionDialogSelected(int optionSlot, int dialogId, String dialogName) {
-        for (OptionEditorV2 editor : optionEditors) {
-            if (editor.getSlot() == optionSlot) {
-                editor.setTargetDialog(dialogId, dialogName);
-                markDirty();
-                return;
-            }
+        if (dialog == null) return;
+        DialogOption opt = dialog.options.get(optionSlot);
+        if (opt != null) {
+            opt.dialogId = dialogId;
+            fieldPanel.refresh();
+            markDirty();
+        }
+    }
+
+    public void onColorSelected(int slot, int color) {
+        if (dialog == null) return;
+        int optionSlot = slot - 100;
+        DialogOption opt = dialog.options.get(optionSlot);
+        if (opt != null) {
+            opt.optionColor = color;
+            markDirty();
+            // Color buttons sync from data on next draw
         }
     }
 }

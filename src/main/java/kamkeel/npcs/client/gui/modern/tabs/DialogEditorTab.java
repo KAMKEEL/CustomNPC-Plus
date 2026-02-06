@@ -69,6 +69,14 @@ public abstract class DialogEditorTab extends Gui {
     }
 
     /**
+     * Handle clicks on expanded dropdowns in screen space.
+     * Override in tabs that use ModernFieldPanel.
+     */
+    public boolean handleExpandedDropdownScreenClick(int mouseX, int mouseY, int button) {
+        return false;
+    }
+
+    /**
      * Mark the editor as dirty (unsaved changes).
      */
     protected void markDirty() {

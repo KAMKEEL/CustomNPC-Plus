@@ -54,6 +54,39 @@ public class FieldDef {
     private FieldDef leftChild;
     private FieldDef rightChild;
 
+    // Modern field extensions
+    private int maxLength = 0;
+    private int textAreaHeight = 80;
+    private String placeholder = "";
+    private int callbackSlot = 0;
+    private String callbackAction = "";
+    private Runnable onActionCallback;
+    private boolean showCharCount = false;
+
+    // Collapsible section support
+    private boolean collapsible = false;
+    private boolean defaultExpanded = true;
+
+    // Action button support
+    private Runnable actionRunnable;
+
+    // Section remove + dynamic title
+    private Runnable removeAction;
+    private Supplier<String> titleSupplier;
+
+    // Dynamic height for TEXT_AREA
+    private boolean fillRemainingHeight = false;
+
+    // Availability/Faction row support
+    private Supplier<Integer> conditionGetter;
+    private Consumer<Integer> conditionSetter;
+    private Supplier<Integer> stanceGetter;
+    private Consumer<Integer> stanceSetter;
+    private Supplier<Integer> idGetter;
+    private Consumer<Integer> idSetter;
+    private Supplier<String> displayNameGetter;
+    private String[] conditionValues;
+
     private FieldDef(String label, FieldType type) {
         this.label = label;
         this.type = type;
@@ -145,6 +178,88 @@ public class FieldDef {
         FieldDef def = new FieldDef("", FieldType.ROW);
         def.leftChild = left;
         def.rightChild = right;
+        return def;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // MODERN FIELD FACTORIES
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Multi-line text area field rendered as ModernTextArea by ModernFieldPanel.
+     */
+    public static FieldDef textAreaField(String label, Supplier<String> getter, Consumer<String> setter) {
+        FieldDef def = new FieldDef(label, FieldType.TEXT_AREA);
+        def.getter = () -> getter.get();
+        def.setter = v -> setter.accept((String) v);
+        return def;
+    }
+
+    /**
+     * Color field rendered as ModernColorButton by ModernFieldPanel.
+     * Triggers onColorSelect callback via listener.
+     */
+    public static FieldDef colorField(String label, Supplier<Integer> getter, Consumer<Integer> setter) {
+        FieldDef def = new FieldDef(label, FieldType.COLOR);
+        def.getter = () -> getter.get();
+        def.setter = v -> setter.accept((Integer) v);
+        return def;
+    }
+
+    /**
+     * External selector field rendered as ModernSelectButton by ModernFieldPanel.
+     * Use .action() and .slot() to identify the callback, or .onAction() for direct callback.
+     */
+    public static FieldDef selectField(String label, Supplier<String> displayGetter) {
+        FieldDef def = new FieldDef(label, FieldType.SELECT);
+        def.getter = () -> displayGetter.get();
+        return def;
+    }
+
+    /**
+     * Availability requirement row: condition dropdown + select button + clear button.
+     * Used for quest/dialog requirements with condition-based enabling.
+     */
+    public static FieldDef availabilityRow(String label, String[] conditions,
+            Supplier<Integer> condGetter, Consumer<Integer> condSetter,
+            Supplier<Integer> idGetter, Consumer<Integer> idSetter,
+            Supplier<String> displayGetter) {
+        FieldDef def = new FieldDef(label, FieldType.AVAILABILITY_ROW);
+        def.conditionValues = conditions;
+        def.conditionGetter = condGetter;
+        def.conditionSetter = condSetter;
+        def.idGetter = idGetter;
+        def.idSetter = idSetter;
+        def.displayNameGetter = displayGetter;
+        return def;
+    }
+
+    /**
+     * Faction requirement row: condition dropdown + stance dropdown + select button + clear button.
+     */
+    public static FieldDef factionRow(String label,
+            Supplier<Integer> condGetter, Consumer<Integer> condSetter,
+            Supplier<Integer> stanceGetter, Consumer<Integer> stanceSetter,
+            Supplier<Integer> idGetter, Consumer<Integer> idSetter,
+            Supplier<String> displayGetter) {
+        FieldDef def = new FieldDef(label, FieldType.FACTION_ROW);
+        def.conditionGetter = condGetter;
+        def.conditionSetter = condSetter;
+        def.stanceGetter = stanceGetter;
+        def.stanceSetter = stanceSetter;
+        def.idGetter = idGetter;
+        def.idSetter = idSetter;
+        def.displayNameGetter = displayGetter;
+        return def;
+    }
+
+    /**
+     * Action button field — renders as a clickable button that executes a Runnable.
+     * Used for "Add", "Delete", or other action triggers within a field list.
+     */
+    public static FieldDef actionButton(String label, Runnable action) {
+        FieldDef def = new FieldDef(label, FieldType.ACTION_BUTTON);
+        def.actionRunnable = action;
         return def;
     }
 
@@ -260,6 +375,96 @@ public class FieldDef {
         return this;
     }
 
+    public FieldDef maxLength(int max) {
+        this.maxLength = max;
+        return this;
+    }
+
+    public FieldDef placeholder(String text) {
+        this.placeholder = text;
+        return this;
+    }
+
+    public FieldDef height(int h) {
+        this.textAreaHeight = h;
+        return this;
+    }
+
+    /**
+     * Makes a SECTION_HEADER render as a CollapsibleSection (expanded by default).
+     */
+    public FieldDef collapsed() {
+        this.collapsible = true;
+        this.defaultExpanded = false;
+        return this;
+    }
+
+    /**
+     * Makes a SECTION_HEADER render as a CollapsibleSection with the given expand state.
+     */
+    public FieldDef collapsed(boolean startExpanded) {
+        this.collapsible = true;
+        this.defaultExpanded = startExpanded;
+        return this;
+    }
+
+    /**
+     * Callback action type for SELECT/COLOR fields (e.g. "quest", "sound", "dialog").
+     */
+    public FieldDef action(String action) {
+        this.callbackAction = action;
+        return this;
+    }
+
+    /**
+     * Callback slot identifier for SELECT/COLOR fields.
+     */
+    public FieldDef slot(int slot) {
+        this.callbackSlot = slot;
+        return this;
+    }
+
+    /**
+     * Direct action callback for SELECT fields (alternative to action/slot).
+     */
+    public FieldDef onAction(Runnable callback) {
+        this.onActionCallback = callback;
+        return this;
+    }
+
+    /**
+     * Show character count below a TEXT_AREA field.
+     */
+    public FieldDef charCount() {
+        this.showCharCount = true;
+        return this;
+    }
+
+    /**
+     * Set dynamic title supplier for SECTION_HEADER (updated each draw).
+     */
+    public FieldDef titleSupplier(Supplier<String> supplier) {
+        this.titleSupplier = supplier;
+        return this;
+    }
+
+    /**
+     * Set remove action for SECTION_HEADER (adds "X" button to header).
+     */
+    public FieldDef removeAction(Runnable action) {
+        this.removeAction = action;
+        return this;
+    }
+
+    /**
+     * Make TEXT_AREA fill remaining available height.
+     * Requires ModernFieldPanel.setAvailableHeight() to be called.
+     */
+    public FieldDef fillHeight() {
+        this.fillRemainingHeight = true;
+        return this;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // GETTERS
     // ═══════════════════════════════════════════════════════════════════
@@ -307,6 +512,33 @@ public class FieldDef {
 
     public FieldDef getLeftChild() { return leftChild; }
     public FieldDef getRightChild() { return rightChild; }
+
+    // Modern field getters
+    public int getMaxLength() { return maxLength; }
+    public int getTextAreaHeight() { return textAreaHeight; }
+    public String getPlaceholder() { return placeholder; }
+    public int getCallbackSlot() { return callbackSlot; }
+    public String getCallbackAction() { return callbackAction; }
+    public Runnable getOnActionCallback() { return onActionCallback; }
+    public boolean showsCharCount() { return showCharCount; }
+    public boolean isCollapsible() { return collapsible; }
+    public boolean isDefaultExpanded() { return defaultExpanded; }
+
+    // Availability/Faction row getters
+    public Supplier<Integer> getConditionGetter() { return conditionGetter; }
+    public Consumer<Integer> getConditionSetter() { return conditionSetter; }
+    public Supplier<Integer> getStanceGetter() { return stanceGetter; }
+    public Consumer<Integer> getStanceSetter() { return stanceSetter; }
+    public Supplier<Integer> getIdGetter() { return idGetter; }
+    public Consumer<Integer> getIdSetter() { return idSetter; }
+    public Supplier<String> getDisplayNameGetter() { return displayNameGetter; }
+    public String[] getConditionValues() { return conditionValues; }
+
+    // Action button / section extensions
+    public Runnable getActionRunnable() { return actionRunnable; }
+    public Runnable getRemoveAction() { return removeAction; }
+    public Supplier<String> getTitleSupplier() { return titleSupplier; }
+    public boolean shouldFillHeight() { return fillRemainingHeight; }
 
     // ═══════════════════════════════════════════════════════════════════
     // LIST MANIPULATION (for mod injection)

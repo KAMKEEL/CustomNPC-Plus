@@ -962,7 +962,8 @@ public class GuiDialogTree extends GuiModernScreen implements IDialogEditorParen
     @Override
     protected void drawOverlay(int mouseX, int mouseY, float partialTicks) {
         // Diagram (draw first so legend bar + buttons appear on top)
-        if (diagram != null) {
+        // Skip when SubGui is open so SubGui appears on top
+        if (diagram != null && !hasSubGui()) {
             diagram.drawDiagram(mouseX, mouseY);
         }
 
@@ -977,9 +978,8 @@ public class GuiDialogTree extends GuiModernScreen implements IDialogEditorParen
                 handleTop + rightDividerLineHeight, 0xFF707070);
         }
 
-        // Right panel - either modern editor or text (custom font)
-        // Skip when SubGui is open so SubGui appears on top (z-order fix)
-        if (rightPanelVisible && !hasSubGui()) {
+        // Right panel - always draw (SubGui re-draws on top below)
+        if (rightPanelVisible) {
             if (editorPanel != null && editMode) {
                 editorPanel.draw(mouseX, mouseY);
             } else if (!rightPanelTexts.isEmpty()) {
@@ -1011,6 +1011,11 @@ public class GuiDialogTree extends GuiModernScreen implements IDialogEditorParen
             int msgX = effContentX + (effContentW - msgW) / 2;
             drawRect(msgX - 4, contentY + 2, msgX + msgW + 4, contentY + 14, 0xC0000000);
             fontRendererObj.drawString(msg, msgX, contentY + 4, 0x55FF55);
+        }
+
+        // Re-draw SubGui on top of overlay content (z-order fix)
+        if (hasSubGui()) {
+            getSubGui().drawScreen(mouseX, mouseY, partialTicks);
         }
     }
 
@@ -1582,7 +1587,7 @@ public class GuiDialogTree extends GuiModernScreen implements IDialogEditorParen
         super.handleMouseInput();
         // Handle scroll wheel for editor panel
         int scroll = org.lwjgl.input.Mouse.getDWheel();
-        if (scroll != 0 && editorPanel != null && editMode) {
+        if (scroll != 0 && editorPanel != null && editMode && !hasSubGui()) {
             int mouseX = org.lwjgl.input.Mouse.getX() * width / mc.displayWidth;
             int mouseY = height - org.lwjgl.input.Mouse.getY() * height / mc.displayHeight - 1;
             if (editorPanel.isInside(mouseX, mouseY)) {
