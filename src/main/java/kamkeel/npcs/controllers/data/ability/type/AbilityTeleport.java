@@ -128,7 +128,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     }
 
     private void performBlink(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         double oldX = caster.posX;
         double oldY = caster.posY;
@@ -137,36 +137,47 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         Vec3 destination = calculateDestination(caster, target, world);
         if (destination == null) return;
 
-        boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
-        if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + caster.getEyeHeight(), oldZ,
-            destination.xCoord, destination.yCoord + caster.getEyeHeight(), destination.zCoord)) {
-            destination = findValidPositionAlongLine(world, caster, oldX, oldY, oldZ,
+        if (!isPreview()) {
+            boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
+            if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + caster.getEyeHeight(), oldZ,
+                destination.xCoord, destination.yCoord + caster.getEyeHeight(), destination.zCoord)) {
+                destination = findValidPositionAlongLine(world, caster, oldX, oldY, oldZ,
+                    destination.xCoord, destination.yCoord, destination.zCoord);
+                if (destination == null) return;
+            }
+
+            destination = findSafeDestination(world, oldX, oldY, oldZ,
                 destination.xCoord, destination.yCoord, destination.zCoord);
             if (destination == null) return;
+
+            // Damage at origin
+            if (damageAtStart) {
+                dealDamageAt(caster, world, oldX, oldY, oldZ);
+            }
+
+            // Spawn particles at origin
+            spawnTeleportParticles(world, oldX, oldY, oldZ);
         }
-
-        destination = findSafeDestination(world, oldX, oldY, oldZ,
-            destination.xCoord, destination.yCoord, destination.zCoord);
-        if (destination == null) return;
-
-        // Damage at origin
-        if (damageAtStart) {
-            dealDamageAt(caster, world, oldX, oldY, oldZ);
-        }
-
-        // Spawn particles at origin
-        spawnTeleportParticles(world, oldX, oldY, oldZ);
 
         // Teleport
-        caster.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        if (isPreview()) {
+            caster.setPosition(destination.xCoord, destination.yCoord, destination.zCoord);
+            caster.prevPosX = destination.xCoord;
+            caster.prevPosY = destination.yCoord;
+            caster.prevPosZ = destination.zCoord;
+        } else {
+            caster.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        }
         caster.fallDistance = 0;
 
-        // Spawn particles at destination
-        spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
+        if (!isPreview()) {
+            // Spawn particles at destination
+            spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
 
-        // Damage at destination
-        if (damageAtEnd) {
-            dealDamageAt(caster, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            // Damage at destination
+            if (damageAtEnd) {
+                dealDamageAt(caster, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            }
         }
 
         // Face target after teleport
@@ -559,6 +570,12 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     public void setDamageRadius(float damageRadius) {
         this.damageRadius = damageRadius;
+    }
+
+    @Override
+    public int getMaxPreviewDuration() {
+        int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
+        return blinkLimit * blinkDelayTicks + 10;
     }
 
     @SideOnly(Side.CLIENT)

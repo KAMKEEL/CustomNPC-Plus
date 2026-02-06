@@ -109,31 +109,35 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         switch (sweepMode) {
             case SWIPE:
                 float prevRotation = currentRotation;
                 currentRotation += sweepSpeed;
                 if (currentRotation > arcAngle / 2.0f) {
-                    // Final sweep — check from prevRotation to end of arc
-                    performSweepDamageRange(caster, world, innerRadius, range, prevRotation, arcAngle / 2.0f);
+                    if (!isPreview()) {
+                        performSweepDamageRange(caster, world, innerRadius, range, prevRotation, arcAngle / 2.0f);
+                    }
                     signalCompletion();
                     return;
                 }
-                // Check entities between previous and current sweep position
-                performSweepDamageRange(caster, world, innerRadius, range, prevRotation, currentRotation);
+                if (!isPreview()) {
+                    performSweepDamageRange(caster, world, innerRadius, range, prevRotation, currentRotation);
+                }
                 break;
 
             case SPIN:
                 if (tick >= spinDurationTicks) {
-                    signalCompletion(); // Spin duration complete
+                    signalCompletion();
                     return;
                 }
                 float prevSpin = currentRotation;
                 currentRotation = (currentRotation + sweepSpeed) % 360.0f;
-                hitEntities.clear();
-                performSweepDamageRange(caster, world, innerRadius, range, prevSpin, currentRotation);
+                if (!isPreview()) {
+                    hitEntities.clear();
+                    performSweepDamageRange(caster, world, innerRadius, range, prevSpin, currentRotation);
+                }
                 break;
         }
     }

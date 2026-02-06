@@ -62,58 +62,63 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote || target == null) return;
-
-        // Calculate direction to target
-        double dx = target.posX - caster.posX;
-        double dy = (target.posY + target.height / 2) - (caster.posY + caster.getEyeHeight());
-        double dz = target.posZ - caster.posZ;
-        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-        if (len > 0) {
-            dx /= len;
-            dy /= len;
-            dz /= len;
+        if ((world.isRemote && !isPreview()) || target == null) {
+            signalCompletion();
+            return;
         }
 
-        // Deal instant damage with scripted event support
-        // TODO: Use custom EntityAbilityProjectile for actual tracking
-        applyAbilityDamageWithDirection(caster, target, damage, knockback, dx, dz);
+        if (!isPreview()) {
+            // Calculate direction to target
+            double dx = target.posX - caster.posX;
+            double dy = (target.posY + target.height / 2) - (caster.posY + caster.getEyeHeight());
+            double dz = target.posZ - caster.posZ;
+            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        // Play sound
-        world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
+            if (len > 0) {
+                dx /= len;
+                dy /= len;
+                dz /= len;
+            }
 
-        // Handle splash damage for explosive projectiles
-        if (explosive && explosionRadius > 0) {
-            @SuppressWarnings("unchecked")
-            List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(target,
-                target.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));
+            // Deal instant damage with scripted event support
+            // TODO: Use custom EntityAbilityProjectile for actual tracking
+            applyAbilityDamageWithDirection(caster, target, damage, knockback, dx, dz);
 
-            for (Entity entity : entities) {
-                if (entity instanceof EntityLivingBase && entity != caster) {
-                    EntityLivingBase living = (EntityLivingBase) entity;
-                    float dist = target.getDistanceToEntity(living);
-                    if (dist < explosionRadius) {
-                        float falloff = 1.0f - (dist / explosionRadius);
-                        // Apply splash damage with scripted event support (no knockback)
-                        applyAbilityDamage(caster, living, damage * falloff * 0.5f, 0);
+            // Play sound
+            world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
+
+            // Handle splash damage for explosive projectiles
+            if (explosive && explosionRadius > 0) {
+                @SuppressWarnings("unchecked")
+                List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(target,
+                    target.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));
+
+                for (Entity entity : entities) {
+                    if (entity instanceof EntityLivingBase && entity != caster) {
+                        EntityLivingBase living = (EntityLivingBase) entity;
+                        float dist = target.getDistanceToEntity(living);
+                        if (dist < explosionRadius) {
+                            float falloff = 1.0f - (dist / explosionRadius);
+                            // Apply splash damage with scripted event support (no knockback)
+                            applyAbilityDamage(caster, living, damage * falloff * 0.5f, 0);
+                        }
                     }
+                }
+
+                // Explosion particles
+                world.playSoundAtEntity(target, "random.explode", 0.5f, 1.0f);
+                for (int i = 0; i < 10; i++) {
+                    world.spawnParticle("explode",
+                        target.posX + (world.rand.nextDouble() - 0.5) * explosionRadius,
+                        target.posY + world.rand.nextDouble() * target.height,
+                        target.posZ + (world.rand.nextDouble() - 0.5) * explosionRadius,
+                        0, 0.1, 0);
                 }
             }
 
-            // Explosion particles
-            world.playSoundAtEntity(target, "random.explode", 0.5f, 1.0f);
-            for (int i = 0; i < 10; i++) {
-                world.spawnParticle("explode",
-                    target.posX + (world.rand.nextDouble() - 0.5) * explosionRadius,
-                    target.posY + world.rand.nextDouble() * target.height,
-                    target.posZ + (world.rand.nextDouble() - 0.5) * explosionRadius,
-                    0, 0.1, 0);
-            }
+            // Spawn projectile particles (visual trail)
+            spawnProjectileParticles(world, caster, target);
         }
-
-        // Spawn projectile particles (visual trail)
-        spawnProjectileParticles(world, caster, target);
 
         // Projectile is instant
         signalCompletion();

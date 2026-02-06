@@ -111,6 +111,13 @@ public abstract class Ability implements IAbility {
     protected transient TelegraphInstance telegraphInstance;
 
     // ═══════════════════════════════════════════════════════════════════
+    // PREVIEW STATE (client-side only, not saved)
+    // ═══════════════════════════════════════════════════════════════════
+
+    protected transient boolean previewMode = false;
+    protected transient PreviewEntityHandler previewEntityHandler;
+
+    // ═══════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS
     // ═══════════════════════════════════════════════════════════════════
 
@@ -837,6 +844,8 @@ public abstract class Ability implements IAbility {
         currentTick = 0;
         currentTarget = null;
         telegraphInstance = null;
+        previewMode = false;
+        previewEntityHandler = null;
     }
 
     /**
@@ -849,90 +858,57 @@ public abstract class Ability implements IAbility {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // CLIENT-SIDE PREVIEW METHODS
+    // PREVIEW MODE SUPPORT
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Get total active phase duration for preview (in ticks).
-     * Override in subclasses to provide accurate preview duration.
-     *
-     * @return Duration of active phase in ticks (default: 40 = 2 seconds)
+     * Whether this ability is running in preview mode (GUI preview).
+     * When true, abilities should skip damage, effects, sounds, and particles
+     * but still run their core logic (entity spawning, movement, timing).
      */
-    public int getPreviewActiveDuration() {
-        return 40;
+    public boolean isPreview() {
+        return previewMode;
+    }
+
+    public void setPreviewMode(boolean preview) {
+        this.previewMode = preview;
+    }
+
+    public void setPreviewEntityHandler(PreviewEntityHandler handler) {
+        this.previewEntityHandler = handler;
     }
 
     /**
-     * Called during preview windup tick (client-side only).
-     * Override for visual updates during windup preview.
-     * Do NOT apply damage or world effects here.
-     *
-     * @param npc  The preview NPC
-     * @param tick Current tick within windup phase
+     * Spawn an entity during ability execution.
+     * In preview mode, routes to PreviewEntityHandler instead of world.spawnEntityInWorld().
      */
-    @SideOnly(Side.CLIENT)
-    public void onPreviewWindUpTick(EntityNPCInterface npc, int tick) {
-        // Default: no-op. Override in subclasses for visual effects.
+    protected void spawnAbilityEntity(World world, Entity entity) {
+        if (previewMode && previewEntityHandler != null) {
+            previewEntityHandler.onEntitySpawned(entity);
+        } else {
+            world.spawnEntityInWorld(entity);
+        }
     }
 
     /**
-     * Called during preview active tick (client-side only).
-     * Override for visual updates during active preview.
-     * Do NOT apply damage or world effects here.
-     *
-     * @param npc  The preview NPC
-     * @param tick Current tick within active phase
+     * Kill an entity spawned by this ability.
+     * In preview mode, notifies PreviewEntityHandler of removal.
      */
-    @SideOnly(Side.CLIENT)
-    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
-        // Default: no-op. Override in subclasses for visual effects.
+    protected void killAbilityEntity(Entity entity) {
+        if (entity == null) return;
+        entity.setDead();
+        if (previewMode && previewEntityHandler != null) {
+            previewEntityHandler.onEntityRemoved(entity);
+        }
     }
 
     /**
-     * Create a preview entity for GUI display (client-side only).
-     * The entity should be in preview mode and not apply damage.
-     * Override in abilities that spawn entities (Beam, Orb, Disc, etc.)
-     *
-     * @param npc The preview NPC
-     * @return Preview entity, or null if ability doesn't spawn entities
+     * Maximum duration (in ticks) for preview before auto-stopping.
+     * Override in movement abilities that have variable duration.
+     * Default: 200 ticks (10 seconds).
      */
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        return null; // Override in entity-spawning abilities
-    }
-
-    /**
-     * Whether to spawn preview entity during WINDUP phase (true) or ACTIVE phase (false).
-     * Most abilities (Orb, Beam, Disc) spawn during windup for charging effect.
-     * Laser spawns at active phase since it has no charging state.
-     */
-    public boolean spawnPreviewDuringWindup() {
-        return true; // Default: spawn during windup for charging
-    }
-
-    // ── Preview target (set by executor for abilities that need targeting) ──
-
-    protected transient EntityLivingBase previewTarget;
-
-    /**
-     * Set the fake target entity for preview mode.
-     * Called by AbilityPreviewExecutor before starting preview.
-     */
-    public void setPreviewTarget(EntityLivingBase target) {
-        this.previewTarget = target;
-    }
-
-    public EntityLivingBase getPreviewTarget() {
-        return previewTarget;
-    }
-
-    /**
-     * Called once when transitioning from WINDUP to ACTIVE in preview mode.
-     * Override in movement-based abilities to initiate movement.
-     */
-    @SideOnly(Side.CLIENT)
-    public void onPreviewExecute(EntityNPCInterface npc) {
-        // Default: no-op. Override in movement abilities.
+    public int getMaxPreviewDuration() {
+        return 200;
     }
 
     // ═══════════════════════════════════════════════════════════════════

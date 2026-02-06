@@ -207,26 +207,28 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
             return;
         }
 
-        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
-            trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
-            trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
-        );
+        if (!isPreview()) {
+            AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
+                trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
+                trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
+            );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+            @SuppressWarnings("unchecked")
+            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-        for (EntityLivingBase entity : entities) {
-            if (entity == caster) continue;
-            if (entity.isDead) continue;
-            if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+            for (EntityLivingBase entity : entities) {
+                if (entity == caster) continue;
+                if (entity.isDead) continue;
+                if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
 
-            double dx = entity.posX - trapX;
-            double dz = entity.posZ - trapZ;
-            double dist = Math.sqrt(dx * dx + dz * dz);
+                double dx = entity.posX - trapX;
+                double dz = entity.posZ - trapZ;
+                double dist = Math.sqrt(dx * dx + dz * dz);
 
-            if (dist <= triggerRadius) {
-                triggerTrap(caster, entity, world);
-                return;
+                if (dist <= triggerRadius) {
+                    triggerTrap(caster, entity, world);
+                    return;
+                }
             }
         }
     }

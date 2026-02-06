@@ -187,11 +187,13 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             caster.motionZ = 0;
             caster.motionY = vy;
             hasLaunched = true;
-            if (caster instanceof EntityNPCInterface) {
+            if (!isPreview() && caster instanceof EntityNPCInterface) {
                 ((EntityNPCInterface) caster).setNpcJumpingState(true);
             }
-            caster.velocityChanged = true;
-            caster.worldObj.playSoundAtEntity(caster, "mob.irongolem.throw", 0.8f, 0.8f);
+            if (!isPreview()) {
+                caster.velocityChanged = true;
+                caster.worldObj.playSoundAtEntity(caster, "mob.irongolem.throw", 0.8f, 0.8f);
+            }
             return;
         }
 
@@ -233,10 +235,12 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         caster.motionY = vy;
 
         hasLaunched = true;
-        if (caster instanceof EntityNPCInterface) {
+        if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(true);
         }
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
 
         // Face the target
         float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
@@ -252,7 +256,9 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         airTicks++;
 
         // Continuously reset fall distance during slam to prevent fall damage
-        caster.fallDistance = 0;
+        if (!isPreview()) {
+            caster.fallDistance = 0;
+        }
 
         // Check for landing
         if (caster.onGround && airTicks > 3) {
@@ -268,11 +274,13 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         }
 
         // While in air, face toward target
-        double dx = targetX - caster.posX;
-        double dz = targetZ - caster.posZ;
-        float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
-        caster.rotationYaw = targetYaw;
-        caster.rotationYawHead = targetYaw;
+        if (!isPreview()) {
+            double dx = targetX - caster.posX;
+            double dz = targetZ - caster.posZ;
+            float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
+            caster.rotationYaw = targetYaw;
+            caster.rotationYawHead = targetYaw;
+        }
     }
 
     /**
@@ -280,22 +288,25 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
      */
     private void onLanding(EntityLivingBase caster, World world) {
         hasLanded = true;
-        if (caster instanceof EntityNPCInterface) {
+        if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
 
         // Signal that the ability has completed its active phase
         signalCompletion();
 
-        // Reset fall distance to prevent fall damage on landing
-        caster.fallDistance = 0;
-
         // Stop horizontal momentum
         caster.motionX = 0;
         caster.motionZ = 0;
-        caster.velocityChanged = true;
 
-        if (world.isRemote) return;
+        if (!isPreview()) {
+            // Reset fall distance to prevent fall damage on landing
+            caster.fallDistance = 0;
+            caster.velocityChanged = true;
+        }
+
+        if (world.isRemote && !isPreview()) return;
+        if (isPreview()) return;
 
         // Play slam impact sound on landing
         world.playSoundAtEntity(caster, "random.explode", 1.0f, 1.0f);
@@ -361,7 +372,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        if (caster instanceof EntityNPCInterface) {
+        if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
         hasLaunched = false;
@@ -371,7 +382,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
-        if (caster instanceof EntityNPCInterface) {
+        if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
         hasLaunched = false;
@@ -387,97 +398,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         airTicks = 0;
     }
 
-    // ==================== PREVIEW MODE ====================
-
-    private transient double previewVelX, previewVelY, previewVelZ;
-    private transient boolean previewLaunched = false;
-    private transient double previewGroundY;
-
     @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewExecute(EntityNPCInterface npc) {
-        previewLaunched = false;
-
-        double tx, ty, tz;
-        if (previewTarget != null && targetingMode == TargetingMode.AOE_TARGET) {
-            tx = previewTarget.posX;
-            ty = previewTarget.posY;
-            tz = previewTarget.posZ;
-        } else {
-            tx = npc.posX;
-            ty = npc.posY;
-            tz = npc.posZ;
-        }
-
-        previewGroundY = npc.posY;
-
-        double dx = tx - npc.posX;
-        double dz = tz - npc.posZ;
-        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
-
-        // Calculate vertical velocity for exact leapHeight
-        double arcHeight = Math.max(1.0, leapHeight);
-        double vy = calculateLaunchVelocity(arcHeight);
-
-        if (horizontalDist < 0.5) {
-            previewVelX = 0;
-            previewVelZ = 0;
-            previewVelY = vy;
-        } else {
-            if (horizontalDist > maxRange) {
-                double scale = maxRange / horizontalDist;
-                dx *= scale;
-                dz *= scale;
-                horizontalDist = maxRange;
-            }
-
-            double speedFactor = Math.max(0.1, leapSpeed);
-            int flightTicks = (int) Math.max(10, Math.min(horizontalDist * 1.5 / speedFactor, 40));
-            double drag = 0.91;
-            double dragPowN = Math.pow(drag, flightTicks);
-            double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN);
-
-            double dirX = dx / horizontalDist;
-            double dirZ = dz / horizontalDist;
-            previewVelX = dirX * vHorizontal;
-            previewVelZ = dirZ * vHorizontal;
-            previewVelY = vy;
-        }
-        previewLaunched = true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
-        if (!previewLaunched) return;
-
-        // Apply velocity
-        npc.prevPosX = npc.posX;
-        npc.prevPosY = npc.posY;
-        npc.prevPosZ = npc.posZ;
-
-        npc.posX += previewVelX;
-        npc.posY += previewVelY;
-        npc.posZ += previewVelZ;
-
-        // Gravity and drag
-        previewVelY -= 0.08;
-        previewVelY *= 0.98;
-        previewVelX *= 0.91;
-        previewVelZ *= 0.91;
-
-        // Ground clamp - stop falling below starting Y
-        if (npc.posY < previewGroundY && previewVelY < 0) {
-            npc.posY = previewGroundY;
-            previewVelY = 0;
-            previewVelX = 0;
-            previewVelZ = 0;
-            previewLaunched = false;
-        }
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return 60;
     }
 

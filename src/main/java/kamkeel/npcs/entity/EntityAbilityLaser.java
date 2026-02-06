@@ -1,6 +1,5 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -46,7 +45,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     private boolean charging = false;
     private int chargeDuration = 40;
     private int chargeTick = 0;
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
     private float targetSize = 1.0f; // Full size to grow to during charging
 
     // Data watcher index for charging state (synced to clients)
@@ -454,7 +452,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
         this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
-        anchorData.readNBT(nbt);
     }
 
     @Override
@@ -476,7 +473,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
         nbt.setFloat("TargetSize", targetSize);
-        anchorData.writeNBT(nbt);
     }
 
     /**

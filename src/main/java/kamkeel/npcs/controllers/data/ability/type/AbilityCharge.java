@@ -138,7 +138,9 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         if (chargeDirection == null) return;
 
         // Enforce rotation every tick
-        enforceLockedRotation(caster);
+        if (!isPreview()) {
+            enforceLockedRotation(caster);
+        }
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
@@ -150,12 +152,15 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         if (distanceTraveled >= maxRange) {
             caster.motionX = 0;
             caster.motionZ = 0;
-            caster.velocityChanged = true;
+            if (!isPreview()) {
+                caster.velocityChanged = true;
+            }
             signalCompletion();
             return;
         }
 
-        if (isChargeBlocked(caster)) {
+        // Block detection (skip in preview - no real world collision)
+        if (!isPreview() && isChargeBlocked(caster)) {
             stopMomentum(caster);
             signalCompletion();
             return;
@@ -165,10 +170,12 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         caster.motionX = chargeDirection.xCoord * chargeSpeed;
         caster.motionY = 0;
         caster.motionZ = chargeDirection.zCoord * chargeSpeed;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
 
-        // Server-side collision damage
-        if (!world.isRemote) {
+        // Server-side collision damage (skip in preview)
+        if (!world.isRemote && !isPreview()) {
             AxisAlignedBB hitBox = caster.boundingBox.expand(hitWidth, hitWidth * 0.5, hitWidth);
 
             @SuppressWarnings("unchecked")
@@ -211,7 +218,9 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     private void stopMomentum(EntityLivingBase caster) {
         caster.motionX = 0;
         caster.motionZ = 0;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
     }
 
     private boolean isChargeBlocked(EntityLivingBase caster) {
@@ -277,66 +286,8 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         return instance;
     }
 
-    // ==================== PREVIEW MODE ====================
-
-    private transient double previewDirX, previewDirZ;
-    private transient double previewStartX, previewStartZ;
-    private transient boolean previewCharging = false;
-
     @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewExecute(EntityNPCInterface npc) {
-        previewStartX = npc.posX;
-        previewStartZ = npc.posZ;
-        previewCharging = false;
-
-        // Calculate direction toward fake target
-        if (previewTarget != null) {
-            double dx = previewTarget.posX - npc.posX;
-            double dz = previewTarget.posZ - npc.posZ;
-            double len = Math.sqrt(dx * dx + dz * dz);
-            if (len > 0) {
-                previewDirX = dx / len;
-                previewDirZ = dz / len;
-            } else {
-                float yaw = (float) Math.toRadians(npc.rotationYaw);
-                previewDirX = -Math.sin(yaw);
-                previewDirZ = Math.cos(yaw);
-            }
-        } else {
-            float yaw = (float) Math.toRadians(npc.rotationYaw);
-            previewDirX = -Math.sin(yaw);
-            previewDirZ = Math.cos(yaw);
-        }
-        previewCharging = true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
-        if (!previewCharging) return;
-
-        // Check distance traveled
-        double distTraveled = Math.sqrt(
-            Math.pow(npc.posX - previewStartX, 2) +
-            Math.pow(npc.posZ - previewStartZ, 2)
-        );
-
-        if (distTraveled >= maxRange) {
-            previewCharging = false;
-            return;
-        }
-
-        npc.prevPosX = npc.posX;
-        npc.prevPosY = npc.posY;
-        npc.prevPosZ = npc.posZ;
-
-        npc.posX += previewDirX * chargeSpeed;
-        npc.posZ += previewDirZ * chargeSpeed;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return (int) Math.ceil(maxRange / chargeSpeed) + 5;
     }
 

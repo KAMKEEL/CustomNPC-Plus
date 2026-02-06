@@ -80,19 +80,27 @@ public class AbilityOrbDual extends Ability {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
         // Start moving the orb that was spawned during windup
         if (orbEntity != null && !orbEntity.isDead) {
-            orbEntity.startMoving(target);
+            if (isPreview()) {
+                orbEntity.startPreviewFiring();
+            } else {
+                orbEntity.startMoving(target);
+            }
         }
 
         if (dualFire) {
             if (orbEntity2 != null && !orbEntity2.isDead && dualFireDelay <= 0) {
-                orbEntity2.startMoving(target);
+                if (isPreview()) {
+                    orbEntity2.startPreviewFiring();
+                } else {
+                    orbEntity2.startMoving(target);
+                }
             }
         } else if (orbEntity2 != null) {
             orbEntity2.setDead();
@@ -104,11 +112,10 @@ public class AbilityOrbDual extends Ability {
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
-            // Create orb in charging mode - follows caster based on anchor point during windup
             Vec3 spawnPos1 = AnchorPointHelper.calculateAnchorPosition(caster, anchorData[0]);
             orbEntity = new EntityAbilityOrb(
                 world, caster, target,
@@ -124,8 +131,13 @@ public class AbilityOrbDual extends Ability {
             orbEntity.setSiblingEntityId(orbEntity2.getEntityId());
             orbEntity2.setSiblingEntityId(orbEntity.getEntityId());
 
-            orbEntity.setupCharging(anchorData[0], windUpTicks);
-            orbEntity2.setupCharging(anchorData[1], windUpTicks);
+            if (isPreview()) {
+                orbEntity.setupPreview(caster, orbSize, displayData[0], lightningData[0], anchorData[0], windUpTicks);
+                orbEntity2.setupPreview(caster, orbSize, displayData[1], lightningData[1], anchorData[1], windUpTicks);
+            } else {
+                orbEntity.setupCharging(anchorData[0], windUpTicks);
+                orbEntity2.setupCharging(anchorData[1], windUpTicks);
+            }
 
             orbEntity.setEffects(this.effects);
 
@@ -135,8 +147,8 @@ public class AbilityOrbDual extends Ability {
 
             orbEntity.setSourceAbility(this);
             orbEntity2.setSourceAbility(this);
-            world.spawnEntityInWorld(orbEntity);
-            world.spawnEntityInWorld(orbEntity2);
+            spawnAbilityEntity(world, orbEntity);
+            spawnAbilityEntity(world, orbEntity2);
         }
     }
 
@@ -570,17 +582,7 @@ public class AbilityOrbDual extends Ability {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
-        orb.setupPreview(npc, orbSize, displayData[0], lightningData[0], anchorData[0], windUpTicks);
-        return orb;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 }

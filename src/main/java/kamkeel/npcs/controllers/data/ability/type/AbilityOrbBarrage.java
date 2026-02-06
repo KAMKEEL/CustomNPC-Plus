@@ -89,7 +89,7 @@ public class AbilityOrbBarrage extends Ability {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
@@ -107,12 +107,10 @@ public class AbilityOrbBarrage extends Ability {
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
-            // Create orb in charging mode - follows caster based on anchor point during windup
-
             if (dualCharging) {
                 chargingEntities = new EntityAbilityOrb[2];
             } else {
@@ -128,11 +126,15 @@ public class AbilityOrbBarrage extends Ability {
                     colorData, combatData, homingData, lightningData, lifespanData, trajectoryData
                 );
 
-                orbEntity.setupCharging(anchorData[i], windUpTicks);
+                if (isPreview()) {
+                    orbEntity.setupPreview(caster, orbSize, colorData, lightningData, anchorData[i], windUpTicks);
+                } else {
+                    orbEntity.setupCharging(anchorData[i], windUpTicks);
+                }
                 orbEntity.setSourceAbility(this);
 
                 chargingEntities[i] = orbEntity;
-                world.spawnEntityInWorld(orbEntity);
+                spawnAbilityEntity(world, orbEntity);
             }
         }
     }
@@ -540,17 +542,7 @@ public class AbilityOrbBarrage extends Ability {
     public void setAnchorPoint(int point) { getAnchorData(0).anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
-        orb.setupPreview(npc, orbSize, colorData, lightningData, anchorData[0], windUpTicks);
-        return orb;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 

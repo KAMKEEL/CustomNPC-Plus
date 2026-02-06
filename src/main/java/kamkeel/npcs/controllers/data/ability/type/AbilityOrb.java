@@ -75,14 +75,18 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
         // Start moving the orb that was spawned during windup
         if (orbEntity != null && !orbEntity.isDead) {
-            orbEntity.startMoving(target);
+            if (isPreview()) {
+                orbEntity.startPreviewFiring();
+            } else {
+                orbEntity.startMoving(target);
+            }
         }
 
         // Ability stays active until entity dies (prevents firing another while projectile is alive)
@@ -91,21 +95,25 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Spawn orb in charging mode on first tick of windup
         if (tick == 1) {
-            // Create orb in charging mode - follows caster based on anchor point during windup
             Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
             orbEntity = new EntityAbilityOrb(
                 world, caster, target,
                 spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
                 displayData, combatData, homingData, lightningData, lifespanData, trajectoryData);
-            orbEntity.setupCharging(anchorData, windUpTicks);
+
+            if (isPreview()) {
+                orbEntity.setupPreview(caster, orbSize, displayData, lightningData, anchorData, windUpTicks);
+            } else {
+                orbEntity.setupCharging(anchorData, windUpTicks);
+            }
 
             orbEntity.setEffects(this.effects);
             orbEntity.setSourceAbility(this);
-            world.spawnEntityInWorld(orbEntity);
+            spawnAbilityEntity(world, orbEntity);
         }
     }
 
@@ -405,17 +413,7 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityOrb orb = new EntityAbilityOrb(npc.worldObj);
-        orb.setupPreview(npc, orbSize, displayData, lightningData, anchorData, windUpTicks);
-        return orb;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 

@@ -14,12 +14,10 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.util.AnchorPointHelper;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.Arrays;
@@ -89,19 +87,27 @@ public class AbilityDiscDual extends Ability {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
-        // Start moving the orb that was spawned during windup
+        // Start moving the disc that was spawned during windup
         if (discEntity != null && !discEntity.isDead) {
-            discEntity.startMoving(target);
+            if (isPreview()) {
+                discEntity.startPreviewFiring();
+            } else {
+                discEntity.startMoving(target);
+            }
         }
 
         if (dualFire) {
             if (discEntity2 != null && !discEntity2.isDead && dualFireDelay <= 0) {
-                discEntity2.startMoving(target);
+                if (isPreview()) {
+                    discEntity2.startPreviewFiring();
+                } else {
+                    discEntity2.startMoving(target);
+                }
             }
         } else if (discEntity2 != null) {
             discEntity2.setDead();
@@ -113,7 +119,7 @@ public class AbilityDiscDual extends Ability {
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Spawn disc in charging mode on first tick of windup
         if (tick == 1) {
@@ -137,8 +143,13 @@ public class AbilityDiscDual extends Ability {
             discEntity.setSiblingEntityId(discEntity2.getEntityId());
             discEntity2.setSiblingEntityId(discEntity.getEntityId());
 
-            discEntity.setupCharging(anchorData[0], windUpTicks);
-            discEntity2.setupCharging(anchorData[1], windUpTicks);
+            if (isPreview()) {
+                discEntity.setupPreview(caster, discRadius, discThickness, displayData[0], lightningData[0], anchorData[0], windUpTicks);
+                discEntity2.setupPreview(caster, discRadius, discThickness, displayData[1], lightningData[1], anchorData[1], windUpTicks);
+            } else {
+                discEntity.setupCharging(anchorData[0], windUpTicks);
+                discEntity2.setupCharging(anchorData[1], windUpTicks);
+            }
 
             discEntity.setEffects(this.effects);
 
@@ -148,8 +159,8 @@ public class AbilityDiscDual extends Ability {
 
             discEntity.setSourceAbility(this);
             discEntity2.setSourceAbility(this);
-            world.spawnEntityInWorld(discEntity);
-            world.spawnEntityInWorld(discEntity2);
+            spawnAbilityEntity(world, discEntity);
+            spawnAbilityEntity(world, discEntity2);
         }
     }
 
@@ -164,7 +175,11 @@ public class AbilityDiscDual extends Ability {
             }
 
             if (tick == dualFireDelay && discEntity2 != null && !discEntity2.isDead) {
-                discEntity2.startMoving(target);
+                if (isPreview()) {
+                    discEntity2.startPreviewFiring();
+                } else {
+                    discEntity2.startMoving(target);
+                }
             }
         } else {
             if (discEntity == null || discEntity.isDead) {
@@ -511,17 +526,7 @@ public class AbilityDiscDual extends Ability {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityDisc disc = new EntityAbilityDisc(npc.worldObj);
-        disc.setupPreview(npc, discRadius, discThickness, displayData[0], lightningData[0], anchorData[0], windUpTicks);
-        return disc;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 }

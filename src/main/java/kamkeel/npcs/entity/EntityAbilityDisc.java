@@ -38,7 +38,6 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     private int chargeTick = 0;
     private float targetDiscRadius = 1.0f; // Full radius to grow to during charging
     private float targetDiscThickness = 0.2f; // Full thickness to grow to during charging
-    private EnergyAnchorData anchorData = new EnergyAnchorData();
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;

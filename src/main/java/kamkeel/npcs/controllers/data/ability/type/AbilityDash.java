@@ -172,7 +172,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
         if (dashDirection == null) return;
 
         // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
-        if (tick > 1) {
+        if (!isPreview() && tick > 1) {
             double movedThisTick = Math.sqrt(
                 Math.pow(caster.posX - prevTickX, 2) +
                 Math.pow(caster.posZ - prevTickZ, 2));
@@ -197,12 +197,15 @@ public class AbilityDash extends Ability implements IAbilityDash {
         if (distanceTraveled >= dashDistance) {
             caster.motionX = 0;
             caster.motionZ = 0;
-            caster.velocityChanged = true;
+            if (!isPreview()) {
+                caster.velocityChanged = true;
+            }
             signalCompletion();
             return;
         }
 
-        if (isDashBlocked(caster)) {
+        // Block detection (skip in preview - no real world collision)
+        if (!isPreview() && isDashBlocked(caster)) {
             caster.motionX = 0;
             caster.motionZ = 0;
             caster.velocityChanged = true;
@@ -214,24 +217,30 @@ public class AbilityDash extends Ability implements IAbilityDash {
         caster.motionX = dashDirection.xCoord * dashSpeed;
         caster.motionY = 0;
         caster.motionZ = dashDirection.zCoord * dashSpeed;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
 
-        // Trail particles
-        world.spawnParticle("smoke", caster.posX, caster.posY + 0.5, caster.posZ, 0, 0, 0);
+            // Trail particles
+            world.spawnParticle("smoke", caster.posX, caster.posY + 0.5, caster.posZ, 0, 0, 0);
+        }
     }
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
         caster.motionX = 0;
         caster.motionZ = 0;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
     }
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
         caster.motionX = 0;
         caster.motionZ = 0;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
     }
 
     @Override
@@ -247,66 +256,8 @@ public class AbilityDash extends Ability implements IAbilityDash {
         return !caster.worldObj.getCollidingBoundingBoxes(caster, caster.boundingBox.copy().offset(nextX, 0, nextZ)).isEmpty();
     }
 
-    // ==================== PREVIEW MODE ====================
-
-    private transient double previewDirX, previewDirZ;
-    private transient double previewStartX, previewStartZ;
-    private transient boolean previewDashing = false;
-
     @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewExecute(EntityNPCInterface npc) {
-        previewStartX = npc.posX;
-        previewStartZ = npc.posZ;
-        previewDashing = false;
-
-        // Pick a random direction based on mode
-        DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
-            ? AGGRESSIVE_DIRECTIONS
-            : DEFENSIVE_DIRECTIONS;
-        DashDirection dir = directions[RANDOM.nextInt(directions.length)];
-
-        float baseYaw;
-        if (previewTarget != null) {
-            double dx = previewTarget.posX - npc.posX;
-            double dz = previewTarget.posZ - npc.posZ;
-            baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-        } else {
-            baseYaw = npc.rotationYaw;
-        }
-
-        float dashYaw = baseYaw + dir.getAngleOffset();
-        float yawRad = (float) Math.toRadians(dashYaw);
-        previewDirX = -Math.sin(yawRad);
-        previewDirZ = Math.cos(yawRad);
-        previewDashing = true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
-        if (!previewDashing) return;
-
-        double distTraveled = Math.sqrt(
-            Math.pow(npc.posX - previewStartX, 2) +
-            Math.pow(npc.posZ - previewStartZ, 2)
-        );
-
-        if (distTraveled >= dashDistance) {
-            previewDashing = false;
-            return;
-        }
-
-        npc.prevPosX = npc.posX;
-        npc.prevPosY = npc.posY;
-        npc.prevPosZ = npc.posZ;
-
-        npc.posX += previewDirX * dashSpeed;
-        npc.posZ += previewDirZ * dashSpeed;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return (int) Math.ceil(dashDistance / dashSpeed) + 5;
     }
 

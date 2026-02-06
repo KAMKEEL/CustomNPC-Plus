@@ -509,6 +509,8 @@ public class ClientProxy extends CommonProxy {
             } else {
                 abilityNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
                 abilityNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+                abilityNpc.height = 1.8f;
+                abilityNpc.width = 0.6f;
             }
             return new GuiNpcManageAbilities(abilityNpc, npc != null);
         }

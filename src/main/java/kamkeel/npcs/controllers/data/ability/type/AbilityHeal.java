@@ -75,27 +75,31 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
-        getHealedAllies().clear();
+        if (!isPreview()) {
+            getHealedAllies().clear();
 
-        // Always find allies if we're healing them (needed for both instant and HoT)
-        if (healAllies && healRadius > 0) {
-            findAlliesInRadius(caster, world);
+            // Always find allies if we're healing them (needed for both instant and HoT)
+            if (healAllies && healRadius > 0) {
+                findAlliesInRadius(caster, world);
+            }
+
+            if (instantHeal) {
+                // Instant heal - apply all healing now
+                if (healSelf) {
+                    healEntity(caster);
+                    spawnHealParticles(world, caster);
+                }
+
+                for (EntityLivingBase ally : getHealedAllies()) {
+                    healEntity(ally);
+                    spawnHealParticles(world, ally);
+                }
+            }
         }
 
         if (instantHeal) {
-            // Instant heal - apply all healing now
-            if (healSelf) {
-                healEntity(caster);
-                spawnHealParticles(world, caster);
-            }
-
-            for (EntityLivingBase ally : getHealedAllies()) {
-                healEntity(ally);
-                spawnHealParticles(world, ally);
-            }
-
             // Instant heal completes immediately
             signalCompletion();
         }
@@ -104,7 +108,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote || instantHeal) return;
+        if ((world.isRemote && !isPreview()) || instantHeal) return;
 
         // Heal over time - distribute heal across duration ticks
         if (tick % 10 == 0) {

@@ -12,7 +12,6 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.util.AnchorPointHelper;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
@@ -23,7 +22,6 @@ import noppes.npcs.api.ability.type.IAbilityDisc;
 
 import java.util.Arrays;
 import java.util.List;
-import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Disc ability: Spawns a flat spinning disc projectile.
@@ -79,27 +77,27 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
         // Start moving the disc that was spawned during windup
         if (discEntity != null && !discEntity.isDead) {
-            discEntity.startMoving(target);
+            if (isPreview()) {
+                discEntity.startPreviewFiring();
+            } else {
+                discEntity.startMoving(target);
+            }
         }
-
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
     }
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Spawn disc in charging mode on first tick of windup
         if (tick == 1) {
-            // Create disc in charging mode - follows caster based on anchor point during windup
             Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
             discEntity = new EntityAbilityDisc(
                 world, caster, target,
@@ -107,11 +105,16 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
                 discRadius, discThickness,
                 colorData, combatData, homingData, lightningData, lifespanData, trajectoryData,
                 boomerang, boomerangDelay);
-            discEntity.setupCharging(anchorData, windUpTicks);
+
+            if (isPreview()) {
+                discEntity.setupPreview(caster, discRadius, discThickness, colorData, lightningData, anchorData, windUpTicks);
+            } else {
+                discEntity.setupCharging(anchorData, windUpTicks);
+            }
 
             discEntity.setEffects(this.effects);
             discEntity.setSourceAbility(this);
-            world.spawnEntityInWorld(discEntity);
+            spawnAbilityEntity(world, discEntity);
         }
     }
 
@@ -264,17 +267,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityDisc disc = new EntityAbilityDisc(npc.worldObj);
-        disc.setupPreview(npc, discRadius, discThickness, colorData, lightningData, anchorData, windUpTicks);
-        return disc;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 

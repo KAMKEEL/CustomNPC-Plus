@@ -81,37 +81,41 @@ public class AbilityBeamDual extends Ability {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
         // Start firing the beam that was spawned during windup
         if (beamEntity != null && !beamEntity.isDead) {
-            beamEntity.startFiring(target);
+            if (isPreview()) {
+                beamEntity.startPreviewFiring();
+            } else {
+                beamEntity.startFiring(target);
+            }
         }
 
         if (dualFire) {
             if (beamEntity2 != null && !beamEntity2.isDead && dualFireDelay <= 0) {
-                beamEntity2.startFiring(target);
+                if (isPreview()) {
+                    beamEntity2.startPreviewFiring();
+                } else {
+                    beamEntity2.startFiring(target);
+                }
             }
         } else if (beamEntity2 != null) {
             beamEntity2.setDead();
         }
-
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
     }
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Spawn beam in charging mode on first tick of windup
         if (tick == 1) {
             float offsetDist = 1.0f;
 
-            // Create beam in charging mode - follows caster based on anchor point during windup
             Vec3 spawnPos1 = AnchorPointHelper.calculateAnchorPosition(caster, anchorData[0], offsetDist);
             beamEntity = new EntityAbilityBeam(
                 world, caster, target,
@@ -131,16 +135,21 @@ public class AbilityBeamDual extends Ability {
             beamEntity.setSiblingEntityId(beamEntity2.getEntityId());
             beamEntity2.setSiblingEntityId(beamEntity.getEntityId());
 
-            beamEntity.setupCharging(anchorData[0], windUpTicks, offsetDist);
-            beamEntity2.setupCharging(anchorData[1], windUpTicks, offsetDist);
+            if (isPreview()) {
+                beamEntity.setupPreview(caster, beamWidth, headSize, displayData[0], lightningData[0], anchorData[0], windUpTicks, offsetDist);
+                beamEntity2.setupPreview(caster, beamWidth, headSize, displayData[1], lightningData[1], anchorData[1], windUpTicks, offsetDist);
+            } else {
+                beamEntity.setupCharging(anchorData[0], windUpTicks, offsetDist);
+                beamEntity2.setupCharging(anchorData[1], windUpTicks, offsetDist);
+            }
 
             beamEntity.setEffects(this.effects);
             if (dualFire) beamEntity2.setEffects(this.effects);
 
             beamEntity.setSourceAbility(this);
             beamEntity2.setSourceAbility(this);
-            world.spawnEntityInWorld(beamEntity);
-            world.spawnEntityInWorld(beamEntity2);
+            spawnAbilityEntity(world, beamEntity);
+            spawnAbilityEntity(world, beamEntity2);
         }
     }
 
@@ -501,17 +510,7 @@ public class AbilityBeamDual extends Ability {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityBeam beam = new EntityAbilityBeam(npc.worldObj);
-        beam.setupPreview(npc, beamWidth, headSize, displayData[0], lightningData[0], anchorData[0], windUpTicks, 1.0f);
-        return beam;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 }

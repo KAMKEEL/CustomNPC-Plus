@@ -76,29 +76,29 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
         // Start firing the beam that was spawned during windup
         if (beamEntity != null && !beamEntity.isDead) {
-            beamEntity.startFiring(target);
+            if (isPreview()) {
+                beamEntity.startPreviewFiring();
+            } else {
+                beamEntity.startFiring(target);
+            }
         }
-
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
     }
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Spawn beam in charging mode on first tick of windup
         if (tick == 1) {
             float offsetDist = 1.0f;
 
-            // Create beam in charging mode - follows caster based on anchor point during windup
             Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData, offsetDist);
             beamEntity = new EntityAbilityBeam(
                 world, caster, target,
@@ -106,11 +106,16 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
                 beamWidth, headSize,
                 colorData, combatData, homingData, lightningData, lifespanData, trajectoryData,
                 lockMovement.locksActive());
-            beamEntity.setupCharging(anchorData, windUpTicks, offsetDist);
+
+            if (isPreview()) {
+                beamEntity.setupPreview(caster, beamWidth, headSize, colorData, lightningData, anchorData, windUpTicks, offsetDist);
+            } else {
+                beamEntity.setupCharging(anchorData, windUpTicks, offsetDist);
+            }
 
             beamEntity.setEffects(this.effects);
             beamEntity.setSourceAbility(this);
-            world.spawnEntityInWorld(beamEntity);
+            spawnAbilityEntity(world, beamEntity);
         }
     }
 
@@ -267,17 +272,7 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
     public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityBeam beam = new EntityAbilityBeam(npc.worldObj);
-        beam.setupPreview(npc, beamWidth, headSize, colorData, lightningData, anchorData, windUpTicks, 1.0f);
-        return beam;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
     }
 

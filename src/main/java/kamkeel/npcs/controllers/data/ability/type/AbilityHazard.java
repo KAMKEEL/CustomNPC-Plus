@@ -243,7 +243,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Check if hazard duration has ended
         if (tick >= durationTicks) {
@@ -251,53 +251,55 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
             return;
         }
 
-        damagedThisTick.clear();
-        ticksSinceDamage++;
+        if (!isPreview()) {
+            damagedThisTick.clear();
+            ticksSinceDamage++;
 
-        switch (placement) {
-            case FOLLOW_CASTER:
-                zoneX = caster.posX;
-                zoneY = caster.posY;
-                zoneZ = caster.posZ;
-                break;
-            case FOLLOW_TARGET:
-                if (target != null) {
-                    zoneX = target.posX;
-                    zoneY = target.posY;
-                    zoneZ = target.posZ;
-                }
-                break;
-            default:
-                break;
-        }
-
-        if (ticksSinceDamage >= damageInterval) {
-            ticksSinceDamage = 0;
-
-            AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-                zoneX - radius, zoneY - heightBelow, zoneZ - radius,
-                zoneX + radius, zoneY + heightAbove, zoneZ + radius
-            );
-
-            @SuppressWarnings("unchecked")
-            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
-
-            for (EntityLivingBase entity : entities) {
-                if (entity == caster && !affectsCaster) continue;
-                if (damagedThisTick.contains(entity.getEntityId())) continue;
-                if (!isInZone(entity, caster)) continue;
-
-                if (damagePerSecond > 0) {
-                    if (ignoreInvulnFrames) {
-                        entity.hurtResistantTime = 0;
+            switch (placement) {
+                case FOLLOW_CASTER:
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
+                    break;
+                case FOLLOW_TARGET:
+                    if (target != null) {
+                        zoneX = target.posX;
+                        zoneY = target.posY;
+                        zoneZ = target.posZ;
                     }
-                    // Apply damage with scripted event support (no knockback for hazard)
-                    boolean wasHit = applyAbilityDamage(caster, entity, damagePerSecond, 0);
-                    if (!wasHit) continue; // Skip debuffs if hit was cancelled
-                }
+                    break;
+                default:
+                    break;
+            }
 
-                applyDebuffs(entity);
-                damagedThisTick.add(entity.getEntityId());
+            if (ticksSinceDamage >= damageInterval) {
+                ticksSinceDamage = 0;
+
+                AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+                    zoneX - radius, zoneY - heightBelow, zoneZ - radius,
+                    zoneX + radius, zoneY + heightAbove, zoneZ + radius
+                );
+
+                @SuppressWarnings("unchecked")
+                List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
+
+                for (EntityLivingBase entity : entities) {
+                    if (entity == caster && !affectsCaster) continue;
+                    if (damagedThisTick.contains(entity.getEntityId())) continue;
+                    if (!isInZone(entity, caster)) continue;
+
+                    if (damagePerSecond > 0) {
+                        if (ignoreInvulnFrames) {
+                            entity.hurtResistantTime = 0;
+                        }
+                        // Apply damage with scripted event support (no knockback for hazard)
+                        boolean wasHit = applyAbilityDamage(caster, entity, damagePerSecond, 0);
+                        if (!wasHit) continue; // Skip debuffs if hit was cancelled
+                    }
+
+                    applyDebuffs(entity);
+                    damagedThisTick.add(entity.getEntityId());
+                }
             }
         }
     }

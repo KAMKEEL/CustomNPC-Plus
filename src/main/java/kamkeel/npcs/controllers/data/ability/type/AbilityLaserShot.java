@@ -12,7 +12,6 @@ import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.util.AnchorPointHelper;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -22,7 +21,6 @@ import noppes.npcs.api.ability.type.IAbilityLaserShot;
 
 import java.util.Arrays;
 import java.util.List;
-import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Laser Shot ability: Fast expanding thin line that pierces through targets.
@@ -84,7 +82,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         if (tick == 1) {
             Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
@@ -96,17 +94,21 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
                 expansionSpeed, lingerTicks
             );
 
-            laserEntity.setupCharging(anchorData, windUpTicks);
+            if (isPreview()) {
+                laserEntity.setupPreview(caster, laserWidth, colorData, lightningData, expansionSpeed, lifespanData.maxDistance);
+            } else {
+                laserEntity.setupCharging(anchorData, windUpTicks);
+            }
 
             laserEntity.setEffects(this.effects);
             laserEntity.setSourceAbility(this);
-            world.spawnEntityInWorld(laserEntity);
+            spawnAbilityEntity(world, laserEntity);
         }
     }
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
@@ -235,23 +237,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityLaser laser = new EntityAbilityLaser(npc.worldObj);
-        laser.setupPreview(npc, laserWidth, colorData, lightningData, expansionSpeed, lifespanData.maxDistance);
-        return laser;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 60) : 60;
-    }
-
-    @Override
-    public boolean spawnPreviewDuringWindup() {
-        return false; // Laser has no charging, spawns at active phase
     }
 
     @SideOnly(Side.CLIENT)

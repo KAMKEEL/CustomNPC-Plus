@@ -73,7 +73,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
@@ -85,7 +85,12 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
             sweepSpeed, numberOfRotations,
             damage, damageInterval, piercing,
             lockOnTarget);
-        world.spawnEntityInWorld(activeEntity);
+
+        if (isPreview()) {
+            activeEntity.setupPreview(caster);
+        }
+
+        spawnAbilityEntity(world, activeEntity);
 
         // Ability stays active until entity dies (prevents firing another while projectile is alive)
         // Movement locking is handled separately by the base class
@@ -199,6 +204,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public void setOuterColorWidth(float outerColorWidth) { colorData.outerColorWidth = outerColorWidth; }
     public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
+
+    @Override
+    public int getMaxPreviewDuration() {
+        return (int) ((360.0f * numberOfRotations) / sweepSpeed) + 10;
+    }
 
     @SideOnly(Side.CLIENT)
     @Override
