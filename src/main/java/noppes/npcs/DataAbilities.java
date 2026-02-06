@@ -368,6 +368,11 @@ public class DataAbilities {
      * Check if a specific ability is eligible for use.
      */
     private boolean isAbilityEligible(Ability ability, EntityLivingBase target) {
+        // Check UserType allows NPCs
+        if (!ability.getAllowedBy().allowsNpc()) {
+            return false;
+        }
+
         // Check enabled
         if (!ability.isEnabled()) {
             return false;
@@ -692,6 +697,11 @@ public class DataAbilities {
      */
     public boolean forceStartAbility(Ability ability, EntityLivingBase target) {
         if (ability == null || npc.worldObj.isRemote) {
+            return false;
+        }
+
+        // Check UserType allows NPCs
+        if (!ability.getAllowedBy().allowsNpc()) {
             return false;
         }
 

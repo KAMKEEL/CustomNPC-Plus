@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static kamkeel.npcs.command.AbilityCommand.getPlayerAbilityNames;
 import static kamkeel.npcs.command.EffectCommand.getSortedEffectNames;
 
 public class CommandKamkeel extends CommandBase {
@@ -134,6 +135,9 @@ public class CommandKamkeel extends CommandBase {
                     return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
                 } else if (usage.equals("<effectName>")) {
                     List<String> keys = getSortedEffectNames();
+                    return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
+                } else if (usage.equals("<ability>")) {
+                    List<String> keys = getPlayerAbilityNames();
                     return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
                 }
             }

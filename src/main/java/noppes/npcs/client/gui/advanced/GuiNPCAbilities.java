@@ -334,8 +334,12 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             Map<String, Integer> dummyMap = new HashMap<>(allAbilityTypes);
             filteredAbilityTypes.clear();
             filteredAbilityTypes.putAll(getFilteredData(dummyMap));
-        }
 
+            // Reset scroll position when changing category
+            if (availableTypesScroll != null) {
+                availableTypesScroll.resetScroll();
+            }
+        }
 
         initGui();
     }

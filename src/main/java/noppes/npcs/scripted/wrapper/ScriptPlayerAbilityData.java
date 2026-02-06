@@ -1,5 +1,7 @@
 package noppes.npcs.scripted.wrapper;
 
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.api.ability.IAbility;
 import noppes.npcs.api.ability.IPlayerAbilityData;
@@ -26,7 +28,17 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
 
     @Override
     public void unlockAbility(String key) {
-        data.unlockAbility(key);
+        // Validate ability exists and allows players
+        Ability ability = AbilityController.Instance.resolveAbility(key);
+        if (ability == null) {
+            return; // Ability doesn't exist
+        }
+        if (!ability.getAllowedBy().allowsPlayer()) {
+            return; // Ability is NPC-only
+        }
+        // Use canonical key (registry key for built-in, UUID for custom)
+        String canonicalKey = ability.getId() != null ? ability.getId() : key;
+        data.unlockAbility(canonicalKey);
     }
 
     @Override

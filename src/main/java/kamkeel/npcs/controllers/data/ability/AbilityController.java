@@ -180,28 +180,91 @@ public class AbilityController implements IAbilityHandler {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
-     * Resolve an ability by key. Checks built-in abilities first (by name),
-     * then custom abilities (by UUID). Returns a copy safe to modify.
+     * Resolve an ability by key. Checks built-in abilities first (by name or registry key),
+     * then custom abilities (by UUID or name). Returns a copy safe to modify for
+     * custom abilities, or the singleton instance for built-in abilities.
      *
-     * @param key The ability name (built-in) or UUID (custom)
-     * @return A copy of the resolved ability, or null if not found
+     * @param key The ability name, registry key (built-in) or UUID (custom)
+     * @return The resolved ability, or null if not found
      */
     public Ability resolveAbility(String key) {
         if (key == null || key.isEmpty()) return null;
 
-        // Check built-in abilities first
+        // Check built-in abilities first (exact match by name)
         Ability builtIn = abilities.get(key);
         if (builtIn != null) {
-            return fromNBT(builtIn.writeNBT());
+            return builtIn;
         }
 
-        // Check custom abilities
+        // Check built-in abilities by name (case-insensitive)
+        for (Map.Entry<String, Ability> entry : abilities.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue();
+            }
+        }
+
+        // Check built-in abilities by registry key / ID
+        for (Ability ability : abilities.values()) {
+            if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) {
+                return ability;
+            }
+        }
+
+        // Check custom abilities (exact UUID match)
         Ability custom = customAbilities.get(key);
         if (custom != null) {
             return fromNBT(custom.writeNBT());
         }
 
+        // Check custom abilities by name (case-insensitive)
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) {
+                return fromNBT(ability.writeNBT());
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * Get all keys that can be used to look up abilities (for tab completion).
+     * Returns registry keys for built-in abilities (no spaces) and UUIDs for custom.
+     */
+    public Set<String> getAbilityKeys() {
+        Set<String> keys = new LinkedHashSet<>();
+        // Built-in abilities - use the ID (registry key for BuiltInAbility)
+        for (Ability ability : abilities.values()) {
+            String id = ability.getId();
+            if (id != null && !id.isEmpty()) {
+                keys.add(id);
+            }
+        }
+        // Custom abilities - use UUID
+        keys.addAll(customAbilities.keySet());
+        return keys;
+    }
+
+    /**
+     * Get keys for player-usable abilities only (for tab completion).
+     */
+    public Set<String> getPlayerAbilityKeys() {
+        Set<String> keys = new LinkedHashSet<>();
+        // Built-in abilities - use the ID (registry key for BuiltInAbility)
+        for (Ability ability : abilities.values()) {
+            if (ability.getAllowedBy().allowsPlayer()) {
+                String id = ability.getId();
+                if (id != null && !id.isEmpty()) {
+                    keys.add(id);
+                }
+            }
+        }
+        // Custom abilities - use UUID (if player-usable)
+        for (Map.Entry<String, Ability> entry : customAbilities.entrySet()) {
+            if (entry.getValue().getAllowedBy().allowsPlayer()) {
+                keys.add(entry.getKey());
+            }
+        }
+        return keys;
     }
 
     /**
