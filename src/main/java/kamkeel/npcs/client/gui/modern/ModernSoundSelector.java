@@ -3,7 +3,7 @@ package kamkeel.npcs.client.gui.modern;
 import com.google.common.collect.Lists;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import kamkeel.npcs.client.gui.components.ModernButton;
-import kamkeel.npcs.client.gui.components.ModernTextField;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ModernColors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
@@ -30,8 +30,8 @@ public class ModernSoundSelector extends ModernSubGuiInterface {
     private final HashMap<String, List<String>> domains = new HashMap<>();
 
     // Components
-    private ModernTextField domainSearchField;
-    private ModernTextField soundSearchField;
+    private GuiNpcTextField domainSearchField;
+    private GuiNpcTextField soundSearchField;
     private ModernButton playBtn;
     private ModernButton stopBtn;
     private ModernButton doneBtn;
@@ -127,13 +127,9 @@ public class ModernSoundSelector extends ModernSubGuiInterface {
 
         // Search fields at top
         int searchH = 18;
-        domainSearchField = new ModernTextField(0, domainListX, contentY, domainListW, searchH);
-        domainSearchField.setPlaceholder("Filter...");
-        domainSearchField.setText(domainSearch);
+        domainSearchField = new GuiNpcTextField(0, domainListX, contentY, domainListW, searchH, domainSearch);
 
-        soundSearchField = new ModernTextField(1, soundListX, contentY, soundListW, searchH);
-        soundSearchField.setPlaceholder("Filter sounds...");
-        soundSearchField.setText(soundSearch);
+        soundSearchField = new GuiNpcTextField(1, soundListX, contentY, soundListW, searchH, soundSearch);
 
         // List area below search
         listY = contentY + searchH + 4;

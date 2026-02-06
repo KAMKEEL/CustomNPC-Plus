@@ -32,6 +32,10 @@ public class ModernButton extends GuiNpcButton {
     protected boolean pressed = false;
     protected boolean hovered = false;
 
+    // Color button mode
+    protected boolean colorMode = false;
+    protected int displayColor = 0xFFFFFF;
+
     // Multi-value support (like GuiNpcButton)
     protected String[] values;
     protected int valueIndex = 0;
@@ -194,6 +198,30 @@ public class ModernButton extends GuiNpcButton {
         }
     }
 
+    // === Color Button Mode ===
+
+    public ModernButton setColorMode(int color) {
+        this.colorMode = true;
+        this.displayColor = color & 0xFFFFFF;
+        return this;
+    }
+
+    public void setColor(int color) {
+        this.displayColor = color & 0xFFFFFF;
+    }
+
+    public int getColor() {
+        return displayColor;
+    }
+
+    protected int getContrastColor(int bgColor) {
+        int r = (bgColor >> 16) & 0xFF;
+        int g = (bgColor >> 8) & 0xFF;
+        int b = bgColor & 0xFF;
+        double luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0;
+        return luminance > 0.5 ? 0x000000 : 0xFFFFFF;
+    }
+
     // === Rendering ===
 
     @Override
@@ -203,6 +231,11 @@ public class ModernButton extends GuiNpcButton {
         FontRenderer fr = mc.fontRenderer;
         hovered = mouseX >= xPosition && mouseY >= yPosition &&
                   mouseX < xPosition + width && mouseY < yPosition + height;
+
+        if (colorMode) {
+            drawColorButton(fr, mouseX, mouseY);
+            return;
+        }
 
         // Determine colors based on state
         int bg, border, text;
@@ -284,6 +317,20 @@ public class ModernButton extends GuiNpcButton {
             sb.append(c);
         }
         return sb.toString();
+    }
+
+    protected void drawColorButton(FontRenderer fr, int mouseX, int mouseY) {
+        int border = hovered ? ModernColors.INPUT_BORDER_FOCUSED : ModernColors.INPUT_BORDER;
+        drawRect(xPosition - 1, yPosition - 1, xPosition + width + 1, yPosition + height + 1, border);
+        drawRect(xPosition, yPosition, xPosition + width, yPosition + height, 0xFF000000 | displayColor);
+        if (!enabled) {
+            drawRect(xPosition, yPosition, xPosition + width, yPosition + height, 0x80000000);
+        }
+        String hex = String.format("%06X", displayColor & 0xFFFFFF);
+        int textColor = getContrastColor(displayColor);
+        int textX = xPosition + (width - fr.getStringWidth(hex)) / 2;
+        int textY = yPosition + (height - fr.FONT_HEIGHT) / 2;
+        fr.drawString(hex, textX, textY, textColor);
     }
 
     // === Mouse Handling ===

@@ -1,7 +1,7 @@
 package kamkeel.npcs.client.gui.modern;
 
 import kamkeel.npcs.client.gui.components.ModernButton;
-import kamkeel.npcs.client.gui.components.ModernTextField;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ModernColors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -31,8 +31,8 @@ public abstract class ModernCategorySelector<C, I> extends ModernSubGuiInterface
     protected List<String> filteredItems = new ArrayList<>();
 
     // Components
-    protected ModernTextField catSearchField;
-    protected ModernTextField itemSearchField;
+    protected GuiNpcTextField catSearchField;
+    protected GuiNpcTextField itemSearchField;
     protected ModernButton doneBtn;
     protected ModernButton cancelBtn;
 
@@ -161,13 +161,9 @@ public abstract class ModernCategorySelector<C, I> extends ModernSubGuiInterface
 
         // Search fields at top
         int searchH = 18;
-        catSearchField = new ModernTextField(0, catListX, contentY, catListW, searchH);
-        catSearchField.setPlaceholder(getCategorySearchPlaceholder());
-        catSearchField.setText(catSearch);
+        catSearchField = new GuiNpcTextField(0, catListX, contentY, catListW, searchH, catSearch);
 
-        itemSearchField = new ModernTextField(1, itemListX, contentY, itemListW, searchH);
-        itemSearchField.setPlaceholder(getItemSearchPlaceholder());
-        itemSearchField.setText(itemSearch);
+        itemSearchField = new GuiNpcTextField(1, itemListX, contentY, itemListW, searchH, itemSearch);
 
         // List area below search
         listY = contentY + searchH + 4;

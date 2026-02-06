@@ -2,10 +2,16 @@ package noppes.npcs.client.gui.builder;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.client.gui.components.*;
+import kamkeel.npcs.client.gui.components.CollapsibleSection;
+import kamkeel.npcs.client.gui.components.ModernButton;
+import kamkeel.npcs.client.gui.components.ModernCheckbox;
+import kamkeel.npcs.client.gui.components.ModernDropdown;
+import kamkeel.npcs.client.gui.components.ModernSelectButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import noppes.npcs.client.gui.util.GuiNpcTextArea;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ModernColors;
 
 import java.util.*;
@@ -144,26 +150,25 @@ public class ModernFieldPanel extends Gui {
 
         switch (def.getType()) {
             case STRING: {
-                ModernTextField tf = new ModernTextField(nextId++, 0, 0, 100, 16);
-                if (def.getMaxLength() > 0) tf.setMaxLength(def.getMaxLength());
-                if (def.getPlaceholder() != null && !def.getPlaceholder().isEmpty())
-                    tf.setPlaceholder(def.getPlaceholder());
                 String val = def.getValue() != null ? def.getValue().toString() : "";
-                tf.setText(val);
+                GuiNpcTextField tf = new GuiNpcTextField(nextId++, 0, 0, 100, 16, val);
+                if (def.getMaxLength() > 0) tf.setMaxStringLength(def.getMaxLength());
                 entry.textField = tf;
                 break;
             }
             case INT: {
                 int val = def.getValue() instanceof Number ? ((Number) def.getValue()).intValue() : 0;
-                ModernNumberField nf = new ModernNumberField(nextId++, 0, 0, 50, 16, val);
-                if (def.hasRange()) nf.setIntegerBounds((int) def.getMin(), (int) def.getMax(), val);
+                GuiNpcTextField nf = new GuiNpcTextField(nextId++, 0, 0, 50, 16, String.valueOf(val));
+                nf.integersOnly = true;
+                if (def.hasRange()) nf.setMinMaxDefault((int) def.getMin(), (int) def.getMax(), val);
                 entry.textField = nf;
                 break;
             }
             case FLOAT: {
                 float val = def.getValue() instanceof Number ? ((Number) def.getValue()).floatValue() : 0f;
-                ModernNumberField nf = new ModernNumberField(nextId++, 0, 0, 50, 16, val);
-                if (def.hasRange()) nf.setFloatBounds(def.getMin(), def.getMax(), val);
+                GuiNpcTextField nf = new GuiNpcTextField(nextId++, 0, 0, 50, 16, String.valueOf(val));
+                nf.floatsOnly = true;
+                if (def.hasRange()) nf.setMinMaxDefaultFloat(def.getMin(), def.getMax(), val);
                 entry.textField = nf;
                 break;
             }
@@ -205,16 +210,15 @@ public class ModernFieldPanel extends Gui {
                 break;
             }
             case TEXT_AREA: {
-                ModernTextArea ta = new ModernTextArea(nextId++, 0, 0, 100, def.getTextAreaHeight());
-                if (def.getMaxLength() > 0) ta.setMaxStringLength(def.getMaxLength());
                 String val = def.getValue() != null ? def.getValue().toString() : "";
-                ta.setText(val);
+                GuiNpcTextArea ta = new GuiNpcTextArea(nextId++, 0, 0, 100, def.getTextAreaHeight(), val);
+                if (def.getMaxLength() > 0) ta.setMaxStringLength(def.getMaxLength());
                 entry.textArea = ta;
                 break;
             }
             case COLOR: {
                 int val = def.getValue() instanceof Number ? ((Number) def.getValue()).intValue() : 0xFFFFFF;
-                ModernColorButton cb = new ModernColorButton(nextId++, 0, 0, 50, 16, val);
+                ModernButton cb = new ModernButton(nextId++, 0, 0, 50, 16, "").setColorMode(val);
                 entry.colorButton = cb;
                 break;
             }
@@ -510,17 +514,23 @@ public class ModernFieldPanel extends Gui {
         // Sync color from data
         int val = def.getValue() instanceof Number ? ((Number) def.getValue()).intValue() : 0xFFFFFF;
         entry.colorButton.setColor(val);
-        entry.colorButton.setEnabled(def.isEnabled());
+        entry.colorButton.enabled = def.isEnabled();
 
         boolean hasLabel = def.getLabel() != null && !def.getLabel().isEmpty();
         if (hasLabel) {
             fr.drawString(def.getLabel(), cx + indent, y + 4, ModernColors.TEXT_LIGHT);
             int labelW = fr.getStringWidth(def.getLabel()) + 8;
-            entry.colorButton.setBounds(cx + indent + labelW, y, 50, 16);
+            entry.colorButton.xPosition = cx + indent + labelW;
+            entry.colorButton.yPosition = y;
+            entry.colorButton.width = 50;
+            entry.colorButton.height = 16;
         } else {
-            entry.colorButton.setBounds(cx + indent, y, 50, 16);
+            entry.colorButton.xPosition = cx + indent;
+            entry.colorButton.yPosition = y;
+            entry.colorButton.width = 50;
+            entry.colorButton.height = 16;
         }
-        entry.colorButton.draw(mouseX, mouseY);
+        entry.colorButton.drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
         return y + rowHeight;
     }
 
@@ -843,7 +853,7 @@ public class ModernFieldPanel extends Gui {
                 return false;
             }
             case COLOR: {
-                if (entry.colorButton != null && entry.colorButton.mouseClicked(mouseX, mouseY, button)) {
+                if (entry.colorButton != null && entry.colorButton.mousePressed(Minecraft.getMinecraft(), mouseX, mouseY)) {
                     if (listener != null) {
                         int currentColor = def.getValue() instanceof Number ? ((Number) def.getValue()).intValue() : 0xFFFFFF;
                         listener.onColorSelect(def.getCallbackSlot(), currentColor);
@@ -1046,23 +1056,6 @@ public class ModernFieldPanel extends Gui {
         return allDropdowns;
     }
 
-    /**
-     * Get all text areas for mouseReleased/mouseDragged delegation.
-     */
-    public List<ModernTextArea> getTextAreas() {
-        List<ModernTextArea> areas = new ArrayList<>();
-        for (FieldEntry entry : entries.values()) {
-            if (entry != null) collectTextAreas(entry, areas);
-        }
-        return areas;
-    }
-
-    protected void collectTextAreas(FieldEntry entry, List<ModernTextArea> areas) {
-        if (entry.textArea != null) areas.add(entry.textArea);
-        if (entry.leftChild != null) collectTextAreas(entry.leftChild, areas);
-        if (entry.rightChild != null) collectTextAreas(entry.rightChild, areas);
-    }
-
     // ═══════════════════════════════════════════════════════════════════
     // HELPERS
     // ═══════════════════════════════════════════════════════════════════
@@ -1242,11 +1235,11 @@ public class ModernFieldPanel extends Gui {
         final FieldDef def;
 
         // One of these is populated based on FieldType
-        ModernTextField textField;
-        ModernTextArea textArea;
+        GuiNpcTextField textField;
+        GuiNpcTextArea textArea;
         ModernCheckbox checkbox;
         ModernDropdown dropdown;
-        ModernColorButton colorButton;
+        ModernButton colorButton;
         ModernSelectButton selectButton;
         ModernButton clearButton;
         ModernButton actionButton;

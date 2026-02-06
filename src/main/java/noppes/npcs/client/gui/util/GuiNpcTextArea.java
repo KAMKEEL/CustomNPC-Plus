@@ -40,6 +40,10 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         this.setText(s);
     }
 
+    public GuiNpcTextArea(int id, int x, int y, int width, int height, String text) {
+        this(id, null, x, y, width, height, text != null ? text : "");
+    }
+
     public void setBounds(int x, int y, int w, int h) {
         this.posX = x;
         this.posY = y;
@@ -418,5 +422,26 @@ public class GuiNpcTextArea extends GuiNpcTextField {
             drawTexturedModalRect(x, y + k, width, 10, 5, 1);
         }
         drawTexturedModalRect(x, y, width, 11, 5, 1);
+    }
+
+    public void draw(int mouseX, int mouseY) { drawTextBox(mouseX, mouseY); }
+
+    @Override
+    public boolean keyTyped(char c, int keyCode) { return textboxKeyTyped(c, keyCode); }
+
+    public boolean handleClick(int mouseX, int mouseY, int button) {
+        boolean wasInside = isInside(mouseX, mouseY);
+        mouseClicked(mouseX, mouseY, button);
+        return wasInside && button == 0;
+    }
+
+    public boolean isInside(int mouseX, int mouseY) {
+        return mouseX >= posX && mouseX < posX + width &&
+               mouseY >= posY && mouseY < posY + height;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        this.canEdit = enabled;
     }
 }

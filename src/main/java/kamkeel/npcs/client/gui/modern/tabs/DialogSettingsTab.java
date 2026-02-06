@@ -1,7 +1,6 @@
 package kamkeel.npcs.client.gui.modern.tabs;
 
 import kamkeel.npcs.client.gui.components.ModernDropdown;
-import kamkeel.npcs.client.gui.components.ModernTextArea;
 import kamkeel.npcs.client.gui.modern.DialogEditorPanel;
 import net.minecraft.client.gui.FontRenderer;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -137,10 +136,4 @@ public class DialogSettingsTab extends DialogEditorTab {
         }
     }
 
-    // === Accessors ===
-
-    public ModernTextArea getCommandArea() {
-        List<ModernTextArea> areas = fieldPanel.getTextAreas();
-        return areas.isEmpty() ? null : areas.get(0);
-    }
 }

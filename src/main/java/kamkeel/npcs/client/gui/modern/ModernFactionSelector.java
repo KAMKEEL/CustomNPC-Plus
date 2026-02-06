@@ -1,7 +1,7 @@
 package kamkeel.npcs.client.gui.modern;
 
 import kamkeel.npcs.client.gui.components.ModernButton;
-import kamkeel.npcs.client.gui.components.ModernTextField;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ModernColors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -27,7 +27,7 @@ public class ModernFactionSelector extends ModernSubGuiInterface {
     private List<String> filteredFactions = new ArrayList<>();
 
     // Components
-    private ModernTextField searchField;
+    private GuiNpcTextField searchField;
     private ModernButton doneBtn;
     private ModernButton cancelBtn;
 
@@ -87,9 +87,7 @@ public class ModernFactionSelector extends ModernSubGuiInterface {
 
         // Search field at top
         int searchH = 18;
-        searchField = new ModernTextField(0, listX, contentY, listWidth, searchH);
-        searchField.setPlaceholder("Filter factions...");
-        searchField.setText(searchText);
+        searchField = new GuiNpcTextField(0, listX, contentY, listWidth, searchH, searchText);
 
         // List area below search
         listY = contentY + searchH + 4;

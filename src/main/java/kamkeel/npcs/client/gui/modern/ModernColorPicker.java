@@ -1,7 +1,7 @@
 package kamkeel.npcs.client.gui.modern;
 
 import kamkeel.npcs.client.gui.components.ModernButton;
-import kamkeel.npcs.client.gui.components.ModernTextField;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ModernColors;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.IResource;
@@ -25,7 +25,7 @@ public class ModernColorPicker extends ModernSubGuiInterface {
     public int color;
 
     // Components
-    private ModernTextField hexField;
+    private GuiNpcTextField hexField;
     private ModernButton doneBtn;
     private ModernButton cancelBtn;
 
@@ -66,10 +66,8 @@ public class ModernColorPicker extends ModernSubGuiInterface {
         previewY = fieldRowY;
 
         // Hex field next to preview
-        hexField = new ModernTextField(0, previewX + previewSize + 12, fieldRowY, 100, 18);
-        hexField.setMaxLength(6);
-        hexField.setPlaceholder("RRGGBB");
-        hexField.setText(getHexString());
+        hexField = new GuiNpcTextField(0, previewX + previewSize + 12, fieldRowY, 100, 18, getHexString());
+        hexField.setMaxStringLength(6);
 
         // Buttons at bottom with proper margin
         int btnY = guiTop + ySize - 32;

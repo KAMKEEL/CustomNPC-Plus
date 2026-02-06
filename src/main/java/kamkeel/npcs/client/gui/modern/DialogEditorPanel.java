@@ -1,6 +1,7 @@
 package kamkeel.npcs.client.gui.modern;
 
-import kamkeel.npcs.client.gui.components.*;
+import kamkeel.npcs.client.gui.components.ModernDropdown;
+import kamkeel.npcs.client.gui.components.ScrollPanel;
 import kamkeel.npcs.client.gui.modern.tabs.*;
 import noppes.npcs.client.gui.util.ModernColors;
 import noppes.npcs.client.gui.util.IDialogEditorListener;
@@ -345,19 +346,10 @@ public class DialogEditorPanel extends Gui {
 
     public void mouseReleased(int mouseX, int mouseY) {
         scrollPanel.mouseReleased(mouseX, mouseY);
-        // Let text areas handle mouse release
-        ModernTextArea textArea = textTab.getTextArea();
-        if (textArea != null) textArea.mouseReleased(mouseX, mouseY);
-        ModernTextArea cmdArea = settingsTab.getCommandArea();
-        if (cmdArea != null) cmdArea.mouseReleased(mouseX, mouseY);
     }
 
     public void mouseDragged(int mouseX, int mouseY) {
         scrollPanel.mouseDragged(mouseX, mouseY);
-        ModernTextArea textArea = textTab.getTextArea();
-        if (textArea != null) textArea.mouseDragged(mouseX, mouseY);
-        ModernTextArea cmdArea = settingsTab.getCommandArea();
-        if (cmdArea != null) cmdArea.mouseDragged(mouseX, mouseY);
     }
 
     public void updateScreen() {

@@ -1,7 +1,7 @@
 package kamkeel.npcs.client.gui.modern;
 
 import kamkeel.npcs.client.gui.components.ModernButton;
-import kamkeel.npcs.client.gui.components.ModernTextField;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ModernColors;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.item.ItemStack;
@@ -21,8 +21,8 @@ public class ModernMailEditor extends ModernSubGuiInterface {
     private PlayerMail mail;
 
     // Components
-    private ModernTextField subjectField;
-    private ModernTextField senderField;
+    private GuiNpcTextField subjectField;
+    private GuiNpcTextField senderField;
     private ModernButton questBtn;
     private ModernButton questClearBtn;
     private ModernButton prevPageBtn;
@@ -126,15 +126,13 @@ public class ModernMailEditor extends ModernSubGuiInterface {
         // Subject row
         int rowY = contentY;
         fontRendererObj.drawString("Subject:", guiLeft + pad, rowY + 5, ModernColors.TEXT_LIGHT);
-        subjectField = new ModernTextField(0, guiLeft + pad + labelW, rowY, fieldW, 18);
-        subjectField.setText(mail.subject);
-        subjectField.setMaxLength(64);
+        subjectField = new GuiNpcTextField(0, guiLeft + pad + labelW, rowY, fieldW, 18, mail.subject);
+        subjectField.setMaxStringLength(64);
         rowY += rowH;
 
         // Sender row
-        senderField = new ModernTextField(1, guiLeft + pad + labelW, rowY, fieldW, 18);
-        senderField.setText(mail.sender);
-        senderField.setMaxLength(64);
+        senderField = new GuiNpcTextField(1, guiLeft + pad + labelW, rowY, fieldW, 18, mail.sender);
+        senderField.setMaxStringLength(64);
         rowY += rowH;
 
         // Quest row

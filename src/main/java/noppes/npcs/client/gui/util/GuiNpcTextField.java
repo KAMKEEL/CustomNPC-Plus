@@ -50,6 +50,10 @@ public class GuiNpcTextField extends GuiTextField {
         this(id, parent, Minecraft.getMinecraft().fontRenderer, i, j, k, l, s);
     }
 
+    public GuiNpcTextField(int id, int x, int y, int width, int height, String text) {
+        this(id, null, Minecraft.getMinecraft().fontRenderer, x, y, width, height, text != null ? text : "");
+    }
+
     public void initGui() {
     }
 
@@ -194,6 +198,26 @@ public class GuiNpcTextField extends GuiTextField {
             prev.unFocused();
         }
     }
+
+    public void setBounds(int x, int y, int w, int h) {
+        this.xPosition = x;
+        this.yPosition = y;
+        this.width = w;
+        this.height = h;
+    }
+
+    public void draw(int mouseX, int mouseY) { drawTextBox(); }
+
+    public boolean keyTyped(char c, int keyCode) { return textboxKeyTyped(c, keyCode); }
+
+    public boolean handleClick(int mouseX, int mouseY, int button) {
+        boolean wasInside = isMouseOver(mouseX, mouseY);
+        mouseClicked(mouseX, mouseY, button);
+        return wasInside && button == 0;
+    }
+
+    public int getX() { return xPosition; }
+    public int getY() { return yPosition; }
 
     public void drawTextBox(int mousX, int mousY) {
         drawTextBox();

@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.builder;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.client.gui.components.ModernDropdown;
-import kamkeel.npcs.client.gui.components.ModernTextArea;
 import kamkeel.npcs.client.gui.components.ScrollPanel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -157,16 +156,10 @@ public class ScrollableFieldPanel {
 
     public void mouseDragged(int mouseX, int mouseY) {
         scrollPanel.mouseDragged(mouseX, mouseY);
-        for (ModernTextArea ta : fieldPanel.getTextAreas()) {
-            ta.mouseDragged(mouseX, mouseY);
-        }
     }
 
     public void mouseReleased(int mouseX, int mouseY) {
         scrollPanel.mouseReleased(mouseX, mouseY);
-        for (ModernTextArea ta : fieldPanel.getTextAreas()) {
-            ta.mouseReleased(mouseX, mouseY);
-        }
     }
 
     public void updateScreen() {
@@ -185,10 +178,6 @@ public class ScrollableFieldPanel {
 
     public List<ModernDropdown> getDropdowns() {
         return fieldPanel.getDropdowns();
-    }
-
-    public List<ModernTextArea> getTextAreas() {
-        return fieldPanel.getTextAreas();
     }
 
     public void refresh() {

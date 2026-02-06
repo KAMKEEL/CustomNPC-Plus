@@ -186,7 +186,7 @@ public class FieldDef {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Multi-line text area field rendered as ModernTextArea by ModernFieldPanel.
+     * Multi-line text area field rendered as GuiNpcTextArea by ModernFieldPanel.
      */
     public static FieldDef textAreaField(String label, Supplier<String> getter, Consumer<String> setter) {
         FieldDef def = new FieldDef(label, FieldType.TEXT_AREA);
@@ -196,7 +196,7 @@ public class FieldDef {
     }
 
     /**
-     * Color field rendered as ModernColorButton by ModernFieldPanel.
+     * Color field rendered as ModernButton (color mode) by ModernFieldPanel.
      * Triggers onColorSelect callback via listener.
      */
     public static FieldDef colorField(String label, Supplier<Integer> getter, Consumer<Integer> setter) {

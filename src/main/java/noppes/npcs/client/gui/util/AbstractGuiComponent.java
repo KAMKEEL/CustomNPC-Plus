@@ -14,13 +14,12 @@ import net.minecraft.client.gui.Gui;
  * - ModernToggle
  * - ModernDropdown
  * - ModernLabel
- * - ModernColorButton
  * - ModernSelectButton
  * - CollapsibleSection
  * - ScrollPanel
  *
- * Components that wrap Minecraft classes (ModernButton extends GuiNpcButton,
- * ModernTextField extends GuiNpcTextField) should NOT extend this class.
+ * Components that wrap Minecraft classes (ModernButton extends GuiNpcButton)
+ * should NOT extend this class.
  */
 public abstract class AbstractGuiComponent extends Gui {
 
