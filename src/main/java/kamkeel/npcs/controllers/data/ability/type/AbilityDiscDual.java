@@ -28,6 +28,7 @@ public class AbilityDiscDual extends Ability {
     // Disc geometry
     private float discRadius = 1.0f;
     private float discThickness = 0.2f;
+    private boolean vertical = false;
 
     // Boomerang properties
     private boolean boomerang = false;
@@ -144,11 +145,11 @@ public class AbilityDiscDual extends Ability {
             discEntity2.setSiblingEntityId(discEntity.getEntityId());
 
             if (isPreview()) {
-                discEntity.setupPreview(caster, discRadius, discThickness, displayData[0], lightningData[0], anchorData[0], windUpTicks);
-                discEntity2.setupPreview(caster, discRadius, discThickness, displayData[1], lightningData[1], anchorData[1], windUpTicks);
+                discEntity.setupPreview(caster, discRadius, discThickness, displayData[0], lightningData[0], anchorData[0], windUpTicks, vertical);
+                discEntity2.setupPreview(caster, discRadius, discThickness, displayData[1], lightningData[1], anchorData[1], windUpTicks, vertical);
             } else {
-                discEntity.setupCharging(anchorData[0], windUpTicks);
-                discEntity2.setupCharging(anchorData[1], windUpTicks);
+                discEntity.setupCharging(anchorData[0], windUpTicks, vertical);
+                discEntity2.setupCharging(anchorData[1], windUpTicks, vertical);
             }
 
             discEntity.setEffects(this.effects);
@@ -244,6 +245,7 @@ public class AbilityDiscDual extends Ability {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("discRadius", discRadius);
         nbt.setFloat("discThickness", discThickness);
+        nbt.setBoolean("vertical", vertical);
         nbt.setBoolean("boomerang", boomerang);
         nbt.setInteger("boomerangDelay", boomerangDelay);
         nbt.setBoolean("dualFire", dualFire);
@@ -274,6 +276,7 @@ public class AbilityDiscDual extends Ability {
 
         this.discRadius = nbt.hasKey("discRadius") ? nbt.getFloat("discRadius") : 1.0f;
         this.discThickness = nbt.hasKey("discThickness") ? nbt.getFloat("discThickness") : 0.2f;
+        this.vertical = nbt.hasKey("vertical") && nbt.getBoolean("vertical");
         this.boomerang = nbt.hasKey("boomerang") && nbt.getBoolean("boomerang");
         this.boomerangDelay = nbt.hasKey("boomerangDelay") ? nbt.getInteger("boomerangDelay") : 40;
         this.dualFire = !nbt.hasKey("dualFire") || nbt.getBoolean("dualFire");
@@ -315,6 +318,8 @@ public class AbilityDiscDual extends Ability {
     public void setDiscRadius(float discRadius) { this.discRadius = discRadius; }
     public float getDiscThickness() { return discThickness; }
     public void setDiscThickness(float discThickness) { this.discThickness = discThickness; }
+    public boolean isVertical() { return vertical; }
+    public void setVertical(boolean vertical) { this.vertical = vertical; }
     public float getMaxDistance() { return lifespanData.maxDistance; }
     public void setMaxDistance(float maxDistance) { lifespanData.maxDistance = maxDistance; }
     public int getMaxLifetime() { return lifespanData.maxLifetime; }
@@ -426,6 +431,8 @@ public class AbilityDiscDual extends Ability {
                 FieldDef.floatField("gui.radius", this::getDiscRadius, this::setDiscRadius),
                 FieldDef.floatField("gui.thickness", this::getDiscThickness, this::setDiscThickness)
             ),
+            FieldDef.boolField("ability.vertical", this::isVertical, this::setVertical)
+                .hover("ability.hover.vertical"),
             FieldDef.row(
                 FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
                 FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
@@ -454,6 +461,12 @@ public class AbilityDiscDual extends Ability {
             FieldDef.section("ability.section.disc1").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(0), v -> setAnchorPointEnum(0, v))
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("ability.anchor.offsetX", () -> getAnchorOffsetX(0), v -> setAnchorOffsetX(0, v)),
+                FieldDef.floatField("ability.anchor.offsetY", () -> getAnchorOffsetY(0), v -> setAnchorOffsetY(0, v))
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.anchor.offsetZ", () -> getAnchorOffsetZ(0), v -> setAnchorOffsetZ(0, v))
                 .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(0), v -> setInnerColor(0, v))
@@ -490,6 +503,12 @@ public class AbilityDiscDual extends Ability {
             FieldDef.section("ability.section.disc2").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(1), v -> setAnchorPointEnum(1, v))
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("ability.anchor.offsetX", () -> getAnchorOffsetX(1), v -> setAnchorOffsetX(1, v)),
+                FieldDef.floatField("ability.anchor.offsetY", () -> getAnchorOffsetY(1), v -> setAnchorOffsetY(1, v))
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.anchor.offsetZ", () -> getAnchorOffsetZ(1), v -> setAnchorOffsetZ(1, v))
                 .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(1), v -> setInnerColor(1, v))

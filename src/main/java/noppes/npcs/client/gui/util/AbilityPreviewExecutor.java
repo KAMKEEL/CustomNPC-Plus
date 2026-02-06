@@ -169,10 +169,32 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
     public void pause() {
         paused = true;
 
+        // Immediately sync prevPos to pos for NPC and all entities to prevent interpolation jitter
+        syncPrevPositions();
+
         if (previewNpc != null) {
             AnimationData data = previewNpc.display.animationData;
             if (data.animation != null) {
                 data.animation.paused = true;
+            }
+        }
+    }
+
+    /**
+     * Sync prevPos to pos for the NPC and all preview entities.
+     * Prevents rendering interpolation jitter when standing still or paused.
+     */
+    private void syncPrevPositions() {
+        if (previewNpc != null) {
+            previewNpc.prevPosX = previewNpc.posX;
+            previewNpc.prevPosY = previewNpc.posY;
+            previewNpc.prevPosZ = previewNpc.posZ;
+        }
+        for (Entity entity : previewEntities) {
+            if (entity != null && !entity.isDead) {
+                entity.prevPosX = entity.posX;
+                entity.prevPosY = entity.posY;
+                entity.prevPosZ = entity.posZ;
             }
         }
     }
@@ -228,9 +250,20 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
      * Tick the preview forward. Calls real ability methods.
      */
     public void tick() {
-        if (!playing || paused || previewAbility == null || previewNpc == null) {
+        if (!playing || previewAbility == null || previewNpc == null) {
             return;
         }
+
+        if (paused) {
+            // Sync prevPos to pos for NPC and all entities to prevent interpolation jitter while paused
+            syncPrevPositions();
+            return;
+        }
+
+        // Sync NPC's prevPos to current pos BEFORE any updates to prevent jitter when standing still
+        previewNpc.prevPosX = previewNpc.posX;
+        previewNpc.prevPosY = previewNpc.posY;
+        previewNpc.prevPosZ = previewNpc.posZ;
 
         currentTick++;
 

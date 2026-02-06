@@ -32,6 +32,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     // Disc geometry
     private float discRadius = 1.0f;
     private float discThickness = 0.2f;
+    private boolean vertical = false; // false = horizontal (flat), true = vertical (thin edge forward)
 
     // Boomerang properties
     private boolean boomerang = false;
@@ -107,9 +108,9 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
                 boomerang, boomerangDelay);
 
             if (isPreview()) {
-                discEntity.setupPreview(caster, discRadius, discThickness, colorData, lightningData, anchorData, windUpTicks);
+                discEntity.setupPreview(caster, discRadius, discThickness, colorData, lightningData, anchorData, windUpTicks, vertical);
             } else {
-                discEntity.setupCharging(anchorData, windUpTicks);
+                discEntity.setupCharging(anchorData, windUpTicks, vertical);
             }
 
             discEntity.setEffects(this.effects);
@@ -176,6 +177,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("discRadius", discRadius);
         nbt.setFloat("discThickness", discThickness);
+        nbt.setBoolean("vertical", vertical);
         nbt.setBoolean("boomerang", boomerang);
         nbt.setInteger("boomerangDelay", boomerangDelay);
         anchorData.writeNBT(nbt);
@@ -190,6 +192,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.discRadius = nbt.hasKey("discRadius") ? nbt.getFloat("discRadius") : 1.0f;
         this.discThickness = nbt.hasKey("discThickness") ? nbt.getFloat("discThickness") : 0.2f;
+        this.vertical = nbt.hasKey("vertical") && nbt.getBoolean("vertical");
         this.boomerang = nbt.hasKey("boomerang") && nbt.getBoolean("boomerang");
         this.boomerangDelay = nbt.hasKey("boomerangDelay") ? nbt.getInteger("boomerangDelay") : 40;
         anchorData.readNBT(nbt);
@@ -207,6 +210,8 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
     public void setDiscRadius(float discRadius) { this.discRadius = discRadius; }
     public float getDiscThickness() { return discThickness; }
     public void setDiscThickness(float discThickness) { this.discThickness = discThickness; }
+    public boolean isVertical() { return vertical; }
+    public void setVertical(boolean vertical) { this.vertical = vertical; }
     public float getMaxDistance() { return lifespanData.maxDistance; }
     public void setMaxDistance(float maxDistance) { lifespanData.maxDistance = maxDistance; }
     public int getMaxLifetime() { return lifespanData.maxLifetime; }
@@ -286,6 +291,8 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
                 FieldDef.floatField("gui.radius", this::getDiscRadius, this::setDiscRadius),
                 FieldDef.floatField("gui.thickness", this::getDiscThickness, this::setDiscThickness)
             ),
+            FieldDef.boolField("ability.vertical", this::isVertical, this::setVertical)
+                .hover("ability.hover.vertical"),
             FieldDef.row(
                 FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
                 FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
@@ -308,6 +315,12 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
             // Visual tab
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("ability.anchor.offsetX", this::getAnchorOffsetX, this::setAnchorOffsetX),
+                FieldDef.floatField("ability.anchor.offsetY", this::getAnchorOffsetY, this::setAnchorOffsetY)
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.anchor.offsetZ", this::getAnchorOffsetZ, this::setAnchorOffsetZ)
                 .tab("ability.tab.visual"),
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)

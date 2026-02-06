@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.RotationMode;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -38,7 +39,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private final EnergyCombatData combatData = new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f);
     private final EnergyLightningData lightningData = new EnergyLightningData();
     private final EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);
-    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
     private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
 
     // Transient state for laser entity (used for movement locking)
@@ -53,6 +54,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.cooldownTicks = 0;
         this.windUpTicks = 15;
         this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
+        this.rotationMode = RotationMode.TRACK;
+        this.rotationPhase = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
         // Default built-in animations
@@ -118,10 +121,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             return;
         }
 
+        laserEntity.setLockVerticalDirection(true);
         laserEntity.startMoving(target);
-
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
     }
 
     @Override
@@ -268,6 +269,12 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
             // Visual tab
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("ability.anchor.offsetX", this::getAnchorOffsetX, this::setAnchorOffsetX),
+                FieldDef.floatField("ability.anchor.offsetY", this::getAnchorOffsetY, this::setAnchorOffsetY)
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.anchor.offsetZ", this::getAnchorOffsetZ, this::setAnchorOffsetZ)
                 .tab("ability.tab.visual"),
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),

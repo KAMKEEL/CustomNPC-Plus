@@ -100,6 +100,14 @@ public class DataAbilities {
     private transient double lockedPosY = 0;
     private transient double lockedPosZ = 0;
 
+    /**
+     * Hit scan state - forces NPC to face target.
+     * Set during tickCurrentAbility(), applied after super.onLivingUpdate()
+     * to override AI look helper rotation.
+     */
+    private transient boolean hitScanActive = false;
+    private transient EntityLivingBase hitScanTarget = null;
+
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
     // ═══════════════════════════════════════════════════════════════════
@@ -126,13 +134,13 @@ public class DataAbilities {
             if (currentAbility != null) {
                 removeTelegraph(currentAbility);
                 stopAbilityAnimation();
-                releaseLockedRotation();
+                releaseRotationControl();
                 releaseLockedPosition();
                 currentAbility = null;
                 lastTarget = null;
             } else {
                 // No ability but locks could be orphaned
-                if (rotationLocked) releaseLockedRotation();
+                if (rotationLocked || hitScanActive) releaseRotationControl();
                 if (positionLocked) releaseLockedPosition();
             }
             return;
@@ -140,7 +148,7 @@ public class DataAbilities {
 
         // Safety: release orphaned locks if no ability is actively executing
         if (currentAbility == null || !currentAbility.isExecuting()) {
-            if (rotationLocked) releaseLockedRotation();
+            if (rotationLocked || hitScanActive) releaseRotationControl();
             if (positionLocked) releaseLockedPosition();
         }
 
@@ -181,13 +189,13 @@ public class DataAbilities {
                     // Remove telegraph - it has served its purpose
                     removeTelegraph(currentAbility);
 
-                    // Handle rotation lock transition from WINDUP to ACTIVE
+                    // Handle rotation control transition from WINDUP to ACTIVE
                     if (currentAbility.isRotationLockedDuringActive()) {
                         if (!rotationLocked) {
                             captureLockedRotation();
                         }
                     } else if (rotationLocked) {
-                        releaseLockedRotation();
+                        releaseRotationControl();
                     }
 
                     // Handle position lock transition from WINDUP to ACTIVE
@@ -202,6 +210,11 @@ public class DataAbilities {
                     // Play active sound and animation
                     playAbilitySound(currentAbility.getActiveSound());
                     playAbilityAnimation(currentAbility.getActiveAnimation());
+
+                    // Snap NPC to face target before execute so startMoving() reads correct rotation
+                    if (currentAbility.isHitScanForCurrentPhase() && target != null) {
+                        faceTarget(target);
+                    }
 
                     // Fire execute event (cancelable)
                     AbilityEvent.ExecuteEvent executeEvent = new AbilityEvent.ExecuteEvent(
@@ -237,6 +250,15 @@ public class DataAbilities {
                 // Ability completed (reached via tick() phase transition from DAZED)
                 handleAbilityCompletion(target);
                 break;
+        }
+
+        // Update hit scan state - actual facing is deferred to applyRotationControl()
+        // which runs AFTER super.onLivingUpdate() to override AI look helper
+        if (currentAbility != null && currentAbility.isExecuting()
+                && currentAbility.isHitScanForCurrentPhase() && target != null) {
+            enableHitScan(target);
+        } else if (hitScanActive) {
+            releaseRotationControl();
         }
 
         // Apply movement control if ability is still executing
@@ -284,7 +306,7 @@ public class DataAbilities {
         NpcAPI.EVENT_BUS.post(completeEvent);
 
         // Release locks before cleanup
-        releaseLockedRotation();
+        releaseRotationControl();
         releaseLockedPosition();
 
         // Clean up and roll cooldown (this sets currentAbility to null)
@@ -301,7 +323,7 @@ public class DataAbilities {
             stopAbilityAnimation();
 
             // Release locks
-            releaseLockedRotation();
+            releaseRotationControl();
             releaseLockedPosition();
 
             // Calculate cooldown: random(min, max) + ability offset
@@ -679,7 +701,7 @@ public class DataAbilities {
             stopAbilityAnimation();
 
             // Release locks
-            releaseLockedRotation();
+            releaseRotationControl();
             releaseLockedPosition();
 
             // Fire interrupt event
@@ -702,7 +724,7 @@ public class DataAbilities {
         if (currentAbility != null) {
             removeTelegraph(currentAbility);
             stopAbilityAnimation();
-            releaseLockedRotation();
+            releaseRotationControl();
             releaseLockedPosition();
             currentAbility.interrupt();
             currentAbility = null;
@@ -1000,15 +1022,15 @@ public class DataAbilities {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // ROTATION LOCKING
+    // ROTATION CONTROL
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Bit flag for rotation lock in the existing data watcher slot 15 bitfield */
-    private static final int ROTATION_LOCKED_FLAG = 16;
+    /** Bit flag for rotation control (LOCKED or TRACK) in data watcher slot 15 */
+    private static final int ROTATION_CONTROLLED_FLAG = 16;
 
     /**
      * Capture current rotation values to lock NPC's look direction.
-     * Called when entering a locked phase (WINDUP or ACTIVE depending on LockMovementType).
+     * Called when entering a LOCKED rotation phase.
      */
     private void captureLockedRotation() {
         lockedYaw = npc.rotationYaw;
@@ -1016,41 +1038,79 @@ public class DataAbilities {
         lockedRenderYawOffset = npc.renderYawOffset;
         lockedPitch = npc.rotationPitch;
         rotationLocked = true;
-        npc.setBoolFlag(true, ROTATION_LOCKED_FLAG);
+        npc.setBoolFlag(true, ROTATION_CONTROLLED_FLAG);
     }
 
     /**
-     * Release the rotation lock.
-     * Called when leaving the locked phase or ability completes.
+     * Release rotation control (both locked and hit scan).
      */
-    private void releaseLockedRotation() {
+    private void releaseRotationControl() {
         rotationLocked = false;
-        npc.setBoolFlag(false, ROTATION_LOCKED_FLAG);
+        hitScanActive = false;
+        hitScanTarget = null;
+        npc.setBoolFlag(false, ROTATION_CONTROLLED_FLAG);
     }
 
     /**
-     * Apply locked rotation values to the NPC.
-     * Called AFTER super.onLivingUpdate() in EntityNPCInterface to override
-     * any rotation changes made by the look helper, AI tasks, or body smoothing.
-     * Runs on both client and server.
+     * Enable hit scan tracking for the given target.
      */
-    public void applyLockedRotation() {
+    private void enableHitScan(EntityLivingBase target) {
+        if (!hitScanActive) {
+            hitScanActive = true;
+            npc.setBoolFlag(true, ROTATION_CONTROLLED_FLAG);
+        }
+        hitScanTarget = target;
+    }
+
+    /**
+     * Snap the NPC to face the target instantly.
+     */
+    private void faceTarget(EntityLivingBase target) {
+        double dx = target.posX - npc.posX;
+        double dz = target.posZ - npc.posZ;
+        double dy = (target.posY + target.getEyeHeight() * 0.5) - (npc.posY + npc.getEyeHeight());
+        double distXZ = Math.sqrt(dx * dx + dz * dz);
+
+        float yaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
+        float pitch = (float) (-(Math.atan2(dy, distXZ)) * 180.0 / Math.PI);
+
+        npc.rotationYaw = yaw;
+        npc.rotationYawHead = yaw;
+        npc.renderYawOffset = yaw;
+        npc.rotationPitch = pitch;
+        npc.prevRotationYaw = yaw;
+        npc.prevRotationYawHead = yaw;
+        npc.prevRenderYawOffset = yaw;
+        npc.prevRotationPitch = pitch;
+    }
+
+    /**
+     * Apply rotation control after super.onLivingUpdate() and super.onUpdate().
+     * Handles both LOCKED (freeze at captured values) and TRACK (face target) modes.
+     *
+     * Server: computes the correct rotation (locked values or target facing).
+     * Client: trusts the server-synced rotation values and prevents body smoothing override.
+     */
+    public void applyRotationControl() {
         if (npc.worldObj.isRemote) {
-            // Client-side: check bit 16 in the existing flags data watcher (slot 15)
-            boolean flagActive = npc.getBoolFlag(ROTATION_LOCKED_FLAG);
-            if (!flagActive) {
+            // Client: check single flag for any rotation control
+            if (!npc.getBoolFlag(ROTATION_CONTROLLED_FLAG)) {
                 rotationLocked = false;
                 return;
             }
-            // First tick the flag is active: capture current rotation values
-            if (!rotationLocked) {
-                lockedYaw = npc.rotationYaw;
-                lockedYawHead = npc.rotationYawHead;
-                lockedRenderYawOffset = npc.renderYawOffset;
-                lockedPitch = npc.rotationPitch;
-                rotationLocked = true;
-            }
-            // Force all rotation values back to locked state
+            // Trust server rotation, prevent body smoothing from overriding
+            npc.prevRotationYaw = npc.rotationYaw;
+            npc.prevRotationYawHead = npc.rotationYawHead;
+            npc.renderYawOffset = npc.rotationYawHead;
+            npc.prevRenderYawOffset = npc.rotationYawHead;
+            npc.prevRotationPitch = npc.rotationPitch;
+            return;
+        }
+
+        // Server: apply the appropriate rotation
+        if (hitScanActive && hitScanTarget != null && !hitScanTarget.isDead) {
+            faceTarget(hitScanTarget);
+        } else if (rotationLocked) {
             npc.rotationYaw = lockedYaw;
             npc.rotationYawHead = lockedYawHead;
             npc.renderYawOffset = lockedRenderYawOffset;
@@ -1059,39 +1119,22 @@ public class DataAbilities {
             npc.prevRotationYawHead = lockedYawHead;
             npc.prevRenderYawOffset = lockedRenderYawOffset;
             npc.prevRotationPitch = lockedPitch;
-            return;
         }
-
-        // Server-side: use stored locked values
-        if (!rotationLocked) {
-            return;
-        }
-
-        // Force rotation back to locked values
-        npc.rotationYaw = lockedYaw;
-        npc.rotationYawHead = lockedYawHead;
-        npc.renderYawOffset = lockedRenderYawOffset;
-        npc.rotationPitch = lockedPitch;
-
-        // Also set prev values to prevent interpolation jitter
-        npc.prevRotationYaw = lockedYaw;
-        npc.prevRotationYawHead = lockedYawHead;
-        npc.prevRenderYawOffset = lockedRenderYawOffset;
-        npc.prevRotationPitch = lockedPitch;
     }
 
     /**
-     * Check if rotation is currently locked.
+     * Check if rotation is currently controlled (locked or tracking target).
+     * Used by AI tasks to determine if they should try to change NPC look direction.
      */
     public boolean isRotationLocked() {
-        return rotationLocked;
+        return rotationLocked || hitScanActive;
     }
 
     // ═══════════════════════════════════════════════════════════════════
     // POSITION LOCKING
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Bit flag for position lock in the existing data watcher slot 15 bitfield */
+    /** Bit flag for position lock in data watcher slot 15 */
     private static final int POSITION_LOCKED_FLAG = 32;
 
     /**

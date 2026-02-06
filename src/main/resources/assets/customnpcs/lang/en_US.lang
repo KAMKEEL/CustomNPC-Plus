@@ -1632,11 +1632,12 @@ ability.cnpc.sweeper=Sweeper
 ability.weight=Weight
 ability.windUpTicks=Wind Up
 ability.cooldownTicks=Cooldown
-ability.lockPosition=Lock Position
-ability.lockType=Lock Type
-ability.lockType.movement=Movement
-ability.lockType.rotation=Rotation
-ability.lockType.both=Both
+ability.lockMovement=Lock Movement
+ability.rotationMode=Rotation
+ability.rotationPhase=Phase
+ability.rotation.free=Free
+ability.rotation.locked=Locked
+ability.rotation.track=Track
 ability.interruptible=Interruptible
 ability.dazedTicks=Dazed Ticks
 ability.targetingMode=Targeting
@@ -1724,6 +1725,10 @@ ability.effects=Effects
 ability.mode=Mode
 ability.duration=Duration
 ability.anchorPoint=Anchor Point
+ability.anchor.offsetX=Offset X
+ability.anchor.offsetY=Offset Y
+ability.anchor.offsetZ=Offset Z
+ability.vertical=Vertical
 ability.rotationSpeed=Rotation Speed
 
 # Slam
@@ -1864,8 +1869,9 @@ ability.noTypeSettings=No type-specific settings
 # ═══════════════════════════════════════════════════════════════
 
 ability.hover.weight=Higher weight = more likely to be chosen when multiple abilities available
-ability.hover.lockPosition=Prevents NPC from moving or rotating while ability is charging or active
-ability.hover.lockType=What to lock: Movement (pathfinding), Rotation (facing direction), or Both
+ability.hover.lockMovement=Prevents NPC pathfinding during the selected phases (Windup, Active, or Both)
+ability.hover.rotationMode=Free: normal AI rotation. Locked: freeze facing direction. Track: force face target for precise aiming.
+ability.hover.rotationPhase=When the rotation mode applies (Windup, Active, or Both)
 ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
 ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)
 ability.hover.windup=Charge-up time before ability activates (20 ticks = 1 second)
@@ -1886,6 +1892,7 @@ ability.hover.piercing=Hits multiple targets instead of stopping on first hit
 ability.hover.lightning=Add electrical effect to visuals
 ability.hover.outerGlow=Enable outer glow layer around projectile
 ability.hover.anchorPoint=Where on the NPC the ability spawns from
+ability.hover.vertical=Disc flies standing up with thin edge facing target (like a saw blade)
 ability.hover.dualCharge=Whether or not should create two anchor points
 ability.hover.damage=Base damage dealt to targets
 ability.hover.speed=Movement speed of projectile

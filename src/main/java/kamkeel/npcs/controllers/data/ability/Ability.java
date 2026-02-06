@@ -67,7 +67,8 @@ public abstract class Ability implements IAbility {
 
     // Feedback
     protected LockMovementType lockMovement = LockMovementType.WINDUP;
-    protected LockType lockType = LockType.BOTH;
+    protected RotationMode rotationMode = RotationMode.FREE;
+    protected LockMovementType rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -418,26 +419,33 @@ public abstract class Ability implements IAbility {
         defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
             .tab("General").range(0, 10000));
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
-        defs.add(FieldDef.row(
-            FieldDef.stringEnumField("ability.lockPosition", LockMovementType.getDisplayKeys(),
+        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
                 () -> this.getLockMovement().getDisplayKey(),
                 v -> {
-                    String[] keys = LockMovementType.getDisplayKeys();
-                    for (int i = 0; i < keys.length; i++) {
-                        if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
+                    for (LockMovementType t : LockMovementType.values()) {
+                        if (t.getDisplayKey().equals(v)) { this.setLockMovement(t); break; }
                     }
                 })
-                .hover("ability.hover.lockPosition"),
-            FieldDef.stringEnumField("ability.lockType", LockType.getDisplayKeys(),
-                () -> this.getLockType().getDisplayKey(),
+                .hover("ability.hover.lockMovement")
+                .tab("General"));
+        defs.add(FieldDef.row(
+            FieldDef.stringEnumField("ability.rotationMode", RotationMode.getDisplayKeys(),
+                () -> this.getRotationMode().getDisplayKey(),
                 v -> {
-                    String[] keys = LockType.getDisplayKeys();
-                    for (int i = 0; i < keys.length; i++) {
-                        if (keys[i].equals(v)) { this.setLockType(LockType.fromOrdinal(i)); break; }
+                    for (RotationMode m : RotationMode.values()) {
+                        if (m.getDisplayKey().equals(v)) { this.setRotationMode(m); break; }
                     }
                 })
-                .hover("ability.hover.lockType")
-                .visibleWhen(() -> this.lockMovement != LockMovementType.NO)
+                .hover("ability.hover.rotationMode"),
+            FieldDef.stringEnumField("ability.rotationPhase", getRotationPhaseKeys(),
+                () -> this.getRotationPhase().getDisplayKey(),
+                v -> {
+                    for (LockMovementType t : LockMovementType.values()) {
+                        if (t.getDisplayKey().equals(v)) { this.setRotationPhase(t); break; }
+                    }
+                })
+                .hover("ability.hover.rotationPhase")
+                .visibleWhen(() -> this.rotationMode != RotationMode.FREE)
         ).tab("General"));
         defs.add(FieldDef.row(
             FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
@@ -606,12 +614,12 @@ public abstract class Ability implements IAbility {
             instance.setEntityIdToFollow(caster.getEntityId());
 
             // For LINE/CONE telegraphs: track target direction during windup
-            // Only track if movement is NOT locked during windup (locked = NPC can't rotate)
+            // Only track if rotation is NOT locked during windup (NPC can still turn)
             if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
-                if (!lockMovement.locksWindup()) {
+                if (!isRotationLockedDuringWindup()) {
                     instance.setTargetEntityId(target.getEntityId());
                 }
-                // If windup is locked, yaw stays fixed at creation time
+                // If rotation is locked, yaw stays fixed at creation time
             }
         } else if (target != null) {
             // AOE_TARGET abilities: telegraph follows target during windup
@@ -954,7 +962,8 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
         nbt.setInteger("lockMovement", lockMovement.ordinal());
-        nbt.setInteger("lockType", lockType.ordinal());
+        nbt.setInteger("rotationMode", rotationMode.ordinal());
+        nbt.setInteger("rotationPhase", rotationPhase.ordinal());
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
@@ -1005,7 +1014,30 @@ public abstract class Ability implements IAbility {
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
-        lockType = nbt.hasKey("lockType") ? LockType.fromOrdinal(nbt.getInteger("lockType")) : LockType.BOTH;
+        if (nbt.hasKey("rotationMode")) {
+            // Current format
+            rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
+            rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
+        } else if (nbt.hasKey("lockType")) {
+            // Legacy format migration: lockType was LockType enum (0=MOVEMENT, 1=ROTATION, 2=BOTH)
+            int oldLockType = nbt.getInteger("lockType");
+            if (oldLockType == 0) {
+                // MOVEMENT only: movement locked, rotation was free
+                rotationMode = RotationMode.FREE;
+            } else if (oldLockType == 1) {
+                // ROTATION only: rotation locked same timing as old lockMovement, movement was free
+                rotationMode = RotationMode.LOCKED;
+                rotationPhase = lockMovement;
+                lockMovement = LockMovementType.NO;
+            } else {
+                // BOTH: both locked same timing
+                rotationMode = RotationMode.LOCKED;
+                rotationPhase = lockMovement;
+            }
+        } else {
+            rotationMode = RotationMode.FREE;
+            rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
+        }
         windUpColor = nbt.getInteger("windUpColor");
         activeColor = nbt.getInteger("activeColor");
         windUpSound = nbt.getString("windUpSound");
@@ -1170,12 +1202,20 @@ public abstract class Ability implements IAbility {
         this.lockMovement = lockMovement;
     }
 
-    public LockType getLockType() {
-        return lockType;
+    public RotationMode getRotationMode() {
+        return rotationMode;
     }
 
-    public void setLockType(LockType lockType) {
-        this.lockType = lockType;
+    public void setRotationMode(RotationMode rotationMode) {
+        this.rotationMode = rotationMode;
+    }
+
+    public LockMovementType getRotationPhase() {
+        return rotationPhase;
+    }
+
+    public void setRotationPhase(LockMovementType rotationPhase) {
+        this.rotationPhase = rotationPhase;
     }
 
     /**
@@ -1197,21 +1237,39 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * API method: Get lock type as integer.
-     * @return 0=MOVEMENT, 1=ROTATION, 2=BOTH
+     * API method: Get rotation mode as integer.
+     * @return 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
-    public int getLockTypeOrdinal() {
-        return lockType.ordinal();
+    public int getRotationModeType() {
+        return rotationMode.ordinal();
     }
 
     /**
-     * API method: Set lock type from integer.
-     * @param type 0=MOVEMENT, 1=ROTATION, 2=BOTH
+     * API method: Set rotation mode from integer.
+     * @param type 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
-    public void setLockTypeOrdinal(int type) {
-        this.lockType = LockType.fromOrdinal(type);
+    public void setRotationModeType(int type) {
+        this.rotationMode = RotationMode.fromOrdinal(type);
+    }
+
+    /**
+     * API method: Get rotation phase as integer.
+     * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public int getRotationPhaseType() {
+        return rotationPhase.ordinal();
+    }
+
+    /**
+     * API method: Set rotation phase from integer.
+     * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public void setRotationPhaseType(int type) {
+        this.rotationPhase = LockMovementType.fromOrdinal(type);
     }
 
     /**
@@ -1219,7 +1277,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isMovementLockedDuringWindup() {
-        return lockMovement.locksWindup() && lockType.locksMovement();
+        return lockMovement.locksWindup();
     }
 
     /**
@@ -1227,7 +1285,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isMovementLockedDuringActive() {
-        return lockMovement.locksActive() && lockType.locksMovement();
+        return lockMovement.locksActive();
     }
 
     /**
@@ -1235,7 +1293,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isRotationLockedDuringWindup() {
-        return lockMovement.locksWindup() && lockType.locksRotation();
+        return rotationMode == RotationMode.LOCKED && rotationPhase.locksWindup();
     }
 
     /**
@@ -1243,7 +1301,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isRotationLockedDuringActive() {
-        return lockMovement.locksActive() && lockType.locksRotation();
+        return rotationMode == RotationMode.LOCKED && rotationPhase.locksActive();
     }
 
     /**
@@ -1269,6 +1327,21 @@ public abstract class Ability implements IAbility {
                 return isRotationLockedDuringWindup();
             case ACTIVE:
                 return isRotationLockedDuringActive();
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if hit scan (force face target) is active during the current phase.
+     */
+    public boolean isHitScanForCurrentPhase() {
+        if (rotationMode != RotationMode.TRACK) return false;
+        switch (phase) {
+            case WINDUP:
+                return rotationPhase.locksWindup();
+            case ACTIVE:
+                return rotationPhase.locksActive();
             default:
                 return false;
         }
@@ -1455,6 +1528,17 @@ public abstract class Ability implements IAbility {
 
     public void clearEffects() {
         effects.clear();
+    }
+
+    /**
+     * Get display keys for rotation phase dropdown (excludes "None" since mode=FREE handles that).
+     */
+    private static String[] getRotationPhaseKeys() {
+        return new String[]{
+            "ability.lockMove.windup",
+            "ability.lockMove.active",
+            "ability.lockMove.both"
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════

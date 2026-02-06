@@ -511,6 +511,12 @@ public class AbilityOrbDual extends Ability {
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(0), v -> setAnchorPointEnum(0, v))
                 .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("ability.anchor.offsetX", () -> getAnchorOffsetX(0), v -> setAnchorOffsetX(0, v)),
+                FieldDef.floatField("ability.anchor.offsetY", () -> getAnchorOffsetY(0), v -> setAnchorOffsetY(0, v))
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.anchor.offsetZ", () -> getAnchorOffsetZ(0), v -> setAnchorOffsetZ(0, v))
+                .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(0), v -> setInnerColor(0, v))
                 .tab("ability.tab.visual"),
@@ -546,6 +552,12 @@ public class AbilityOrbDual extends Ability {
             FieldDef.section("ability.section.orb2").tab("ability.tab.visual"),
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
                 () -> getAnchorPointEnum(1), v -> setAnchorPointEnum(1, v))
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("ability.anchor.offsetX", () -> getAnchorOffsetX(1), v -> setAnchorOffsetX(1, v)),
+                FieldDef.floatField("ability.anchor.offsetY", () -> getAnchorOffsetY(1), v -> setAnchorOffsetY(1, v))
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.anchor.offsetZ", () -> getAnchorOffsetZ(1), v -> setAnchorOffsetZ(1, v))
                 .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor",
                 () -> getInnerColor(1), v -> setInnerColor(1, v))
