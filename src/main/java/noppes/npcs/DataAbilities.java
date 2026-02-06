@@ -117,8 +117,31 @@ public class DataAbilities {
      * Should be called every tick from onLivingUpdate().
      */
     public void tick() {
-        if (!enabled || npc.worldObj.isRemote || npc.isKilled()) {
+        if (npc.worldObj.isRemote) {
             return;
+        }
+
+        // Force-stop any running ability when NPC is killed or abilities are disabled
+        if (!enabled || npc.isKilled()) {
+            if (currentAbility != null) {
+                removeTelegraph(currentAbility);
+                stopAbilityAnimation();
+                releaseLockedRotation();
+                releaseLockedPosition();
+                currentAbility = null;
+                lastTarget = null;
+            } else {
+                // No ability but locks could be orphaned
+                if (rotationLocked) releaseLockedRotation();
+                if (positionLocked) releaseLockedPosition();
+            }
+            return;
+        }
+
+        // Safety: release orphaned locks if no ability is actively executing
+        if (currentAbility == null || !currentAbility.isExecuting()) {
+            if (rotationLocked) releaseLockedRotation();
+            if (positionLocked) releaseLockedPosition();
         }
 
         // Tick current ability if executing
