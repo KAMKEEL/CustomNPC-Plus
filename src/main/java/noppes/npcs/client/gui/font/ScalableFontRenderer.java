@@ -10,6 +10,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -90,7 +92,7 @@ public class ScalableFontRenderer {
         float drawX = Math.round(x);
         float drawBaseline = Math.round(baselineY);
         float cursorX = drawX;
-        float topY = drawBaseline - atlas.ascent;
+        int topY = Math.round(drawBaseline - atlas.ascent);
 
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_TEXTURE_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_CURRENT_BIT);
         GL11.glPushMatrix();
@@ -119,10 +121,10 @@ public class ScalableFontRenderer {
             }
 
             Glyph glyph = atlas.glyphs[c - FIRST_CHAR];
-            float x0 = Math.round(cursorX);
-            float y0 = topY;
+            float x0 = Math.round(cursorX + glyph.xOffset);
+            float y0 = Math.round(topY + atlas.ascent + glyph.yOffset);
             float x1 = x0 + glyph.width;
-            float y1 = y0 + atlas.lineHeight;
+            float y1 = y0 + glyph.height;
 
             t.addVertexWithUV(x0, y1, 0, glyph.u0, glyph.v1);
             t.addVertexWithUV(x1, y1, 0, glyph.u1, glyph.v1);
@@ -158,50 +160,69 @@ public class ScalableFontRenderer {
         Graphics2D probe = probeImage.createGraphics();
         probe.setFont(font);
         probe.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        probe.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         FontMetrics fm = probe.getFontMetrics();
+        FontRenderContext frc = probe.getFontRenderContext();
 
         int ascent = fm.getAscent();
         int descent = fm.getDescent();
         int lineHeight = fm.getHeight();
-        int pad = 2;
+        int pad = 6;
         int atlasWidth = 1024;
-        int rowHeight = lineHeight + pad * 2;
         int x = 0;
         int y = 0;
+        int currentRowMaxHeight = 0;
 
         Glyph[] glyphs = new Glyph[LAST_CHAR - FIRST_CHAR + 1];
         for (int c = FIRST_CHAR; c <= LAST_CHAR; c++) {
-            int glyphWidth = Math.max(1, fm.charWidth((char) c));
+            char ch = (char) c;
+            GlyphVector gv = font.createGlyphVector(frc, new char[]{ch});
+            Rectangle bounds = gv.getPixelBounds(frc, 0, 0);
+
+            int glyphWidth = Math.max(1, bounds.width);
+            int glyphHeight = Math.max(1, bounds.height);
+            int xOffset = bounds.x;
+            int yOffset = bounds.y;
+            int advance = Math.max(1, Math.round(gv.getGlyphMetrics(0).getAdvance()));
+
             int cellWidth = glyphWidth + pad * 2;
             if (x + cellWidth >= atlasWidth) {
                 x = 0;
-                y += rowHeight;
+                y += currentRowMaxHeight + pad * 2;
+                currentRowMaxHeight = 0;
             }
 
-            glyphs[c - FIRST_CHAR] = new Glyph(x + pad, y + pad, glyphWidth, Math.max(1, glyphWidth));
+            glyphs[c - FIRST_CHAR] = new Glyph(ch, x + pad, y + pad, glyphWidth, glyphHeight, xOffset, yOffset, advance);
             x += cellWidth;
+            if (glyphHeight > currentRowMaxHeight) {
+                currentRowMaxHeight = glyphHeight;
+            }
         }
         probe.dispose();
 
-        int atlasHeight = y + rowHeight;
+        int atlasHeight = y + currentRowMaxHeight + pad * 2;
         BufferedImage atlas = new BufferedImage(atlasWidth, atlasHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = atlas.createGraphics();
         g.setFont(font);
         g.setColor(Color.WHITE);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
-        for (int c = FIRST_CHAR; c <= LAST_CHAR; c++) {
-            Glyph glyph = glyphs[c - FIRST_CHAR];
-            g.drawString(String.valueOf((char) c), glyph.x, glyph.y + ascent);
+        for (Glyph glyph : glyphs) {
+            GlyphVector gv = font.createGlyphVector(g.getFontRenderContext(), new char[]{glyph.character});
+            g.drawGlyphVector(gv, glyph.x - glyph.xOffset, glyph.y - glyph.yOffset);
         }
         g.dispose();
 
         BufferedImage alphaAtlas = alphaOnly(atlas);
+        float invW = 1f / alphaAtlas.getWidth();
+        float invH = 1f / alphaAtlas.getHeight();
+
         for (Glyph glyph : glyphs) {
-            glyph.u0 = (float) glyph.x / alphaAtlas.getWidth();
-            glyph.v0 = (float) glyph.y / alphaAtlas.getHeight();
-            glyph.u1 = (float) (glyph.x + glyph.width) / alphaAtlas.getWidth();
-            glyph.v1 = (float) (glyph.y + lineHeight) / alphaAtlas.getHeight();
+            glyph.u0 = (glyph.x + 0.5f) * invW;
+            glyph.v0 = (glyph.y + 0.5f) * invH;
+            glyph.u1 = (glyph.x + glyph.width - 0.5f) * invW;
+            glyph.v1 = (glyph.y + glyph.height - 0.5f) * invH;
         }
 
         int textureId = uploadAtlas(alphaAtlas);
@@ -239,9 +260,9 @@ public class ScalableFontRenderer {
         image.getRGB(0, 0, w, h, pixels, 0, w);
 
         ByteBuffer data = BufferUtils.createByteBuffer(w * h * 4);
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int argb = pixels[y * w + x];
+        for (int py = 0; py < h; py++) {
+            for (int px = 0; px < w; px++) {
+                int argb = pixels[py * w + px];
                 data.put((byte) ((argb >> 16) & 255));
                 data.put((byte) ((argb >> 8) & 255));
                 data.put((byte) (argb & 255));
@@ -253,7 +274,7 @@ public class ScalableFontRenderer {
         int tex = GL11.glGenTextures();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
@@ -263,19 +284,27 @@ public class ScalableFontRenderer {
     }
 
     private static class Glyph {
+        final char character;
         final int x;
         final int y;
         final int width;
+        final int height;
+        final int xOffset;
+        final int yOffset;
         final int advance;
         float u0;
         float v0;
         float u1;
         float v1;
 
-        private Glyph(int x, int y, int width, int advance) {
+        private Glyph(char character, int x, int y, int width, int height, int xOffset, int yOffset, int advance) {
+            this.character = character;
             this.x = x;
             this.y = y;
             this.width = width;
+            this.height = height;
+            this.xOffset = xOffset;
+            this.yOffset = yOffset;
             this.advance = advance;
         }
     }
