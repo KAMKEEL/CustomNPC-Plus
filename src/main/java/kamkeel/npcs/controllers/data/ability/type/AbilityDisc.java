@@ -91,8 +91,8 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
      */
     private AnchorPoint getDefaultAnchor(int index) {
         switch (index) {
-            case 0: return AnchorPoint.LEFT_HAND;
-            case 1: return AnchorPoint.RIGHT_HAND;
+            case 0: return AnchorPoint.RIGHT_HAND;
+            case 1: return AnchorPoint.LEFT_HAND;
             default: return AnchorPoint.FRONT;
         }
     }
