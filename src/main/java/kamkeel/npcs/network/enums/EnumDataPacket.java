@@ -41,6 +41,7 @@ public enum EnumDataPacket {
     PLAYER_DATA,
     GUI_ERROR,
     GUI_CLOSE,
+    GUI_FONT_TEST_OPEN,
     ISGUIOPEN,
 
     // Visual

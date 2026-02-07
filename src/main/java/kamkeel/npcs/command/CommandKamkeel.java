@@ -47,6 +47,7 @@ public class CommandKamkeel extends CommandBase {
         registerCommand(new EffectCommand());
         registerCommand(new AbilityCommand());
         registerCommand(new MoneyCommand());
+        registerCommand(new TestCommand());
         if (ConfigMarket.AuctionEnabled)
             registerCommand(new AuctionCommand());
         if (ConfigMain.AttributesEnabled)
