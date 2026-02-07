@@ -42,6 +42,7 @@ public enum EnumDataPacket {
     GUI_ERROR,
     GUI_CLOSE,
     ISGUIOPEN,
+    GUI_FONT_TEST,
 
     // Visual
     SCRIPTED_PARTICLE,
