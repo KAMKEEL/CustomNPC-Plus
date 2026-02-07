@@ -168,6 +168,9 @@ public class AbilityDash extends Ability implements IAbilityDash {
             0,
             Math.cos(yawRad)
         );
+
+        // Small upward impulse for a skip/hop arc (gravity handles the descent)
+        caster.motionY = 0.2;
     }
 
     @Override
@@ -213,9 +216,8 @@ public class AbilityDash extends Ability implements IAbilityDash {
             return;
         }
 
-        // Move caster
+        // Move caster (motionY left to gravity for skip arc)
         caster.motionX = dashDirection.xCoord * dashSpeed;
-        caster.motionY = 0;
         caster.motionZ = dashDirection.zCoord * dashSpeed;
         if (!isPreview()) {
             caster.velocityChanged = true;
