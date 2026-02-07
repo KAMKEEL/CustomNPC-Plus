@@ -22,10 +22,13 @@ import java.util.TreeMap;
 public class ScalableFontRenderer {
     private static final int FIRST_CHAR = 32;
     private static final int LAST_CHAR = 126;
+    private static final int[] DEFAULT_TIERS = new int[]{16, 24, 32, 48, 64, 96};
+    private static final int GL_LINEAR_MIPMAP_LINEAR = 0x2703;
 
     private final ResourceLocation fontResource;
     private final String sourcePath;
-    private final Map<Integer, BakedFontAtlas> sizeToAtlas = new TreeMap<Integer, BakedFontAtlas>();
+    private final Map<Integer, BakedFontAtlas> tierToAtlas = new TreeMap<Integer, BakedFontAtlas>();
+    private final boolean mipmapsEnabled;
 
     public static ScalableFontRenderer create(String sourcePath) {
         return new ScalableFontRenderer(sourcePath, new ResourceLocation("customnpcs", "OpenSans.ttf"));
@@ -34,6 +37,7 @@ public class ScalableFontRenderer {
     private ScalableFontRenderer(String sourcePath, ResourceLocation fontResource) {
         this.sourcePath = sourcePath;
         this.fontResource = fontResource;
+        this.mipmapsEnabled = false;
     }
 
     public String getSourcePath() {
@@ -41,12 +45,31 @@ public class ScalableFontRenderer {
     }
 
     public String getRendererPath() {
-        return "Per-size baked atlas (no scaling)";
+        return "Tiered high-res atlas (downscale only)";
+    }
+
+    public boolean isMipmapsEnabled() {
+        return mipmapsEnabled;
+    }
+
+    public int getTierForSize(int requestedSize) {
+        int safe = Math.max(1, requestedSize);
+        for (int tier : DEFAULT_TIERS) {
+            if (tier >= safe) {
+                return tier;
+            }
+        }
+        return roundUpToMultiple(safe, 16);
+    }
+
+    public float getScaleForSize(int requestedSize) {
+        int tier = getTierForSize(requestedSize);
+        return requestedSize / (float) tier;
     }
 
     public String getCachedAtlasSummary() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<Integer, BakedFontAtlas> entry : sizeToAtlas.entrySet()) {
+        for (Map.Entry<Integer, BakedFontAtlas> entry : tierToAtlas.entrySet()) {
             if (sb.length() > 0) {
                 sb.append("  ");
             }
@@ -57,12 +80,23 @@ public class ScalableFontRenderer {
     }
 
     public String getAtlasSummaryForSize(int size) {
-        BakedFontAtlas atlas = getAtlas(size);
-        return size + "px=" + atlas.width + "x" + atlas.height;
+        int tier = getTierForSize(size);
+        BakedFontAtlas atlas = getAtlasForTier(tier);
+        return size + "px->" + tier + "px @" + atlas.width + "x" + atlas.height;
+    }
+
+    public String getDebugLineForSize(int requestedSize) {
+        int tier = getTierForSize(requestedSize);
+        float scale = requestedSize / (float) tier;
+        BakedFontAtlas atlas = getAtlasForTier(tier);
+        return "Req " + requestedSize + "px -> tier " + tier + "px, scale " + String.format("%.3f", scale) +
+                ", atlas " + atlas.width + "x" + atlas.height + ", mipmaps " + (mipmapsEnabled ? "on" : "off");
     }
 
     public int getLineHeight(int size) {
-        return getAtlas(size).lineHeight;
+        int tier = getTierForSize(size);
+        float scale = size / (float) tier;
+        return Math.max(1, Math.round(getAtlasForTier(tier).lineHeight * scale));
     }
 
     public int getStringWidth(String text, int size) {
@@ -70,17 +104,19 @@ public class ScalableFontRenderer {
             return 0;
         }
 
-        BakedFontAtlas atlas = getAtlas(size);
-        int width = 0;
+        int tier = getTierForSize(size);
+        float scale = size / (float) tier;
+        BakedFontAtlas atlas = getAtlasForTier(tier);
+        int tierWidth = 0;
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c < FIRST_CHAR || c > LAST_CHAR) {
-                width += size / 2;
+                tierWidth += tier / 2;
                 continue;
             }
-            width += atlas.glyphs[c - FIRST_CHAR].advance;
+            tierWidth += atlas.glyphs[c - FIRST_CHAR].advance;
         }
-        return width;
+        return Math.max(1, Math.round(tierWidth * scale));
     }
 
     public int drawString(String text, float x, float baselineY, int size, int color) {
@@ -88,16 +124,19 @@ public class ScalableFontRenderer {
             return 0;
         }
 
-        BakedFontAtlas atlas = getAtlas(size);
+        int tier = getTierForSize(size);
+        float scale = size / (float) tier;
+        BakedFontAtlas atlas = getAtlasForTier(tier);
+
         float drawX = Math.round(x);
         float drawBaseline = Math.round(baselineY);
-        float cursorX = drawX;
-        int topY = Math.round(drawBaseline - atlas.ascent);
+        float cursorTier = 0f;
 
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_TEXTURE_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_CURRENT_BIT);
         GL11.glPushMatrix();
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -116,22 +155,22 @@ public class ScalableFontRenderer {
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c < FIRST_CHAR || c > LAST_CHAR) {
-                cursorX += size / 2f;
+                cursorTier += tier / 2f;
                 continue;
             }
 
             Glyph glyph = atlas.glyphs[c - FIRST_CHAR];
-            float x0 = Math.round(cursorX + glyph.xOffset);
-            float y0 = Math.round(topY + atlas.ascent + glyph.yOffset);
-            float x1 = x0 + glyph.width;
-            float y1 = y0 + glyph.height;
+            float x0 = Math.round((cursorTier + glyph.xOffset) * scale + drawX);
+            float y0 = Math.round((glyph.yOffset) * scale + drawBaseline);
+            float x1 = Math.round((cursorTier + glyph.xOffset + glyph.width) * scale + drawX);
+            float y1 = Math.round((glyph.yOffset + glyph.height) * scale + drawBaseline);
 
             t.addVertexWithUV(x0, y1, 0, glyph.u0, glyph.v1);
             t.addVertexWithUV(x1, y1, 0, glyph.u1, glyph.v1);
             t.addVertexWithUV(x1, y0, 0, glyph.u1, glyph.v0);
             t.addVertexWithUV(x0, y0, 0, glyph.u0, glyph.v0);
 
-            cursorX += glyph.advance;
+            cursorTier += glyph.advance;
         }
 
         t.draw();
@@ -139,35 +178,35 @@ public class ScalableFontRenderer {
         GL11.glPopMatrix();
         GL11.glPopAttrib();
 
-        return Math.round(cursorX - drawX);
+        return Math.max(1, Math.round(cursorTier * scale));
     }
 
-    private BakedFontAtlas getAtlas(int size) {
-        BakedFontAtlas cached = sizeToAtlas.get(size);
+    private BakedFontAtlas getAtlasForTier(int tier) {
+        BakedFontAtlas cached = tierToAtlas.get(tier);
         if (cached != null) {
             return cached;
         }
 
-        BakedFontAtlas baked = bakeAtlas(size);
-        sizeToAtlas.put(size, baked);
+        BakedFontAtlas baked = bakeAtlas(tier);
+        tierToAtlas.put(tier, baked);
         return baked;
     }
 
-    private BakedFontAtlas bakeAtlas(int size) {
-        Font font = loadFont(size);
+    private BakedFontAtlas bakeAtlas(int tierSize) {
+        Font font = loadFont(tierSize);
 
         BufferedImage probeImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
         Graphics2D probe = probeImage.createGraphics();
         probe.setFont(font);
         probe.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        probe.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        probe.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
         FontMetrics fm = probe.getFontMetrics();
         FontRenderContext frc = probe.getFontRenderContext();
 
+        int lineHeight = fm.getHeight();
         int ascent = fm.getAscent();
         int descent = fm.getDescent();
-        int lineHeight = fm.getHeight();
-        int pad = 6;
+        int pad = 10;
         int atlasWidth = 1024;
         int x = 0;
         int y = 0;
@@ -206,7 +245,7 @@ public class ScalableFontRenderer {
         g.setFont(font);
         g.setColor(Color.WHITE);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
 
         for (Glyph glyph : glyphs) {
             GlyphVector gv = font.createGlyphVector(g.getFontRenderContext(), new char[]{glyph.character});
@@ -214,10 +253,9 @@ public class ScalableFontRenderer {
         }
         g.dispose();
 
-        BufferedImage alphaAtlas = alphaOnly(atlas);
+        BufferedImage alphaAtlas = alphaOnlyFromCoverage(atlas);
         float invW = 1f / alphaAtlas.getWidth();
         float invH = 1f / alphaAtlas.getHeight();
-
         for (Glyph glyph : glyphs) {
             glyph.u0 = (glyph.x + 0.5f) * invW;
             glyph.v0 = (glyph.y + 0.5f) * invH;
@@ -242,12 +280,17 @@ public class ScalableFontRenderer {
         }
     }
 
-    private BufferedImage alphaOnly(BufferedImage source) {
+    private BufferedImage alphaOnlyFromCoverage(BufferedImage source) {
         BufferedImage out = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        for (int y = 0; y < source.getHeight(); y++) {
-            for (int x = 0; x < source.getWidth(); x++) {
-                int a = (source.getRGB(x, y) >>> 24) & 255;
-                out.setRGB(x, y, (a << 24) | 0x00FFFFFF);
+        for (int py = 0; py < source.getHeight(); py++) {
+            for (int px = 0; px < source.getWidth(); px++) {
+                int argb = source.getRGB(px, py);
+                int a = (argb >>> 24) & 255;
+                int r = (argb >>> 16) & 255;
+                int g = (argb >>> 8) & 255;
+                int b = argb & 255;
+                int coverage = Math.max(a, Math.max(r, Math.max(g, b)));
+                out.setRGB(px, py, (coverage << 24) | 0x00FFFFFF);
             }
         }
         return out;
@@ -273,14 +316,21 @@ public class ScalableFontRenderer {
 
         int tex = GL11.glGenTextures();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mipmapsEnabled ? GL_LINEAR_MIPMAP_LINEAR : GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, mipmapsEnabled ? 1000 : 0);
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, data);
+        if (mipmapsEnabled) {
+            GL30Compat.generateMipmap(GL11.GL_TEXTURE_2D);
+        }
         return tex;
+    }
+
+    private int roundUpToMultiple(int value, int multiple) {
+        return ((value + multiple - 1) / multiple) * multiple;
     }
 
     private static class Glyph {
@@ -326,6 +376,17 @@ public class ScalableFontRenderer {
             this.ascent = ascent;
             this.descent = descent;
             this.glyphs = glyphs;
+        }
+    }
+
+    private static class GL30Compat {
+        private static void generateMipmap(int target) {
+            try {
+                Class<?> gl30 = Class.forName("org.lwjgl.opengl.GL30");
+                gl30.getMethod("glGenerateMipmap", int.class).invoke(null, target);
+            } catch (Throwable ignored) {
+                // Optional path only.
+            }
         }
     }
 }

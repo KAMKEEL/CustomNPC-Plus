@@ -48,11 +48,16 @@ public class GuiFontTest extends GuiScreen {
         baseline += 16;
         font.drawString("Font resource: " + font.getSourcePath(), left, baseline, 12, 0xFFB5FFC9);
         baseline += 16;
-        font.drawString("Baked atlases: " + font.getCachedAtlasSummary(), left, baseline, 12, 0xFFB5FFC9);
+        font.drawString("Tier atlases: " + font.getCachedAtlasSummary(), left, baseline, 12, 0xFFB5FFC9);
         baseline += 16;
-        font.drawString("Current line atlas: " + font.getAtlasSummaryForSize(12), left, baseline, 12, 0xFFB5FFC9);
+        font.drawString("Mipmaps: " + (font.isMipmapsEnabled() ? "enabled" : "disabled"), left, baseline, 12, 0xFFB5FFC9);
         baseline += 16;
         font.drawString("GUI scale (settings): " + mc.gameSettings.guiScale + "  |  active scale factor: " + sr.getScaleFactor(), left, baseline, 12, 0xFFB5FFC9);
+
+        for (int size : SIZES) {
+            baseline += 16;
+            font.drawString(font.getDebugLineForSize(size), left, baseline, 12, 0xFFB5FFC9);
+        }
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
