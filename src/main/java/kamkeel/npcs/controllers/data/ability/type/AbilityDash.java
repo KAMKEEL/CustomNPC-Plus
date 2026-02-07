@@ -87,13 +87,14 @@ public class AbilityDash extends Ability implements IAbilityDash {
     // Type-specific parameters
     private DashMode dashMode = DashMode.DEFENSIVE;
     private float dashDistance = 4.0f;
-    private float dashSpeed = 1.5f;
+    private float dashSpeed = 0.5f;
 
     // Runtime state
     private transient Vec3 dashDirection;
     private transient double startX, startY, startZ;
     private transient double prevTickX, prevTickZ;
     private transient DashDirection chosenDirection;
+    private transient int maxActiveTicks;
 
     public AbilityDash() {
         this.typeId = "ability.cnpc.dash";
@@ -139,6 +140,9 @@ public class AbilityDash extends Ability implements IAbilityDash {
         prevTickX = caster.posX;
         prevTickZ = caster.posZ;
 
+        // Safety timeout: expected ticks + generous buffer to prevent infinite dash
+        maxActiveTicks = dashSpeed > 0 ? (int)(dashDistance / dashSpeed) + 10 : 10;
+
         // Choose random direction based on mode
         DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
             ? AGGRESSIVE_DIRECTIONS
@@ -164,22 +168,28 @@ public class AbilityDash extends Ability implements IAbilityDash {
             0,
             Math.cos(yawRad)
         );
-
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (dashDirection == null) return;
+        // Safety timeout or missing state: force-complete to prevent stuck NPC
+        if (!isPreview() && (dashDirection == null || tick > maxActiveTicks)) {
+            stopDash(caster);
+            signalCompletion();
+            return;
+        }
+
+        if (dashDirection == null) {
+            signalCompletion();
+            return;
+        }
 
         // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
         if (!isPreview() && tick > 1) {
-            double movedThisTick = Math.sqrt(
-                Math.pow(caster.posX - prevTickX, 2) +
-                Math.pow(caster.posZ - prevTickZ, 2));
-            if (movedThisTick < 0.01) {
-                caster.motionX = 0;
-                caster.motionZ = 0;
-                caster.velocityChanged = true;
+            double dx = caster.posX - prevTickX;
+            double dz = caster.posZ - prevTickZ;
+            if (dx * dx + dz * dz < 0.0001) {
+                stopDash(caster);
                 signalCompletion();
                 return;
             }
@@ -187,28 +197,18 @@ public class AbilityDash extends Ability implements IAbilityDash {
         prevTickX = caster.posX;
         prevTickZ = caster.posZ;
 
-        // Calculate distance traveled
-        double distanceTraveled = Math.sqrt(
-            Math.pow(caster.posX - startX, 2) +
-                Math.pow(caster.posZ - startZ, 2)
-        );
-
         // Check if reached max distance
-        if (distanceTraveled >= dashDistance) {
-            caster.motionX = 0;
-            caster.motionZ = 0;
-            if (!isPreview()) {
-                caster.velocityChanged = true;
-            }
+        double travelDx = caster.posX - startX;
+        double travelDz = caster.posZ - startZ;
+        if (travelDx * travelDx + travelDz * travelDz >= (double) dashDistance * dashDistance) {
+            stopDash(caster);
             signalCompletion();
             return;
         }
 
         // Block detection (skip in preview - no real world collision)
         if (!isPreview() && isDashBlocked(caster)) {
-            caster.motionX = 0;
-            caster.motionZ = 0;
-            caster.velocityChanged = true;
+            stopDash(caster);
             signalCompletion();
             return;
         }
@@ -225,8 +225,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
         }
     }
 
-    @Override
-    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    private void stopDash(EntityLivingBase caster) {
         caster.motionX = 0;
         caster.motionZ = 0;
         if (!isPreview()) {
@@ -235,18 +234,20 @@ public class AbilityDash extends Ability implements IAbilityDash {
     }
 
     @Override
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+        stopDash(caster);
+    }
+
+    @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
-        caster.motionX = 0;
-        caster.motionZ = 0;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
-        }
+        stopDash(caster);
     }
 
     @Override
     public void cleanup() {
         dashDirection = null;
         chosenDirection = null;
+        maxActiveTicks = 0;
     }
 
     private boolean isDashBlocked(EntityLivingBase caster) {
@@ -281,7 +282,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
             this.dashMode = DashMode.DEFENSIVE;
         }
         this.dashDistance = nbt.hasKey("dashDistance") ? nbt.getFloat("dashDistance") : 4.0f;
-        this.dashSpeed = nbt.hasKey("dashSpeed") ? nbt.getFloat("dashSpeed") : 1.5f;
+        this.dashSpeed = nbt.hasKey("dashSpeed") ? nbt.getFloat("dashSpeed") : 0.5f;
     }
 
     // Getters & Setters
