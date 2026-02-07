@@ -26,18 +26,18 @@ public class GuiFontTest extends GuiScreen {
         drawDefaultBackground();
 
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int left = 30;
-        int right = width - 30;
-        int baseline = 34;
+        int left = Math.round(30f);
+        int right = Math.round(width - 30f);
+        int baseline = Math.round(34f);
 
         font.drawString("CustomNPC+ Font Test", left, baseline, 24, 0xFFFFFFFF);
-        baseline += 16;
+        baseline += font.getLineHeight(24) + 6;
 
         for (int size : SIZES) {
             drawHorizontalLine(left - 8, right, baseline, 0x55FFFFFF);
             String text = "OpenSans " + size + "px  Sphinx of black quartz, judge my vow 0123456789";
             font.drawString(text, left, baseline, size, 0xFFE6F2FF);
-            baseline += Math.max(size + 8, 18);
+            baseline += font.getLineHeight(size) + 8;
         }
 
         baseline += 8;
@@ -48,7 +48,9 @@ public class GuiFontTest extends GuiScreen {
         baseline += 16;
         font.drawString("Font resource: " + font.getSourcePath(), left, baseline, 12, 0xFFB5FFC9);
         baseline += 16;
-        font.drawString("Atlas: " + font.getAtlasWidth() + "x" + font.getAtlasHeight(), left, baseline, 12, 0xFFB5FFC9);
+        font.drawString("Baked atlases: " + font.getCachedAtlasSummary(), left, baseline, 12, 0xFFB5FFC9);
+        baseline += 16;
+        font.drawString("Current line atlas: " + font.getAtlasSummaryForSize(12), left, baseline, 12, 0xFFB5FFC9);
         baseline += 16;
         font.drawString("GUI scale (settings): " + mc.gameSettings.guiScale + "  |  active scale factor: " + sr.getScaleFactor(), left, baseline, 12, 0xFFB5FFC9);
 
