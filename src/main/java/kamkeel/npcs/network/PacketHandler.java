@@ -31,6 +31,7 @@ import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
 import kamkeel.npcs.network.packets.data.gui.GuiErrorPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiFontTestPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiOpenBookPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiOpenPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiRedstonePacket;
@@ -559,6 +560,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new GuiWaypointPacket());
         DATA_PACKET.registerPacket(new IsGuiOpenPacket());
         DATA_PACKET.registerPacket(new GuiOpenBookPacket());
+        DATA_PACKET.registerPacket(new GuiFontTestPacket());
 
         // Data | NPC Packets
         DATA_PACKET.registerPacket(new DeleteNpcPacket());
