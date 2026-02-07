@@ -200,7 +200,8 @@ public class GuiCustomScroll extends GuiScreen {
             int k = (14 * i + 4) - scrollY;
             if (k >= 4 && k + 12 < ySize) {
                 int xOffset = scrollHeight < ySize - 8 ? 0 : 10;
-                String displayString = StatCollector.translateToLocal(list.get(i));
+                String rawEntry = list.get(i);
+                String displayString = StatCollector.translateToLocal(rawEntry);
 
                 String text = "";
                 float maxWidth = (xSize + xOffset - 8) * 0.8f;
@@ -215,7 +216,13 @@ public class GuiCustomScroll extends GuiScreen {
                         text += "...";
                 } else
                     text = displayString;
-                if ((multipleSelection && selectedList.contains(text)) || (!multipleSelection && selected == i)) {
+
+                // Entries with a custom color are non-interactive (headers/separators)
+                Integer customColor = colors.get(rawEntry);
+                if (customColor != null) {
+                    if (!text.isEmpty())
+                        fontRendererObj.drawString(text, j, k, customColor);
+                } else if ((multipleSelection && selectedList.contains(text)) || (!multipleSelection && selected == i)) {
                     drawVerticalLine(j - 2, k - 4, k + 10, 0xffffffff);
                     drawVerticalLine(j + xSize - 18 + xOffset, k - 4, k + 10, 0xffffffff);
                     drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k - 3, 0xffffffff);
@@ -239,10 +246,14 @@ public class GuiCustomScroll extends GuiScreen {
     private int getMouseOver(int i, int j) {
         i -= guiLeft;
         j -= guiTop;
-        //fontRenderer.drawString(".", i , j, 0xffffff);
         if (i >= 4 && i < xSize - 4 && j >= 4 && j < ySize) {
             for (int j1 = 0; j1 < list.size(); j1++) {
                 if (!mouseInOption(i, j, j1)) {
+                    continue;
+                }
+
+                // Skip non-interactive entries (colored headers/separators)
+                if (colors.containsKey(list.get(j1))) {
                     continue;
                 }
 

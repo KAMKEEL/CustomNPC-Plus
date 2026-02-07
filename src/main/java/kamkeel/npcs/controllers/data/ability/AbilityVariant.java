@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 public class AbilityVariant {
 
     private final String displayKey;
+    private final String group;
     private final Consumer<Ability> configurator;
 
     /**
@@ -20,12 +21,26 @@ public class AbilityVariant {
      * @param configurator Lambda that configures the ability with preset values
      */
     public AbilityVariant(String displayKey, Consumer<Ability> configurator) {
+        this(displayKey, null, configurator);
+    }
+
+    /**
+     * @param displayKey   Lang key for the variant display name
+     * @param group        Optional group header shown in the variant selection GUI (e.g., "DBC Addon")
+     * @param configurator Lambda that configures the ability with preset values
+     */
+    public AbilityVariant(String displayKey, String group, Consumer<Ability> configurator) {
         this.displayKey = displayKey;
+        this.group = group;
         this.configurator = configurator;
     }
 
     public String getDisplayKey() {
         return displayKey;
+    }
+
+    public String getGroup() {
+        return group;
     }
 
     /**

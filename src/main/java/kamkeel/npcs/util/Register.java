@@ -29,7 +29,8 @@ public class Register<T> {
     public static boolean isEmpty(String registryKey) {
         if (REGISTERED_NAMESPACES.isEmpty()) return true;
 
-        if (REGISTERED_NAMESPACES.get(registryKey).isEmpty()) return true;
+        List<String> list = REGISTERED_NAMESPACES.get(registryKey);
+        if (list == null || list.isEmpty()) return true;
 
         return false;
     }
