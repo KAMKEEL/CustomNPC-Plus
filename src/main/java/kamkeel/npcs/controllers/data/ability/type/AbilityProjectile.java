@@ -51,6 +51,11 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

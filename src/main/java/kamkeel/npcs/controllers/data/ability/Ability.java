@@ -32,6 +32,7 @@ import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
@@ -101,6 +102,13 @@ public abstract class Ability implements IAbility {
     // Configurable potion effects
     protected List<AbilityEffect> effects = new ArrayList<>();
 
+    // Burst
+    protected boolean burstEnabled = false;
+    protected int burstAmount = 0;             // number of EXTRA repetitions
+    protected int burstDelay = 0;              // ticks between bursts
+    protected boolean burstReplayAnimations = true;
+    protected boolean burstOverlap = false;    // if true, don't wait for entity death between bursts
+
     // ═══════════════════════════════════════════════════════════════════
     // EXECUTION STATE (not saved, reset each combat)
     // ═══════════════════════════════════════════════════════════════════
@@ -110,6 +118,10 @@ public abstract class Ability implements IAbility {
     protected transient EntityLivingBase currentTarget;
     protected transient long executionStartTime;
     protected transient TelegraphInstance telegraphInstance;
+
+    // Burst execution state
+    protected transient int burstIndex = 0;
+    protected transient List<Entity> burstEntities = new ArrayList<>();
 
     // ═══════════════════════════════════════════════════════════════════
     // PREVIEW STATE (client-side only, not saved)
@@ -154,6 +166,50 @@ public abstract class Ability implements IAbility {
      */
     public boolean hasDamage() {
         return true;
+    }
+
+    /**
+     * Override to provide variant templates for this ability type.
+     * When a user creates this ability type, they will be shown a selection dialog
+     * with the returned variants. If empty or single-entry, the dialog is skipped.
+     */
+    public List<AbilityVariant> getVariants() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Whether this ability type supports the burst system.
+     * Override to return false for abilities that shouldn't repeat (Guard, Heal, Sweeper, etc.).
+     */
+    public boolean allowBurst() {
+        return true;
+    }
+
+    /**
+     * Whether this ability supports overlap mode for burst (entities from previous bursts keep flying).
+     * Override to return true for entity-spawning projectile abilities (Orb, Beam, Disc, LaserShot).
+     */
+    public boolean allowOverlap() {
+        return false;
+    }
+
+    /**
+     * Whether this ability is ready for auto-completion during burst overlap mode.
+     * Override to delay auto-completion until all staggered projectiles have been fired.
+     * @param activeTick the current tick within the ACTIVE phase
+     */
+    public boolean isReadyForBurstCompletion(int activeTick) {
+        return true;
+    }
+
+    /**
+     * Called when burst re-fires without replay animations (burstReplayAnimations=false).
+     * Entity-spawning abilities should override to spawn and fire entities in one step,
+     * since onWindUpTick was not called (windup was skipped).
+     * Default: does nothing (ability goes directly to onExecute with existing state).
+     */
+    public void onBurstRefire(EntityLivingBase caster, EntityLivingBase target, World world) {
+        // Override in entity-spawning abilities (Orb, Beam, Disc, LaserShot)
     }
 
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
@@ -454,6 +510,25 @@ public abstract class Ability implements IAbility {
                 .range(0, 1000).visibleWhen(this::isInterruptible)
         ).tab("General"));
 
+        // ── Burst section ────────────────────────────────────────────
+        if (allowBurst()) {
+            defs.add(FieldDef.section("ability.section.burst").tab("General"));
+            defs.add(FieldDef.boolField("ability.burstEnabled", this::isBurstEnabled, this::setBurstEnabled)
+                .tab("General"));
+            defs.add(FieldDef.row(
+                FieldDef.intField("ability.burstAmount", this::getBurstAmount, this::setBurstAmount).range(1, 100),
+                FieldDef.intField("ability.burstDelay", this::getBurstDelay, this::setBurstDelay).range(0, 1000)
+            ).tab("General").visibleWhen(this::isBurstEnabled));
+            defs.add(FieldDef.boolField("ability.burstReplayAnimations", this::isBurstReplayAnimations, this::setBurstReplayAnimations)
+                .tab("General").visibleWhen(this::isBurstEnabled)
+                .hover("ability.hover.burstReplay"));
+            if (allowOverlap()) {
+                defs.add(FieldDef.boolField("ability.burstOverlap", this::isBurstOverlap, this::setBurstOverlap)
+                    .tab("General").visibleWhen(this::isBurstEnabled)
+                    .hover("ability.hover.burstOverlap"));
+            }
+        }
+
         // ── Target tab ───────────────────────────────────────────────
         defs.add(FieldDef.row(
             FieldDef.intField("ability.minRange", () -> (int) getMinRange(), v -> setMinRange(v)).range(0, 100),
@@ -722,6 +797,8 @@ public abstract class Ability implements IAbility {
         this.currentTick = 0;
         this.currentTarget = target;
         this.executionStartTime = System.currentTimeMillis();
+        this.burstIndex = 0;
+        this.burstEntities.clear();
 
         if (windUpTicks <= 0) {
             this.phase = AbilityPhase.ACTIVE;
@@ -764,6 +841,19 @@ public abstract class Ability implements IAbility {
                     return true;
                 }
                 break;
+
+            case BURST_DELAY:
+                // Waiting between burst repetitions - free movement/rotation
+                if (currentTick >= burstDelay) {
+                    if (burstReplayAnimations && getWindUpTicks() > 0) {
+                        phase = AbilityPhase.WINDUP;
+                    } else {
+                        phase = AbilityPhase.ACTIVE;
+                    }
+                    currentTick = 0;
+                    return true;
+                }
+                break;
         }
         return false;
     }
@@ -777,6 +867,19 @@ public abstract class Ability implements IAbility {
      */
     public boolean signalCompletion() {
         if (phase == AbilityPhase.ACTIVE) {
+            // Check if more burst iterations remain
+            if (burstEnabled && burstAmount > 0 && burstIndex < burstAmount) {
+                if (!burstOverlap) {
+                    cleanup();
+                }
+                burstIndex++;
+                phase = AbilityPhase.BURST_DELAY;
+                currentTick = 0;
+                return true;
+            }
+
+            // Final completion - let burst entities die naturally (don't force-kill)
+            burstEntities.clear();
             cleanup();
             phase = AbilityPhase.IDLE;
             currentTick = 0;
@@ -790,9 +893,10 @@ public abstract class Ability implements IAbility {
      * Called when NPC takes direct damage during WINDUP.
      */
     public void interrupt() {
+        cleanupBurstEntities();
         cleanup();
-        if (interruptible && phase == AbilityPhase.WINDUP) {
-            // Interrupted during windup - go to dazed state
+        if (interruptible && (phase == AbilityPhase.WINDUP || phase == AbilityPhase.BURST_DELAY)) {
+            // Interrupted during windup or burst delay - go to dazed state
             phase = AbilityPhase.DAZED;
             currentTick = 0;
         } else {
@@ -800,6 +904,7 @@ public abstract class Ability implements IAbility {
             phase = AbilityPhase.IDLE;
             currentTick = 0;
         }
+        burstIndex = 0;
         currentTarget = null;
         telegraphInstance = null;
     }
@@ -820,7 +925,7 @@ public abstract class Ability implements IAbility {
      * @return true if the ability should be interrupted
      */
     public boolean canInterrupt(DamageSource source) {
-        if (!interruptible || phase != AbilityPhase.WINDUP) {
+        if (!interruptible || (phase != AbilityPhase.WINDUP && phase != AbilityPhase.BURST_DELAY)) {
             return false;
         }
 
@@ -847,9 +952,11 @@ public abstract class Ability implements IAbility {
      * Reset all execution state (called on combat end, NPC death, target lost, etc.)
      */
     public void reset() {
+        cleanupBurstEntities();
         cleanup();
         phase = AbilityPhase.IDLE;
         currentTick = 0;
+        burstIndex = 0;
         currentTarget = null;
         telegraphInstance = null;
         previewMode = false;
@@ -863,6 +970,18 @@ public abstract class Ability implements IAbility {
      */
     public void cleanup() {
         // Override in subclasses to clean up spawned entities, etc.
+    }
+
+    /**
+     * Kill all entities tracked during burst overlap and clear the list.
+     */
+    protected void cleanupBurstEntities() {
+        for (Entity e : burstEntities) {
+            if (e != null && !e.isDead) {
+                killAbilityEntity(e);
+            }
+        }
+        burstEntities.clear();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -895,6 +1014,9 @@ public abstract class Ability implements IAbility {
             previewEntityHandler.onEntitySpawned(entity);
         } else {
             world.spawnEntityInWorld(entity);
+        }
+        if (burstEnabled && burstOverlap) {
+            burstEntities.add(entity);
         }
     }
 
@@ -979,6 +1101,13 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
+        // Burst
+        nbt.setBoolean("burstEnabled", burstEnabled);
+        nbt.setInteger("burstAmount", burstAmount);
+        nbt.setInteger("burstDelay", burstDelay);
+        nbt.setBoolean("burstReplayAnimations", burstReplayAnimations);
+        nbt.setBoolean("burstOverlap", burstOverlap);
+
         // Conditions
         NBTTagList condList = new NBTTagList();
         for (Condition c : conditions) condList.appendTag(c.writeNBT());
@@ -1058,6 +1187,13 @@ public abstract class Ability implements IAbility {
         customData = nbt.getCompoundTag("customData");
         allowedBy = nbt.hasKey("allowedBy") ? UserType.fromOrdinal(nbt.getInteger("allowedBy")) : UserType.BOTH;
         ignoreCooldown = nbt.hasKey("ignoreCooldown") && nbt.getBoolean("ignoreCooldown");
+
+        // Burst
+        burstEnabled = nbt.hasKey("burstEnabled") && nbt.getBoolean("burstEnabled");
+        burstAmount = nbt.hasKey("burstAmount") ? nbt.getInteger("burstAmount") : 0;
+        burstDelay = nbt.hasKey("burstDelay") ? nbt.getInteger("burstDelay") : 0;
+        burstReplayAnimations = !nbt.hasKey("burstReplayAnimations") || nbt.getBoolean("burstReplayAnimations");
+        burstOverlap = nbt.hasKey("burstOverlap") && nbt.getBoolean("burstOverlap");
 
         // Conditions
         conditions.clear();
@@ -1313,6 +1449,8 @@ public abstract class Ability implements IAbility {
                 return isMovementLockedDuringWindup();
             case ACTIVE:
                 return isMovementLockedDuringActive();
+            case BURST_DELAY:
+                return false; // Free movement during burst delay
             default:
                 return false;
         }
@@ -1327,6 +1465,8 @@ public abstract class Ability implements IAbility {
                 return isRotationLockedDuringWindup();
             case ACTIVE:
                 return isRotationLockedDuringActive();
+            case BURST_DELAY:
+                return false; // Free rotation during burst delay
             default:
                 return false;
         }
@@ -1342,6 +1482,8 @@ public abstract class Ability implements IAbility {
                 return rotationPhase.locksWindup();
             case ACTIVE:
                 return rotationPhase.locksActive();
+            case BURST_DELAY:
+                return false; // Free rotation during burst delay
             default:
                 return false;
         }
@@ -1528,6 +1670,52 @@ public abstract class Ability implements IAbility {
 
     public void clearEffects() {
         effects.clear();
+    }
+
+    // Burst getters/setters
+
+    public boolean isBurstEnabled() {
+        return burstEnabled;
+    }
+
+    public void setBurstEnabled(boolean burstEnabled) {
+        this.burstEnabled = burstEnabled;
+    }
+
+    public int getBurstAmount() {
+        return burstAmount;
+    }
+
+    public void setBurstAmount(int burstAmount) {
+        this.burstAmount = Math.max(0, burstAmount);
+    }
+
+    public int getBurstDelay() {
+        return burstDelay;
+    }
+
+    public void setBurstDelay(int burstDelay) {
+        this.burstDelay = Math.max(0, burstDelay);
+    }
+
+    public boolean isBurstReplayAnimations() {
+        return burstReplayAnimations;
+    }
+
+    public void setBurstReplayAnimations(boolean burstReplayAnimations) {
+        this.burstReplayAnimations = burstReplayAnimations;
+    }
+
+    public boolean isBurstOverlap() {
+        return burstOverlap;
+    }
+
+    public void setBurstOverlap(boolean burstOverlap) {
+        this.burstOverlap = burstOverlap;
+    }
+
+    public int getBurstIndex() {
+        return burstIndex;
     }
 
     /**

@@ -174,11 +174,23 @@ public class DataAbilities {
         // Handle phase-specific logic
         switch (currentAbility.getPhase()) {
             case WINDUP:
+                if (phaseChanged && oldPhase == AbilityPhase.BURST_DELAY) {
+                    // Burst replay: re-enter windup - set up telegraph, sound, animation, locks
+                    if (currentAbility.isRotationLockedDuringWindup()) {
+                        captureLockedRotation();
+                    }
+                    if (currentAbility.isMovementLockedDuringWindup() && !currentAbility.hasAbilityMovement()) {
+                        captureLockedPosition();
+                    }
+                    spawnTelegraph(currentAbility, target);
+                    playAbilitySound(currentAbility.getWindUpSound());
+                    playAbilityAnimation(currentAbility.getWindUpAnimation());
+                }
                 currentAbility.onWindUpTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
                 break;
 
             case ACTIVE:
-                if (phaseChanged && oldPhase == AbilityPhase.WINDUP) {
+                if (phaseChanged && (oldPhase == AbilityPhase.WINDUP || oldPhase == AbilityPhase.BURST_DELAY)) {
                     // Just entered ACTIVE phase - lock telegraph position if it was following
                     // This commits the ability to its current target position
                     TelegraphInstance telegraph = currentAbility.getTelegraphInstance();
@@ -205,6 +217,11 @@ public class DataAbilities {
                         }
                     } else if (positionLocked) {
                         releaseLockedPosition();
+                    }
+
+                    // Burst re-fire without replay: let entity-spawning abilities spawn+fire in one step
+                    if (oldPhase == AbilityPhase.BURST_DELAY && !currentAbility.isBurstReplayAnimations()) {
+                        currentAbility.onBurstRefire(npc, target, npc.worldObj);
                     }
 
                     // Play active sound and animation
@@ -240,6 +257,31 @@ public class DataAbilities {
                     handleAbilityCompletion(target);
                     return;
                 }
+
+                // Auto-complete for burst overlap mode (entities fly independently)
+                // This allows entity-spawning abilities to immediately chain next burst
+                // without each type needing to check burst state in their onActiveTick()
+                // Wait until all staggered projectiles have been fired before auto-completing
+                if (currentAbility.isBurstEnabled() && currentAbility.isBurstOverlap()
+                    && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
+                    && currentAbility.getPhase() == AbilityPhase.ACTIVE
+                    && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
+                    currentAbility.signalCompletion();
+                }
+
+                // Check if ability entered burst delay during onActiveTick or overlap auto-complete
+                if (currentAbility.getPhase() == AbilityPhase.BURST_DELAY) {
+                    // Release all locks - free movement/rotation during delay
+                    if (rotationLocked) releaseRotationControl();
+                    if (positionLocked) releaseLockedPosition();
+                    if (hitScanActive) releaseRotationControl();
+                }
+                break;
+
+            case BURST_DELAY:
+                // Free movement and rotation during burst delay
+                if (rotationLocked) releaseRotationControl();
+                if (positionLocked) releaseLockedPosition();
                 break;
 
             case DAZED:

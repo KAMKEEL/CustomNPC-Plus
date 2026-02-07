@@ -62,6 +62,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

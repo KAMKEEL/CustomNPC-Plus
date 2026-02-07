@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.advanced;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilitySlot;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
@@ -60,6 +61,9 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     // Existing preset names for duplicate checking
     private final Set<String> existingPresetNames = new HashSet<>();
+
+    // Pending variant selection
+    private String pendingTypeId = null;
 
     public static int modIndex = 0;
     public static ScrollType scrollType = ScrollType.CNPC;
@@ -197,8 +201,17 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 String displayName = availableTypesScroll.getSelected();
                 String typeId = displayNameToTypeId.get(displayName);
                 if (typeId != null) {
+                    java.util.List<AbilityVariant> variants = AbilityController.Instance.getVariantsForType(typeId);
+                    if (variants.size() > 1) {
+                        pendingTypeId = typeId;
+                        setSubGui(new SubGuiAbilityVariantSelect(variants));
+                        return;
+                    }
                     Ability newAbility = AbilityController.Instance.create(typeId);
                     if (newAbility != null) {
+                        if (variants.size() == 1) {
+                            variants.get(0).apply(newAbility);
+                        }
                         newAbility.setId(UUID.randomUUID().toString());
                         npcSlots.add(AbilitySlot.inline(newAbility));
                         selectedAbilityIndex = npcSlots.size() - 1;
@@ -633,7 +646,24 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if (subgui instanceof SubGuiAbilityEditMode) {
+        if (subgui instanceof SubGuiAbilityVariantSelect) {
+            SubGuiAbilityVariantSelect variantGui = (SubGuiAbilityVariantSelect) subgui;
+            int idx = variantGui.getSelectedIndex();
+            if (idx >= 0 && pendingTypeId != null) {
+                Ability newAbility = AbilityController.Instance.create(pendingTypeId);
+                if (newAbility != null) {
+                    variantGui.getVariants().get(idx).apply(newAbility);
+                    newAbility.setId(UUID.randomUUID().toString());
+                    npcSlots.add(AbilitySlot.inline(newAbility));
+                    selectedAbilityIndex = npcSlots.size() - 1;
+                    updateNpcAbilitiesList();
+                    selectAbilityByIndex(selectedAbilityIndex);
+                    save();
+                }
+            }
+            pendingTypeId = null;
+            initGui();
+        } else if (subgui instanceof SubGuiAbilityEditMode) {
             int mode = ((SubGuiAbilityEditMode) subgui).getResult();
             if (mode < 0) return; // cancelled
 

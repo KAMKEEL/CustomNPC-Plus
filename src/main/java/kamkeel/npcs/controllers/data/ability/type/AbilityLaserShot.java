@@ -64,6 +64,11 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     }
 
     @Override
+    public boolean allowOverlap() {
+        return true;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return false;
     }
@@ -83,30 +88,45 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         return laserWidth * 2.0f; // Make telegraph slightly wider for visibility
     }
 
+    private EntityAbilityLaser spawnLaserEntity(EntityLivingBase caster, EntityLivingBase target, World world) {
+        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
+        EntityAbilityLaser entity = new EntityAbilityLaser(
+            world, caster, target,
+            spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
+            laserWidth,
+            colorData, combatData, lightningData, lifespanData, trajectoryData,
+            expansionSpeed, lingerTicks
+        );
+        entity.setEffects(this.effects);
+        entity.setSourceAbility(this);
+        spawnAbilityEntity(world, entity);
+        return entity;
+    }
+
+    private void fireLaserEntity(EntityAbilityLaser laser, EntityLivingBase target) {
+        if (laser == null || laser.isDead) return;
+        laser.setLockVerticalDirection(true);
+        laser.startMoving(target);
+    }
+
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (world.isRemote && !isPreview()) return;
 
         if (tick == 1) {
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
-            laserEntity = new EntityAbilityLaser(
-                world, caster, target,
-                spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
-                laserWidth,
-                colorData, combatData, lightningData, lifespanData, trajectoryData,
-                expansionSpeed, lingerTicks
-            );
-
+            laserEntity = spawnLaserEntity(caster, target, world);
             if (isPreview()) {
                 laserEntity.setupPreview(caster, laserWidth, colorData, lightningData, expansionSpeed, lifespanData.maxDistance);
             } else {
                 laserEntity.setupCharging(anchorData, windUpTicks);
             }
-
-            laserEntity.setEffects(this.effects);
-            laserEntity.setSourceAbility(this);
-            spawnAbilityEntity(world, laserEntity);
         }
+    }
+
+    @Override
+    public void onBurstRefire(EntityLivingBase caster, EntityLivingBase target, World world) {
+        laserEntity = spawnLaserEntity(caster, target, world);
+        fireLaserEntity(laserEntity, target);
     }
 
     @Override
@@ -121,8 +141,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             return;
         }
 
-        laserEntity.setLockVerticalDirection(true);
-        laserEntity.startMoving(target);
+        fireLaserEntity(laserEntity, target);
     }
 
     @Override

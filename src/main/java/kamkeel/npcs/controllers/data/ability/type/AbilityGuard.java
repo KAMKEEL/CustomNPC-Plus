@@ -70,6 +70,11 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         return false;
     }
 
+    @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
     public enum CounterType {
         FLAT,
         PERCENT;

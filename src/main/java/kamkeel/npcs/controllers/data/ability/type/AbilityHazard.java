@@ -114,6 +114,11 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

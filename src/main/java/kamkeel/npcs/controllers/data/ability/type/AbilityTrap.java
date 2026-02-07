@@ -86,6 +86,11 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

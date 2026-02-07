@@ -64,6 +64,11 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }

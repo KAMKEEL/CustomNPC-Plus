@@ -45,6 +45,9 @@ public class AbilityController implements IAbilityHandler {
     /** External field providers for ability GUI (e.g., DBC Addon). Client-side only. */
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
 
+    /** External variant definitions registered by addons, keyed by typeId. */
+    private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
+
     public AbilityController() {
         registerBuiltinTypes();
     }
@@ -432,13 +435,9 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:sweeper", AbilitySweeper::new);
         registerType("cnpc:projectile", AbilityProjectile::new);
         registerType("cnpc:orb", AbilityOrb::new);
-        registerType("cnpc:dual_orb", AbilityOrbDual::new);
-        registerType("cnpc:orb_barrage", AbilityOrbBarrage::new);
-        registerType("cnpc:dual_disc", AbilityDisc::new);
-        registerType("cnpc:dual_disc", AbilityDiscDual::new);
+        registerType("cnpc:disc", AbilityDisc::new);
         registerType("cnpc:laser_shot", AbilityLaserShot::new);
         registerType("cnpc:beam", AbilityBeam::new);
-        registerType("cnpc:dual_beam", AbilityBeamDual::new);
 
         // Movement abilities
         registerType("cnpc:charge", AbilityCharge::new);
@@ -489,5 +488,42 @@ public class AbilityController implements IAbilityHandler {
     /** Get all registered field providers. */
     public List<IAbilityFieldProvider> getFieldProviders() {
         return fieldProviders;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EXTERNAL VARIANT REGISTRY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Register an external variant for an ability type.
+     * External mods can call this to add variant presets that appear
+     * alongside built-in variants in the variant selection SubGui.
+     *
+     * @param typeId  The ability typeId (e.g., "ability.cnpc.beam")
+     * @param variant The variant to register
+     */
+    public void registerVariant(String typeId, AbilityVariant variant) {
+        externalVariants.computeIfAbsent(typeId, k -> new ArrayList<>()).add(variant);
+    }
+
+    /**
+     * Get all variants for a given ability type (built-in + external).
+     * Returns the combined list of variants from the ability's getVariants()
+     * and any externally registered variants.
+     *
+     * @param typeId The ability typeId
+     * @return Combined list of variants, empty if none
+     */
+    public List<AbilityVariant> getVariantsForType(String typeId) {
+        List<AbilityVariant> result = new ArrayList<>();
+        Ability temp = create(typeId);
+        if (temp != null) {
+            result.addAll(temp.getVariants());
+        }
+        List<AbilityVariant> ext = externalVariants.get(typeId);
+        if (ext != null) {
+            result.addAll(ext);
+        }
+        return result;
     }
 }
