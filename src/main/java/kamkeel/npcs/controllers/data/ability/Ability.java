@@ -393,6 +393,18 @@ public abstract class Ability implements IAbility {
     }
 
     /**
+     * Returns true if the caster is a player (not an NPC).
+     * Use this instead of checking {@code target != null} to make NPC/Player
+     * code paths explicit and readable.
+     * <p>
+     * NPCs always have an aggro target passed to ability methods.
+     * Players never do — they use look direction for aiming instead.
+     */
+    protected final boolean isPlayerCaster(EntityLivingBase caster) {
+        return caster instanceof EntityPlayer;
+    }
+
+    /**
      * Returns true if this ability controls NPC movement during ACTIVE phase.
      * When true, AI pathfinding will be blocked during ability execution.
      * Override in abilities that move the NPC (Charge, Dash, Slam, etc.)

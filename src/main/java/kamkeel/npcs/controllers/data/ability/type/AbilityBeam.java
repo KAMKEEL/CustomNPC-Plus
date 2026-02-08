@@ -164,6 +164,11 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
         return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
+    /**
+     * Create beam entities.
+     * NPC: target is the aggro target — beams will home toward it.
+     * Player: target is null — beams fire in caster's look direction.
+     */
     private EntityAbilityBeam[] createBeamEntities(EntityLivingBase caster, EntityLivingBase target, World world) {
         EntityAbilityBeam[] entities = new EntityAbilityBeam[projectileCount];
         float offsetDist = 1.0f;
@@ -294,7 +299,9 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
 
     @Override
     public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
+        // NPC: telegraph on aggro target position
+        // Player: no telegraph (beam fires in look direction, no fixed position to mark)
+        if (!showTelegraph || telegraphType == TelegraphType.NONE || isPlayerCaster(caster) || target == null) {
             return null;
         }
 

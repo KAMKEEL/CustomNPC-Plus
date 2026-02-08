@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -111,6 +112,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.CIRCLE;
+        this.allowedBy = UserType.NPC_ONLY;
     }
 
     @Override
@@ -202,14 +204,12 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
                 }
                 break;
             case AT_TARGET:
-                // Use telegraph position if available, apply offset
                 if (telegraph != null) {
                     double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
                         minOffset, maxOffset, randomOffset, RANDOM);
                     zoneX = pos[0];
                     zoneY = pos[1];
                     zoneZ = pos[2];
-                    // Update telegraph to show actual hazard position
                     telegraph.setX(zoneX);
                     telegraph.setY(zoneY);
                     telegraph.setZ(zoneZ);

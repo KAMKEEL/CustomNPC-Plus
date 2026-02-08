@@ -87,11 +87,13 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     /**
-     * Locks the charge direction based on current target position.
-     * Called once at windup start - direction won't change even if target moves.
+     * Locks the charge direction. Called once at windup start — direction won't change even if target moves.
+     * NPC: charges toward aggro target.
+     * Player: charges in look direction.
      */
     private void lockChargeDirection(EntityLivingBase caster, EntityLivingBase target) {
-        if (target != null) {
+        if (!isPlayerCaster(caster) && target != null) {
+            // NPC: charge toward aggro target
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             double len = Math.sqrt(dx * dx + dz * dz);
@@ -102,6 +104,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
                 chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
             }
         } else {
+            // Player: charge in look direction
             float yaw = (float) Math.toRadians(caster.rotationYaw);
             chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
         }
@@ -258,9 +261,10 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
             return null;
         }
 
-        // Calculate direction to target at this moment (locked)
+        // NPC: telegraph points toward aggro target
+        // Player: telegraph points in look direction
         float yaw;
-        if (target != null) {
+        if (!isPlayerCaster(caster) && target != null) {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));

@@ -83,7 +83,9 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
             return;
         }
 
-        // Spawn the entity that handles BOTH visuals AND damage
+        // Spawn the sweeper entity that handles BOTH visuals AND damage.
+        // NPC: target is the aggro target — lockOnTarget tracks it during sweep.
+        // Player: target is null — sweep rotates around caster's facing direction, lockOnTarget has no effect.
         activeEntity = new EntityAbilitySweeper(world, caster, target,
             beamLength, beamWidth, beamHeight,
             colorData,

@@ -172,6 +172,11 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
         return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
+    /**
+     * Create orb entities.
+     * NPC: target is the aggro target — orbs will home toward it.
+     * Player: target is null — orbs fire in caster's look direction.
+     */
     private EntityAbilityOrb[] createOrbEntities(EntityLivingBase caster, EntityLivingBase target, World world) {
         EntityAbilityOrb[] entities = new EntityAbilityOrb[projectileCount];
         for (int i = 0; i < projectileCount; i++) {
@@ -302,7 +307,9 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     @Override
     public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
+        // NPC: telegraph on aggro target position
+        // Player: no telegraph (orbs fire in look direction, no fixed position to mark)
+        if (!showTelegraph || telegraphType == TelegraphType.NONE || isPlayerCaster(caster) || target == null) {
             return null;
         }
 

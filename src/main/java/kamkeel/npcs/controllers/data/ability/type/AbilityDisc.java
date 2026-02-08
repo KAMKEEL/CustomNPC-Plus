@@ -169,6 +169,11 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
+    /**
+     * Create disc entities.
+     * NPC: target is the aggro target — discs will home toward it.
+     * Player: target is null — discs fire in caster's look direction.
+     */
     private EntityAbilityDisc[] createDiscEntities(EntityLivingBase caster, EntityLivingBase target, World world) {
         EntityAbilityDisc[] entities = new EntityAbilityDisc[projectileCount];
         for (int i = 0; i < projectileCount; i++) {
@@ -301,7 +306,9 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
 
     @Override
     public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
+        // NPC: telegraph on aggro target position
+        // Player: no telegraph (discs fire in look direction, no fixed position to mark)
+        if (!showTelegraph || telegraphType == TelegraphType.NONE || isPlayerCaster(caster) || target == null) {
             return null;
         }
 

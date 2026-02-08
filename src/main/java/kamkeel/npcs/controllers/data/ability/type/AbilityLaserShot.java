@@ -88,6 +88,11 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         return laserWidth * 2.0f; // Make telegraph slightly wider for visibility
     }
 
+    /**
+     * Spawn laser entity.
+     * NPC: target is the aggro target — laser expands toward it.
+     * Player: target is null — laser expands in caster's look direction.
+     */
     private EntityAbilityLaser spawnLaserEntity(EntityLivingBase caster, EntityLivingBase target, World world) {
         Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
         EntityAbilityLaser entity = new EntityAbilityLaser(

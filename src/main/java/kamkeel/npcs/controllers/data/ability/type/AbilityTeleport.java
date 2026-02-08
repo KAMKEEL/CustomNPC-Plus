@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -72,6 +73,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         this.typeId = "ability.cnpc.teleport";
         this.name = "Teleport";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
+        this.allowedBy = UserType.NPC_ONLY;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
@@ -228,26 +230,8 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
             }
         }
 
-        // No target (player use) - teleport in caster's look direction
-        Vec3 look = caster.getLookVec();
-        switch (mode) {
-            case BEHIND:
-                // Teleport forward in look direction by behindDistance
-                newX = caster.posX + look.xCoord * behindDistance;
-                newZ = caster.posZ + look.zCoord * behindDistance;
-                newY = caster.posY;
-                return Vec3.createVectorHelper(newX, newY, newZ);
-            case SINGLE:
-            case BLINK:
-            default:
-                // Teleport forward in look direction within blinkRadius
-                double dist = Math.min(blinkRadius, maxRange);
-                double offset = (RANDOM.nextDouble() * 0.5 + 0.5) * dist; // 50-100% of max distance
-                newX = caster.posX + look.xCoord * offset;
-                newZ = caster.posZ + look.zCoord * offset;
-                newY = caster.posY;
-                return Vec3.createVectorHelper(newX, newY, newZ);
-        }
+        // NPC-only ability — should not reach here
+        return null;
     }
 
     private Vec3 findSafeDestination(World world, double oldX, double oldY, double oldZ,

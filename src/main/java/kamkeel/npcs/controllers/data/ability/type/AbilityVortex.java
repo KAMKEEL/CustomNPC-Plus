@@ -103,8 +103,9 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
                     }
                 }
             } else {
-                // Single target mode - still check pullRadius
-                if (target != null && !target.isDead) {
+                // NPC single-target mode: pull the aggro target
+                // Player: single-target mode has no effect (no target to pull — use AOE mode instead)
+                if (!isPlayerCaster(caster) && target != null && !target.isDead) {
                     double dist = caster.getDistanceToEntity(target);
                     if (dist <= pullRadius) {
                         getPulledEntities().add(target.getUniqueID());

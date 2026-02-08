@@ -149,9 +149,10 @@ public class AbilityDash extends Ability implements IAbilityDash {
             : DEFENSIVE_DIRECTIONS;
         chosenDirection = directions[RANDOM.nextInt(directions.length)];
 
-        // Calculate dash direction relative to target
+        // NPC: dash direction is relative to aggro target facing
+        // Player: dash direction is relative to look direction
         float baseYaw;
-        if (target != null) {
+        if (!isPlayerCaster(caster) && target != null) {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
