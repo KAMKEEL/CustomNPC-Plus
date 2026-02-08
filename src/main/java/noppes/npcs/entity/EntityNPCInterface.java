@@ -678,6 +678,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (entity instanceof EntityLivingBase)
             attackingEntity = (EntityLivingBase) entity;
 
+        if (faction.isPassive)
+            return false;
+
         if (attackingEntity != null && attackingEntity == getOwner())
             return false;
         else if (attackingEntity instanceof EntityNPCInterface) {
