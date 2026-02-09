@@ -14,4 +14,5 @@ public class EntityType {
     public static final int ARROW = 10;
     public static final int THROWABLE = 11;
     public static final int FISH_HOOK = 12;
+    public static final int ENERGY_PROJECTILE = 13;
 }

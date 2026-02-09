@@ -1,0 +1,27 @@
+package kamkeel.npcs.controllers.data.ability.gui;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.client.gui.builder.FieldType;
+
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+/**
+ * Ability-specific FieldDef factories. These create FieldDef instances
+ * with types that require ability-specific rendering (e.g. EFFECTS_LIST).
+ */
+@SideOnly(Side.CLIENT)
+public class AbilityFieldDefs {
+
+    @SuppressWarnings("unchecked")
+    public static FieldDef effectsListField(String label, Supplier<List<AbilityEffect>> getter, Consumer<List<AbilityEffect>> setter) {
+        return FieldDef.custom(label, FieldType.EFFECTS_LIST,
+            () -> getter.get(),
+            v -> setter.accept((List<AbilityEffect>) v));
+    }
+
+}

@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -10,13 +8,16 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityVortex;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,18 +64,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityVortex(this, callback);
-    }
-
-    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }
@@ -95,29 +84,32 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         pullComplete = false;
         ticksSincePullDamage = 0;
 
-        if (aoe) {
-            AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
-            @SuppressWarnings("unchecked")
-            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+        if (!isPreview()) {
+            if (aoe) {
+                AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+                @SuppressWarnings("unchecked")
+                List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-            int count = 0;
-            for (EntityLivingBase entity : entities) {
-                if (entity == caster) continue;
-                if (entity.isDead) continue;
+                int count = 0;
+                for (EntityLivingBase entity : entities) {
+                    if (entity == caster) continue;
+                    if (entity.isDead) continue;
 
-                double dist = caster.getDistanceToEntity(entity);
-                if (dist <= pullRadius) {
-                    getPulledEntities().add(entity.getUniqueID());
-                    count++;
-                    if (count >= maxTargets) break;
+                    double dist = caster.getDistanceToEntity(entity);
+                    if (dist <= pullRadius) {
+                        getPulledEntities().add(entity.getUniqueID());
+                        count++;
+                        if (count >= maxTargets) break;
+                    }
                 }
-            }
-        } else {
-            // Single target mode - still check pullRadius
-            if (target != null && !target.isDead) {
-                double dist = caster.getDistanceToEntity(target);
-                if (dist <= pullRadius) {
-                    getPulledEntities().add(target.getUniqueID());
+            } else {
+                // NPC single-target mode: pull the aggro target
+                // Player: single-target mode has no effect (no target to pull — use AOE mode instead)
+                if (!isPlayerCaster(caster) && target != null && !target.isDead) {
+                    double dist = caster.getDistanceToEntity(target);
+                    if (dist <= pullRadius) {
+                        getPulledEntities().add(target.getUniqueID());
+                    }
                 }
             }
         }
@@ -125,6 +117,12 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+        if (isPreview()) {
+            // No entities to pull in preview, just run animation for a duration
+            if (tick >= 60) signalCompletion();
+            return;
+        }
+
         if (pullComplete || getPulledEntities().isEmpty()) {
             signalCompletion();
             return;
@@ -149,7 +147,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             double dz = destZ - entity.posZ;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-            if (dist <= 1.0f) {
+            if (dist <= 1.5f) {
                 getPulledEntities().remove(uuid);
                 onTargetArrived(caster, entity, world);
                 continue;
@@ -157,7 +155,10 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
             anyStillPulling = true;
 
-            double factor = pullStrength / dist;
+            // Clamp speed to never exceed half the remaining distance, preventing overshoot/slingshot
+            double maxSpeed = dist * 0.5;
+            double effectiveSpeed = Math.min(pullStrength, maxSpeed);
+            double factor = effectiveSpeed / dist;
             double nextX = dx * factor;
             double nextY = dy * factor * 0.5;
             double nextZ = dz * factor;
@@ -308,5 +309,32 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     public void setPullDamage(float pullDamage) {
         this.pullDamage = pullDamage;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("ability.pullRadius", this::getPullRadius, this::setPullRadius),
+                FieldDef.floatField("ability.pullStrength", this::getPullStrength, this::setPullStrength)
+            ),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
+            ),
+            FieldDef.section("ability.section.aoe"),
+            FieldDef.boolField("gui.enabled", this::isAoe, this::setAoe)
+                .hover("ability.hover.aoe"),
+            FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets)
+                .visibleWhen(this::isAoe),
+            FieldDef.section("ability.section.pullDamage"),
+            FieldDef.boolField("gui.enabled", this::isDamageOnPull, this::setDamageOnPull)
+                .hover("ability.hover.dmgOnPull"),
+            FieldDef.floatField("enchantment.damage", this::getPullDamage, this::setPullDamage)
+                .visibleWhen(this::isDamageOnPull),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
     }
 }

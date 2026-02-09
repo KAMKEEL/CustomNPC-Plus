@@ -3,24 +3,25 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.RotationMode;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.*;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityLaser;
-import net.minecraft.entity.Entity;
+import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityLaserShot;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.api.ability.type.IAbilityLaserShot;
-import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Laser Shot ability: Fast expanding thin line that pierces through targets.
@@ -34,10 +35,12 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     private int lingerTicks = 8;
 
     // Data classes
-    private EnergyColorData colorData = new EnergyColorData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
-    private EnergyCombatData combatData = new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f);
-    private EnergyLightningData lightningData = new EnergyLightningData();
-    private EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);
+    private final EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f);
+    private final EnergyCombatData combatData = new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f);
+    private final EnergyLightningData lightningData = new EnergyLightningData();
+    private final EnergyLifespanData lifespanData = new EnergyLifespanData(40.0f, 100);
+    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
+    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
 
     // Transient state for laser entity (used for movement locking)
     private transient EntityAbilityLaser laserEntity = null;
@@ -50,7 +53,9 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.minRange = 3.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 15;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
+        this.rotationMode = RotationMode.TRACK;
+        this.rotationPhase = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
         // Default built-in animations
@@ -59,14 +64,8 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     }
 
     @Override
-    public boolean hasTypeSettings() {
+    public boolean allowOverlap() {
         return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityLaserShot(this, callback);
     }
 
     @Override
@@ -89,30 +88,65 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         return laserWidth * 2.0f; // Make telegraph slightly wider for visibility
     }
 
+    /**
+     * Spawn laser entity.
+     * NPC: target is the aggro target — laser expands toward it.
+     * Player: target is null — laser expands in caster's look direction.
+     */
+    private EntityAbilityLaser spawnLaserEntity(EntityLivingBase caster, EntityLivingBase target, World world) {
+        Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData);
+        EntityAbilityLaser entity = new EntityAbilityLaser(
+            world, caster, target,
+            spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
+            laserWidth,
+            colorData, combatData, lightningData, lifespanData, trajectoryData,
+            expansionSpeed, lingerTicks
+        );
+        entity.setEffects(this.effects);
+        entity.setSourceAbility(this);
+        spawnAbilityEntity(world, entity);
+        return entity;
+    }
+
+    private void fireLaserEntity(EntityAbilityLaser laser, EntityLivingBase target) {
+        if (laser == null || laser.isDead) return;
+        laser.setLockVerticalDirection(true);
+        laser.startMoving(target);
+    }
+
+    @Override
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+        if (world.isRemote && !isPreview()) return;
+
+        if (tick == 1) {
+            laserEntity = spawnLaserEntity(caster, target, world);
+            if (isPreview()) {
+                laserEntity.setupPreview(caster, laserWidth, colorData, lightningData, expansionSpeed, lifespanData.maxDistance);
+            } else {
+                laserEntity.setupCharging(anchorData, windUpTicks);
+            }
+        }
+    }
+
+    @Override
+    public void onBurstRefire(EntityLivingBase caster, EntityLivingBase target, World world) {
+        laserEntity = spawnLaserEntity(caster, target, world);
+        fireLaserEntity(laserEntity, target);
+    }
+
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
-        double spawnX = caster.posX;
-        double spawnY = caster.posY + caster.getEyeHeight();
-        double spawnZ = caster.posZ;
+        if (laserEntity == null) {
+            signalCompletion();
+            return;
+        }
 
-        laserEntity = new EntityAbilityLaser(
-            world, caster, target,
-            spawnX, spawnY, spawnZ,
-            laserWidth,
-            colorData, combatData, lightningData, lifespanData,
-            expansionSpeed, lingerTicks
-        );
-
-        laserEntity.setEffects(this.effects);
-        world.spawnEntityInWorld(laserEntity);
-
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
+        fireLaserEntity(laserEntity, target);
     }
 
     @Override
@@ -130,6 +164,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override
@@ -146,6 +181,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         nbt.setFloat("laserWidth", laserWidth);
         nbt.setFloat("expansionSpeed", expansionSpeed);
         nbt.setInteger("lingerTicks", lingerTicks);
+        anchorData.writeNBT(nbt);
         colorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
@@ -157,6 +193,7 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
         this.laserWidth = nbt.hasKey("laserWidth") ? nbt.getFloat("laserWidth") : 0.3f;
         this.expansionSpeed = nbt.hasKey("expansionSpeed") ? nbt.getFloat("expansionSpeed") : 3.0f;
         this.lingerTicks = nbt.hasKey("lingerTicks") ? nbt.getInteger("lingerTicks") : 8;
+        anchorData.readNBT(nbt);
         colorData.readNBT(nbt);
         combatData.readNBT(nbt);
         lightningData.readNBT(nbt);
@@ -210,23 +247,78 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
     public float getLightningRadius() { return lightningData.lightningRadius; }
     public void setLightningRadius(float lightningRadius) { this.lightningData.lightningRadius = lightningRadius; }
 
-    @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
+    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
 
-        EntityAbilityLaser laser = new EntityAbilityLaser(npc.worldObj);
-        laser.setupPreview(npc, laserWidth, colorData, lightningData, expansionSpeed, lifespanData.maxDistance);
-        return laser;
+    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
+    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
+    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
+    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
+    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
+    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
+    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
+    public int getAnchorPoint() {
+        return anchorData.anchorPoint.ordinal();
     }
+    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
 
     @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 60) : 60;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
-    public boolean spawnPreviewDuringWindup() {
-        return false; // Laser has no charging, spawns at active phase
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            // Type tab
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.row(
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+                FieldDef.floatField("ability.knockbackUp", this::getKnockbackUp, this::setKnockbackUp)
+            ),
+            FieldDef.section("ability.section.beam"),
+            FieldDef.row(
+                FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth),
+                FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed)
+            ),
+            FieldDef.row(
+                FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks),
+                FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            ),
+            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
+
+            // Visual tab
+            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
+                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("ability.anchor.offsetX", this::getAnchorOffsetX, this::setAnchorOffsetX),
+                FieldDef.floatField("ability.anchor.offsetY", this::getAnchorOffsetY, this::setAnchorOffsetY)
+            ).tab("ability.tab.visual"),
+            FieldDef.floatField("ability.anchor.offsetZ", this::getAnchorOffsetZ, this::setAnchorOffsetZ)
+                .tab("ability.tab.visual"),
+            FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),
+            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                    .visibleWhen(this::isOuterColorEnabled),
+                FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                    .range(0, 1).visibleWhen(this::isOuterColorEnabled)
+            ).tab("ability.tab.visual"),
+            FieldDef.section("ability.section.effects").tab("ability.tab.visual"),
+            FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect).tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
+                    .range(0.01f, 100f).visibleWhen(this::hasLightningEffect),
+                FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
+                    .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
+            ).tab("ability.tab.visual")
+        ));
     }
 }

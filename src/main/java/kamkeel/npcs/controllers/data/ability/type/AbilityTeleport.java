@@ -1,10 +1,9 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -14,13 +13,17 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTeleport;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -35,7 +38,17 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     public enum TeleportMode {
         BLINK,
         BEHIND,
-        SINGLE
+        SINGLE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case BLINK: return "ability.teleport.blink";
+                case BEHIND: return "ability.teleport.behind";
+                case SINGLE: return "ability.teleport.single";
+                default: return name();
+            }
+        }
     }
 
     private static final Random RANDOM = new Random();
@@ -60,6 +73,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         this.typeId = "ability.cnpc.teleport";
         this.name = "Teleport";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
+        this.allowedBy = UserType.NPC_ONLY;
         this.maxRange = 30.0f;
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
@@ -73,15 +87,8 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityTeleport(this, callback);
+    public boolean hasDamage() {
+        return false;
     }
 
     @Override
@@ -123,7 +130,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     }
 
     private void performBlink(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         double oldX = caster.posX;
         double oldY = caster.posY;
@@ -132,36 +139,47 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         Vec3 destination = calculateDestination(caster, target, world);
         if (destination == null) return;
 
-        boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
-        if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + caster.getEyeHeight(), oldZ,
-            destination.xCoord, destination.yCoord + caster.getEyeHeight(), destination.zCoord)) {
-            destination = findValidPositionAlongLine(world, caster, oldX, oldY, oldZ,
+        if (!isPreview()) {
+            boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
+            if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + caster.getEyeHeight(), oldZ,
+                destination.xCoord, destination.yCoord + caster.getEyeHeight(), destination.zCoord)) {
+                destination = findValidPositionAlongLine(world, caster, oldX, oldY, oldZ,
+                    destination.xCoord, destination.yCoord, destination.zCoord);
+                if (destination == null) return;
+            }
+
+            destination = findSafeDestination(world, oldX, oldY, oldZ,
                 destination.xCoord, destination.yCoord, destination.zCoord);
             if (destination == null) return;
+
+            // Damage at origin
+            if (damageAtStart) {
+                dealDamageAt(caster, world, oldX, oldY, oldZ);
+            }
+
+            // Spawn particles at origin
+            spawnTeleportParticles(world, oldX, oldY, oldZ);
         }
-
-        destination = findSafeDestination(world, oldX, oldY, oldZ,
-            destination.xCoord, destination.yCoord, destination.zCoord);
-        if (destination == null) return;
-
-        // Damage at origin
-        if (damageAtStart) {
-            dealDamageAt(caster, world, oldX, oldY, oldZ);
-        }
-
-        // Spawn particles at origin
-        spawnTeleportParticles(world, oldX, oldY, oldZ);
 
         // Teleport
-        caster.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        if (isPreview()) {
+            caster.setPosition(destination.xCoord, destination.yCoord, destination.zCoord);
+            caster.prevPosX = destination.xCoord;
+            caster.prevPosY = destination.yCoord;
+            caster.prevPosZ = destination.zCoord;
+        } else {
+            caster.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        }
         caster.fallDistance = 0;
 
-        // Spawn particles at destination
-        spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
+        if (!isPreview()) {
+            // Spawn particles at destination
+            spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
 
-        // Damage at destination
-        if (damageAtEnd) {
-            dealDamageAt(caster, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            // Damage at destination
+            if (damageAtEnd) {
+                dealDamageAt(caster, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            }
         }
 
         // Face target after teleport
@@ -212,26 +230,8 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
             }
         }
 
-        // No target (player use) - teleport in caster's look direction
-        Vec3 look = caster.getLookVec();
-        switch (mode) {
-            case BEHIND:
-                // Teleport forward in look direction by behindDistance
-                newX = caster.posX + look.xCoord * behindDistance;
-                newZ = caster.posZ + look.zCoord * behindDistance;
-                newY = caster.posY;
-                return Vec3.createVectorHelper(newX, newY, newZ);
-            case SINGLE:
-            case BLINK:
-            default:
-                // Teleport forward in look direction within blinkRadius
-                double dist = Math.min(blinkRadius, maxRange);
-                double offset = (RANDOM.nextDouble() * 0.5 + 0.5) * dist; // 50-100% of max distance
-                newX = caster.posX + look.xCoord * offset;
-                newZ = caster.posZ + look.zCoord * offset;
-                newY = caster.posY;
-                return Vec3.createVectorHelper(newX, newY, newZ);
-        }
+        // NPC-only ability — should not reach here
+        return null;
     }
 
     private Vec3 findSafeDestination(World world, double oldX, double oldY, double oldZ,
@@ -554,5 +554,44 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     public void setDamageRadius(float damageRadius) {
         this.damageRadius = damageRadius;
+    }
+
+    @Override
+    public int getMaxPreviewDuration() {
+        int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
+        return blinkLimit * blinkDelayTicks + 10;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.enumField("ability.mode", TeleportMode.class, this::getModeEnum, this::setModeEnum),
+            FieldDef.floatField("ability.blinkRadius", this::getBlinkRadius, this::setBlinkRadius)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.row(
+                FieldDef.intField("ability.blinkCount", this::getBlinkCount, this::setBlinkCount)
+                    .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK),
+                FieldDef.intField("ability.blinkDelay", this::getBlinkDelayTicks, this::setBlinkDelayTicks)
+                    .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK)
+            ),
+            FieldDef.floatField("ability.behindDistance", this::getBehindDistance, this::setBehindDistance)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BEHIND),
+            FieldDef.boolField("ability.lineOfSight", this::isRequireLineOfSight, this::setRequireLineOfSight)
+                .hover("ability.hover.lineOfSight")
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius)
+            ),
+            FieldDef.row(
+                FieldDef.boolField("ability.damageAtStart", this::isDamageAtStart, this::setDamageAtStart)
+                    .hover("ability.hover.dmgAtStart"),
+                FieldDef.boolField("ability.damageAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
+                    .hover("ability.hover.dmgAtEnd")
+            ),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
     }
 }

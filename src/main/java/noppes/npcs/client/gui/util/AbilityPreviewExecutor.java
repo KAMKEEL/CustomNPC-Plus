@@ -4,15 +4,10 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.PreviewEntityHandler;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
-import kamkeel.npcs.entity.EntityAbilityBeam;
-import kamkeel.npcs.entity.EntityAbilityDisc;
-import kamkeel.npcs.entity.EntityAbilityLaser;
-import kamkeel.npcs.entity.EntityAbilityOrb;
-import kamkeel.npcs.entity.EntityAbilityProjectile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.world.World;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -25,38 +20,39 @@ import java.util.List;
 /**
  * Client-side executor for previewing abilities in the GUI.
  *
- * Lifecycle:
- * 1. WINDUP phase - plays windup animation, entities spawn and charge
- * 2. ACTIVE phase - plays active animation, entities fire and move
- * 3. EXTENDED phase - continues for +100 ticks after animations to see results
- * 4. IDLE - preview complete
+ * Uses unified execution: calls the REAL ability methods (onWindUpTick, onExecute, onActiveTick)
+ * with previewMode=true. Abilities skip damage/effects/sounds when isPreview() returns true.
  *
- * Features:
- * - Invisible fake target NPC placed in front of the preview NPC for targeting
- * - NPC movement tracking for abilities that move the NPC (e.g. slam)
+ * Lifecycle:
+ * 1. WINDUP phase - real onWindUpTick() called, telegraph shown, entities may spawn
+ * 2. ACTIVE phase - real onExecute() then onActiveTick() called, physics simulated
+ * 3. EXTENDED phase - 100 extra ticks to observe results (entities continue updating)
+ * 4. IDLE - preview complete
  */
 @SideOnly(Side.CLIENT)
-public class AbilityPreviewExecutor {
+public class AbilityPreviewExecutor implements PreviewEntityHandler {
 
     // ==================== PREVIEW STATE ====================
     private Ability previewAbility;
     private EntityNPCInterface previewNpc;
-    private AbilityPhase phase = AbilityPhase.IDLE;
+
+    /** Executor's own phase tracking (separate from ability.getPhase()) */
+    private enum ExecutorPhase { IDLE, WINDUP, ACTIVE, EXTENDED }
+    private ExecutorPhase executorPhase = ExecutorPhase.IDLE;
+
     private int currentTick = 0;
     private boolean playing = false;
     private boolean paused = false;
 
     // ==================== TIMING ====================
     private static final int EXTENDED_DURATION = 100;
-    private int activeDuration = 40;
+    private int maxPreviewDuration = 200;
 
     // ==================== FAKE TARGET ====================
-    /** Invisible fake target NPC for ability targeting (placed 5 blocks in front of preview NPC) */
     private EntityNPCInterface fakeTarget;
     private static final double TARGET_DISTANCE = 5.0;
 
     // ==================== NPC START POSITION ====================
-    /** Saved NPC position for restoring after movement abilities */
     private double npcStartX, npcStartY, npcStartZ;
 
     // ==================== PREVIEW CONTENT ====================
@@ -74,63 +70,69 @@ public class AbilityPreviewExecutor {
     }
 
     /**
-     * Start previewing an ability.
+     * Start previewing an ability using unified execution.
+     * Sets previewMode=true on the ability, then calls its real methods.
      */
     public void startPreview(Ability ability, EntityNPCInterface npc) {
         stop();
 
         this.previewAbility = ability;
         this.previewNpc = npc;
-        this.phase = AbilityPhase.WINDUP;
         this.currentTick = 0;
         this.playing = true;
         this.paused = false;
-        this.activeDuration = ability.getPreviewActiveDuration();
+        this.maxPreviewDuration = ability.getMaxPreviewDuration();
 
         // Save NPC start position for restoring later
         this.npcStartX = npc.posX;
         this.npcStartY = npc.posY;
         this.npcStartZ = npc.posZ;
 
+        // Enable preview mode on the ability
+        ability.setPreviewMode(true);
+        ability.setPreviewEntityHandler(this);
+
         // Create invisible fake target NPC for targeting
         createFakeTarget(npc);
-
-        // Set preview target on the ability
-        ability.setPreviewTarget(fakeTarget);
 
         // Start tracking NPC movement
         if (parentGui != null) {
             parentGui.startTrackingMovement();
         }
 
-        // Create telegraph for preview
-        previewTelegraph = ability.createTelegraph(npc, fakeTarget);
+        // Use the ability's real start() method with the fake target
+        ability.start(fakeTarget);
 
-        // Start windup animation
-        Animation windUpAnim = ability.getWindUpAnimation();
-        if (windUpAnim != null) {
-            AnimationData data = npc.display.animationData;
-            data.setEnabled(true);
-            data.setAnimation(windUpAnim);
-            data.animation.paused = false;
-        }
+        if (ability.getWindUpTicks() <= 0) {
+            // No windup — go straight to active
+            this.executorPhase = ExecutorPhase.ACTIVE;
+            transitionToActive();
+        } else {
+            // Normal windup flow
+            this.executorPhase = ExecutorPhase.WINDUP;
 
-        // Spawn preview entity on first tick if ability spawns during windup
-        if (ability.spawnPreviewDuringWindup()) {
-            spawnPreviewEntity();
+            // Create telegraph for preview
+            previewTelegraph = ability.createTelegraph(npc, fakeTarget);
+
+            // Start windup animation
+            Animation windUpAnim = ability.getWindUpAnimation();
+            if (windUpAnim != null) {
+                AnimationData data = npc.display.animationData;
+                data.setEnabled(true);
+                data.setAnimation(windUpAnim);
+                data.animation.paused = false;
+            }
         }
     }
 
     /**
      * Create an invisible fake target NPC placed in front of the preview NPC.
-     * This entity is NOT rendered - it only exists for ability targeting logic.
      */
     private void createFakeTarget(EntityNPCInterface npc) {
         if (npc.worldObj == null) return;
 
         try {
             fakeTarget = new EntityCustomNpc(npc.worldObj);
-            // Position target in front of NPC based on its facing direction
             float facingYaw = GuiAbilityInterface.NPC_FACING_YAW;
             double yawRad = Math.toRadians(facingYaw);
             double targetX = npc.posX - Math.sin(yawRad) * TARGET_DISTANCE;
@@ -145,15 +147,12 @@ public class AbilityPreviewExecutor {
         }
     }
 
-    /**
-     * Get the fake target entity for abilities that need a target.
-     */
     public EntityLivingBase getFakeTarget() {
         return fakeTarget;
     }
 
     public void play() {
-        if (previewAbility == null || phase == AbilityPhase.IDLE) {
+        if (previewAbility == null || executorPhase == ExecutorPhase.IDLE) {
             return;
         }
         playing = true;
@@ -170,6 +169,9 @@ public class AbilityPreviewExecutor {
     public void pause() {
         paused = true;
 
+        // Immediately sync prevPos to pos for NPC and all entities to prevent interpolation jitter
+        syncPrevPositions();
+
         if (previewNpc != null) {
             AnimationData data = previewNpc.display.animationData;
             if (data.animation != null) {
@@ -178,10 +180,37 @@ public class AbilityPreviewExecutor {
         }
     }
 
+    /**
+     * Sync prevPos to pos for the NPC and all preview entities.
+     * Prevents rendering interpolation jitter when standing still or paused.
+     */
+    private void syncPrevPositions() {
+        if (previewNpc != null) {
+            previewNpc.prevPosX = previewNpc.posX;
+            previewNpc.prevPosY = previewNpc.posY;
+            previewNpc.prevPosZ = previewNpc.posZ;
+        }
+        for (Entity entity : previewEntities) {
+            if (entity != null && !entity.isDead) {
+                entity.prevPosX = entity.posX;
+                entity.prevPosY = entity.posY;
+                entity.prevPosZ = entity.posZ;
+            }
+        }
+    }
+
     public void stop() {
+        // Clean up the ability
+        if (previewAbility != null) {
+            previewAbility.cleanup();
+            previewAbility.setPreviewMode(false);
+            previewAbility.setPreviewEntityHandler(null);
+            previewAbility.reset();
+        }
+
         playing = false;
         paused = false;
-        phase = AbilityPhase.IDLE;
+        executorPhase = ExecutorPhase.IDLE;
         currentTick = 0;
 
         previewTelegraph = null;
@@ -203,9 +232,11 @@ public class AbilityPreviewExecutor {
             previewNpc.prevPosX = npcStartX;
             previewNpc.prevPosY = npcStartY;
             previewNpc.prevPosZ = npcStartZ;
+            previewNpc.motionX = 0;
+            previewNpc.motionY = 0;
+            previewNpc.motionZ = 0;
         }
 
-        // Remove fake target
         fakeTarget = null;
 
         if (previewNpc != null) {
@@ -216,12 +247,23 @@ public class AbilityPreviewExecutor {
     }
 
     /**
-     * Tick the preview forward.
+     * Tick the preview forward. Calls real ability methods.
      */
     public void tick() {
-        if (!playing || paused || previewAbility == null || previewNpc == null) {
+        if (!playing || previewAbility == null || previewNpc == null) {
             return;
         }
+
+        if (paused) {
+            // Sync prevPos to pos for NPC and all entities to prevent interpolation jitter while paused
+            syncPrevPositions();
+            return;
+        }
+
+        // Sync NPC's prevPos to current pos BEFORE any updates to prevent jitter when standing still
+        previewNpc.prevPosX = previewNpc.posX;
+        previewNpc.prevPosY = previewNpc.posY;
+        previewNpc.prevPosZ = previewNpc.posZ;
 
         currentTick++;
 
@@ -231,14 +273,14 @@ public class AbilityPreviewExecutor {
 
         tickEntities();
 
-        switch (phase) {
+        switch (executorPhase) {
             case WINDUP:
                 tickWindup();
                 break;
             case ACTIVE:
                 tickActive();
                 break;
-            case IDLE:
+            case EXTENDED:
                 tickExtended();
                 break;
             default:
@@ -247,7 +289,8 @@ public class AbilityPreviewExecutor {
     }
 
     private void tickWindup() {
-        previewAbility.onPreviewWindUpTick(previewNpc, currentTick);
+        // Call the REAL windup tick method
+        previewAbility.onWindUpTick(previewNpc, fakeTarget, previewNpc.worldObj, currentTick);
 
         if (currentTick >= previewAbility.getWindUpTicks()) {
             transitionToActive();
@@ -255,35 +298,41 @@ public class AbilityPreviewExecutor {
     }
 
     private void tickActive() {
-        previewAbility.onPreviewActiveTick(previewNpc, currentTick);
+        // Call the REAL active tick method
+        previewAbility.onActiveTick(previewNpc, fakeTarget, previewNpc.worldObj, currentTick);
 
-        if (currentTick == 1 && !previewAbility.spawnPreviewDuringWindup()) {
-            spawnPreviewEntity();
-            fireEntities();
+        // Simulate physics for movement abilities
+        simulatePhysics();
+
+        // Check if the ability signaled completion (phase went to IDLE)
+        if (previewAbility.getPhase() == AbilityPhase.IDLE) {
+            transitionToExtended();
+            return;
         }
 
-        if (currentTick >= activeDuration) {
+        // Safety timeout
+        if (currentTick >= maxPreviewDuration) {
             transitionToExtended();
         }
     }
 
     private void tickExtended() {
+        // Continue ticking entities so they can finish their animations
         if (currentTick >= EXTENDED_DURATION) {
             playing = false;
         }
     }
 
     private void transitionToActive() {
-        phase = AbilityPhase.ACTIVE;
+        executorPhase = ExecutorPhase.ACTIVE;
         currentTick = 0;
 
         previewTelegraph = null;
 
-        // Notify ability of execution (for movement abilities like Slam/Charge/Dash)
-        previewAbility.onPreviewExecute(previewNpc);
+        // Call the REAL onExecute method (fires entities, initiates movement, etc.)
+        previewAbility.onExecute(previewNpc, fakeTarget, previewNpc.worldObj);
 
-        fireEntities();
-
+        // Start active animation
         Animation activeAnim = previewAbility.getActiveAnimation();
         if (activeAnim != null && previewNpc != null) {
             AnimationData data = previewNpc.display.animationData;
@@ -293,7 +342,7 @@ public class AbilityPreviewExecutor {
     }
 
     private void transitionToExtended() {
-        phase = AbilityPhase.IDLE;
+        executorPhase = ExecutorPhase.EXTENDED;
         currentTick = 0;
 
         if (previewNpc != null) {
@@ -302,26 +351,40 @@ public class AbilityPreviewExecutor {
         }
     }
 
-    private void spawnPreviewEntity() {
-        Entity entity = previewAbility.createPreviewEntity(previewNpc);
-        if (entity != null) {
-            previewEntities.add(entity);
-            if (parentGui != null) {
-                parentGui.addPreviewEntity(entity);
-            }
-        }
-    }
+    /**
+     * Simulate basic physics for movement abilities (Slam, Charge, Dash).
+     * Applies gravity, drag, and ground clamping to NPC position.
+     */
+    private void simulatePhysics() {
+        if (!previewAbility.hasAbilityMovement()) return;
+        if (previewNpc == null) return;
 
-    private void fireEntities() {
-        for (Entity entity : previewEntities) {
-            if (entity instanceof EntityAbilityOrb) {
-                ((EntityAbilityOrb) entity).startPreviewFiring();
-            } else if (entity instanceof EntityAbilityBeam) {
-                ((EntityAbilityBeam) entity).startPreviewFiring();
-            } else if (entity instanceof EntityAbilityDisc) {
-                ((EntityAbilityDisc) entity).startPreviewFiring();
-            }
+        // Save previous position for interpolation
+        previewNpc.prevPosX = previewNpc.posX;
+        previewNpc.prevPosY = previewNpc.posY;
+        previewNpc.prevPosZ = previewNpc.posZ;
+
+        // Apply velocity
+        previewNpc.posX += previewNpc.motionX;
+        previewNpc.posY += previewNpc.motionY;
+        previewNpc.posZ += previewNpc.motionZ;
+
+        // Apply gravity
+        previewNpc.motionY -= 0.08;
+        previewNpc.motionY *= 0.98;
+
+        // Apply horizontal drag
+        previewNpc.motionX *= 0.91;
+        previewNpc.motionZ *= 0.91;
+
+        // Ground clamp: if below start position and falling, stop
+        if (previewNpc.posY < npcStartY && previewNpc.motionY < 0) {
+            previewNpc.posY = npcStartY;
+            previewNpc.motionY = 0;
+            previewNpc.onGround = true;
         }
+
+        previewNpc.fallDistance = 0;
     }
 
     private void tickEntities() {
@@ -339,12 +402,38 @@ public class AbilityPreviewExecutor {
         }
     }
 
+    // ==================== PreviewEntityHandler ====================
+
+    @Override
+    public void onEntitySpawned(Entity entity) {
+        if (entity == null) return;
+        previewEntities.add(entity);
+        if (parentGui != null) {
+            parentGui.addPreviewEntity(entity);
+        }
+    }
+
+    @Override
+    public void onEntityRemoved(Entity entity) {
+        if (entity == null) return;
+        previewEntities.remove(entity);
+        if (parentGui != null) {
+            parentGui.removePreviewEntity(entity);
+        }
+    }
+
     // ==================== GETTERS ====================
 
     public boolean isPlaying() { return playing; }
     public boolean isPaused() { return paused; }
     public boolean isActive() { return playing || paused; }
-    public AbilityPhase getPhase() { return phase; }
+    public AbilityPhase getPhase() {
+        switch (executorPhase) {
+            case WINDUP: return AbilityPhase.WINDUP;
+            case ACTIVE: return AbilityPhase.ACTIVE;
+            default: return AbilityPhase.IDLE;
+        }
+    }
     public int getCurrentTick() { return currentTick; }
     public TelegraphInstance getTelegraph() { return previewTelegraph; }
     public List<Entity> getPreviewEntities() { return previewEntities; }
@@ -356,11 +445,11 @@ public class AbilityPreviewExecutor {
             return "Stopped";
         } else if (paused) {
             return "Paused";
-        } else if (phase == AbilityPhase.WINDUP) {
+        } else if (executorPhase == ExecutorPhase.WINDUP) {
             return "Windup: " + currentTick + "/" + (previewAbility != null ? previewAbility.getWindUpTicks() : 0);
-        } else if (phase == AbilityPhase.ACTIVE) {
-            return "Active: " + currentTick + "/" + activeDuration;
-        } else if (phase == AbilityPhase.IDLE && playing) {
+        } else if (executorPhase == ExecutorPhase.ACTIVE) {
+            return "Active: " + currentTick + "/" + maxPreviewDuration;
+        } else if (executorPhase == ExecutorPhase.EXTENDED) {
             return "Extended: " + currentTick + "/" + EXTENDED_DURATION;
         }
         return "";

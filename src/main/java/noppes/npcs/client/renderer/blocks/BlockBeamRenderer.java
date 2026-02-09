@@ -26,8 +26,8 @@ public class BlockBeamRenderer extends BlockRendererInterface {
     public void renderTileEntityAt(TileEntity var1, double var2, double var4,
                                    double var6, float var8) {
         TileVariant tile = (TileVariant) var1;
-        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
+        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glTranslatef((float) var2 + 0.5f, (float) var4 + 1.5f, (float) var6 + 0.5f);
         //GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);

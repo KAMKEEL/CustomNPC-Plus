@@ -11,13 +11,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityShockwave;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityShockwave;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -40,19 +40,10 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.cooldownTicks = 0;
         this.windUpTicks = 25;
         this.telegraphType = TelegraphType.CIRCLE;
-        this.windUpSound = "random.explode";
+        this.windUpSound = "game.tnt.primed";
         this.activeSound = "random.explode";
-    }
-
-    @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityShockwave(this, callback);
+        this.windUpAnimationName = "Ability_Shockwave_Windup";
+        this.activeAnimationName = "Ability_Shockwave_Active";
     }
 
     @Override
@@ -72,58 +63,58 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        // Shockwave is instant - apply effect immediately after windup
+        if (!isPreview()) {
+            // Shockwave is instant - apply effect immediately after windup
 
-        // Get all entities in radius
-        AxisAlignedBB box = caster.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+            // Get all entities in radius
+            AxisAlignedBB box = caster.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
+            @SuppressWarnings("unchecked")
+            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-        int count = 0;
-        for (EntityLivingBase entity : entities) {
-            if (entity == caster) continue;
-            if (entity.isDead) continue;
+            int count = 0;
+            for (EntityLivingBase entity : entities) {
+                if (entity == caster) continue;
+                if (entity.isDead) continue;
 
-            double dist = caster.getDistanceToEntity(entity);
-            if (dist > pushRadius) continue;
+                double dist = caster.getDistanceToEntity(entity);
+                if (dist > pushRadius) continue;
 
-            count++;
-            if (count > maxTargets) break;
+                count++;
+                if (count > maxTargets) break;
 
-            // Calculate push direction (away from caster)
-            double dx = entity.posX - caster.posX;
-            double dz = entity.posZ - caster.posZ;
-            double len = Math.sqrt(dx * dx + dz * dz);
+                // Calculate push direction (away from caster)
+                double dx = entity.posX - caster.posX;
+                double dz = entity.posZ - caster.posZ;
+                double len = Math.sqrt(dx * dx + dz * dz);
 
-            if (len > 0) {
-                dx /= len;
-                dz /= len;
-            } else {
-                // Entity is directly on top of caster, push in random direction
-                double angle = Math.random() * Math.PI * 2;
-                dx = Math.cos(angle);
-                dz = Math.sin(angle);
-            }
+                if (len > 0) {
+                    dx /= len;
+                    dz /= len;
+                } else {
+                    // Entity is directly on top of caster, push in random direction
+                    double angle = Math.random() * Math.PI * 2;
+                    dx = Math.cos(angle);
+                    dz = Math.sin(angle);
+                }
 
-            // Scale knockback by distance (closer = stronger)
-            float distFactor = 1.0f - (float) (dist / pushRadius) * 0.5f;
-            float finalPush = pushStrength * distFactor;
-            // Apply damage with custom knockback direction
-            boolean wasHit = applyAbilityDamageWithDirection(caster, entity, damage * distFactor, finalPush, dx, dz);
+                // Scale knockback by distance (closer = stronger)
+                float distFactor = 1.0f - (float) (dist / pushRadius) * 0.5f;
+                float finalPush = pushStrength * distFactor;
+                // Apply damage with custom knockback direction
+                boolean wasHit = applyAbilityDamageWithDirection(caster, entity, damage * distFactor, finalPush, dx, dz);
 
-            // Apply effects if hit connected
-            if (wasHit) {
-                applyEffects(entity);
+                // Apply effects if hit connected
+                if (wasHit) {
+                    applyEffects(entity);
+                }
             }
         }
-
-        // Shockwave completes instantly
-        signalCompletion();
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Shockwave is instant - nothing to do per-tick
+        if (tick == 10)
+            signalCompletion();
     }
 
     @Override
@@ -175,4 +166,18 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.maxTargets = maxTargets;
     }
 
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.section("ability.section.push"),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getPushRadius, this::setPushRadius),
+                FieldDef.floatField("gui.strength", this::getPushStrength, this::setPushStrength)
+            ),
+            FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
+    }
 }

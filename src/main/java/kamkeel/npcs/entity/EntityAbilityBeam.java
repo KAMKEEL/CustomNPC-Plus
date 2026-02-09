@@ -1,6 +1,5 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -27,12 +26,6 @@ import java.util.List;
  */
 public class EntityAbilityBeam extends EntityAbilityProjectile {
 
-    // Beam-specific movement properties
-    private float speed = 0.5f;
-    private boolean homing = true;
-    private float homingStrength = 0.35f;  // Increased from 0.15 for better tracking
-    private float homingRange = 20.0f;
-
     // Beam shape properties
     private float beamWidth = 0.3f;
     private float headSize = 0.5f;
@@ -57,7 +50,6 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     private int chargeDuration = 40;
     private int chargeTick = 0;
     private float chargeOffsetDistance = 1.0f;
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
 
     // Trail fading for non-anchored beams (comet effect)
     private boolean fadeTrail = false;
@@ -108,22 +100,20 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
      *                     If false, beam is free-moving with trailing length (no tail orb).
      */
     public EntityAbilityBeam(World world, EntityLivingBase owner, EntityLivingBase target,
-                              double x, double y, double z,
-                              float beamWidth, float headSize,
-                              EnergyColorData color, EnergyCombatData combat,
-                              EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan,
-                              boolean anchoredMode) {
+                             double x, double y, double z,
+                             float beamWidth, float headSize,
+                             EnergyDisplayData display, EnergyCombatData combat,
+                             EnergyHomingData homing, EnergyLightningData lightning,
+                             EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
+                             boolean anchoredMode) {
         super(world);
 
         // Initialize base properties via parent
-        initProjectile(owner, target, x, y, z, headSize, color, combat, lightning, lifespan);
+        initProjectile(owner, target, x, y, z, headSize, display, combat, lightning, lifespan, trajectory);
 
         // Beam-specific properties from homing data
-        this.speed = homing.speed;
-        this.homing = homing.homing;
-        this.homingStrength = homing.homingStrength;
-        this.homingRange = homing.homingRange;
+
+        this.homingData = homing;
         this.beamWidth = beamWidth;
         this.headSize = headSize;
 
@@ -153,16 +143,16 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             double dz = target.posZ - z;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
-                this.motionX = (dx / len) * speed;
-                this.motionY = (dy / len) * speed;
-                this.motionZ = (dz / len) * speed;
+                this.motionX = (dx / len) * getSpeed();
+                this.motionY = (dy / len) * getSpeed();
+                this.motionZ = (dz / len) * getSpeed();
             }
         } else {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
-            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            this.motionY = -Math.sin(pitch) * speed;
-            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            this.motionY = -Math.sin(pitch) * getSpeed();
+            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         }
     }
 
@@ -178,7 +168,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.motionZ = 0;
     }
 
-    public void setupPreview(EntityLivingBase owner, float beamWidth, float headSize, EnergyColorData color, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
+    public void setupPreview(EntityLivingBase owner, float beamWidth, float headSize, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -186,15 +176,8 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.beamWidth = beamWidth;
         this.headSize = headSize;
         this.size = headSize;
-        this.innerColor = color.innerColor;
-        this.outerColor = color.outerColor;
-        this.outerColorEnabled = color.outerColorEnabled;
-        this.outerColorWidth = color.outerColorWidth;
-        this.outerColorAlpha = color.outerColorAlpha;
-        this.rotationSpeed = color.rotationSpeed;
-        this.lightningEffect = lightning.lightningEffect;
-        this.lightningDensity = lightning.lightningDensity;
-        this.lightningRadius = lightning.lightningRadius;
+        this.displayData = display;
+        this.lightningData = lightning;
 
         // Set charging state
         this.setCharging(true);
@@ -239,26 +222,41 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         setCharging(false);
 
-        // Update start position to current position
+        // Origin (tail) stays at the charged position
         startX = posX;
         startY = posY;
         startZ = posZ;
+
+        // Reset head offset to origin
+        headOffsetX = 0;
+        headOffsetY = 0;
+        headOffsetZ = 0;
+        prevHeadOffsetX = 0;
+        prevHeadOffsetY = 0;
+        prevHeadOffsetZ = 0;
+
+        // Origin no longer follows owner after firing
+        attachedToOwner = false;
 
         // Sync prev position to prevent visual jump on first frame
         prevPosX = posX;
         prevPosY = posY;
         prevPosZ = posZ;
 
+        // Reset trail
+        trailPoints.clear();
+        trailPointAges.clear();
+        trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
+
         // Fire forward based on owner facing direction
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = 0; // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            motionY = -Math.sin(pitch) * speed;
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            motionX = -Math.sin(yaw) * getSpeed();
+            motionY = 0;
+            motionZ = Math.cos(yaw) * getSpeed();
         } else {
-            motionX = speed;
+            motionX = getSpeed();
             motionY = 0;
             motionZ = 0;
         }
@@ -301,7 +299,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         if (fadeTrail) trailPointAges.add(0);
 
         // Calculate velocity toward target (head starts at origin = startX/Y/Z)
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
 
         if (target != null) {
             double dx = target.posX - startX;
@@ -309,16 +307,16 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             double dz = target.posZ - startZ;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
-                motionX = (dx / len) * speed;
-                motionY = (dy / len) * speed;
-                motionZ = (dz / len) * speed;
+                motionX = (dx / len) * getSpeed();
+                motionY = (dy / len) * getSpeed();
+                motionZ = (dz / len) * getSpeed();
             }
         } else if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * speed;
-            motionY = -Math.sin(pitch) * speed;
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * speed;
+            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            motionY = -Math.sin(pitch) * getSpeed();
+            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         }
 
         if (DEBUG_LOGGING && !worldObj.isRemote) {
@@ -336,9 +334,9 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             headOffsetY * headOffsetY +
             headOffsetZ * headOffsetZ
         );
-        boolean exceeded = distFromOrigin >= maxDistance;
+        boolean exceeded = distFromOrigin >= getMaxDistance();
         if (exceeded && !worldObj.isRemote && DEBUG_LOGGING) {
-            LogWriter.info("[Beam] DEAD: Max distance exceeded. dist=" + distFromOrigin + " max=" + maxDistance);
+            LogWriter.info("[Beam] DEAD: Max distance exceeded. dist=" + distFromOrigin + " max=" + getMaxDistance());
         }
         return exceeded;
     }
@@ -392,7 +390,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
             // Update origin if attached to owner
             if (attachedToOwner) {
-                Entity owner = getOwner();
+                Entity owner = getOwnerEntity();
                 if (owner != null) {
                     startX = owner.posX;
                     startY = owner.posY + owner.getEyeHeight() * 0.7;
@@ -436,7 +434,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     private void updateCharging() {
         chargeTick++;
 
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner == null || owner.isDead) {
             setDead();
             return;
@@ -458,13 +456,11 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             );
         }
 
-        // Offset downward by half headSize to center
-        double centeredY = pos.yCoord - headSize * 0.5;
-        setPosition(pos.xCoord, centeredY, pos.zCoord);
+        setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 
         // Also update origin for when firing starts
         startX = pos.xCoord;
-        startY = centeredY;
+        startY = pos.yCoord;
         startZ = pos.zCoord;
     }
 
@@ -529,7 +525,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         // Update origin if attached to owner
         if (attachedToOwner) {
-            Entity owner = getOwner();
+            Entity owner = getOwnerEntity();
             if (owner != null) {
                 startX = owner.posX;
                 startY = owner.posY + owner.getEyeHeight() * 0.7;
@@ -550,9 +546,9 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
     }
 
     private void updateHoming() {
-        if (!homing) return;
+        if (!isHoming()) return;
 
-        Entity target = getTarget();
+        Entity target = getTargetEntity();
         if (target == null || !target.isEntityAlive()) return;
 
         // Calculate world position of head
@@ -565,18 +561,18 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         double dz = target.posZ - headWorldZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        if (dist <= homingRange && dist > 0) {
+        if (dist <= getHomingRange() && dist > 0) {
             // Calculate effective homing strength - increases when closer to commit to target
-            float effectiveStrength = homingStrength;
-            if (dist < homingRange * 0.3) {
-                effectiveStrength = Math.min(1.0f, homingStrength * 2.5f);
-            } else if (dist < homingRange * 0.6) {
-                effectiveStrength = Math.min(0.8f, homingStrength * 1.5f);
+            float effectiveStrength = getHomingStrength();
+            if (dist < getHomingRange() * 0.3) {
+                effectiveStrength = Math.min(1.0f, getHomingStrength() * 2.5f);
+            } else if (dist < getHomingRange() * 0.6) {
+                effectiveStrength = Math.min(0.8f, getHomingStrength() * 1.5f);
             }
 
-            double desiredVX = (dx / dist) * speed;
-            double desiredVY = (dy / dist) * speed;
-            double desiredVZ = (dz / dist) * speed;
+            double desiredVX = (dx / dist) * getSpeed();
+            double desiredVY = (dy / dist) * getSpeed();
+            double desiredVZ = (dz / dist) * getSpeed();
 
             motionX += (desiredVX - motionX) * effectiveStrength;
             motionY += (desiredVY - motionY) * effectiveStrength;
@@ -584,9 +580,9 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
             double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
             if (vLen > 0) {
-                motionX = (motionX / vLen) * speed;
-                motionY = (motionY / vLen) * speed;
-                motionZ = (motionZ / vLen) * speed;
+                motionX = (motionX / vLen) * getSpeed();
+                motionY = (motionY / vLen) * getSpeed();
+                motionZ = (motionZ / vLen) * getSpeed();
             }
         }
     }
@@ -604,7 +600,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             hasHit = true;
-            if (explosive) {
+            if (isExplosive()) {
                 posX = blockHit.hitVec.xCoord;
                 posY = blockHit.hitVec.yCoord;
                 posZ = blockHit.hitVec.zCoord;
@@ -632,7 +628,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             }
             hasHit = true;
 
-            if (explosive) {
+            if (isExplosive()) {
                 posX = headX;
                 posY = headY;
                 posZ = headZ;
@@ -748,10 +744,6 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
-        this.speed = nbt.hasKey("Speed") ? nbt.getFloat("Speed") : 0.5f;
-        this.homing = !nbt.hasKey("Homing") || nbt.getBoolean("Homing");
-        this.homingStrength = nbt.hasKey("HomingStrength") ? nbt.getFloat("HomingStrength") : 0.15f;
-        this.homingRange = nbt.hasKey("HomingRange") ? nbt.getFloat("HomingRange") : 20.0f;
         this.beamWidth = nbt.hasKey("BeamWidth") ? nbt.getFloat("BeamWidth") : 0.3f;
         this.headSize = nbt.hasKey("HeadSize") ? nbt.getFloat("HeadSize") : 0.5f;
         this.headOffsetX = nbt.hasKey("HeadOffsetX") ? nbt.getDouble("HeadOffsetX") : 0;
@@ -772,7 +764,6 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         this.fadeTrail = nbt.hasKey("FadeTrail") && nbt.getBoolean("FadeTrail");
         this.trailFadeTime = nbt.hasKey("TrailFadeTime") ? nbt.getInteger("TrailFadeTime") : 20;
 
-        this.anchorData.readNBT(nbt);
 
         // Read trail points (relative to origin)
         trailPoints.clear();
@@ -791,10 +782,6 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
     @Override
     protected void writeProjectileNBT(NBTTagCompound nbt) {
-        nbt.setFloat("Speed", speed);
-        nbt.setBoolean("Homing", homing);
-        nbt.setFloat("HomingStrength", homingStrength);
-        nbt.setFloat("HomingRange", homingRange);
         nbt.setFloat("BeamWidth", beamWidth);
         nbt.setFloat("HeadSize", headSize);
         nbt.setDouble("HeadOffsetX", headOffsetX);

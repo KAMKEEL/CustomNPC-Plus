@@ -5,7 +5,9 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -13,11 +15,10 @@ import kamkeel.npcs.entity.EntityAbilitySweeper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.LogWriter;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySweeper;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.api.ability.type.IAbilitySweeper;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Sweeper ability: A low sweeping beam that rotates around the NPC.
@@ -41,7 +42,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     private boolean lockOnTarget = false;
 
     // Visual properties
-    private EnergyColorData colorData = new EnergyColorData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f);
+    private EnergyDisplayData colorData = new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f);
 
     // Runtime state (transient)
     private transient EntityAbilitySweeper activeEntity = null;
@@ -61,14 +62,8 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilitySweeper(this, callback);
+    public boolean allowBurst() {
+        return false;
     }
 
     @Override
@@ -83,19 +78,26 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
-        // Spawn the entity that handles BOTH visuals AND damage
+        // Spawn the sweeper entity that handles BOTH visuals AND damage.
+        // NPC: target is the aggro target — lockOnTarget tracks it during sweep.
+        // Player: target is null — sweep rotates around caster's facing direction, lockOnTarget has no effect.
         activeEntity = new EntityAbilitySweeper(world, caster, target,
             beamLength, beamWidth, beamHeight,
             colorData,
             sweepSpeed, numberOfRotations,
             damage, damageInterval, piercing,
             lockOnTarget);
-        world.spawnEntityInWorld(activeEntity);
+
+        if (isPreview()) {
+            activeEntity.setupPreview(caster);
+        }
+
+        spawnAbilityEntity(world, activeEntity);
 
         // Ability stays active until entity dies (prevents firing another while projectile is alive)
         // Movement locking is handled separately by the base class
@@ -108,6 +110,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
             activeEntity = null;
             signalCompletion();
         }
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
+        cleanup();
     }
 
     @Override
@@ -204,4 +211,49 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public void setOuterColorWidth(float outerColorWidth) { colorData.outerColorWidth = outerColorWidth; }
     public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
+
+    @Override
+    public int getMaxPreviewDuration() {
+        return (int) ((360.0f * numberOfRotations) / sweepSpeed) + 10;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval)
+            ),
+            FieldDef.section("ability.section.beam"),
+            FieldDef.row(
+                FieldDef.floatField("gui.length", this::getBeamLength, this::setBeamLength),
+                FieldDef.floatField("gui.width", this::getBeamWidth, this::setBeamWidth)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("gui.height", this::getBeamHeight, this::setBeamHeight),
+                FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed)
+            ),
+            FieldDef.intField("ability.rotations", this::getNumberOfRotations, this::setNumberOfRotations),
+            FieldDef.row(
+                FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
+                    .hover("ability.hover.piercing"),
+                FieldDef.boolField("ability.lockTarget", this::isLockOnTarget, this::setLockOnTarget)
+                    .hover("ability.hover.lockTarget")
+            ),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
+
+            // Visual tab
+            FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
+                .tab("ability.tab.visual"),
+            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
+                .tab("ability.tab.visual"),
+            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
+            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled)
+        ));
+    }
 }

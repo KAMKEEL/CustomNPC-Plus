@@ -1,10 +1,9 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -12,13 +11,17 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTrap;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTrap;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -34,7 +37,17 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
     public enum TrapPlacement {
         AT_CASTER,
         AT_TARGET,
-        AHEAD_OF_CASTER
+        AHEAD_OF_CASTER;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case AT_CASTER: return "ability.trapPlace.atCaster";
+                case AT_TARGET: return "ability.trapPlace.atTarget";
+                case AHEAD_OF_CASTER: return "ability.trapPlace.aheadOfCaster";
+                default: return name();
+            }
+        }
     }
 
     private int durationTicks = 200;
@@ -71,17 +84,12 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         this.telegraphType = TelegraphType.CIRCLE;
+        this.allowedBy = UserType.NPC_ONLY;
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityTrap(this, callback);
+    public boolean allowBurst() {
+        return false;
     }
 
     @Override
@@ -122,7 +130,6 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
                 }
                 break;
             case AT_TARGET:
-                // Telegraph follows target during windup, locks on execute
                 if (target != null) {
                     instance.setEntityIdToFollow(target.getEntityId());
                 }
@@ -148,14 +155,12 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
                 trapZ = caster.posZ;
                 break;
             case AT_TARGET:
-                // Use telegraph position with offset
                 if (telegraph != null) {
                     double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
                         minOffset, maxOffset, randomOffset, RANDOM);
                     trapX = pos[0];
                     trapY = pos[1];
                     trapZ = pos[2];
-                    // Update telegraph to show actual trap position
                     telegraph.setX(trapX);
                     telegraph.setY(trapY);
                     telegraph.setZ(trapZ);
@@ -206,26 +211,28 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
             return;
         }
 
-        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
-            trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
-            trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
-        );
+        if (!isPreview()) {
+            AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
+                trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
+                trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
+            );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+            @SuppressWarnings("unchecked")
+            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-        for (EntityLivingBase entity : entities) {
-            if (entity == caster) continue;
-            if (entity.isDead) continue;
-            if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+            for (EntityLivingBase entity : entities) {
+                if (entity == caster) continue;
+                if (entity.isDead) continue;
+                if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
 
-            double dx = entity.posX - trapX;
-            double dz = entity.posZ - trapZ;
-            double dist = Math.sqrt(dx * dx + dz * dz);
+                double dx = entity.posX - trapX;
+                double dz = entity.posZ - trapZ;
+                double dist = Math.sqrt(dx * dx + dz * dz);
 
-            if (dist <= triggerRadius) {
-                triggerTrap(caster, entity, world);
-                return;
+                if (dist <= triggerRadius) {
+                    triggerTrap(caster, entity, world);
+                    return;
+                }
             }
         }
     }
@@ -463,5 +470,32 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
 
     public boolean isArmed() {
         return armed;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
+                .range(1, 2000),
+            FieldDef.enumField("ability.placement", TrapPlacement.class, this::getPlacementEnum, this::setPlacementEnum)
+                .hover("ability.hover.placement"),
+            FieldDef.section("ability.section.trigger"),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getTriggerRadius, this::setTriggerRadius),
+                FieldDef.intField("ability.armTime", this::getArmTime, this::setArmTime)
+            ),
+            FieldDef.row(
+                FieldDef.intField("ability.maxTriggers", this::getMaxTriggers, this::setMaxTriggers),
+                FieldDef.intField("ability.triggerCooldown", this::getTriggerCooldown, this::setTriggerCooldown)
+            ),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius)
+            ),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
     }
 }

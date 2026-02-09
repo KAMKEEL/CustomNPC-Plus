@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class GuiNPCInterface extends GuiScreen {
@@ -52,6 +53,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public Supplier<Boolean> closeOnEscSupplier = null;
     public int guiLeft, guiTop, xSize, ySize;
     private SubGuiInterface subgui;
+    private Consumer<SubGuiInterface> pendingSubGuiResult;
     public int mouseX, mouseY, mouseScroll;
     public float bgScale = 1;
     public float bgScaleX = 1;
@@ -519,8 +521,25 @@ public abstract class GuiNPCInterface extends GuiScreen {
         initGui();
     }
 
+    /**
+     * Open a sub-gui with a result handler that will be called when the sub-gui closes.
+     * The handler survives initGui() rebuilds since it lives on the parent, not the builder.
+     */
+    public void setSubGuiWithResult(SubGuiInterface gui, Consumer<SubGuiInterface> resultHandler) {
+        this.pendingSubGuiResult = resultHandler;
+        setSubGui(gui);
+    }
+
     public void closeSubGui(SubGuiInterface gui) {
-        subgui = null;
+        if (pendingSubGuiResult != null) {
+            Consumer<SubGuiInterface> handler = pendingSubGuiResult;
+            pendingSubGuiResult = null;
+            handler.accept(gui);
+        }
+        // Only null out subgui if it wasn't replaced by a new one during subGuiClosed
+        if (subgui == gui) {
+            subgui = null;
+        }
         initGui();
     }
 

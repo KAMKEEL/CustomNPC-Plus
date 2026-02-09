@@ -66,8 +66,8 @@ public class CustomNpcsPermissions {
     public static final Permission GLOBAL_NATURALSPAWN = new Permission("customnpcs.global.naturalspawn");
     public static final Permission GLOBAL_TAG = new Permission("customnpcs.global.tag");
     public static final Permission GLOBAL_ANIMATION = new Permission("customnpcs.global.animation");
-    public static final Permission GLOBAL_ABILITY = new Permission("customnpcs.global.ability");
     public static final Permission GLOBAL_MAGIC = new Permission("customnpcs.global.magic");
+    public static final Permission GLOBAL_ABILITY = new Permission("customnpcs.global.ability");
     public static final Permission GLOBAL_EFFECT = new Permission("customnpcs.global.effect");
 
     public static final Permission SPAWNER_MOB = new Permission("customnpcs.spawner.mob");
@@ -110,9 +110,6 @@ public class CustomNpcsPermissions {
     public static final Permission PROFILE_CHANGE = new Permission("customnpcs.profile.change");
     public static final Permission PROFILE_REGION_BYPASS = new Permission("customnpcs.profile.region-bypass");
     public static final Permission PROFILE_MAX = new Permission("customnpcs.profile.max.*");
-
-    // Auction
-    public static final Permission AUCTION_TRADES_MAX = new Permission("customnpcs.auction.trades.*");
 
     public static CustomNpcsPermissions Instance;
     private Method hasPermission;

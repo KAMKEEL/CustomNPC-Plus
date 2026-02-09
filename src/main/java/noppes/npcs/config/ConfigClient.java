@@ -22,6 +22,9 @@ public class ConfigClient {
     /**
      * General Properties
      **/
+    public static Property AllowClientScriptsProperty;
+    public static boolean AllowClientScripts = true;
+
     public static Property CacheLifeProperty;
     public static int CacheLife = 10;
 
@@ -185,6 +188,9 @@ public class ConfigClient {
 
 
             // General
+            AllowClientScriptsProperty = config.get(GENERAL, "Allow Client Scripts", true, "Allow the server to run scripts on the client. If disabled, no server scripts will execute client-side.");
+            AllowClientScripts = AllowClientScriptsProperty.getBoolean(true);
+
             CacheLifeProperty = config.get(GENERAL, "Cache Life", 10, "How long should downloaded imagery data be saved client side? (In minutes)");
             CacheLife = CacheLifeProperty.getInt(10);
 

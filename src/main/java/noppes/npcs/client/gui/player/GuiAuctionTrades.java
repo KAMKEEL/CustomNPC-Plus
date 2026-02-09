@@ -38,10 +38,10 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
     private static final int TOTAL_SLOTS = COLS * ROWS;
 
     // Slot tint colors (ARGB)
-    private static final int TINT_BLUE = 0x303060FF;   // Active listing/bid (selling)
-    private static final int TINT_GREEN = 0x3030FF30;  // Sold (currency claim) or Won (item claim)
-    private static final int TINT_YELLOW = 0x30FFFF30; // Outbid (refund claim)
-    private static final int TINT_RED = 0x30FF3030;    // Expired/Returned (item returned to seller)
+    private static final int TINT_BLUE = 0x605080FF;   // Active listing/bid (selling)
+    private static final int TINT_GREEN = 0x6050FF50;  // Sold (currency claim) or Won (item claim)
+    private static final int TINT_YELLOW = 0x60FFFF50; // Outbid (refund claim)
+    private static final int TINT_RED = 0x60FF5050;    // Expired/Returned (item returned to seller)
 
     private final ContainerAuctionTrades tradesContainer;
     private int maxTradeSlots;

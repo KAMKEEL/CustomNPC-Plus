@@ -1,32 +1,39 @@
 package noppes.npcs.items;
 
+import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.entity.EntityAbilityOrb;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 import noppes.npcs.enchants.EnchantInterface;
-import noppes.npcs.entity.EntityMagicProjectile;
 import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.util.IProjectileCallback;
 import org.lwjgl.opengl.GL11;
+
+import java.awt.*;
 
 public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
 
     private EnumNpcToolMaterial material;
 
+    protected OrbColor color;
+
     public ItemStaff(int par1, EnumNpcToolMaterial material) {
         super(par1);
         this.material = material;
+        this.color = OrbColor.get(material.ordinal());;
         setCreativeTab(CustomItems.tabWeapon);
     }
 
@@ -36,70 +43,93 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
     }
 
     @Override
-    public void onPlayerStoppedUsing(ItemStack stack, World worldObj, EntityPlayer player, int par4) {
-        if (worldObj.isRemote) {
+    public void onPlayerStoppedUsing(ItemStack stack, World world, EntityPlayer player, int par4) {
+
+        if (world.isRemote)
             return;
-        }
+
         if (stack.stackTagCompound == null)
             return;
-        Entity entity = ((WorldServer) player.worldObj).getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
-        if (entity == null || !(entity instanceof EntityProjectile))
+
+        Entity entity = ((WorldServer) world)
+            .getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
+
+        if (!(entity instanceof EntityAbilityOrb))
             return;
-        EntityProjectile item = (EntityProjectile) entity;
-        item.callback = this;
-        item.callbackItem = stack;
-        item.explosive = true;
-        item.explosiveDamage = false;
-        item.explosiveRadius = 1;
-        item.prevRotationYaw = item.rotationYaw = player.rotationYaw;
-        item.prevRotationPitch = item.rotationPitch = player.rotationPitch;
-        item.shoot(2);
 
-        player.worldObj.playSoundAtEntity(player, "customnpcs:magic.shot", 1.0F, 1);
+        EntityAbilityOrb orb = (EntityAbilityOrb) entity;
 
+        orb.startMoving(null);
+
+        world.playSoundAtEntity(
+            player,
+            "customnpcs:magic.shot",
+            1.0F,
+            1.0F
+        );
     }
 
     @Override
     public void onUsingTick(ItemStack stack, EntityPlayer player, int count) {
         int tick = getMaxItemUseDuration(stack) - count;
+
         if (player.worldObj.isRemote) {
             spawnParticle(stack, player);
             return;
         }
+
         int chargeTime = 20 + material.getHarvestLevel() * 8;
+
         if (tick == chargeTime) {
+
             if (!player.capabilities.isCreativeMode && !hasInfinite(stack)) {
                 if (!hasItem(player, CustomItems.mana))
                     return;
                 consumeItem(player, CustomItems.mana);
             }
-            player.worldObj.playSoundAtEntity(player, "customnpcs:magic.charge", 1.0F, 1);
+
+            player.worldObj.playSoundAtEntity(
+                player,
+                "customnpcs:magic.charge",
+                1.0F,
+                1.0F
+            );
+
             if (stack.stackTagCompound == null) {
                 stack.stackTagCompound = new NBTTagCompound();
             }
+
             int damage = 6 + material.getDamageVsEntity() + player.worldObj.rand.nextInt(4);
             damage += damage * EnchantInterface.getLevel(EnchantInterface.Damage, stack) * 0.5f;
-            EntityProjectile projectile = new EntityMagicProjectile(player.worldObj, player, getProjectile(stack), false);
-            projectile.damage = damage;
-            projectile.setSpeed(25);
-            double dx = -MathHelper.sin((float) ((player.rotationYaw / 180F) * Math.PI)) * MathHelper.cos((float) ((player.rotationPitch / 180F) * Math.PI));
-            double dz = MathHelper.cos((float) ((player.rotationYaw / 180F) * Math.PI)) * MathHelper.cos((float) ((player.rotationPitch / 180F) * Math.PI));
-            projectile.setPosition(player.posX + dx * 0.8, player.posY + 1.5 - player.rotationPitch / 80, player.posZ + dz * 0.8);
-            player.worldObj.spawnEntityInWorld(projectile);
-            stack.stackTagCompound.setInteger("MagicProjectile", projectile.getEntityId());//entityid
-        }
-        if (tick > chargeTime && stack.stackTagCompound != null) {
-            Entity entity = ((WorldServer) player.worldObj).getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
-            if (entity == null || !(entity instanceof EntityProjectile))
-                return;
-            EntityProjectile item = (EntityProjectile) entity;
-            item.ticksInAir = 0;
 
-            double dx = -MathHelper.sin((float) ((player.rotationYaw / 180F) * Math.PI)) * MathHelper.cos((float) ((player.rotationPitch / 180F) * Math.PI));
-            double dz = MathHelper.cos((float) ((player.rotationYaw / 180F) * Math.PI)) * MathHelper.cos((float) ((player.rotationPitch / 180F) * Math.PI));
-            item.setPosition(player.posX + dx * 0.8, player.posY + 1.5 - player.rotationPitch / 80, player.posZ + dz * 0.8);
-        }
+            EnergyCombatData combat = new EnergyCombatData();
+            combat.damage = damage;
+            combat.explosive = true;
 
+            EnergyDisplayData colorData = new EnergyDisplayData(getOrbColor(stack, false), getOrbColor(stack, true));
+            EnergyLightningData lightning = new EnergyLightningData();
+            EnergyLifespanData lifespan = new EnergyLifespanData(100, 72000);
+            EnergyHomingData homing = new EnergyHomingData();
+            EnergyTrajectoryData trajectory = new EnergyTrajectoryData();
+
+            homing.speed = 0.5f;
+            homing.homingStrength = 0.35f;
+            homing.homingRange = 20f;
+
+            EntityAbilityOrb orb = new EntityAbilityOrb(
+                player.worldObj, player, null,
+                player.posX, player.posY + player.getEyeHeight(), player.posZ,
+                1.0f, colorData, combat, homing, lightning, lifespan, trajectory
+            );
+
+            orb.setupCharging(
+                new EnergyAnchorData(AnchorPoint.FRONT, 0, -1, 0),
+                chargeTime
+            );
+
+            player.worldObj.spawnEntityInWorld(orb);
+            stack.stackTagCompound.setInteger("MagicProjectile", orb.getEntityId());
+        }
     }
 
     @Override
@@ -116,6 +146,15 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
     @Override
     public EnumAction getItemUseAction(ItemStack par1ItemStack) {
         return EnumAction.bow;
+    }
+
+    public int getOrbColor(ItemStack stack, boolean outer) {
+        if (color == OrbColor.GENERIC) {
+            float[] color = EntitySheep.fleeceColorTable[stack.getItemDamage()];
+            return new Color(color[0], color[1], color[2]).getRGB();
+        }
+
+        return outer ? color.outer : color.inner;
     }
 
     public ItemStack getProjectile(ItemStack stack) {
@@ -195,5 +234,33 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
 
     public boolean hasInfinite(ItemStack stack) {
         return EnchantInterface.getLevel(EnchantInterface.Infinite, stack) > 0;
+    }
+
+    public enum OrbColor {
+        WOOD(0x7cc818, 0x644a32),
+        STONE(0x532d5b, 0x515151),
+        BRONZE(0x83F7F6, 0x5CF0FF),
+        IRON(0xf7fac5, 0xeafa94),
+        DIA(0x44B6FF, 0x94DFED),
+        GOLD(0xb3011e, 0xd47c32),
+        EMERALD(0xdd6df7, 0xcf1dfa),
+        DEMONIC(0xb8144a, 0x422643),
+        FROST(0xffffff, 0xaccbfe),
+        MITHRIL(0xf7fac5, 0xffffff),
+        GENERIC(0xFFFFFF, 0x88FFFF);
+
+        public final int inner;
+        public final int outer;
+
+        OrbColor(int inner, int outer) {
+            this.inner = inner;
+            this.outer = outer;
+        }
+
+        public static OrbColor get(int id) {
+            if (id >= OrbColor.values().length || id < 0) return GENERIC;
+
+            return OrbColor.values()[id];
+        }
     }
 }

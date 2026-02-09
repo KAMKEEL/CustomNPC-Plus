@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -11,14 +9,16 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityHeal;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -59,14 +59,13 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
+    public boolean hasDamage() {
+        return false;
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityHeal(this, callback);
+    public boolean allowBurst() {
+        return false;
     }
 
     @Override
@@ -81,27 +80,31 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
-        getHealedAllies().clear();
+        if (!isPreview()) {
+            getHealedAllies().clear();
 
-        // Always find allies if we're healing them (needed for both instant and HoT)
-        if (healAllies && healRadius > 0) {
-            findAlliesInRadius(caster, world);
+            // Always find allies if we're healing them (needed for both instant and HoT)
+            if (healAllies && healRadius > 0) {
+                findAlliesInRadius(caster, world);
+            }
+
+            if (instantHeal) {
+                // Instant heal - apply all healing now
+                if (healSelf) {
+                    healEntity(caster);
+                    spawnHealParticles(world, caster);
+                }
+
+                for (EntityLivingBase ally : getHealedAllies()) {
+                    healEntity(ally);
+                    spawnHealParticles(world, ally);
+                }
+            }
         }
 
         if (instantHeal) {
-            // Instant heal - apply all healing now
-            if (healSelf) {
-                healEntity(caster);
-                spawnHealParticles(world, caster);
-            }
-
-            for (EntityLivingBase ally : getHealedAllies()) {
-                healEntity(ally);
-                spawnHealParticles(world, ally);
-            }
-
             // Instant heal completes immediately
             signalCompletion();
         }
@@ -110,7 +113,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote || instantHeal) return;
+        if ((world.isRemote && !isPreview()) || instantHeal) return;
 
         // Heal over time - distribute heal across duration ticks
         if (tick % 10 == 0) {
@@ -288,5 +291,28 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     public void setInstantHeal(boolean instantHeal) {
         this.instantHeal = instantHeal;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.boolField("ability.instantHeal", this::isInstantHeal, this::setInstantHeal)
+                .hover("ability.hover.instant"),
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
+                .range(1, 1000).visibleWhen(() -> !this.isInstantHeal()),
+            FieldDef.section("ability.section.healing"),
+            FieldDef.row(
+                FieldDef.floatField("ability.healAmount", this::getHealAmount, this::setHealAmount),
+                FieldDef.floatField("ability.healPercent", this::getHealPercent, this::setHealPercent)
+            ),
+            FieldDef.floatField("ability.healRadius", this::getHealRadius, this::setHealRadius),
+            FieldDef.row(
+                FieldDef.boolField("ability.healSelf", this::isHealSelf, this::setHealSelf)
+                    .hover("ability.hover.healSelf"),
+                FieldDef.boolField("ability.healAllies", this::isHealAllies, this::setHealAllies)
+                    .hover("ability.hover.healAllies")
+            )
+        ));
     }
 }

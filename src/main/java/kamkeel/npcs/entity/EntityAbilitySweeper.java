@@ -4,7 +4,7 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.data.EnergyColorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -60,6 +60,10 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
     private int maxTicks = 400;
     private long deathWorldTime = -1;
 
+    // Preview mode
+    private boolean previewMode = false;
+    private EntityLivingBase previewOwner = null;
+
     // Damage state
     private transient int ticksSinceDamage = 0;
     private transient Set<Integer> hitThisTick = new HashSet<>();
@@ -74,7 +78,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     public EntityAbilitySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
                                  float beamLength, float beamWidth, float beamHeight,
-                                 EnergyColorData colorData,
+                                 EnergyDisplayData displayData,
                                  float sweepSpeed, int numberOfRotations,
                                  float damage, int damageInterval, boolean piercing,
                                  boolean lockOnTarget) {
@@ -85,10 +89,10 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.beamLength = beamLength;
         this.beamWidth = beamWidth;
         this.beamHeight = beamHeight;
-        this.innerColor = colorData.innerColor;
-        this.outerColor = colorData.outerColor;
-        this.outerColorEnabled = colorData.outerColorEnabled;
-        this.outerColorWidth = colorData.outerColorWidth;
+        this.innerColor = displayData.innerColor;
+        this.outerColor = displayData.outerColor;
+        this.outerColorEnabled = displayData.outerColorEnabled;
+        this.outerColorWidth = displayData.outerColorWidth;
         this.sweepSpeed = sweepSpeed;
         this.numberOfRotations = numberOfRotations;
         this.damage = damage;
@@ -281,7 +285,16 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         target.velocityChanged = true;
     }
 
+    /**
+     * Set up preview mode. Owner is stored directly since world entity lookup won't work.
+     */
+    public void setupPreview(EntityLivingBase owner) {
+        this.previewMode = true;
+        this.previewOwner = owner;
+    }
+
     private Entity getOwner() {
+        if (previewMode && previewOwner != null) return previewOwner;
         if (ownerEntityId == -1) return null;
         return worldObj.getEntityByID(ownerEntityId);
     }

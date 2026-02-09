@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import java.util.UUID;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
@@ -15,6 +16,11 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityTypeSelect;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityVariantSelect;
+import noppes.npcs.client.gui.advanced.SubGuiDuplicateNameConfirm;
 import noppes.npcs.client.gui.util.AbilityPreviewExecutor;
 import noppes.npcs.client.gui.util.GuiAbilityInterface;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -60,12 +66,19 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private String search = "";
     private Ability selectedAbility = null;
 
+    // ==================== PENDING SAVE ====================
+    private Ability pendingSaveAbility = null;
+    private boolean pendingNewCreation = false;
+
+    // ==================== PENDING VARIANT ====================
+    private String pendingTypeId = null;
+
     // ==================== PREVIEW ====================
     private AbilityPreviewExecutor previewExecutor;
     private long prevTick = 0;
 
-    public GuiNpcManageAbilities(EntityNPCInterface npc) {
-        super(npc);
+    public GuiNpcManageAbilities(EntityNPCInterface npc, boolean hasMenuNpc) {
+        super(npc, hasMenuNpc);
 
         // Layout offset
         this.xOffset = -148 + 110;
@@ -87,13 +100,16 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     public void initGui() {
         super.initGui();
 
-        // Edit button (above Remove)
-        addButton(new GuiNpcButton(100, guiLeft + 368, guiTop + 8, 45, 20, "gui.edit"));
-        getButton(100).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
+        // Add button
+        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
 
         // Remove button
         addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
         getButton(1).setEnabled(selected != null && !selected.isEmpty() && displayToUuid.containsKey(selected));
+
+        // Edit button
+        addButton(new GuiNpcButton(100, guiLeft + 368, guiTop + 52, 45, 20, "gui.edit"));
+        getButton(100).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
 
         // Scroll list of saved abilities (right side)
         if (scroll == null) {
@@ -211,7 +227,10 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         int id = guibutton.id;
 
-        if (id == 1 && selected != null && selectedUuid != null) {
+        if (id == 2) {
+            // Add — open type selection
+            setSubGui(new SubGuiAbilityTypeSelect());
+        } else if (id == 1 && selected != null && selectedUuid != null) {
             GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), 1);
             displayGuiScreen(guiyesno);
         } else if (id == 100 && selectedAbility != null) {
@@ -329,7 +348,110 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiAbilityVariantSelect) {
+            SubGuiAbilityVariantSelect variantGui = (SubGuiAbilityVariantSelect) subgui;
+            int idx = variantGui.getSelectedIndex();
+            if (idx >= 0 && pendingTypeId != null) {
+                Ability newAbility = AbilityController.Instance.create(pendingTypeId);
+                if (newAbility != null) {
+                    variantGui.getVariants().get(idx).apply(newAbility);
+                    newAbility.setId(UUID.randomUUID().toString());
+                    if (hasDuplicateName(newAbility)) {
+                        pendingSaveAbility = newAbility;
+                        pendingNewCreation = true;
+                        pendingTypeId = null;
+                        setSubGui(new SubGuiDuplicateNameConfirm());
+                        return;
+                    }
+                    pendingTypeId = null;
+                    saveAndOpenConfig(newAbility);
+                    return;
+                }
+            }
+            pendingTypeId = null;
+        } else if (subgui instanceof SubGuiAbilityTypeSelect) {
+            String typeId = ((SubGuiAbilityTypeSelect) subgui).getSelectedTypeId();
+            if (typeId != null) {
+                java.util.List<AbilityVariant> variants = AbilityController.Instance.getVariantsForType(typeId);
+                if (variants.size() > 1) {
+                    pendingTypeId = typeId;
+                    setSubGui(new SubGuiAbilityVariantSelect(variants));
+                    return;
+                }
+                Ability newAbility = AbilityController.Instance.create(typeId);
+                if (newAbility != null) {
+                    if (variants.size() == 1) {
+                        variants.get(0).apply(newAbility);
+                    }
+                    newAbility.setId(UUID.randomUUID().toString());
+                    if (hasDuplicateName(newAbility)) {
+                        pendingSaveAbility = newAbility;
+                        pendingNewCreation = true;
+                        setSubGui(new SubGuiDuplicateNameConfirm());
+                        return;
+                    }
+                    saveAndOpenConfig(newAbility);
+                    return;
+                }
+            }
+        } else if (subgui instanceof SubGuiDuplicateNameConfirm) {
+            SubGuiDuplicateNameConfirm confirm = (SubGuiDuplicateNameConfirm) subgui;
+            if (confirm.isConfirmed() && pendingSaveAbility != null) {
+                if (pendingNewCreation) {
+                    saveAndOpenConfig(pendingSaveAbility);
+                    pendingSaveAbility = null;
+                    pendingNewCreation = false;
+                    return;
+                } else {
+                    PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+                    PacketClient.sendClient(new CustomAbilitiesGetPacket());
+                    pendingSaveAbility = null;
+                }
+            } else if (pendingSaveAbility != null) {
+                if (pendingNewCreation) {
+                    // Cancel new creation - discard
+                    pendingSaveAbility = null;
+                    pendingNewCreation = false;
+                } else {
+                    // Cancel edit save - re-open config GUI to change name
+                    Ability ability = pendingSaveAbility;
+                    pendingSaveAbility = null;
+                    setSubGui(ability.createConfigGui(this));
+                    return;
+                }
+            }
+        } else if (pendingSaveAbility != null) {
+            // Config GUI closed with a pending save (set by onAbilitySaved)
+            if (hasDuplicateName(pendingSaveAbility)) {
+                pendingNewCreation = false;
+                setSubGui(new SubGuiDuplicateNameConfirm());
+                return;
+            }
+            PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+            PacketClient.sendClient(new CustomAbilitiesGetPacket());
+            pendingSaveAbility = null;
+        }
         initGui();
+    }
+
+    private void saveAndOpenConfig(Ability ability) {
+        PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+        selectedAbility = ability;
+        selected = ability.getName();
+        selectedUuid = ability.getId();
+        previewExecutor.stop();
+        setSubGui(ability.createConfigGui(this));
+    }
+
+    private boolean hasDuplicateName(Ability ability) {
+        String name = ability.getName();
+        if (name == null || name.isEmpty()) return false;
+        for (java.util.Map.Entry<String, String> entry : displayToUuid.entrySet()) {
+            if (entry.getKey().equals(name) && !entry.getValue().equals(ability.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -349,7 +471,8 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void onAbilitySaved(Ability ability) {
-        PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+        // Defer save until subGuiClosed where we can check for duplicate names
+        pendingSaveAbility = ability;
     }
 
     @Override

@@ -163,6 +163,9 @@ public enum EnumRequestPacket {
     CloneAllTags,
     CloneAllTagsShort,
     ClonePreSave,
+    CloneFolderList,
+    CloneFolderCrud,
+    CloneMove,
 
     EventScript,
     PlayerScript,

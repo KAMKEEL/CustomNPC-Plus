@@ -42,12 +42,25 @@ public class ScriptDataAbilities implements IDataAbilities {
     @Override
     public void addAbility(IAbility ability) {
         if (ability instanceof Ability) {
-            data.addAbility((Ability) ability);
+            Ability a = (Ability) ability;
+            // Validate ability allows NPCs
+            if (!a.getAllowedBy().allowsNpc()) {
+                return; // Ability is PLAYER_ONLY
+            }
+            data.addAbility(a);
         }
     }
 
     @Override
     public void addAbilityReference(String key) {
+        // Validate ability exists and allows NPCs
+        Ability ability = AbilityController.Instance.resolveAbility(key);
+        if (ability == null) {
+            return; // Ability doesn't exist
+        }
+        if (!ability.getAllowedBy().allowsNpc()) {
+            return; // Ability is PLAYER_ONLY
+        }
         data.addAbilityReference(key);
     }
 
@@ -158,6 +171,14 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public boolean executeAbility(String key, Object target) {
+        // Validate ability exists and allows NPCs
+        Ability ability = AbilityController.Instance.resolveAbility(key);
+        if (ability == null) {
+            return false; // Ability doesn't exist
+        }
+        if (!ability.getAllowedBy().allowsNpc()) {
+            return false; // Ability is PLAYER_ONLY
+        }
         EntityLivingBase targetEntity = resolveTarget(target);
         return data.executeAbility(key, targetEntity);
     }

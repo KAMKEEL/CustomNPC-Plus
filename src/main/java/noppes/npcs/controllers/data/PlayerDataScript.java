@@ -5,6 +5,7 @@ import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.entity.IPlayer;
@@ -60,7 +61,7 @@ public class PlayerDataScript extends MultiScriptHandler {
     }
 
     public boolean isEnabled() {
-        return ConfigScript.GlobalPlayerScripts && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
+        return CustomNpcs.proxy.isGlobalPlayerScripts() && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
     }
 
     @Override

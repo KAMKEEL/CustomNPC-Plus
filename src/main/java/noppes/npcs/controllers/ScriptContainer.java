@@ -3,6 +3,7 @@ package noppes.npcs.controllers;
 import cpw.mods.fml.common.eventhandler.Event;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
@@ -104,7 +105,7 @@ public class ScriptContainer implements IScriptUnit {
         if (!this.evaluated) {
             // build includes first depending on config setting
             StringBuilder sb = new StringBuilder();
-            if (ConfigScript.RunLoadedScriptsFirst) {
+            if (CustomNpcs.proxy.isRunLoadedScriptsFirst()) {
                 this.appendExternalScripts(sb);
             }
 
@@ -114,7 +115,7 @@ public class ScriptContainer implements IScriptUnit {
             }
 
             // build includes last if not built first
-            if (!ConfigScript.RunLoadedScriptsFirst) {
+            if (!CustomNpcs.proxy.isRunLoadedScriptsFirst()) {
                 this.appendExternalScripts(sb);
             }
             this.fullscript = sb.toString();
@@ -158,14 +159,14 @@ public class ScriptContainer implements IScriptUnit {
     }
 
     public void run(EnumScriptType type, Event event) {
-        if (!ConfigScript.ScriptingEnabled)
+        if (!CustomNpcs.proxy.isScriptingEnabled())
             return;
 
         this.run((String) type.function, (Object) event);
     }
 
     public void run(String type, Object event) {
-        if (!ConfigScript.ScriptingEnabled || errored || !hasCode() || unknownFunctions.contains(type))
+        if (!CustomNpcs.proxy.isScriptingEnabled() || errored || !hasCode() || unknownFunctions.contains(type))
             return;
 
         this.setEngine(handler.getLanguage());
@@ -341,6 +342,11 @@ public class ScriptContainer implements IScriptUnit {
     @Override
     public void setErrored(boolean errored) {
         this.errored = errored;
+    }
+
+    @Override
+    public boolean isJanino() {
+        return false;
     }
 }
 

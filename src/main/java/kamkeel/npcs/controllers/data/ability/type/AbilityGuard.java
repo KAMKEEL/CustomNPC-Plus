@@ -1,24 +1,29 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.*;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityGuard;
 
-import java.util.Random;
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import noppes.npcs.util.ValueUtil;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Guard ability: Defensive stance that reduces incoming damage.
@@ -26,27 +31,21 @@ import java.util.Random;
  */
 public class AbilityGuard extends Ability implements IAbilityGuard {
 
-    private static final Random RANDOM = new Random();
-
-    // Type-specific parameters
     private int durationTicks = 60;
     private float damageReduction = 0.5f;
-    private boolean canCounter = false;
-    private CounterType counterType = CounterType.FLAT;
+    private AbilityGuard.CounterType counterType = AbilityGuard.CounterType.FLAT;
     private float counterValue = 6.0f;
-    private float counterChance = 0.3f;
-    private String counterSound = "random.wood_click";
+    private String counterSound = "random.anvil_land";
+    private boolean canCounter = false;
+    private int counterWindow = 10;
     private int counterAnimationId = -1;
+    private String counterAnimationName;
 
     // Runtime state
     private transient EntityLivingBase lastAttacker;
     private transient boolean counterTriggered;
+    private transient boolean counterEligible;
     private transient float lastDamageTaken;
-
-    public enum CounterType {
-        FLAT,
-        PERCENT
-    }
 
     public AbilityGuard() {
         this.typeId = "ability.cnpc.guard";
@@ -54,26 +53,40 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.targetingMode = TargetingMode.SELF;
         this.lockMovement = LockMovementType.ACTIVE;
         this.cooldownTicks = 0;
-        this.windUpTicks = 10;
+        this.windUpTicks = 0;
         this.interruptible = false; // Hard to interrupt while guarding
         // No telegraph for guard - it's a defensive stance
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
-        this.windUpSound = "random.anvil_use";
-        this.activeSound = "random.anvil_land";
-        this.allowedBy = UserType.NPC_ONLY;
+        this.activeSound = "random.anvil_use";
+        this.allowedBy = UserType.BOTH;
+
+        this.activeAnimationName = "Ability_Guard_Active";
+        this.counterAnimationName = "Ability_Guard_Counter";
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
+    public boolean hasDamage() {
+        return false;
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityGuard(this, callback);
+    public boolean allowBurst() {
+        return false;
+    }
+
+    public enum CounterType {
+        FLAT,
+        PERCENT;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case FLAT: return "ability.counter.flat";
+                case PERCENT: return "ability.counter.percent";
+                default: return name();
+            }
+        }
     }
 
     @Override
@@ -91,41 +104,56 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         lastAttacker = null;
         counterTriggered = false;
         lastDamageTaken = 0.0f;
+        counterEligible = true;
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Counter attack logic if triggered
-        if (canCounter && counterTriggered && lastAttacker != null && !world.isRemote) {
+        if (canCounter && counterEligible && counterTriggered && lastAttacker != null && !world.isRemote) {
             performCounter(caster, world);
         }
 
-        // Check if guard duration has ended
+        if (tick > counterWindow && counterEligible) {
+            counterEligible = false;
+        }
+
         if (tick >= durationTicks) {
+            signalCompletion();
+        }
+
+        // Just enough to see the counter animation
+        if (counterTriggered && tick >= counterWindow + 10) {
             signalCompletion();
         }
     }
 
-    /**
-     * Called externally when the caster takes damage while guarding.
-     * This should be called from the damage handling code.
-     *
-     * @param attacker The entity that attacked
-     * @param damage   The damage amount (after reduction)
-     */
     public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
-        if (!canCounter || attacker == null) return;
-        if (!isDirectHit(source)) return;
-        if (RANDOM.nextFloat() >= counterChance) return;
+        if (!isGuarding() || attacker == null) return;
 
         lastAttacker = attacker;
         lastDamageTaken = damage;
-        counterTriggered = true;
-        // Counter will be performed in onActiveTick - don't self-interrupt
+
+        float reduction = ValueUtil.clamp(getDamageReductionFactor(), 0, damage);
+        float newHealth = ValueUtil.clamp(caster.getHealth() + reduction, 0, caster.getMaxHealth());
+
+        caster.setHealth(newHealth);
+
+        if (!canCounter || !counterEligible || counterTriggered || !isDirectHit(source)) {
+            caster.setHealth(newHealth);
+        } else {
+            caster.setHealth(ValueUtil.clamp(caster.getHealth() + damage, 0, caster.getMaxHealth()));
+            counterTriggered = true;
+        }
+    }
+
+    private boolean isDirectHit(DamageSource source) {
+        if (source == null) return false;
+        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion()) return false;
+        return source.getEntity() instanceof EntityLivingBase;
     }
 
     private void performCounter(EntityLivingBase caster, World world) {
-        float counterDamage = counterType == CounterType.PERCENT
+        float counterDamage = counterType == AbilityGuard.CounterType.PERCENT
             ? lastDamageTaken * (counterValue / 100.0f)
             : counterValue;
 
@@ -135,18 +163,32 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         }
         // Use shared animation utility - only available for NPCs
         if (caster instanceof EntityNPCInterface) {
-            ((EntityNPCInterface) caster).abilities.playAbilityAnimation(counterAnimationId);
+            if (getCounterAnimation() instanceof IAnimation) {
+                ((EntityNPCInterface) caster).abilities.playAbilityAnimation((Animation) getCounterAnimation());
+            }
+        } else if (caster instanceof EntityPlayer) {
+            if (getCounterAnimation() instanceof IAnimation) {
+                PlayerData.get((EntityPlayer) caster).abilityData.playAbilityAnimation((Animation) getCounterAnimation());
+            }
         }
 
-        counterTriggered = false;
+        counterEligible = false;
         lastAttacker = null;
         lastDamageTaken = 0.0f;
     }
 
-    private boolean isDirectHit(DamageSource source) {
-        if (source == null) return false;
-        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion()) return false;
-        return source.getEntity() instanceof EntityLivingBase;
+    private IAnimation getCounterAnimation() {
+        if (AnimationController.Instance == null) return null;
+
+        if (counterAnimationId > 0) {
+            return AnimationController.Instance.get(counterAnimationId);
+        }
+
+        if (!counterAnimationName.isEmpty()) {
+            return AnimationController.Instance.get(counterAnimationName, true);
+        }
+
+        return null;
     }
 
     /**
@@ -154,7 +196,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
      * Returns 0.5 for 50% reduction.
      */
     public float getDamageReductionFactor() {
-        if (isExecuting() && getPhase() == kamkeel.npcs.controllers.data.ability.AbilityPhase.ACTIVE) {
+        if (isExecuting() && getPhase() == AbilityPhase.ACTIVE) {
             return damageReduction;
         }
         return 0.0f;
@@ -164,7 +206,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
      * Check if the caster is currently in guard stance.
      */
     public boolean isGuarding() {
-        return isExecuting() && getPhase() == kamkeel.npcs.controllers.data.ability.AbilityPhase.ACTIVE;
+        return isExecuting() && getPhase() == AbilityPhase.ACTIVE;
     }
 
     @Override
@@ -185,11 +227,12 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         nbt.setInteger("durationTicks", durationTicks);
         nbt.setFloat("damageReduction", damageReduction);
         nbt.setBoolean("canCounter", canCounter);
+        nbt.setInteger("counterWindow", counterWindow);
         nbt.setString("counterType", counterType.name());
         nbt.setFloat("counterValue", counterValue);
-        nbt.setFloat("counterChance", counterChance);
         nbt.setString("counterSound", counterSound);
         nbt.setInteger("counterAnimationId", counterAnimationId);
+        nbt.setString("counterAnimationName", counterAnimationName);
     }
 
     @Override
@@ -197,6 +240,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
         this.damageReduction = nbt.hasKey("damageReduction") ? nbt.getFloat("damageReduction") : 0.5f;
         this.canCounter = nbt.hasKey("canCounter") && nbt.getBoolean("canCounter");
+        this.counterWindow = nbt.hasKey("counterWindow") ? nbt.getInteger("counterWindow") : 10;
         try {
             this.counterType = CounterType.valueOf(nbt.getString("counterType"));
         } catch (Exception e) {
@@ -209,9 +253,11 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         } else {
             this.counterValue = 6.0f;
         }
-        this.counterChance = nbt.hasKey("counterChance") ? nbt.getFloat("counterChance") : 0.3f;
         this.counterSound = nbt.hasKey("counterSound") ? nbt.getString("counterSound") : "random.wood_click";
         this.counterAnimationId = nbt.hasKey("counterAnimationId") ? nbt.getInteger("counterAnimationId") : -1;
+        this.counterAnimationName = nbt.hasKey("counterAnimationName") ?
+            nbt.getString("counterAnimationName") :
+            "Ability_Guard_Counter";
     }
 
     // Getters & Setters
@@ -223,17 +269,26 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.durationTicks = Math.max(1, durationTicks);
     }
 
+    @Override
+    public int getCounterWindow() {
+        return this.counterWindow;
+    }
+
+    @Override
+    public void setCounterWindow(int ticks) {
+        this.counterWindow = Math.min(durationTicks, ticks);
+    }
+
+    @Override
     public float getDamageReduction() {
         return damageReduction;
     }
 
+    @Override
     public void setDamageReduction(float damageReduction) {
         this.damageReduction = damageReduction;
     }
 
-    public boolean isCanCounter() {
-        return canCounter;
-    }
 
     @Override
     public boolean canCounter() {
@@ -271,14 +326,6 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         this.counterValue = counterValue;
     }
 
-    public float getCounterChance() {
-        return counterChance;
-    }
-
-    public void setCounterChance(float counterChance) {
-        this.counterChance = counterChance;
-    }
-
     public String getCounterSound() {
         return counterSound;
     }
@@ -293,5 +340,49 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     public void setCounterAnimationId(int counterAnimationId) {
         this.counterAnimationId = counterAnimationId;
+    }
+
+    public String getCounterAnimationName() {
+        return counterAnimationName;
+    }
+
+    public void setCounterAnimationName(String name) {
+        this.counterAnimationName = name;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 1000),
+            FieldDef.floatField("ability.damageReduction", this::getDamageReduction, this::setDamageReduction),
+            FieldDef.section("ability.section.counter"),
+            FieldDef.boolField("gui.enabled", this::canCounter, this::setCanCounter).hover("ability.hover.canCounter"),
+            FieldDef.enumField("gui.type", CounterType.class, this::getCounterTypeEnum, this::setCounterTypeEnum)
+                .hover("ability.hover.counterType").visibleWhen(this::canCounter),
+            FieldDef.row(
+                FieldDef.floatField("gui.value", this::getCounterValue, this::setCounterValue)
+                    .visibleWhen(this::canCounter),
+                FieldDef.intField("ability.counterWindow", this::getCounterWindow, this::setCounterWindow)
+                    .visibleWhen(this::canCounter)
+            ),
+            FieldDef.stringField("gui.sound", this::getCounterSound, this::setCounterSound)
+                .visibleWhen(this::canCounter),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+
+        ));
+
+        FieldDef.insertAfter(defs, "ability.activeSound",
+            FieldDef.soundSubGui("ability.counterSound", this::getCounterSound, this::setCounterSound)
+                .tab("Effects").visibleWhen(this::canCounter));
+
+        FieldDef.insertAfter(defs, "ability.activeAnimation",
+            FieldDef.animSubGui("ability.counterAnimation",
+                    this::getCounterAnimationId, this::setCounterAnimationId,
+                    this::getCounterAnimationName, this::setCounterAnimationName)
+                .tab("Effects").visibleWhen(this::canCounter));
+
+        FieldDef.modifyVisibility(defs, "ability.windUpAnimation", () -> false);
+        FieldDef.modifyVisibility(defs, "ability.windUpSound", () -> false);
     }
 }

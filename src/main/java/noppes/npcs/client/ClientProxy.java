@@ -76,6 +76,7 @@ import noppes.npcs.client.gui.GuiBorderBlock;
 import noppes.npcs.client.gui.GuiMerchantAdd;
 import noppes.npcs.client.gui.GuiNpcDimension;
 import noppes.npcs.client.gui.GuiNpcMobSpawner;
+import noppes.npcs.client.gui.GuiNpcMobSpawnerFullscreen;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerMounter;
 import noppes.npcs.client.gui.GuiNpcPather;
 import noppes.npcs.client.gui.GuiNpcRedstoneBlock;
@@ -191,6 +192,7 @@ import noppes.npcs.client.renderer.items.ItemShortLampRenderer;
 import noppes.npcs.client.renderer.items.ItemTallLampRenderer;
 import noppes.npcs.client.renderer.items.ItemToolRenderer;
 import noppes.npcs.client.renderer.items.ScriptedBlockItemRenderer;
+import noppes.npcs.client.ScriptClientConfig;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigItem;
 import noppes.npcs.config.ConfigMain;
@@ -333,7 +335,6 @@ public class ClientProxy extends CommonProxy {
 
         ClientCloneController.Instance = new ClientCloneController();
         ClientTagMapController.Instance = new ClientTagMapController();
-
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
 
         // Telegraph rendering system
@@ -472,7 +473,7 @@ public class ClientProxy extends CommonProxy {
                 animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
                 save = false;
             }
-            return new GuiNPCManageAnimations(animNpc, save);
+            return new GuiNPCManageAnimations(animNpc, save, npc != null);
         } else if (gui == EnumGuiType.ManageLinked)
             return new GuiNPCManageLinked(npc);
 
@@ -507,8 +508,10 @@ public class ClientProxy extends CommonProxy {
             } else {
                 abilityNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
                 abilityNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+                abilityNpc.height = 1.8f;
+                abilityNpc.width = 0.6f;
             }
-            return new GuiNpcManageAbilities(abilityNpc);
+            return new GuiNpcManageAbilities(abilityNpc, npc != null);
         }
 
         else if (gui == EnumGuiType.MainMenuGlobal)
@@ -602,7 +605,9 @@ public class ClientProxy extends CommonProxy {
             return new GuiNpcRedstoneBlock(x, y, z);
 
         else if (gui == EnumGuiType.Cloner)
-            return new GuiNpcMobSpawner(x, y, z);
+            return GuiNpcMobSpawner.isFullscreen
+                ? new GuiNpcMobSpawnerFullscreen(x, y, z)
+                : new GuiNpcMobSpawner(x, y, z);
 
         else if (gui == EnumGuiType.MobSpawnerMounter)
             return new GuiNpcMobSpawnerMounter(x, y, z);
@@ -816,6 +821,31 @@ public class ClientProxy extends CommonProxy {
             PackageFinder.init(Thread.currentThread().getContextClassLoader());
         } catch (IOException e) {
         }
+    }
+
+    @Override
+    public boolean isScriptingEnabled() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isScriptingEnabled();
+    }
+
+    @Override
+    public boolean isRunLoadedScriptsFirst() {
+        return ScriptClientConfig.isRunLoadedScriptsFirst();
+    }
+
+    @Override
+    public boolean isGlobalPlayerScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalPlayerScripts();
+    }
+
+    @Override
+    public boolean isGlobalForgeScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalForgeScripts();
+    }
+
+    @Override
+    public boolean isGlobalNPCScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalNPCScripts();
     }
 
     public static class FontContainer {

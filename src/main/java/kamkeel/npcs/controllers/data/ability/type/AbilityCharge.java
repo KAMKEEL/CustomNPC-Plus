@@ -14,13 +14,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityCharge;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,17 +59,6 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
-        return new SubGuiAbilityCharge(this, callback);
-    }
-
-    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }
@@ -98,11 +87,13 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     /**
-     * Locks the charge direction based on current target position.
-     * Called once at windup start - direction won't change even if target moves.
+     * Locks the charge direction. Called once at windup start — direction won't change even if target moves.
+     * NPC: charges toward aggro target.
+     * Player: charges in look direction.
      */
     private void lockChargeDirection(EntityLivingBase caster, EntityLivingBase target) {
-        if (target != null) {
+        if (!isPlayerCaster(caster) && target != null) {
+            // NPC: charge toward aggro target
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             double len = Math.sqrt(dx * dx + dz * dz);
@@ -113,6 +104,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
                 chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
             }
         } else {
+            // Player: charge in look direction
             float yaw = (float) Math.toRadians(caster.rotationYaw);
             chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
         }
@@ -149,7 +141,9 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         if (chargeDirection == null) return;
 
         // Enforce rotation every tick
-        enforceLockedRotation(caster);
+        if (!isPreview()) {
+            enforceLockedRotation(caster);
+        }
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
@@ -161,12 +155,15 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         if (distanceTraveled >= maxRange) {
             caster.motionX = 0;
             caster.motionZ = 0;
-            caster.velocityChanged = true;
+            if (!isPreview()) {
+                caster.velocityChanged = true;
+            }
             signalCompletion();
             return;
         }
 
-        if (isChargeBlocked(caster)) {
+        // Block detection (skip in preview - no real world collision)
+        if (!isPreview() && isChargeBlocked(caster)) {
             stopMomentum(caster);
             signalCompletion();
             return;
@@ -176,10 +173,12 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         caster.motionX = chargeDirection.xCoord * chargeSpeed;
         caster.motionY = 0;
         caster.motionZ = chargeDirection.zCoord * chargeSpeed;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
 
-        // Server-side collision damage
-        if (!world.isRemote) {
+        // Server-side collision damage (skip in preview)
+        if (!world.isRemote && !isPreview()) {
             AxisAlignedBB hitBox = caster.boundingBox.expand(hitWidth, hitWidth * 0.5, hitWidth);
 
             @SuppressWarnings("unchecked")
@@ -222,7 +221,9 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     private void stopMomentum(EntityLivingBase caster) {
         caster.motionX = 0;
         caster.motionZ = 0;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
     }
 
     private boolean isChargeBlocked(EntityLivingBase caster) {
@@ -260,9 +261,10 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
             return null;
         }
 
-        // Calculate direction to target at this moment (locked)
+        // NPC: telegraph points toward aggro target
+        // Player: telegraph points in look direction
         float yaw;
-        if (target != null) {
+        if (!isPlayerCaster(caster) && target != null) {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
@@ -288,66 +290,8 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         return instance;
     }
 
-    // ==================== PREVIEW MODE ====================
-
-    private transient double previewDirX, previewDirZ;
-    private transient double previewStartX, previewStartZ;
-    private transient boolean previewCharging = false;
-
     @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewExecute(EntityNPCInterface npc) {
-        previewStartX = npc.posX;
-        previewStartZ = npc.posZ;
-        previewCharging = false;
-
-        // Calculate direction toward fake target
-        if (previewTarget != null) {
-            double dx = previewTarget.posX - npc.posX;
-            double dz = previewTarget.posZ - npc.posZ;
-            double len = Math.sqrt(dx * dx + dz * dz);
-            if (len > 0) {
-                previewDirX = dx / len;
-                previewDirZ = dz / len;
-            } else {
-                float yaw = (float) Math.toRadians(npc.rotationYaw);
-                previewDirX = -Math.sin(yaw);
-                previewDirZ = Math.cos(yaw);
-            }
-        } else {
-            float yaw = (float) Math.toRadians(npc.rotationYaw);
-            previewDirX = -Math.sin(yaw);
-            previewDirZ = Math.cos(yaw);
-        }
-        previewCharging = true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
-        if (!previewCharging) return;
-
-        // Check distance traveled
-        double distTraveled = Math.sqrt(
-            Math.pow(npc.posX - previewStartX, 2) +
-            Math.pow(npc.posZ - previewStartZ, 2)
-        );
-
-        if (distTraveled >= maxRange) {
-            previewCharging = false;
-            return;
-        }
-
-        npc.prevPosX = npc.posX;
-        npc.prevPosY = npc.posY;
-        npc.prevPosZ = npc.posZ;
-
-        npc.posX += previewDirX * chargeSpeed;
-        npc.posZ += previewDirZ * chargeSpeed;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return (int) Math.ceil(maxRange / chargeSpeed) + 5;
     }
 
@@ -404,5 +348,21 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     public void setHitWidth(float hitWidth) {
         this.hitWidth = hitWidth;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("ability.chargeSpeed", this::getChargeSpeed, this::setChargeSpeed)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+                FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth)
+            ),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
     }
 }

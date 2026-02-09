@@ -85,11 +85,13 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 
         addLabel(new GuiNpcLabel(3, "faction.hidden", guiLeft + 8, y + 5));
         this.addButton(new GuiNpcButton(3, guiLeft + 100, y, 45, 20, new String[]{"gui.no", "gui.yes"}, faction.hideFaction ? 1 : 0));
+        getButton(3).setHoverText("faction.hidden.hover");
 
         y += 23;
 
         addLabel(new GuiNpcLabel(4, "faction.attacked", guiLeft + 8, y + 5));
         this.addButton(new GuiNpcButton(4, guiLeft + 100, y, 45, 20, new String[]{"gui.no", "gui.yes"}, faction.getsAttacked ? 1 : 0));
+        getButton(4).setHoverText("faction.attacked.hover");
 
         y += 23;
 

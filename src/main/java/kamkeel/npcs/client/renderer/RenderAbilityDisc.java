@@ -43,7 +43,16 @@ public class RenderAbilityDisc extends RenderAbilityProjectile {
         GL11.glPushMatrix();
         GL11.glScalef(scale, scale, scale);
 
-        // Apply ONLY Y-axis rotation for flat spin
+        if (disc.isVertical()) {
+            // Vertical mode: thin edge faces direction of travel (like a saw blade)
+            // 1. Spin in local space (Y-axis)
+            // 2. Tilt 90° to stand up (X-axis)
+            // 3. Orient to face travel direction (Y-axis world yaw)
+            GL11.glRotatef(disc.getTravelYaw(), 0.0f, 1.0f, 0.0f);
+            GL11.glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+        }
+
+        // Apply Y-axis rotation for spin
         GL11.glRotatef(disc.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);
 
         // Inner scale defines the core size

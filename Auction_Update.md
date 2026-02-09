@@ -10,9 +10,10 @@ The **Market Update** brings a complete economy system to CNPC+! Create bustling
 
 CNPC+ now has a **built-in currency** used across all Market features!
 
-- **Fully Configurable** - Name it Coins, Gold, Credits, whatever fits your world
+- **Fully Configurable** - Name it Coins, Gold, Credits, whatever fits your world. Set a starting balance and max balance cap to shape your economy
 - **Profile Persistent** - Currency carries across all your character slots
-- **Vault Support** - CNPC+ integrates seamlessly with Bukkit-compatible economy plugins if Vault is installed
+- **Vault Support** - Integrates seamlessly with Bukkit-compatible economy plugins if Vault is installed. Falls back to built-in currency otherwise
+- **Lifetime Tracking** - Tracks total earned and spent per player
 
 > Full Scripting API support for currency operations on players.
 
@@ -20,17 +21,17 @@ CNPC+ now has a **built-in currency** used across all Market features!
 
 ## Auction House 🏛️
 
-A **global player marketplace** where players can list items, bid against each other, and purchase instantly!
+A **global player marketplace** where players can list items, bid against each other, and purchase instantly! Search for items by name or seller, and sort by newest, ending soon, price, or most bids.
 
 ### Selling
 
-List any item with a **Starting Price** for competitive bidding. Set an optional **Buyout Price** for players who want to skip the wait and buy immediately.
+List any item with a **Starting Price** for competitive bidding. Set an optional **Buyout Price** for players who want to skip the wait and buy immediately. Auctions last **24 hours** by default.
 
 > A configurable **Listing Fee** is charged when creating auctions, and a **Sales Tax** is taken from successful sales.
 
 ### Bidding
 
-Compete for items by placing bids! **Snipe Protection** extends auctions when last-second bids come in, giving everyone a fair shot. If you get outbid, your currency is **automatically refunded**.
+Compete for items by placing bids! Each bid must be at least **5%** higher than the current bid. **Snipe Protection** extends auctions when last-second bids come in, giving everyone a fair shot. If you get outbid, your currency is **automatically refunded**.
 
 ### Buyout
 
@@ -44,7 +45,9 @@ One screen to manage all your auction activity:
 - **Active Bids** - Auctions you're competing in
 - **Ready to Claim** - Won items and currency waiting for pickup
 
-> Players can **cancel** their own listings. Items are returned as a claim.
+Players can **cancel** their own listings -- items are returned as a claim. If there are active bids on the listing, a **10% cancellation penalty** is charged.
+
+> Claims expire after **20 days**. Make sure to collect your items and currency before they're gone!
 
 ### Notifications
 
@@ -52,7 +55,7 @@ Get notified immediately when your item sells, when you're outbid, or when you w
 
 ### Trade Slots
 
-Each player has a limited number of **Trade Slots** (default 8). Trade Slots are shared between Active Listings, Active Bids, and Pending Claims.
+Every player gets a limited number of **Trade Slots** (default 8). Slots are shared across Active Listings, Active Bids, **and** Pending Claims -- so uncollected claims take up space. Pick up your claims to free slots for new listings and bids!
 
 > Server owners can grant players more slots via permissions up to a maximum of 45.
 
@@ -68,14 +71,9 @@ Server owners have full control over what items can be listed on the Auction Hou
 - **Mod** - Block all items from a specific mod
 - **NBT Tag** - Block items containing certain NBT data
 
-> **Soulbound** and **Profile-Slotbound** items are always blocked automatically. Bound items cannot be traded!
+> **Soulbound** and **Profile-Slotbound** items are always blocked automatically, regardless of blacklist settings. Bound items cannot be traded!
 
-**Blacklist Commands:**
-- `/kam auction blacklist add <item|mod|nbt> <value>` - Add entry
-- `/kam auction blacklist remove <item|mod|nbt> <value>` - Remove entry
-- `/kam auction blacklist list` - View all blacklisted entries
-- `/kam auction blacklist check` - Check if your held item is blacklisted
-- `/kam auction blacklist reload` - Reload from config
+Manage the blacklist in-game with `/kam auction blacklist` commands, or configure it directly in the config file.
 
 ---
 
@@ -94,13 +92,9 @@ Traders now support **limited stock** with automatic restocking!
 - **RL Daily / Weekly** - Restock based on real-life time
 - **Custom** - Set your own interval in MC ticks or real-time
 
-**Visual Feedback:**
-- Stock count displayed next to each trade
-- **Out of Stock** overlay when unavailable
-- Live **countdown timer** until next restock
+Stock counts, out-of-stock status, and restock timers are all visible directly in the trade interface.
 
 > Admins can manually reset stock or cooldowns via the Trader GUI.
-
 
 ### Currency Trades
 
@@ -110,10 +104,9 @@ Trades can now require **currency on top of items**. Combine material costs with
 
 ## Auctioneer Role 🧑‍💼
 
-New NPC role for the Auction House! Set the role on any NPC and players can access the full Auction House by interacting with them.
-> No configuration needed
+New NPC role for the Auction House! Set the role on any NPC and players can access the full Auction House by interacting with them -- no extra configuration needed. The role respects the global Auction Enabled setting.
 
-### Auction Command
+### Auction Commands
 
 Players can also access the Auction House via command:
 
@@ -123,5 +116,6 @@ Players can also access the Auction House via command:
 - `/kam auction list [page]` - View active auctions in chat
 - `/kam auction view <player>` - View a player's auction activity
 
----
+> Server owners can enable **auction logging** to track all auction activity (creates, bids, buyouts, sales, expirations, cancellations, and claims).
 
+---

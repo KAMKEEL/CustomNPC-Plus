@@ -30,10 +30,18 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
     public EntityNPCInterface npc;
 
     public GuiModelInterface2(EntityNPCInterface npc) {
-        super(npc);
+        this(npc, true);
+    }
+
+    /**
+     * @param npc       The NPC for preview rendering
+     * @param hasMenuNpc If false, the top menu tabs (Display, Stats, etc.) are hidden.
+     *                   Use false when opened from the global menu without a real NPC.
+     */
+    public GuiModelInterface2(EntityNPCInterface npc, boolean hasMenuNpc) {
+        super(hasMenuNpc ? npc : null);
         this.npc = npc;
         playerdata = ((EntityCustomNpc) npc).modelData;
-        //xSize = 380;
         drawDefaultBackground = false;
     }
 

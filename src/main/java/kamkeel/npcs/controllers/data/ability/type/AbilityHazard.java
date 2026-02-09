@@ -1,10 +1,9 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -14,13 +13,17 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHazard;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityHazard;
 
+import noppes.npcs.client.gui.builder.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -35,14 +38,35 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
     public enum HazardShape {
         CIRCLE,
         RING,
-        CONE
+        CONE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case CIRCLE: return "ability.shape.circle";
+                case RING: return "ability.shape.ring";
+                case CONE: return "ability.shape.cone";
+                default: return name();
+            }
+        }
     }
 
     public enum PlacementMode {
         AT_CASTER,
         AT_TARGET,
         FOLLOW_CASTER,
-        FOLLOW_TARGET
+        FOLLOW_TARGET;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case AT_CASTER: return "ability.placement.atCaster";
+                case AT_TARGET: return "ability.placement.atTarget";
+                case FOLLOW_CASTER: return "ability.placement.followCaster";
+                case FOLLOW_TARGET: return "ability.placement.followTarget";
+                default: return name();
+            }
+        }
     }
 
     private int durationTicks = 100;
@@ -88,18 +112,12 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.CIRCLE;
+        this.allowedBy = UserType.NPC_ONLY;
     }
 
     @Override
-    public boolean hasTypeSettings() {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public SubGuiAbilityConfig createConfigGui(
-        IAbilityConfigCallback callback) {
-        return new SubGuiAbilityHazard(this, callback);
+    public boolean allowBurst() {
+        return false;
     }
 
     @Override
@@ -186,14 +204,12 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
                 }
                 break;
             case AT_TARGET:
-                // Use telegraph position if available, apply offset
                 if (telegraph != null) {
                     double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
                         minOffset, maxOffset, randomOffset, RANDOM);
                     zoneX = pos[0];
                     zoneY = pos[1];
                     zoneZ = pos[2];
-                    // Update telegraph to show actual hazard position
                     telegraph.setX(zoneX);
                     telegraph.setY(zoneY);
                     telegraph.setZ(zoneZ);
@@ -232,7 +248,7 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         // Check if hazard duration has ended
         if (tick >= durationTicks) {
@@ -240,53 +256,55 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
             return;
         }
 
-        damagedThisTick.clear();
-        ticksSinceDamage++;
+        if (!isPreview()) {
+            damagedThisTick.clear();
+            ticksSinceDamage++;
 
-        switch (placement) {
-            case FOLLOW_CASTER:
-                zoneX = caster.posX;
-                zoneY = caster.posY;
-                zoneZ = caster.posZ;
-                break;
-            case FOLLOW_TARGET:
-                if (target != null) {
-                    zoneX = target.posX;
-                    zoneY = target.posY;
-                    zoneZ = target.posZ;
-                }
-                break;
-            default:
-                break;
-        }
-
-        if (ticksSinceDamage >= damageInterval) {
-            ticksSinceDamage = 0;
-
-            AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-                zoneX - radius, zoneY - heightBelow, zoneZ - radius,
-                zoneX + radius, zoneY + heightAbove, zoneZ + radius
-            );
-
-            @SuppressWarnings("unchecked")
-            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
-
-            for (EntityLivingBase entity : entities) {
-                if (entity == caster && !affectsCaster) continue;
-                if (damagedThisTick.contains(entity.getEntityId())) continue;
-                if (!isInZone(entity, caster)) continue;
-
-                if (damagePerSecond > 0) {
-                    if (ignoreInvulnFrames) {
-                        entity.hurtResistantTime = 0;
+            switch (placement) {
+                case FOLLOW_CASTER:
+                    zoneX = caster.posX;
+                    zoneY = caster.posY;
+                    zoneZ = caster.posZ;
+                    break;
+                case FOLLOW_TARGET:
+                    if (target != null) {
+                        zoneX = target.posX;
+                        zoneY = target.posY;
+                        zoneZ = target.posZ;
                     }
-                    // Apply damage with scripted event support (no knockback for hazard)
-                    boolean wasHit = applyAbilityDamage(caster, entity, damagePerSecond, 0);
-                    if (!wasHit) continue; // Skip debuffs if hit was cancelled
-                }
+                    break;
+                default:
+                    break;
+            }
 
-                applyDebuffs(entity);
-                damagedThisTick.add(entity.getEntityId());
+            if (ticksSinceDamage >= damageInterval) {
+                ticksSinceDamage = 0;
+
+                AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+                    zoneX - radius, zoneY - heightBelow, zoneZ - radius,
+                    zoneX + radius, zoneY + heightAbove, zoneZ + radius
+                );
+
+                @SuppressWarnings("unchecked")
+                List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
+
+                for (EntityLivingBase entity : entities) {
+                    if (entity == caster && !affectsCaster) continue;
+                    if (damagedThisTick.contains(entity.getEntityId())) continue;
+                    if (!isInZone(entity, caster)) continue;
+
+                    if (damagePerSecond > 0) {
+                        if (ignoreInvulnFrames) {
+                            entity.hurtResistantTime = 0;
+                        }
+                        // Apply damage with scripted event support (no knockback for hazard)
+                        boolean wasHit = applyAbilityDamage(caster, entity, damagePerSecond, 0);
+                        if (!wasHit) continue; // Skip debuffs if hit was cancelled
+                    }
+
+                    applyDebuffs(entity);
+                    damagedThisTick.add(entity.getEntityId());
+                }
             }
         }
     }
@@ -615,5 +633,36 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
 
     public double getZoneZ() {
         return zoneZ;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
+            FieldDef.enumField("ability.shape", HazardShape.class, this::getShapeEnum, this::setShapeEnum)
+                .hover("ability.hover.shape"),
+            FieldDef.enumField("ability.placement", PlacementMode.class, this::getPlacementEnum, this::setPlacementEnum)
+                .hover("ability.hover.placement"),
+            FieldDef.section("ability.section.area"),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getRadius, this::setRadius),
+                FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius)
+            ),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.row(
+                FieldDef.floatField("ability.damagePerSecond", this::getDamagePerSecond, this::setDamagePerSecond),
+                FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval)
+            ),
+            FieldDef.section("ability.section.debuffs"),
+            FieldDef.row(
+                FieldDef.intField("ability.slownessLevel", this::getSlownessLevel, this::setSlownessLevel),
+                FieldDef.intField("ability.debuffDuration", this::getDebuffDuration, this::setDebuffDuration)
+            ),
+            FieldDef.intField("ability.poisonLevel", this::getPoisonLevel, this::setPoisonLevel),
+            FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
+                .hover("ability.hover.affectsCaster"),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
     }
 }
