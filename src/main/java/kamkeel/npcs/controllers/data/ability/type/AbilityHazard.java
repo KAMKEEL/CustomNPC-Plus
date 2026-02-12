@@ -38,8 +38,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         this.typeId = "ability.cnpc.hazard";
         this.name = "Hazard";
         this.windUpTicks = 30;
-        this.telegraphType = TelegraphType.CIRCLE;
-        this.allowedBy = UserType.NPC_ONLY;
         this.windUpAnimationName = "Ability_Hazard_Windup";
         this.activeAnimationName = "Ability_Hazard_Active";
     }
@@ -47,60 +45,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
     @Override
     public float getTelegraphRadius() {
         return radius;
-    }
-
-    @Override
-    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        TelegraphInstance instance = super.createTelegraph(caster, target);
-        if (instance == null) return null;
-
-        // Control telegraph following based on placement mode
-        switch (placement) {
-            case AT_CASTER:
-            case FOLLOW_CASTER:
-                // Telegraph stays at caster position, no following
-                instance.setEntityIdToFollow(-1);
-                instance.setX(caster.posX);
-                instance.setY(caster.posY);
-                instance.setZ(caster.posZ);
-                break;
-            case AT_TARGET:
-                // Telegraph follows target during windup, locks on execute
-                if (target != null) {
-                    instance.setEntityIdToFollow(target.getEntityId());
-                }
-                break;
-            case FOLLOW_TARGET:
-                // Telegraph follows target during windup AND active phase
-                if (target != null) {
-                    instance.setEntityIdToFollow(target.getEntityId());
-                }
-                break;
-        }
-        return instance;
-    }
-
-    @Override
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // AT_CASTER locks immediately, AT_TARGET follows during windup and locks on execute
-        if (tick == 0) {
-            switch (placement) {
-                case AT_CASTER:
-                    zoneX = caster.posX;
-                    zoneY = caster.posY;
-                    zoneZ = caster.posZ;
-                    positionLocked = true;
-                    break;
-                case AT_TARGET:
-                    // Position will be set from telegraph on execute
-                    // Telegraph follows target during windup
-                    positionLocked = false;
-                    break;
-                default:
-                    positionLocked = false;
-                    break;
-            }
-        }
     }
 
     @Override
