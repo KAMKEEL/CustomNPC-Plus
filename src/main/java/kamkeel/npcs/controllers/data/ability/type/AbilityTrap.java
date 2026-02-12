@@ -40,7 +40,9 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         super(300, new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.0f, 0.5f, 1.5f));
         this.typeId = "ability.cnpc.trap";
         this.name = "Trap";
-        this.windUpTicks = 20;
+        this.windUpTicks = 30;
+        this.windUpAnimationName = "Ability_Zone_Windup";
+        this.activeAnimationName = "Ability_Zone_Active";
     }
 
     @Override

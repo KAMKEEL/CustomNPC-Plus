@@ -38,8 +38,8 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         this.typeId = "ability.cnpc.hazard";
         this.name = "Hazard";
         this.windUpTicks = 30;
-        this.windUpAnimationName = "Ability_Hazard_Windup";
-        this.activeAnimationName = "Ability_Hazard_Active";
+        this.windUpAnimationName = "Ability_Zone_Windup";
+        this.activeAnimationName = "Ability_Zone_Active";
     }
 
     @Override
