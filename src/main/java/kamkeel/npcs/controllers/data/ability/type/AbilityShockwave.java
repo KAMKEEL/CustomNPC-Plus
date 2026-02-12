@@ -35,7 +35,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.typeId = "ability.cnpc.shockwave";
         this.name = "Shockwave";
         this.targetingMode = TargetingMode.AOE_SELF;
-        this.maxRange = 15.0f;
+        this.maxRange = 8.0f;
         this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 25;

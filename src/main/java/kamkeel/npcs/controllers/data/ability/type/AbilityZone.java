@@ -1,6 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.UserType;
@@ -17,6 +18,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
+import noppes.npcs.client.gui.SubGuiZonePresetSelector;
 import noppes.npcs.client.gui.builder.FieldDef;
 
 import cpw.mods.fml.relauncher.Side;
@@ -243,36 +245,61 @@ public abstract class AbilityZone extends Ability {
      * Apply preset defaults by style name.
      */
     private void applyPresetDefaults(String styleName) {
+        effects.clear();
+        particleDir = "";
         switch (styleName) {
             case "TOXIC":
                 groundFill = true; groundAlpha = 0.30f; rings = true; ringCount = 3;
                 border = false; borderSpeed = 1.0f; accents = true; accentStyle = 1;
-                lightning = false; particles = true; particleMotion = 0; particleGlow = true;
+                lightning = false; particles = true; particleDensity = 1.5f; particleScale = 0.8f;
+                particleMotion = 1; particleGlow = true; particleDir = "mc:mobSpell";
+                colorData.innerColor = 0x44DD44; colorData.outerColor = 0x116611;
+                windUpColor = 0x6044DD44; activeColor = 0xC044FF44;
+                effects.add(new AbilityEffect(AbilityEffect.EffectType.POISON, 100, 0));
                 break;
             case "INFERNO":
                 groundFill = true; groundAlpha = 0.35f; rings = true; ringCount = 3;
                 border = true; borderSpeed = 2.0f; accents = true; accentStyle = 2;
-                lightning = false; particles = true; particleMotion = 0; particleGlow = true;
+                lightning = false; particles = true; particleDensity = 2.0f; particleScale = 1.2f;
+                particleMotion = 0; particleGlow = true; particleDir = "mc:flame";
+                colorData.innerColor = 0xFF6611; colorData.outerColor = 0xCC2200;
+                windUpColor = 0x60FF6611; activeColor = 0xC0FF4400;
+                effects.add(new AbilityEffect(AbilityEffect.EffectType.BURN, 60, 0));
                 break;
             case "ARCANE":
                 groundFill = true; groundAlpha = 0.20f; rings = true; ringCount = 1;
                 border = true; borderSpeed = 0.8f; accents = true; accentStyle = 0;
-                lightning = false; particles = true; particleMotion = 1; particleGlow = true;
+                lightning = false; particles = true; particleDensity = 1.0f; particleScale = 1.0f;
+                particleMotion = 1; particleGlow = true; particleDir = "mc:portal";
+                colorData.innerColor = 0xAA44FF; colorData.outerColor = 0x6622BB;
+                windUpColor = 0x60AA44FF; activeColor = 0xC0CC66FF;
+                effects.add(new AbilityEffect(AbilityEffect.EffectType.WEAKNESS, 100, 0));
                 break;
             case "ELECTRIC":
                 groundFill = true; groundAlpha = 0.15f; rings = false; ringCount = 1;
                 border = false; borderSpeed = 1.0f; accents = false; accentStyle = 0;
-                lightning = true; particles = true; particleMotion = 2; particleGlow = true;
+                lightning = true; particles = true; particleDensity = 0.8f; particleScale = 0.6f;
+                particleMotion = 2; particleGlow = true; particleDir = "mc:enchantmenttable";
+                colorData.innerColor = 0x4488FF; colorData.outerColor = 0x2244BB;
+                windUpColor = 0x604488FF; activeColor = 0xC066AAFF;
+                effects.add(new AbilityEffect(AbilityEffect.EffectType.MINING_FATIGUE, 80, 1));
                 break;
             case "FROST":
                 groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;
                 border = true; borderSpeed = 0.3f; accents = true; accentStyle = 0;
-                lightning = false; particles = true; particleMotion = 1; particleGlow = true;
+                lightning = false; particles = true; particleDensity = 1.5f; particleScale = 1.0f;
+                particleMotion = 1; particleGlow = true; particleDir = "mc:snowshovel";
+                colorData.innerColor = 0x88CCFF; colorData.outerColor = 0x4488CC;
+                windUpColor = 0x6088CCFF; activeColor = 0xC0AADDFF;
+                effects.add(new AbilityEffect(AbilityEffect.EffectType.SLOWNESS, 100, 1));
                 break;
             case "DEFAULT":
                 groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;
                 border = true; borderSpeed = 1.0f; accents = true; accentStyle = 0;
-                lightning = false; particles = false; particleMotion = 0; particleGlow = true;
+                lightning = false; particles = false; particleDensity = 1.0f; particleScale = 1.0f;
+                particleMotion = 0; particleGlow = true;
+                colorData.innerColor = 0xCCCCCC; colorData.outerColor = 0x666666;
+                windUpColor = 0x60CCCCCC; activeColor = 0xC0FFFFFF;
                 break;
             default:
                 break;
@@ -285,50 +312,12 @@ public abstract class AbilityZone extends Ability {
      */
     @SideOnly(Side.CLIENT)
     public enum ZonePreset {
-        CUSTOM, DEFAULT, TOXIC, INFERNO, ARCANE, ELECTRIC, FROST;
+        DEFAULT, TOXIC, INFERNO, ARCANE, ELECTRIC, FROST;
 
         @Override
         public String toString() {
             return "ability.preset." + name().toLowerCase();
         }
-    }
-
-    /**
-     * Check current field values against each preset, return matching preset or CUSTOM.
-     */
-    @SideOnly(Side.CLIENT)
-    public ZonePreset getCurrentPreset() {
-        if (matchesPreset(true, 0.25f, true, 3, true, 1.0f, true, 0, false, false, 0, true))
-            return ZonePreset.DEFAULT;
-        if (matchesPreset(true, 0.30f, true, 3, false, 1.0f, true, 1, false, true, 0, true))
-            return ZonePreset.TOXIC;
-        if (matchesPreset(true, 0.35f, true, 3, true, 2.0f, true, 2, false, true, 0, true))
-            return ZonePreset.INFERNO;
-        if (matchesPreset(true, 0.20f, true, 1, true, 0.8f, true, 0, false, true, 1, true))
-            return ZonePreset.ARCANE;
-        if (matchesPreset(true, 0.15f, false, 1, false, 1.0f, false, 0, true, true, 2, true))
-            return ZonePreset.ELECTRIC;
-        if (matchesPreset(true, 0.25f, true, 3, true, 0.3f, true, 0, false, true, 1, true))
-            return ZonePreset.FROST;
-        return ZonePreset.CUSTOM;
-    }
-
-    @SideOnly(Side.CLIENT)
-    private boolean matchesPreset(boolean gf, float ga, boolean r, int rc, boolean b, float bs,
-                                   boolean a, int as, boolean l, boolean p, int pm, boolean pg) {
-        return groundFill == gf && Math.abs(groundAlpha - ga) < 0.001f
-            && rings == r && ringCount == rc && border == b && Math.abs(borderSpeed - bs) < 0.001f
-            && accents == a && accentStyle == as && lightning == l
-            && particles == p && particleMotion == pm && particleGlow == pg;
-    }
-
-    /**
-     * Apply a preset's field values. CUSTOM does nothing (user configures manually).
-     */
-    @SideOnly(Side.CLIENT)
-    public void applyPreset(ZonePreset preset) {
-        if (preset == ZonePreset.CUSTOM) return;
-        applyPresetDefaults(preset.name());
     }
 
     // ═════════════════════════════════════════════════════════════════
@@ -477,12 +466,20 @@ public abstract class AbilityZone extends Ability {
     // ═════════════════════════════════════════════════════════════════
 
     @SideOnly(Side.CLIENT)
+    protected void addPresetFieldDef(List<FieldDef> defs) {
+        defs.add(FieldDef.subGuiField("gui.applyPreset",
+            SubGuiZonePresetSelector::new,
+            gui -> {
+                SubGuiZonePresetSelector selector = (SubGuiZonePresetSelector) gui;
+                if (selector.selectedPreset != null) {
+                    applyPresetDefaults(selector.selectedPreset);
+                }
+            }));
+    }
+
+    @SideOnly(Side.CLIENT)
     protected void addVisualFieldDefs(List<FieldDef> defs) {
         defs.addAll(Arrays.asList(
-            // Preset dropdown
-            FieldDef.enumField("gui.preset", ZonePreset.class, this::getCurrentPreset, this::applyPreset)
-                .tab("ability.tab.visual"),
-
             // Ground Fill
             FieldDef.section("ability.section.ground").tab("ability.tab.visual"),
             FieldDef.row(
@@ -520,19 +517,17 @@ public abstract class AbilityZone extends Ability {
 
             // Particles
             FieldDef.section("ability.section.particles").tab("ability.tab.visual"),
-            FieldDef.row(
-                FieldDef.boolField("gui.enabled", this::isParticles, this::setParticles),
-                FieldDef.floatField("gui.density", this::getParticleDensity, this::setParticleDensity)
-            ).tab("ability.tab.visual"),
-            FieldDef.row(
-                FieldDef.floatField("gui.scale", this::getParticleScale, this::setParticleScale),
-                FieldDef.enumField("gui.motion", ParticleMotion.class, this::getParticleMotionEnum, this::setParticleMotionEnum)
-            ).tab("ability.tab.visual"),
-            FieldDef.boolField("gui.glow", this::isParticleGlow, this::setParticleGlow)
+            FieldDef.boolField("gui.enabled", this::isParticles, this::setParticles)
                 .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.floatField("gui.density", this::getParticleDensity, this::setParticleDensity),
+                FieldDef.floatField("gui.scale", this::getParticleScale, this::setParticleScale)
+            ).tab("ability.tab.visual").visibleWhen(this::isParticles),
+            FieldDef.row(
+                FieldDef.enumField("gui.motion", ParticleMotion.class, this::getParticleMotionEnum, this::setParticleMotionEnum),
+                FieldDef.boolField("gui.glow", this::isParticleGlow, this::setParticleGlow)
+            ).tab("ability.tab.visual").visibleWhen(this::isParticles),
             FieldDef.stringField("gui.texture", this::getParticleDir, this::setParticleDir)
-                .tab("ability.tab.visual").visibleWhen(this::isParticles),
-            FieldDef.intField("gui.size", this::getParticleSize, this::setParticleSize).range(1, 256)
                 .tab("ability.tab.visual").visibleWhen(this::isParticles),
 
             // Animation

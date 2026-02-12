@@ -154,8 +154,8 @@ public class FieldDef {
 
     public static FieldDef colorSubGui(String label, Supplier<Integer> getter, Consumer<Integer> setter) {
         return subGuiField(label,
-            () -> new SubGuiColorSelector(getter.get()),
-            gui -> setter.accept(((SubGuiColorSelector) gui).color & 0x00FFFFFF))
+            () -> new SubGuiColorSelector(getter.get() & 0xFFFFFF),
+            gui -> setter.accept((((SubGuiColorSelector) gui).color & 0x00FFFFFF) | (getter.get() & 0xFF000000)))
             .buttonLabel(() -> String.format("%06X", getter.get() & 0xFFFFFF))
             .buttonTextColor(() -> getter.get() & 0xFFFFFF);
     }

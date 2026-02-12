@@ -157,6 +157,8 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     @SideOnly(Side.CLIENT)
     @Override
     public void getAbilityDefinitions(List<FieldDef> defs) {
+        addPresetFieldDef(defs);
+
         defs.addAll(Arrays.asList(
             FieldDef.row(
                 FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
