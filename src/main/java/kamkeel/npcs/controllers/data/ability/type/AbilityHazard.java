@@ -27,14 +27,14 @@ import java.util.List;
 public class AbilityHazard extends AbilityZone implements IAbilityHazard {
 
     // Hazard-specific fields
-    private float radius = 4.0f;
+    private float radius = 2.0f;
     private float damagePerSecond = 1.0f;
     private int damageInterval = 20;
     private boolean ignoreInvulnFrames = false;
     private boolean affectsCaster = false;
 
     public AbilityHazard() {
-        super(100, new EnergyDisplayData(0x00CC00, 0x006600, true, 1.0f, 0.5f, 1.5f));
+        super(300, new EnergyDisplayData(0x00CC00, 0x006600, true, 1.0f, 0.5f, 1.5f));
         this.typeId = "ability.cnpc.hazard";
         this.name = "Hazard";
         this.windUpTicks = 30;
@@ -43,7 +43,7 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
     }
 
     @Override
-    public float getTelegraphRadius() {
+    public float getZoneRadius() {
         return radius;
     }
 
@@ -56,12 +56,24 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
 
         activeEntities.clear();
 
-        List<double[]> placedPositions = new ArrayList<>();
-        float minSeparation = radius * 2.0f;
+        // Use pre-calculated positions from telegraph phase, or generate new ones
+        List<double[]> positions;
+        if (!preCalculatedPositions.isEmpty() && preCalculatedPositions.size() == zoneCount) {
+            positions = new ArrayList<>(preCalculatedPositions);
+            preCalculatedPositions.clear();
+        } else {
+            positions = new ArrayList<>();
+            List<double[]> placedPositions = new ArrayList<>();
+            float minSeparation = radius * 2.0f;
+            for (int i = 0; i < zoneCount; i++) {
+                double[] pos = findSpawnPosition(caster, placedPositions, minSeparation);
+                placedPositions.add(pos);
+                positions.add(pos);
+            }
+        }
 
         for (int i = 0; i < zoneCount; i++) {
-            double[] pos = findSpawnPosition(caster, placedPositions, minSeparation);
-            placedPositions.add(pos);
+            double[] pos = positions.get(i);
 
             EntityAbilityZone entity = EntityAbilityZone.createHazard(world, caster,
                 pos[0], caster.posY, pos[1],
@@ -102,26 +114,9 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        readZoneNBT(nbt, 100);
-
-        // Backward compat: old "shape" key with RING/CONE → ignore (base defaults to CIRCLE)
-        // The old HazardShape enum had CIRCLE/RING/CONE — only CIRCLE maps to new ZoneShape
-        if (nbt.hasKey("shape")) {
-            String oldShape = nbt.getString("shape");
-            if ("RING".equals(oldShape) || "CONE".equals(oldShape)) {
-                this.zoneShape = ZoneShape.CIRCLE;
-            }
-        }
-
-        this.radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 4.0f;
-        // Support legacy "damagePerTick" key for backwards compatibility
-        if (nbt.hasKey("damagePerSecond")) {
-            this.damagePerSecond = nbt.getFloat("damagePerSecond");
-        } else if (nbt.hasKey("damagePerTick")) {
-            this.damagePerSecond = nbt.getFloat("damagePerTick");
-        } else {
-            this.damagePerSecond = 1.0f;
-        }
+        readZoneNBT(nbt, 300);
+        this.radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 2.0f;
+        this.damagePerSecond = nbt.hasKey("damagePerSecond") ? nbt.getFloat("damagePerSecond") : 1.0f;
         this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 20;
         this.ignoreInvulnFrames = nbt.hasKey("ignoreInvulnFrames") && nbt.getBoolean("ignoreInvulnFrames");
         this.affectsCaster = nbt.hasKey("affectsCaster") && nbt.getBoolean("affectsCaster");
@@ -178,6 +173,5 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         ));
 
         addVisualFieldDefs(defs);
-        addTelegraphSizeField(defs);
     }
 }

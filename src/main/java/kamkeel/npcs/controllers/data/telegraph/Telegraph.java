@@ -150,6 +150,12 @@ public class Telegraph {
         return new Telegraph("", TelegraphType.POINT);
     }
 
+    public static Telegraph square(float radius) {
+        Telegraph t = new Telegraph("", TelegraphType.SQUARE);
+        t.radius = radius;
+        return t;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // GETTERS & SETTERS
     // ═══════════════════════════════════════════════════════════════════

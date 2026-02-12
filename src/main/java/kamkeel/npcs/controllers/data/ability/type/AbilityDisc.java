@@ -124,8 +124,9 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         this.fireDelay = Math.max(0, delay);
     }
 
-    // Legacy compat
+    /** @deprecated Use {@link #getFireDelay()} */
     public int getDualFireDelay() { return fireDelay; }
+    /** @deprecated Use {@link #setFireDelay(int)} */
     public void setDualFireDelay(int delay) { setFireDelay(delay); }
 
     @Override
@@ -228,8 +229,13 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         for (EntityAbilityDisc disc : discEntities) {
             spawnAbilityEntity(world, disc);
         }
-        for (EntityAbilityDisc disc : discEntities) {
-            fireDiscEntity(disc, target);
+
+        // Fire first projectile immediately, let onActiveTick handle the rest with fireDelay
+        fireDiscEntity(discEntities[0], target);
+        if (fireDelay <= 0) {
+            for (int i = 1; i < projectileCount; i++) {
+                fireDiscEntity(discEntities[i], target);
+            }
         }
     }
 
@@ -371,61 +377,22 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
         int count = nbt.hasKey("projectileCount") ? nbt.getInteger("projectileCount") : 1;
         initProjectiles(count);
 
-        // Read fireDelay with fallback to old dualFireDelay key
-        if (nbt.hasKey("fireDelay")) {
-            this.fireDelay = nbt.getInteger("fireDelay");
-        } else if (nbt.hasKey("dualFireDelay")) {
-            this.fireDelay = nbt.getInteger("dualFireDelay");
-        } else {
-            this.fireDelay = 0;
-        }
+        this.fireDelay = nbt.hasKey("fireDelay") ? nbt.getInteger("fireDelay") : 0;
 
         // Shared combat/movement data
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
 
-        // Determine format and read accordingly
-        if (nbt.hasKey("Projectile_0")) {
-            NBTTagCompound proj0 = nbt.getCompoundTag("Projectile_0");
-            if (proj0.hasKey("colorOverride")) {
-                // NEW format: shared visuals at root + ProjectileData per projectile
-                displayData.readNBT(nbt);
-                lightningData.readNBT(nbt);
-                for (int i = 0; i < projectileCount; i++) {
-                    if (nbt.hasKey("Projectile_" + i)) {
-                        projectiles[i].readNBT(nbt.getCompoundTag("Projectile_" + i));
-                    }
-                }
-            } else {
-                // OLD format: full per-projectile arrays (displayData, lightningData, etc. in each Projectile_i)
-                // Read primary visuals from Projectile_0
-                displayData.readNBT(proj0);
-                lightningData.readNBT(proj0);
-                projectiles[0].anchor.readNBT(proj0);
+        // Shared visual data
+        displayData.readNBT(nbt);
+        lightningData.readNBT(nbt);
 
-                // Read remaining projectiles, set color override if colors differ
-                for (int i = 1; i < projectileCount; i++) {
-                    if (nbt.hasKey("Projectile_" + i)) {
-                        NBTTagCompound projNbt = nbt.getCompoundTag("Projectile_" + i);
-                        projectiles[i].anchor.readNBT(projNbt);
-
-                        // Check if this projectile had different colors
-                        EnergyDisplayData tempDisplay = new EnergyDisplayData();
-                        tempDisplay.readNBT(projNbt);
-                        if (tempDisplay.innerColor != displayData.innerColor || tempDisplay.outerColor != displayData.outerColor) {
-                            projectiles[i].colorOverride = true;
-                            projectiles[i].innerColor = tempDisplay.innerColor;
-                            projectiles[i].outerColor = tempDisplay.outerColor;
-                        }
-                    }
-                }
+        // Per-projectile data
+        for (int i = 0; i < projectileCount; i++) {
+            if (nbt.hasKey("Projectile_" + i)) {
+                projectiles[i].readNBT(nbt.getCompoundTag("Projectile_" + i));
             }
-        } else {
-            // LEGACY flat format: all data at root level
-            displayData.readNBT(nbt);
-            lightningData.readNBT(nbt);
-            projectiles[0].anchor.readNBT(nbt);
         }
     }
 

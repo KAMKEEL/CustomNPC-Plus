@@ -117,7 +117,7 @@ public abstract class Ability implements IAbility {
     protected transient int currentTick = 0;
     protected transient EntityLivingBase currentTarget;
     protected transient long executionStartTime;
-    protected transient TelegraphInstance telegraphInstance;
+    protected transient List<TelegraphInstance> telegraphInstances = new ArrayList<>();
 
     // Burst execution state
     protected transient int burstIndex = 0;
@@ -682,6 +682,9 @@ public abstract class Ability implements IAbility {
             case POINT:
                 telegraph = new Telegraph("", TelegraphType.POINT);
                 break;
+            case SQUARE:
+                telegraph = Telegraph.square(getTelegraphRadius());
+                break;
             default:
                 return null;
         }
@@ -714,6 +717,17 @@ public abstract class Ability implements IAbility {
         }
 
         return instance;
+    }
+
+    /**
+     * Create all telegraph instances for this ability.
+     * Override for abilities that need multiple telegraphs (e.g., zone abilities).
+     * Default wraps createTelegraph() in a singleton list.
+     */
+    public List<TelegraphInstance> createTelegraphs(EntityLivingBase caster, EntityLivingBase target) {
+        TelegraphInstance instance = createTelegraph(caster, target);
+        if (instance == null) return new ArrayList<>();
+        return new ArrayList<>(Collections.singletonList(instance));
     }
 
     /**
@@ -784,17 +798,17 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Get the current telegraph instance.
+     * Get the current telegraph instances.
      */
-    public TelegraphInstance getTelegraphInstance() {
-        return telegraphInstance;
+    public List<TelegraphInstance> getTelegraphInstances() {
+        return telegraphInstances;
     }
 
     /**
-     * Set the telegraph instance (called by DataAbilities).
+     * Set the telegraph instances (called by DataAbilities).
      */
-    public void setTelegraphInstance(TelegraphInstance instance) {
-        this.telegraphInstance = instance;
+    public void setTelegraphInstances(List<TelegraphInstance> instances) {
+        this.telegraphInstances = instances != null ? instances : new ArrayList<>();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -918,7 +932,7 @@ public abstract class Ability implements IAbility {
         }
         burstIndex = 0;
         currentTarget = null;
-        telegraphInstance = null;
+        telegraphInstances.clear();
     }
 
     /**
@@ -970,7 +984,7 @@ public abstract class Ability implements IAbility {
         currentTick = 0;
         burstIndex = 0;
         currentTarget = null;
-        telegraphInstance = null;
+        telegraphInstances.clear();
         previewMode = false;
         previewEntityHandler = null;
     }

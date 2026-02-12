@@ -37,10 +37,15 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     private boolean visible = true;
 
     public AbilityTrap() {
-        super(200, new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.0f, 0.5f, 1.5f));
+        super(300, new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.0f, 0.5f, 1.5f));
         this.typeId = "ability.cnpc.trap";
         this.name = "Trap";
         this.windUpTicks = 20;
+    }
+
+    @Override
+    public float getZoneRadius() {
+        return triggerRadius;
     }
 
     @Override
@@ -52,12 +57,24 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
 
         activeEntities.clear();
 
-        List<double[]> placedPositions = new ArrayList<>();
-        float minSeparation = triggerRadius * 2.0f;
+        // Use pre-calculated positions from telegraph phase, or generate new ones
+        List<double[]> positions;
+        if (!preCalculatedPositions.isEmpty() && preCalculatedPositions.size() == zoneCount) {
+            positions = new ArrayList<>(preCalculatedPositions);
+            preCalculatedPositions.clear();
+        } else {
+            positions = new ArrayList<>();
+            List<double[]> placedPositions = new ArrayList<>();
+            float minSeparation = triggerRadius * 2.0f;
+            for (int i = 0; i < zoneCount; i++) {
+                double[] pos = findSpawnPosition(caster, placedPositions, minSeparation);
+                placedPositions.add(pos);
+                positions.add(pos);
+            }
+        }
 
         for (int i = 0; i < zoneCount; i++) {
-            double[] pos = findSpawnPosition(caster, placedPositions, minSeparation);
-            placedPositions.add(pos);
+            double[] pos = positions.get(i);
 
             EntityAbilityZone entity = EntityAbilityZone.createTrap(world, caster,
                 pos[0], caster.posY, pos[1],
@@ -99,7 +116,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        readZoneNBT(nbt, 200);
+        readZoneNBT(nbt, 300);
         this.triggerRadius = nbt.hasKey("triggerRadius") ? nbt.getFloat("triggerRadius") : 2.0f;
         this.armTime = nbt.hasKey("armTime") ? nbt.getInteger("armTime") : 20;
         this.maxTriggers = nbt.hasKey("maxTriggers") ? nbt.getInteger("maxTriggers") : 1;
@@ -171,6 +188,5 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         ));
 
         addVisualFieldDefs(defs);
-        addTelegraphSizeField(defs);
     }
 }

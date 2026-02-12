@@ -191,10 +191,9 @@ public class DataAbilities {
 
             case ACTIVE:
                 if (phaseChanged && (oldPhase == AbilityPhase.WINDUP || oldPhase == AbilityPhase.BURST_DELAY)) {
-                    // Just entered ACTIVE phase - lock telegraph position if it was following
+                    // Just entered ACTIVE phase - lock telegraph positions if they were following
                     // This commits the ability to its current target position
-                    TelegraphInstance telegraph = currentAbility.getTelegraphInstance();
-                    if (telegraph != null) {
+                    for (TelegraphInstance telegraph : currentAbility.getTelegraphInstances()) {
                         telegraph.lockPosition();
                     }
 
@@ -603,26 +602,27 @@ public class DataAbilities {
     }
 
     /**
-     * Spawn and send telegraph for an ability.
+     * Spawn and send telegraphs for an ability.
      */
     private void spawnTelegraph(Ability ability, EntityLivingBase target) {
-        TelegraphInstance telegraph = ability.createTelegraph(npc, target);
-        if (telegraph != null) {
-            ability.setTelegraphInstance(telegraph);
-            // Send to all nearby players
-            TelegraphSpawnPacket.sendToTracking(telegraph, npc);
+        List<TelegraphInstance> telegraphs = ability.createTelegraphs(npc, target);
+        if (!telegraphs.isEmpty()) {
+            ability.setTelegraphInstances(telegraphs);
+            for (TelegraphInstance telegraph : telegraphs) {
+                TelegraphSpawnPacket.sendToTracking(telegraph, npc);
+            }
         }
     }
 
     /**
-     * Remove telegraph when ability ends or is interrupted.
+     * Remove telegraphs when ability ends or is interrupted.
      */
     private void removeTelegraph(Ability ability) {
-        TelegraphInstance telegraph = ability.getTelegraphInstance();
-        if (telegraph != null) {
+        List<TelegraphInstance> telegraphs = ability.getTelegraphInstances();
+        for (TelegraphInstance telegraph : telegraphs) {
             TelegraphRemovePacket.sendToTracking(telegraph.getInstanceId(), npc);
-            ability.setTelegraphInstance(null);
         }
+        ability.setTelegraphInstances(null);
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -110,6 +110,9 @@ public class TelegraphRenderer {
             case POINT:
                 renderPoint(red, green, blue, alpha);
                 break;
+            case SQUARE:
+                renderSquare(telegraph.getRadius(), red, green, blue, alpha);
+                break;
             default:
                 break;
         }
@@ -258,6 +261,30 @@ public class TelegraphRenderer {
         tessellator.draw();
     }
 
+    private void renderSquare(float radius, float r, float g, float b, float a) {
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.setColorRGBA_F(r, g, b, a);
+
+        tessellator.addVertex(-radius, 0, -radius);
+        tessellator.addVertex(radius, 0, -radius);
+        tessellator.addVertex(radius, 0, radius);
+        tessellator.addVertex(-radius, 0, radius);
+
+        tessellator.draw();
+
+        // Draw border
+        tessellator.startDrawing(GL11.GL_LINE_LOOP);
+        tessellator.setColorRGBA_F(r, g, b, Math.min(1.0f, a * 2));
+
+        tessellator.addVertex(-radius, 0.01, -radius);
+        tessellator.addVertex(radius, 0.01, -radius);
+        tessellator.addVertex(radius, 0.01, radius);
+        tessellator.addVertex(-radius, 0.01, radius);
+
+        tessellator.draw();
+    }
+
     // ==================== GUI PREVIEW RENDERING ====================
 
     /**
@@ -321,6 +348,9 @@ public class TelegraphRenderer {
                 break;
             case POINT:
                 renderPoint(red, green, blue, alpha);
+                break;
+            case SQUARE:
+                renderSquare(telegraph.getRadius(), red, green, blue, alpha);
                 break;
             default:
                 break;

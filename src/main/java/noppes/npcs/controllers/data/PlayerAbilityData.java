@@ -118,9 +118,8 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
             case ACTIVE:
                 if (phaseChanged && oldPhase == AbilityPhase.WINDUP) {
-                    // Just entered ACTIVE phase
-                    TelegraphInstance telegraph = currentAbility.getTelegraphInstance();
-                    if (telegraph != null) {
+                    // Just entered ACTIVE phase - lock all telegraph positions
+                    for (TelegraphInstance telegraph : currentAbility.getTelegraphInstances()) {
                         telegraph.lockPosition();
                     }
                     removeTelegraph(currentAbility, player);
@@ -451,23 +450,25 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     // ═══════════════════════════════════════════════════════════════════
 
     private void spawnTelegraph(Ability ability, EntityPlayer player, EntityLivingBase target) {
-        TelegraphInstance telegraph = ability.createTelegraph(player, target);
-        if (telegraph != null) {
-            ability.setTelegraphInstance(telegraph);
+        List<TelegraphInstance> telegraphs = ability.createTelegraphs(player, target);
+        if (!telegraphs.isEmpty()) {
+            ability.setTelegraphInstances(telegraphs);
             if (player instanceof EntityPlayerMP) {
-                TelegraphSpawnPacket.sendToTracking(telegraph, player);
+                for (TelegraphInstance telegraph : telegraphs) {
+                    TelegraphSpawnPacket.sendToTracking(telegraph, player);
+                }
             }
         }
     }
 
     private void removeTelegraph(Ability ability, EntityPlayer player) {
-        TelegraphInstance telegraph = ability.getTelegraphInstance();
-        if (telegraph != null) {
+        List<TelegraphInstance> telegraphs = ability.getTelegraphInstances();
+        for (TelegraphInstance telegraph : telegraphs) {
             if (player instanceof EntityPlayerMP) {
                 TelegraphRemovePacket.sendToTracking(telegraph.getInstanceId(), player);
             }
-            ability.setTelegraphInstance(null);
         }
+        ability.setTelegraphInstances(null);
     }
 
     // ═══════════════════════════════════════════════════════════════════
