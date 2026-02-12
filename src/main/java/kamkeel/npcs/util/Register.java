@@ -36,19 +36,23 @@ public class Register<T> {
     }
 
     public static class Abilities extends Register<Ability> {
+        protected final Map<String, String> uniqueNames = new LinkedHashMap<>();
+
         private Abilities(String namespace) {
             super("ability", namespace);
         }
 
         @Override
         public Ability register(String factoryName, Supplier<Ability> factory) {
-            entries.put(registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_"), factory);
+            String name = registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_");
+            entries.put(name, factory);
+            uniqueNames.put(name, factoryName);
             return factory.get();
         }
 
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
-                AbilityController.Instance.registerAbility(entry.getKey(), entry.getValue().get());
+                AbilityController.Instance.registerAbility(uniqueNames.get(entry.getKey()), entry.getValue().get());
             }
         }
 
