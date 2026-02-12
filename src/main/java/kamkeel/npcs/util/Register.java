@@ -35,24 +35,24 @@ public class Register<T> {
         return false;
     }
 
-    public static class Abilities<T extends Ability> extends Register<T> {
+    public static class Abilities extends Register<Ability> {
         private Abilities(String namespace) {
             super("ability", namespace);
         }
 
         @Override
-        public T register(String factoryName, Supplier<T> factory) {
+        public Ability register(String factoryName, Supplier<Ability> factory) {
             entries.put(registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_"), factory);
             return factory.get();
         }
 
         public void register() {
-            for (Map.Entry<String, Supplier<T>> entry : entries.entrySet()) {
+            for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
                 AbilityController.Instance.registerAbility(entry.getKey(), entry.getValue().get());
             }
         }
 
-        public static <T extends Ability>  Register.Abilities<T> create(String namespace, String displayName) {
+        public static Register.Abilities create(String namespace, String displayName) {
             if (!REGISTERED_NAMESPACES.containsKey("ability"))
                 REGISTERED_NAMESPACES.put("ability", new ArrayList<>());
 
@@ -63,7 +63,7 @@ public class Register<T> {
             REGISTERED_NAMESPACES.get("ability").add(namespace);
             NAMESPACE_DISPLAY_NAMES.put(namespace, displayName);
 
-            return new Register.Abilities<>(namespace);
+            return new Register.Abilities(namespace);
         }
     }
 
