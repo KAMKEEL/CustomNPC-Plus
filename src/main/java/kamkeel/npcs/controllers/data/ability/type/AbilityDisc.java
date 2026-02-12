@@ -138,7 +138,7 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
                 AbilityDisc disc = (AbilityDisc) a;
                 a.setName("Dual Disc");
                 disc.setProjectileCount(2);
-                disc.setFireDelay(10);
+                disc.setFireDelay(5);
                 // Set color override for second disc
                 disc.projectiles[1].colorOverride = true;
                 disc.projectiles[1].innerColor = 0xFFFFFF;
