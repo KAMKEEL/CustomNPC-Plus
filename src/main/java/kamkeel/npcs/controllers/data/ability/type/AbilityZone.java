@@ -5,6 +5,7 @@ import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityZone;
@@ -36,9 +37,8 @@ public abstract class AbilityZone extends Ability {
     // Zone properties
     protected int durationTicks;
     protected ZoneShape zoneShape = ZoneShape.CIRCLE;
-    protected float spawnRadius = 5.0f;
-    protected float telegraphSize = 5.0f;
-    protected int zoneCount = 1;
+    protected float spawnRadius = 10.0f;
+    protected int zoneCount = 3;
     protected float zoneHeight = 2.0f;
 
     // Visual parameters
@@ -67,15 +67,15 @@ public abstract class AbilityZone extends Ability {
     // Runtime state
     protected static final Random RANDOM = new Random();
     protected transient List<EntityAbilityZone> activeEntities = new ArrayList<>();
+    protected transient List<double[]> preCalculatedPositions = new ArrayList<>();
 
     protected AbilityZone(int defaultDuration, EnergyDisplayData defaultColors) {
         this.durationTicks = defaultDuration;
         this.colorData = defaultColors;
         this.targetingMode = TargetingMode.AGGRO_TARGET;
-        this.maxRange = 15.0f;
+        this.maxRange = 20.0f;
         this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
-        this.telegraphType = TelegraphType.CIRCLE;
         this.allowedBy = UserType.NPC_ONLY;
     }
 
@@ -98,22 +98,53 @@ public abstract class AbilityZone extends Ability {
         return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
-    @Override
-    public float getTelegraphRadius() {
-        return telegraphSize;
-    }
+    /**
+     * Returns the actual zone effect radius for telegraph sizing.
+     * AbilityHazard returns its damage radius, AbilityTrap returns triggerRadius.
+     */
+    public abstract float getZoneRadius();
 
     @Override
-    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        TelegraphInstance instance = super.createTelegraph(caster, target);
-        if (instance == null) return null;
+    public List<TelegraphInstance> createTelegraphs(EntityLivingBase caster, EntityLivingBase target) {
+        if (!showTelegraph || windUpTicks <= 0) return new ArrayList<>();
 
-        // Always show telegraph at caster position
-        instance.setEntityIdToFollow(-1);
-        instance.setX(caster.posX);
-        instance.setY(caster.posY);
-        instance.setZ(caster.posZ);
-        return instance;
+        // Pre-calculate zone positions
+        preCalculatedPositions.clear();
+        List<double[]> placedPositions = new ArrayList<>();
+        float minSeparation = getZoneRadius() * 2.0f;
+
+        for (int i = 0; i < zoneCount; i++) {
+            double[] pos = findSpawnPosition(caster, placedPositions, minSeparation);
+            placedPositions.add(pos);
+            preCalculatedPositions.add(pos);
+        }
+
+        // Create a telegraph for each zone position
+        List<TelegraphInstance> telegraphs = new ArrayList<>();
+        float zoneRadius = getZoneRadius();
+
+        for (double[] pos : preCalculatedPositions) {
+            Telegraph telegraph;
+            if (zoneShape == ZoneShape.SQUARE) {
+                telegraph = Telegraph.square(zoneRadius);
+            } else {
+                telegraph = Telegraph.circle(zoneRadius);
+            }
+
+            telegraph.setDurationTicks(windUpTicks);
+            telegraph.setColor(windUpColor);
+            telegraph.setWarningColor(activeColor);
+            telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
+            telegraph.setHeightOffset(telegraphHeightOffset);
+
+            double groundY = findGroundLevel(caster.worldObj, pos[0], caster.posY, pos[1]);
+            TelegraphInstance instance = new TelegraphInstance(telegraph, pos[0], groundY, pos[1], 0);
+            instance.setCasterEntityId(caster.getEntityId());
+            instance.setEntityIdToFollow(-1);
+            telegraphs.add(instance);
+        }
+
+        return telegraphs;
     }
 
     @Override
@@ -150,6 +181,7 @@ public abstract class AbilityZone extends Ability {
             }
         }
         activeEntities.clear();
+        preCalculatedPositions.clear();
     }
 
     @Override
@@ -208,7 +240,7 @@ public abstract class AbilityZone extends Ability {
     // ═════════════════════════════════════════════════════════════════
 
     /**
-     * Apply preset defaults by old style name (for backward compatibility).
+     * Apply preset defaults by style name.
      */
     private void applyPresetDefaults(String styleName) {
         switch (styleName) {
@@ -307,7 +339,6 @@ public abstract class AbilityZone extends Ability {
         nbt.setInteger("durationTicks", durationTicks);
         nbt.setString("zoneShape", zoneShape.name());
         nbt.setFloat("spawnRadius", spawnRadius);
-        nbt.setFloat("telegraphSize", telegraphSize);
         nbt.setInteger("zoneCount", zoneCount);
         nbt.setFloat("zoneHeight", zoneHeight);
         nbt.setFloat("particleDensity", particleDensity);
@@ -341,9 +372,8 @@ public abstract class AbilityZone extends Ability {
         } else {
             this.zoneShape = ZoneShape.CIRCLE;
         }
-        this.spawnRadius = nbt.hasKey("spawnRadius") ? nbt.getFloat("spawnRadius") : 5.0f;
-        this.telegraphSize = nbt.hasKey("telegraphSize") ? nbt.getFloat("telegraphSize") : spawnRadius;
-        this.zoneCount = nbt.hasKey("zoneCount") ? nbt.getInteger("zoneCount") : 1;
+        this.spawnRadius = nbt.hasKey("spawnRadius") ? nbt.getFloat("spawnRadius") : 10.0f;
+        this.zoneCount = nbt.hasKey("zoneCount") ? nbt.getInteger("zoneCount") : 3;
         this.zoneHeight = nbt.hasKey("zoneHeight") ? nbt.getFloat("zoneHeight") : 2.0f;
         this.particleDensity = nbt.hasKey("particleDensity") ? nbt.getFloat("particleDensity") : 1.0f;
         this.particleScale = nbt.hasKey("particleScale") ? nbt.getFloat("particleScale") : 1.0f;
@@ -351,44 +381,21 @@ public abstract class AbilityZone extends Ability {
         this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 1.0f;
         colorData.readNBT(nbt);
 
-        // Visual fields — backward compat with old zoneStyle format
-        if (nbt.hasKey("zoneStyle")) {
-            // OLD FORMAT: apply preset defaults, then overlay CustomVisual
-            applyPresetDefaults(nbt.getString("zoneStyle"));
-            if (nbt.hasKey("CustomVisual")) {
-                NBTTagCompound custom = nbt.getCompoundTag("CustomVisual");
-                this.groundFill = !custom.hasKey("groundFill") || custom.getBoolean("groundFill");
-                this.groundAlpha = custom.hasKey("groundAlpha") ? custom.getFloat("groundAlpha") : 0.25f;
-                this.rings = !custom.hasKey("rings") || custom.getBoolean("rings");
-                this.ringCount = custom.hasKey("ringCount") ? custom.getInteger("ringCount") : 3;
-                this.border = !custom.hasKey("border") || custom.getBoolean("border");
-                this.borderSpeed = custom.hasKey("borderSpeed") ? custom.getFloat("borderSpeed") : 1.0f;
-                this.accents = !custom.hasKey("accents") || custom.getBoolean("accents");
-                this.accentStyle = custom.hasKey("accentStyle") ? custom.getInteger("accentStyle") : 0;
-                this.lightning = custom.hasKey("lightning") && custom.getBoolean("lightning");
-                this.particles = !custom.hasKey("particles") || custom.getBoolean("particles");
-                this.particleMotion = custom.hasKey("particleMotion") ? custom.getInteger("particleMotion") : 0;
-                this.particleDir = custom.hasKey("particleDir") ? custom.getString("particleDir") : "";
-                this.particleSize = custom.hasKey("particleSize") ? custom.getInteger("particleSize") : 32;
-                this.particleGlow = !custom.hasKey("particleGlow") || custom.getBoolean("particleGlow");
-            }
-        } else {
-            // NEW FORMAT: read individual top-level keys
-            this.groundFill = !nbt.hasKey("groundFill") || nbt.getBoolean("groundFill");
-            this.groundAlpha = nbt.hasKey("groundAlpha") ? nbt.getFloat("groundAlpha") : 0.25f;
-            this.rings = !nbt.hasKey("rings") || nbt.getBoolean("rings");
-            this.ringCount = nbt.hasKey("ringCount") ? nbt.getInteger("ringCount") : 3;
-            this.border = !nbt.hasKey("border") || nbt.getBoolean("border");
-            this.borderSpeed = nbt.hasKey("borderSpeed") ? nbt.getFloat("borderSpeed") : 1.0f;
-            this.accents = !nbt.hasKey("accents") || nbt.getBoolean("accents");
-            this.accentStyle = nbt.hasKey("accentStyle") ? nbt.getInteger("accentStyle") : 0;
-            this.lightning = nbt.hasKey("lightning") && nbt.getBoolean("lightning");
-            this.particles = !nbt.hasKey("particles") || nbt.getBoolean("particles");
-            this.particleMotion = nbt.hasKey("particleMotion") ? nbt.getInteger("particleMotion") : 0;
-            this.particleDir = nbt.hasKey("particleDir") ? nbt.getString("particleDir") : "";
-            this.particleSize = nbt.hasKey("particleSize") ? nbt.getInteger("particleSize") : 32;
-            this.particleGlow = !nbt.hasKey("particleGlow") || nbt.getBoolean("particleGlow");
-        }
+        // Visual layer fields
+        this.groundFill = !nbt.hasKey("groundFill") || nbt.getBoolean("groundFill");
+        this.groundAlpha = nbt.hasKey("groundAlpha") ? nbt.getFloat("groundAlpha") : 0.25f;
+        this.rings = !nbt.hasKey("rings") || nbt.getBoolean("rings");
+        this.ringCount = nbt.hasKey("ringCount") ? nbt.getInteger("ringCount") : 3;
+        this.border = !nbt.hasKey("border") || nbt.getBoolean("border");
+        this.borderSpeed = nbt.hasKey("borderSpeed") ? nbt.getFloat("borderSpeed") : 1.0f;
+        this.accents = !nbt.hasKey("accents") || nbt.getBoolean("accents");
+        this.accentStyle = nbt.hasKey("accentStyle") ? nbt.getInteger("accentStyle") : 0;
+        this.lightning = nbt.hasKey("lightning") && nbt.getBoolean("lightning");
+        this.particles = !nbt.hasKey("particles") || nbt.getBoolean("particles");
+        this.particleMotion = nbt.hasKey("particleMotion") ? nbt.getInteger("particleMotion") : 0;
+        this.particleDir = nbt.hasKey("particleDir") ? nbt.getString("particleDir") : "";
+        this.particleSize = nbt.hasKey("particleSize") ? nbt.getInteger("particleSize") : 32;
+        this.particleGlow = !nbt.hasKey("particleGlow") || nbt.getBoolean("particleGlow");
     }
 
     // ═════════════════════════════════════════════════════════════════
@@ -409,8 +416,6 @@ public abstract class AbilityZone extends Ability {
 
     public float getSpawnRadius() { return spawnRadius; }
     public void setSpawnRadius(float spawnRadius) { this.spawnRadius = Math.max(0, spawnRadius); }
-    public float getTelegraphSize() { return telegraphSize; }
-    public void setTelegraphSize(float telegraphSize) { this.telegraphSize = Math.max(0, telegraphSize); }
     public int getZoneCount() { return zoneCount; }
     public void setZoneCount(int zoneCount) { this.zoneCount = Math.max(1, zoneCount); }
     public float getZoneHeight() { return zoneHeight; }
@@ -546,9 +551,4 @@ public abstract class AbilityZone extends Ability {
         ));
     }
 
-    @SideOnly(Side.CLIENT)
-    protected void addTelegraphSizeField(List<FieldDef> defs) {
-        defs.add(FieldDef.floatField("gui.size", this::getTelegraphSize, this::setTelegraphSize)
-            .tab("ability.tab.effects"));
-    }
 }

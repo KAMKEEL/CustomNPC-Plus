@@ -118,8 +118,9 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
         this.fireDelay = Math.max(0, delay);
     }
 
-    // Legacy compat
+    /** @deprecated Use {@link #getFireDelay()} */
     public int getDualFireDelay() { return fireDelay; }
+    /** @deprecated Use {@link #setFireDelay(int)} */
     public void setDualFireDelay(int delay) { setFireDelay(delay); }
 
     @Override
@@ -225,8 +226,13 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
         for (EntityAbilityBeam beam : beamEntities) {
             spawnAbilityEntity(world, beam);
         }
-        for (EntityAbilityBeam beam : beamEntities) {
-            fireBeamEntity(beam, target);
+
+        // Fire first projectile immediately, let onActiveTick handle the rest with fireDelay
+        fireBeamEntity(beamEntities[0], target);
+        if (fireDelay <= 0) {
+            for (int i = 1; i < projectileCount; i++) {
+                fireBeamEntity(beamEntities[i], target);
+            }
         }
     }
 
@@ -356,55 +362,21 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
         int count = nbt.hasKey("projectileCount") ? nbt.getInteger("projectileCount") : 1;
         initProjectiles(count);
 
-        if (nbt.hasKey("fireDelay")) {
-            this.fireDelay = nbt.getInteger("fireDelay");
-        } else if (nbt.hasKey("dualFireDelay")) {
-            this.fireDelay = nbt.getInteger("dualFireDelay");
-        } else {
-            this.fireDelay = 0;
-        }
+        this.fireDelay = nbt.hasKey("fireDelay") ? nbt.getInteger("fireDelay") : 0;
 
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
 
-        if (nbt.hasKey("Projectile_0")) {
-            NBTTagCompound proj0 = nbt.getCompoundTag("Projectile_0");
-            if (proj0.hasKey("colorOverride")) {
-                // NEW format
-                displayData.readNBT(nbt);
-                lightningData.readNBT(nbt);
-                for (int i = 0; i < projectileCount; i++) {
-                    if (nbt.hasKey("Projectile_" + i)) {
-                        projectiles[i].readNBT(nbt.getCompoundTag("Projectile_" + i));
-                    }
-                }
-            } else {
-                // OLD per-projectile format
-                displayData.readNBT(proj0);
-                lightningData.readNBT(proj0);
-                projectiles[0].anchor.readNBT(proj0);
+        // Shared visual data
+        displayData.readNBT(nbt);
+        lightningData.readNBT(nbt);
 
-                for (int i = 1; i < projectileCount; i++) {
-                    if (nbt.hasKey("Projectile_" + i)) {
-                        NBTTagCompound projNbt = nbt.getCompoundTag("Projectile_" + i);
-                        projectiles[i].anchor.readNBT(projNbt);
-
-                        EnergyDisplayData tempDisplay = new EnergyDisplayData();
-                        tempDisplay.readNBT(projNbt);
-                        if (tempDisplay.innerColor != displayData.innerColor || tempDisplay.outerColor != displayData.outerColor) {
-                            projectiles[i].colorOverride = true;
-                            projectiles[i].innerColor = tempDisplay.innerColor;
-                            projectiles[i].outerColor = tempDisplay.outerColor;
-                        }
-                    }
-                }
+        // Per-projectile data
+        for (int i = 0; i < projectileCount; i++) {
+            if (nbt.hasKey("Projectile_" + i)) {
+                projectiles[i].readNBT(nbt.getCompoundTag("Projectile_" + i));
             }
-        } else {
-            // LEGACY flat format
-            displayData.readNBT(nbt);
-            lightningData.readNBT(nbt);
-            projectiles[0].anchor.readNBT(nbt);
         }
     }
 

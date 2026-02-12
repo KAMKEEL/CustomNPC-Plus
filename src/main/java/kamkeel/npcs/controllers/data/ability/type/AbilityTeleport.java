@@ -441,15 +441,6 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
             } catch (Exception e) {
                 this.mode = TeleportMode.BLINK;
             }
-        } else if (nbt.hasKey("pattern")) {
-            String legacy = nbt.getString("pattern");
-            if ("BEHIND_TARGET".equals(legacy)) {
-                this.mode = TeleportMode.BEHIND;
-            } else if ("RANDOM".equals(legacy)) {
-                this.mode = TeleportMode.BLINK;
-            } else {
-                this.mode = TeleportMode.SINGLE;
-            }
         } else {
             this.mode = TeleportMode.BLINK;
         }
