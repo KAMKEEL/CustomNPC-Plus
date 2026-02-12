@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -83,6 +84,12 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         this.telegraphType = TelegraphType.CIRCLE;
+        this.allowedBy = UserType.NPC_ONLY;
+    }
+
+    @Override
+    public boolean allowBurst() {
+        return false;
     }
 
     @Override
@@ -123,7 +130,6 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
                 }
                 break;
             case AT_TARGET:
-                // Telegraph follows target during windup, locks on execute
                 if (target != null) {
                     instance.setEntityIdToFollow(target.getEntityId());
                 }
@@ -149,14 +155,12 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
                 trapZ = caster.posZ;
                 break;
             case AT_TARGET:
-                // Use telegraph position with offset
                 if (telegraph != null) {
                     double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
                         minOffset, maxOffset, randomOffset, RANDOM);
                     trapX = pos[0];
                     trapY = pos[1];
                     trapZ = pos[2];
-                    // Update telegraph to show actual trap position
                     telegraph.setX(trapX);
                     telegraph.setY(trapY);
                     telegraph.setZ(trapZ);
@@ -207,26 +211,28 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
             return;
         }
 
-        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
-            trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
-            trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
-        );
+        if (!isPreview()) {
+            AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
+                trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
+                trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
+            );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+            @SuppressWarnings("unchecked")
+            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-        for (EntityLivingBase entity : entities) {
-            if (entity == caster) continue;
-            if (entity.isDead) continue;
-            if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+            for (EntityLivingBase entity : entities) {
+                if (entity == caster) continue;
+                if (entity.isDead) continue;
+                if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
 
-            double dx = entity.posX - trapX;
-            double dz = entity.posZ - trapZ;
-            double dist = Math.sqrt(dx * dx + dz * dz);
+                double dx = entity.posX - trapX;
+                double dz = entity.posZ - trapZ;
+                double dist = Math.sqrt(dx * dx + dz * dz);
 
-            if (dist <= triggerRadius) {
-                triggerTrap(caster, entity, world);
-                return;
+                if (dist <= triggerRadius) {
+                    triggerTrap(caster, entity, world);
+                    return;
+                }
             }
         }
     }

@@ -68,51 +68,53 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
-        // Calculate forward and right vectors from caster yaw
-        float yawRad = (float) Math.toRadians(caster.rotationYaw);
-        double forwardX = -Math.sin(yawRad);
-        double forwardZ = Math.cos(yawRad);
-        double rightX = forwardZ;   // perpendicular right
-        double rightZ = -forwardX;
+        if (!isPreview()) {
+            // Calculate forward and right vectors from caster yaw
+            float yawRad = (float) Math.toRadians(caster.rotationYaw);
+            double forwardX = -Math.sin(yawRad);
+            double forwardZ = Math.cos(yawRad);
+            double rightX = forwardZ;   // perpendicular right
+            double rightZ = -forwardX;
 
-        // Search area: AABB that encompasses the rectangle
-        float searchDist = Math.max(hitLength, hitWidth) + 1.0f;
-        @SuppressWarnings("unchecked")
-        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(
-            caster, caster.boundingBox.expand(searchDist, 2, searchDist));
+            // Search area: AABB that encompasses the rectangle
+            float searchDist = Math.max(hitLength, hitWidth) + 1.0f;
+            @SuppressWarnings("unchecked")
+            List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(
+                caster, caster.boundingBox.expand(searchDist, 2, searchDist));
 
-        boolean anyHit = false;
-        for (Entity entity : entities) {
-            if (!(entity instanceof EntityLivingBase) || entity == caster) continue;
-            EntityLivingBase livingTarget = (EntityLivingBase) entity;
+            boolean anyHit = false;
+            for (Entity entity : entities) {
+                if (!(entity instanceof EntityLivingBase) || entity == caster) continue;
+                EntityLivingBase livingTarget = (EntityLivingBase) entity;
 
-            double dx = livingTarget.posX - caster.posX;
-            double dz = livingTarget.posZ - caster.posZ;
+                double dx = livingTarget.posX - caster.posX;
+                double dz = livingTarget.posZ - caster.posZ;
 
-            // Project onto forward direction (must be in front, within hitLength)
-            double forwardDist = dx * forwardX + dz * forwardZ;
-            if (forwardDist < 0 || forwardDist > hitLength) continue;
+                // Project onto forward direction (must be in front, within hitLength)
+                double forwardDist = dx * forwardX + dz * forwardZ;
+                if (forwardDist < 0 || forwardDist > hitLength) continue;
 
-            // Project onto right direction (must be within hitWidth to each side)
-            double sideDist = dx * rightX + dz * rightZ;
-            if (Math.abs(sideDist) > hitWidth) continue;
+                // Project onto right direction (must be within hitWidth to each side)
+                double sideDist = dx * rightX + dz * rightZ;
+                if (Math.abs(sideDist) > hitWidth) continue;
 
-            // Entity is within the rectangle - apply damage
-            boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockback);
-            if (wasHit) {
-                applyEffects(livingTarget);
-                anyHit = true;
+                // Entity is within the rectangle - apply damage
+                boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockback);
+                if (wasHit) {
+                    applyEffects(livingTarget);
+                    anyHit = true;
+                }
             }
-        }
 
-        // Play hit sound even if nothing was hit (the attack still happens)
-        if (!anyHit) {
-            world.playSoundAtEntity(caster, "random.anvil_land", 0.5f, 1.2f);
+            // Play hit sound even if nothing was hit (the attack still happens)
+            if (!anyHit) {
+                world.playSoundAtEntity(caster, "random.anvil_land", 0.5f, 1.2f);
+            }
         }
     }
 

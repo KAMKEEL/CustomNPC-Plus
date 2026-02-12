@@ -9,6 +9,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -51,6 +52,11 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }
@@ -62,61 +68,129 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote || target == null) return;
+        if (world.isRemote && !isPreview()) {
+            signalCompletion();
+            return;
+        }
 
-        // Calculate direction to target
+        if (isPlayerCaster(caster)) {
+            // Player: instant hit-scan in look direction
+            executePlayerProjectile(caster, world);
+        } else if (target != null) {
+            // NPC: instant hit-scan on aggro target
+            executeNpcProjectile(caster, target, world);
+        }
+
+        signalCompletion();
+    }
+
+    /**
+     * NPC projectile: instant hit-scan damage on the aggro target.
+     */
+    private void executeNpcProjectile(EntityLivingBase caster, EntityLivingBase target, World world) {
+        if (isPreview()) return;
+
         double dx = target.posX - caster.posX;
         double dy = (target.posY + target.height / 2) - (caster.posY + caster.getEyeHeight());
         double dz = target.posZ - caster.posZ;
         double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len > 0) { dx /= len; dy /= len; dz /= len; }
 
-        if (len > 0) {
-            dx /= len;
-            dy /= len;
-            dz /= len;
-        }
-
-        // Deal instant damage with scripted event support
-        // TODO: Use custom EntityAbilityProjectile for actual tracking
         applyAbilityDamageWithDirection(caster, target, damage, knockback, dx, dz);
-
-        // Play sound
         world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
 
-        // Handle splash damage for explosive projectiles
         if (explosive && explosionRadius > 0) {
-            @SuppressWarnings("unchecked")
-            List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(target,
-                target.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));
+            applyExplosionDamage(caster, target, world, target.posX, target.posY, target.posZ);
+        }
 
-            for (Entity entity : entities) {
-                if (entity instanceof EntityLivingBase && entity != caster) {
-                    EntityLivingBase living = (EntityLivingBase) entity;
-                    float dist = target.getDistanceToEntity(living);
-                    if (dist < explosionRadius) {
-                        float falloff = 1.0f - (dist / explosionRadius);
-                        // Apply splash damage with scripted event support (no knockback)
-                        applyAbilityDamage(caster, living, damage * falloff * 0.5f, 0);
-                    }
-                }
-            }
+        spawnProjectileParticles(world, caster, target);
+    }
 
-            // Explosion particles
-            world.playSoundAtEntity(target, "random.explode", 0.5f, 1.0f);
-            for (int i = 0; i < 10; i++) {
-                world.spawnParticle("explode",
-                    target.posX + (world.rand.nextDouble() - 0.5) * explosionRadius,
-                    target.posY + world.rand.nextDouble() * target.height,
-                    target.posZ + (world.rand.nextDouble() - 0.5) * explosionRadius,
-                    0, 0.1, 0);
+    /**
+     * Player projectile: fires instant hit-scan in look direction.
+     * Raycasts for the first entity in range and applies damage.
+     */
+    private void executePlayerProjectile(EntityLivingBase caster, World world) {
+        if (isPreview()) return;
+
+        Vec3 look = caster.getLookVec();
+        double eyeX = caster.posX;
+        double eyeY = caster.posY + caster.getEyeHeight();
+        double eyeZ = caster.posZ;
+
+        // Raycast: find the closest entity along look direction
+        EntityLivingBase hitTarget = null;
+        double closestDist = maxRange;
+
+        @SuppressWarnings("unchecked")
+        List<Entity> candidates = world.getEntitiesWithinAABBExcludingEntity(caster,
+            caster.boundingBox.expand(maxRange, maxRange, maxRange));
+
+        for (Entity entity : candidates) {
+            if (!(entity instanceof EntityLivingBase)) continue;
+            if (entity.isDead) continue;
+
+            // Check if entity is roughly along look direction
+            double dx = entity.posX - eyeX;
+            double dy = (entity.posY + entity.height / 2) - eyeY;
+            double dz = entity.posZ - eyeZ;
+            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist > maxRange || dist < 0.5) continue;
+
+            // Dot product to check alignment with look vector
+            double dot = (dx * look.xCoord + dy * look.yCoord + dz * look.zCoord) / dist;
+            if (dot < 0.95) continue; // Must be within ~18 degree cone
+
+            if (dist < closestDist) {
+                closestDist = dist;
+                hitTarget = (EntityLivingBase) entity;
             }
         }
 
-        // Spawn projectile particles (visual trail)
-        spawnProjectileParticles(world, caster, target);
+        world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
 
-        // Projectile is instant
-        signalCompletion();
+        if (hitTarget != null) {
+            applyAbilityDamageWithDirection(caster, hitTarget, damage, knockback, look.xCoord, look.zCoord);
+
+            if (explosive && explosionRadius > 0) {
+                applyExplosionDamage(caster, hitTarget, world, hitTarget.posX, hitTarget.posY, hitTarget.posZ);
+            }
+
+            spawnProjectileParticles(world, caster, hitTarget);
+        } else {
+            // No hit — spawn particles along look direction anyway
+            spawnProjectileParticlesInDirection(world, caster, look);
+        }
+    }
+
+    /**
+     * Apply explosion splash damage around a point.
+     */
+    private void applyExplosionDamage(EntityLivingBase caster, EntityLivingBase primaryTarget, World world,
+                                       double x, double y, double z) {
+        @SuppressWarnings("unchecked")
+        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(primaryTarget,
+            primaryTarget.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));
+
+        for (Entity entity : entities) {
+            if (entity instanceof EntityLivingBase && entity != caster) {
+                EntityLivingBase living = (EntityLivingBase) entity;
+                float dist = primaryTarget.getDistanceToEntity(living);
+                if (dist < explosionRadius) {
+                    float falloff = 1.0f - (dist / explosionRadius);
+                    applyAbilityDamage(caster, living, damage * falloff * 0.5f, 0);
+                }
+            }
+        }
+
+        world.playSoundAtEntity(primaryTarget, "random.explode", 0.5f, 1.0f);
+        for (int i = 0; i < 10; i++) {
+            world.spawnParticle("explode",
+                x + (world.rand.nextDouble() - 0.5) * explosionRadius,
+                y + world.rand.nextDouble() * 2,
+                z + (world.rand.nextDouble() - 0.5) * explosionRadius,
+                0, 0.1, 0);
+        }
     }
 
     private void spawnProjectileParticles(World world, EntityLivingBase caster, EntityLivingBase target) {
@@ -146,6 +220,31 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
             double px = startX + dx * progress;
             double py = startY + dy * progress;
             double pz = startZ + dz * progress;
+            world.spawnParticle(particle, px, py, pz, 0, 0, 0);
+        }
+    }
+
+    /**
+     * Spawn projectile particles along a direction (player miss — no entity hit).
+     */
+    private void spawnProjectileParticlesInDirection(World world, EntityLivingBase caster, Vec3 look) {
+        double startX = caster.posX;
+        double startY = caster.posY + caster.getEyeHeight();
+        double startZ = caster.posZ;
+
+        String particle = "flame";
+        if (projectileType.equals("arrow")) {
+            particle = "crit";
+        } else if (projectileType.equals("magic")) {
+            particle = "witchMagic";
+        }
+
+        int steps = (int) Math.max(5, maxRange * 2);
+        for (int i = 0; i < steps; i++) {
+            double progress = (double) i / steps * maxRange;
+            double px = startX + look.xCoord * progress;
+            double py = startY + look.yCoord * progress;
+            double pz = startZ + look.zCoord * progress;
             world.spawnParticle(particle, px, py, pz, 0, 0, 0);
         }
     }

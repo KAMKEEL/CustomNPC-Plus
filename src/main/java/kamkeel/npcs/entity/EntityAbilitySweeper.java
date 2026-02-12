@@ -60,6 +60,10 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
     private int maxTicks = 400;
     private long deathWorldTime = -1;
 
+    // Preview mode
+    private boolean previewMode = false;
+    private EntityLivingBase previewOwner = null;
+
     // Damage state
     private transient int ticksSinceDamage = 0;
     private transient Set<Integer> hitThisTick = new HashSet<>();
@@ -281,7 +285,16 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         target.velocityChanged = true;
     }
 
+    /**
+     * Set up preview mode. Owner is stored directly since world entity lookup won't work.
+     */
+    public void setupPreview(EntityLivingBase owner) {
+        this.previewMode = true;
+        this.previewOwner = owner;
+    }
+
     private Entity getOwner() {
+        if (previewMode && previewOwner != null) return previewOwner;
         if (ownerEntityId == -1) return null;
         return worldObj.getEntityByID(ownerEntityId);
     }

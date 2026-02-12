@@ -308,6 +308,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     @Override
     public void onUpdate() {
         super.onUpdate();
+
+        // Re-apply locks after super.onUpdate() to override body rotation smoothing
+        // in EntityLivingBase.onUpdate() (func_110146_f) which runs AFTER onLivingUpdate()
+        // and overwrites renderYawOffset, causing a visible twitch each frame.
+        abilities.applyRotationControl();
+        abilities.applyLockedPosition();
+
         if (!isRemote()) {
             if (this.ticksExisted % 10 == 0) {
                 EventHooks.onNPCUpdate(this);
@@ -482,7 +489,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         super.onLivingUpdate();
 
         // Apply locks after super.onLivingUpdate() to override AI/physics changes
-        abilities.applyLockedRotation();
+        abilities.applyRotationControl();
         abilities.applyLockedPosition();
 
         handleMountRiderState();
@@ -670,6 +677,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         if (entity instanceof EntityLivingBase)
             attackingEntity = (EntityLivingBase) entity;
+
+        if (faction.isPassive)
+            return false;
 
         if (attackingEntity != null && attackingEntity == getOwner())
             return false;

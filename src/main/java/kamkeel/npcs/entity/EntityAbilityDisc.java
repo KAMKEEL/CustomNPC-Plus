@@ -31,6 +31,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     // Disc shape properties
     private float discRadius = 1.0f; // Width of disc
     private float discThickness = 0.2f; // Height of disc
+    private boolean vertical = false; // false = horizontal (flat), true = vertical (thin edge forward)
 
     // Charging state (during windup)
     private boolean charging = false;
@@ -38,7 +39,6 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     private int chargeTick = 0;
     private float targetDiscRadius = 1.0f; // Full radius to grow to during charging
     private float targetDiscThickness = 0.2f; // Full thickness to grow to during charging
-    private EnergyAnchorData anchorData = new EnergyAnchorData();
 
     // Data watcher index for charging state (synced to clients)
     private static final int DW_CHARGING = 20;
@@ -123,11 +123,12 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * The disc will grow from 0 to discRadius over chargeDuration ticks.
      * Position follows the owner based on anchor point.
      */
-    public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
+    public void setupCharging(EnergyAnchorData anchor, int chargeDuration, boolean vertical) {
         setCharging(true);
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
         this.anchorData = anchor;
+        this.vertical = vertical;
         this.targetDiscRadius = this.discRadius;
         this.targetDiscThickness = this.discThickness;
         this.discRadius = 0.01f;
@@ -145,7 +146,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
      * Follows anchor point and animations like in the real game.
      * Can be fired when transitioning to active phase.
      */
-    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
+    public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, boolean vertical) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -158,6 +159,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.chargeDuration = chargeDuration;
         this.chargeTick = 0;
         this.anchorData = anchor;
+        this.vertical = vertical;
 
         // Store target size and start at 0 for grow effect
         this.targetDiscRadius = discRadius;
@@ -542,6 +544,28 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         return returning;
     }
 
+    public boolean isVertical() {
+        return vertical;
+    }
+
+    /**
+     * Get the yaw angle (degrees) from motion vector for vertical disc orientation.
+     * During charging, uses owner's facing direction.
+     */
+    public float getTravelYaw() {
+        if (isCharging()) {
+            Entity owner = previewMode ? previewOwner : getOwnerEntity();
+            if (owner != null) {
+                return owner.rotationYaw;
+            }
+        }
+        double speed = Math.sqrt(motionX * motionX + motionZ * motionZ);
+        if (speed > 0.001) {
+            return (float) (Math.atan2(-motionX, motionZ) * 180.0 / Math.PI);
+        }
+        return 0.0f;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -550,6 +574,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         this.boomerangDelay = nbt.hasKey("BoomerangDelay") ? nbt.getInteger("BoomerangDelay") : 40;
         this.discRadius = nbt.hasKey("DiscRadius") ? nbt.getFloat("DiscRadius") : 1.0f;
         this.discThickness = nbt.hasKey("DiscThickness") ? nbt.getFloat("DiscThickness") : 0.2f;
+        this.vertical = nbt.hasKey("Vertical") ? nbt.getBoolean("Vertical") : false;
         this.returning = nbt.hasKey("Returning") && nbt.getBoolean("Returning");
         // Charging state
         boolean isCharging = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
@@ -567,6 +592,7 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         nbt.setInteger("BoomerangDelay", boomerangDelay);
         nbt.setFloat("DiscRadius", discRadius);
         nbt.setFloat("DiscThickness", discThickness);
+        nbt.setBoolean("Vertical", vertical);
         nbt.setBoolean("Returning", returning);
         // Charging state
         nbt.setBoolean("Charging", isCharging());

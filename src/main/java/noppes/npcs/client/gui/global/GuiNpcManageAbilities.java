@@ -16,8 +16,10 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityTypeSelect;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityVariantSelect;
 import noppes.npcs.client.gui.advanced.SubGuiDuplicateNameConfirm;
 import noppes.npcs.client.gui.util.AbilityPreviewExecutor;
 import noppes.npcs.client.gui.util.GuiAbilityInterface;
@@ -67,6 +69,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     // ==================== PENDING SAVE ====================
     private Ability pendingSaveAbility = null;
     private boolean pendingNewCreation = false;
+
+    // ==================== PENDING VARIANT ====================
+    private String pendingTypeId = null;
 
     // ==================== PREVIEW ====================
     private AbilityPreviewExecutor previewExecutor;
@@ -343,11 +348,41 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if (subgui instanceof SubGuiAbilityTypeSelect) {
+        if (subgui instanceof SubGuiAbilityVariantSelect) {
+            SubGuiAbilityVariantSelect variantGui = (SubGuiAbilityVariantSelect) subgui;
+            int idx = variantGui.getSelectedIndex();
+            if (idx >= 0 && pendingTypeId != null) {
+                Ability newAbility = AbilityController.Instance.create(pendingTypeId);
+                if (newAbility != null) {
+                    variantGui.getVariants().get(idx).apply(newAbility);
+                    newAbility.setId(UUID.randomUUID().toString());
+                    if (hasDuplicateName(newAbility)) {
+                        pendingSaveAbility = newAbility;
+                        pendingNewCreation = true;
+                        pendingTypeId = null;
+                        setSubGui(new SubGuiDuplicateNameConfirm());
+                        return;
+                    }
+                    pendingTypeId = null;
+                    saveAndOpenConfig(newAbility);
+                    return;
+                }
+            }
+            pendingTypeId = null;
+        } else if (subgui instanceof SubGuiAbilityTypeSelect) {
             String typeId = ((SubGuiAbilityTypeSelect) subgui).getSelectedTypeId();
             if (typeId != null) {
+                java.util.List<AbilityVariant> variants = AbilityController.Instance.getVariantsForType(typeId);
+                if (variants.size() > 1) {
+                    pendingTypeId = typeId;
+                    setSubGui(new SubGuiAbilityVariantSelect(variants));
+                    return;
+                }
                 Ability newAbility = AbilityController.Instance.create(typeId);
                 if (newAbility != null) {
+                    if (variants.size() == 1) {
+                        variants.get(0).apply(newAbility);
+                    }
                     newAbility.setId(UUID.randomUUID().toString());
                     if (hasDuplicateName(newAbility)) {
                         pendingSaveAbility = newAbility;

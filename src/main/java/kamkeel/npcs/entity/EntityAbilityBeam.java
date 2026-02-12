@@ -222,24 +222,39 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         setCharging(false);
 
-        // Update start position to current position
+        // Origin (tail) stays at the charged position
         startX = posX;
         startY = posY;
         startZ = posZ;
+
+        // Reset head offset to origin
+        headOffsetX = 0;
+        headOffsetY = 0;
+        headOffsetZ = 0;
+        prevHeadOffsetX = 0;
+        prevHeadOffsetY = 0;
+        prevHeadOffsetZ = 0;
+
+        // Origin no longer follows owner after firing
+        attachedToOwner = false;
 
         // Sync prev position to prevent visual jump on first frame
         prevPosX = posX;
         prevPosY = posY;
         prevPosZ = posZ;
 
+        // Reset trail
+        trailPoints.clear();
+        trailPointAges.clear();
+        trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
+
         // Fire forward based on owner facing direction
         Entity owner = getOwnerEntity();
         if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = 0; // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
+            motionX = -Math.sin(yaw) * getSpeed();
+            motionY = 0;
+            motionZ = Math.cos(yaw) * getSpeed();
         } else {
             motionX = getSpeed();
             motionY = 0;

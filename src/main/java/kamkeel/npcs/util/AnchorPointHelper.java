@@ -100,9 +100,12 @@ public class AnchorPointHelper {
                 break;
         }
 
-        x += anchorX * scale;
-        y += anchorY * scale;
-        z += anchorZ * scale;
+        // Rotate offsets relative to entity's body yaw
+        // +X = entity's right, +Y = up, +Z = entity's forward
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchorX * scale, anchorY * scale, anchorZ * scale, bodyYaw);
+        x += rotatedOffset.xCoord;
+        y += rotatedOffset.yCoord;
+        z += rotatedOffset.zCoord;
 
         return Vec3.createVectorHelper(x, y, z);
     }
@@ -246,9 +249,11 @@ public class AnchorPointHelper {
         double worldY = entity.posY + shoulderHeight - blockY;
         double worldZ = entity.posZ + worldOffsetZ;
 
-        worldX += anchor.anchorOffsetX * scale;
-        worldY += anchor.anchorOffsetY * scale;
-        worldZ += anchor.anchorOffsetZ * scale;
+        // Rotate offsets relative to entity's body yaw
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchor.anchorOffsetX * scale, anchor.anchorOffsetY * scale, anchor.anchorOffsetZ * scale, bodyYaw);
+        worldX += rotatedOffset.xCoord;
+        worldY += rotatedOffset.yCoord;
+        worldZ += rotatedOffset.zCoord;
 
         return Vec3.createVectorHelper(worldX, worldY, worldZ);
     }
@@ -317,9 +322,11 @@ public class AnchorPointHelper {
         double y = entity.posY + entity.height * FALLBACK_ARM_HEIGHT + armLengthOffset;
         double z = entity.posZ + lateralZ + forwardZ;
 
-        x += anchor.anchorOffsetX * scale;
-        y += anchor.anchorOffsetY * scale;
-        z += anchor.anchorOffsetZ * scale;
+        // Rotate offsets relative to entity's body yaw
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchor.anchorOffsetX * scale, anchor.anchorOffsetY * scale, anchor.anchorOffsetZ * scale, bodyYaw);
+        x += rotatedOffset.xCoord;
+        y += rotatedOffset.yCoord;
+        z += rotatedOffset.zCoord;
 
         return Vec3.createVectorHelper(x, y, z);
     }
@@ -343,5 +350,18 @@ public class AnchorPointHelper {
             default:
                 return FRONT_HEIGHT;
         }
+    }
+
+    /**
+     * Rotate an offset vector by the entity's body yaw so offsets are entity-relative.
+     * +X = entity's right, +Y = up, +Z = entity's forward.
+     * @param bodyYawRad body yaw in radians
+     */
+    private static Vec3 rotateOffsetByYaw(double offsetX, double offsetY, double offsetZ, float bodyYawRad) {
+        double cos = Math.cos(bodyYawRad);
+        double sin = Math.sin(bodyYawRad);
+        double worldX = -offsetX * cos - offsetZ * sin;
+        double worldZ = -offsetX * sin + offsetZ * cos;
+        return Vec3.createVectorHelper(worldX, offsetY, worldZ);
     }
 }

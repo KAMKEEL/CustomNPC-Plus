@@ -324,7 +324,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     @Override
     public void unFocused(GuiNpcTextField textField) {
         if (textField.id < DECLARATIVE_ID_START) return;
-        builder.handleTextFieldEvent(textField.id, textField);
+        if (builder.handleTextFieldEvent(textField.id, textField)) {
+            initGui();
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

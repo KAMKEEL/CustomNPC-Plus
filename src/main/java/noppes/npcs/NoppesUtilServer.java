@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.ParticlePacket;
@@ -792,6 +793,9 @@ public class NoppesUtilServer {
         if (controller != null) {
             int index = 0;
             for (String uuid : controller.getCustomAbilityIds()) {
+                Ability ability = controller.getCustomAbility(uuid);
+                if (ability == null || !ability.getAllowedBy().allowsNpc()) continue;
+
                 String name = controller.getCustomAbilityName(uuid);
                 if (name == null || name.isEmpty()) name = uuid;
                 map.put(name + "\t" + uuid, index++);
