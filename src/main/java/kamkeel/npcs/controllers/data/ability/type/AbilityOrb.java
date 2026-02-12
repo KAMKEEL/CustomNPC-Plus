@@ -143,11 +143,11 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
                 a.setMaxRange(75.0f);
                 a.setBurstEnabled(true);
                 a.setBurstAmount(15);
-                a.setBurstDelay(10);
+                a.setBurstDelay(5);
                 a.setBurstReplayAnimations(false);
                 a.setBurstOverlap(true);
-                a.setWindUpAnimationName("Ability_BeamDual_Windup");
-                a.setActiveAnimationName("Ability_BeamDual_Active");
+                a.setWindUpAnimationName("Ability_OrbBarrage_Windup");
+                a.setActiveAnimationName("Ability_OrbBarrage_Active");
             })
         );
     }
