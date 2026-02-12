@@ -1549,6 +1549,7 @@ ability.anchor.rightHand=Right Hand
 ability.anchor.leftHand=Left Hand
 ability.anchor.aboveHead=Above Head
 ability.anchor.chest=Chest
+ability.anchor.eye=Eye
 
 # Sweep Mode
 ability.sweep.swipe=Swipe
