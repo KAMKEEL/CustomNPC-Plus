@@ -252,10 +252,27 @@ public class RenderAbilityZone extends Render {
         // 6. Particles
         if (c.particles && c.newTick && c.particleDensity > 0) {
             if (c.particleDir != null && !c.particleDir.isEmpty()) {
-                spawnCustomFXParticle(c);
+                if (c.particleDir.startsWith("mc:")) {
+                    spawnVanillaParticle(c);
+                } else {
+                    spawnCustomFXParticle(c);
+                }
             } else {
                 spawnDefaultParticles(c);
             }
+        }
+    }
+
+    /** Spawn vanilla Minecraft particles using mc: prefix (e.g. "mc:flame"). */
+    private void spawnVanillaParticle(Ctx c) {
+        String particleName = c.particleDir.substring(3);
+        int count = Math.round(3 * c.particleDensity);
+        for (int i = 0; i < count; i++) {
+            double[] pos = randomPosInZone(c);
+            double[] motion = getMotionForStyle(c.particleMotion);
+            c.zone.worldObj.spawnParticle(particleName,
+                c.zone.posX + pos[0], c.zone.posY + pos[1], c.zone.posZ + pos[2],
+                motion[0], motion[1], motion[2]);
         }
     }
 
@@ -267,18 +284,26 @@ public class RenderAbilityZone extends Render {
             double[] motion = getMotionForStyle(c.particleMotion);
             CustomFX fx = new CustomFX(c.zone.worldObj, null, c.particleDir,
                 c.zone.posX + pos[0], c.zone.posY + pos[1], c.zone.posZ + pos[2],
-                motion[0], motion[1], motion[2]);
+                0, 0, 0);
+            fx.motionX = motion[0];
+            fx.motionY = motion[1];
+            fx.motionZ = motion[2];
             fx.setMaxAge(20 + RANDOM.nextInt(20));
+            fx.width = -1;
+            fx.height = -1;
             fx.scaleX1 = c.particleScale * 10.0f;
             fx.scaleY1 = c.particleScale * 10.0f;
-            fx.width = c.particleSize;
-            fx.height = c.particleSize;
+            fx.scaleX2 = fx.scaleX1;
+            fx.scaleY2 = fx.scaleY1;
+            fx.scaleXRate = 0;
+            fx.scaleYRate = 0;
             fx.HEXColor = c.zone.getInnerColor();
             fx.facePlayer = true;
             fx.glows = c.particleGlow;
+            fx.noClip = true;
             fx.alpha1 = 0.8f;
             fx.alpha2 = 0.0f;
-            fx.alphaRate = 0.04f;
+            fx.alphaRate = -0.04f;
             Minecraft.getMinecraft().effectRenderer.addEffect(fx);
         }
     }

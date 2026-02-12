@@ -1761,6 +1761,7 @@ gui.interval=Interval
 gui.cooldown=Cooldown
 gui.max=Max
 gui.preset=Preset
+gui.applyPreset=Apply Preset
 
 # Common Type Settings
 ability.radius=Radius
@@ -1773,6 +1774,7 @@ ability.stunTicks=Stun Ticks
 ability.hitWidth=Hit Width
 ability.hitLength=Hit Length
 ability.effects=Effects
+ability.effect.burn=Burn
 ability.mode=Mode
 ability.duration=Duration
 ability.anchorPoint=Anchor Point

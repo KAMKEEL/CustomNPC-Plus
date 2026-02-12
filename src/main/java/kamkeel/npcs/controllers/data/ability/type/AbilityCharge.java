@@ -38,9 +38,11 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     // Runtime state (transient)
     private transient double startX, startY, startZ;
+    private transient double prevTickX, prevTickZ;
     private transient Vec3 chargeDirection;
     private transient Set<Integer> hitEntities = new HashSet<>();
     private transient float lockedYaw;
+    private transient int maxActiveTicks;
 
     public AbilityCharge() {
         this.typeId = "ability.cnpc.charge";
@@ -119,7 +121,12 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         startX = caster.posX;
         startY = caster.posY;
         startZ = caster.posZ;
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
         hitEntities.clear();
+
+        // Safety timeout: expected ticks + buffer to prevent infinite charge
+        maxActiveTicks = chargeSpeed > 0 ? (int)(maxRange / chargeSpeed) + 10 : 10;
 
         // If direction wasn't set during windup (shouldn't happen), set it now
         if (chargeDirection == null) {
@@ -140,12 +147,35 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (chargeDirection == null) return;
+        // Safety timeout or missing state: force-complete to prevent stuck NPC
+        if (!isPreview() && (chargeDirection == null || tick > maxActiveTicks)) {
+            stopMomentum(caster);
+            signalCompletion();
+            return;
+        }
+
+        if (chargeDirection == null) {
+            signalCompletion();
+            return;
+        }
 
         // Enforce rotation every tick
         if (!isPreview()) {
             enforceLockedRotation(caster);
         }
+
+        // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
+        if (!isPreview() && tick > 1) {
+            double dx = caster.posX - prevTickX;
+            double dz = caster.posZ - prevTickZ;
+            if (dx * dx + dz * dz < 0.0001) {
+                stopMomentum(caster);
+                signalCompletion();
+                return;
+            }
+        }
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
@@ -155,11 +185,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
         // Check if reached max distance
         if (distanceTraveled >= maxRange) {
-            caster.motionX = 0;
-            caster.motionZ = 0;
-            if (!isPreview()) {
-                caster.velocityChanged = true;
-            }
+            stopMomentum(caster);
             signalCompletion();
             return;
         }
@@ -240,6 +266,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         super.reset();
         chargeDirection = null;
         hitEntities.clear();
+        maxActiveTicks = 0;
     }
 
     @Override

@@ -405,6 +405,16 @@ public abstract class Ability implements IAbility {
     }
 
     /**
+     * Whether the telegraph should remain visible during the ACTIVE phase.
+     * Default: false (telegraph removed at WINDUP→ACTIVE transition).
+     * Override for abilities where the active phase IS the attack (e.g., sweeping/spinning attacks)
+     * so the telegraph stays visible while damage is being dealt.
+     */
+    public boolean keepTelegraphDuringActive() {
+        return false;
+    }
+
+    /**
      * Returns true if this ability controls NPC movement during ACTIVE phase.
      * When true, AI pathfinding will be blocked during ability execution.
      * Override in abilities that move the NPC (Charge, Dash, Slam, etc.)

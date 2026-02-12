@@ -20,7 +20,8 @@ public class AbilityEffect {
         BLINDNESS("potion.blindness", Potion.blindness.id),
         NAUSEA("potion.confusion", Potion.confusion.id),
         HUNGER("potion.hunger", Potion.hunger.id),
-        MINING_FATIGUE("potion.digSlowDown", Potion.digSlowdown.id);
+        MINING_FATIGUE("potion.digSlowDown", Potion.digSlowdown.id),
+        BURN("ability.effect.burn", -1);
 
         private final String langKey;
         private final int potionId;
@@ -80,6 +81,11 @@ public class AbilityEffect {
      */
     public void apply(EntityLivingBase entity) {
         if (entity == null || type == EffectType.NONE) {
+            return;
+        }
+
+        if (type == EffectType.BURN) {
+            entity.setFire(Math.max(1, durationTicks / 20));
             return;
         }
 

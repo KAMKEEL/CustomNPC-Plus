@@ -197,8 +197,11 @@ public class DataAbilities {
                         telegraph.lockPosition();
                     }
 
-                    // Remove telegraph - it has served its purpose
-                    removeTelegraph(currentAbility);
+                    // Remove telegraph unless the ability keeps it during active phase
+                    // (e.g., sweeping attacks where the telegraph shows the ongoing danger zone)
+                    if (!currentAbility.keepTelegraphDuringActive()) {
+                        removeTelegraph(currentAbility);
+                    }
 
                     // Handle rotation control transition from WINDUP to ACTIVE
                     if (currentAbility.isRotationLockedDuringActive()) {
@@ -224,7 +227,10 @@ public class DataAbilities {
                     }
 
                     // Play active sound and animation
-                    playAbilitySound(currentAbility.getActiveSound());
+                    // Abilities that keep telegraph during active manage their own sound timing
+                    if (!currentAbility.keepTelegraphDuringActive()) {
+                        playAbilitySound(currentAbility.getActiveSound());
+                    }
                     playAbilityAnimation(currentAbility.getActiveAnimation());
 
                     // Snap NPC to face target before execute so startMoving() reads correct rotation
@@ -337,6 +343,9 @@ public class DataAbilities {
      */
     private void handleAbilityCompletion(EntityLivingBase target) {
         if (currentAbility == null) return;
+
+        // Remove any remaining telegraphs (for abilities that keep telegraph during active)
+        removeTelegraph(currentAbility);
 
         // Call onComplete callback
         currentAbility.onComplete(npc, target);
