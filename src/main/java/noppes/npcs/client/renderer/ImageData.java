@@ -25,7 +25,7 @@ public class ImageData {
 
     public ImageData(String directory) {
         this.location = new ResourceLocation(directory);
-        if (directory.startsWith("https://")) {
+        if (directory.startsWith("https://") || directory.startsWith("http://")) {
             this.isUrl = true;
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
             this.imageDownloadAlt = new ImageDownloadAlt(null, directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true, false));

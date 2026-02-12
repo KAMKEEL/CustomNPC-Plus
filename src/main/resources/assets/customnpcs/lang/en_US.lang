@@ -1563,10 +1563,46 @@ ability.dash.defensive=Defensive
 ability.counter.flat=Flat
 ability.counter.percent=Percent
 
-# Hazard Shape
+# Zone Shape
 ability.shape.circle=Circle
+ability.shape.square=Square
 ability.shape.ring=Ring
 ability.shape.cone=Cone
+ability.zoneShape=Shape
+
+# Zone Presets
+ability.preset.custom=Custom
+ability.preset.default=Default
+ability.preset.toxic=Toxic
+ability.preset.inferno=Inferno
+ability.preset.arcane=Arcane
+ability.preset.electric=Electric
+ability.preset.frost=Frost
+
+# Accent Styles
+ability.accentStyle.static=Static
+ability.accentStyle.swaying=Swaying
+ability.accentStyle.flickering=Flickering
+
+# Particle Motion Styles
+ability.particleMotion.rising=Rising
+ability.particleMotion.drifting=Drifting
+ability.particleMotion.sparks=Sparks
+
+# Zone Settings
+ability.section.zone=Zone Placement
+ability.telegraphSize=Telegraph Size
+ability.coneAngle=Cone Angle
+ability.ignoreInvulnFrames=Ignore Invuln Frames
+ability.visible=Visible
+
+# Visual Layer Section Headers
+ability.section.ground=Ground Fill
+ability.section.rings=Rings
+ability.section.border=Border
+ability.section.accents=Accents
+ability.section.lightning=Lightning
+ability.section.particles=Particles
 
 # Placement Mode
 ability.placement.atCaster=At Caster
@@ -1662,6 +1698,7 @@ ability.section.timing=Timing
 ability.section.movement=Movement
 ability.section.sounds=Sounds
 ability.section.animations=Animations
+ability.section.animation=Animation
 ability.section.telegraph=Telegraph
 ability.section.beam=Beam
 ability.section.sweep=Sweep
@@ -1711,6 +1748,19 @@ gui.animation=Animation
 gui.duration=Duration
 gui.amp=Amp
 gui.speed=Speed
+gui.size=Size
+gui.alpha=Alpha
+gui.count=Count
+gui.style=Style
+gui.scale=Scale
+gui.motion=Motion
+gui.glow=Glow
+gui.texture=Texture
+gui.dps=DPS
+gui.interval=Interval
+gui.cooldown=Cooldown
+gui.max=Max
+gui.preset=Preset
 
 # Common Type Settings
 ability.radius=Radius
@@ -1793,7 +1843,6 @@ ability.healAllies=Heal Allies
 # Hazard
 ability.shape=Shape
 ability.placement=Placement
-ability.damagePerSecond=Damage/Sec
 ability.damageInterval=Damage Interval
 ability.slownessLevel=Slowness Level
 ability.debuffDuration=Debuff Duration
@@ -1802,8 +1851,6 @@ ability.affectsCaster=Affects Caster
 
 # Trap
 ability.armTime=Arm Time
-ability.maxTriggers=Max Triggers
-ability.triggerCooldown=Trigger Cooldown
 
 # Sweeper
 ability.sweepSpeed=Sweep Speed
@@ -1826,7 +1873,6 @@ ability.outerEnabled=Outer Glow
 ability.outerWidth=Outer Width
 ability.outerAlpha=Outer Alpha
 ability.lightning=Lightning
-ability.lightningDensity=Density
 ability.lightningRadius=Radius
 
 # Projectile Count / Settings
@@ -1930,7 +1976,6 @@ ability.hover.placement=Where the ability effect is placed (Caster, Target, etc.
 ability.hover.lockTarget=Sweeper beam tracks the target's position
 ability.hover.canCounter=Enable counterattack when blocking damage
 ability.hover.counterType=Flat = fixed damage, Percent = % of blocked damage
-ability.hover.shape=Shape of the hazard zone (Circle, Ring, Cone)
 ability.hover.affectsCaster=Hazard can damage the NPC that created it
 ability.hover.sweepMode=Swipe = single arc attack, Spin = continuous rotation
 
