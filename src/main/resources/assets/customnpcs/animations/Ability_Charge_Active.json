@@ -1,0 +1,59 @@
+{
+    "Loop": 0,
+    "Speed": 1.0f,
+    "Frames": [
+        {
+            "ColorMarker": 16777215,
+            "Comment": "",
+            "Speed": 3.0f,
+            "FrameParts": [
+                {
+                    "Pivot2": -6.0f,
+                    "Part": "RIGHT_ARM",
+                    "Rotation1": -50.0f,
+                    "Rotation0": -75.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 3.0f,
+                    "Rotation2": -45.0f
+                },
+                {
+                    "Pivot2": -6.0f,
+                    "Part": "LEFT_ARM",
+                    "Rotation1": 50.0f,
+                    "Rotation0": -75.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 3.0f,
+                    "Rotation2": 45.0f
+                },
+                {
+                    "Pivot2": -6.0f,
+                    "Part": "HEAD",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 0.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 3.0f,
+                    "Rotation2": 0.0f
+                },
+                {
+                    "Pivot2": -6.0f,
+                    "Part": "BODY",
+                    "Rotation1": 0.0f,
+                    "Rotation0": 31.0f,
+                    "Pivot0": 0.0f,
+                    "Pivot1": 2.0f,
+                    "Rotation2": 0.0f
+                }
+            ],
+            "Smooth": 0b,
+            "Duration": 2
+        }
+    ],
+    "CurrentFrameTime": 0,
+    "CurrentFrame": 0,
+    "Smooth": 0b,
+    "ID": 28,
+    "WhileAttacking": 1b,
+    "WhileWalking": 1b,
+    "Name": "Ability_Charge_Active",
+    "WhileStanding": 1b
+}

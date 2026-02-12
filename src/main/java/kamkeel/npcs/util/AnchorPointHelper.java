@@ -37,6 +37,7 @@ public class AnchorPointHelper {
     private static final float ARM_HEIGHT = 0.75f;
     private static final float ABOVE_HEAD_HEIGHT = 1.2f;
     private static final float CHEST_HEIGHT = 0.65f;
+    private static final float EYE_HEIGHT = 0.85f;
 
     // Distance in front for FRONT anchor
     private static final float DEFAULT_FRONT_DISTANCE = 1.0f;
@@ -97,6 +98,10 @@ public class AnchorPointHelper {
 
             case CHEST:
                 y += height * CHEST_HEIGHT;
+                break;
+
+            case EYE:
+                y += entity.getEyeHeight();
                 break;
         }
 
@@ -347,6 +352,8 @@ public class AnchorPointHelper {
                 return ABOVE_HEAD_HEIGHT;
             case CHEST:
                 return CHEST_HEIGHT;
+            case EYE:
+                return EYE_HEIGHT;
             default:
                 return FRONT_HEIGHT;
         }

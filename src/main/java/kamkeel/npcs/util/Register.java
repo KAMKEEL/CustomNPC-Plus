@@ -69,7 +69,7 @@ public class Register<T> {
 
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
-                AbilityController.Instance.registerType(entry.getValue().get().getTypeId(), entry.getValue());
+                AbilityController.Instance.registerAbility(entry.getKey(), entry.getValue().get());
             }
         }
 

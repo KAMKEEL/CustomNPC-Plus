@@ -113,6 +113,8 @@ public class AbilityHazard extends Ability implements IAbilityHazard {
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.CIRCLE;
         this.allowedBy = UserType.NPC_ONLY;
+        this.windUpAnimationName = "Ability_Hazard_Windup";
+        this.activeAnimationName = "Ability_Hazard_Active";
     }
 
     @Override
