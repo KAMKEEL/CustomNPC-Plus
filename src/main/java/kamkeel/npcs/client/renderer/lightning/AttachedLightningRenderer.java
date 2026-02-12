@@ -86,6 +86,28 @@ public class AttachedLightningRenderer {
         }
 
         /**
+         * Age existing arcs and remove dead ones without spawning new arcs.
+         * Use with addArc() for custom arc generation.
+         */
+        public void tick() {
+            Iterator<LightningArc> iter = arcs.iterator();
+            while (iter.hasNext()) {
+                LightningArc arc = iter.next();
+                arc.tick();
+                if (arc.isDead()) {
+                    iter.remove();
+                }
+            }
+        }
+
+        /**
+         * Add a custom arc to the state.
+         */
+        public void addArc(LightningArc arc) {
+            arcs.add(arc);
+        }
+
+        /**
          * Render all active arcs in local space.
          * Call this after glTranslated to entity position.
          * Note: Expects the caller to have already set up GL state (disabled textures,
@@ -229,6 +251,17 @@ public class AttachedLightningRenderer {
 
             tess.draw();
         }
+    }
+
+    /**
+     * Create a lightning arc between two arbitrary points.
+     */
+    public static LightningArc createArcBetween(double x1, double y1, double z1,
+                                                  double x2, double y2, double z2,
+                                                  float displacement, int outerColor, int innerColor, int maxAge) {
+        int segments = 4 + rand.nextInt(3);
+        List<double[]> points = generateLightningPath(x1, y1, z1, x2, y2, z2, segments, displacement);
+        return new LightningArc(points, maxAge, outerColor, innerColor);
     }
 
     // ==================== INSTANT RENDERING (no persistence) ====================
