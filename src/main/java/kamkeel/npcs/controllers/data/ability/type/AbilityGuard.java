@@ -66,11 +66,6 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
-    public boolean hasDamage() {
-        return false;
-    }
-
-    @Override
     public boolean allowBurst() {
         return false;
     }
@@ -133,16 +128,22 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         lastAttacker = attacker;
         lastDamageTaken = damage;
 
-        float reduction = ValueUtil.clamp(getDamageReductionFactor(), 0, damage);
-        float newHealth = ValueUtil.clamp(caster.getHealth() + reduction, 0, caster.getMaxHealth());
-
-        caster.setHealth(newHealth);
-
-        if (!canCounter || !counterEligible || counterTriggered || !isDirectHit(source)) {
-            caster.setHealth(newHealth);
+        // Players: damage reduction handled via LivingHurtEvent (event.ammount modification)
+        // NPCs: called AFTER damageEntity() so health was already reduced — heal back here
+        if (caster instanceof EntityPlayer) {
+            if (canCounter && counterEligible && !counterTriggered && isDirectHit(source)) {
+                counterTriggered = true;
+            }
         } else {
-            caster.setHealth(ValueUtil.clamp(caster.getHealth() + damage, 0, caster.getMaxHealth()));
-            counterTriggered = true;
+            float reduction = ValueUtil.clamp(getDamageReductionFactor(), 0, damage);
+            float newHealth = ValueUtil.clamp(caster.getHealth() + reduction, 0, caster.getMaxHealth());
+
+            if (canCounter && counterEligible && !counterTriggered && isDirectHit(source)) {
+                caster.setHealth(ValueUtil.clamp(caster.getHealth() + damage, 0, caster.getMaxHealth()));
+                counterTriggered = true;
+            } else {
+                caster.setHealth(newHealth);
+            }
         }
     }
 
@@ -340,6 +341,10 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     public void setCounterAnimationId(int counterAnimationId) {
         this.counterAnimationId = counterAnimationId;
+    }
+
+    public boolean isCounterTriggered() {
+        return counterTriggered;
     }
 
     public String getCounterAnimationName() {

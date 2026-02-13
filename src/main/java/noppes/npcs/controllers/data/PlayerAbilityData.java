@@ -4,6 +4,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
@@ -415,6 +416,53 @@ public class PlayerAbilityData implements IPlayerAbilityData {
             currentAbilityKey = null;
             currentTarget = null;
         }
+    }
+
+    /**
+     * Handle damage taken while an ability is executing.
+     * Called from LivingHurtEvent BEFORE damage is applied to health.
+     * Triggers Guard counter detection and handles ability interruption.
+     *
+     * @param source The damage source
+     * @param amount The damage amount (post-armor)
+     * @return The modified damage amount (reduced by guard, or 0 if counter absorbs)
+     */
+    public float onDamage(DamageSource source, float amount) {
+        if (currentAbility == null || !currentAbility.isExecuting()) {
+            return amount;
+        }
+
+        net.minecraft.entity.Entity sourceEntity = source.getEntity();
+        EntityLivingBase attacker = sourceEntity instanceof EntityLivingBase ? (EntityLivingBase) sourceEntity : null;
+
+        // Track counter state before calling onDamageTaken
+        boolean wasCounterTriggered = false;
+        if (currentAbility instanceof AbilityGuard) {
+            wasCounterTriggered = ((AbilityGuard) currentAbility).isCounterTriggered();
+        }
+
+        currentAbility.onDamageTaken(playerData.player, attacker, source, amount);
+
+        // Guard: handle damage reduction and counter absorption
+        if (currentAbility instanceof AbilityGuard) {
+            AbilityGuard guard = (AbilityGuard) currentAbility;
+            if (guard.isGuarding()) {
+                // Counter just triggered — absorb full damage
+                if (!wasCounterTriggered && guard.isCounterTriggered()) {
+                    return 0;
+                }
+                // Normal guard — apply flat damage reduction
+                float reduction = guard.getDamageReductionFactor();
+                return Math.max(0, amount - reduction);
+            }
+        }
+
+        // Check for ability interruption
+        if (currentAbility != null && currentAbility.canInterrupt(source)) {
+            interruptCurrentAbility();
+        }
+
+        return amount;
     }
 
     @Override
