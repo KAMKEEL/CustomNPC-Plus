@@ -254,6 +254,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 } else {
                     Ability ability = slot.getAbility();
                     if (ability != null) {
+                        ability.setNpcInlineEdit(true);
                         setSubGui(ability.createConfigGui(this));
                     }
                 }
@@ -303,6 +304,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 Ability abilityToSave = npcSlots.get(selectedAbilityIndex).getAbility();
                 if (abilityToSave != null) {
                     if (abilityToSave.getName() == null || abilityToSave.getName().isEmpty()) {
+                        abilityToSave.setNpcInlineEdit(true);
                         setSubGui(abilityToSave.createConfigGui(this));
                     } else {
                         setSubGui(new SubGuiAbilitySaveConfirm(abilityToSave, null, existingPresetNames));
@@ -632,6 +634,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 setSubGui(new SubGuiAbilityEditMode());
             } else {
                 if (ability != null) {
+                    ability.setNpcInlineEdit(true);
                     setSubGui(ability.createConfigGui(this));
                 }
             }
@@ -690,6 +693,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                         Ability ability = slot.getAbility();
                         if (ability != null) {
                             ability.setId(UUID.randomUUID().toString());
+                            ability.setNpcInlineEdit(true);
                             setSubGui(ability.createConfigGui(this));
                         }
                         updateNpcAbilitiesList();

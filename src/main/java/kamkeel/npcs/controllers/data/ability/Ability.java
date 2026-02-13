@@ -131,6 +131,12 @@ public abstract class Ability implements IAbility {
     protected transient PreviewEntityHandler previewEntityHandler;
 
     // ═══════════════════════════════════════════════════════════════════
+    // GUI CONTEXT (client-side only, not saved)
+    // ═══════════════════════════════════════════════════════════════════
+
+    protected transient boolean npcInlineEdit = false;
+
+    // ═══════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS
     // ═══════════════════════════════════════════════════════════════════
 
@@ -1256,6 +1262,14 @@ public abstract class Ability implements IAbility {
 
     public boolean isBuiltIn() {
         return false;
+    }
+
+    public boolean isNpcInlineEdit() {
+        return npcInlineEdit;
+    }
+
+    public void setNpcInlineEdit(boolean npcInlineEdit) {
+        this.npcInlineEdit = npcInlineEdit;
     }
 
     public int getWeight() {

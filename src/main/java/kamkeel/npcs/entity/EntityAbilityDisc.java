@@ -226,6 +226,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
         setCharging(false);
 
+        // For player casters, snap to look vector for crosshair-aligned launch
+        snapToPlayerLookVector();
+
         // Update start position to current position
         startX = posX;
         startY = posY;
