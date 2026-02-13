@@ -4,6 +4,7 @@ import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.data.action.Action;
 import noppes.npcs.controllers.data.action.ActionManager;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -130,6 +131,10 @@ public class ConditionalAction extends Action implements IConditionalAction {
             count++;
             taskExecuted = true;
         } catch (Throwable t) {
+            String err = "IConditionalAction '" + getName() + "' threw an exception:";
+            if (reportTo != null)
+                reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
+            
             manager.LOGGER.error("Task of " + this + " threw an exception:", t);
             markDone();
         }
@@ -146,6 +151,10 @@ public class ConditionalAction extends Action implements IConditionalAction {
         try {
             onTermination.accept(this);
         } catch (Throwable t) {
+            String err = "IConditionalAction"  + getName() + "  onTermination threw an exception:";
+            if (reportTo != null)
+                reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
+
             manager.LOGGER.error("Termination Task of " + this + " threw an exception:", t);
         }
 
