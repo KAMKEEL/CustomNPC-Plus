@@ -257,7 +257,33 @@ public class AbilityDash extends Ability implements IAbilityDash {
         if (dashDirection == null) return true;
         double nextX = dashDirection.xCoord * dashSpeed;
         double nextZ = dashDirection.zCoord * dashSpeed;
-        return !caster.worldObj.getCollidingBoundingBoxes(caster, caster.boundingBox.copy().offset(nextX, 0, nextZ)).isEmpty();
+        AxisAlignedBB nextBox = caster.boundingBox.copy().offset(nextX, 0, nextZ);
+        double stepThreshold = nextBox.minY + Math.max(caster.stepHeight, 0.5);
+
+        int x1 = (int) Math.floor(nextBox.minX);
+        int x2 = (int) Math.floor(nextBox.maxX + 1.0);
+        int y1 = (int) Math.floor(nextBox.minY) - 1;
+        int y2 = (int) Math.floor(nextBox.maxY + 1.0);
+        int z1 = (int) Math.floor(nextBox.minZ);
+        int z2 = (int) Math.floor(nextBox.maxZ + 1.0);
+
+        java.util.ArrayList<AxisAlignedBB> collisionBoxes = new java.util.ArrayList<>();
+        for (int bx = x1; bx < x2; bx++) {
+            for (int bz = z1; bz < z2; bz++) {
+                for (int by = y1; by < y2; by++) {
+                    net.minecraft.block.Block block = caster.worldObj.getBlock(bx, by, bz);
+                    if (!block.getMaterial().blocksMovement()) continue;
+                    collisionBoxes.clear();
+                    block.addCollisionBoxesToList(caster.worldObj, bx, by, bz, nextBox, collisionBoxes, caster);
+                    for (AxisAlignedBB box : collisionBoxes) {
+                        if (box.maxY > stepThreshold) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @Override
