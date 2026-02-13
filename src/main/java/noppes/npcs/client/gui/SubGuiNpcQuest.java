@@ -239,6 +239,5 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
     }
 
     public void save() {
-        PacketClient.sendClient(new QuestSavePacket(this.questCategoryID, quest.writeToNBT(new NBTTagCompound()), false));
     }
 }

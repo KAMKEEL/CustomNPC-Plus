@@ -198,6 +198,5 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
     }
 
     public void save() {
-        PacketClient.sendClient(new DialogSavePacket(this.dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
     }
 }
