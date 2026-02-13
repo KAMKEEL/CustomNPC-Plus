@@ -62,7 +62,7 @@ public class ClientTickHandler {
         if (event.phase == Phase.START) {
             EntityPlayer player = mc.thePlayer;
             if (player != null) {
-                boolean specialKeyDown = ClientProxy.SpecialKey != null && Keyboard.isKeyDown(ClientProxy.SpecialKey.getKeyCode());
+                boolean specialKeyDown = mc.currentScreen == null && ClientProxy.SpecialKey != null && Keyboard.isKeyDown(ClientProxy.SpecialKey.getKeyCode());
                 if (specialKeyDown != lastSpecialKeyDown) {
                     PlayerData data = CustomNpcs.proxy.getPlayerData(player);
                     if (data != null) {
