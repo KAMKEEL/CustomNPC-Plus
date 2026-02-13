@@ -48,6 +48,9 @@ public class AbilityController implements IAbilityHandler {
     /** External variant definitions registered by addons, keyed by typeId. */
     private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
 
+    /** TypeIds that produce BuiltInAbility instances (non-editable in GUI). */
+    private final Set<String> builtInTypeIds = new HashSet<>();
+
     public AbilityController() {
         registerBuiltinTypes();
     }
@@ -173,7 +176,9 @@ public class AbilityController implements IAbilityHandler {
         if (abilities.containsKey(name)) {
             LogWriter.info("AbilityController: Overwriting built-in ability: " + name);
         }
-        ability.setName(name);
+        if (!ability.isBuiltIn()) {
+            ability.setName(name);
+        }
         abilities.put(name, ability);
         LogWriter.info("Registered ability: " + name);
     }
@@ -281,12 +286,22 @@ public class AbilityController implements IAbilityHandler {
     // ACCESSORS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /** Get a built-in ability by name. Returns the stored instance (not a copy). */
+    /** Get a built-in ability by map key. Returns the stored instance (not a copy). */
     public Ability getAbility(String name) {
         return abilities.get(name);
     }
 
-    /** Get all built-in ability names. */
+    /** Get a built-in ability by its display name (ability.getName()). */
+    public Ability getAbilityByDisplayName(String displayName) {
+        for (Ability ability : abilities.values()) {
+            if (ability.getName().equals(displayName)) {
+                return ability;
+            }
+        }
+        return null;
+    }
+
+    /** Get all built-in ability map keys. */
     public Set<String> getAbilityNames() {
         return new LinkedHashSet<>(abilities.keySet());
     }
@@ -338,6 +353,10 @@ public class AbilityController implements IAbilityHandler {
         return typeFactories.keySet().toArray(new String[0]);
     }
 
+    public boolean isBuiltInType(String typeId) {
+        return builtInTypeIds.contains(typeId);
+    }
+
     @Override
     public boolean hasType(String typeId) {
         return typeFactories.containsKey(typeId);
@@ -386,6 +405,9 @@ public class AbilityController implements IAbilityHandler {
             LogWriter.info("AbilityController: Overwriting type: " + typeId);
         }
         typeFactories.put(typeId, factory);
+        if (temp.isBuiltIn()) {
+            builtInTypeIds.add(typeId);
+        }
     }
 
     /**

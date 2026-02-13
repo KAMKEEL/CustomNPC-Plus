@@ -168,9 +168,16 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             addButton(toggleBtn);
         }
 
+        // Check if selected ability is built-in (non-editable)
+        boolean selectedIsBuiltIn = false;
+        if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
+            Ability sel = npcSlots.get(selectedAbilityIndex).getAbility();
+            if (sel != null && sel.isBuiltIn()) selectedIsBuiltIn = true;
+        }
+
         // Right side buttons: Edit and Up/Down carrots with Save button
         addButton(new GuiNpcButton(72, guiLeft + 210, y + 145, 55, 20, "gui.edit"));
-        getButton(72).setEnabled(selectedAbilityIndex >= 0);
+        getButton(72).setEnabled(selectedAbilityIndex >= 0 && !selectedIsBuiltIn);
 
         // Up/Down carrot buttons
         addButton(new GuiNpcButton(73, guiLeft + 270, y + 145, 20, 20, "<"));
@@ -180,7 +187,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         // Save button (to the right of carrots, only enabled when ability is selected)
         addButton(new GuiNpcButton(76, centerX, y + 82, 40, 20, "gui.save"));
-        getButton(76).setEnabled(selectedAbilityIndex >= 0);
+        getButton(76).setEnabled(selectedAbilityIndex >= 0 && !selectedIsBuiltIn);
     }
 
     @Override
@@ -464,6 +471,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             String displayName = I18n.format(typeId);
             // Search matches either the display name or the typeId
             if (search.isEmpty() || displayName.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
+                // Gray out built-in types to distinguish them from configurable types
+                if (AbilityController.Instance.isBuiltInType(typeId)) {
+                    displayName = "\u00A77" + displayName;
+                }
                 list.add(displayName);
                 displayNameToTypeId.put(displayName, typeId);
             }
@@ -511,6 +522,9 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         if (slot.isReference()) {
             return colorPrefix + (index + 1) + ". \u00A7e> " + nameDisplay + "\u00A7r";
+        }
+        if (ability.isBuiltIn()) {
+            return colorPrefix + (index + 1) + ". \u00A77" + nameDisplay + "\u00A7r";
         }
         return colorPrefix + (index + 1) + ". " + nameDisplay;
     }
@@ -612,10 +626,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
         if (scroll == npcAbilitiesScroll && selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
             AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+            Ability ability = slot.getAbility();
+            if (ability != null && ability.isBuiltIn()) return;
             if (slot.isReference()) {
                 setSubGui(new SubGuiAbilityEditMode());
             } else {
-                Ability ability = slot.getAbility();
                 if (ability != null) {
                     setSubGui(ability.createConfigGui(this));
                 }

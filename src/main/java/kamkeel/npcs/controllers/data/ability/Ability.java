@@ -1278,6 +1278,10 @@ public abstract class Ability implements IAbility {
         return typeId;
     }
 
+    public boolean isBuiltIn() {
+        return false;
+    }
+
     public int getWeight() {
         return weight;
     }

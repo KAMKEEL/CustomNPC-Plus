@@ -96,6 +96,7 @@ import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
+import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
@@ -516,6 +517,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new CustomAbilityGetPacket());
         REQUEST_PACKET.registerPacket(new CustomAbilityRemovePacket());
         REQUEST_PACKET.registerPacket(new CustomAbilitySavePacket());
+        REQUEST_PACKET.registerPacket(new BuiltInAbilityGetPacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

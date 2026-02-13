@@ -37,6 +37,7 @@ public class Register<T> {
 
     public static class Abilities extends Register<Ability> {
         protected final Map<String, String> uniqueNames = new LinkedHashMap<>();
+        protected final Set<String> typeOnly = new HashSet<>();
 
         private Abilities(String namespace) {
             super("ability", namespace);
@@ -50,9 +51,25 @@ public class Register<T> {
             return factory.get();
         }
 
+        /**
+         * Register a type only (shell template, no built-in preset).
+         * The type will appear in the ability type picker but won't be
+         * available as a pre-configured ability by name.
+         */
+        public Ability registerType(String factoryName, Supplier<Ability> factory) {
+            String name = registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_");
+            entries.put(name, factory);
+            uniqueNames.put(name, factoryName);
+            typeOnly.add(name);
+            return factory.get();
+        }
+
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
-                AbilityController.Instance.registerAbility(uniqueNames.get(entry.getKey()), entry.getValue().get());
+                AbilityController.Instance.registerType(entry.getKey(), entry.getValue());
+                if (!typeOnly.contains(entry.getKey())) {
+                    AbilityController.Instance.registerAbility(uniqueNames.get(entry.getKey()), entry.getValue().get());
+                }
             }
         }
 

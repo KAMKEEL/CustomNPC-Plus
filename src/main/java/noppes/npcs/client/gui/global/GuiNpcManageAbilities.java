@@ -6,6 +6,7 @@ import kamkeel.npcs.controllers.data.ability.AbilityController;
 import java.util.UUID;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
@@ -51,6 +52,7 @@ import java.util.Vector;
  * - Left side: 3D preview of NPC with ability effects
  * - Right side: Ability list with search
  * - Play/Pause/Stop buttons to preview abilities
+ * - Toggle between Custom and Built-in ability views
  */
 public class GuiNpcManageAbilities extends GuiAbilityInterface
         implements ICustomScrollListener, ISubGuiListener, IAbilityConfigCallback,
@@ -58,13 +60,18 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     // ==================== DATA ====================
     private GuiCustomScroll scroll;
-    private HashMap<String, Integer> abilityData = new HashMap<>();
+    private HashMap<String, Integer> customData = new HashMap<>();
+    private HashMap<String, Integer> builtInData = new HashMap<>();
     /** Maps display name -> UUID for custom abilities */
     private final HashMap<String, String> displayToUuid = new HashMap<>();
     private String selected = null;
     private String selectedUuid = null;
     private String search = "";
     private Ability selectedAbility = null;
+
+    // ==================== BUILT-IN TOGGLE ====================
+    private boolean showingBuiltIn = false;
+    private boolean currentIsBuiltIn = false;
 
     // ==================== PENDING SAVE ====================
     private Ability pendingSaveAbility = null;
@@ -88,7 +95,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         previewExecutor = new AbilityPreviewExecutor();
         previewExecutor.setParentGui(this);
 
-        // Request ability data from server
+        // Request ability data from server (sends both custom and built-in)
         PacketClient.sendClient(new CustomAbilitiesGetPacket());
 
         // Enable animation data
@@ -100,18 +107,26 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     public void initGui() {
         super.initGui();
 
-        // Add button
-        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
+        // Toggle button — added FIRST to maintain stable buttonList index
+        String toggleLabel = showingBuiltIn ? "gui.builtin" : "gui.custom";
+        addButton(new GuiNpcButton(10, guiLeft + 368, guiTop + 52, 45, 20, toggleLabel));
 
-        // Remove button
-        addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
-        getButton(1).setEnabled(selected != null && !selected.isEmpty() && displayToUuid.containsKey(selected));
+        if (!showingBuiltIn) {
+            // Add button — only for custom view
+            addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
 
-        // Edit button
-        addButton(new GuiNpcButton(100, guiLeft + 368, guiTop + 52, 45, 20, "gui.edit"));
-        getButton(100).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
+            // Remove button — only for custom view
+            addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
+            getButton(1).setEnabled(selected != null && !selected.isEmpty() && displayToUuid.containsKey(selected));
+        }
 
-        // Scroll list of saved abilities (right side)
+        // Edit button — hidden when viewing built-in
+        if (!showingBuiltIn && !currentIsBuiltIn) {
+            addButton(new GuiNpcButton(100, guiLeft + 368, guiTop + 74, 45, 20, "gui.edit"));
+            getButton(100).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
+        }
+
+        // Scroll list of abilities (right side)
         if (scroll == null) {
             scroll = new GuiCustomScroll(this, 0);
             scroll.setSize(143, 185);
@@ -122,7 +137,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         // Update scroll list
         scroll.setList(getSearchList());
-        if (selected != null && displayToUuid.containsKey(selected)) {
+        if (selected != null) {
             scroll.setSelected(selected);
         }
 
@@ -133,9 +148,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (selectedAbility == null || selected == null) {
             return;
         }
-
-        // ID/Name label (below search bar)
-        addLabel(new GuiNpcLabel(10, "ID: " + selectedAbility.getId(), guiLeft + 220, guiTop + 215));
 
         // Play/Pause/Stop buttons (below model preview area)
         String animTexture = "customnpcs:textures/gui/animation.png";
@@ -161,17 +173,34 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         }
     }
 
+    private HashMap<String, Integer> getCurrentData() {
+        return showingBuiltIn ? builtInData : customData;
+    }
+
     private List<String> getSearchList() {
-        if (search.isEmpty()) {
-            return new ArrayList<>(displayToUuid.keySet());
-        }
-        List<String> list = new ArrayList<>();
-        for (String name : displayToUuid.keySet()) {
-            if (name.toLowerCase().contains(search.toLowerCase())) {
-                list.add(name);
+        if (showingBuiltIn) {
+            if (search.isEmpty()) {
+                return new ArrayList<>(builtInData.keySet());
             }
+            List<String> list = new ArrayList<>();
+            for (String name : builtInData.keySet()) {
+                if (name.toLowerCase().contains(search.toLowerCase())) {
+                    list.add(name);
+                }
+            }
+            return list;
+        } else {
+            if (search.isEmpty()) {
+                return new ArrayList<>(displayToUuid.keySet());
+            }
+            List<String> list = new ArrayList<>();
+            for (String name : displayToUuid.keySet()) {
+                if (name.toLowerCase().contains(search.toLowerCase())) {
+                    list.add(name);
+                }
+            }
+            return list;
         }
-        return list;
     }
 
     @Override
@@ -227,13 +256,30 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         int id = guibutton.id;
 
-        if (id == 2) {
+        // Toggle between custom and built-in views
+        if (id == 10) {
+            showingBuiltIn = !showingBuiltIn;
+            selected = null;
+            selectedUuid = null;
+            selectedAbility = null;
+            currentIsBuiltIn = false;
+            search = "";
+            previewExecutor.stop();
+            if (scroll != null) {
+                scroll.clear();
+            }
+            PacketClient.sendClient(new CustomAbilitiesGetPacket());
+            initGui();
+            return;
+        }
+
+        if (id == 2 && !showingBuiltIn) {
             // Add — open type selection
             setSubGui(new SubGuiAbilityTypeSelect());
-        } else if (id == 1 && selected != null && selectedUuid != null) {
+        } else if (id == 1 && !showingBuiltIn && selected != null && selectedUuid != null) {
             GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), 1);
             displayGuiScreen(guiyesno);
-        } else if (id == 100 && selectedAbility != null) {
+        } else if (id == 100 && !showingBuiltIn && !currentIsBuiltIn && selectedAbility != null) {
             // Edit
             previewExecutor.stop();
             setSubGui(selectedAbility.createConfigGui(this));
@@ -276,11 +322,20 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             String newSelection = scroll.getSelected();
             if (newSelection != null && !newSelection.equals(selected)) {
                 previewExecutor.stop();
-
                 selected = newSelection;
-                selectedUuid = displayToUuid.get(selected);
-                if (selectedUuid != null) {
-                    PacketClient.sendClient(new CustomAbilityGetPacket(selectedUuid));
+
+                if (showingBuiltIn) {
+                    // Fetch built-in ability by display name
+                    selectedUuid = null;
+                    currentIsBuiltIn = true;
+                    PacketClient.sendClient(new BuiltInAbilityGetPacket(selected));
+                } else {
+                    // Fetch custom ability by UUID
+                    selectedUuid = displayToUuid.get(selected);
+                    currentIsBuiltIn = false;
+                    if (selectedUuid != null) {
+                        PacketClient.sendClient(new CustomAbilityGetPacket(selectedUuid));
+                    }
                 }
             }
         }
@@ -289,8 +344,8 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
         if (scroll.id == 0 && selection != null && !selection.isEmpty()) {
-            // Double-click to edit
-            if (selectedAbility != null) {
+            // Double-click to edit — only for custom, non-built-in abilities
+            if (!showingBuiltIn && !currentIsBuiltIn && selectedAbility != null) {
                 previewExecutor.stop();
                 setSubGui(selectedAbility.createConfigGui(this));
             }
@@ -301,7 +356,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
         if (type == EnumScrollData.CUSTOM_ABILITIES) {
             String prevSelected = scroll != null ? scroll.getSelected() : null;
-            this.abilityData = data;
+            this.customData = data;
             displayToUuid.clear();
             for (String key : data.keySet()) {
                 // key format: "displayName\tUUID"
@@ -314,10 +369,19 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                     displayToUuid.put(key, key);
                 }
             }
-            if (scroll != null) {
+            if (!showingBuiltIn && scroll != null) {
                 scroll.setList(getSearchList());
                 if (prevSelected != null && displayToUuid.containsKey(prevSelected)) {
                     scroll.setSelected(prevSelected);
+                }
+            }
+            initGui();
+        } else if (type == EnumScrollData.BUILTIN_ABILITIES) {
+            this.builtInData = data;
+            if (showingBuiltIn && scroll != null) {
+                scroll.setList(getSearchList());
+                if (selected != null && builtInData.containsKey(selected)) {
+                    scroll.setSelected(selected);
                 }
             }
             initGui();
@@ -326,6 +390,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
+        // Check if this is a built-in ability response
+        currentIsBuiltIn = compound.hasKey("BuiltIn") && compound.getBoolean("BuiltIn");
+
         // Received ability data from server
         selectedAbility = AbilityController.Instance.fromNBT(compound);
         if (selectedAbility != null) {
@@ -364,7 +431,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                         return;
                     }
                     pendingTypeId = null;
-                    saveAndOpenConfig(newAbility);
+                    openConfig(newAbility);
                     return;
                 }
             }
@@ -390,7 +457,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                         setSubGui(new SubGuiDuplicateNameConfirm());
                         return;
                     }
-                    saveAndOpenConfig(newAbility);
+                    openConfig(newAbility);
                     return;
                 }
             }
@@ -398,7 +465,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             SubGuiDuplicateNameConfirm confirm = (SubGuiDuplicateNameConfirm) subgui;
             if (confirm.isConfirmed() && pendingSaveAbility != null) {
                 if (pendingNewCreation) {
-                    saveAndOpenConfig(pendingSaveAbility);
+                    openConfig(pendingSaveAbility);
                     pendingSaveAbility = null;
                     pendingNewCreation = false;
                     return;
@@ -434,8 +501,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         initGui();
     }
 
-    private void saveAndOpenConfig(Ability ability) {
-        PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+    private void openConfig(Ability ability) {
         selectedAbility = ability;
         selected = ability.getName();
         selectedUuid = ability.getId();

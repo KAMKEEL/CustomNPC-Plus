@@ -8,6 +8,7 @@ public enum EnumScrollData {
     QUEST_GROUP,
     ABILITY_TYPES,
     CUSTOM_ABILITIES,
+    BUILTIN_ABILITIES,
     ANIMATIONS,
     BUILTIN_ANIMATIONS
 }
