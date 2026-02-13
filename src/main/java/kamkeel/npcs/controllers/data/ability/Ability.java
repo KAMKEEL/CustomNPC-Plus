@@ -1175,61 +1175,37 @@ public abstract class Ability implements IAbility {
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
-        syncWindupWithAnimation = !nbt.hasKey("syncWindup") || nbt.getBoolean("syncWindup");
+        syncWindupWithAnimation = nbt.getBoolean("syncWindup");
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
-        if (nbt.hasKey("rotationMode")) {
-            // Current format
-            rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
-            rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
-        } else if (nbt.hasKey("lockType")) {
-            // Legacy format migration: lockType was LockType enum (0=MOVEMENT, 1=ROTATION, 2=BOTH)
-            int oldLockType = nbt.getInteger("lockType");
-            if (oldLockType == 0) {
-                // MOVEMENT only: movement locked, rotation was free
-                rotationMode = RotationMode.FREE;
-            } else if (oldLockType == 1) {
-                // ROTATION only: rotation locked same timing as old lockMovement, movement was free
-                rotationMode = RotationMode.LOCKED;
-                rotationPhase = lockMovement;
-                lockMovement = LockMovementType.NO;
-            } else {
-                // BOTH: both locked same timing
-                rotationMode = RotationMode.LOCKED;
-                rotationPhase = lockMovement;
-            }
-        } else {
-            rotationMode = RotationMode.FREE;
-            rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
-        }
+        rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
+        rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
         windUpColor = nbt.getInteger("windUpColor");
         activeColor = nbt.getInteger("activeColor");
         windUpSound = nbt.getString("windUpSound");
         activeSound = nbt.getString("activeSound");
-        windUpAnimationId = nbt.hasKey("windUpAnimationId") ? nbt.getInteger("windUpAnimationId") : -1;
-        activeAnimationId = nbt.hasKey("activeAnimationId") ? nbt.getInteger("activeAnimationId") : -1;
+        windUpAnimationId = nbt.getInteger("windUpAnimationId");
+        activeAnimationId = nbt.getInteger("activeAnimationId");
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
-        showTelegraph = !nbt.hasKey("showTelegraph") || nbt.getBoolean("showTelegraph");
-        if (nbt.hasKey("telegraphType")) {
-            try {
-                telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
-            } catch (Exception e) {
-                telegraphType = TelegraphType.CIRCLE;
-            }
+        showTelegraph = nbt.getBoolean("showTelegraph");
+        try {
+            telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
+        } catch (Exception e) {
+            telegraphType = TelegraphType.CIRCLE;
         }
-        telegraphHeightOffset = nbt.hasKey("telegraphHeightOffset") ? nbt.getFloat("telegraphHeightOffset") : 0.1f;
+        telegraphHeightOffset = nbt.getFloat("telegraphHeightOffset");
         customData = nbt.getCompoundTag("customData");
-        allowedBy = nbt.hasKey("allowedBy") ? UserType.fromOrdinal(nbt.getInteger("allowedBy")) : UserType.BOTH;
-        ignoreCooldown = nbt.hasKey("ignoreCooldown") && nbt.getBoolean("ignoreCooldown");
+        allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
+        ignoreCooldown = nbt.getBoolean("ignoreCooldown");
 
         // Burst
-        burstEnabled = nbt.hasKey("burstEnabled") && nbt.getBoolean("burstEnabled");
-        burstAmount = nbt.hasKey("burstAmount") ? nbt.getInteger("burstAmount") : 0;
-        burstDelay = nbt.hasKey("burstDelay") ? nbt.getInteger("burstDelay") : 0;
-        burstReplayAnimations = !nbt.hasKey("burstReplayAnimations") || nbt.getBoolean("burstReplayAnimations");
-        burstOverlap = nbt.hasKey("burstOverlap") && nbt.getBoolean("burstOverlap");
+        burstEnabled = nbt.getBoolean("burstEnabled");
+        burstAmount = nbt.getInteger("burstAmount");
+        burstDelay = nbt.getInteger("burstDelay");
+        burstReplayAnimations = nbt.getBoolean("burstReplayAnimations");
+        burstOverlap = nbt.getBoolean("burstOverlap");
 
         // Conditions
         conditions.clear();

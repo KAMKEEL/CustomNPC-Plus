@@ -15,7 +15,6 @@ import noppes.npcs.constants.EnumPotionType;
 
 public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldListener, ISubGuiListener {
     private DataStats stats;
-    private String[] potionNames = new String[]{"gui.none", "tile.fire.name", "potion.poison", "potion.hunger", "potion.weakness", "potion.moveSlowdown", "potion.confusion", "potion.blindness", "potion.wither"};
     private String[] trailNames = new String[]{"gui.none", "trail.smoke", "trail.portal", "trail.redstone",
         "trail.lightning", "trail.largesmoke", "trail.magic", "trail.enchant", "trail.crit",
         "trail.explode", "trail.music", "trail.flame", "trail.lava", "trail.splash",
@@ -76,22 +75,29 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
         }
 
         addLabel(new GuiNpcLabel(7, "stats.rangedeffect", guiLeft + 210, y + 5));
-        addButton(new GuiButtonBiDirectional(4, guiLeft + 280, y, 100, 20, potionNames, stats.pEffect.ordinal()));
+        addButton(new GuiButtonBiDirectional(4, guiLeft + 280, y, 100, 20, EnumPotionType.getLangKeys(), stats.pEffect.ordinal()));
 
         if (stats.pEffect != EnumPotionType.None) {
             int internalY = y + 30;
+            if (stats.pEffect == EnumPotionType.Manual) {
+                addLabel(new GuiNpcLabel(110, "effect.potionid", guiLeft + 210, internalY + 5));
+                addTextField(new GuiNpcTextField(11, this, fontRendererObj, guiLeft + 330, internalY, 52, 20, stats.pManualId + ""));
+                getTextField(11).integersOnly = true;
+                getTextField(11).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
+                internalY += 30;
+            }
             addLabel(new GuiNpcLabel(50, "gui.time", guiLeft + 210, internalY + 5));
             addTextField(new GuiNpcTextField(5, this, fontRendererObj, guiLeft + 330, internalY, 52, 20, stats.pDur + ""));
             getTextField(5).integersOnly = true;
             getTextField(5).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
-            if (stats.pEffect != EnumPotionType.Fire) {
-                internalY += 30;
-                addLabel(new GuiNpcLabel(70, "stats.amplify", guiLeft + 210, internalY + 5));
-                addButton(new GuiButtonBiDirectional(10, guiLeft + 280, internalY, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.pEffAmp));
-            } else {
+            if (stats.pEffect == EnumPotionType.Fire) {
                 internalY += 30;
                 addLabel(new GuiNpcLabel(100, "stats.burnItem", guiLeft + 210, internalY + 5));
                 addButton(new GuiNpcButtonYesNo(100, guiLeft + 330, internalY, 52, 20, stats.pBurnItem));
+            } else {
+                internalY += 30;
+                addLabel(new GuiNpcLabel(70, "stats.amplify", guiLeft + 210, internalY + 5));
+                addButton(new GuiButtonBiDirectional(10, guiLeft + 280, internalY, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.pEffAmp));
             }
         }
 
@@ -126,6 +132,8 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
             stats.pSpeed = textfield.getInteger();
         } else if (textfield.id == 5) {
             stats.pDur = textfield.getInteger();
+        } else if (textfield.id == 11) {
+            stats.pManualId = textfield.getInteger();
         }
     }
 
@@ -146,7 +154,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
             stats.pArea = button.getValue();
         }
         if (button.id == 4) {
-            stats.pEffect = EnumPotionType.values()[button.getValue()];
+            stats.pEffect = EnumPotionType.fromOrdinal(button.getValue());
             initGui();
         }
         if (button.id == 5) {

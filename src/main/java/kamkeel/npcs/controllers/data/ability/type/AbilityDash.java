@@ -284,8 +284,8 @@ public class AbilityDash extends Ability implements IAbilityDash {
         } catch (Exception e) {
             this.dashMode = DashMode.DEFENSIVE;
         }
-        this.dashDistance = nbt.hasKey("dashDistance") ? nbt.getFloat("dashDistance") : 4.0f;
-        this.dashSpeed = nbt.hasKey("dashSpeed") ? nbt.getFloat("dashSpeed") : 0.5f;
+        this.dashDistance = nbt.getFloat("dashDistance");
+        this.dashSpeed = nbt.getFloat("dashSpeed");
     }
 
     // Getters & Setters

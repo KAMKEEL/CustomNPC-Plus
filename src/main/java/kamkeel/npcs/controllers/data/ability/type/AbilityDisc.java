@@ -368,16 +368,16 @@ public class AbilityDisc extends Ability implements IAbilityDisc {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.discRadius = nbt.hasKey("discRadius") ? nbt.getFloat("discRadius") : 1.0f;
-        this.discThickness = nbt.hasKey("discThickness") ? nbt.getFloat("discThickness") : 0.2f;
-        this.vertical = nbt.hasKey("vertical") && nbt.getBoolean("vertical");
-        this.boomerang = nbt.hasKey("boomerang") && nbt.getBoolean("boomerang");
-        this.boomerangDelay = nbt.hasKey("boomerangDelay") ? nbt.getInteger("boomerangDelay") : 40;
+        this.discRadius = nbt.getFloat("discRadius");
+        this.discThickness = nbt.getFloat("discThickness");
+        this.vertical = nbt.getBoolean("vertical");
+        this.boomerang = nbt.getBoolean("boomerang");
+        this.boomerangDelay = nbt.getInteger("boomerangDelay");
 
-        int count = nbt.hasKey("projectileCount") ? nbt.getInteger("projectileCount") : 1;
+        int count = nbt.getInteger("projectileCount");
         initProjectiles(count);
 
-        this.fireDelay = nbt.hasKey("fireDelay") ? nbt.getInteger("fireDelay") : 0;
+        this.fireDelay = nbt.getInteger("fireDelay");
 
         // Shared combat/movement data
         combatData.readNBT(nbt);

@@ -71,10 +71,10 @@ public class EnergyHomingData implements IEnergyHomingData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 0.5f;
-        homing = !nbt.hasKey("homing") || nbt.getBoolean("homing");
-        homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.15f;
-        homingRange = nbt.hasKey("homingRange") ? nbt.getFloat("homingRange") : 20.0f;
+        speed = nbt.getFloat("speed");
+        homing = nbt.getBoolean("homing");
+        homingStrength = nbt.getFloat("homingStrength");
+        homingRange = nbt.getFloat("homingRange");
     }
 
     public EnergyHomingData copy() {

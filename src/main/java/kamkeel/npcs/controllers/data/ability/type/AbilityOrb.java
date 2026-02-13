@@ -364,12 +364,12 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.orbSize = nbt.hasKey("orbSize") ? nbt.getFloat("orbSize") : 1.0f;
+        this.orbSize = nbt.getFloat("orbSize");
 
-        int count = nbt.hasKey("projectileCount") ? nbt.getInteger("projectileCount") : 1;
+        int count = nbt.getInteger("projectileCount");
         initProjectiles(count);
 
-        this.fireDelay = nbt.hasKey("fireDelay") ? nbt.getInteger("fireDelay") : 0;
+        this.fireDelay = nbt.getInteger("fireDelay");
 
         // Shared combat/movement data
         combatData.readNBT(nbt);

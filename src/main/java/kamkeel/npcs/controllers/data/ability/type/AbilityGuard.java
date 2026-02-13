@@ -238,27 +238,19 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
-        this.damageReduction = nbt.hasKey("damageReduction") ? nbt.getFloat("damageReduction") : 0.5f;
-        this.canCounter = nbt.hasKey("canCounter") && nbt.getBoolean("canCounter");
-        this.counterWindow = nbt.hasKey("counterWindow") ? nbt.getInteger("counterWindow") : 10;
+        this.durationTicks = nbt.getInteger("durationTicks");
+        this.damageReduction = nbt.getFloat("damageReduction");
+        this.canCounter = nbt.getBoolean("canCounter");
+        this.counterWindow = nbt.getInteger("counterWindow");
         try {
             this.counterType = CounterType.valueOf(nbt.getString("counterType"));
         } catch (Exception e) {
             this.counterType = CounterType.FLAT;
         }
-        if (nbt.hasKey("counterValue")) {
-            this.counterValue = nbt.getFloat("counterValue");
-        } else if (nbt.hasKey("counterDamage")) {
-            this.counterValue = nbt.getFloat("counterDamage");
-        } else {
-            this.counterValue = 6.0f;
-        }
-        this.counterSound = nbt.hasKey("counterSound") ? nbt.getString("counterSound") : "random.wood_click";
-        this.counterAnimationId = nbt.hasKey("counterAnimationId") ? nbt.getInteger("counterAnimationId") : -1;
-        this.counterAnimationName = nbt.hasKey("counterAnimationName") ?
-            nbt.getString("counterAnimationName") :
-            "Ability_Guard_Counter";
+        this.counterValue = nbt.getFloat("counterValue");
+        this.counterSound = nbt.getString("counterSound");
+        this.counterAnimationId = nbt.getInteger("counterAnimationId");
+        this.counterAnimationName = nbt.getString("counterAnimationName");
     }
 
     // Getters & Setters

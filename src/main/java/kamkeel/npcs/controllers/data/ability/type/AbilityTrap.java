@@ -119,14 +119,14 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         readZoneNBT(nbt, 300);
-        this.triggerRadius = nbt.hasKey("triggerRadius") ? nbt.getFloat("triggerRadius") : 2.0f;
-        this.armTime = nbt.hasKey("armTime") ? nbt.getInteger("armTime") : 20;
-        this.maxTriggers = nbt.hasKey("maxTriggers") ? nbt.getInteger("maxTriggers") : 1;
-        this.triggerCooldown = nbt.hasKey("triggerCooldown") ? nbt.getInteger("triggerCooldown") : 20;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 6.0f;
-        this.damageRadius = nbt.hasKey("damageRadius") ? nbt.getFloat("damageRadius") : 0.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
-        this.visible = !nbt.hasKey("visible") || nbt.getBoolean("visible");
+        this.triggerRadius = nbt.getFloat("triggerRadius");
+        this.armTime = nbt.getInteger("armTime");
+        this.maxTriggers = nbt.getInteger("maxTriggers");
+        this.triggerCooldown = nbt.getInteger("triggerCooldown");
+        this.damage = nbt.getFloat("damage");
+        this.damageRadius = nbt.getFloat("damageRadius");
+        this.knockback = nbt.getFloat("knockback");
+        this.visible = nbt.getBoolean("visible");
     }
 
     // ═══════════════════════════════════════════════════════════════════
