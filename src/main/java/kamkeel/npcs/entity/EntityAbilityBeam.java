@@ -274,6 +274,9 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         setCharging(false);
 
+        // For player casters, snap to look vector for crosshair-aligned launch
+        snapToPlayerLookVector();
+
         // Origin (tail) stays at the charged position - where the orb was
         // This is the same for both anchored and non-anchored modes
         startX = posX;
