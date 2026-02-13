@@ -21,7 +21,13 @@ public abstract class BuiltInAbility extends Ability {
         this.registryKey = registryKey;
         this.id = registryKey;
         this.name = registryKey;
-        this.typeId = registryKey;
+        // Convert "namespace:name" to "ability.namespace.name" for GUI filter compatibility
+        this.typeId = "ability." + registryKey.replace(':', '.');
+    }
+
+    @Override
+    public boolean isBuiltIn() {
+        return true;
     }
 
     /**
