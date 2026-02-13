@@ -94,6 +94,7 @@ public class EntityProjectile extends EntityThrowable {
     public boolean destroyTerrain = true;
     public int explosiveRadius = 0;
     public EnumPotionType effect = EnumPotionType.None;
+    public int manualPotionId = 0;
     public boolean burnItem = true;
     public int duration = 5;
     public int amplify = 0;
@@ -508,12 +509,12 @@ public class EntityProjectile extends EntityThrowable {
                     }
                 }
 
-                if (this.effect != EnumPotionType.None && entityliving != null) {
-                    if (this.effect != EnumPotionType.Fire) {
-                        int p = this.getPotionEffect(effect);
-                        entityliving.addPotionEffect(new PotionEffect(p, this.duration * 20, this.amplify));
-                    } else {
-                        movingobjectposition.entityHit.setFire(duration);
+                if (this.effect == EnumPotionType.Fire && entityliving != null) {
+                    movingobjectposition.entityHit.setFire(duration);
+                } else if (this.effect != EnumPotionType.None && entityliving != null) {
+                    int potionId = this.effect.getResolvedPotionId(this.manualPotionId);
+                    if (EnumPotionType.isValidPotionId(potionId)) {
+                        entityliving.addPotionEffect(new PotionEffect(potionId, this.duration * 20, this.amplify));
                     }
                 }
             } else if (this.hasGravity() && (this.isArrow() || this.sticksToWalls())) {
@@ -637,21 +638,23 @@ public class EntityProjectile extends EntityThrowable {
                                 d1 = 1.0D;
                             }
 
-                            int i = this.getPotionEffect(effect);
+                            int potionId = this.effect.getResolvedPotionId(this.manualPotionId);
 
-                            if (Potion.potionTypes[i].isInstant()) {
-                                Potion.potionTypes[i].affectEntity(this.getThrower(), entitylivingbase, this.amplify, d1);
-                            } else {
-                                int j = (int) (d1 * (double) this.duration + 0.5D);
+                            if (EnumPotionType.isValidPotionId(potionId)) {
+                                if (Potion.potionTypes[potionId].isInstant()) {
+                                    Potion.potionTypes[potionId].affectEntity(this.getThrower(), entitylivingbase, this.amplify, d1);
+                                } else {
+                                    int j = (int) (d1 * (double) this.duration + 0.5D);
 
-                                if (j > 20) {
-                                    entitylivingbase.addPotionEffect(new PotionEffect(i, j, this.amplify));
+                                    if (j > 20) {
+                                        entitylivingbase.addPotionEffect(new PotionEffect(potionId, j, this.amplify));
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                this.worldObj.playAuxSFX(2002, (int) Math.round(this.posX), (int) Math.round(this.posY), (int) Math.round(this.posZ), this.getPotionColor(this.effect));
+                this.worldObj.playAuxSFX(2002, (int) Math.round(this.posX), (int) Math.round(this.posY), (int) Math.round(this.posZ), this.getPotionColor());
             }
         }
 
@@ -693,6 +696,8 @@ public class EntityProjectile extends EntityThrowable {
         par1NBTTagCompound.setBoolean("explosive", explosive);
         par1NBTTagCompound.setInteger("accuracy", accuracy);
         par1NBTTagCompound.setInteger("PotionEffect", effect.ordinal());
+        if (effect == EnumPotionType.Manual)
+            par1NBTTagCompound.setInteger("PotionManualId", manualPotionId);
         par1NBTTagCompound.setString("trail", this.dataWatcher.getWatchableObjectString(22));
         par1NBTTagCompound.setByte("Render3D", this.dataWatcher.getWatchableObjectByte(28));
         par1NBTTagCompound.setByte("Spins", this.dataWatcher.getWatchableObjectByte(29));
@@ -723,7 +728,9 @@ public class EntityProjectile extends EntityThrowable {
         this.accelerate = par1NBTTagCompound.getBoolean("accelerate");
         this.explosive = par1NBTTagCompound.getBoolean("explosive");
         this.accuracy = par1NBTTagCompound.getInteger("accuracy");
-        this.effect = EnumPotionType.values()[par1NBTTagCompound.getInteger("PotionEffect") % EnumPotionType.values().length];
+        this.effect = EnumPotionType.fromOrdinal(par1NBTTagCompound.getInteger("PotionEffect"));
+        if (effect == EnumPotionType.Manual)
+            this.manualPotionId = par1NBTTagCompound.getInteger("PotionManualId");
         this.dataWatcher.updateObject(22, par1NBTTagCompound.getString("trail"));
         this.dataWatcher.updateObject(23, Integer.valueOf(par1NBTTagCompound.getInteger("size")));
         this.dataWatcher.updateObject(24, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("glows") ? 1 : 0)));
@@ -774,46 +781,12 @@ public class EntityProjectile extends EntityThrowable {
         return this.thrower;
     }
 
-    private int getPotionEffect(EnumPotionType p) {
-        switch (p) {
-            case Poison:
-                return Potion.poison.id;
-            case Hunger:
-                return Potion.hunger.id;
-            case Weakness:
-                return Potion.weakness.id;
-            case Slowness:
-                return Potion.moveSlowdown.id;
-            case Nausea:
-                return Potion.confusion.id;
-            case Blindness:
-                return Potion.blindness.id;
-            case Wither:
-                return Potion.wither.id;
-            default:
-                return 0;
+    private int getPotionColor() {
+        int potionId = this.effect.getResolvedPotionId(this.manualPotionId);
+        if (EnumPotionType.isValidPotionId(potionId)) {
+            return Potion.potionTypes[potionId].getLiquidColor();
         }
-    }
-
-    private int getPotionColor(EnumPotionType p) {
-        switch (p) {
-            case Poison:
-                return 32660;
-            case Hunger:
-                return 32660;
-            case Weakness:
-                return 32696;
-            case Slowness:
-                return 32698;
-            case Nausea:
-                return 32732;
-            case Blindness:
-                return Potion.blindness.id;
-            case Wither:
-                return 32732;
-            default:
-                return 0;
-        }
+        return 0;
     }
 
     public void getStatProperties(DataStats stats) {
@@ -823,6 +796,7 @@ public class EntityProjectile extends EntityThrowable {
         this.explosive = stats.pExplode;
         this.explosiveRadius = stats.pArea;
         this.effect = stats.pEffect;
+        this.manualPotionId = stats.pManualId;
         this.burnItem = stats.pBurnItem;
         this.duration = stats.pDur;
         this.amplify = stats.pEffAmp;

@@ -2007,6 +2007,8 @@ condition.hover.threshold=Health percentage threshold (1-99%)
 effect.hover.type=Potion effect type to apply to targets
 effect.hover.duration=Effect duration in ticks (20 ticks = 1 second)
 effect.hover.amplifier=Effect strength level (higher = stronger)
+effect.manual=Manual
+effect.potionid=Potion ID
 
 # =========================================
 # Auction House

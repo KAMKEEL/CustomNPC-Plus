@@ -227,13 +227,13 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
-        this.healAmount = nbt.hasKey("healAmount") ? nbt.getFloat("healAmount") : 10.0f;
-        this.healPercent = nbt.hasKey("healPercent") ? nbt.getFloat("healPercent") : 0.0f;
-        this.healSelf = !nbt.hasKey("healSelf") || nbt.getBoolean("healSelf");
-        this.healAllies = nbt.hasKey("healAllies") && nbt.getBoolean("healAllies");
-        this.healRadius = nbt.hasKey("healRadius") ? nbt.getFloat("healRadius") : 0.0f;
-        this.instantHeal = !nbt.hasKey("instantHeal") || nbt.getBoolean("instantHeal");
+        this.durationTicks = nbt.getInteger("durationTicks");
+        this.healAmount = nbt.getFloat("healAmount");
+        this.healPercent = nbt.getFloat("healPercent");
+        this.healSelf = nbt.getBoolean("healSelf");
+        this.healAllies = nbt.getBoolean("healAllies");
+        this.healRadius = nbt.getFloat("healRadius");
+        this.instantHeal = nbt.getBoolean("instantHeal");
     }
 
     // Getters & Setters

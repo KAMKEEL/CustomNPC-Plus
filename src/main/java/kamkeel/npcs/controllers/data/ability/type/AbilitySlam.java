@@ -509,11 +509,11 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 10.0f;
-        radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 5.0f;
-        knockbackStrength = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
-        leapSpeed = nbt.hasKey("leapSpeed") ? nbt.getFloat("leapSpeed") : 1.0f;
-        leapHeight = nbt.hasKey("leapHeight") ? nbt.getFloat("leapHeight") : 4.0f;
+        damage = nbt.getFloat("damage");
+        radius = nbt.getFloat("radius");
+        knockbackStrength = nbt.getFloat("knockback");
+        leapSpeed = nbt.getFloat("leapSpeed");
+        leapHeight = nbt.getFloat("leapHeight");
     }
 
     // Getters & Setters

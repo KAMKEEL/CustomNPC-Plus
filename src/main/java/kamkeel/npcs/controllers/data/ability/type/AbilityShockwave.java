@@ -127,10 +127,10 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.pushRadius = nbt.hasKey("pushRadius") ? nbt.getFloat("pushRadius") : 8.0f;
-        this.pushStrength = nbt.hasKey("pushStrength") ? nbt.getFloat("pushStrength") : 1.5f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
-        this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 10;
+        this.pushRadius = nbt.getFloat("pushRadius");
+        this.pushStrength = nbt.getFloat("pushStrength");
+        this.damage = nbt.getFloat("damage");
+        this.maxTargets = nbt.getInteger("maxTargets");
     }
 
     // Getters & Setters

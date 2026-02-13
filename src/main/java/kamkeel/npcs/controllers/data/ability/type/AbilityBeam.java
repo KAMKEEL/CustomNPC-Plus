@@ -356,13 +356,13 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.beamWidth = nbt.hasKey("beamWidth") ? nbt.getFloat("beamWidth") : 0.4f;
-        this.headSize = nbt.hasKey("headSize") ? nbt.getFloat("headSize") : 0.6f;
+        this.beamWidth = nbt.getFloat("beamWidth");
+        this.headSize = nbt.getFloat("headSize");
 
-        int count = nbt.hasKey("projectileCount") ? nbt.getInteger("projectileCount") : 1;
+        int count = nbt.getInteger("projectileCount");
         initProjectiles(count);
 
-        this.fireDelay = nbt.hasKey("fireDelay") ? nbt.getInteger("fireDelay") : 0;
+        this.fireDelay = nbt.getInteger("fireDelay");
 
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);

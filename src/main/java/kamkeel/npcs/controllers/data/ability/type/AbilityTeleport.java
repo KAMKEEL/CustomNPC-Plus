@@ -430,24 +430,20 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        if (nbt.hasKey("mode")) {
-            try {
-                this.mode = TeleportMode.valueOf(nbt.getString("mode"));
-            } catch (Exception e) {
-                this.mode = TeleportMode.BLINK;
-            }
-        } else {
+        try {
+            this.mode = TeleportMode.valueOf(nbt.getString("mode"));
+        } catch (Exception e) {
             this.mode = TeleportMode.BLINK;
         }
-        this.blinkCount = nbt.hasKey("blinkCount") ? nbt.getInteger("blinkCount") : 3;
-        this.blinkDelayTicks = nbt.hasKey("blinkDelayTicks") ? nbt.getInteger("blinkDelayTicks") : 10;
-        this.blinkRadius = nbt.hasKey("blinkRadius") ? nbt.getFloat("blinkRadius") : 8.0f;
-        this.behindDistance = nbt.hasKey("behindDistance") ? nbt.getFloat("behindDistance") : 2.0f;
-        this.requireLineOfSight = !nbt.hasKey("requireLineOfSight") || nbt.getBoolean("requireLineOfSight");
-        this.damageAtStart = nbt.hasKey("damageAtStart") && nbt.getBoolean("damageAtStart");
-        this.damageAtEnd = nbt.hasKey("damageAtEnd") && nbt.getBoolean("damageAtEnd");
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 5.0f;
-        this.damageRadius = nbt.hasKey("damageRadius") ? nbt.getFloat("damageRadius") : 2.0f;
+        this.blinkCount = nbt.getInteger("blinkCount");
+        this.blinkDelayTicks = nbt.getInteger("blinkDelayTicks");
+        this.blinkRadius = nbt.getFloat("blinkRadius");
+        this.behindDistance = nbt.getFloat("behindDistance");
+        this.requireLineOfSight = nbt.getBoolean("requireLineOfSight");
+        this.damageAtStart = nbt.getBoolean("damageAtStart");
+        this.damageAtEnd = nbt.getBoolean("damageAtEnd");
+        this.damage = nbt.getFloat("damage");
+        this.damageRadius = nbt.getFloat("damageRadius");
     }
 
     // Getters & Setters

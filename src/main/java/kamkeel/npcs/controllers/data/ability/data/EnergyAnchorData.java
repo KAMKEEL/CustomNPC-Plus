@@ -91,10 +91,10 @@ public class EnergyAnchorData implements IEnergyAnchorData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        this.anchorPoint = nbt.hasKey("anchorPoint") ? AnchorPoint.fromOrdinal(nbt.getInteger("anchorPoint")) : AnchorPoint.FRONT;
-        this.anchorOffsetX = nbt.hasKey("anchorOffsetX") ? nbt.getFloat("anchorOffsetX") : 0;
-        this.anchorOffsetY = nbt.hasKey("anchorOffsetY") ? nbt.getFloat("anchorOffsetY") : 0;
-        this.anchorOffsetZ = nbt.hasKey("anchorOffsetZ") ? nbt.getFloat("anchorOffsetZ") : 0;
+        this.anchorPoint = AnchorPoint.fromOrdinal(nbt.getInteger("anchorPoint"));
+        this.anchorOffsetX = nbt.getFloat("anchorOffsetX");
+        this.anchorOffsetY = nbt.getFloat("anchorOffsetY");
+        this.anchorOffsetZ = nbt.getFloat("anchorOffsetZ");
     }
 
     public EnergyAnchorData copy() {

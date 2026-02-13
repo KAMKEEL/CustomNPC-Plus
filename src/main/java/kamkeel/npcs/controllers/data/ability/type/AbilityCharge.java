@@ -359,16 +359,10 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.chargeSpeed = nbt.hasKey("chargeSpeed") ? nbt.getFloat("chargeSpeed") : 0.8f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 3.0f;
-        if (nbt.hasKey("hitWidth")) {
-            this.hitWidth = nbt.getFloat("hitWidth");
-        } else if (nbt.hasKey("hitRadius")) {
-            this.hitWidth = nbt.getFloat("hitRadius");
-        } else {
-            this.hitWidth = 1.5f;
-        }
+        this.chargeSpeed = nbt.getFloat("chargeSpeed");
+        this.damage = nbt.getFloat("damage");
+        this.knockback = nbt.getFloat("knockback");
+        this.hitWidth = nbt.getFloat("hitWidth");
     }
 
     // Getters & Setters

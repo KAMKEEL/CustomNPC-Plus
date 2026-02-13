@@ -135,10 +135,10 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 2.0f;
-        this.hitLength = nbt.hasKey("hitLength") ? nbt.getFloat("hitLength") : 4.0f;
-        this.hitWidth = nbt.hasKey("hitWidth") ? nbt.getFloat("hitWidth") : 3.0f;
+        this.damage = nbt.getFloat("damage");
+        this.knockback = nbt.getFloat("knockback");
+        this.hitLength = nbt.getFloat("hitLength");
+        this.hitWidth = nbt.getFloat("hitWidth");
     }
 
     // Getters & Setters

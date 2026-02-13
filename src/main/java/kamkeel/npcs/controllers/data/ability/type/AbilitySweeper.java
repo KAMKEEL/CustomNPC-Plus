@@ -172,15 +172,15 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.beamLength = nbt.hasKey("beamLength") ? nbt.getFloat("beamLength") : 10.0f;
-        this.beamWidth = nbt.hasKey("beamWidth") ? nbt.getFloat("beamWidth") : 0.3f;
-        this.beamHeight = nbt.hasKey("beamHeight") ? nbt.getFloat("beamHeight") : 0.5f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 5.0f;
-        this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 5;
-        this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");
-        this.sweepSpeed = nbt.hasKey("sweepSpeed") ? nbt.getFloat("sweepSpeed") : 3.0f;
-        this.numberOfRotations = nbt.hasKey("numberOfRotations") ? nbt.getInteger("numberOfRotations") : 2;
-        this.lockOnTarget = nbt.hasKey("lockOnTarget") && nbt.getBoolean("lockOnTarget");
+        this.beamLength = nbt.getFloat("beamLength");
+        this.beamWidth = nbt.getFloat("beamWidth");
+        this.beamHeight = nbt.getFloat("beamHeight");
+        this.damage = nbt.getFloat("damage");
+        this.damageInterval = nbt.getInteger("damageInterval");
+        this.piercing = nbt.getBoolean("piercing");
+        this.sweepSpeed = nbt.getFloat("sweepSpeed");
+        this.numberOfRotations = nbt.getInteger("numberOfRotations");
+        this.lockOnTarget = nbt.getBoolean("lockOnTarget");
         colorData.readNBT(nbt);
     }
 

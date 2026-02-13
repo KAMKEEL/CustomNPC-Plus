@@ -273,14 +273,14 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 6.0f;
-        this.speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 1.5f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
-        this.projectileType = nbt.hasKey("projectileType") ? nbt.getString("projectileType") : "fireball";
-        this.explosive = nbt.hasKey("explosive") && nbt.getBoolean("explosive");
-        this.explosionRadius = nbt.hasKey("explosionRadius") ? nbt.getFloat("explosionRadius") : 0.0f;
-        this.homing = nbt.hasKey("homing") && nbt.getBoolean("homing");
-        this.homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.1f;
+        this.damage = nbt.getFloat("damage");
+        this.speed = nbt.getFloat("speed");
+        this.knockback = nbt.getFloat("knockback");
+        this.projectileType = nbt.getString("projectileType");
+        this.explosive = nbt.getBoolean("explosive");
+        this.explosionRadius = nbt.getFloat("explosionRadius");
+        this.homing = nbt.getBoolean("homing");
+        this.homingStrength = nbt.getFloat("homingStrength");
     }
 
     // Getters & Setters
