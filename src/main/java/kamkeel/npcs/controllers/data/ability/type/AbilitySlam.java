@@ -283,11 +283,12 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             caster.fallDistance = 0;
         }
 
-        // Check for landing
-        if (caster.onGround && airTicks > 3) {
-            // Landed!
-            onLanding(caster, world);
-            return;
+        // Check for landing: hit the ground or hit a wall mid-flight
+        if (airTicks > 3) {
+            if (caster.onGround || caster.isCollidedHorizontally) {
+                onLanding(caster, world);
+                return;
+            }
         }
 
         // Timeout protection - force landing after max air time
