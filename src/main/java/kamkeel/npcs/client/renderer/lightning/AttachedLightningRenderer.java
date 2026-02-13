@@ -86,19 +86,38 @@ public class AttachedLightningRenderer {
         }
 
         /**
+         * Age existing arcs and remove dead ones without spawning new arcs.
+         * Use with addArc() for custom arc generation.
+         */
+        public void tick() {
+            Iterator<LightningArc> iter = arcs.iterator();
+            while (iter.hasNext()) {
+                LightningArc arc = iter.next();
+                arc.tick();
+                if (arc.isDead()) {
+                    iter.remove();
+                }
+            }
+        }
+
+        /**
+         * Add a custom arc to the state.
+         */
+        public void addArc(LightningArc arc) {
+            arcs.add(arc);
+        }
+
+        /**
          * Render all active arcs in local space.
          * Call this after glTranslated to entity position.
+         * Note: Expects the caller to have already set up GL state (disabled textures,
+         * disabled lighting, disabled culling, enabled blending). This avoids nesting
+         * glPushAttrib calls which can overflow the GL attrib stack (depth 16) when
+         * other mods also push attribs during entity rendering.
          */
         public void render() {
             if (arcs.isEmpty()) return;
 
-            // Setup GL state
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glDisable(GL11.GL_LIGHTING);
-            GL11.glDisable(GL11.GL_CULL_FACE);
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDepthMask(false);
 
             Tessellator tess = Tessellator.instance;
@@ -114,7 +133,6 @@ public class AttachedLightningRenderer {
             }
 
             GL11.glDepthMask(true);
-            GL11.glPopAttrib();
         }
 
         public int getArcCount() {
@@ -235,10 +253,23 @@ public class AttachedLightningRenderer {
         }
     }
 
+    /**
+     * Create a lightning arc between two arbitrary points.
+     */
+    public static LightningArc createArcBetween(double x1, double y1, double z1,
+                                                  double x2, double y2, double z2,
+                                                  float displacement, int outerColor, int innerColor, int maxAge) {
+        int segments = 4 + rand.nextInt(3);
+        List<double[]> points = generateLightningPath(x1, y1, z1, x2, y2, z2, segments, displacement);
+        return new LightningArc(points, maxAge, outerColor, innerColor);
+    }
+
     // ==================== INSTANT RENDERING (no persistence) ====================
 
     /**
      * Render a single instant lightning arc (no fading, drawn this frame only).
+     * Expects the caller to have already set up GL state (disabled textures,
+     * disabled lighting, disabled culling, enabled blending).
      */
     public static void renderInstantArc(float radius, int outerColor, int innerColor) {
         double theta = rand.nextDouble() * Math.PI * 2;
@@ -254,12 +285,6 @@ public class AttachedLightningRenderer {
 
         List<double[]> points = generateLightningPath(0, 0, 0, endX, endY, endZ, segments, displacement);
 
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_CULL_FACE);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDepthMask(false);
 
         Tessellator tess = Tessellator.instance;
@@ -267,7 +292,6 @@ public class AttachedLightningRenderer {
         renderBoltPath(tess, points, innerColor, 0.012f, 0.7f);
 
         GL11.glDepthMask(true);
-        GL11.glPopAttrib();
     }
 
     /**

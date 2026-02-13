@@ -84,29 +84,32 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         pullComplete = false;
         ticksSincePullDamage = 0;
 
-        if (aoe) {
-            AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
-            @SuppressWarnings("unchecked")
-            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+        if (!isPreview()) {
+            if (aoe) {
+                AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+                @SuppressWarnings("unchecked")
+                List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-            int count = 0;
-            for (EntityLivingBase entity : entities) {
-                if (entity == caster) continue;
-                if (entity.isDead) continue;
+                int count = 0;
+                for (EntityLivingBase entity : entities) {
+                    if (entity == caster) continue;
+                    if (entity.isDead) continue;
 
-                double dist = caster.getDistanceToEntity(entity);
-                if (dist <= pullRadius) {
-                    getPulledEntities().add(entity.getUniqueID());
-                    count++;
-                    if (count >= maxTargets) break;
+                    double dist = caster.getDistanceToEntity(entity);
+                    if (dist <= pullRadius) {
+                        getPulledEntities().add(entity.getUniqueID());
+                        count++;
+                        if (count >= maxTargets) break;
+                    }
                 }
-            }
-        } else {
-            // Single target mode - still check pullRadius
-            if (target != null && !target.isDead) {
-                double dist = caster.getDistanceToEntity(target);
-                if (dist <= pullRadius) {
-                    getPulledEntities().add(target.getUniqueID());
+            } else {
+                // NPC single-target mode: pull the aggro target
+                // Player: single-target mode has no effect (no target to pull — use AOE mode instead)
+                if (!isPlayerCaster(caster) && target != null && !target.isDead) {
+                    double dist = caster.getDistanceToEntity(target);
+                    if (dist <= pullRadius) {
+                        getPulledEntities().add(target.getUniqueID());
+                    }
                 }
             }
         }
@@ -114,6 +117,12 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+        if (isPreview()) {
+            // No entities to pull in preview, just run animation for a duration
+            if (tick >= 60) signalCompletion();
+            return;
+        }
+
         if (pullComplete || getPulledEntities().isEmpty()) {
             signalCompletion();
             return;

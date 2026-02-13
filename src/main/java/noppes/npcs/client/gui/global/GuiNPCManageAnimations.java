@@ -65,15 +65,16 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     public void initGui() {
         super.initGui();
 
+        // Toggle button - added FIRST to maintain stable buttonList index
+        // (prevents double-toggle when initGui() is called from actionPerformed)
+        String toggleLabel = showingBuiltIn ? "gui.builtin" : "gui.custom";
+        this.addButton(new GuiNpcButton(10, guiLeft + 368, guiTop + 56, 45, 20, toggleLabel));
+
         // Add/Remove buttons - only show for custom animations
         if (!showingBuiltIn) {
             this.addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
             this.addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
         }
-
-        // Toggle button for Custom/Built-in - under Remove button
-        String toggleLabel = showingBuiltIn ? "gui.builtin" : "gui.custom";
-        this.addButton(new GuiNpcButton(10, guiLeft + 368, guiTop + 56, 45, 20, toggleLabel));
 
         if (scrollAnimations == null) {
             scrollAnimations = new GuiCustomScroll(this, 0, 0);
@@ -200,11 +201,15 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         // Toggle button
         if (button.id == 10) {
             showingBuiltIn = !showingBuiltIn;
-            // Clear selection when switching views
+            // Clear selection and search when switching views
             selected = null;
+            search = "";
             animation = new Animation();
             currentIsBuiltIn = false;
+            playingAnimation = false;
             scrollAnimations.clear();
+            // Re-request data to ensure both lists are populated
+            PacketClient.sendClient(new AnimationsGetPacket());
             initGui();
             return;
         }

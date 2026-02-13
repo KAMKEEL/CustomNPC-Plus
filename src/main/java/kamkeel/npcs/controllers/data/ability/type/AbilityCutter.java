@@ -3,6 +3,8 @@ package kamkeel.npcs.controllers.data.ability.type;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -60,6 +62,8 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     // Runtime state
     private transient Set<Integer> hitEntities = new HashSet<>();
     private transient float currentRotation = 0.0f;
+    private transient boolean activeSoundPlayed = false;
+    private transient float sweepBaseYaw = 0.0f;
 
     public AbilityCutter() {
         this.typeId = "ability.cnpc.cutter";
@@ -86,6 +90,54 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         return new TargetingMode[]{TargetingMode.AOE_SELF};
     }
 
+    /**
+     * Calculate how many ticks the active sweep phase takes.
+     * SWIPE: arcAngle / sweepSpeed ticks
+     * SPIN: spinDurationTicks
+     */
+    private int getActiveDurationTicks() {
+        if (sweepMode == SweepMode.SPIN) {
+            return spinDurationTicks;
+        }
+        return sweepSpeed > 0 ? (int) Math.ceil(arcAngle / sweepSpeed) : 1;
+    }
+
+    @Override
+    public boolean keepTelegraphDuringActive() {
+        return true;
+    }
+
+    /**
+     * Creates a CONE telegraph that lasts through both windup and active sweep phases.
+     * Warning color transitions when the sweep actually begins (at windUpTicks).
+     */
+    @Override
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
+        if (!isShowTelegraph() || getTelegraphType() == TelegraphType.NONE) {
+            return null;
+        }
+
+        Telegraph telegraph = Telegraph.cone(getTelegraphLength(), getTelegraphAngle());
+        int totalDuration = windUpTicks + getActiveDurationTicks();
+        telegraph.setDurationTicks(totalDuration);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        // Warning transition starts when the sweep begins (active phase)
+        telegraph.setWarningStartTick(windUpTicks);
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        double groundY = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+        TelegraphInstance instance = new TelegraphInstance(telegraph, caster.posX, groundY, caster.posZ, caster.rotationYaw);
+        instance.setCasterEntityId(caster.getEntityId());
+        instance.setEntityIdToFollow(caster.getEntityId());
+
+        if (target != null && !isRotationLockedDuringWindup()) {
+            instance.setTargetEntityId(target.getEntityId());
+        }
+
+        return instance;
+    }
+
     @Override
     public float getTelegraphRadius() {
         return range;
@@ -105,36 +157,73 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
         hitEntities.clear();
         currentRotation = -arcAngle / 2.0f;
+        activeSoundPlayed = false;
+
+        // Lock sweep direction toward target at execute time to prevent
+        // AI look-at jitter from misdirecting the sweep at close range
+        if (target != null) {
+            double dx = target.posX - caster.posX;
+            double dz = target.posZ - caster.posZ;
+            if (dx * dx + dz * dz > 0.0001) {
+                sweepBaseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            } else {
+                sweepBaseYaw = caster.rotationYaw;
+            }
+        } else {
+            sweepBaseYaw = caster.rotationYaw;
+        }
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+        if (world.isRemote && !isPreview()) return;
 
         switch (sweepMode) {
             case SWIPE:
                 float prevRotation = currentRotation;
                 currentRotation += sweepSpeed;
+
+                // Play active sound when sweep reaches center (where target typically stands)
+                if (!activeSoundPlayed && currentRotation >= 0) {
+                    playActiveSound(caster, world);
+                }
+
                 if (currentRotation > arcAngle / 2.0f) {
-                    // Final sweep — check from prevRotation to end of arc
-                    performSweepDamageRange(caster, world, innerRadius, range, prevRotation, arcAngle / 2.0f);
+                    if (!isPreview()) {
+                        performSweepDamageRange(caster, world, innerRadius, range, prevRotation, arcAngle / 2.0f);
+                    }
                     signalCompletion();
                     return;
                 }
-                // Check entities between previous and current sweep position
-                performSweepDamageRange(caster, world, innerRadius, range, prevRotation, currentRotation);
+                if (!isPreview()) {
+                    performSweepDamageRange(caster, world, innerRadius, range, prevRotation, currentRotation);
+                }
                 break;
 
             case SPIN:
+                // Play active sound at spin start
+                if (!activeSoundPlayed) {
+                    playActiveSound(caster, world);
+                }
+
                 if (tick >= spinDurationTicks) {
-                    signalCompletion(); // Spin duration complete
+                    signalCompletion();
                     return;
                 }
                 float prevSpin = currentRotation;
                 currentRotation = (currentRotation + sweepSpeed) % 360.0f;
-                hitEntities.clear();
-                performSweepDamageRange(caster, world, innerRadius, range, prevSpin, currentRotation);
+                if (!isPreview()) {
+                    hitEntities.clear();
+                    performSweepDamageRange(caster, world, innerRadius, range, prevSpin, currentRotation);
+                }
                 break;
+        }
+    }
+
+    private void playActiveSound(EntityLivingBase caster, World world) {
+        activeSoundPlayed = true;
+        if (activeSound != null && !activeSound.isEmpty()) {
+            world.playSoundAtEntity(caster, activeSound, 1.0f, 1.0f);
         }
     }
 
@@ -167,7 +256,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
             double dist = Math.sqrt(dx * dx + dz * dz);
 
             if (dist < minDist || dist > maxDist) continue;
-            if (!isInSweepRange(dx, dz, caster.rotationYaw, minAngle, maxAngle)) continue;
+            if (!isInSweepRange(dx, dz, sweepBaseYaw, minAngle, maxAngle)) continue;
 
             hitEntities.add(entity.getEntityId());
 
@@ -210,12 +299,16 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
         hitEntities.clear();
         currentRotation = 0.0f;
+        activeSoundPlayed = false;
+        sweepBaseYaw = 0.0f;
     }
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
         hitEntities.clear();
         currentRotation = 0.0f;
+        activeSoundPlayed = false;
+        sweepBaseYaw = 0.0f;
     }
 
     @Override

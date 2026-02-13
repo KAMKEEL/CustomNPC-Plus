@@ -521,8 +521,6 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
     public void save() {
         GuiNpcTextField.unfocus();
-        if (dialog.id >= 0)
-            PacketClient.sendClient(new DialogSavePacket(((SubGuiNpcDialog) parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
     }
 
     private DialogImage getSelectedImage() {

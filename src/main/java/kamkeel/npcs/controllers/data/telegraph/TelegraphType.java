@@ -30,6 +30,11 @@ public enum TelegraphType {
     POINT,
 
     /**
+     * Filled square (uses radius as half-size)
+     */
+    SQUARE,
+
+    /**
      * No telegraph
      */
     NONE

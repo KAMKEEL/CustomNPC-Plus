@@ -45,6 +45,12 @@ public class AbilityController implements IAbilityHandler {
     /** External field providers for ability GUI (e.g., DBC Addon). Client-side only. */
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
 
+    /** External variant definitions registered by addons, keyed by typeId. */
+    private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
+
+    /** TypeIds that produce BuiltInAbility instances (non-editable in GUI). */
+    private final Set<String> builtInTypeIds = new HashSet<>();
+
     public AbilityController() {
         registerBuiltinTypes();
     }
@@ -170,7 +176,9 @@ public class AbilityController implements IAbilityHandler {
         if (abilities.containsKey(name)) {
             LogWriter.info("AbilityController: Overwriting built-in ability: " + name);
         }
-        ability.setName(name);
+        if (!ability.isBuiltIn()) {
+            ability.setName(name);
+        }
         abilities.put(name, ability);
         LogWriter.info("Registered ability: " + name);
     }
@@ -180,28 +188,91 @@ public class AbilityController implements IAbilityHandler {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
-     * Resolve an ability by key. Checks built-in abilities first (by name),
-     * then custom abilities (by UUID). Returns a copy safe to modify.
+     * Resolve an ability by key. Checks built-in abilities first (by name or registry key),
+     * then custom abilities (by UUID or name). Returns a copy safe to modify for
+     * custom abilities, or the singleton instance for built-in abilities.
      *
-     * @param key The ability name (built-in) or UUID (custom)
-     * @return A copy of the resolved ability, or null if not found
+     * @param key The ability name, registry key (built-in) or UUID (custom)
+     * @return The resolved ability, or null if not found
      */
     public Ability resolveAbility(String key) {
         if (key == null || key.isEmpty()) return null;
 
-        // Check built-in abilities first
+        // Check built-in abilities first (exact match by name)
         Ability builtIn = abilities.get(key);
         if (builtIn != null) {
-            return fromNBT(builtIn.writeNBT());
+            return builtIn;
         }
 
-        // Check custom abilities
+        // Check built-in abilities by name (case-insensitive)
+        for (Map.Entry<String, Ability> entry : abilities.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue();
+            }
+        }
+
+        // Check built-in abilities by registry key / ID
+        for (Ability ability : abilities.values()) {
+            if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) {
+                return ability;
+            }
+        }
+
+        // Check custom abilities (exact UUID match)
         Ability custom = customAbilities.get(key);
         if (custom != null) {
             return fromNBT(custom.writeNBT());
         }
 
+        // Check custom abilities by name (case-insensitive)
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) {
+                return fromNBT(ability.writeNBT());
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * Get all keys that can be used to look up abilities (for tab completion).
+     * Returns registry keys for built-in abilities (no spaces) and UUIDs for custom.
+     */
+    public Set<String> getAbilityKeys() {
+        Set<String> keys = new LinkedHashSet<>();
+        // Built-in abilities - use the ID (registry key for BuiltInAbility)
+        for (Ability ability : abilities.values()) {
+            String id = ability.getId();
+            if (id != null && !id.isEmpty()) {
+                keys.add(id);
+            }
+        }
+        // Custom abilities - use UUID
+        keys.addAll(customAbilities.keySet());
+        return keys;
+    }
+
+    /**
+     * Get keys for player-usable abilities only (for tab completion).
+     */
+    public Set<String> getPlayerAbilityKeys() {
+        Set<String> keys = new LinkedHashSet<>();
+        // Built-in abilities - use the ID (registry key for BuiltInAbility)
+        for (Ability ability : abilities.values()) {
+            if (ability.getAllowedBy().allowsPlayer()) {
+                String id = ability.getId();
+                if (id != null && !id.isEmpty()) {
+                    keys.add(id);
+                }
+            }
+        }
+        // Custom abilities - use UUID (if player-usable)
+        for (Map.Entry<String, Ability> entry : customAbilities.entrySet()) {
+            if (entry.getValue().getAllowedBy().allowsPlayer()) {
+                keys.add(entry.getKey());
+            }
+        }
+        return keys;
     }
 
     /**
@@ -215,12 +286,22 @@ public class AbilityController implements IAbilityHandler {
     // ACCESSORS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /** Get a built-in ability by name. Returns the stored instance (not a copy). */
+    /** Get a built-in ability by map key. Returns the stored instance (not a copy). */
     public Ability getAbility(String name) {
         return abilities.get(name);
     }
 
-    /** Get all built-in ability names. */
+    /** Get a built-in ability by its display name (ability.getName()). */
+    public Ability getAbilityByDisplayName(String displayName) {
+        for (Ability ability : abilities.values()) {
+            if (ability.getName().equals(displayName)) {
+                return ability;
+            }
+        }
+        return null;
+    }
+
+    /** Get all built-in ability map keys. */
     public Set<String> getAbilityNames() {
         return new LinkedHashSet<>(abilities.keySet());
     }
@@ -272,6 +353,10 @@ public class AbilityController implements IAbilityHandler {
         return typeFactories.keySet().toArray(new String[0]);
     }
 
+    public boolean isBuiltInType(String typeId) {
+        return builtInTypeIds.contains(typeId);
+    }
+
     @Override
     public boolean hasType(String typeId) {
         return typeFactories.containsKey(typeId);
@@ -320,6 +405,9 @@ public class AbilityController implements IAbilityHandler {
             LogWriter.info("AbilityController: Overwriting type: " + typeId);
         }
         typeFactories.put(typeId, factory);
+        if (temp.isBuiltIn()) {
+            builtInTypeIds.add(typeId);
+        }
     }
 
     /**
@@ -369,13 +457,9 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:sweeper", AbilitySweeper::new);
         registerType("cnpc:projectile", AbilityProjectile::new);
         registerType("cnpc:orb", AbilityOrb::new);
-        registerType("cnpc:dual_orb", AbilityOrbDual::new);
-        registerType("cnpc:orb_barrage", AbilityOrbBarrage::new);
-        registerType("cnpc:dual_disc", AbilityDisc::new);
-        registerType("cnpc:dual_disc", AbilityDiscDual::new);
+        registerType("cnpc:disc", AbilityDisc::new);
         registerType("cnpc:laser_shot", AbilityLaserShot::new);
         registerType("cnpc:beam", AbilityBeam::new);
-        registerType("cnpc:dual_beam", AbilityBeamDual::new);
 
         // Movement abilities
         registerType("cnpc:charge", AbilityCharge::new);
@@ -426,5 +510,42 @@ public class AbilityController implements IAbilityHandler {
     /** Get all registered field providers. */
     public List<IAbilityFieldProvider> getFieldProviders() {
         return fieldProviders;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EXTERNAL VARIANT REGISTRY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Register an external variant for an ability type.
+     * External mods can call this to add variant presets that appear
+     * alongside built-in variants in the variant selection SubGui.
+     *
+     * @param typeId  The ability typeId (e.g., "ability.cnpc.beam")
+     * @param variant The variant to register
+     */
+    public void registerVariant(String typeId, AbilityVariant variant) {
+        externalVariants.computeIfAbsent(typeId, k -> new ArrayList<>()).add(variant);
+    }
+
+    /**
+     * Get all variants for a given ability type (built-in + external).
+     * Returns the combined list of variants from the ability's getVariants()
+     * and any externally registered variants.
+     *
+     * @param typeId The ability typeId
+     * @return Combined list of variants, empty if none
+     */
+    public List<AbilityVariant> getVariantsForType(String typeId) {
+        List<AbilityVariant> result = new ArrayList<>();
+        Ability temp = create(typeId);
+        if (temp != null) {
+            result.addAll(temp.getVariants());
+        }
+        List<AbilityVariant> ext = externalVariants.get(typeId);
+        if (ext != null) {
+            result.addAll(ext);
+        }
+        return result;
     }
 }

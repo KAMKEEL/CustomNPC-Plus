@@ -11,7 +11,8 @@ import java.util.function.Supplier;
 
 public class Register<T> {
     public static final Map<String, List<String>> REGISTERED_NAMESPACES = new LinkedHashMap<>();
-    private final String registryKey;
+    public static final Map<String, String> NAMESPACE_DISPLAY_NAMES = new LinkedHashMap<>();
+    protected final String registryKey;
     protected final String namespace;
     protected final Map<String, Supplier<T>> entries = new LinkedHashMap<>();
 
@@ -28,50 +29,51 @@ public class Register<T> {
     public static boolean isEmpty(String registryKey) {
         if (REGISTERED_NAMESPACES.isEmpty()) return true;
 
-        if (REGISTERED_NAMESPACES.get(registryKey).isEmpty()) return true;
+        List<String> list = REGISTERED_NAMESPACES.get(registryKey);
+        if (list == null || list.isEmpty()) return true;
 
         return false;
     }
 
-    public List<T> catalogue() {
-        List<T> list = new ArrayList<>();
-        for (String regKey : REGISTERED_NAMESPACES.keySet()) {
-            List<String> nameSp = REGISTERED_NAMESPACES.get(regKey);
-            for (String name : nameSp) {
-                List<T> nameSpContent = catalogue(regKey, name);
-                list.addAll(nameSpContent);
-            }
-        }
-
-        return list;
-    }
-
-    public List<T> catalogue(String namespace) {
-        return catalogue(registryKey, namespace);
-    }
-
-    public List<T> catalogue(String registryKey, String namespace) {
-        List<T> list = new ArrayList<>();
-        for (Map.Entry<String, Supplier<T>> entry : entries.entrySet()) {
-            if (entry.getKey().startsWith(registryKey + "." + namespace + ":"))
-                list.add(entry.getValue().get());
-        }
-
-        return list;
-    }
-
     public static class Abilities extends Register<Ability> {
+        protected final Map<String, String> uniqueNames = new LinkedHashMap<>();
+        protected final Set<String> typeOnly = new HashSet<>();
+
         private Abilities(String namespace) {
             super("ability", namespace);
         }
 
+        @Override
+        public Ability register(String factoryName, Supplier<Ability> factory) {
+            String name = registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_");
+            entries.put(name, factory);
+            uniqueNames.put(name, factoryName);
+            return factory.get();
+        }
+
+        /**
+         * Register a type only (shell template, no built-in preset).
+         * The type will appear in the ability type picker but won't be
+         * available as a pre-configured ability by name.
+         */
+        public Ability registerType(String factoryName, Supplier<Ability> factory) {
+            String name = registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_");
+            entries.put(name, factory);
+            uniqueNames.put(name, factoryName);
+            typeOnly.add(name);
+            return factory.get();
+        }
+
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
-                AbilityController.Instance.registerType(entry.getValue().get().getTypeId(), entry.getValue());
+                AbilityController.Instance.registerType(entry.getKey(), entry.getValue());
+                if (!typeOnly.contains(entry.getKey())) {
+                    AbilityController.Instance.registerAbility(uniqueNames.get(entry.getKey()), entry.getValue().get());
+                }
             }
         }
 
-        public static Register.Abilities create(String namespace) {
+        public static Register.Abilities create(String namespace, String displayName) {
             if (!REGISTERED_NAMESPACES.containsKey("ability"))
                 REGISTERED_NAMESPACES.put("ability", new ArrayList<>());
 
@@ -80,6 +82,7 @@ public class Register<T> {
             }
 
             REGISTERED_NAMESPACES.get("ability").add(namespace);
+            NAMESPACE_DISPLAY_NAMES.put(namespace, displayName);
 
             return new Register.Abilities(namespace);
         }

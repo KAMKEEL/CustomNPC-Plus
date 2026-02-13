@@ -38,9 +38,11 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     // Runtime state (transient)
     private transient double startX, startY, startZ;
+    private transient double prevTickX, prevTickZ;
     private transient Vec3 chargeDirection;
     private transient Set<Integer> hitEntities = new HashSet<>();
     private transient float lockedYaw;
+    private transient int maxActiveTicks;
 
     public AbilityCharge() {
         this.typeId = "ability.cnpc.charge";
@@ -56,6 +58,8 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         this.showTelegraph = true;
         this.windUpSound = "mob.zombie.wood";
         this.activeSound = "mob.zombie.attack";
+        this.windUpAnimationName = "Ability_Charge_Windup";
+        this.activeAnimationName = "Ability_Active_Windup";
     }
 
     @Override
@@ -87,11 +91,13 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     /**
-     * Locks the charge direction based on current target position.
-     * Called once at windup start - direction won't change even if target moves.
+     * Locks the charge direction. Called once at windup start — direction won't change even if target moves.
+     * NPC: charges toward aggro target.
+     * Player: charges in look direction.
      */
     private void lockChargeDirection(EntityLivingBase caster, EntityLivingBase target) {
-        if (target != null) {
+        if (!isPlayerCaster(caster) && target != null) {
+            // NPC: charge toward aggro target
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             double len = Math.sqrt(dx * dx + dz * dz);
@@ -102,6 +108,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
                 chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
             }
         } else {
+            // Player: charge in look direction
             float yaw = (float) Math.toRadians(caster.rotationYaw);
             chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
         }
@@ -114,7 +121,12 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         startX = caster.posX;
         startY = caster.posY;
         startZ = caster.posZ;
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
         hitEntities.clear();
+
+        // Safety timeout: expected ticks + buffer to prevent infinite charge
+        maxActiveTicks = chargeSpeed > 0 ? (int)(maxRange / chargeSpeed) + 10 : 10;
 
         // If direction wasn't set during windup (shouldn't happen), set it now
         if (chargeDirection == null) {
@@ -135,10 +147,35 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (chargeDirection == null) return;
+        // Safety timeout or missing state: force-complete to prevent stuck NPC
+        if (!isPreview() && (chargeDirection == null || tick > maxActiveTicks)) {
+            stopMomentum(caster);
+            signalCompletion();
+            return;
+        }
+
+        if (chargeDirection == null) {
+            signalCompletion();
+            return;
+        }
 
         // Enforce rotation every tick
-        enforceLockedRotation(caster);
+        if (!isPreview()) {
+            enforceLockedRotation(caster);
+        }
+
+        // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
+        if (!isPreview() && tick > 1) {
+            double dx = caster.posX - prevTickX;
+            double dz = caster.posZ - prevTickZ;
+            if (dx * dx + dz * dz < 0.0001) {
+                stopMomentum(caster);
+                signalCompletion();
+                return;
+            }
+        }
+        prevTickX = caster.posX;
+        prevTickZ = caster.posZ;
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
@@ -148,14 +185,13 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
         // Check if reached max distance
         if (distanceTraveled >= maxRange) {
-            caster.motionX = 0;
-            caster.motionZ = 0;
-            caster.velocityChanged = true;
+            stopMomentum(caster);
             signalCompletion();
             return;
         }
 
-        if (isChargeBlocked(caster)) {
+        // Block detection (skip in preview - no real world collision)
+        if (!isPreview() && isChargeBlocked(caster)) {
             stopMomentum(caster);
             signalCompletion();
             return;
@@ -165,10 +201,12 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         caster.motionX = chargeDirection.xCoord * chargeSpeed;
         caster.motionY = 0;
         caster.motionZ = chargeDirection.zCoord * chargeSpeed;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
 
-        // Server-side collision damage
-        if (!world.isRemote) {
+        // Server-side collision damage (skip in preview)
+        if (!world.isRemote && !isPreview()) {
             AxisAlignedBB hitBox = caster.boundingBox.expand(hitWidth, hitWidth * 0.5, hitWidth);
 
             @SuppressWarnings("unchecked")
@@ -211,7 +249,9 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     private void stopMomentum(EntityLivingBase caster) {
         caster.motionX = 0;
         caster.motionZ = 0;
-        caster.velocityChanged = true;
+        if (!isPreview()) {
+            caster.velocityChanged = true;
+        }
     }
 
     private boolean isChargeBlocked(EntityLivingBase caster) {
@@ -226,6 +266,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         super.reset();
         chargeDirection = null;
         hitEntities.clear();
+        maxActiveTicks = 0;
     }
 
     @Override
@@ -249,9 +290,10 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
             return null;
         }
 
-        // Calculate direction to target at this moment (locked)
+        // NPC: telegraph points toward aggro target
+        // Player: telegraph points in look direction
         float yaw;
-        if (target != null) {
+        if (!isPlayerCaster(caster) && target != null) {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
@@ -277,66 +319,8 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         return instance;
     }
 
-    // ==================== PREVIEW MODE ====================
-
-    private transient double previewDirX, previewDirZ;
-    private transient double previewStartX, previewStartZ;
-    private transient boolean previewCharging = false;
-
     @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewExecute(EntityNPCInterface npc) {
-        previewStartX = npc.posX;
-        previewStartZ = npc.posZ;
-        previewCharging = false;
-
-        // Calculate direction toward fake target
-        if (previewTarget != null) {
-            double dx = previewTarget.posX - npc.posX;
-            double dz = previewTarget.posZ - npc.posZ;
-            double len = Math.sqrt(dx * dx + dz * dz);
-            if (len > 0) {
-                previewDirX = dx / len;
-                previewDirZ = dz / len;
-            } else {
-                float yaw = (float) Math.toRadians(npc.rotationYaw);
-                previewDirX = -Math.sin(yaw);
-                previewDirZ = Math.cos(yaw);
-            }
-        } else {
-            float yaw = (float) Math.toRadians(npc.rotationYaw);
-            previewDirX = -Math.sin(yaw);
-            previewDirZ = Math.cos(yaw);
-        }
-        previewCharging = true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
-        if (!previewCharging) return;
-
-        // Check distance traveled
-        double distTraveled = Math.sqrt(
-            Math.pow(npc.posX - previewStartX, 2) +
-            Math.pow(npc.posZ - previewStartZ, 2)
-        );
-
-        if (distTraveled >= maxRange) {
-            previewCharging = false;
-            return;
-        }
-
-        npc.prevPosX = npc.posX;
-        npc.prevPosY = npc.posY;
-        npc.prevPosZ = npc.posZ;
-
-        npc.posX += previewDirX * chargeSpeed;
-        npc.posZ += previewDirZ * chargeSpeed;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
+    public int getMaxPreviewDuration() {
         return (int) Math.ceil(maxRange / chargeSpeed) + 5;
     }
 

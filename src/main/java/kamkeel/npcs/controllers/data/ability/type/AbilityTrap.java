@@ -1,16 +1,11 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.entity.EntityAbilityZone;
+import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.api.ability.type.IAbilityTrap;
 
@@ -20,38 +15,18 @@ import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
 
 /**
- * Trap ability: Places a proximity-triggered trap.
- * Features arm time, trigger radius, and various effects on trigger.
+ * Trap ability: Places proximity-triggered traps around the caster.
+ * Spawns one or more EntityAbilityZone entities in random positions
+ * within spawnRadius of the caster. Damage and trigger logic handled by the entity.
  */
-public class AbilityTrap extends Ability implements IAbilityTrap {
+public class AbilityTrap extends AbilityZone implements IAbilityTrap {
 
-    public enum TrapPlacement {
-        AT_CASTER,
-        AT_TARGET,
-        AHEAD_OF_CASTER;
-
-        @Override
-        public String toString() {
-            switch (this) {
-                case AT_CASTER: return "ability.trapPlace.atCaster";
-                case AT_TARGET: return "ability.trapPlace.atTarget";
-                case AHEAD_OF_CASTER: return "ability.trapPlace.aheadOfCaster";
-                default: return name();
-            }
-        }
-    }
-
-    private int durationTicks = 200;
-    private TrapPlacement placement = TrapPlacement.AT_TARGET;
-    private float placementDistance = 5.0f;
+    // Trap-specific fields
     private float triggerRadius = 2.0f;
     private int armTime = 20;
     private int maxTriggers = 1;
@@ -61,235 +36,76 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
     private float knockback = 0.5f;
     private boolean visible = true;
 
-    // Offset parameters - trap spawns near target, not exactly on them
-    private float minOffset = 0.0f;
-    private float maxOffset = 1.5f;
-    private boolean randomOffset = true;
-
-    // Runtime state
-    private static final Random RANDOM = new Random();
-    private transient double trapX, trapY, trapZ;
-    private transient boolean armed = false;
-    private transient int triggerCount = 0;
-    private transient int ticksSinceLastTrigger = 0;
-    private transient Set<UUID> triggeredEntities = new HashSet<>();
-
     public AbilityTrap() {
+        super(300, new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.0f, 0.5f, 1.5f));
         this.typeId = "ability.cnpc.trap";
         this.name = "Trap";
-        this.targetingMode = TargetingMode.AGGRO_TARGET;
-        this.maxRange = 15.0f;
-        this.lockMovement = LockMovementType.WINDUP;
-        this.cooldownTicks = 0;
-        this.windUpTicks = 20;
-        this.telegraphType = TelegraphType.CIRCLE;
+        this.windUpTicks = 30;
+        this.windUpAnimationName = "Ability_Zone_Windup";
+        this.activeAnimationName = "Ability_Zone_Active";
     }
 
     @Override
-    public boolean isTargetingModeLocked() {
-        return true;
-    }
-
-    @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
-    }
-
-    @Override
-    public float getTelegraphRadius() {
+    public float getZoneRadius() {
         return triggerRadius;
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        TelegraphInstance instance = super.createTelegraph(caster, target);
-        if (instance == null) return null;
-
-        // Control telegraph following based on placement mode
-        switch (placement) {
-            case AT_CASTER:
-            case AHEAD_OF_CASTER:
-                // Telegraph at caster or ahead, no following
-                instance.setEntityIdToFollow(-1);
-                if (placement == TrapPlacement.AHEAD_OF_CASTER) {
-                    double yaw = Math.toRadians(caster.rotationYaw);
-                    instance.setX(caster.posX - Math.sin(yaw) * placementDistance);
-                    instance.setY(caster.posY);
-                    instance.setZ(caster.posZ + Math.cos(yaw) * placementDistance);
-                } else {
-                    instance.setX(caster.posX);
-                    instance.setY(caster.posY);
-                    instance.setZ(caster.posZ);
-                }
-                break;
-            case AT_TARGET:
-                // Telegraph follows target during windup, locks on execute
-                if (target != null) {
-                    instance.setEntityIdToFollow(target.getEntityId());
-                }
-                break;
-        }
-        return instance;
-    }
-
-    @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        armed = false;
-        triggerCount = 0;
-        ticksSinceLastTrigger = armTime;
-        triggeredEntities.clear();
-
-        // Use telegraph position if available (for AT_TARGET, it was following target)
-        TelegraphInstance telegraph = getTelegraphInstance();
-
-        switch (placement) {
-            case AT_CASTER:
-                trapX = caster.posX;
-                trapY = caster.posY;
-                trapZ = caster.posZ;
-                break;
-            case AT_TARGET:
-                // Use telegraph position with offset
-                if (telegraph != null) {
-                    double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
-                        minOffset, maxOffset, randomOffset, RANDOM);
-                    trapX = pos[0];
-                    trapY = pos[1];
-                    trapZ = pos[2];
-                    // Update telegraph to show actual trap position
-                    telegraph.setX(trapX);
-                    telegraph.setY(trapY);
-                    telegraph.setZ(trapZ);
-                } else if (target != null) {
-                    double[] pos = Ability.calculateOffsetPosition(target.posX, target.posY, target.posZ,
-                        minOffset, maxOffset, randomOffset, RANDOM);
-                    trapX = pos[0];
-                    trapY = pos[1];
-                    trapZ = pos[2];
-                } else {
-                    trapX = caster.posX;
-                    trapY = caster.posY;
-                    trapZ = caster.posZ;
-                }
-                break;
-            case AHEAD_OF_CASTER:
-                double yaw = Math.toRadians(caster.rotationYaw);
-                trapX = caster.posX - Math.sin(yaw) * placementDistance;
-                trapY = caster.posY;
-                trapZ = caster.posZ + Math.cos(yaw) * placementDistance;
-                break;
-        }
-    }
-
-    @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Check if trap duration has ended
-        if (tick >= durationTicks) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
-        if (!armed) {
-            if (tick >= armTime) {
-                armed = true;
-            }
-            return;
-        }
+        activeEntities.clear();
 
-        ticksSinceLastTrigger++;
-
-        if (maxTriggers > 0 && triggerCount >= maxTriggers) {
-            signalCompletion(); // All triggers used, trap is done
-            return;
-        }
-
-        if (ticksSinceLastTrigger < triggerCooldown) {
-            return;
-        }
-
-        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
-            trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
-            trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
-        );
-
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
-
-        for (EntityLivingBase entity : entities) {
-            if (entity == caster) continue;
-            if (entity.isDead) continue;
-            if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
-
-            double dx = entity.posX - trapX;
-            double dz = entity.posZ - trapZ;
-            double dist = Math.sqrt(dx * dx + dz * dz);
-
-            if (dist <= triggerRadius) {
-                triggerTrap(caster, entity, world);
-                return;
-            }
-        }
-    }
-
-    private void triggerTrap(EntityLivingBase caster, EntityLivingBase triggerer, World world) {
-        triggerCount++;
-        ticksSinceLastTrigger = 0;
-        triggeredEntities.add(triggerer.getUniqueID());
-
-        Set<EntityLivingBase> affected = new HashSet<>();
-
-        if (damageRadius > 0) {
-            AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
-                trapX - damageRadius, trapY - 1, trapZ - damageRadius,
-                trapX + damageRadius, trapY + 3, trapZ + damageRadius
-            );
-
-            @SuppressWarnings("unchecked")
-            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
-
-            for (EntityLivingBase entity : entities) {
-                if (entity == caster) continue;
-                double dx = entity.posX - trapX;
-                double dz = entity.posZ - trapZ;
-                double dist = Math.sqrt(dx * dx + dz * dz);
-                if (dist <= damageRadius) {
-                    affected.add(entity);
-                }
-            }
+        // Use pre-calculated positions from telegraph phase, or generate new ones
+        List<double[]> positions;
+        if (!preCalculatedPositions.isEmpty() && preCalculatedPositions.size() == zoneCount) {
+            positions = new ArrayList<>(preCalculatedPositions);
+            preCalculatedPositions.clear();
         } else {
-            affected.add(triggerer);
-        }
-
-        for (EntityLivingBase entity : affected) {
-            // Apply damage with scripted event support
-            boolean wasHit = applyAbilityDamage(caster, entity, damage, knockback);
-
-            // Apply effects if the hit wasn't cancelled
-            if (wasHit) {
-                applyEffects(entity);
+            positions = new ArrayList<>();
+            List<double[]> placedPositions = new ArrayList<>();
+            float minSeparation = triggerRadius * 2.0f;
+            for (int i = 0; i < zoneCount; i++) {
+                double[] pos = findSpawnPosition(caster, placedPositions, minSeparation);
+                placedPositions.add(pos);
+                positions.add(pos);
             }
         }
+
+        for (int i = 0; i < zoneCount; i++) {
+            double[] pos = positions.get(i);
+
+            EntityAbilityZone entity = EntityAbilityZone.createTrap(world, caster,
+                pos[0], caster.posY, pos[1],
+                zoneShape,
+                triggerRadius, armTime, maxTriggers, triggerCooldown,
+                damage, damageRadius, knockback, durationTicks,
+                colorData.innerColor, colorData.outerColor, colorData.outerColorEnabled,
+                zoneHeight,
+                particleDensity, particleScale, animSpeed, lightningDensity,
+                getEffects());
+
+            applyVisualToEntity(entity);
+
+            if (isPreview()) {
+                entity.setupPreview(caster);
+            }
+
+            spawnAbilityEntity(world, entity);
+            activeEntities.add(entity);
+        }
     }
 
-    @Override
-    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        armed = false;
-        triggerCount = 0;
-        triggeredEntities.clear();
-    }
-
-    @Override
-    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
-        armed = false;
-        triggerCount = 0;
-        triggeredEntities.clear();
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    // NBT
+    // ═══════════════════════════════════════════════════════════════════
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
-        nbt.setInteger("durationTicks", durationTicks);
-        nbt.setString("placement", placement.name());
-        nbt.setFloat("placementDistance", placementDistance);
+        writeZoneNBT(nbt);
         nbt.setFloat("triggerRadius", triggerRadius);
         nbt.setInteger("armTime", armTime);
         nbt.setInteger("maxTriggers", maxTriggers);
@@ -298,20 +114,11 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
         nbt.setFloat("damageRadius", damageRadius);
         nbt.setFloat("knockback", knockback);
         nbt.setBoolean("visible", visible);
-        nbt.setFloat("minOffset", minOffset);
-        nbt.setFloat("maxOffset", maxOffset);
-        nbt.setBoolean("randomOffset", randomOffset);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 200;
-        try {
-            this.placement = TrapPlacement.valueOf(nbt.getString("placement"));
-        } catch (Exception e) {
-            this.placement = TrapPlacement.AT_TARGET;
-        }
-        this.placementDistance = nbt.hasKey("placementDistance") ? nbt.getFloat("placementDistance") : 5.0f;
+        readZoneNBT(nbt, 300);
         this.triggerRadius = nbt.hasKey("triggerRadius") ? nbt.getFloat("triggerRadius") : 2.0f;
         this.armTime = nbt.hasKey("armTime") ? nbt.getInteger("armTime") : 20;
         this.maxTriggers = nbt.hasKey("maxTriggers") ? nbt.getInteger("maxTriggers") : 1;
@@ -320,168 +127,60 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
         this.damageRadius = nbt.hasKey("damageRadius") ? nbt.getFloat("damageRadius") : 0.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
         this.visible = !nbt.hasKey("visible") || nbt.getBoolean("visible");
-        this.minOffset = nbt.hasKey("minOffset") ? nbt.getFloat("minOffset") : 0.0f;
-        this.maxOffset = nbt.hasKey("maxOffset") ? nbt.getFloat("maxOffset") : 1.5f;
-        this.randomOffset = !nbt.hasKey("randomOffset") || nbt.getBoolean("randomOffset");
     }
 
-    // Getters & Setters
-    public int getDurationTicks() {
-        return durationTicks;
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    // TRAP-SPECIFIC GETTERS & SETTERS
+    // ═══════════════════════════════════════════════════════════════════
 
-    public void setDurationTicks(int durationTicks) {
-        this.durationTicks = Math.max(1, durationTicks);
-    }
+    public float getTriggerRadius() { return triggerRadius; }
+    public void setTriggerRadius(float triggerRadius) { this.triggerRadius = triggerRadius; }
+    public int getArmTime() { return armTime; }
+    public void setArmTime(int armTime) { this.armTime = armTime; }
+    public int getMaxTriggers() { return maxTriggers; }
+    public void setMaxTriggers(int maxTriggers) { this.maxTriggers = maxTriggers; }
+    public int getTriggerCooldown() { return triggerCooldown; }
+    public void setTriggerCooldown(int triggerCooldown) { this.triggerCooldown = triggerCooldown; }
+    public float getDamage() { return damage; }
+    public void setDamage(float damage) { this.damage = damage; }
+    public float getDamageRadius() { return damageRadius; }
+    public void setDamageRadius(float damageRadius) { this.damageRadius = damageRadius; }
+    public float getKnockback() { return knockback; }
+    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public boolean isVisible() { return visible; }
+    public void setVisible(boolean visible) { this.visible = visible; }
 
-    public TrapPlacement getPlacementEnum() {
-        return placement;
-    }
-
-    public void setPlacementEnum(TrapPlacement placement) {
-        this.placement = placement;
-    }
-
-    @Override
-    public int getPlacement() {
-        return placement.ordinal();
-    }
-
-    @Override
-    public void setPlacement(int placement) {
-        TrapPlacement[] values = TrapPlacement.values();
-        this.placement = placement >= 0 && placement < values.length ? values[placement] : TrapPlacement.AT_TARGET;
-    }
-
-    public float getPlacementDistance() {
-        return placementDistance;
-    }
-
-    public void setPlacementDistance(float placementDistance) {
-        this.placementDistance = placementDistance;
-    }
-
-    public float getTriggerRadius() {
-        return triggerRadius;
-    }
-
-    public void setTriggerRadius(float triggerRadius) {
-        this.triggerRadius = triggerRadius;
-    }
-
-    public int getArmTime() {
-        return armTime;
-    }
-
-    public void setArmTime(int armTime) {
-        this.armTime = armTime;
-    }
-
-    public int getMaxTriggers() {
-        return maxTriggers;
-    }
-
-    public void setMaxTriggers(int maxTriggers) {
-        this.maxTriggers = maxTriggers;
-    }
-
-    public int getTriggerCooldown() {
-        return triggerCooldown;
-    }
-
-    public void setTriggerCooldown(int triggerCooldown) {
-        this.triggerCooldown = triggerCooldown;
-    }
-
-    public float getDamage() {
-        return damage;
-    }
-
-    public void setDamage(float damage) {
-        this.damage = damage;
-    }
-
-    public float getDamageRadius() {
-        return damageRadius;
-    }
-
-    public void setDamageRadius(float damageRadius) {
-        this.damageRadius = damageRadius;
-    }
-
-    public float getKnockback() {
-        return knockback;
-    }
-
-    public void setKnockback(float knockback) {
-        this.knockback = knockback;
-    }
-
-    public boolean isVisible() {
-        return visible;
-    }
-
-    public void setVisible(boolean visible) {
-        this.visible = visible;
-    }
-
-    public float getMinOffset() {
-        return minOffset;
-    }
-
-    public void setMinOffset(float minOffset) {
-        this.minOffset = minOffset;
-    }
-
-    public float getMaxOffset() {
-        return maxOffset;
-    }
-
-    public void setMaxOffset(float maxOffset) {
-        this.maxOffset = maxOffset;
-    }
-
-    public boolean isRandomOffset() {
-        return randomOffset;
-    }
-
-    public void setRandomOffset(boolean randomOffset) {
-        this.randomOffset = randomOffset;
-    }
-
-    // Runtime getters
-    public double getTrapX() {
-        return trapX;
-    }
-
-    public double getTrapY() {
-        return trapY;
-    }
-
-    public double getTrapZ() {
-        return trapZ;
-    }
-
-    public boolean isArmed() {
-        return armed;
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    // GUI FIELD DEFINITIONS
+    // ═══════════════════════════════════════════════════════════════════
 
     @SideOnly(Side.CLIENT)
     @Override
     public void getAbilityDefinitions(List<FieldDef> defs) {
+        addPresetFieldDef(defs);
+
         defs.addAll(Arrays.asList(
-            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks)
-                .range(1, 2000),
-            FieldDef.enumField("ability.placement", TrapPlacement.class, this::getPlacementEnum, this::setPlacementEnum)
-                .hover("ability.hover.placement"),
+            FieldDef.row(
+                FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
+                FieldDef.enumField("ability.zoneShape", ZoneShape.class, this::getZoneShapeEnum, this::setZoneShapeEnum)
+            ),
+            FieldDef.section("ability.section.zone"),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getSpawnRadius, this::setSpawnRadius),
+                FieldDef.intField("gui.count", this::getZoneCount, this::setZoneCount).range(1, 20)
+            ),
+            FieldDef.row(
+                FieldDef.floatField("gui.height", this::getZoneHeight, this::setZoneHeight),
+                FieldDef.boolField("ability.visible", this::isVisible, this::setVisible)
+            ),
             FieldDef.section("ability.section.trigger"),
             FieldDef.row(
                 FieldDef.floatField("gui.radius", this::getTriggerRadius, this::setTriggerRadius),
                 FieldDef.intField("ability.armTime", this::getArmTime, this::setArmTime)
             ),
             FieldDef.row(
-                FieldDef.intField("ability.maxTriggers", this::getMaxTriggers, this::setMaxTriggers),
-                FieldDef.intField("ability.triggerCooldown", this::getTriggerCooldown, this::setTriggerCooldown)
+                FieldDef.intField("gui.max", this::getMaxTriggers, this::setMaxTriggers),
+                FieldDef.intField("gui.cooldown", this::getTriggerCooldown, this::setTriggerCooldown)
             ),
             FieldDef.section("ability.section.damage"),
             FieldDef.row(
@@ -491,5 +190,7 @@ public class AbilityTrap extends Ability implements IAbilityTrap {
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         ));
+
+        addVisualFieldDefs(defs);
     }
 }

@@ -10,7 +10,8 @@ public enum AnchorPoint {
     RIGHT_HAND("Right Hand"), // Right arm/hand position
     LEFT_HAND("Left Hand"),   // Left arm/hand position
     ABOVE_HEAD("Above Head"), // Above the entity
-    CHEST("Chest");           // Chest level, centered
+    CHEST("Chest"),           // Chest level, centered
+    EYE("Eye");           // Eye level, centered
 
     private final String displayName;
 
@@ -55,6 +56,7 @@ public enum AnchorPoint {
             case LEFT_HAND: return "ability.anchor.leftHand";
             case ABOVE_HEAD: return "ability.anchor.aboveHead";
             case CHEST: return "ability.anchor.chest";
+            case EYE: return "ability.anchor.eye";
             default: return name();
         }
     }

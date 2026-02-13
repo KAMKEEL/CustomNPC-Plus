@@ -1,6 +1,5 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -36,6 +35,9 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     // Direction (normalized)
     private double dirX, dirY, dirZ;
 
+    // Lock vertical direction after firing (only update yaw, keep pitch fixed)
+    private boolean lockVerticalDirection = false;
+
     // Track hit entities to avoid double-damage
     private Set<Integer> hitEntities = new HashSet<>();
 
@@ -46,7 +48,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     private boolean charging = false;
     private int chargeDuration = 40;
     private int chargeTick = 0;
-    private EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
     private float targetSize = 1.0f; // Full size to grow to during charging
 
     // Data watcher index for charging state (synced to clients)
@@ -167,6 +168,10 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             return;
         }
 
+        // Track owner's anchor position and rotation each tick
+        // so the laser follows the NPC's facing direction
+        updateLaserOriginAndDirection();
+
         if (!fullyExtended) {
             // Expand the laser
             currentLength += expansionSpeed;
@@ -189,10 +194,61 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         } else {
             // Laser is fully extended, count down linger time
             ticksSinceFullExtension++;
+
+            // Update end point during linger (origin/direction may still change)
+            endX = startX + dirX * currentLength;
+            endY = startY + dirY * currentLength;
+            endZ = startZ + dirZ * currentLength;
+
             if (ticksSinceFullExtension >= lingerTicks) {
                 this.setDead();
             }
         }
+    }
+
+    /**
+     * Update laser origin and direction from the owner's current anchor position and rotation.
+     * Called each tick so the laser follows the NPC when tracking a target.
+     */
+    private void updateLaserOriginAndDirection() {
+        Entity owner = getOwnerEntity();
+        if (owner == null || owner.isDead) return;
+        if (!(owner instanceof EntityLivingBase)) return;
+
+        EntityLivingBase livingOwner = (EntityLivingBase) owner;
+
+        // Update origin from anchor point
+        if (anchorData != null) {
+            Vec3 pos = AnchorPointHelper.calculateAnchorPosition(livingOwner, anchorData);
+            startX = pos.xCoord;
+            startY = pos.yCoord;
+            startZ = pos.zCoord;
+        } else {
+            startX = owner.posX;
+            startY = owner.posY + owner.height * 0.7;
+            startZ = owner.posZ;
+        }
+
+        // Update direction from owner's current rotation
+        float yaw = (float) Math.toRadians(owner.rotationYaw);
+        if (lockVerticalDirection) {
+            // Only update horizontal direction (yaw), keep vertical (pitch) fixed
+            double horizontalLen = Math.sqrt(dirX * dirX + dirZ * dirZ);
+            if (horizontalLen < 0.001) horizontalLen = 1.0;
+            dirX = -Math.sin(yaw) * horizontalLen;
+            dirZ = Math.cos(yaw) * horizontalLen;
+        } else {
+            float pitch = (float) Math.toRadians(owner.rotationPitch);
+            dirX = -Math.sin(yaw) * Math.cos(pitch);
+            dirY = -Math.sin(pitch);
+            dirZ = Math.cos(yaw) * Math.cos(pitch);
+        }
+
+        // Keep entity positioned at origin
+        prevPosX = startX;
+        prevPosY = startY;
+        prevPosZ = startZ;
+        setPosition(startX, startY, startZ);
     }
 
     public void startMoving(EntityLivingBase target) {
@@ -200,16 +256,14 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
 
         setCharging(false);
 
-        // Update start position to current position
+        // Initialize from current anchor position
+        // updateLaserOriginAndDirection() will keep these updated each tick
         startX = posX;
         startY = posY;
         startZ = posZ;
 
-        // Always derive direction from the owner's current yaw/pitch.
-        // This ensures the laser fires in the direction the NPC is visually facing,
-        // which matches the telegraph line direction regardless of Lock Movement mode.
+        // Set initial direction from owner's rotation
         Entity owner = getOwnerEntity();
-
         if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
@@ -217,7 +271,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             this.dirY = -Math.sin(pitch);
             this.dirZ = Math.cos(yaw) * Math.cos(pitch);
         } else if (target != null) {
-            // Fallback: aim at target if owner is somehow unavailable
             double dx = target.posX - startX;
             double dy = (target.posY + target.getEyeHeight() - 0.4) - startY;
             double dz = target.posZ - startZ;
@@ -229,12 +282,10 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             }
         }
 
-        setPosition(endX, endY, endZ);
-
-        // Initialize end point
-        this.endX = posX;
-        this.endY = posY;
-        this.endZ = posZ;
+        // Initialize end point at start (will expand from here)
+        this.endX = startX;
+        this.endY = startY;
+        this.endZ = startZ;
     }
 
     private void checkBlockCollision() {
@@ -310,14 +361,14 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     }
 
     private void checkEntityCollisionAlongLine() {
-        // Check collision along the entire laser line
-        // Use a slightly expanded AABB for the full line
-        double minX = Math.min(startX, endX) - laserWidth;
-        double minY = Math.min(startY, endY) - laserWidth;
-        double minZ = Math.min(startZ, endZ) - laserWidth;
-        double maxX = Math.max(startX, endX) + laserWidth;
-        double maxY = Math.max(startY, endY) + laserWidth;
-        double maxZ = Math.max(startZ, endZ) + laserWidth;
+        // Expand search AABB by entity sizes to ensure we find all potential targets
+        double expand = Math.max(laserWidth, 1.0);
+        double minX = Math.min(startX, endX) - expand;
+        double minY = Math.min(startY, endY) - expand;
+        double minZ = Math.min(startZ, endZ) - expand;
+        double maxX = Math.max(startX, endX) + expand;
+        double maxY = Math.max(startY, endY) + expand;
+        double maxZ = Math.max(startZ, endZ) + expand;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
 
@@ -328,7 +379,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             if (shouldIgnoreEntity(entity)) continue;
             if (hitEntities.contains(entity.getEntityId())) continue;
 
-            // Check if entity is close to the laser line
+            // Check if entity's bounding box intersects with the laser line
             if (isEntityOnLine(entity)) {
                 hitEntities.add(entity.getEntityId());
                 applyDamage(entity);
@@ -339,41 +390,63 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
     }
 
     /**
-     * Check if an entity intersects with the laser line.
+     * Check if an entity's bounding box intersects with the laser line.
+     * Uses separate XZ (horizontal) and Y (vertical) checks against
+     * the entity's full bounding box rather than just its center point.
      */
     private boolean isEntityOnLine(EntityLivingBase entity) {
-        // Get entity center
         double ex = entity.posX;
-        double ey = entity.posY + entity.height * 0.5;
         double ez = entity.posZ;
 
-        // Vector from start to entity
+        // Project entity XZ position onto the laser line direction
         double vx = ex - startX;
-        double vy = ey - startY;
         double vz = ez - startZ;
-
-        // Project onto line direction
-        double dot = vx * dirX + vy * dirY + vz * dirZ;
-
-        // Clamp to line segment
+        // Project using horizontal direction components only
+        double dirLenXZ = Math.sqrt(dirX * dirX + dirZ * dirZ);
+        double dot;
+        if (dirLenXZ > 0.001) {
+            dot = (vx * dirX + vz * dirZ) / (dirLenXZ * dirLenXZ) * dirLenXZ;
+            // Remap to full 3D parameter
+            dot = (vx * dirX + vz * dirZ + (entity.posY + entity.height * 0.5 - startY) * dirY);
+        } else {
+            // Laser fires nearly straight up/down - use full 3D projection
+            dot = vx * dirX + (entity.posY + entity.height * 0.5 - startY) * dirY + vz * dirZ;
+        }
         dot = Math.max(0, Math.min(dot, currentLength));
 
-        // Closest point on line
+        // Closest point on laser line at this parameter
         double closestX = startX + dirX * dot;
         double closestY = startY + dirY * dot;
         double closestZ = startZ + dirZ * dot;
 
-        // Distance from entity to closest point
-        double distSq = (ex - closestX) * (ex - closestX) +
-                        (ey - closestY) * (ey - closestY) +
-                        (ez - closestZ) * (ez - closestZ);
+        // XZ distance check: entity center vs laser line point
+        // Use minimum collision width so visually thin lasers still hit reliably
+        double xzDistSq = (ex - closestX) * (ex - closestX) + (ez - closestZ) * (ez - closestZ);
+        double effectiveWidth = Math.max(laserWidth, 0.5);
+        double hitRadiusXZ = effectiveWidth * 0.5 + entity.width * 0.5;
+        if (xzDistSq > hitRadiusXZ * hitRadiusXZ) return false;
 
-        // Hit if within laser width + entity radius
-        double hitRadius = laserWidth * 0.5 + entity.width * 0.5;
-        return distSq <= hitRadius * hitRadius;
+        // Y overlap check: laser point vs entity's full height range
+        double entityMinY = entity.boundingBox.minY;
+        double entityMaxY = entity.boundingBox.maxY;
+        double laserHalfWidth = effectiveWidth * 0.5;
+
+        // Check if laser Y is within entity's height range (expanded by laser half-width)
+        if (closestY < entityMinY - laserHalfWidth) return false;
+        if (closestY > entityMaxY + laserHalfWidth) return false;
+
+        return true;
     }
 
     // ==================== GETTERS FOR RENDERER ====================
+
+    public void setLockVerticalDirection(boolean lock) {
+        this.lockVerticalDirection = lock;
+    }
+
+    public boolean isLockVerticalDirection() {
+        return lockVerticalDirection;
+    }
 
     public float getLaserWidth() {
         return laserWidth;
@@ -454,7 +527,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
         this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
-        anchorData.readNBT(nbt);
     }
 
     @Override
@@ -476,7 +548,6 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
         nbt.setFloat("TargetSize", targetSize);
-        anchorData.writeNBT(nbt);
     }
 
     /**

@@ -62,6 +62,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }
@@ -73,19 +78,26 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+        if (world.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
-        // Spawn the entity that handles BOTH visuals AND damage
+        // Spawn the sweeper entity that handles BOTH visuals AND damage.
+        // NPC: target is the aggro target — lockOnTarget tracks it during sweep.
+        // Player: target is null — sweep rotates around caster's facing direction, lockOnTarget has no effect.
         activeEntity = new EntityAbilitySweeper(world, caster, target,
             beamLength, beamWidth, beamHeight,
             colorData,
             sweepSpeed, numberOfRotations,
             damage, damageInterval, piercing,
             lockOnTarget);
-        world.spawnEntityInWorld(activeEntity);
+
+        if (isPreview()) {
+            activeEntity.setupPreview(caster);
+        }
+
+        spawnAbilityEntity(world, activeEntity);
 
         // Ability stays active until entity dies (prevents firing another while projectile is alive)
         // Movement locking is handled separately by the base class
@@ -199,6 +211,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public void setOuterColorWidth(float outerColorWidth) { colorData.outerColorWidth = outerColorWidth; }
     public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
+
+    @Override
+    public int getMaxPreviewDuration() {
+        return (int) ((360.0f * numberOfRotations) / sweepSpeed) + 10;
+    }
 
     @SideOnly(Side.CLIENT)
     @Override

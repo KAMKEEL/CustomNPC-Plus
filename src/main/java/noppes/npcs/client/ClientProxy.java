@@ -153,12 +153,14 @@ import kamkeel.npcs.client.renderer.RenderAbilityDisc;
 import kamkeel.npcs.client.renderer.RenderAbilityLaser;
 import kamkeel.npcs.client.renderer.RenderAbilityBeam;
 import kamkeel.npcs.client.renderer.RenderAbilitySweeper;
+import kamkeel.npcs.client.renderer.RenderAbilityZone;
 import kamkeel.npcs.client.renderer.lightning.LightningHandler;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
+import kamkeel.npcs.entity.EntityAbilityZone;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -272,6 +274,7 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityLaser.class, new RenderAbilityLaser());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityBeam.class, new RenderAbilityBeam());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilitySweeper.class, new RenderAbilitySweeper());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityZone.class, new RenderAbilityZone());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 
@@ -511,6 +514,8 @@ public class ClientProxy extends CommonProxy {
             } else {
                 abilityNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
                 abilityNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+                abilityNpc.height = 1.8f;
+                abilityNpc.width = 0.6f;
             }
             return new GuiNpcManageAbilities(abilityNpc, npc != null);
         }

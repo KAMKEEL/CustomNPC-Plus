@@ -35,7 +35,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.typeId = "ability.cnpc.shockwave";
         this.name = "Shockwave";
         this.targetingMode = TargetingMode.AOE_SELF;
-        this.maxRange = 15.0f;
+        this.maxRange = 8.0f;
         this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.cooldownTicks = 0;
         this.windUpTicks = 25;
@@ -63,48 +63,50 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        // Shockwave is instant - apply effect immediately after windup
+        if (!isPreview()) {
+            // Shockwave is instant - apply effect immediately after windup
 
-        // Get all entities in radius
-        AxisAlignedBB box = caster.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+            // Get all entities in radius
+            AxisAlignedBB box = caster.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
+            @SuppressWarnings("unchecked")
+            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-        int count = 0;
-        for (EntityLivingBase entity : entities) {
-            if (entity == caster) continue;
-            if (entity.isDead) continue;
+            int count = 0;
+            for (EntityLivingBase entity : entities) {
+                if (entity == caster) continue;
+                if (entity.isDead) continue;
 
-            double dist = caster.getDistanceToEntity(entity);
-            if (dist > pushRadius) continue;
+                double dist = caster.getDistanceToEntity(entity);
+                if (dist > pushRadius) continue;
 
-            count++;
-            if (count > maxTargets) break;
+                count++;
+                if (count > maxTargets) break;
 
-            // Calculate push direction (away from caster)
-            double dx = entity.posX - caster.posX;
-            double dz = entity.posZ - caster.posZ;
-            double len = Math.sqrt(dx * dx + dz * dz);
+                // Calculate push direction (away from caster)
+                double dx = entity.posX - caster.posX;
+                double dz = entity.posZ - caster.posZ;
+                double len = Math.sqrt(dx * dx + dz * dz);
 
-            if (len > 0) {
-                dx /= len;
-                dz /= len;
-            } else {
-                // Entity is directly on top of caster, push in random direction
-                double angle = Math.random() * Math.PI * 2;
-                dx = Math.cos(angle);
-                dz = Math.sin(angle);
-            }
+                if (len > 0) {
+                    dx /= len;
+                    dz /= len;
+                } else {
+                    // Entity is directly on top of caster, push in random direction
+                    double angle = Math.random() * Math.PI * 2;
+                    dx = Math.cos(angle);
+                    dz = Math.sin(angle);
+                }
 
-            // Scale knockback by distance (closer = stronger)
-            float distFactor = 1.0f - (float) (dist / pushRadius) * 0.5f;
-            float finalPush = pushStrength * distFactor;
-            // Apply damage with custom knockback direction
-            boolean wasHit = applyAbilityDamageWithDirection(caster, entity, damage * distFactor, finalPush, dx, dz);
+                // Scale knockback by distance (closer = stronger)
+                float distFactor = 1.0f - (float) (dist / pushRadius) * 0.5f;
+                float finalPush = pushStrength * distFactor;
+                // Apply damage with custom knockback direction
+                boolean wasHit = applyAbilityDamageWithDirection(caster, entity, damage * distFactor, finalPush, dx, dz);
 
-            // Apply effects if hit connected
-            if (wasHit) {
-                applyEffects(entity);
+                // Apply effects if hit connected
+                if (wasHit) {
+                    applyEffects(entity);
+                }
             }
         }
     }

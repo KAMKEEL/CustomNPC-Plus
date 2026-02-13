@@ -596,6 +596,12 @@ public class ScriptPlayerEventHandler {
             }
 
             if (event.entityLiving instanceof EntityPlayerMP) {
+                // Handle ability damage interactions (Guard counter, damage reduction)
+                PlayerData pData = PlayerData.get((EntityPlayer) event.entityLiving);
+                if (pData != null && pData.abilityData != null && pData.abilityData.isExecutingAbility()) {
+                    event.ammount = pData.abilityData.onDamage(event.source, event.ammount);
+                }
+
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);
                 noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
                 cancel = EventHooks.onPlayerDamaged(handler, pevent);
