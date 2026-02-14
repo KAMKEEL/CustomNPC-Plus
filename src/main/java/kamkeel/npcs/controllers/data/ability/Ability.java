@@ -1139,7 +1139,7 @@ public abstract class Ability implements IAbility {
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
-        nbt.setTag("customData", customData);
+        nbt.setTag("customData", (NBTTagCompound) customData.copy());
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
@@ -1262,6 +1262,10 @@ public abstract class Ability implements IAbility {
 
     public boolean isBuiltIn() {
         return false;
+    }
+
+    public Ability deepCopy() {
+        return AbilityController.Instance.fromNBT(this.writeNBT());
     }
 
     public boolean isNpcInlineEdit() {

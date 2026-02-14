@@ -61,7 +61,7 @@ public class AbilitySlot {
         AbilityController controller = AbilityController.Instance;
         if (controller == null) return null;
 
-        int currentVersion = controller.getVersion();
+        int currentVersion = controller.getCustomAbilityRevision();
         if (cachedAbility != null && cachedVersion == currentVersion) {
             return cachedAbility;
         }
