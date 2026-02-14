@@ -103,6 +103,16 @@ public class Register<T> {
             return super.register(factoryName, factory);
         }
 
+        public Animation[] registerBundle(String factoryName, Supplier<Animation> factory, String... appendixes) {
+            List<Animation> animations = new ArrayList<>();
+            for (String appendix : appendixes) {
+                entries.put(registryKey + "." + namespace + "." + factoryName + "_" + appendix, factory);
+                animations.add(factory.get());
+            }
+
+            return animations.toArray(new Animation[0]);
+        }
+
         public void register() {
             try {
                 String path = "/assets/" + namespace + "/" + animationsPath;
