@@ -19,6 +19,7 @@ import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 
 import java.util.ArrayList;
@@ -77,6 +78,26 @@ public class PlayerAbilityData implements IPlayerAbilityData {
      */
     private transient EntityLivingBase currentTarget;
 
+    /**
+     * Rotation lock state - freezes player yaw/pitch during ability phases.
+     */
+    private transient boolean rotationLocked = false;
+    private transient float lockedYaw = 0;
+    private transient float lockedPitch = 0;
+
+    /**
+     * Position lock state - freezes player position during ability phases.
+     */
+    private transient boolean positionLocked = false;
+    private transient double lockedPosX = 0;
+    private transient double lockedPosY = 0;
+    private transient double lockedPosZ = 0;
+
+    /**
+     * Last synced state flags byte for change detection (avoids spamming packets).
+     */
+    private transient byte lastSyncedFlags = 0;
+
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
     // ═══════════════════════════════════════════════════════════════════
@@ -100,6 +121,20 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
         if (currentAbility != null && currentAbility.isExecuting()) {
             tickCurrentAbility(player);
+
+            // Apply rotation and position locks after ability tick
+            applyRotationControl(player);
+            applyPositionLock(player);
+
+            // Sync lock state to client (only sends when flags change)
+            syncAbilityStateIfNeeded(player);
+        } else {
+            // Safety: release orphaned locks if no ability is executing
+            if (rotationLocked || positionLocked) {
+                releaseRotationControl();
+                releaseLockedPosition();
+                syncAbilityStateClear(player);
+            }
         }
     }
 
@@ -114,16 +149,46 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
         switch (currentAbility.getPhase()) {
             case WINDUP:
+                if (phaseChanged && oldPhase == AbilityPhase.BURST_DELAY) {
+                    // Burst replay: re-enter windup - set up locks
+                    if (currentAbility.isRotationLockedDuringWindup()) {
+                        captureLockedRotation(player);
+                    }
+                    if (currentAbility.isMovementLockedDuringWindup() && !currentAbility.hasAbilityMovement()) {
+                        captureLockedPosition(player);
+                    }
+                    spawnTelegraph(currentAbility, player, null);
+                    playAbilitySound(player, currentAbility.getWindUpSound());
+                    playAbilityAnimation(currentAbility.getWindUpAnimation());
+                }
                 currentAbility.onWindUpTick(player, currentTarget, player.worldObj, currentAbility.getCurrentTick());
                 break;
 
             case ACTIVE:
-                if (phaseChanged && oldPhase == AbilityPhase.WINDUP) {
+                if (phaseChanged && (oldPhase == AbilityPhase.WINDUP || oldPhase == AbilityPhase.BURST_DELAY)) {
                     // Just entered ACTIVE phase - lock all telegraph positions
                     for (TelegraphInstance telegraph : currentAbility.getTelegraphInstances()) {
                         telegraph.lockPosition();
                     }
                     removeTelegraph(currentAbility, player);
+
+                    // Handle rotation control transition from WINDUP to ACTIVE
+                    if (currentAbility.isRotationLockedDuringActive()) {
+                        if (!rotationLocked) {
+                            captureLockedRotation(player);
+                        }
+                    } else if (rotationLocked) {
+                        releaseRotationControl();
+                    }
+
+                    // Handle position lock transition from WINDUP to ACTIVE
+                    if (currentAbility.isMovementLockedDuringActive() && !currentAbility.hasAbilityMovement()) {
+                        if (!positionLocked) {
+                            captureLockedPosition(player);
+                        }
+                    } else if (positionLocked) {
+                        releaseLockedPosition();
+                    }
 
                     // Play active sound and animation
                     playAbilitySound(player, currentAbility.getActiveSound());
@@ -143,6 +208,18 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                     handleAbilityCompletion(player);
                     return;
                 }
+
+                // Release locks during burst delay
+                if (currentAbility.getPhase() == AbilityPhase.BURST_DELAY) {
+                    if (rotationLocked) releaseRotationControl();
+                    if (positionLocked) releaseLockedPosition();
+                }
+                break;
+
+            case BURST_DELAY:
+                // Free movement and rotation during burst delay
+                if (rotationLocked) releaseRotationControl();
+                if (positionLocked) releaseLockedPosition();
                 break;
 
             case DAZED:
@@ -163,6 +240,10 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
         currentAbility.onComplete(player, currentTarget);
 
+        // Release all locks
+        releaseRotationControl();
+        releaseLockedPosition();
+
         // Apply universal cooldown (using base cooldownTicks only, not min/max random)
         if (!currentAbility.isIgnoreCooldown()) {
             cooldownEndTime = player.worldObj.getTotalWorldTime() + currentAbility.getCooldownTicks();
@@ -174,6 +255,9 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+
+        // Send cleared state to client
+        syncAbilityStateClear(player);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -231,9 +315,21 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
         if (ability.getPhase() == AbilityPhase.ACTIVE) {
             // Windup was 0 — skip telegraph/windup and go straight to active
+            if (ability.isRotationLockedDuringActive()) {
+                captureLockedRotation(player);
+            }
+            if (ability.isMovementLockedDuringActive() && !ability.hasAbilityMovement()) {
+                captureLockedPosition(player);
+            }
             executeImmediate(ability, player);
         } else {
             // Normal windup flow
+            if (ability.isRotationLockedDuringWindup()) {
+                captureLockedRotation(player);
+            }
+            if (ability.isMovementLockedDuringWindup() && !ability.hasAbilityMovement()) {
+                captureLockedPosition(player);
+            }
             spawnTelegraph(ability, player, null);
             playAbilitySound(player, ability.getWindUpSound());
             playAbilityAnimation(ability.getWindUpAnimation());
@@ -412,9 +508,12 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         if (currentAbility != null && currentAbility.isExecuting()) {
             currentAbility.interrupt();
             stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
             currentAbility = null;
             currentAbilityKey = null;
             currentTarget = null;
+            syncAbilityStateClear(playerData.player);
         }
     }
 
@@ -491,6 +590,129 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     public boolean isMovementLocked() {
         return currentAbility != null && currentAbility.isExecuting()
             && currentAbility.isMovementLockedForCurrentPhase();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ROTATION CONTROL
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Capture current rotation values to lock player's look direction.
+     */
+    private void captureLockedRotation(EntityPlayer player) {
+        lockedYaw = player.rotationYaw;
+        lockedPitch = player.rotationPitch;
+        rotationLocked = true;
+    }
+
+    /**
+     * Release rotation lock.
+     */
+    private void releaseRotationControl() {
+        rotationLocked = false;
+    }
+
+    /**
+     * Apply rotation control on the server side.
+     * Enforces locked rotation values on the player entity.
+     */
+    private void applyRotationControl(EntityPlayer player) {
+        if (!rotationLocked || currentAbility == null) return;
+
+        if (currentAbility.isRotationLockedForCurrentPhase()) {
+            player.rotationYaw = lockedYaw;
+            player.rotationPitch = lockedPitch;
+            player.prevRotationYaw = lockedYaw;
+            player.prevRotationPitch = lockedPitch;
+            if (player instanceof EntityPlayerMP) {
+                player.rotationYawHead = lockedYaw;
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // POSITION LOCKING
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Capture current position to lock player in place.
+     */
+    private void captureLockedPosition(EntityPlayer player) {
+        lockedPosX = player.posX;
+        lockedPosY = player.posY;
+        lockedPosZ = player.posZ;
+        positionLocked = true;
+    }
+
+    /**
+     * Release position lock.
+     */
+    private void releaseLockedPosition() {
+        positionLocked = false;
+    }
+
+    /**
+     * Apply position lock on the server side.
+     * Snaps player back to locked position and zeroes motion.
+     */
+    private void applyPositionLock(EntityPlayer player) {
+        if (!positionLocked) return;
+
+        player.setPosition(lockedPosX, lockedPosY, lockedPosZ);
+        player.prevPosX = lockedPosX;
+        player.prevPosY = lockedPosY;
+        player.prevPosZ = lockedPosZ;
+        player.motionX = 0;
+        player.motionZ = 0;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ABILITY STATE SYNC
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Build the current ability state flags byte.
+     */
+    private byte getAbilityStateFlags() {
+        byte flags = 0;
+        if (currentAbility == null || !currentAbility.isExecuting()) return flags;
+
+        if (currentAbility.isMovementLockedForCurrentPhase()) {
+            flags |= PlayerAbilityStatePacket.FLAG_MOVEMENT_LOCKED;
+        }
+        if (rotationLocked && currentAbility.isRotationLockedForCurrentPhase()) {
+            flags |= PlayerAbilityStatePacket.FLAG_ROTATION_LOCKED;
+        }
+        if (currentAbility.hasAbilityMovement() && currentAbility.getPhase() == AbilityPhase.ACTIVE) {
+            flags |= PlayerAbilityStatePacket.FLAG_HAS_ABILITY_MOVEMENT;
+        }
+        if (positionLocked) {
+            flags |= PlayerAbilityStatePacket.FLAG_POSITION_LOCKED;
+        }
+        return flags;
+    }
+
+    /**
+     * Send ability state to client if flags changed since last sync.
+     */
+    private void syncAbilityStateIfNeeded(EntityPlayer player) {
+        if (!(player instanceof EntityPlayerMP)) return;
+        byte flags = getAbilityStateFlags();
+        if (flags != lastSyncedFlags) {
+            lastSyncedFlags = flags;
+            PlayerAbilityStatePacket.sendToPlayer((EntityPlayerMP) player, flags, lockedYaw, lockedPitch);
+        }
+    }
+
+    /**
+     * Send cleared (all-zero) state to client. Called on ability completion/interrupt.
+     */
+    private void syncAbilityStateClear(EntityPlayer player) {
+        if (!(player instanceof EntityPlayerMP)) return;
+        if (lastSyncedFlags != 0) {
+            lastSyncedFlags = 0;
+            PlayerAbilityStatePacket.sendToPlayer((EntityPlayerMP) player, (byte) 0, 0, 0);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

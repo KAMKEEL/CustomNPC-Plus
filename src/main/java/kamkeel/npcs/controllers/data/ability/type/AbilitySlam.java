@@ -86,10 +86,20 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (isPlayerCaster(caster)) {
-            // Player: slam will launch from current position, no target tracking needed
-            targetX = caster.posX;
-            targetY = caster.posY;
-            targetZ = caster.posZ;
+            // Player: update target along look direction during windup
+            if (targetingMode == TargetingMode.AOE_SELF) {
+                targetX = caster.posX;
+                targetY = caster.posY;
+                targetZ = caster.posZ;
+            } else {
+                float yawRad = (float) Math.toRadians(caster.rotationYaw);
+                double dirX = -Math.sin(yawRad);
+                double dirZ = Math.cos(yawRad);
+                double launchDist = Math.max(4.0, maxRange * 0.5);
+                targetX = caster.posX + dirX * launchDist;
+                targetY = caster.posY;
+                targetZ = caster.posZ + dirZ * launchDist;
+            }
         } else {
             // NPC: update target position during windup for telegraph tracking
             if (targetingMode == TargetingMode.AOE_SELF) {
@@ -139,18 +149,22 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     }
 
     /**
-     * Player slam: Launch straight up. Player controls horizontal movement via WASD.
+     * Player slam: Launch in look direction using same ballistic arc as NPC slam.
      * AOE damage triggers wherever the player lands.
      */
     private void executePlayerSlam(EntityLivingBase caster) {
-        targetX = caster.posX;
-        targetY = caster.posY;
-        targetZ = caster.posZ;
+        // Calculate target position along player's look direction (horizontal only)
+        float yawRad = (float) Math.toRadians(caster.rotationYaw);
+        double dirX = -Math.sin(yawRad);
+        double dirZ = Math.cos(yawRad);
 
-        double vy = calculateLaunchVelocity(Math.max(1.0, leapHeight));
-        caster.motionY = vy;
-        hasLaunched = true;
-        caster.velocityChanged = true;
+        double launchDist = Math.max(4.0, maxRange * 0.5);
+
+        targetX = caster.posX + dirX * launchDist;
+        targetY = caster.posY;
+        targetZ = caster.posZ + dirZ * launchDist;
+
+        launchTowardTarget(caster);
     }
 
     /**
@@ -297,14 +311,18 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             return;
         }
 
-        // NPC: face toward target destination while in air
-        // Player: free look — player controls their own camera
-        if (!isPreview() && !isPlayerCaster(caster)) {
+        // Face toward target destination while in air (both NPC and Player)
+        if (!isPreview()) {
             double dx = targetX - caster.posX;
             double dz = targetZ - caster.posZ;
-            float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
-            caster.rotationYaw = targetYaw;
-            caster.rotationYawHead = targetYaw;
+            if (dx * dx + dz * dz > 0.25) {
+                float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
+                caster.rotationYaw = targetYaw;
+                caster.rotationYawHead = targetYaw;
+                if (isPlayerCaster(caster)) {
+                    caster.velocityChanged = true;
+                }
+            }
         }
     }
 
