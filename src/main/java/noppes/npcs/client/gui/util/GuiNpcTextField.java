@@ -23,7 +23,7 @@ public class GuiNpcTextField extends GuiTextField {
     public int id;
     public int min = 0, max = Integer.MAX_VALUE, def = 0;
     public double minDouble = 0, maxDouble = Double.MAX_VALUE, defDouble = 0;
-    public float minFloat = 0, maxFloat = Float.MAX_VALUE, defFloat = 0;
+    public float minFloat = Float.NEGATIVE_INFINITY, maxFloat = Float.POSITIVE_INFINITY, defFloat = 0;
     protected static GuiNpcTextField activeTextfield = null;
     public boolean canEdit = true;
     public String hoverableText = "";

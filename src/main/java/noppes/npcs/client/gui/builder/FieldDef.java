@@ -32,8 +32,8 @@ public class FieldDef {
     private String hoverText = null;
 
     // Numeric range
-    private float min = Float.MIN_VALUE;
-    private float max = Float.MAX_VALUE;
+    private float min = 0;
+    private float max = Float.POSITIVE_INFINITY;
 
     // Enum support
     private Class<? extends Enum<?>> enumClass;
@@ -272,7 +272,7 @@ public class FieldDef {
     public String getHoverText() { return hoverText; }
     public float getMin() { return min; }
     public float getMax() { return max; }
-    public boolean hasRange() { return min != Float.MIN_VALUE || max != Float.MAX_VALUE; }
+    public boolean hasRange() { return min != Float.NEGATIVE_INFINITY || max != Float.POSITIVE_INFINITY; }
     public Class<? extends Enum<?>> getEnumClass() { return enumClass; }
     public String[] getStringEnumValues() { return stringEnumValues; }
     public Supplier<SubGuiInterface> getSubGuiFactory() { return subGuiFactory; }
