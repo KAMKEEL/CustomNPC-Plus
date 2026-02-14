@@ -295,11 +295,13 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
             FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
                 .tab("ability.tab.visual"),
             FieldDef.row(
-                FieldDef.floatField("ability.anchor.offsetX", this::getAnchorOffsetX, this::setAnchorOffsetX),
+                FieldDef.floatField("ability.anchor.offsetX", this::getAnchorOffsetX, this::setAnchorOffsetX)
+                    .min(Float.NEGATIVE_INFINITY),
                 FieldDef.floatField("ability.anchor.offsetY", this::getAnchorOffsetY, this::setAnchorOffsetY)
+                    .min(Float.NEGATIVE_INFINITY)
             ).tab("ability.tab.visual"),
             FieldDef.floatField("ability.anchor.offsetZ", this::getAnchorOffsetZ, this::setAnchorOffsetZ)
-                .tab("ability.tab.visual"),
+                .min(Float.NEGATIVE_INFINITY).tab("ability.tab.visual"),
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor).tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled).tab("ability.tab.visual"),

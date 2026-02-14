@@ -592,11 +592,14 @@ public class AbilityOrb extends Ability implements IAbilityOrb {
                 () -> projectiles[idx].anchor.anchorPoint, v -> projectiles[idx].anchor.anchorPoint = v)
                 .tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount));
             defs.add(FieldDef.row(
-                FieldDef.floatField("ability.anchor.offsetX", () -> projectiles[idx].anchor.anchorOffsetX, v -> projectiles[idx].anchor.anchorOffsetX = v),
-                FieldDef.floatField("ability.anchor.offsetY", () -> projectiles[idx].anchor.anchorOffsetY, v -> projectiles[idx].anchor.anchorOffsetY = v)
+                FieldDef.floatField("ability.anchor.offsetX", () -> projectiles[idx].anchor.anchorOffsetX,
+                    v -> projectiles[idx].anchor.anchorOffsetX = v).min(Float.NEGATIVE_INFINITY),
+                FieldDef.floatField("ability.anchor.offsetY", () -> projectiles[idx].anchor.anchorOffsetY,
+                    v -> projectiles[idx].anchor.anchorOffsetY = v).min(Float.NEGATIVE_INFINITY)
             ).tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount));
-            defs.add(FieldDef.floatField("ability.anchor.offsetZ", () -> projectiles[idx].anchor.anchorOffsetZ, v -> projectiles[idx].anchor.anchorOffsetZ = v)
-                .tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount));
+            defs.add(FieldDef.floatField("ability.anchor.offsetZ", () -> projectiles[idx].anchor.anchorOffsetZ,
+                    v -> projectiles[idx].anchor.anchorOffsetZ = v)
+                .tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount).min(Float.NEGATIVE_INFINITY));
 
             // Color override (only when multiple projectiles)
             defs.add(FieldDef.boolField("ability.colorOverride", () -> projectiles[idx].colorOverride, v -> projectiles[idx].colorOverride = v)
