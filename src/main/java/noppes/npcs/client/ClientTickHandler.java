@@ -56,6 +56,7 @@ public class ClientTickHandler {
         if ((this.prevWorld == null || mc.theWorld == null) && this.prevWorld != mc.theWorld) {
             if (mc.theWorld == null) {
                 ClientCacheHandler.clearCache();
+                ClientAbilityState.reset();
             }
             this.prevWorld = mc.theWorld;
         }
@@ -70,6 +71,19 @@ public class ClientTickHandler {
                     }
                     SpecialKeyStatePacket.send(specialKeyDown);
                     lastSpecialKeyDown = specialKeyDown;
+                }
+
+                // Suppress player input during ability-controlled phases
+                if (ClientAbilityState.shouldSuppressMovementInput()) {
+                    mc.thePlayer.movementInput.moveForward = 0;
+                    mc.thePlayer.movementInput.moveStrafe = 0;
+                    mc.thePlayer.movementInput.jump = false;
+                }
+                if (ClientAbilityState.shouldLockRotation()) {
+                    mc.thePlayer.rotationYaw = ClientAbilityState.lockedYaw;
+                    mc.thePlayer.rotationPitch = ClientAbilityState.lockedPitch;
+                    mc.thePlayer.prevRotationYaw = ClientAbilityState.lockedYaw;
+                    mc.thePlayer.prevRotationPitch = ClientAbilityState.lockedPitch;
                 }
 
                 if (player.ridingEntity instanceof EntityNPCInterface) {

@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -100,9 +101,14 @@ public class ScriptPlayerEventHandler {
                 playerData.abilityData.tick(player);
 
                 // Lock player movement during ability phases that require it
+                // Skip zeroing if the ability has its own movement (Charge/Dash/Slam)
                 if (playerData.abilityData.isMovementLocked()) {
-                    player.motionX = 0;
-                    player.motionZ = 0;
+                    Ability current = playerData.abilityData.getCurrentAbility();
+                    if (current == null || !current.hasAbilityMovement()) {
+                        player.motionX = 0;
+                        player.motionZ = 0;
+                        player.velocityChanged = true;
+                    }
                 }
 
                 if (playerData.updateClient) {

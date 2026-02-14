@@ -26,6 +26,7 @@ import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.SwingPlayerArmPacket;
 import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
@@ -588,6 +589,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new TelegraphSpawnPacket());
         DATA_PACKET.registerPacket(new TelegraphRemovePacket());
         DATA_PACKET.registerPacket(new PlayerAbilitySyncPacket());
+        DATA_PACKET.registerPacket(new PlayerAbilityStatePacket());
     }
 
     public void registerPlayerPackets() {
