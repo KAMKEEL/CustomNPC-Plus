@@ -14,7 +14,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
+
 import noppes.npcs.api.ability.type.IAbilitySweeper;
 
 import java.util.Arrays;
@@ -77,16 +77,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote && !isPreview()) {
-            signalCompletion();
-            return;
-        }
-
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         // Spawn the sweeper entity that handles BOTH visuals AND damage.
         // NPC: target is the aggro target — lockOnTarget tracks it during sweep.
         // Player: target is null — sweep rotates around caster's facing direction, lockOnTarget has no effect.
-        activeEntity = new EntityAbilitySweeper(world, caster, target,
+        activeEntity = new EntityAbilitySweeper(caster.worldObj, caster, target,
             beamLength, beamWidth, beamHeight,
             colorData,
             sweepSpeed, numberOfRotations,
@@ -97,14 +92,14 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
             activeEntity.setupPreview(caster);
         }
 
-        spawnAbilityEntity(world, activeEntity);
+        spawnAbilityEntity(activeEntity);
 
         // Ability stays active until entity dies (prevents firing another while projectile is alive)
         // Movement locking is handled separately by the base class
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         // Signal completion when entity dies
         if (activeEntity == null || activeEntity.isDead) {
             activeEntity = null;

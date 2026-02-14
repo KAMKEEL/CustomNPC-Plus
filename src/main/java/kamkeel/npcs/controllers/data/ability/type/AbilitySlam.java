@@ -84,7 +84,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     }
 
     @Override
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (isPlayerCaster(caster)) {
             // Player: update target along look direction during windup
             if (targetingMode == TargetingMode.AOE_SELF) {
@@ -115,7 +115,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         hasLaunched = false;
         hasLanded = false;
         airTicks = 0;
@@ -286,7 +286,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (!hasLaunched) return;
         if (hasLanded) return;
 
@@ -300,14 +300,14 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         // Check for landing: hit the ground or hit a wall mid-flight
         if (airTicks > 3) {
             if (caster.onGround || caster.isCollidedHorizontally) {
-                onLanding(caster, world);
+                onLanding(caster, caster.worldObj);
                 return;
             }
         }
 
         // Timeout protection - force landing after max air time
         if (airTicks >= maxAirTicks) {
-            onLanding(caster, world);
+            onLanding(caster, caster.worldObj);
             return;
         }
 

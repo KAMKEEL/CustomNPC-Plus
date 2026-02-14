@@ -10,6 +10,7 @@ import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.IAbilityDamageHandler;
 import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -74,7 +75,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     protected double startX, startY, startZ;
     protected int ownerEntityId = -1;
     protected int targetEntityId = -1;
-    protected int siblingEntityId = -1;
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
@@ -83,6 +83,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
     /** The ability that spawned this projectile. Transient, not saved to NBT. */
     protected transient Ability sourceAbility = null;
+
+    // ==================== CHARGING STATE ====================
+    protected boolean charging = false;
+    protected int chargeDuration = 40;
+    protected int chargeTick = 0;
+    protected float targetSize = 1.0f;
+    protected static final int DW_CHARGING = 20;
 
     // ==================== ROTATION INTERPOLATION ====================
     public float prevRotationValX, prevRotationValY, prevRotationValZ;
@@ -108,7 +115,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
     /**
      * Initialize common properties using data classes. Call from subclass constructors.
      */
-    protected void initProjectile(EntityLivingBase owner, EntityLivingBase target, EntityAbilityProjectile sibling,
+    protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
                                   double x, double y, double z, float size,
                                   EnergyDisplayData display, EnergyCombatData combat,
                                   EnergyLightningData lightning, EnergyLifespanData lifespan,
@@ -120,7 +127,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
         this.ownerEntityId = owner.getEntityId();
         this.targetEntityId = target != null ? target.getEntityId() : -1;
-        this.siblingEntityId = sibling != null ? sibling.getEntityId() : -1;
 
         // Visual
         this.size = size;
@@ -136,18 +142,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         this.prevRenderSize = size;
     }
 
-    // Initialize projectile without a sibling
-    protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
-                                  double x, double y, double z, float size,
-                                  EnergyDisplayData display, EnergyCombatData combat,
-                                  EnergyLightningData lightning, EnergyLifespanData lifespan,
-                                  EnergyTrajectoryData trajectory) {
-        initProjectile(owner, target, null, x, y, z, size, display, combat, lightning, lifespan, trajectory);
-    }
-
     @Override
     protected void entityInit() {
-        // No DataWatcher needed - using IEntityAdditionalSpawnData with NBT
+        this.dataWatcher.addObject(DW_CHARGING, (byte) 0);
     }
 
     @Override
@@ -455,6 +452,170 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         prevPosZ = newZ;
     }
 
+    // ==================== CHARGING METHODS ====================
+
+    /**
+     * Check if entity is in charging state (synced via data watcher).
+     * In preview mode, uses local field since data watcher isn't synced.
+     */
+    public boolean isCharging() {
+        if (previewMode) return this.charging;
+        return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
+    }
+
+    /**
+     * Set charging state (server only, synced to clients via data watcher).
+     */
+    protected void setCharging(boolean value) {
+        this.charging = value;
+        if (!worldObj.isRemote) {
+            this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));
+        }
+    }
+
+    public float getChargeProgress() {
+        if (chargeDuration <= 0) return 1.0f;
+        return Math.min(1.0f, (float) chargeTick / chargeDuration);
+    }
+
+    public float getInterpolatedChargeProgress(float partialTicks) {
+        if (chargeDuration <= 0) return 1.0f;
+        float prevProgress = Math.max(0, (float) (chargeTick - 1) / chargeDuration);
+        float currProgress = Math.min(1.0f, (float) chargeTick / chargeDuration);
+        return prevProgress + (currProgress - prevProgress) * partialTicks;
+    }
+
+    /**
+     * Setup this entity in charging mode (for windup phase).
+     * Grows from 0 to current size over chargeDuration ticks.
+     * Subclasses with different charging behavior should override or use their own method.
+     */
+    public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
+        setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.anchorData = anchor;
+        this.targetSize = this.size;
+        this.size = 0.01f;
+        this.renderCurrentSize = 0.01f;
+        this.prevRenderSize = 0.01f;
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
+    }
+
+    /**
+     * Update during charging state - grow size and follow anchor.
+     * Default implementation grows {@code size} from 0 to {@code targetSize}.
+     * Override in subclasses for type-specific charging (Disc, Beam).
+     */
+    protected void updateCharging() {
+        chargeTick++;
+        Entity owner = getOwnerEntity();
+        if (owner == null || owner.isDead) {
+            setDead();
+            return;
+        }
+        float progress = getChargeProgress();
+        this.size = targetSize * progress;
+        if (owner instanceof EntityLivingBase) {
+            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
+            setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        }
+    }
+
+    // ==================== HOMING ====================
+
+    /**
+     * Update homing toward target. Uses position-based homing with distance-scaled strength.
+     * Override in subclasses for type-specific homing (e.g. Beam uses head offset).
+     */
+    protected void updateHoming() {
+        if (!isHoming()) return;
+        Entity target = getTargetEntity();
+        if (target == null || !target.isEntityAlive()) return;
+
+        double dx = target.posX - posX;
+        double dy = (target.posY + target.getEyeHeight()) - posY;
+        double dz = target.posZ - posZ;
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (dist <= getHomingRange() && dist > 0) {
+            float effectiveStrength = getHomingStrength();
+            if (dist < getHomingRange() * 0.3) {
+                effectiveStrength = Math.min(1.0f, getHomingStrength() * 2.5f);
+            } else if (dist < getHomingRange() * 0.6) {
+                effectiveStrength = Math.min(0.8f, getHomingStrength() * 1.5f);
+            }
+
+            double desiredVX = (dx / dist) * getSpeed();
+            double desiredVY = (dy / dist) * getSpeed();
+            double desiredVZ = (dz / dist) * getSpeed();
+
+            motionX += (desiredVX - motionX) * effectiveStrength;
+            motionY += (desiredVY - motionY) * effectiveStrength;
+            motionZ += (desiredVZ - motionZ) * effectiveStrength;
+
+            double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+            if (vLen > 0) {
+                motionX = (motionX / vLen) * getSpeed();
+                motionY = (motionY / vLen) * getSpeed();
+                motionZ = (motionZ / vLen) * getSpeed();
+            }
+        }
+    }
+
+    // ==================== VELOCITY HELPERS ====================
+
+    /**
+     * Calculate initial velocity toward target or forward based on owner facing.
+     * Call from subclass constructors after initProjectile().
+     */
+    protected void calculateInitialVelocity(EntityLivingBase owner, EntityLivingBase target,
+                                             double x, double y, double z) {
+        if (target != null) {
+            double dx = target.posX - x;
+            double dy = (target.posY + target.getEyeHeight()) - y;
+            double dz = target.posZ - z;
+            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (len > 0) {
+                this.motionX = (dx / len) * getSpeed();
+                this.motionY = (dy / len) * getSpeed();
+                this.motionZ = (dz / len) * getSpeed();
+            }
+        } else {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = (float) Math.toRadians(owner.rotationPitch);
+            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
+            this.motionY = -Math.sin(pitch) * getSpeed();
+            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
+        }
+    }
+
+    // ==================== CHARGING NBT ====================
+
+    /**
+     * Read common charging state from NBT. Call from subclass readProjectileNBT().
+     */
+    protected void readChargingNBT(NBTTagCompound nbt) {
+        boolean isChargingVal = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
+        this.charging = isChargingVal;
+        this.dataWatcher.updateObject(DW_CHARGING, (byte) (isChargingVal ? 1 : 0));
+        this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
+        this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
+        this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
+    }
+
+    /**
+     * Write common charging state to NBT. Call from subclass writeProjectileNBT().
+     */
+    protected void writeChargingNBT(NBTTagCompound nbt) {
+        nbt.setBoolean("Charging", isCharging());
+        nbt.setInteger("ChargeDuration", chargeDuration);
+        nbt.setInteger("ChargeTick", chargeTick);
+        nbt.setFloat("TargetSize", targetSize);
+    }
+
     // ==================== ENTITY HELPERS ====================
 
     public Entity getOwnerEntity() {
@@ -502,26 +663,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         return NpcAPI.Instance().getIEntity(getTargetEntity());
     }
 
-    @Override
-    public int getSiblingEntityId() {
-        return siblingEntityId;
-    }
-
-    @Override
-    public void setSiblingEntityId(int siblingEntityId) {
-        if (!(worldObj.getEntityByID(siblingEntityId) instanceof EntityAbilityProjectile)) return;
-
-        this.siblingEntityId = siblingEntityId;
-    }
-
-    @Override
-    public IEnergyProjectile getSibling() {
-        if (siblingEntityId == -1) return null;
-        return (EntityAbilityProjectile) worldObj.getEntityByID(siblingEntityId);
-    }
-
     /**
      * Check if an entity should be ignored for collision.
+     * Ignores: the owner, same-faction NPCs, and other projectiles from the same caster.
      */
     protected boolean shouldIgnoreEntity(Entity entity) {
         Entity owner = getOwnerEntity();
@@ -533,8 +677,11 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
             if (ownerNpc.faction.id == targetNpc.faction.id) return true;
         }
 
-        if (entity.getEntityId() == getSiblingEntityId())
-            return true;
+        // Ignore other projectiles from the same caster (e.g. multi-projectile abilities)
+        if (entity instanceof EntityAbilityProjectile) {
+            EntityAbilityProjectile other = (EntityAbilityProjectile) entity;
+            if (other.ownerEntityId == this.ownerEntityId) return true;
+        }
 
         return false;
     }
@@ -746,7 +893,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
         this.ownerEntityId = nbt.getInteger("OwnerId");
         this.targetEntityId = nbt.getInteger("TargetId");
-        this.siblingEntityId = nbt.getInteger("SiblingId");
 
         this.motionX = nbt.getDouble("MotionX");
         this.motionY = nbt.getDouble("MotionY");
@@ -789,7 +935,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
         nbt.setInteger("OwnerId", ownerEntityId);
         nbt.setInteger("TargetId", targetEntityId);
-        nbt.setInteger("SiblingId", targetEntityId);
 
         nbt.setDouble("MotionX", motionX);
         nbt.setDouble("MotionY", motionY);

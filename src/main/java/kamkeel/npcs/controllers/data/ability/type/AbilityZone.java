@@ -17,7 +17,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumPotionType;
 import net.minecraft.util.DamageSource;
-import net.minecraft.world.World;
+
 
 import noppes.npcs.client.gui.SubGuiZonePresetSelector;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -151,7 +151,7 @@ public abstract class AbilityZone extends Ability {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         // Remove dead entities
         Iterator<EntityAbilityZone> it = activeEntities.iterator();
         while (it.hasNext()) {

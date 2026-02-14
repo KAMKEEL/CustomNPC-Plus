@@ -79,7 +79,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         getPulledEntities().clear();
         pullComplete = false;
         ticksSincePullDamage = 0;
@@ -88,7 +88,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             if (aoe) {
                 AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
                 @SuppressWarnings("unchecked")
-                List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+                List<EntityLivingBase> entities = caster.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
                 int count = 0;
                 for (EntityLivingBase entity : entities) {
@@ -116,7 +116,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (isPreview()) {
             // No entities to pull in preview, just run animation for a duration
             if (tick >= 60) signalCompletion();
@@ -136,7 +136,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         ticksSincePullDamage++;
 
         for (UUID uuid : new HashSet<>(getPulledEntities())) {
-            EntityLivingBase entity = findEntity(caster, world, uuid);
+            EntityLivingBase entity = findEntity(caster, caster.worldObj, uuid);
             if (entity == null || entity.isDead) {
                 getPulledEntities().remove(uuid);
                 continue;
@@ -149,7 +149,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
             if (dist <= 1.5f) {
                 getPulledEntities().remove(uuid);
-                onTargetArrived(caster, entity, world);
+                onTargetArrived(caster, entity, caster.worldObj);
                 continue;
             }
 
@@ -164,7 +164,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             double nextZ = dz * factor;
 
             AxisAlignedBB nextBox = entity.boundingBox.copy().offset(nextX, nextY, nextZ);
-            if (!world.getCollidingBoundingBoxes(entity, nextBox).isEmpty()) {
+            if (!caster.worldObj.getCollidingBoundingBoxes(entity, nextBox).isEmpty()) {
                 getPulledEntities().remove(uuid);
                 continue;
             }

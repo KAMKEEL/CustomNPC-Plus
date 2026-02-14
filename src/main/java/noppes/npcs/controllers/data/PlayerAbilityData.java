@@ -161,7 +161,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                     playAbilitySound(player, currentAbility.getWindUpSound());
                     playAbilityAnimation(currentAbility.getWindUpAnimation());
                 }
-                currentAbility.onWindUpTick(player, currentTarget, player.worldObj, currentAbility.getCurrentTick());
+                currentAbility.onWindUpTick(player, currentTarget, currentAbility.getCurrentTick());
                 break;
 
             case ACTIVE:
@@ -170,7 +170,10 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                     for (TelegraphInstance telegraph : currentAbility.getTelegraphInstances()) {
                         telegraph.lockPosition();
                     }
-                    removeTelegraph(currentAbility, player);
+                    // Remove telegraph unless the ability keeps it during active phase
+                    if (!currentAbility.keepTelegraphDuringActive()) {
+                        removeTelegraph(currentAbility, player);
+                    }
 
                     // Handle rotation control transition from WINDUP to ACTIVE
                     if (currentAbility.isRotationLockedDuringActive()) {
@@ -195,18 +198,26 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                     playAbilityAnimation(currentAbility.getActiveAnimation());
 
                     // Call onExecute
-                    currentAbility.onExecute(player, currentTarget, player.worldObj);
+                    currentAbility.onExecute(player, currentTarget);
 
                     if (currentAbility.getPhase() == AbilityPhase.IDLE) {
                         handleAbilityCompletion(player);
                         return;
                     }
                 }
-                currentAbility.onActiveTick(player, currentTarget, player.worldObj, currentAbility.getCurrentTick());
+                currentAbility.onActiveTick(player, currentTarget, currentAbility.getCurrentTick());
 
                 if (currentAbility.getPhase() == AbilityPhase.IDLE) {
                     handleAbilityCompletion(player);
                     return;
+                }
+
+                // Auto-complete for burst overlap mode (entities fly independently)
+                if (currentAbility.isBurstEnabled() && currentAbility.isBurstOverlap()
+                    && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
+                    && currentAbility.getPhase() == AbilityPhase.ACTIVE
+                    && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
+                    currentAbility.signalCompletion();
                 }
 
                 // Release locks during burst delay
@@ -348,7 +359,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         playAbilityAnimation(ability.getActiveAnimation());
 
         // Call onExecute
-        ability.onExecute(player, currentTarget, player.worldObj);
+        ability.onExecute(player, currentTarget);
 
         // Check if ability completed during onExecute
         if (ability.getPhase() == AbilityPhase.IDLE) {

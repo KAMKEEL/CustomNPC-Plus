@@ -154,7 +154,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         hitEntities.clear();
         currentRotation = -arcAngle / 2.0f;
         activeSoundPlayed = false;
@@ -175,8 +175,8 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote && !isPreview()) return;
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (caster.worldObj.isRemote && !isPreview()) return;
 
         switch (sweepMode) {
             case SWIPE:
@@ -185,25 +185,25 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
                 // Play active sound when sweep reaches center (where target typically stands)
                 if (!activeSoundPlayed && currentRotation >= 0) {
-                    playActiveSound(caster, world);
+                    playActiveSound(caster, caster.worldObj);
                 }
 
                 if (currentRotation > arcAngle / 2.0f) {
                     if (!isPreview()) {
-                        performSweepDamageRange(caster, world, innerRadius, range, prevRotation, arcAngle / 2.0f);
+                        performSweepDamageRange(caster, caster.worldObj, innerRadius, range, prevRotation, arcAngle / 2.0f);
                     }
                     signalCompletion();
                     return;
                 }
                 if (!isPreview()) {
-                    performSweepDamageRange(caster, world, innerRadius, range, prevRotation, currentRotation);
+                    performSweepDamageRange(caster, caster.worldObj, innerRadius, range, prevRotation, currentRotation);
                 }
                 break;
 
             case SPIN:
                 // Play active sound at spin start
                 if (!activeSoundPlayed) {
-                    playActiveSound(caster, world);
+                    playActiveSound(caster, caster.worldObj);
                 }
 
                 if (tick >= spinDurationTicks) {
@@ -214,7 +214,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
                 currentRotation = (currentRotation + sweepSpeed) % 360.0f;
                 if (!isPreview()) {
                     hitEntities.clear();
-                    performSweepDamageRange(caster, world, innerRadius, range, prevSpin, currentRotation);
+                    performSweepDamageRange(caster, caster.worldObj, innerRadius, range, prevSpin, currentRotation);
                 }
                 break;
         }

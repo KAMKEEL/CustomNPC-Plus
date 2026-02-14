@@ -5,7 +5,7 @@ import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
+
 
 import noppes.npcs.api.ability.type.IAbilityTrap;
 
@@ -51,12 +51,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote && !isPreview()) {
-            signalCompletion();
-            return;
-        }
-
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         activeEntities.clear();
 
         // Use pre-calculated positions from telegraph phase, or generate new ones
@@ -78,7 +73,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         for (int i = 0; i < zoneCount; i++) {
             double[] pos = positions.get(i);
 
-            EntityAbilityZone entity = EntityAbilityZone.createTrap(world, caster,
+            EntityAbilityZone entity = EntityAbilityZone.createTrap(caster.worldObj, caster,
                 pos[0], caster.posY, pos[1],
                 zoneShape,
                 triggerRadius, armTime, maxTriggers, triggerCooldown,
@@ -94,7 +89,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
                 entity.setupPreview(caster);
             }
 
-            spawnAbilityEntity(world, entity);
+            spawnAbilityEntity(entity);
             activeEntities.add(entity);
         }
     }

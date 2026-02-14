@@ -95,7 +95,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         lastAttacker = null;
         counterTriggered = false;
         lastDamageTaken = 0.0f;
@@ -103,9 +103,9 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (canCounter && counterEligible && counterTriggered && lastAttacker != null && !world.isRemote) {
-            performCounter(caster, world);
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (canCounter && counterEligible && counterTriggered && lastAttacker != null && !caster.worldObj.isRemote) {
+            performCounter(caster, caster.worldObj);
         }
 
         if (tick > counterWindow && counterEligible) {
