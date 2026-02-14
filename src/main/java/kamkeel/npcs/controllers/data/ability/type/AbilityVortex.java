@@ -236,14 +236,14 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.pullRadius = nbt.hasKey("pullRadius") ? nbt.getFloat("pullRadius") : 8.0f;
-        this.pullStrength = nbt.hasKey("pullStrength") ? nbt.getFloat("pullStrength") : 0.8f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 0.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.0f;
-        this.aoe = nbt.hasKey("aoe") && nbt.getBoolean("aoe");
-        this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 5;
-        this.damageOnPull = nbt.hasKey("damageOnPull") && nbt.getBoolean("damageOnPull");
-        this.pullDamage = nbt.hasKey("pullDamage") ? nbt.getFloat("pullDamage") : 0.0f;
+        this.pullRadius = nbt.getFloat("pullRadius");
+        this.pullStrength = nbt.getFloat("pullStrength");
+        this.damage = nbt.getFloat("damage");
+        this.knockback = nbt.getFloat("knockback");
+        this.aoe = nbt.getBoolean("aoe");
+        this.maxTargets = nbt.getInteger("maxTargets");
+        this.damageOnPull = nbt.getBoolean("damageOnPull");
+        this.pullDamage = nbt.getFloat("pullDamage");
     }
 
     // Getters & Setters

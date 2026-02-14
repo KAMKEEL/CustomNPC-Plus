@@ -384,11 +384,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             }
         }
 
-        if (stats.potionType != EnumPotionType.None) {
-            if (stats.potionType != EnumPotionType.Fire)
-                ((EntityLivingBase) receiver).addPotionEffect(new PotionEffect(this.getPotionEffect(stats.potionType), stats.potionDuration * 20, stats.potionAmp));
-            else
-                receiver.setFire(stats.potionDuration);
+        if (stats.potionType == EnumPotionType.Fire) {
+            receiver.setFire(stats.potionDuration);
+        } else if (stats.potionType != EnumPotionType.None) {
+            int potionId = stats.potionType.getResolvedPotionId(stats.potionManualId);
+            if (EnumPotionType.isValidPotionId(potionId)) {
+                ((EntityLivingBase) receiver).addPotionEffect(new PotionEffect(potionId, stats.potionDuration * 20, stats.potionAmp));
+            }
         }
         return didAttack;
     }
@@ -1043,29 +1045,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         return weight;
     }
 
-    /*
-     * Used for getting the applied potion effect from dataStats.
-     */
-    private int getPotionEffect(EnumPotionType p) {
-        switch (p) {
-            case Poison:
-                return Potion.poison.id;
-            case Hunger:
-                return Potion.hunger.id;
-            case Weakness:
-                return Potion.weakness.id;
-            case Slowness:
-                return Potion.moveSlowdown.id;
-            case Nausea:
-                return Potion.confusion.id;
-            case Blindness:
-                return Potion.blindness.id;
-            case Wither:
-                return Potion.wither.id;
-            default:
-                return 0;
-        }
-    }
 
     @Override
     public void setAir(int air) {

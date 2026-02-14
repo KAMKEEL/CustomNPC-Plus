@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.entity.IEnergyProjectile;
@@ -426,6 +427,32 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
                 applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
             }
         }
+    }
+
+    // ==================== LAUNCH HELPERS ====================
+
+    /**
+     * For player casters, snap the projectile to a position along the player's look vector.
+     * This ensures projectiles launch aligned with the crosshair rather than from the hand anchor.
+     * Only affects player casters; NPC projectiles launch from their anchor position as configured.
+     * Should be called in startMoving/startFiring BEFORE setting startX/Y/Z.
+     */
+    protected void snapToPlayerLookVector() {
+        Entity owner = getOwnerEntity();
+        if (!(owner instanceof EntityPlayer)) return;
+
+        Vec3 look = owner.getLookVec();
+        double eyeY = owner.posY + owner.getEyeHeight();
+        float frontDist = Math.max(0.5f, size * 0.5f);
+
+        double newX = owner.posX + look.xCoord * frontDist;
+        double newY = eyeY + look.yCoord * frontDist;
+        double newZ = owner.posZ + look.zCoord * frontDist;
+
+        setPosition(newX, newY, newZ);
+        prevPosX = newX;
+        prevPosY = newY;
+        prevPosZ = newZ;
     }
 
     // ==================== ENTITY HELPERS ====================

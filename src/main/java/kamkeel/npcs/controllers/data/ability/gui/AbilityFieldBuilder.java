@@ -12,6 +12,7 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.constants.EnumPotionType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import java.util.Map;
 public class AbilityFieldBuilder extends GuiFieldBuilder {
 
     // Effects list metadata: widgetId -> [effectIndex, action]
-    // action: 0=type, 1=duration(text), 2=amp, 3=delete, 4=add
+    // action: 0=type, 1=duration(text), 2=amp, 3=delete, 4=add, 5=manualId(text)
     private final Map<Integer, int[]> effectWidgetMeta = new HashMap<>();
 
     public AbilityFieldBuilder(GuiNPCInterface parent, FontRenderer fontRenderer) {
@@ -57,15 +58,15 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
         List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
         if (effects == null) effects = new ArrayList<>();
 
-        String[] typeNames = AbilityEffect.EffectType.getLangKeys();
+        String[] typeNames = EnumPotionType.getLangKeysNoNone();
         String[] ampValues = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
 
         for (int e = 0; e < effects.size() && e < 5; e++) {
             AbilityEffect effect = effects.get(e);
 
-            // Type selector button
-            int typeIdx = effect.getType().ordinal();
-            GuiNpcButton typeBtn = new GuiNpcButton(widgetId, colLLabel, y, 100, 20, typeNames, typeIdx);
+            // Type selector button (index offset by -1 since None is excluded)
+            int typeIdx = effect.getType().ordinal() - 1;
+            GuiNpcButton typeBtn = new GuiNpcButton(widgetId, colLLabel, y, 100, 20, typeNames, Math.max(0, typeIdx));
             sw.addButton(typeBtn);
             buttonFieldMap.put(widgetId, def);
             effectWidgetMeta.put(widgetId, new int[]{e, 0});
@@ -81,12 +82,16 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
             effectWidgetMeta.put(widgetId, new int[]{e, 1});
             widgetId++;
 
-            // Amplifier selector (0-10)
-            GuiNpcButton ampBtn = new GuiNpcButton(widgetId, colLLabel + 158, y, 40, 20, ampValues, effect.getAmplifier());
-            sw.addButton(ampBtn);
-            buttonFieldMap.put(widgetId, def);
-            effectWidgetMeta.put(widgetId, new int[]{e, 2});
-            widgetId++;
+            if (effect.getType() != EnumPotionType.Fire) {
+                // Amplifier selector (0-10) — not applicable to Fire
+                GuiNpcButton ampBtn = new GuiNpcButton(widgetId, colLLabel + 158, y, 40, 20, ampValues, effect.getAmplifier());
+                sw.addButton(ampBtn);
+                buttonFieldMap.put(widgetId, def);
+                effectWidgetMeta.put(widgetId, new int[]{e, 2});
+                widgetId++;
+            } else {
+                widgetId++; // keep widgetId in sync
+            }
 
             // Delete button
             GuiNpcButton delBtn = new GuiNpcButton(clearId, colLLabel + 202, y, 20, 20, "X");
@@ -96,6 +101,20 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
             clearId++;
 
             y += rowHeight;
+
+            // Manual potion ID field (shown on next row when type is Manual)
+            if (effect.getType() == EnumPotionType.Manual) {
+                sw.addLabel(new GuiNpcLabel(labelId++, "effect.potionid", colLLabel, y + 5, 0xFFFFFF));
+                GuiNpcTextField idField = new GuiNpcTextField(widgetId, parent, fontRenderer,
+                    colLLabel + 80, y, 50, 20, String.valueOf(effect.getManualPotionId()));
+                idField.setIntegersOnly();
+                idField.setMinMaxDefault(0, Integer.MAX_VALUE, 0);
+                sw.addTextField(idField);
+                textFieldMap.put(widgetId, def);
+                effectWidgetMeta.put(widgetId, new int[]{e, 5});
+                widgetId++;
+                y += rowHeight;
+            }
         }
 
         // Add button (if < 5 effects)
@@ -133,7 +152,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
                 switch (action) {
                     case 0: // Type changed
                         if (effectIdx < effects.size()) {
-                            effects.get(effectIdx).setType(AbilityEffect.EffectType.fromOrdinal(((GuiNpcButton) button).getValue()));
+                            effects.get(effectIdx).setType(EnumPotionType.fromIndexNoNone(((GuiNpcButton) button).getValue()));
                         }
                         return true;
                     case 2: // Amp changed
@@ -148,7 +167,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
                         return true;
                     case 4: // Add
                         if (effects.size() < 5) {
-                            effects.add(new AbilityEffect(AbilityEffect.EffectType.SLOWNESS, 60, 0));
+                            effects.add(new AbilityEffect(EnumPotionType.Slowness, 60, 0));
                         }
                         return true;
                 }
@@ -162,12 +181,16 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
     @SuppressWarnings("unchecked")
     public boolean handleTextFieldEvent(int textFieldId, GuiNpcTextField field) {
         int[] meta = effectWidgetMeta.get(textFieldId);
-        if (meta != null && meta[1] == 1) { // duration field
+        if (meta != null) {
             FieldDef def = textFieldMap.get(textFieldId);
             if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
                 List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
                 if (effects != null && meta[0] < effects.size()) {
-                    effects.get(meta[0]).setDurationTicks(field.getInteger());
+                    if (meta[1] == 1) { // duration field
+                        effects.get(meta[0]).setDurationTicks(field.getInteger());
+                    } else if (meta[1] == 5) { // manual potion ID field
+                        effects.get(meta[0]).setManualPotionId(field.getInteger());
+                    }
                 }
                 return true;
             }

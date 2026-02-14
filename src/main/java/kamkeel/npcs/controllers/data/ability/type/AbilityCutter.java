@@ -326,19 +326,19 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.arcAngle = nbt.hasKey("arcAngle") ? nbt.getFloat("arcAngle") : 90.0f;
-        this.range = nbt.hasKey("range") ? nbt.getFloat("range") : 6.0f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 7.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
+        this.arcAngle = nbt.getFloat("arcAngle");
+        this.range = nbt.getFloat("range");
+        this.damage = nbt.getFloat("damage");
+        this.knockback = nbt.getFloat("knockback");
         try {
             this.sweepMode = SweepMode.valueOf(nbt.getString("sweepMode"));
         } catch (Exception e) {
             this.sweepMode = SweepMode.SWIPE;
         }
-        this.sweepSpeed = nbt.hasKey("sweepSpeed") ? nbt.getFloat("sweepSpeed") : 6.0f;
-        this.spinDurationTicks = nbt.hasKey("spinDurationTicks") ? nbt.getInteger("spinDurationTicks") : 60;
-        this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");
-        this.innerRadius = nbt.hasKey("innerRadius") ? nbt.getFloat("innerRadius") : 0.0f;
+        this.sweepSpeed = nbt.getFloat("sweepSpeed");
+        this.spinDurationTicks = nbt.getInteger("spinDurationTicks");
+        this.piercing = nbt.getBoolean("piercing");
+        this.innerRadius = nbt.getFloat("innerRadius");
     }
 
     // Getters & Setters

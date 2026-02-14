@@ -97,12 +97,12 @@ public class EnergyCombatData implements IEnergyCombatData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 7.0f;
-        knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.0f;
-        knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.1f;
-        explosive = nbt.hasKey("explosive") && nbt.getBoolean("explosive");
-        explosionRadius = nbt.hasKey("explosionRadius") ? nbt.getFloat("explosionRadius") : 3.0f;
-        explosionDamageFalloff = nbt.hasKey("explosionDamageFalloff") ? nbt.getFloat("explosionDamageFalloff") : 0.5f;
+        damage = nbt.getFloat("damage");
+        knockback = nbt.getFloat("knockback");
+        knockbackUp = nbt.getFloat("knockbackUp");
+        explosive = nbt.getBoolean("explosive");
+        explosionRadius = nbt.getFloat("explosionRadius");
+        explosionDamageFalloff = nbt.getFloat("explosionDamageFalloff");
     }
 
     public EnergyCombatData copy() {

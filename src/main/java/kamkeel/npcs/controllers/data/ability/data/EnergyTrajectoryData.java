@@ -184,7 +184,7 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        this.currentPath = nbt.hasKey("currentPath") ? nbt.getInteger("currentPath") : 0;
+        this.currentPath = nbt.getInteger("currentPath");
 
         int i = 0;
         while (nbt.hasKey("Path_" + i, Constants.NBT.TAG_COMPOUND)) {
@@ -275,8 +275,8 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         }
 
         public void readNBT(NBTTagCompound nbt) {
-            this.delayTicks = nbt.hasKey("delay") ? nbt.getInteger("delay") : 0;
-            this.concluded = nbt.hasKey("concluded") && nbt.getBoolean("concluded");
+            this.delayTicks = nbt.getInteger("delay");
+            this.concluded = nbt.getBoolean("concluded");
 
             double x = nbt.getDouble("X");
             double y = nbt.getDouble("Y");

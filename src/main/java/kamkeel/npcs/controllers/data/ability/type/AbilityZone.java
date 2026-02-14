@@ -15,6 +15,7 @@ import kamkeel.npcs.entity.EntityAbilityZone.ParticleMotion;
 import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.constants.EnumPotionType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
@@ -255,7 +256,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 1; particleGlow = true; particleDir = "mc:mobSpell";
                 colorData.innerColor = 0x44DD44; colorData.outerColor = 0x116611;
                 windUpColor = 0x6044DD44; activeColor = 0xC044FF44;
-                effects.add(new AbilityEffect(AbilityEffect.EffectType.POISON, 100, 0));
+                effects.add(new AbilityEffect(EnumPotionType.Poison, 100, 0));
                 break;
             case "INFERNO":
                 groundFill = true; groundAlpha = 0.35f; rings = true; ringCount = 3;
@@ -264,7 +265,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 0; particleGlow = true; particleDir = "mc:flame";
                 colorData.innerColor = 0xFF6611; colorData.outerColor = 0xCC2200;
                 windUpColor = 0x60FF6611; activeColor = 0xC0FF4400;
-                effects.add(new AbilityEffect(AbilityEffect.EffectType.BURN, 60, 0));
+                effects.add(new AbilityEffect(EnumPotionType.Fire, 60, 0));
                 break;
             case "ARCANE":
                 groundFill = true; groundAlpha = 0.20f; rings = true; ringCount = 1;
@@ -273,7 +274,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 1; particleGlow = true; particleDir = "mc:portal";
                 colorData.innerColor = 0xAA44FF; colorData.outerColor = 0x6622BB;
                 windUpColor = 0x60AA44FF; activeColor = 0xC0CC66FF;
-                effects.add(new AbilityEffect(AbilityEffect.EffectType.WEAKNESS, 100, 0));
+                effects.add(new AbilityEffect(EnumPotionType.Weakness, 100, 0));
                 break;
             case "ELECTRIC":
                 groundFill = true; groundAlpha = 0.15f; rings = false; ringCount = 1;
@@ -282,7 +283,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 2; particleGlow = true; particleDir = "mc:enchantmenttable";
                 colorData.innerColor = 0x4488FF; colorData.outerColor = 0x2244BB;
                 windUpColor = 0x604488FF; activeColor = 0xC066AAFF;
-                effects.add(new AbilityEffect(AbilityEffect.EffectType.MINING_FATIGUE, 80, 1));
+                effects.add(new AbilityEffect(EnumPotionType.MiningFatigue, 80, 1));
                 break;
             case "FROST":
                 groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;
@@ -291,7 +292,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 1; particleGlow = true; particleDir = "mc:snowshovel";
                 colorData.innerColor = 0x88CCFF; colorData.outerColor = 0x4488CC;
                 windUpColor = 0x6088CCFF; activeColor = 0xC0AADDFF;
-                effects.add(new AbilityEffect(AbilityEffect.EffectType.SLOWNESS, 100, 1));
+                effects.add(new AbilityEffect(EnumPotionType.Slowness, 100, 1));
                 break;
             case "DEFAULT":
                 groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;
@@ -354,37 +355,33 @@ public abstract class AbilityZone extends Ability {
     }
 
     protected void readZoneNBT(NBTTagCompound nbt, int defaultDuration) {
-        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : defaultDuration;
-        if (nbt.hasKey("zoneShape")) {
-            try { this.zoneShape = ZoneShape.valueOf(nbt.getString("zoneShape")); }
-            catch (Exception e) { this.zoneShape = ZoneShape.CIRCLE; }
-        } else {
-            this.zoneShape = ZoneShape.CIRCLE;
-        }
-        this.spawnRadius = nbt.hasKey("spawnRadius") ? nbt.getFloat("spawnRadius") : 10.0f;
-        this.zoneCount = nbt.hasKey("zoneCount") ? nbt.getInteger("zoneCount") : 3;
-        this.zoneHeight = nbt.hasKey("zoneHeight") ? nbt.getFloat("zoneHeight") : 2.0f;
-        this.particleDensity = nbt.hasKey("particleDensity") ? nbt.getFloat("particleDensity") : 1.0f;
-        this.particleScale = nbt.hasKey("particleScale") ? nbt.getFloat("particleScale") : 1.0f;
-        this.animSpeed = nbt.hasKey("animSpeed") ? nbt.getFloat("animSpeed") : 1.0f;
-        this.lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 1.0f;
+        this.durationTicks = nbt.getInteger("durationTicks");
+        try { this.zoneShape = ZoneShape.valueOf(nbt.getString("zoneShape")); }
+        catch (Exception e) { this.zoneShape = ZoneShape.CIRCLE; }
+        this.spawnRadius = nbt.getFloat("spawnRadius");
+        this.zoneCount = nbt.getInteger("zoneCount");
+        this.zoneHeight = nbt.getFloat("zoneHeight");
+        this.particleDensity = nbt.getFloat("particleDensity");
+        this.particleScale = nbt.getFloat("particleScale");
+        this.animSpeed = nbt.getFloat("animSpeed");
+        this.lightningDensity = nbt.getFloat("lightningDensity");
         colorData.readNBT(nbt);
 
         // Visual layer fields
-        this.groundFill = !nbt.hasKey("groundFill") || nbt.getBoolean("groundFill");
-        this.groundAlpha = nbt.hasKey("groundAlpha") ? nbt.getFloat("groundAlpha") : 0.25f;
-        this.rings = !nbt.hasKey("rings") || nbt.getBoolean("rings");
-        this.ringCount = nbt.hasKey("ringCount") ? nbt.getInteger("ringCount") : 3;
-        this.border = !nbt.hasKey("border") || nbt.getBoolean("border");
-        this.borderSpeed = nbt.hasKey("borderSpeed") ? nbt.getFloat("borderSpeed") : 1.0f;
-        this.accents = !nbt.hasKey("accents") || nbt.getBoolean("accents");
-        this.accentStyle = nbt.hasKey("accentStyle") ? nbt.getInteger("accentStyle") : 0;
-        this.lightning = nbt.hasKey("lightning") && nbt.getBoolean("lightning");
-        this.particles = !nbt.hasKey("particles") || nbt.getBoolean("particles");
-        this.particleMotion = nbt.hasKey("particleMotion") ? nbt.getInteger("particleMotion") : 0;
-        this.particleDir = nbt.hasKey("particleDir") ? nbt.getString("particleDir") : "";
-        this.particleSize = nbt.hasKey("particleSize") ? nbt.getInteger("particleSize") : 32;
-        this.particleGlow = !nbt.hasKey("particleGlow") || nbt.getBoolean("particleGlow");
+        this.groundFill = nbt.getBoolean("groundFill");
+        this.groundAlpha = nbt.getFloat("groundAlpha");
+        this.rings = nbt.getBoolean("rings");
+        this.ringCount = nbt.getInteger("ringCount");
+        this.border = nbt.getBoolean("border");
+        this.borderSpeed = nbt.getFloat("borderSpeed");
+        this.accents = nbt.getBoolean("accents");
+        this.accentStyle = nbt.getInteger("accentStyle");
+        this.lightning = nbt.getBoolean("lightning");
+        this.particles = nbt.getBoolean("particles");
+        this.particleMotion = nbt.getInteger("particleMotion");
+        this.particleDir = nbt.getString("particleDir");
+        this.particleSize = nbt.getInteger("particleSize");
+        this.particleGlow = nbt.getBoolean("particleGlow");
     }
 
     // ═════════════════════════════════════════════════════════════════

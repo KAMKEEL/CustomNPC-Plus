@@ -190,9 +190,9 @@ public class AbilityLaserShot extends Ability implements IAbilityLaserShot {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.laserWidth = nbt.hasKey("laserWidth") ? nbt.getFloat("laserWidth") : 0.3f;
-        this.expansionSpeed = nbt.hasKey("expansionSpeed") ? nbt.getFloat("expansionSpeed") : 3.0f;
-        this.lingerTicks = nbt.hasKey("lingerTicks") ? nbt.getInteger("lingerTicks") : 8;
+        this.laserWidth = nbt.getFloat("laserWidth");
+        this.expansionSpeed = nbt.getFloat("expansionSpeed");
+        this.lingerTicks = nbt.getInteger("lingerTicks");
         anchorData.readNBT(nbt);
         colorData.readNBT(nbt);
         combatData.readNBT(nbt);

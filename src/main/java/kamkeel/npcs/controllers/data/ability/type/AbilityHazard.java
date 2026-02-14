@@ -115,11 +115,11 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         readZoneNBT(nbt, 300);
-        this.radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 2.0f;
-        this.damagePerSecond = nbt.hasKey("damagePerSecond") ? nbt.getFloat("damagePerSecond") : 1.0f;
-        this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 20;
-        this.ignoreInvulnFrames = nbt.hasKey("ignoreInvulnFrames") && nbt.getBoolean("ignoreInvulnFrames");
-        this.affectsCaster = nbt.hasKey("affectsCaster") && nbt.getBoolean("affectsCaster");
+        this.radius = nbt.getFloat("radius");
+        this.damagePerSecond = nbt.getFloat("damagePerSecond");
+        this.damageInterval = nbt.getInteger("damageInterval");
+        this.ignoreInvulnFrames = nbt.getBoolean("ignoreInvulnFrames");
+        this.affectsCaster = nbt.getBoolean("affectsCaster");
     }
 
     // ═══════════════════════════════════════════════════════════════════

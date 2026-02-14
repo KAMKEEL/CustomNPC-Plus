@@ -440,8 +440,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         int bottomHeight = 0;
         int bottomTextureV = 0;
         if (ySize < bgTextureHeight) {
-            // Keep bottom border from texture bottom (last 6 pixels of actual content)
-            bottomHeight = 6;
+            bottomHeight = -1;
             topHeight = ySize - bottomHeight;
             bottomTextureV = bgTextureHeight - bottomHeight;
         }

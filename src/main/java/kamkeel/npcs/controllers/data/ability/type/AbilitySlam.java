@@ -86,10 +86,20 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
         if (isPlayerCaster(caster)) {
-            // Player: slam will launch from current position, no target tracking needed
-            targetX = caster.posX;
-            targetY = caster.posY;
-            targetZ = caster.posZ;
+            // Player: update target along look direction during windup
+            if (targetingMode == TargetingMode.AOE_SELF) {
+                targetX = caster.posX;
+                targetY = caster.posY;
+                targetZ = caster.posZ;
+            } else {
+                float yawRad = (float) Math.toRadians(caster.rotationYaw);
+                double dirX = -Math.sin(yawRad);
+                double dirZ = Math.cos(yawRad);
+                double launchDist = Math.max(4.0, maxRange * 0.5);
+                targetX = caster.posX + dirX * launchDist;
+                targetY = caster.posY;
+                targetZ = caster.posZ + dirZ * launchDist;
+            }
         } else {
             // NPC: update target position during windup for telegraph tracking
             if (targetingMode == TargetingMode.AOE_SELF) {
@@ -139,18 +149,22 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     }
 
     /**
-     * Player slam: Launch straight up. Player controls horizontal movement via WASD.
+     * Player slam: Launch in look direction using same ballistic arc as NPC slam.
      * AOE damage triggers wherever the player lands.
      */
     private void executePlayerSlam(EntityLivingBase caster) {
-        targetX = caster.posX;
-        targetY = caster.posY;
-        targetZ = caster.posZ;
+        // Calculate target position along player's look direction (horizontal only)
+        float yawRad = (float) Math.toRadians(caster.rotationYaw);
+        double dirX = -Math.sin(yawRad);
+        double dirZ = Math.cos(yawRad);
 
-        double vy = calculateLaunchVelocity(Math.max(1.0, leapHeight));
-        caster.motionY = vy;
-        hasLaunched = true;
-        caster.velocityChanged = true;
+        double launchDist = Math.max(4.0, maxRange * 0.5);
+
+        targetX = caster.posX + dirX * launchDist;
+        targetY = caster.posY;
+        targetZ = caster.posZ + dirZ * launchDist;
+
+        launchTowardTarget(caster);
     }
 
     /**
@@ -283,11 +297,12 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             caster.fallDistance = 0;
         }
 
-        // Check for landing
-        if (caster.onGround && airTicks > 3) {
-            // Landed!
-            onLanding(caster, world);
-            return;
+        // Check for landing: hit the ground or hit a wall mid-flight
+        if (airTicks > 3) {
+            if (caster.onGround || caster.isCollidedHorizontally) {
+                onLanding(caster, world);
+                return;
+            }
         }
 
         // Timeout protection - force landing after max air time
@@ -296,14 +311,18 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             return;
         }
 
-        // NPC: face toward target destination while in air
-        // Player: free look — player controls their own camera
-        if (!isPreview() && !isPlayerCaster(caster)) {
+        // Face toward target destination while in air (both NPC and Player)
+        if (!isPreview()) {
             double dx = targetX - caster.posX;
             double dz = targetZ - caster.posZ;
-            float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
-            caster.rotationYaw = targetYaw;
-            caster.rotationYawHead = targetYaw;
+            if (dx * dx + dz * dz > 0.25) {
+                float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
+                caster.rotationYaw = targetYaw;
+                caster.rotationYawHead = targetYaw;
+                if (isPlayerCaster(caster)) {
+                    caster.velocityChanged = true;
+                }
+            }
         }
     }
 
@@ -490,11 +509,11 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 10.0f;
-        radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 5.0f;
-        knockbackStrength = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
-        leapSpeed = nbt.hasKey("leapSpeed") ? nbt.getFloat("leapSpeed") : 1.0f;
-        leapHeight = nbt.hasKey("leapHeight") ? nbt.getFloat("leapHeight") : 4.0f;
+        damage = nbt.getFloat("damage");
+        radius = nbt.getFloat("radius");
+        knockbackStrength = nbt.getFloat("knockback");
+        leapSpeed = nbt.getFloat("leapSpeed");
+        leapHeight = nbt.getFloat("leapHeight");
     }
 
     // Getters & Setters

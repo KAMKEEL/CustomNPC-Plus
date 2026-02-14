@@ -2,6 +2,7 @@ package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.Vec3;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -17,6 +18,12 @@ import noppes.npcs.entity.data.ModelScalePart;
  * Supports both EntityNPCInterface and EntityPlayer with animation and model size awareness.
  */
 public class AnchorPointHelper {
+
+    // Y offset correction for the local client player.
+    // EntityPlayerSP.posY is at feet, but the renderer adds yOffset (1.62) visually,
+    // so anchor positions computed from posY appear ~1.6 blocks too high for the local player.
+    // Remote players and NPCs don't have this discrepancy.
+    private static final float CLIENT_PLAYER_Y_OFFSET = -1.6F;
 
     // Default biped model constants (in model units, 1 unit = 1/16 block)
     private static final float MODEL_SCALE = 1f / 16f;
@@ -68,7 +75,7 @@ public class AnchorPointHelper {
         float anchorZ = anchorData.anchorOffsetZ;
 
         double x = entity.posX;
-        double y = entity.posY;
+        double y = entity.posY + getClientPlayerYCorrection(entity);
         double z = entity.posZ;
 
         float headYaw = (float) Math.toRadians(entity.rotationYawHead);
@@ -125,6 +132,18 @@ public class AnchorPointHelper {
             return modelSize / 5f;  // modelSize 5 = 100% scale
         }
         return 1f;
+    }
+
+    /**
+     * Returns Y offset correction for the local client player.
+     * On the client, EntityPlayerSP.posY is at feet level but the renderer adds yOffset (1.62),
+     * causing anchor positions to appear ~1.6 blocks too high. This matches DBC's correction.
+     */
+    private static double getClientPlayerYCorrection(EntityLivingBase entity) {
+        if (entity.worldObj.isRemote && entity instanceof EntityPlayerSP) {
+            return CLIENT_PLAYER_Y_OFFSET;
+        }
+        return 0.0;
     }
 
     // Default arm scale (no scaling)
@@ -251,7 +270,7 @@ public class AnchorPointHelper {
 
         // Final world position
         double worldX = entity.posX + worldOffsetX;
-        double worldY = entity.posY + shoulderHeight - blockY;
+        double worldY = entity.posY + getClientPlayerYCorrection(entity) + shoulderHeight - blockY;
         double worldZ = entity.posZ + worldOffsetZ;
 
         // Rotate offsets relative to entity's body yaw
@@ -324,7 +343,7 @@ public class AnchorPointHelper {
         double armLengthOffset = armScale.scaleY * 0.3 * scale;
 
         double x = entity.posX + lateralX + forwardX;
-        double y = entity.posY + entity.height * FALLBACK_ARM_HEIGHT + armLengthOffset;
+        double y = entity.posY + getClientPlayerYCorrection(entity) + entity.height * FALLBACK_ARM_HEIGHT + armLengthOffset;
         double z = entity.posZ + lateralZ + forwardZ;
 
         // Rotate offsets relative to entity's body yaw

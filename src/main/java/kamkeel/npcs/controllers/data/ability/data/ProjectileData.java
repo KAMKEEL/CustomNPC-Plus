@@ -44,8 +44,8 @@ public class ProjectileData {
         anchor.readNBT(nbt);
         colorOverride = nbt.getBoolean("colorOverride");
         if (colorOverride) {
-            innerColor = nbt.hasKey("overrideInnerColor") ? nbt.getInteger("overrideInnerColor") : 0xFFFFFF;
-            outerColor = nbt.hasKey("overrideOuterColor") ? nbt.getInteger("overrideOuterColor") : 0x8888FF;
+            innerColor = nbt.getInteger("overrideInnerColor");
+            outerColor = nbt.getInteger("overrideOuterColor");
         }
     }
 
