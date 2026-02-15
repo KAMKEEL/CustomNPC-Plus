@@ -269,7 +269,7 @@ public class DataAbilities {
                 // This allows entity-spawning abilities to immediately chain next burst
                 // without each type needing to check burst state in their onActiveTick()
                 // Wait until all staggered projectiles have been fired before auto-completing
-                if (currentAbility.isBurstEnabled() && currentAbility.isBurstOverlap()
+                if (currentAbility.isBurstEnabled()
                     && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
                     && currentAbility.getPhase() == AbilityPhase.ACTIVE
                     && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {

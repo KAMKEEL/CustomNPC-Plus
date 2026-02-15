@@ -910,9 +910,9 @@ public abstract class Ability implements IAbility {
         if (phase == AbilityPhase.ACTIVE) {
             // Check if more burst iterations remain
             if (burstEnabled && burstAmount > 0 && burstIndex < burstAmount) {
-                if (!burstOverlap) {
-                    cleanup();
-                }
+                // Don't cleanup here - entities may still be in flight
+                // For non-overlap: cleaned up when next burst starts (in onExecute)
+                // For overlap: entities continue flying indefinitely
                 burstIndex++;
                 phase = AbilityPhase.BURST_DELAY;
                 currentTick = 0;

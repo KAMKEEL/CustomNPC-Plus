@@ -258,9 +258,13 @@ public abstract class AbstractEnergyProjectileAbility<E extends EntityAbilityPro
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         // Create fresh entities if needed:
         // - entities == null: windup was skipped (burst without replay animations)
-        // - isBurstRefire(): burst overlap mode kept old (stale) entities alive,
+        // - isBurstRefire(): previous burst entities may still be alive,
         //   so we must create new ones for each burst iteration
         if (entities == null || isBurstRefire()) {
+            // Non-overlap burst refire: kill old entities before creating new ones
+            if (isBurstRefire() && !burstOverlap && entities != null) {
+                cleanup();
+            }
             entities = createAllEntities(caster, target);
             for (E entity : entities) {
                 spawnAbilityEntity(entity);
@@ -294,14 +298,32 @@ public abstract class AbstractEnergyProjectileAbility<E extends EntityAbilityPro
             }
         }
 
-        // Check if all entities are dead
+        // Check if all entities are dead or unreachable
         boolean allDead = true;
         for (E entity : entities) {
-            if (entity != null && !entity.isDead) {
-                allDead = false;
-                break;
+            if (entity == null || entity.isDead) continue;
+
+            // Check if entity was removed from world (chunk unload, etc.)
+            if (tick > 5 && entity.worldObj != null
+                    && entity.worldObj.getEntityByID(entity.getEntityId()) != entity) {
+                entity.setDead();
+                continue;
+            }
+
+            allDead = false;
+            break;
+        }
+
+        // Failsafe timeout: force completion if active phase exceeded max possible flight time
+        if (!allDead) {
+            int lastFireTick = fireDelay > 0 ? fireDelay * (projectileCount - 1) : 0;
+            int maxFlightTime = lifespanData.maxLifetime > 0 ? lifespanData.maxLifetime : 200;
+            if (tick > lastFireTick + maxFlightTime + 20) {
+                cleanup();
+                allDead = true;
             }
         }
+
         if (allDead) {
             signalCompletion();
         }

@@ -220,7 +220,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                 }
 
                 // Auto-complete for burst overlap mode (entities fly independently)
-                if (currentAbility.isBurstEnabled() && currentAbility.isBurstOverlap()
+                if (currentAbility.isBurstEnabled()
                     && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
                     && currentAbility.getPhase() == AbilityPhase.ACTIVE
                     && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
