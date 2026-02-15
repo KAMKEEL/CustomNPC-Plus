@@ -1910,6 +1910,7 @@ ability.modifyParent=Edit Parent
 
 # Ability Variant Selection
 ability.selectVariant=Select Variant
+ability.variant.base=Base
 ability.variant.single=Single
 ability.variant.dual=Dual
 ability.variant.barrage=Barrage
