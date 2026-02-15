@@ -110,9 +110,6 @@ public abstract class Ability implements IAbility {
     protected boolean burstReplayAnimations = true;
     protected boolean burstOverlap = false;    // if true, don't wait for entity death between bursts
 
-    // Ki
-    protected int kiCost = 0;
-
     // ═══════════════════════════════════════════════════════════════════
     // EXECUTION STATE (not saved, reset each combat)
     // ═══════════════════════════════════════════════════════════════════
@@ -1152,9 +1149,6 @@ public abstract class Ability implements IAbility {
         nbt.setBoolean("burstReplayAnimations", burstReplayAnimations);
         nbt.setBoolean("burstOverlap", burstOverlap);
 
-        // Ki
-        nbt.setInteger("kiCost", kiCost);
-
         // Conditions
         NBTTagList condList = new NBTTagList();
         for (Condition c : conditions) condList.appendTag(c.writeNBT());
@@ -1217,9 +1211,6 @@ public abstract class Ability implements IAbility {
         burstDelay = nbt.getInteger("burstDelay");
         burstReplayAnimations = nbt.getBoolean("burstReplayAnimations");
         burstOverlap = nbt.getBoolean("burstOverlap");
-
-        // Ki
-        kiCost = nbt.getInteger("kiCost");
 
         // Conditions
         conditions.clear();
@@ -1758,14 +1749,6 @@ public abstract class Ability implements IAbility {
 
     public int getBurstIndex() {
         return burstIndex;
-    }
-
-    public int getKiCost() {
-        return kiCost;
-    }
-
-    public void setKiCost(int kiCost) {
-        this.kiCost = kiCost;
     }
 
     /**
