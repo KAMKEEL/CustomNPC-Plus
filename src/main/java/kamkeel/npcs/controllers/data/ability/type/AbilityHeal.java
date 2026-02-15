@@ -79,27 +79,27 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote && !isPreview()) return;
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        if (caster.worldObj.isRemote && !isPreview()) return;
 
         if (!isPreview()) {
             getHealedAllies().clear();
 
             // Always find allies if we're healing them (needed for both instant and HoT)
             if (healAllies && healRadius > 0) {
-                findAlliesInRadius(caster, world);
+                findAlliesInRadius(caster, caster.worldObj);
             }
 
             if (instantHeal) {
                 // Instant heal - apply all healing now
                 if (healSelf) {
                     healEntity(caster);
-                    spawnHealParticles(world, caster);
+                    spawnHealParticles(caster.worldObj, caster);
                 }
 
                 for (EntityLivingBase ally : getHealedAllies()) {
                     healEntity(ally);
-                    spawnHealParticles(world, ally);
+                    spawnHealParticles(caster.worldObj, ally);
                 }
             }
         }
@@ -112,8 +112,8 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if ((world.isRemote && !isPreview()) || instantHeal) return;
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if ((caster.worldObj.isRemote && !isPreview()) || instantHeal) return;
 
         // Heal over time - distribute heal across duration ticks
         if (tick % 10 == 0) {
@@ -128,7 +128,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
                 }
                 caster.heal(selfTickHeal);
                 if (tick % 20 == 0) {
-                    spawnHealParticles(world, caster);
+                    spawnHealParticles(caster.worldObj, caster);
                 }
             }
 
@@ -142,7 +142,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
                         }
                         ally.heal(allyTickHeal);
                         if (tick % 20 == 0) {
-                            spawnHealParticles(world, ally);
+                            spawnHealParticles(caster.worldObj, ally);
                         }
                     }
                 }

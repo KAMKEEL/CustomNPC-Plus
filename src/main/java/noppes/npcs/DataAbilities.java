@@ -186,7 +186,7 @@ public class DataAbilities {
                     playAbilitySound(currentAbility.getWindUpSound());
                     playAbilityAnimation(currentAbility.getWindUpAnimation());
                 }
-                currentAbility.onWindUpTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
+                currentAbility.onWindUpTick(npc, target, currentAbility.getCurrentTick());
                 break;
 
             case ACTIVE:
@@ -221,11 +221,6 @@ public class DataAbilities {
                         releaseLockedPosition();
                     }
 
-                    // Burst re-fire without replay: let entity-spawning abilities spawn+fire in one step
-                    if (oldPhase == AbilityPhase.BURST_DELAY && !currentAbility.isBurstReplayAnimations()) {
-                        currentAbility.onBurstRefire(npc, target, npc.worldObj);
-                    }
-
                     // Play active sound and animation
                     // Abilities that keep telegraph during active manage their own sound timing
                     if (!currentAbility.keepTelegraphDuringActive()) {
@@ -247,7 +242,7 @@ public class DataAbilities {
                     }
 
                     // Call onExecute
-                    currentAbility.onExecute(npc, target, npc.worldObj);
+                    currentAbility.onExecute(npc, target);
 
                     // Check if ability completed during onExecute (signalCompletion was called)
                     if (currentAbility.getPhase() == AbilityPhase.IDLE) {
@@ -255,7 +250,7 @@ public class DataAbilities {
                         return;
                     }
                 }
-                currentAbility.onActiveTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
+                currentAbility.onActiveTick(npc, target, currentAbility.getCurrentTick());
 
                 // Check if ability completed during onActiveTick (signalCompletion was called)
                 if (currentAbility.getPhase() == AbilityPhase.IDLE) {
@@ -554,7 +549,7 @@ public class DataAbilities {
         }
 
         // Call onExecute
-        ability.onExecute(npc, target, npc.worldObj);
+        ability.onExecute(npc, target);
 
         // Check if ability completed during onExecute
         if (ability.getPhase() == AbilityPhase.IDLE) {

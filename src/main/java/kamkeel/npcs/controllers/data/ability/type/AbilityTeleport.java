@@ -97,13 +97,13 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         currentBlink = 0;
         ticksSinceLastBlink = blinkDelayTicks; // Trigger first blink immediately
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
         if (currentBlink >= blinkLimit) {
             signalCompletion();
@@ -113,7 +113,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         ticksSinceLastBlink++;
 
         if (ticksSinceLastBlink >= blinkDelayTicks) {
-            performBlink(caster, target, world);
+            performBlink(caster, target, caster.worldObj);
             currentBlink++;
             ticksSinceLastBlink = 0;
 

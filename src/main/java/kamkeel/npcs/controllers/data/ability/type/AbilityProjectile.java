@@ -67,18 +67,18 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote && !isPreview()) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        if (caster.worldObj.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
         if (isPlayerCaster(caster)) {
             // Player: instant hit-scan in look direction
-            executePlayerProjectile(caster, world);
+            executePlayerProjectile(caster, caster.worldObj);
         } else if (target != null) {
             // NPC: instant hit-scan on aggro target
-            executeNpcProjectile(caster, target, world);
+            executeNpcProjectile(caster, target, caster.worldObj);
         }
 
         signalCompletion();
@@ -250,7 +250,7 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         // Projectile is instant, nothing to do per-tick
     }
 

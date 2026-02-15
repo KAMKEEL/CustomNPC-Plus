@@ -13,7 +13,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -81,7 +80,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
      * Called on the first tick of windup - lock direction here so it matches telegraph.
      */
     @Override
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (tick == 1) {
             // Lock direction on first windup tick (same time telegraph is created)
             lockChargeDirection(caster, target);
@@ -116,7 +115,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         // Initialize charge - direction was already locked during windup
         startX = caster.posX;
         startY = caster.posY;
@@ -146,7 +145,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         // Safety timeout or missing state: force-complete to prevent stuck NPC
         if (!isPreview() && (chargeDirection == null || tick > maxActiveTicks)) {
             stopMomentum(caster);
@@ -206,11 +205,11 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         }
 
         // Server-side collision damage (skip in preview)
-        if (!world.isRemote && !isPreview()) {
+        if (!caster.worldObj.isRemote && !isPreview()) {
             AxisAlignedBB hitBox = caster.boundingBox.expand(hitWidth, hitWidth * 0.5, hitWidth);
 
             @SuppressWarnings("unchecked")
-            List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+            List<Entity> entities = caster.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
 
             for (Entity entity : entities) {
                 if (!(entity instanceof EntityLivingBase)) continue;
@@ -226,9 +225,10 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
                 boolean wasHit = applyAbilityDamageWithDirection(caster, livingEntity, damage, knockback,
                     chargeDirection.xCoord, chargeDirection.zCoord);
 
-                // Play impact sound if hit wasn't cancelled
+                // Apply effects and play impact sound if hit wasn't cancelled
                 if (wasHit) {
-                    world.playSoundAtEntity(livingEntity, "random.explode", 0.5f, 1.2f);
+                    applyEffects(livingEntity);
+                    caster.worldObj.playSoundAtEntity(livingEntity, "random.explode", 0.5f, 1.2f);
                 }
             }
         }
@@ -255,35 +255,7 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     }
 
     private boolean isChargeBlocked(EntityLivingBase caster) {
-        double nextX = chargeDirection.xCoord * chargeSpeed;
-        double nextZ = chargeDirection.zCoord * chargeSpeed;
-        AxisAlignedBB nextBox = caster.boundingBox.copy().offset(nextX, 0, nextZ);
-        double stepThreshold = nextBox.minY + Math.max(caster.stepHeight, 0.5);
-
-        int x1 = (int) Math.floor(nextBox.minX);
-        int x2 = (int) Math.floor(nextBox.maxX + 1.0);
-        int y1 = (int) Math.floor(nextBox.minY) - 1;
-        int y2 = (int) Math.floor(nextBox.maxY + 1.0);
-        int z1 = (int) Math.floor(nextBox.minZ);
-        int z2 = (int) Math.floor(nextBox.maxZ + 1.0);
-
-        java.util.ArrayList<AxisAlignedBB> collisionBoxes = new java.util.ArrayList<>();
-        for (int bx = x1; bx < x2; bx++) {
-            for (int bz = z1; bz < z2; bz++) {
-                for (int by = y1; by < y2; by++) {
-                    net.minecraft.block.Block block = caster.worldObj.getBlock(bx, by, bz);
-                    if (!block.getMaterial().blocksMovement()) continue;
-                    collisionBoxes.clear();
-                    block.addCollisionBoxesToList(caster.worldObj, bx, by, bz, nextBox, collisionBoxes, caster);
-                    for (AxisAlignedBB box : collisionBoxes) {
-                        if (box.maxY > stepThreshold) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
+        return isMovementBlocked(caster, chargeDirection.xCoord, chargeDirection.zCoord, chargeSpeed);
     }
 
     @Override

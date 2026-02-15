@@ -11,7 +11,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -133,7 +132,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         startX = caster.posX;
         startY = caster.posY;
         startZ = caster.posZ;
@@ -175,7 +174,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         // Safety timeout or missing state: force-complete to prevent stuck NPC
         if (!isPreview() && (dashDirection == null || tick > maxActiveTicks)) {
             stopDash(caster);
@@ -224,7 +223,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
             caster.velocityChanged = true;
 
             // Trail particles
-            world.spawnParticle("smoke", caster.posX, caster.posY + 0.5, caster.posZ, 0, 0, 0);
+            caster.worldObj.spawnParticle("smoke", caster.posX, caster.posY + 0.5, caster.posZ, 0, 0, 0);
         }
     }
 
@@ -255,35 +254,7 @@ public class AbilityDash extends Ability implements IAbilityDash {
 
     private boolean isDashBlocked(EntityLivingBase caster) {
         if (dashDirection == null) return true;
-        double nextX = dashDirection.xCoord * dashSpeed;
-        double nextZ = dashDirection.zCoord * dashSpeed;
-        AxisAlignedBB nextBox = caster.boundingBox.copy().offset(nextX, 0, nextZ);
-        double stepThreshold = nextBox.minY + Math.max(caster.stepHeight, 0.5);
-
-        int x1 = (int) Math.floor(nextBox.minX);
-        int x2 = (int) Math.floor(nextBox.maxX + 1.0);
-        int y1 = (int) Math.floor(nextBox.minY) - 1;
-        int y2 = (int) Math.floor(nextBox.maxY + 1.0);
-        int z1 = (int) Math.floor(nextBox.minZ);
-        int z2 = (int) Math.floor(nextBox.maxZ + 1.0);
-
-        java.util.ArrayList<AxisAlignedBB> collisionBoxes = new java.util.ArrayList<>();
-        for (int bx = x1; bx < x2; bx++) {
-            for (int bz = z1; bz < z2; bz++) {
-                for (int by = y1; by < y2; by++) {
-                    net.minecraft.block.Block block = caster.worldObj.getBlock(bx, by, bz);
-                    if (!block.getMaterial().blocksMovement()) continue;
-                    collisionBoxes.clear();
-                    block.addCollisionBoxesToList(caster.worldObj, bx, by, bz, nextBox, collisionBoxes, caster);
-                    for (AxisAlignedBB box : collisionBoxes) {
-                        if (box.maxY > stepThreshold) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
+        return isMovementBlocked(caster, dashDirection.xCoord, dashDirection.zCoord, dashSpeed);
     }
 
     @Override

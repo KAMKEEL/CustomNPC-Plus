@@ -290,7 +290,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
 
     private void tickWindup() {
         // Call the REAL windup tick method
-        previewAbility.onWindUpTick(previewNpc, fakeTarget, previewNpc.worldObj, currentTick);
+        previewAbility.onWindUpTick(previewNpc, fakeTarget, currentTick);
 
         if (currentTick >= previewAbility.getWindUpTicks()) {
             transitionToActive();
@@ -299,7 +299,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
 
     private void tickActive() {
         // Call the REAL active tick method
-        previewAbility.onActiveTick(previewNpc, fakeTarget, previewNpc.worldObj, currentTick);
+        previewAbility.onActiveTick(previewNpc, fakeTarget, currentTick);
 
         // Simulate physics for movement abilities
         simulatePhysics();
@@ -330,7 +330,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
         previewTelegraph = null;
 
         // Call the REAL onExecute method (fires entities, initiates movement, etc.)
-        previewAbility.onExecute(previewNpc, fakeTarget, previewNpc.worldObj);
+        previewAbility.onExecute(previewNpc, fakeTarget);
 
         // Start active animation
         Animation activeAnim = previewAbility.getActiveAnimation();

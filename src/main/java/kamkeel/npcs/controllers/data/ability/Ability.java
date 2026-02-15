@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.DamageSource;
@@ -141,14 +142,17 @@ public abstract class Ability implements IAbility {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Called first tick of ACTIVE phase
+     * Called first tick of ACTIVE phase.
+     * For burst without replay (burstReplayAnimations=false), this is called directly
+     * after BURST_DELAY without a preceding windup. Check isBurstRefire() or null-check
+     * entity state to detect and handle the burst refire case.
      */
-    public abstract void onExecute(EntityLivingBase caster, EntityLivingBase target, World world);
+    public abstract void onExecute(EntityLivingBase caster, EntityLivingBase target);
 
     /**
      * Called every tick of ACTIVE phase
      */
-    public abstract void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick);
+    public abstract void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick);
 
     /**
      * Write type-specific config to NBT
@@ -208,17 +212,15 @@ public abstract class Ability implements IAbility {
         return true;
     }
 
-    /**
-     * Called when burst re-fires without replay animations (burstReplayAnimations=false).
-     * Entity-spawning abilities should override to spawn and fire entities in one step,
-     * since onWindUpTick was not called (windup was skipped).
-     * Default: does nothing (ability goes directly to onExecute with existing state).
-     */
-    public void onBurstRefire(EntityLivingBase caster, EntityLivingBase target, World world) {
-        // Override in entity-spawning abilities (Orb, Beam, Disc, LaserShot)
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
     }
 
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    /**
+     * Whether this execution is a burst refire (not the first execution).
+     * Useful in onExecute() to detect when windup was skipped and entities need fresh creation.
+     */
+    public boolean isBurstRefire() {
+        return burstEnabled && burstIndex > 0;
     }
 
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
@@ -1051,11 +1053,11 @@ public abstract class Ability implements IAbility {
      * Spawn an entity during ability execution.
      * In preview mode, routes to PreviewEntityHandler instead of world.spawnEntityInWorld().
      */
-    protected void spawnAbilityEntity(World world, Entity entity) {
+    protected void spawnAbilityEntity(Entity entity) {
         if (previewMode && previewEntityHandler != null) {
             previewEntityHandler.onEntitySpawned(entity);
         } else {
-            world.spawnEntityInWorld(entity);
+            entity.worldObj.spawnEntityInWorld(entity);
         }
         if (burstEnabled && burstOverlap) {
             burstEntities.add(entity);
@@ -1139,7 +1141,7 @@ public abstract class Ability implements IAbility {
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
-        nbt.setTag("customData", customData);
+        nbt.setTag("customData", (NBTTagCompound) customData.copy());
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
@@ -1262,6 +1264,10 @@ public abstract class Ability implements IAbility {
 
     public boolean isBuiltIn() {
         return false;
+    }
+
+    public Ability deepCopy() {
+        return AbilityController.Instance.fromNBT(this.writeNBT());
     }
 
     public boolean isNpcInlineEdit() {
@@ -1794,6 +1800,52 @@ public abstract class Ability implements IAbility {
 
         // Return total duration
         return totalDuration;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // MOVEMENT COLLISION UTILITY
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Check if a caster's movement in a given direction is blocked by walls/blocks.
+     * Used by Charge and Dash abilities to detect wall collision.
+     *
+     * @param caster The entity moving
+     * @param dirX   X component of normalized movement direction
+     * @param dirZ   Z component of normalized movement direction
+     * @param speed  Movement speed (blocks per tick)
+     * @return true if movement is blocked
+     */
+    protected static boolean isMovementBlocked(EntityLivingBase caster, double dirX, double dirZ, double speed) {
+        double nextX = dirX * speed;
+        double nextZ = dirZ * speed;
+        AxisAlignedBB nextBox = caster.boundingBox.copy().offset(nextX, 0, nextZ);
+        double stepThreshold = nextBox.minY + Math.max(caster.stepHeight, 0.5);
+
+        int x1 = (int) Math.floor(nextBox.minX);
+        int x2 = (int) Math.floor(nextBox.maxX + 1.0);
+        int y1 = (int) Math.floor(nextBox.minY) - 1;
+        int y2 = (int) Math.floor(nextBox.maxY + 1.0);
+        int z1 = (int) Math.floor(nextBox.minZ);
+        int z2 = (int) Math.floor(nextBox.maxZ + 1.0);
+
+        java.util.ArrayList<AxisAlignedBB> collisionBoxes = new java.util.ArrayList<>();
+        for (int bx = x1; bx < x2; bx++) {
+            for (int bz = z1; bz < z2; bz++) {
+                for (int by = y1; by < y2; by++) {
+                    Block block = caster.worldObj.getBlock(bx, by, bz);
+                    if (!block.getMaterial().blocksMovement()) continue;
+                    collisionBoxes.clear();
+                    block.addCollisionBoxesToList(caster.worldObj, bx, by, bz, nextBox, collisionBoxes, caster);
+                    for (AxisAlignedBB box : collisionBoxes) {
+                        if (box.maxY > stepThreshold) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════
