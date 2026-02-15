@@ -256,8 +256,11 @@ public abstract class AbstractEnergyProjectileAbility<E extends EntityAbilityPro
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
-        // Burst refire: entities not created during windup (it was skipped)
-        if (entities == null) {
+        // Create fresh entities if needed:
+        // - entities == null: windup was skipped (burst without replay animations)
+        // - isBurstRefire(): burst overlap mode kept old (stale) entities alive,
+        //   so we must create new ones for each burst iteration
+        if (entities == null || isBurstRefire()) {
             entities = createAllEntities(caster, target);
             for (E entity : entities) {
                 spawnAbilityEntity(entity);
