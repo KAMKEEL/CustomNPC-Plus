@@ -171,6 +171,13 @@ public class DataAbilities {
         // Fire tick event for scripts
         fireTickEvent(currentAbility, target);
 
+        // Fire extender tick hook (e.g., per-tick resource drain)
+        if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, npc, target,
+                currentAbility.getPhase(), currentAbility.getCurrentTick())) {
+            interruptCurrentAbility(null, 0);
+            return;
+        }
+
         // Handle phase-specific logic
         switch (currentAbility.getPhase()) {
             case WINDUP:
@@ -342,6 +349,9 @@ public class DataAbilities {
         // Remove any remaining telegraphs (for abilities that keep telegraph during active)
         removeTelegraph(currentAbility);
 
+        // Fire extender complete hook
+        AbilityController.Instance.fireOnAbilityComplete(currentAbility, npc, target, false);
+
         // Call onComplete callback
         currentAbility.onComplete(npc, target);
 
@@ -498,6 +508,11 @@ public class DataAbilities {
             npc.wrappedNPC, ability, target);
         if (NpcAPI.EVENT_BUS.post(startEvent)) {
             // Event was cancelled - don't start the ability
+            return false;
+        }
+
+        // Fire extender start hook (e.g., resource cost checks)
+        if (!AbilityController.Instance.fireOnAbilityStart(ability, npc, target)) {
             return false;
         }
 
@@ -749,6 +764,9 @@ public class DataAbilities {
             // Release locks
             releaseRotationControl();
             releaseLockedPosition();
+
+            // Fire extender complete hook (interrupted)
+            AbilityController.Instance.fireOnAbilityComplete(currentAbility, npc, lastTarget, true);
 
             // Fire interrupt event
             AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(

@@ -329,13 +329,10 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (damage > 0) {
-            // Check for external damage handler first (e.g., DBC Addon)
-            IAbilityDamageHandler handler = AbilityController.Instance.getDamageHandler();
-            boolean handled = false;
-            if (handler != null) {
-                handled = handler.handleDamage(this, caster, hitEntity, damage, knockback, knockbackUp,
-                                               knockbackDirX, knockbackDirZ);
-            }
+            // Check for ability extenders (e.g., DBC Addon damage routing)
+            boolean handled = AbilityController.Instance.fireOnAbilityDamage(
+                this, caster, hitEntity, damage, knockback, knockbackUp,
+                knockbackDirX, knockbackDirZ);
             if (!handled) {
                 // Default damage path
                 if (caster instanceof EntityNPCInterface) {

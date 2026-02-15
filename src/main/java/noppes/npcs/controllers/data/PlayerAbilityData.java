@@ -147,6 +147,13 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         // Tick advances time and possibly changes phase
         boolean phaseChanged = currentAbility.tick();
 
+        // Fire extender tick hook (e.g., per-tick resource drain)
+        if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, player, currentTarget,
+                currentAbility.getPhase(), currentAbility.getCurrentTick())) {
+            interruptCurrentAbility();
+            return;
+        }
+
         switch (currentAbility.getPhase()) {
             case WINDUP:
                 if (phaseChanged && oldPhase == AbilityPhase.BURST_DELAY) {
@@ -249,6 +256,9 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     private void handleAbilityCompletion(EntityPlayer player) {
         if (currentAbility == null) return;
 
+        // Fire extender complete hook
+        AbilityController.Instance.fireOnAbilityComplete(currentAbility, player, currentTarget, false);
+
         currentAbility.onComplete(player, currentTarget);
 
         // Release all locks
@@ -317,6 +327,11 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
         // Check conditions (skip target-requiring ones)
         if (!ability.checkConditionsForPlayer(player)) return false;
+
+        // Fire extender start hook (e.g., resource cost checks)
+        if (!AbilityController.Instance.fireOnAbilityStart(ability, player, null)) {
+            return false;
+        }
 
         // Start the ability
         currentAbility = ability;
@@ -517,6 +532,9 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
     public void interruptCurrentAbility() {
         if (currentAbility != null && currentAbility.isExecuting()) {
+            // Fire extender complete hook (interrupted)
+            AbilityController.Instance.fireOnAbilityComplete(currentAbility, playerData.player, currentTarget, true);
+
             currentAbility.interrupt();
             stopAbilityAnimation();
             releaseRotationControl();

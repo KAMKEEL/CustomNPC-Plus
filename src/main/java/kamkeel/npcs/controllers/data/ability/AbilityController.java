@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.*;
 import kamkeel.npcs.controllers.SyncController;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
@@ -24,7 +25,7 @@ public class AbilityController implements IAbilityHandler {
     // ── Extension Points ─────────────────────────────────────────────────────
     private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
-    private IAbilityDamageHandler damageHandler = null;
+    private final List<IAbilityExtender> extenders = new ArrayList<>();
 
     // ── Derived State ────────────────────────────────────────────────────────
     private final Set<String> builtInTypeIds = new HashSet<>();
@@ -350,20 +351,70 @@ public class AbilityController implements IAbilityHandler {
         return result;
     }
 
-    public void registerDamageHandler(IAbilityDamageHandler handler) {
-        this.damageHandler = handler;
-    }
-
-    public IAbilityDamageHandler getDamageHandler() {
-        return damageHandler;
-    }
-
     public void registerFieldProvider(IAbilityFieldProvider provider) {
         fieldProviders.add(provider);
     }
 
     public List<IAbilityFieldProvider> getFieldProviders() {
         return fieldProviders;
+    }
+
+    public void registerExtender(IAbilityExtender extender) {
+        extenders.add(extender);
+    }
+
+    public List<IAbilityExtender> getExtenders() {
+        return extenders;
+    }
+
+    /**
+     * Fire onAbilityStart on all extenders. Returns false if ANY extender cancels.
+     */
+    public boolean fireOnAbilityStart(Ability ability, EntityLivingBase caster, EntityLivingBase target) {
+        for (IAbilityExtender ext : extenders) {
+            if (!ext.onAbilityStart(ability, caster, target)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fire onAbilityTick on all extenders. Returns false if ANY extender says to interrupt.
+     */
+    public boolean fireOnAbilityTick(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                     AbilityPhase phase, int tick) {
+        for (IAbilityExtender ext : extenders) {
+            if (!ext.onAbilityTick(ability, caster, target, phase, tick)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fire onAbilityComplete on all extenders.
+     */
+    public void fireOnAbilityComplete(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                      boolean interrupted) {
+        for (IAbilityExtender ext : extenders) {
+            ext.onAbilityComplete(ability, caster, target, interrupted);
+        }
+    }
+
+    /**
+     * Fire onAbilityDamage on all extenders. Chain of responsibility — first true wins.
+     */
+    public boolean fireOnAbilityDamage(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                       float damage, float knockback, float knockbackUp,
+                                       double knockbackDirX, double knockbackDirZ) {
+        for (IAbilityExtender ext : extenders) {
+            if (ext.onAbilityDamage(ability, caster, target, damage, knockback, knockbackUp,
+                                    knockbackDirX, knockbackDirZ)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

@@ -8,7 +8,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.IAbilityDamageHandler;
+
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -326,17 +326,15 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         if (previewMode) return; // Skip damage in preview mode
         Entity owner = getOwnerEntity();
 
-        // Check for external damage handler (e.g., DBC Addon)
+        // Check for ability extenders (e.g., DBC Addon damage routing)
         boolean handled = false;
         if (sourceAbility != null && owner instanceof EntityLivingBase) {
-            IAbilityDamageHandler handler = AbilityController.Instance.getDamageHandler();
-            if (handler != null) {
-                double dx = target.posX - posX;
-                double dz = target.posZ - posZ;
-                float kbUp = getKnockbackUp() > 0 ? getKnockbackUp() : 0.1f;
-                handled = handler.handleDamage(sourceAbility, (EntityLivingBase) owner, target,
-                                               dmg, kb, kbUp, dx, dz);
-            }
+            double dx = target.posX - posX;
+            double dz = target.posZ - posZ;
+            float kbUp = getKnockbackUp() > 0 ? getKnockbackUp() : 0.1f;
+            handled = AbilityController.Instance.fireOnAbilityDamage(
+                sourceAbility, (EntityLivingBase) owner, target,
+                dmg, kb, kbUp, dx, dz);
         }
 
         if (!handled) {
