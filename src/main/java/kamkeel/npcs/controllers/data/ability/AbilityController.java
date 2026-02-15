@@ -346,6 +346,11 @@ public class AbilityController implements IAbilityHandler {
         }
         List<AbilityVariant> ext = externalVariants.get(typeId);
         if (ext != null) {
+            // If no built-in variants exist but external ones do,
+            // inject a "Base" variant so the user always gets a choice
+            if (result.isEmpty()) {
+                result.add(new AbilityVariant("ability.variant.base", a -> {}));
+            }
             result.addAll(ext);
         }
         return result;
