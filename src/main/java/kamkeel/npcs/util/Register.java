@@ -117,7 +117,9 @@ public class Register<T> {
             try {
                 String path = "/assets/" + namespace + "/" + animationsPath;
                 for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
-                    String name = entry.getKey().substring(entry.getKey().indexOf(namespace + ".") + 1);
+                    String prefix = registryKey + "." + namespace + ".";
+                    String key = entry.getKey();
+                    String name = key.substring(prefix.length());
                     AnimationController.Instance.loadBuiltInAnimation(modClass, path, name);
                 }
             } catch (Exception e) {

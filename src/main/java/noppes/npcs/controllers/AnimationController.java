@@ -123,6 +123,7 @@ public class AnimationController implements IAnimationHandler {
         String resourcePath = path + "/" + animName + ".json";
         try (InputStream stream = modClass.getResourceAsStream(resourcePath)) {
             if (stream == null) {
+                LogWriter.error("Animation not found: " + animName.toLowerCase());
                 return;
             }
 
@@ -143,6 +144,7 @@ public class AnimationController implements IAnimationHandler {
 
             // Store with lowercase key for case-insensitive lookup
             builtInAnimations.put(animName.toLowerCase(), animation);
+            LogWriter.info("Registered animation: " + animName.toLowerCase());
         }
     }
 
