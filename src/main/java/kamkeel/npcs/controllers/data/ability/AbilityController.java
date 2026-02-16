@@ -304,7 +304,13 @@ public class AbilityController implements IAbilityHandler {
                 keys.add(id);
             }
         }
-        keys.addAll(customAbilities.keySet());
+        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        for (Ability ability : customAbilities.values()) {
+            String name = ability.getName();
+            if (name != null && !name.isEmpty()) {
+                keys.add(name);
+            }
+        }
         return keys;
     }
 
@@ -318,9 +324,13 @@ public class AbilityController implements IAbilityHandler {
                 }
             }
         }
-        for (Map.Entry<String, Ability> entry : customAbilities.entrySet()) {
-            if (entry.getValue().getAllowedBy().allowsPlayer()) {
-                keys.add(entry.getKey());
+        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getAllowedBy().allowsPlayer()) {
+                String name = ability.getName();
+                if (name != null && !name.isEmpty()) {
+                    keys.add(name);
+                }
             }
         }
         return keys;

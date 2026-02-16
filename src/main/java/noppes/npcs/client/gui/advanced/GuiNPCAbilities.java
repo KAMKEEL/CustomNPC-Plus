@@ -317,9 +317,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Toggle selected ability on/off
         if (id == 77) {
             if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
-                Ability ability = npcSlots.get(selectedAbilityIndex).getAbility();
+                AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+                Ability ability = slot.getAbility();
                 if (ability != null) {
-                    ability.setEnabled(((GuiNpcButton) guibutton).getValue() == 1);
+                    boolean enabled = ((GuiNpcButton) guibutton).getValue() == 1;
+                    slot.setEnabled(enabled);
                     updateNpcAbilitiesList();
                     selectAbilityByIndex(selectedAbilityIndex);
                     initGui();

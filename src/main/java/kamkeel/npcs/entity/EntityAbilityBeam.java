@@ -696,6 +696,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         // Read trail points (relative to origin)
         trailPoints.clear();
+        trailPointAges.clear();
         if (nbt.hasKey("Trail")) {
             NBTTagList trailList = nbt.getTagList("Trail", 10);
             for (int i = 0; i < trailList.tagCount(); i++) {
@@ -706,6 +707,18 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                     point.getDouble("Z")
                 ));
             }
+        }
+
+        // Read trail point ages (must match trailPoints size for fading trail)
+        if (nbt.hasKey("TrailAges")) {
+            int[] ages = nbt.getIntArray("TrailAges");
+            for (int age : ages) {
+                trailPointAges.add(age);
+            }
+        }
+        // If trail points exist but ages don't (legacy data), initialize ages to 0
+        while (trailPointAges.size() < trailPoints.size()) {
+            trailPointAges.add(0);
         }
     }
 
@@ -733,5 +746,12 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             trailList.appendTag(pointNbt);
         }
         nbt.setTag("Trail", trailList);
+
+        // Write trail point ages for fading trail sync
+        int[] ages = new int[trailPointAges.size()];
+        for (int i = 0; i < trailPointAges.size(); i++) {
+            ages[i] = trailPointAges.get(i);
+        }
+        nbt.setIntArray("TrailAges", ages);
     }
 }

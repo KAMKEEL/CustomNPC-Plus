@@ -896,10 +896,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         this.motionY = nbt.getDouble("MotionY");
         this.motionZ = nbt.getDouble("MotionZ");
 
-        if (this.worldObj != null && this.worldObj.isRemote) {
-            this.renderCurrentSize = this.size;
-            this.prevRenderSize = this.size;
-        }
+        // Always initialize render size from NBT size so entities
+        // loading in from outside render distance render correctly
+        this.renderCurrentSize = this.size;
+        this.prevRenderSize = this.size;
 
         anchorData.readNBT(nbt);
         combatData.readNBT(nbt);
@@ -965,7 +965,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
             NBTTagCompound compound = new NBTTagCompound();
             this.writeEntityToNBT(compound);
             cpw.mods.fml.common.network.ByteBufUtils.writeTag(buffer, compound);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            noppes.npcs.LogWriter.error("Error writing ability projectile spawn data", e);
+        }
     }
 
     @Override
@@ -975,7 +977,9 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
             if (compound != null) {
                 this.readEntityFromNBT(compound);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            noppes.npcs.LogWriter.error("Error reading ability projectile spawn data", e);
+        }
     }
 
     // ==================== COLLISION SETTINGS ====================
