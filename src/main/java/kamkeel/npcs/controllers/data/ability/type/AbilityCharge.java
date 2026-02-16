@@ -2,7 +2,6 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
@@ -12,8 +11,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.Vec3;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
@@ -25,9 +22,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Charge ability: Rush attack where NPC charges in a line, damaging all targets hit.
+ * Charge ability: Rush attack where the caster charges in a line, damaging all targets hit.
+ * Extends AbilityMovement for shared direction locking, stall detection, and velocity application.
  */
-public class AbilityCharge extends Ability implements IAbilityCharge {
+public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
 
     // Type-specific parameters
     private float chargeSpeed = 0.8f;
@@ -35,13 +33,8 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
     private float knockback = 3.0f;
     private float hitWidth = 1.5f;
 
-    // Runtime state (transient)
-    private transient double startX, startY, startZ;
-    private transient double prevTickX, prevTickZ;
-    private transient Vec3 chargeDirection;
+    // Type-specific runtime state
     private transient Set<Integer> hitEntities = new HashSet<>();
-    private transient float lockedYaw;
-    private transient int maxActiveTicks;
 
     public AbilityCharge() {
         this.typeId = "ability.cnpc.charge";
@@ -71,138 +64,68 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
-    @Override
-    public boolean hasAbilityMovement() {
-        return true; // This ability moves the NPC
-    }
-
     /**
      * Called on the first tick of windup - lock direction here so it matches telegraph.
      */
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (tick == 1) {
-            // Lock direction on first windup tick (same time telegraph is created)
-            lockChargeDirection(caster, target);
+            lockDirection(caster, target);
         }
-        // Keep caster facing the locked direction during windup
         enforceLockedRotation(caster);
-    }
-
-    /**
-     * Locks the charge direction. Called once at windup start — direction won't change even if target moves.
-     * NPC: charges toward aggro target.
-     * Player: charges in look direction.
-     */
-    private void lockChargeDirection(EntityLivingBase caster, EntityLivingBase target) {
-        if (!isPlayerCaster(caster) && target != null) {
-            // NPC: charge toward aggro target
-            double dx = target.posX - caster.posX;
-            double dz = target.posZ - caster.posZ;
-            double len = Math.sqrt(dx * dx + dz * dz);
-            if (len > 0) {
-                chargeDirection = Vec3.createVectorHelper(dx / len, 0, dz / len);
-            } else {
-                float yaw = (float) Math.toRadians(caster.rotationYaw);
-                chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
-            }
-        } else {
-            // Player: charge in look direction
-            float yaw = (float) Math.toRadians(caster.rotationYaw);
-            chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
-        }
-        lockedYaw = (float) Math.toDegrees(Math.atan2(-chargeDirection.xCoord, chargeDirection.zCoord));
     }
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
-        // Initialize charge - direction was already locked during windup
-        startX = caster.posX;
-        startY = caster.posY;
-        startZ = caster.posZ;
-        prevTickX = caster.posX;
-        prevTickZ = caster.posZ;
+        initMovement(caster, maxRange, chargeSpeed);
         hitEntities.clear();
 
-        // Safety timeout: expected ticks + buffer to prevent infinite charge
-        maxActiveTicks = chargeSpeed > 0 ? (int)(maxRange / chargeSpeed) + 10 : 10;
-
         // If direction wasn't set during windup (shouldn't happen), set it now
-        if (chargeDirection == null) {
-            lockChargeDirection(caster, target);
+        if (movementDirection == null) {
+            lockDirection(caster, target);
         }
 
         enforceLockedRotation(caster);
     }
 
-    private void enforceLockedRotation(EntityLivingBase caster) {
-        caster.rotationYaw = lockedYaw;
-        caster.rotationYawHead = lockedYaw;
-        caster.prevRotationYaw = lockedYaw;
-        caster.prevRotationYawHead = lockedYaw;
-        caster.renderYawOffset = lockedYaw;
-        caster.prevRenderYawOffset = lockedYaw;
-    }
-
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        // Safety timeout or missing state: force-complete to prevent stuck NPC
-        if (!isPreview() && (chargeDirection == null || tick > maxActiveTicks)) {
+        if (checkTimeout(tick)) {
             stopMomentum(caster);
             signalCompletion();
             return;
         }
 
-        if (chargeDirection == null) {
+        if (movementDirection == null) {
             signalCompletion();
             return;
         }
 
-        // Enforce rotation every tick
         if (!isPreview()) {
             enforceLockedRotation(caster);
         }
 
-        // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
-        if (!isPreview() && tick > 1) {
-            double dx = caster.posX - prevTickX;
-            double dz = caster.posZ - prevTickZ;
-            if (dx * dx + dz * dz < 0.0001) {
-                stopMomentum(caster);
-                signalCompletion();
-                return;
-            }
+        if (checkStall(caster, tick)) {
+            stopMomentum(caster);
+            signalCompletion();
+            return;
         }
-        prevTickX = caster.posX;
-        prevTickZ = caster.posZ;
+        updatePrevPosition(caster);
 
-        // Calculate distance traveled
-        double distanceTraveled = Math.sqrt(
-            Math.pow(caster.posX - startX, 2) +
-                Math.pow(caster.posZ - startZ, 2)
-        );
-
-        // Check if reached max distance
-        if (distanceTraveled >= maxRange) {
+        if (getDistanceTraveled(caster) >= maxRange) {
             stopMomentum(caster);
             signalCompletion();
             return;
         }
 
-        // Block detection (skip in preview - no real world collision)
-        if (!isPreview() && isChargeBlocked(caster)) {
+        if (checkBlocked(caster, chargeSpeed)) {
             stopMomentum(caster);
             signalCompletion();
             return;
         }
 
-        // Move caster
-        caster.motionX = chargeDirection.xCoord * chargeSpeed;
-        caster.motionY = 0;
-        caster.motionZ = chargeDirection.zCoord * chargeSpeed;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
-        }
+        // Move caster (flat: zero vertical motion)
+        applyVelocityFlat(caster, chargeSpeed);
 
         // Server-side collision damage (skip in preview)
         if (!caster.worldObj.isRemote && !isPreview()) {
@@ -218,14 +141,11 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
 
                 EntityLivingBase livingEntity = (EntityLivingBase) entity;
 
-                // Hit this entity
                 hitEntities.add(entity.getEntityId());
 
-                // Apply damage with scripted event support
                 boolean wasHit = applyAbilityDamageWithDirection(caster, livingEntity, damage, knockback,
-                    chargeDirection.xCoord, chargeDirection.zCoord);
+                    movementDirection.xCoord, movementDirection.zCoord);
 
-                // Apply effects and play impact sound if hit wasn't cancelled
                 if (wasHit) {
                     applyEffects(livingEntity);
                     caster.worldObj.playSoundAtEntity(livingEntity, "random.explode", 0.5f, 1.2f);
@@ -246,24 +166,10 @@ public class AbilityCharge extends Ability implements IAbilityCharge {
         super.onInterrupt(caster, source, damage);
     }
 
-    private void stopMomentum(EntityLivingBase caster) {
-        caster.motionX = 0;
-        caster.motionZ = 0;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
-        }
-    }
-
-    private boolean isChargeBlocked(EntityLivingBase caster) {
-        return isMovementBlocked(caster, chargeDirection.xCoord, chargeDirection.zCoord, chargeSpeed);
-    }
-
     @Override
-    public void reset() {
-        super.reset();
-        chargeDirection = null;
+    public void cleanup() {
+        super.cleanup();
         hitEntities.clear();
-        maxActiveTicks = 0;
     }
 
     @Override
