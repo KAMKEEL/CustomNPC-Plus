@@ -95,13 +95,21 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     private boolean specialKeyDown = false;
 
     public void onLogin() {
-        // Continue playing animation for self when re-logging
+        // Handle animation state from previous session
         AnimationData animationData = this.animationData;
         if (animationData != null && animationData.isClientAnimating()) {
-            Animation currentAnimation = animationData.currentClientAnimation;
-            NBTTagCompound compound = currentAnimation.writeToNBT();
-            animationData.viewAnimation(currentAnimation, animationData, compound,
-                animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+            if (abilityData.isPlayingAbilityAnimation()) {
+                // Ability animation was playing when player disconnected.
+                // Ability state is transient (lost on disconnect), so this animation
+                // is orphaned - clear it instead of replaying a stuck animation.
+                abilityData.clearOrphanedAbilityAnimation();
+            } else {
+                // Non-ability animation (e.g. script-driven) - continue playing
+                Animation currentAnimation = animationData.currentClientAnimation;
+                NBTTagCompound compound = currentAnimation.writeToNBT();
+                animationData.viewAnimation(currentAnimation, animationData, compound,
+                    animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+            }
         }
 
         CustomEffectController controller = CustomEffectController.getInstance();
