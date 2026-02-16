@@ -15,9 +15,14 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.ability.IPlayerAbilityData;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
@@ -154,6 +159,9 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         // Tick advances time and possibly changes phase
         boolean phaseChanged = currentAbility.tick();
 
+        // Fire tick event for scripts
+        firePlayerTickEvent(player, currentAbility, currentTarget);
+
         // Fire extender tick hook (e.g., per-tick resource drain)
         if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, player, currentTarget,
                 currentAbility.getPhase(), currentAbility.getCurrentTick())) {
@@ -211,6 +219,11 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                     playAbilitySound(player, currentAbility.getActiveSound());
                     playAbilityAnimation(currentAbility.getActiveAnimation());
 
+                    // Fire execute event (cancelable)
+                    if (firePlayerExecuteEvent(player, currentAbility, currentTarget)) {
+                        return; // Cancelled
+                    }
+
                     // Call onExecute
                     currentAbility.onExecute(player, currentTarget);
 
@@ -267,6 +280,9 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         AbilityController.Instance.fireOnAbilityComplete(currentAbility, player, currentTarget, false);
 
         currentAbility.onComplete(player, currentTarget);
+
+        // Fire complete event
+        firePlayerCompleteEvent(player, currentAbility, currentTarget);
 
         // Release all locks
         releaseRotationControl();
@@ -340,6 +356,11 @@ public class PlayerAbilityData implements IPlayerAbilityData {
             return false;
         }
 
+        // Fire start event (cancelable)
+        if (firePlayerStartEvent(player, ability)) {
+            return false; // Cancelled
+        }
+
         // Start the ability
         currentAbility = ability;
         currentAbilityKey = key;
@@ -379,6 +400,11 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         // Play active sound and animation
         playAbilitySound(player, ability.getActiveSound());
         playAbilityAnimation(ability.getActiveAnimation());
+
+        // Fire execute event (cancelable)
+        if (firePlayerExecuteEvent(player, ability, currentTarget)) {
+            return; // Cancelled
+        }
 
         // Call onExecute
         ability.onExecute(player, currentTarget);
@@ -538,9 +564,16 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     }
 
     public void interruptCurrentAbility() {
+        interruptCurrentAbility(null, 0);
+    }
+
+    public void interruptCurrentAbility(DamageSource source, float damage) {
         if (currentAbility != null && currentAbility.isExecuting()) {
             // Fire extender complete hook (interrupted)
             AbilityController.Instance.fireOnAbilityComplete(currentAbility, playerData.player, currentTarget, true);
+
+            // Fire interrupt event
+            firePlayerInterruptEvent(playerData.player, currentAbility, currentTarget, source, damage);
 
             currentAbility.interrupt();
             stopAbilityAnimation();
@@ -594,7 +627,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
         // Check for ability interruption
         if (currentAbility != null && currentAbility.canInterrupt(source)) {
-            interruptCurrentAbility();
+            interruptCurrentAbility(source, amount);
         }
 
         return amount;
@@ -832,6 +865,73 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         if (sound != null && !sound.isEmpty()) {
             player.worldObj.playSoundAtEntity(player, sound, 1.0f, 1.0f);
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SCRIPT EVENTS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Fire the ability start event. Returns true if cancelled.
+     */
+    private boolean firePlayerStartEvent(EntityPlayer player, Ability ability) {
+        if (ScriptController.Instance == null) return false;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return false;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.StartEvent event = new PlayerAbilityEvent.StartEvent(iPlayer, ability, null);
+        return EventHooks.onPlayerAbilityStart(handler, event);
+    }
+
+    /**
+     * Fire the ability execute event. Returns true if cancelled.
+     */
+    private boolean firePlayerExecuteEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
+        if (ScriptController.Instance == null) return false;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return false;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.ExecuteEvent event = new PlayerAbilityEvent.ExecuteEvent(iPlayer, ability, target);
+        return EventHooks.onPlayerAbilityExecute(handler, event);
+    }
+
+    /**
+     * Fire the ability tick event.
+     */
+    private void firePlayerTickEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
+        if (ScriptController.Instance == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.TickEvent event = new PlayerAbilityEvent.TickEvent(
+            iPlayer, ability, target, ability.getPhase().ordinal(), ability.getCurrentTick());
+        EventHooks.onPlayerAbilityTick(handler, event);
+    }
+
+    /**
+     * Fire the ability interrupt event.
+     */
+    private void firePlayerInterruptEvent(EntityPlayer player, Ability ability, EntityLivingBase target,
+                                          DamageSource source, float damage) {
+        if (ScriptController.Instance == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.InterruptEvent event = new PlayerAbilityEvent.InterruptEvent(
+            iPlayer, ability, target, source, damage);
+        EventHooks.onPlayerAbilityInterrupt(handler, event);
+    }
+
+    /**
+     * Fire the ability complete event.
+     */
+    private void firePlayerCompleteEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
+        if (ScriptController.Instance == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.CompleteEvent event = new PlayerAbilityEvent.CompleteEvent(iPlayer, ability, target);
+        EventHooks.onPlayerAbilityComplete(handler, event);
     }
 
     // ═══════════════════════════════════════════════════════════════════

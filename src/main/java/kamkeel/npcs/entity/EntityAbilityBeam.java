@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
+import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -544,6 +545,9 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            if (!worldObj.isRemote) {
+                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
+            }
             hasHit = true;
             if (isExplosive()) {
                 posX = blockHit.hitVec.xCoord;
@@ -593,8 +597,20 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         return beamWidth;
     }
 
+    public void setBeamWidth(float beamWidth) {
+        this.beamWidth = beamWidth;
+    }
+
     public float getHeadSize() {
         return headSize;
+    }
+
+    public void setHeadSize(float headSize) {
+        this.headSize = headSize;
+    }
+
+    public void setAttachedToOwner(boolean attached) {
+        this.attachedToOwner = attached;
     }
 
     /**

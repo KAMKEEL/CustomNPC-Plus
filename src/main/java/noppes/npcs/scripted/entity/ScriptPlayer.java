@@ -1,6 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.entity.EntityAbilityProjectile;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -31,6 +32,7 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.IScreenSize;
 import noppes.npcs.api.ITimers;
 import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
@@ -932,5 +934,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     @Override
     public String getFormattedCurrencyBalance() {
         return getData().tradeData.formatBalance();
+    }
+
+    public IEnergyProjectile[] getActiveEnergyProjectiles() {
+        List<EntityAbilityProjectile> entities = EntityAbilityProjectile.getActiveProjectiles(player.getEntityId());
+        IEnergyProjectile[] result = new IEnergyProjectile[entities.size()];
+        for (int i = 0; i < entities.size(); i++) {
+            result[i] = (IEnergyProjectile) NpcAPI.Instance().getIEntity(entities.get(i));
+        }
+        return result;
     }
 }

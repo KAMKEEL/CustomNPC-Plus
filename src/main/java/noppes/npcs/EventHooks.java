@@ -1,6 +1,7 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import kamkeel.npcs.entity.EntityAbilityProjectile;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -16,7 +17,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import noppes.npcs.api.IBlock;
+import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IAnimatable;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
@@ -52,6 +56,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AnimationEvent;
 import noppes.npcs.scripted.event.BlockEvent;
 import noppes.npcs.scripted.event.CustomNPCsEvent;
+import noppes.npcs.scripted.event.EnergyProjectileEvent;
 import noppes.npcs.scripted.event.ForgeEvent;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.event.LinkedItemEvent;
@@ -448,6 +453,110 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
+    // ==================== ENERGY PROJECTILE EVENTS ====================
+
+    public static void onEnergyProjectileFired(EntityAbilityProjectile projectile) {
+        IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
+        EnergyProjectileEvent.FiredEvent event = new EnergyProjectileEvent.FiredEvent(wrapped);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_FIRED, event);
+
+        Entity owner = projectile.worldObj.getEntityByID(projectile.getOwnerEntityId());
+        if (owner instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) owner).script.callScript(EnumScriptType.ENERGY_PROJECTILE_FIRED, event);
+        } else if (owner instanceof EntityPlayer) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) owner);
+            if (handler != null) {
+                handler.callScript(EnumScriptType.ENERGY_PROJECTILE_FIRED, event);
+            }
+        }
+
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onEnergyProjectileTick(EntityAbilityProjectile projectile) {
+        IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
+        EnergyProjectileEvent.UpdateEvent event = new EnergyProjectileEvent.UpdateEvent(wrapped);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_TICK, event);
+
+        Entity owner = projectile.worldObj.getEntityByID(projectile.getOwnerEntityId());
+        if (owner instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) owner).script.callScript(EnumScriptType.ENERGY_PROJECTILE_TICK, event);
+        } else if (owner instanceof EntityPlayer) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) owner);
+            if (handler != null) {
+                handler.callScript(EnumScriptType.ENERGY_PROJECTILE_TICK, event);
+            }
+        }
+
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    /**
+     * Fires the entity impact event. Returns the (possibly modified) damage, or -1 if cancelled.
+     */
+    public static float onEnergyProjectileEntityImpact(EntityAbilityProjectile projectile, EntityLivingBase target, float damage) {
+        IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
+        IEntity wrappedTarget = NpcAPI.Instance().getIEntity(target);
+        EnergyProjectileEvent.EntityImpactEvent event = new EnergyProjectileEvent.EntityImpactEvent(wrapped, wrappedTarget, damage);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_ENTITY_IMPACT, event);
+
+        Entity owner = projectile.worldObj.getEntityByID(projectile.getOwnerEntityId());
+        if (owner instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) owner).script.callScript(EnumScriptType.ENERGY_PROJECTILE_ENTITY_IMPACT, event);
+        } else if (owner instanceof EntityPlayer) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) owner);
+            if (handler != null) {
+                handler.callScript(EnumScriptType.ENERGY_PROJECTILE_ENTITY_IMPACT, event);
+            }
+        }
+
+        NpcAPI.EVENT_BUS.post(event);
+
+        if (event.isCanceled()) {
+            return -1;
+        }
+        return event.getDamage();
+    }
+
+    public static void onEnergyProjectileBlockImpact(EntityAbilityProjectile projectile, int blockX, int blockY, int blockZ) {
+        IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
+        IPos pos = NpcAPI.Instance().getIPos(blockX, blockY, blockZ);
+        IWorld world = NpcAPI.Instance().getIWorld(projectile.worldObj);
+        IBlock block = NpcAPI.Instance().getIBlock(world, pos);
+        EnergyProjectileEvent.BlockImpactEvent event = new EnergyProjectileEvent.BlockImpactEvent(wrapped, block);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_BLOCK_IMPACT, event);
+
+        Entity owner = projectile.worldObj.getEntityByID(projectile.getOwnerEntityId());
+        if (owner instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) owner).script.callScript(EnumScriptType.ENERGY_PROJECTILE_BLOCK_IMPACT, event);
+        } else if (owner instanceof EntityPlayer) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) owner);
+            if (handler != null) {
+                handler.callScript(EnumScriptType.ENERGY_PROJECTILE_BLOCK_IMPACT, event);
+            }
+        }
+
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onEnergyProjectileExpired(EntityAbilityProjectile projectile) {
+        IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
+        EnergyProjectileEvent.ExpiredEvent event = new EnergyProjectileEvent.ExpiredEvent(wrapped);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_EXPIRED, event);
+
+        Entity owner = projectile.worldObj.getEntityByID(projectile.getOwnerEntityId());
+        if (owner instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) owner).script.callScript(EnumScriptType.ENERGY_PROJECTILE_EXPIRED, event);
+        } else if (owner instanceof EntityPlayer) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) owner);
+            if (handler != null) {
+                handler.callScript(EnumScriptType.ENERGY_PROJECTILE_EXPIRED, event);
+            }
+        }
+
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onPlayerInit(PlayerDataScript handler, IPlayer player) {
         PlayerEvent.InitEvent event = new PlayerEvent.InitEvent(player);
         handler.callScript(EnumScriptType.INIT, event);
@@ -691,6 +800,31 @@ public class EventHooks {
     public static boolean onPlayerDamagedEntity(PlayerDataScript handler, DamagedEntityEvent event) {
         handler.callScript(EnumScriptType.DAMAGED_ENTITY, event);
         return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerAbilityStart(PlayerDataScript handler, PlayerAbilityEvent.StartEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_START, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerAbilityExecute(PlayerDataScript handler, PlayerAbilityEvent.ExecuteEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_EXECUTE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerAbilityTick(PlayerDataScript handler, PlayerAbilityEvent.TickEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_TICK, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerAbilityInterrupt(PlayerDataScript handler, PlayerAbilityEvent.InterruptEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_INTERRUPT, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerAbilityComplete(PlayerDataScript handler, PlayerAbilityEvent.CompleteEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_COMPLETE, event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onPlayerAbilityHit(PlayerDataScript handler, PlayerAbilityEvent.HitEvent event) {
