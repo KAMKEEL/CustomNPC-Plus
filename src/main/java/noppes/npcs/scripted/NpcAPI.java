@@ -7,6 +7,10 @@ import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityOrb;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -119,6 +123,10 @@ import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.ScriptAnimal;
 import noppes.npcs.scripted.entity.ScriptArrow;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
+import noppes.npcs.scripted.entity.ScriptEnergyBeam;
+import noppes.npcs.scripted.entity.ScriptEnergyDisc;
+import noppes.npcs.scripted.entity.ScriptEnergyLaser;
+import noppes.npcs.scripted.entity.ScriptEnergyOrb;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptEntityItem;
 import noppes.npcs.scripted.entity.ScriptFishHook;
@@ -454,6 +462,14 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptArrow<>((EntityArrow) entity));
                 else if (entity instanceof EntityFishHook)
                     data = new ScriptEntityData(new ScriptFishHook<>((EntityFishHook) entity));
+                else if (entity instanceof EntityAbilityOrb)
+                    data = new ScriptEntityData(new ScriptEnergyOrb<>((EntityAbilityOrb) entity));
+                else if (entity instanceof EntityAbilityBeam)
+                    data = new ScriptEntityData(new ScriptEnergyBeam<>((EntityAbilityBeam) entity));
+                else if (entity instanceof EntityAbilityDisc)
+                    data = new ScriptEntityData(new ScriptEnergyDisc<>((EntityAbilityDisc) entity));
+                else if (entity instanceof EntityAbilityLaser)
+                    data = new ScriptEntityData(new ScriptEnergyLaser<>((EntityAbilityLaser) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);

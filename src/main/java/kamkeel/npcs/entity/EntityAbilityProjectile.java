@@ -20,13 +20,17 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.EventHooks;
 import noppes.npcs.NpcDamageSource;
-import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +40,38 @@ import java.util.Map;
  *
  * Design inspired by LouisXIV's energy attack system.
  */
-public abstract class EntityAbilityProjectile extends Entity implements IEnergyProjectile, IEntityAdditionalSpawnData {
+public abstract class EntityAbilityProjectile extends Entity implements IEntityAdditionalSpawnData {
+
+    // ==================== ACTIVE PROJECTILE TRACKING ====================
+    private static final Map<Integer, List<WeakReference<EntityAbilityProjectile>>> activeProjectiles = new HashMap<>();
+
+    public static void trackProjectile(EntityAbilityProjectile projectile) {
+        int ownerId = projectile.getOwnerEntityId();
+        if (ownerId < 0) return;
+        List<WeakReference<EntityAbilityProjectile>> refs = activeProjectiles.get(ownerId);
+        if (refs == null) {
+            refs = new ArrayList<>();
+            activeProjectiles.put(ownerId, refs);
+        }
+        refs.add(new WeakReference<>(projectile));
+    }
+
+    public static List<EntityAbilityProjectile> getActiveProjectiles(int ownerEntityId) {
+        List<WeakReference<EntityAbilityProjectile>> refs = activeProjectiles.get(ownerEntityId);
+        if (refs == null) return Collections.emptyList();
+        List<EntityAbilityProjectile> result = new ArrayList<>();
+        Iterator<WeakReference<EntityAbilityProjectile>> it = refs.iterator();
+        while (it.hasNext()) {
+            EntityAbilityProjectile p = it.next().get();
+            if (p == null || p.isDead) {
+                it.remove();
+            } else {
+                result.add(p);
+            }
+        }
+        if (refs.isEmpty()) activeProjectiles.remove(ownerEntityId);
+        return result;
+    }
 
     // ==================== VISUAL PROPERTIES ====================
     protected float size = 1.0f;
@@ -174,6 +209,11 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         // Skip super.onUpdate() in preview mode to avoid world checks
         if (!previewMode) {
             super.onUpdate();
+
+            // Track on first server tick
+            if (ticksExisted == 1 && !worldObj.isRemote) {
+                trackProjectile(this);
+            }
         }
 
         // Update rotation
@@ -208,12 +248,18 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
             // Check lifespan using world time (survives chunk unload/reload)
             if (deathWorldTime > 0 && worldObj.getTotalWorldTime() >= deathWorldTime) {
+                if (!worldObj.isRemote) {
+                    EventHooks.onEnergyProjectileExpired(this);
+                }
                 this.setDead();
                 return;
             }
 
             // Check max distance (subclass can override if needed)
             if (checkMaxDistance()) {
+                if (!worldObj.isRemote) {
+                    EventHooks.onEnergyProjectileExpired(this);
+                }
                 this.setDead();
                 return;
             }
@@ -226,6 +272,11 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
         // Subclass-specific update
         updateProjectile();
+
+        // Fire tick event (server-side, non-preview only)
+        if (!previewMode && !worldObj.isRemote) {
+            EventHooks.onEnergyProjectileTick(this);
+        }
     }
 
     /**
@@ -328,6 +379,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
     protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
         if (previewMode) return; // Skip damage in preview mode
+
+        // Fire entity impact event (may cancel or modify damage)
+        if (!worldObj.isRemote) {
+            float result = EventHooks.onEnergyProjectileEntityImpact(this, target, dmg);
+            if (result < 0) return; // Event was cancelled
+            dmg = result;
+        }
+
         Entity owner = getOwnerEntity();
 
         // Check for ability extenders (e.g., DBC Addon damage routing)
@@ -627,12 +686,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         return worldObj.getEntityByID(ownerEntityId);
     }
 
-    @Override
     public int getOwnerEntityId() {
         return ownerEntityId;
     }
 
-    @Override
+    public void setOwnerEntityId(int id) {
+        this.ownerEntityId = id;
+    }
+
     public IEntity getOwner() {
         if (previewMode) return null;
         if (getOwnerEntity() == null) return null;
@@ -647,9 +708,12 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         this.previewOwner = owner;
     }
 
-    @Override
     public int getTargetEntityId() {
         return targetEntityId;
+    }
+
+    public void setTargetEntityId(int id) {
+        this.targetEntityId = id;
     }
 
     public Entity getTargetEntity() {
@@ -657,7 +721,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         return worldObj.getEntityByID(targetEntityId);
     }
 
-    @Override
     public IEntity getTarget() {
         if (getTargetEntity() == null) return null;
         return NpcAPI.Instance().getIEntity(getTargetEntity());
@@ -686,162 +749,135 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
         return false;
     }
 
-    // ==================== VISUAL GETTERS ====================
+    // ==================== VISUAL GETTERS & SETTERS ====================
 
-    @Override
-    public float getSize() {
-        return size;
+    public float getSize() { return size; }
+    public void setProjectileSize(float size) {
+        this.size = size;
+        this.renderCurrentSize = size;
+        this.prevRenderSize = size;
     }
 
-    @Override
-    public int getInnerColor() {
-        return displayData.getInnerColor();
+    /**
+     * Set the start position for distance calculations.
+     * Used by factory methods when creating projectiles without the full constructor.
+     */
+    public void setStartPosition(double x, double y, double z) {
+        this.startX = x;
+        this.startY = y;
+        this.startZ = z;
     }
 
-    @Override
-    public int getOuterColor() {
-        return displayData.getOuterColor();
-    }
+    public int getInnerColor() { return displayData.getInnerColor(); }
+    public void setInnerColor(int color) { displayData.setInnerColor(color); }
 
-    @Override
-    public boolean isOuterColorEnabled() {
-        return displayData.isOuterColorEnabled();
-    }
+    public int getOuterColor() { return displayData.getOuterColor(); }
+    public void setOuterColor(int color) { displayData.setOuterColor(color); }
 
-    @Override
-    public float getOuterColorWidth() {
-        return displayData.getOuterColorWidth();
-    }
+    public boolean isOuterColorEnabled() { return displayData.isOuterColorEnabled(); }
+    public void setOuterColorEnabled(boolean enabled) { displayData.setOuterColorEnabled(enabled); }
 
-    @Override
-    public float getOuterColorAlpha() {
-        return displayData.getOuterColorAlpha();
-    }
+    public float getOuterColorWidth() { return displayData.getOuterColorWidth(); }
+    public void setOuterColorWidth(float width) { displayData.setOuterColorWidth(width); }
 
-    @Override
-    public float getRotationSpeed() {
-        return displayData.getRotationSpeed();
-    }
+    public float getOuterColorAlpha() { return displayData.getOuterColorAlpha(); }
+    public void setOuterColorAlpha(float alpha) { displayData.setOuterColorAlpha(alpha); }
+
+    public float getRotationSpeed() { return displayData.getRotationSpeed(); }
+    public void setRotationSpeed(float speed) { displayData.setRotationSpeed(speed); }
 
     // ==================== ROTATION GETTERS ====================
 
-    @Override
     public float getInterpolatedRotationX(float partialTicks) {
         return this.prevRotationValX + (this.rotationValX - this.prevRotationValX) * partialTicks;
     }
 
-    @Override
     public float getInterpolatedRotationY(float partialTicks) {
         return this.prevRotationValY + (this.rotationValY - this.prevRotationValY) * partialTicks;
     }
 
-    @Override
     public float getInterpolatedRotationZ(float partialTicks) {
         return this.prevRotationValZ + (this.rotationValZ - this.prevRotationValZ) * partialTicks;
     }
 
-    @Override
     public float getInterpolatedSize(float partialTicks) {
         return this.prevRenderSize + (this.renderCurrentSize - this.prevRenderSize) * partialTicks;
     }
 
-    // ==================== LIGHTNING GETTERS ====================
+    // ==================== LIGHTNING GETTERS & SETTERS ====================
 
-    @Override
-    public boolean hasLightningEffect() {
-        return lightningData.isLightningEffect();
-    }
+    public boolean hasLightningEffect() { return lightningData.isLightningEffect(); }
+    public void setLightningEffect(boolean enabled) { lightningData.setLightningEffect(enabled); }
 
-    @Override
-    public float getLightningDensity() {
-        return lightningData.getLightningDensity();
-    }
+    public float getLightningDensity() { return lightningData.getLightningDensity(); }
+    public void setLightningDensity(float density) { lightningData.setLightningDensity(density); }
 
-    @Override
-    public float getLightningRadius() {
-        return lightningData.getLightningRadius();
-    }
+    public float getLightningRadius() { return lightningData.getLightningRadius(); }
+    public void setLightningRadius(float radius) { lightningData.setLightningRadius(radius); }
 
-    @Override
-    public int getLightningFadeTime() {
-        return lightningData.getLightningFadeTime();
-    }
+    public int getLightningFadeTime() { return lightningData.getLightningFadeTime(); }
+    public void setLightningFadeTime(int ticks) { lightningData.setLightningFadeTime(ticks); }
 
-    // ==================== LIFESPAN GETTERS ====================
+    // ==================== LIFESPAN GETTERS & SETTERS ====================
 
-    @Override
     public float getMaxDistance() { return lifespanData.getMaxDistance(); }
+    public void setMaxDistance(float distance) { lifespanData.setMaxDistance(distance); }
 
-    @Override
     public int getMaxLifetime() { return lifespanData.getMaxLifetime(); }
+    public void setMaxLifetime(int ticks) { lifespanData.setMaxLifetime(ticks); }
 
-    // ==================== COMBAT GETTERS ====================
+    // ==================== COMBAT GETTERS & SETTERS ====================
 
-    @Override
     public float getDamage() { return combatData.getDamage(); }
+    public void setCombatDamage(float damage) { combatData.setDamage(damage); }
 
-    @Override
     public float getKnockback() { return combatData.knockback; }
+    public void setCombatKnockback(float knockback) { combatData.setKnockback(knockback); }
 
-    @Override
     public float getKnockbackUp() { return combatData.knockbackUp; }
+    public void setCombatKnockbackUp(float knockbackUp) { combatData.setKnockbackUp(knockbackUp); }
 
-    @Override
     public boolean isExplosive() { return combatData.isExplosive(); }
+    public void setExplosive(boolean explosive) { combatData.setExplosive(explosive); }
 
-    @Override
     public float getExplosionRadius() { return combatData.explosionRadius; }
+    public void setExplosionRadius(float radius) { combatData.setExplosionRadius(radius); }
 
-    @Override
     public float getExplosionDamageFalloff() { return combatData.explosionDamageFalloff; }
+    public void setExplosionDamageFalloff(float falloff) { combatData.setExplosionDamageFalloff(falloff); }
 
-    // ==================== HOMING GETTERS ====================
+    // ==================== HOMING GETTERS & SETTERS ====================
 
-    @Override
     public boolean isHoming() { return homingData.isHoming(); }
+    public void setHomingEnabled(boolean homing) { homingData.setHoming(homing); }
 
-    @Override
     public float getHomingStrength() { return homingData.getHomingStrength(); }
+    public void setHomingStrength(float strength) { homingData.setHomingStrength(strength); }
 
-    @Override
     public float getHomingRange() { return homingData.getHomingRange(); }
+    public void setHomingRange(float range) { homingData.setHomingRange(range); }
 
-    // ==================== TRAJECTORY GETTERS ====================
+    // ==================== SPEED & ANCHOR GETTERS & SETTERS ====================
 
-
-
-    // ==================== ANCHOR GETTERS ====================
-
-    @Override
     public float getSpeed() { return homingData.getSpeed(); }
+    public void setSpeed(float speed) { homingData.setSpeed(speed); }
 
     public AnchorPoint getAnchorPoint() { return anchorData.getAnchorPoint(); }
 
-    @Override
     public int getAnchor() { return anchorData.getAnchor(); }
-
-    @Override
     public float getAnchorOffsetX() { return anchorData.getAnchorOffsetX(); }
-
-    @Override
     public float getAnchorOffsetY() { return anchorData.getAnchorOffsetY(); }
-
-    @Override
     public float getAnchorOffsetZ() { return anchorData.getAnchorOffsetZ(); }
 
     // ==================== MOVEMENT GETTERS ====================
 
-    @Override public double getStartX() { return startX; }
+    public double getStartX() { return startX; }
+    public double getStartY() { return startY; }
+    public double getStartZ() { return startZ; }
 
-    @Override public double getStartY() { return startY; }
+    // ==================== STATE GETTERS ====================
 
-    @Override public double getStartZ() { return startZ; }
-
-    @Override public double getMotionX() { return motionX; }
-
-    @Override public double getMotionY() { return motionY; }
-
-    @Override public double getMotionZ() { return motionZ; }
+    public boolean getHasHit() { return hasHit; }
 
     // ==================== BRIGHTNESS ====================
 

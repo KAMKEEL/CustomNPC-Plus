@@ -2,10 +2,12 @@ package noppes.npcs.controllers;
 
 import noppes.npcs.api.event.IAbilityEvent;
 import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IPlayerAbilityEvent;
 import noppes.npcs.api.event.IBlockEvent;
 import noppes.npcs.api.event.ICustomGuiEvent;
 import noppes.npcs.api.event.ICustomNPCsEvent;
 import noppes.npcs.api.event.IDialogEvent;
+import noppes.npcs.api.event.IEnergyProjectileEvent;
 import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.event.IForgeEvent;
 import noppes.npcs.api.event.IItemEvent;
@@ -106,6 +108,13 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(NPC, PROJECTILE_TICK, IProjectileEvent.UpdateEvent.class);
         hook(NPC, PROJECTILE_IMPACT, IProjectileEvent.ImpactEvent.class);
 
+        // Energy Projectile
+        hook(NPC, ENERGY_PROJECTILE_FIRED, IEnergyProjectileEvent.FiredEvent.class);
+        hook(NPC, ENERGY_PROJECTILE_TICK, IEnergyProjectileEvent.UpdateEvent.class);
+        hook(NPC, ENERGY_PROJECTILE_ENTITY_IMPACT, IEnergyProjectileEvent.EntityImpactEvent.class);
+        hook(NPC, ENERGY_PROJECTILE_BLOCK_IMPACT, IEnergyProjectileEvent.BlockImpactEvent.class);
+        hook(NPC, ENERGY_PROJECTILE_EXPIRED, IEnergyProjectileEvent.ExpiredEvent.class);
+
         // Ability
         hook(NPC, ABILITY_START, IAbilityEvent.StartEvent.class);
         hook(NPC, ABILITY_EXECUTE, IAbilityEvent.ExecuteEvent.class);
@@ -113,6 +122,12 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(NPC, ABILITY_TICK, IAbilityEvent.TickEvent.class);
         hook(NPC, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
         hook(NPC, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
+
+        // Animation
+        hook(NPC, ANIMATION_START, IAnimationEvent.Started.class);
+        hook(NPC, ANIMATION_END, IAnimationEvent.Ended.class);
+        hook(NPC, ANIMATION_FRAME_ENTER, IAnimationEvent.IFrameEvent.Entered.class);
+        hook(NPC, ANIMATION_FRAME_EXIT, IAnimationEvent.IFrameEvent.Exited.class);
     }
 
     private void initializePlayerHooks() {
@@ -207,6 +222,21 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(PLAYER, ANIMATION_END, IAnimationEvent.Ended.class);
         hook(PLAYER, ANIMATION_FRAME_ENTER, IAnimationEvent.IFrameEvent.Entered.class);
         hook(PLAYER, ANIMATION_FRAME_EXIT, IAnimationEvent.IFrameEvent.Exited.class);
+
+        // Energy Projectile
+        hook(PLAYER, ENERGY_PROJECTILE_FIRED, IEnergyProjectileEvent.FiredEvent.class);
+        hook(PLAYER, ENERGY_PROJECTILE_TICK, IEnergyProjectileEvent.UpdateEvent.class);
+        hook(PLAYER, ENERGY_PROJECTILE_ENTITY_IMPACT, IEnergyProjectileEvent.EntityImpactEvent.class);
+        hook(PLAYER, ENERGY_PROJECTILE_BLOCK_IMPACT, IEnergyProjectileEvent.BlockImpactEvent.class);
+        hook(PLAYER, ENERGY_PROJECTILE_EXPIRED, IEnergyProjectileEvent.ExpiredEvent.class);
+
+        // Ability
+        hook(PLAYER, ABILITY_START, IPlayerAbilityEvent.StartEvent.class);
+        hook(PLAYER, ABILITY_EXECUTE, IPlayerAbilityEvent.ExecuteEvent.class);
+        hook(PLAYER, ABILITY_HIT, IPlayerAbilityEvent.HitEvent.class);
+        hook(PLAYER, ABILITY_TICK, IPlayerAbilityEvent.TickEvent.class);
+        hook(PLAYER, ABILITY_INTERRUPT, IPlayerAbilityEvent.InterruptEvent.class);
+        hook(PLAYER, ABILITY_COMPLETE, IPlayerAbilityEvent.CompleteEvent.class);
 
         // Profile
         hook(PLAYER, PROFILE_CHANGE, IPlayerEvent.ProfileEvent.Changed.class);

@@ -125,7 +125,13 @@ public enum EnumScriptType {
     ABILITY_INTERRUPT("abilityInterrupt"),
     ABILITY_COMPLETE("abilityComplete"),
     ABILITY_HIT("abilityHit"),
-    ABILITY_TICK("abilityTick");
+    ABILITY_TICK("abilityTick"),
+
+    ENERGY_PROJECTILE_FIRED("energyProjectileFired"),
+    ENERGY_PROJECTILE_TICK("energyProjectileTick"),
+    ENERGY_PROJECTILE_ENTITY_IMPACT("energyProjectileEntityImpact"),
+    ENERGY_PROJECTILE_BLOCK_IMPACT("energyProjectileBlockImpact"),
+    ENERGY_PROJECTILE_EXPIRED("energyProjectileExpired");
 
     public String function;
 

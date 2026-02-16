@@ -9,6 +9,7 @@ import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -106,7 +107,9 @@ public class ScriptPlayerEventHandler {
                     Ability current = playerData.abilityData.getCurrentAbility();
                     if (current == null || !current.hasAbilityMovement()) {
                         player.motionX = 0;
-                        player.motionY = Math.min(player.motionY, 0); // Prevent jumping, allow gravity
+                        if (!AbilityController.Instance.isPlayerFlying(player)) {
+                            player.motionY = Math.min(player.motionY, 0);
+                        }
                         player.motionZ = 0;
                         player.velocityChanged = true;
                     }

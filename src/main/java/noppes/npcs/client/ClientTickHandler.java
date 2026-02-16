@@ -6,6 +6,7 @@ import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.client.renderer.lightning.LightningBolt;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
@@ -133,9 +134,10 @@ public class ClientTickHandler {
                         mc.thePlayer.motionZ = 0;
                     }
 
-                    // Prevent jumping: clamp upward motion when locked (allow gravity)
+                    // Prevent jumping when locked (allow gravity only if not flying)
                     if ((ClientAbilityState.movementLocked || ClientAbilityState.positionLocked)
-                            && !ClientAbilityState.hasAbilityMovement) {
+                            && !ClientAbilityState.hasAbilityMovement
+                            && !AbilityController.Instance.isPlayerFlying(mc.thePlayer)) {
                         mc.thePlayer.motionY = Math.min(mc.thePlayer.motionY, 0);
                     }
                 }
