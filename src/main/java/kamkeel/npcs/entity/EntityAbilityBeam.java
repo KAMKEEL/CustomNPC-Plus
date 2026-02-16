@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
+import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -386,33 +387,26 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         chargeTick++;
 
         Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) {
-            setDead();
-            return;
+        if (owner != null) {
+            Vec3 pos;
+            if (owner instanceof EntityLivingBase) {
+                pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData, chargeOffsetDistance);
+            } else {
+                float yaw = (float) Math.toRadians(owner.rotationYaw);
+                double offsetX = -Math.sin(yaw) * chargeOffsetDistance;
+                double offsetZ = Math.cos(yaw) * chargeOffsetDistance;
+                pos = Vec3.createVectorHelper(
+                    owner.posX + offsetX,
+                    owner.posY + owner.getEyeHeight() * 0.7,
+                    owner.posZ + offsetZ
+                );
+            }
+
+            setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+            startX = pos.xCoord;
+            startY = pos.yCoord;
+            startZ = pos.zCoord;
         }
-
-        // Calculate position based on anchor point
-        Vec3 pos;
-        if (owner instanceof EntityLivingBase) {
-            pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData, chargeOffsetDistance);
-        } else {
-            // Fallback for non-living entities (shouldn't happen normally)
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            double offsetX = -Math.sin(yaw) * chargeOffsetDistance;
-            double offsetZ = Math.cos(yaw) * chargeOffsetDistance;
-            pos = Vec3.createVectorHelper(
-                owner.posX + offsetX,
-                owner.posY + owner.getEyeHeight() * 0.7,
-                owner.posZ + offsetZ
-            );
-        }
-
-        setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-
-        // Also update origin for when firing starts
-        startX = pos.xCoord;
-        startY = pos.yCoord;
-        startZ = pos.zCoord;
     }
 
     /**
@@ -551,6 +545,9 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            if (!worldObj.isRemote) {
+                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
+            }
             hasHit = true;
             if (isExplosive()) {
                 posX = blockHit.hitVec.xCoord;
@@ -600,8 +597,20 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         return beamWidth;
     }
 
+    public void setBeamWidth(float beamWidth) {
+        this.beamWidth = beamWidth;
+    }
+
     public float getHeadSize() {
         return headSize;
+    }
+
+    public void setHeadSize(float headSize) {
+        this.headSize = headSize;
+    }
+
+    public void setAttachedToOwner(boolean attached) {
+        this.attachedToOwner = attached;
     }
 
     /**
@@ -696,6 +705,7 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
 
         // Read trail points (relative to origin)
         trailPoints.clear();
+        trailPointAges.clear();
         if (nbt.hasKey("Trail")) {
             NBTTagList trailList = nbt.getTagList("Trail", 10);
             for (int i = 0; i < trailList.tagCount(); i++) {
@@ -706,6 +716,18 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
                     point.getDouble("Z")
                 ));
             }
+        }
+
+        // Read trail point ages (must match trailPoints size for fading trail)
+        if (nbt.hasKey("TrailAges")) {
+            int[] ages = nbt.getIntArray("TrailAges");
+            for (int age : ages) {
+                trailPointAges.add(age);
+            }
+        }
+        // If trail points exist but ages don't (legacy data), initialize ages to 0
+        while (trailPointAges.size() < trailPoints.size()) {
+            trailPointAges.add(0);
         }
     }
 
@@ -733,5 +755,12 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
             trailList.appendTag(pointNbt);
         }
         nbt.setTag("Trail", trailList);
+
+        // Write trail point ages for fading trail sync
+        int[] ages = new int[trailPointAges.size()];
+        for (int i = 0; i < trailPointAges.size(); i++) {
+            ages[i] = trailPointAges.get(i);
+        }
+        nbt.setIntArray("TrailAges", ages);
     }
 }

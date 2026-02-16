@@ -22,10 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * Renders zone effects for Trap and Hazard abilities.
- * Supports CIRCLE and SQUARE shapes with composable visual layers.
- */
 @SideOnly(Side.CLIENT)
 public class RenderAbilityZone extends Render {
 
@@ -33,43 +29,35 @@ public class RenderAbilityZone extends Render {
     private static final int ACCENT_LINE_COUNT = 12;
     private static final Random RANDOM = new Random();
 
-    // Track last particle spawn tick per entity to avoid duplicate spawns
     private final Map<Integer, Integer> lastParticleTick = new HashMap<>();
-
-    // Persistent lightning state
     private final Map<Integer, AttachedLightningRenderer.LightningState> lightningStates = new HashMap<>();
 
-    // ═══════════════════════════════════════════════════════════════════
-    // RENDER CONTEXT
-    // ═══════════════════════════════════════════════════════════════════
+    private static final int TRIGGER_REVEAL_TICKS = 10;
 
     private static class Ctx {
         EntityAbilityZone zone;
         ZoneShape shape;
         float radius, height;
-        float ir, ig, ib;    // inner color
+        float ir, ig, ib;
         float outerR, outerG, outerB;
         boolean outerEnabled;
         float time, pulse, rotation, brightness;
         boolean flash, newTick;
         float particleDensity, particleScale, animSpeed, lightningDensity;
-        // Visual layer fields (always populated)
         boolean groundFill, rings, border, accents, lightning, particles;
         float groundAlpha, borderSpeed;
         int ringCount, accentStyle, particleMotion, particleSize;
         boolean particleGlow;
         String particleDir;
+        boolean trapVisible;
+        boolean triggerReveal;
+        float revealFade;
     }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // MAIN RENDER
-    // ═══════════════════════════════════════════════════════════════════
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         EntityAbilityZone zone = (EntityAbilityZone) entity;
 
-        // Build context
         Ctx c = new Ctx();
         c.zone = zone;
         c.shape = zone.getShape();
@@ -92,7 +80,6 @@ public class RenderAbilityZone extends Render {
         c.animSpeed = zone.getAnimSpeed();
         c.lightningDensity = zone.getLightningDensity();
 
-        // Visual layer fields — always populated
         c.groundFill = zone.isGroundFill();
         c.groundAlpha = zone.getGroundAlpha();
         c.rings = zone.isRings();
@@ -113,7 +100,27 @@ public class RenderAbilityZone extends Render {
         c.rotation = c.time * 1.5f * c.animSpeed;
 
         c.brightness = 1.0f;
+        c.trapVisible = true;
+        c.triggerReveal = false;
+        c.revealFade = 0.0f;
+
         if (zone.getZoneType() == ZoneType.TRAP) {
+            c.trapVisible = zone.isVisible();
+
+            // Trigger reveal: 10-tick full visual burst that fades out
+            if (zone.getTriggerFlashTick() >= 0) {
+                float ticksSinceTrigger = zone.ticksExisted - zone.getTriggerFlashTick() + partialTicks;
+                if (ticksSinceTrigger < TRIGGER_REVEAL_TICKS) {
+                    c.triggerReveal = true;
+                    c.revealFade = Math.max(0.0f, 1.0f - ticksSinceTrigger / TRIGGER_REVEAL_TICKS);
+                }
+            }
+
+            // Skip render entirely if invisible and not in reveal
+            if (!c.trapVisible && !c.triggerReveal) {
+                return;
+            }
+
             if (!zone.isArmed()) {
                 c.brightness = 0.4f;
             } else {
@@ -121,16 +128,14 @@ public class RenderAbilityZone extends Render {
             }
         }
 
-        c.flash = zone.getTriggerFlashTick() >= 0
-            && zone.ticksExisted - zone.getTriggerFlashTick() < 4;
+        // White flash during first 2 ticks of reveal
+        c.flash = c.triggerReveal && c.revealFade > 0.8f;
 
         c.newTick = isNewTick(zone);
 
-        // Render
         setupRenderState();
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, z);
-
         GL11.glDepthMask(false);
 
         renderZone(c);
@@ -161,14 +166,21 @@ public class RenderAbilityZone extends Render {
         return state;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // UNIFIED RENDER — Composable visual layers
-    // ═══════════════════════════════════════════════════════════════════
-
     private void renderZone(Ctx c) {
+        // During trigger reveal, override visual layers for dramatic burst
+        if (c.triggerReveal) {
+            c.brightness = c.revealFade;
+            c.groundFill = true;
+            c.groundAlpha = 0.35f * c.revealFade;
+            c.rings = true;
+            c.ringCount = 3;
+            c.accents = true;
+            c.accentStyle = 2; // FLICKERING
+            c.border = true;
+        }
+
         float rR = ringR(c), rG = ringG(c), rB = ringB(c);
 
-        // 1. Ground fill
         if (c.groundFill) {
             if (c.flash) {
                 renderShapeFill(c.shape, c.radius, 1, 1, 1, 0.5f);
@@ -178,7 +190,6 @@ public class RenderAbilityZone extends Render {
             }
         }
 
-        // 2. Pulse rings
         if (c.rings) {
             int count = Math.max(1, Math.min(5, c.ringCount));
             for (int i = 0; i < count; i++) {
@@ -188,18 +199,15 @@ public class RenderAbilityZone extends Render {
                 renderRingLine(c.shape, c.radius * frac,
                     rR, rG, rB, ra, yOff);
             }
-            // Always include outer edge ring
             float edgeA = (0.5f + 0.4f * sin(c.pulse + count * Math.PI / 3)) * c.brightness;
             renderRingLine(c.shape, c.radius, rR, rG, rB, edgeA, 0.02f + count * 0.01f);
         }
 
-        // 3. Rotating border
         if (c.border) {
             renderRotatingBorder(c.shape, c.radius, rR, rG, rB,
                 0.7f * c.brightness, c.rotation * c.borderSpeed, 0.05f);
         }
 
-        // 4. Vertical accents
         if (c.accents) {
             float aa = 0.5f * c.brightness * (0.3f + 0.2f * sin(c.pulse * 0.7f));
             AccentStyle style = AccentStyle.values()[Math.min(c.accentStyle, AccentStyle.values().length - 1)];
@@ -216,7 +224,6 @@ public class RenderAbilityZone extends Render {
             }
         }
 
-        // 5. Lightning
         if (c.lightning) {
             int innerColor = c.zone.getInnerColor();
             int outerColor = c.outerEnabled ? c.zone.getOuterColor() : innerColor;
@@ -246,10 +253,9 @@ public class RenderAbilityZone extends Render {
                 }
             }
             state.render();
-            GL11.glDepthMask(false); // Reset after lightning
+            GL11.glDepthMask(false);
         }
 
-        // 6. Particles
         if (c.particles && c.newTick && c.particleDensity > 0) {
             if (c.particleDir != null && !c.particleDir.isEmpty()) {
                 if (c.particleDir.startsWith("mc:")) {
@@ -263,7 +269,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Spawn vanilla Minecraft particles using mc: prefix (e.g. "mc:flame"). */
     private void spawnVanillaParticle(Ctx c) {
         String particleName = c.particleDir.substring(3);
         int count = Math.round(3 * c.particleDensity);
@@ -276,7 +281,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Spawn CustomFX particles using a texture directory. */
     private void spawnCustomFXParticle(Ctx c) {
         int count = Math.round(3 * c.particleDensity);
         for (int i = 0; i < count; i++) {
@@ -308,7 +312,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Spawn default ZoneParticleFX with motion style from ParticleMotion enum. */
     private void spawnDefaultParticles(Ctx c) {
         int count = Math.round(3 * c.particleDensity);
         ParticleMotion motion = ParticleMotion.values()[Math.min(c.particleMotion, ParticleMotion.values().length - 1)];
@@ -346,7 +349,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Get motion vector for a CustomFX particle based on ParticleMotion ordinal. */
     private double[] getMotionForStyle(int motionOrdinal) {
         ParticleMotion motion = ParticleMotion.values()[Math.min(motionOrdinal, ParticleMotion.values().length - 1)];
         switch (motion) {
@@ -371,18 +373,12 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // STYLE HELPERS
-    // ═══════════════════════════════════════════════════════════════════
-
-    /** Get the ring/outer color (falls back to inner if outer not enabled). */
     private float ringR(Ctx c) { return c.outerEnabled ? c.outerR : c.ir; }
     private float ringG(Ctx c) { return c.outerEnabled ? c.outerG : c.ig; }
     private float ringB(Ctx c) { return c.outerEnabled ? c.outerB : c.ib; }
 
     private static float sin(double v) { return (float) Math.sin(v); }
 
-    /** Vertical accents with sinusoidal sway per line. */
     private void renderSwayingAccents(Ctx c, float r, float g, float b, float a, float height) {
         if (height <= 0.1f) return;
         float rotRad = (float) Math.toRadians(c.rotation * 0.2f);
@@ -436,7 +432,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Vertical accents with per-line random alpha flicker. */
     private void renderFlickeringAccents(Ctx c, float r, float g, float b, float baseAlpha, float height) {
         if (height <= 0.1f) return;
         float rotRad = (float) Math.toRadians(c.rotation * 0.4f);
@@ -492,7 +487,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Pick a random position within the zone's area. Returns {x, y, z} offsets from zone center. */
     private double[] randomPosInZone(Ctx c) {
         if (c.shape == ZoneShape.SQUARE) {
             double px = (RANDOM.nextDouble() * 2 - 1) * c.radius;
@@ -507,7 +501,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Pick a random position on the edge of the zone. Returns {x, z}. */
     private double[] randomEdgePos(Ctx c) {
         if (c.shape == ZoneShape.SQUARE) {
             int side = RANDOM.nextInt(4);
@@ -525,7 +518,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Spawn a zone particle at world position. */
     private void spawnParticle(EntityAbilityZone zone, double offsetX, double offsetY, double offsetZ,
                                 double mx, double my, double mz,
                                 float r, float g, float b, float alpha,
@@ -536,10 +528,6 @@ public class RenderAbilityZone extends Render {
             mx, my, mz, r, g, b, alpha, scale, maxAge, gravity, glow);
         Minecraft.getMinecraft().effectRenderer.addEffect(particle);
     }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // GL STATE
-    // ═══════════════════════════════════════════════════════════════════
 
     private void setupRenderState() {
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
@@ -560,10 +548,6 @@ public class RenderAbilityZone extends Render {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glPopAttrib();
     }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // SHAPE FILL (Ground plane)
-    // ═══════════════════════════════════════════════════════════════════
 
     private void renderShapeFill(ZoneShape shape, float radius, float r, float g, float b, float a) {
         GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
@@ -602,10 +586,6 @@ public class RenderAbilityZone extends Render {
         tess.draw();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // RING LINES (Concentric pulse rings)
-    // ═══════════════════════════════════════════════════════════════════
-
     private void renderRingLine(ZoneShape shape, float radius,
                                  float r, float g, float b, float a, float yOffset) {
         switch (shape) {
@@ -640,18 +620,13 @@ public class RenderAbilityZone extends Render {
         tess.draw();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // ROTATING BORDER
-    // ═══════════════════════════════════════════════════════════════════
-
     private void renderRotatingBorder(ZoneShape shape, float radius,
                                        float r, float g, float b, float a,
                                        float rotationDeg, float yOffset) {
         int dashCount = 16;
 
         if (shape == ZoneShape.SQUARE) {
-            // Dashes along 4 rectangle edges with offset
-            float perimeter = radius * 8; // total perimeter = 4 * (2*radius)
+            float perimeter = radius * 8;
             float dashLen = perimeter / dashCount;
             float offset = (rotationDeg % 360.0f) / 360.0f * perimeter;
 
@@ -691,7 +666,6 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    /** Convert a distance along the square perimeter to an x,z position. */
     private double[] perimeterPos(float dist, float radius) {
         float sideLen = radius * 2;
         if (dist < sideLen) {
@@ -713,10 +687,6 @@ public class RenderAbilityZone extends Render {
         return new double[]{-radius, radius - dist};
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // VERTICAL ACCENT LINES
-    // ═══════════════════════════════════════════════════════════════════
-
     private void renderVerticalAccents(ZoneShape shape, float radius,
                                         float r, float g, float b, float a,
                                         float height, float rotationDeg) {
@@ -725,7 +695,6 @@ public class RenderAbilityZone extends Render {
         Tessellator tess = Tessellator.instance;
 
         if (shape == ZoneShape.SQUARE) {
-            // Lines at corners + distributed along edges
             int perSide = Math.max(1, ACCENT_LINE_COUNT / 4);
             for (int side = 0; side < 4; side++) {
                 for (int j = 0; j < perSide; j++) {
@@ -745,7 +714,6 @@ public class RenderAbilityZone extends Render {
                     tess.draw();
                 }
             }
-            // Corner accent lines
             float[][] corners = {{-radius, -radius}, {radius, -radius}, {radius, radius}, {-radius, radius}};
             for (float[] corner : corners) {
                 tess.startDrawing(GL11.GL_LINES);

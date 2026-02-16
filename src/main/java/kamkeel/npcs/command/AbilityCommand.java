@@ -306,8 +306,8 @@ public class AbilityCommand extends CommandKamkeelBase {
     }
 
     /**
-     * Get list of player-usable ability keys (for tab completion).
-     * Uses registry keys for built-in abilities (no spaces) and UUIDs for custom.
+     * Get list of player-usable ability names (for tab completion).
+     * Uses registry keys for built-in abilities and display names for custom abilities.
      * Used by CommandKamkeel for <ability> usage token.
      */
     public static List<String> getPlayerAbilityNames() {

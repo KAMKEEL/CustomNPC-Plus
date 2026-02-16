@@ -2,14 +2,18 @@ package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.*;
 import kamkeel.npcs.controllers.SyncController;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.util.NBTJsonUtil;
 
+import net.minecraft.entity.player.EntityPlayer;
+
 import java.io.File;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class AbilityController implements IAbilityHandler {
@@ -24,7 +28,8 @@ public class AbilityController implements IAbilityHandler {
     // ── Extension Points ─────────────────────────────────────────────────────
     private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
-    private IAbilityDamageHandler damageHandler = null;
+    private final List<IAbilityExtender> extenders = new ArrayList<>();
+    private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
 
     // ── Derived State ────────────────────────────────────────────────────────
     private final Set<String> builtInTypeIds = new HashSet<>();
@@ -303,7 +308,13 @@ public class AbilityController implements IAbilityHandler {
                 keys.add(id);
             }
         }
-        keys.addAll(customAbilities.keySet());
+        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        for (Ability ability : customAbilities.values()) {
+            String name = ability.getName();
+            if (name != null && !name.isEmpty()) {
+                keys.add(name);
+            }
+        }
         return keys;
     }
 
@@ -317,9 +328,13 @@ public class AbilityController implements IAbilityHandler {
                 }
             }
         }
-        for (Map.Entry<String, Ability> entry : customAbilities.entrySet()) {
-            if (entry.getValue().getAllowedBy().allowsPlayer()) {
-                keys.add(entry.getKey());
+        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getAllowedBy().allowsPlayer()) {
+                String name = ability.getName();
+                if (name != null && !name.isEmpty()) {
+                    keys.add(name);
+                }
             }
         }
         return keys;
@@ -327,6 +342,37 @@ public class AbilityController implements IAbilityHandler {
 
     public boolean hasAbility(String key) {
         return builtAbilities.containsKey(key) || customAbilities.containsKey(key);
+    }
+
+    /**
+     * Check if a key can be resolved to a valid ability without creating a deep copy.
+     * Uses the same lookup chain as {@link #resolveAbility(String)}.
+     */
+    public boolean canResolveAbility(String key) {
+        if (key == null || key.isEmpty()) return false;
+
+        // Built-in: exact name
+        if (builtAbilities.containsKey(key)) return true;
+
+        // Built-in: case-insensitive name
+        for (String name : builtAbilities.keySet()) {
+            if (name.equalsIgnoreCase(key)) return true;
+        }
+
+        // Built-in: registry key / ID
+        for (Ability ability : builtAbilities.values()) {
+            if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) return true;
+        }
+
+        // Custom: exact UUID
+        if (customAbilities.containsKey(key)) return true;
+
+        // Custom: case-insensitive name
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) return true;
+        }
+
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -345,17 +391,14 @@ public class AbilityController implements IAbilityHandler {
         }
         List<AbilityVariant> ext = externalVariants.get(typeId);
         if (ext != null) {
+            // If no built-in variants exist but external ones do,
+            // inject a "Base" variant so the user always gets a choice
+            if (result.isEmpty()) {
+                result.add(new AbilityVariant("ability.variant.base", a -> {}));
+            }
             result.addAll(ext);
         }
         return result;
-    }
-
-    public void registerDamageHandler(IAbilityDamageHandler handler) {
-        this.damageHandler = handler;
-    }
-
-    public IAbilityDamageHandler getDamageHandler() {
-        return damageHandler;
     }
 
     public void registerFieldProvider(IAbilityFieldProvider provider) {
@@ -364,6 +407,76 @@ public class AbilityController implements IAbilityHandler {
 
     public List<IAbilityFieldProvider> getFieldProviders() {
         return fieldProviders;
+    }
+
+    public void registerExtender(IAbilityExtender extender) {
+        extenders.add(extender);
+    }
+
+    public List<IAbilityExtender> getExtenders() {
+        return extenders;
+    }
+
+    public void registerFlightChecker(Predicate<EntityPlayer> checker) {
+        flightCheckers.add(checker);
+    }
+
+    public boolean isPlayerFlying(EntityPlayer player) {
+        if (player.capabilities.isFlying) return true;
+        for (Predicate<EntityPlayer> checker : flightCheckers) {
+            if (checker.test(player)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Fire onAbilityStart on all extenders. Returns false if ANY extender cancels.
+     */
+    public boolean fireOnAbilityStart(Ability ability, EntityLivingBase caster, EntityLivingBase target) {
+        for (IAbilityExtender ext : extenders) {
+            if (!ext.onAbilityStart(ability, caster, target)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fire onAbilityTick on all extenders. Returns false if ANY extender says to interrupt.
+     */
+    public boolean fireOnAbilityTick(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                     AbilityPhase phase, int tick) {
+        for (IAbilityExtender ext : extenders) {
+            if (!ext.onAbilityTick(ability, caster, target, phase, tick)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fire onAbilityComplete on all extenders.
+     */
+    public void fireOnAbilityComplete(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                      boolean interrupted) {
+        for (IAbilityExtender ext : extenders) {
+            ext.onAbilityComplete(ability, caster, target, interrupted);
+        }
+    }
+
+    /**
+     * Fire onAbilityDamage on all extenders. Chain of responsibility — first true wins.
+     */
+    public boolean fireOnAbilityDamage(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                       float damage, float knockback, float knockbackUp,
+                                       double knockbackDirX, double knockbackDirZ) {
+        for (IAbilityExtender ext : extenders) {
+            if (ext.onAbilityDamage(ability, caster, target, damage, knockback, knockbackUp,
+                                    knockbackDirX, knockbackDirZ)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

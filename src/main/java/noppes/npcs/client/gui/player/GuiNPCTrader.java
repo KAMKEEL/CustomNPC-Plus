@@ -337,16 +337,43 @@ public class GuiNPCTrader extends GuiContainerNPCInterface implements IGuiData {
     protected void handleMouseClick(Slot slot, int slotId, int mouseButton, int modifier) {
         // Client-side balance prediction: immediately subtract currency cost on click
         // so the displayed balance updates instantly without waiting for server response.
+        // Must mirror ALL server-side checks in ContainerNPCTrader.slotClick() to avoid
+        // predicting a deduction for trades the server will reject.
         if (slotId >= 0 && slotId < 18 && mouseButton == 0) {
             long cost = currencyCost[slotId];
             if (cost > 0 && playerBalance >= cost) {
                 ItemStack sold = role.inventorySold.items.get(slotId);
-                if (sold != null && container.canBuy(slotId, player)) {
+                if (sold != null
+                    && canGivePlayerClient(sold)
+                    && container.isSlotEnabled(slotId, player)
+                    && (!stockEnabled || availableStock[slotId] > 0)
+                    && container.canBuy(slotId, player)) {
                     playerBalance -= cost;
+                    if (stockEnabled && availableStock[slotId] < Integer.MAX_VALUE) {
+                        availableStock[slotId]--;
+                    }
                 }
             }
         }
         super.handleMouseClick(slot, slotId, mouseButton, modifier);
+    }
+
+    /**
+     * Client-side mirror of ContainerNPCTrader.canGivePlayer.
+     * Checks if the item can be added to the player's cursor stack.
+     */
+    private boolean canGivePlayerClient(ItemStack item) {
+        ItemStack held = player.inventory.getItemStack();
+        if (held == null) {
+            return true;
+        }
+        if (NoppesUtilPlayer.compareItems(held, item, false, false)) {
+            int k1 = item.stackSize;
+            if (k1 > 0 && k1 + held.stackSize <= held.getMaxStackSize()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -2,16 +2,12 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.Vec3;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityDash;
@@ -22,9 +18,9 @@ import java.util.Random;
 
 /**
  * Dash ability: Quick evasive sidestep with NO telegraph.
- * Defensive repositioning move to evade attacks.
+ * Extends AbilityMovement for shared direction locking, stall detection, and velocity application.
  */
-public class AbilityDash extends Ability implements IAbilityDash {
+public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
     /**
      * Dash behavior mode.
@@ -88,12 +84,8 @@ public class AbilityDash extends Ability implements IAbilityDash {
     private float dashDistance = 4.0f;
     private float dashSpeed = 0.5f;
 
-    // Runtime state
-    private transient Vec3 dashDirection;
-    private transient double startX, startY, startZ;
-    private transient double prevTickX, prevTickZ;
+    // Type-specific runtime state
     private transient DashDirection chosenDirection;
-    private transient int maxActiveTicks;
 
     public AbilityDash() {
         this.typeId = "ability.cnpc.dash";
@@ -127,20 +119,8 @@ public class AbilityDash extends Ability implements IAbilityDash {
     }
 
     @Override
-    public boolean hasAbilityMovement() {
-        return true; // This ability moves the NPC
-    }
-
-    @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
-        startX = caster.posX;
-        startY = caster.posY;
-        startZ = caster.posZ;
-        prevTickX = caster.posX;
-        prevTickZ = caster.posZ;
-
-        // Safety timeout: expected ticks + generous buffer to prevent infinite dash
-        maxActiveTicks = dashSpeed > 0 ? (int)(dashDistance / dashSpeed) + 10 : 10;
+        initMovement(caster, dashDistance, dashSpeed);
 
         // Choose random direction based on mode
         DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
@@ -148,26 +128,10 @@ public class AbilityDash extends Ability implements IAbilityDash {
             : DEFENSIVE_DIRECTIONS;
         chosenDirection = directions[RANDOM.nextInt(directions.length)];
 
-        // NPC: dash direction is relative to aggro target facing
-        // Player: dash direction is relative to look direction
-        float baseYaw;
-        if (!isPlayerCaster(caster) && target != null) {
-            double dx = target.posX - caster.posX;
-            double dz = target.posZ - caster.posZ;
-            baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-        } else {
-            baseYaw = caster.rotationYaw;
-        }
-
-        // Apply direction offset
+        // Calculate direction: base yaw (toward target or look dir) + direction offset
+        float baseYaw = getBaseYaw(caster, target);
         float dashYaw = baseYaw + chosenDirection.getAngleOffset();
-        float yawRad = (float) Math.toRadians(dashYaw);
-
-        dashDirection = Vec3.createVectorHelper(
-            -Math.sin(yawRad),
-            0,
-            Math.cos(yawRad)
-        );
+        setDirectionFromYaw(dashYaw);
 
         // Small upward impulse for a skip/hop arc (gravity handles the descent)
         caster.motionY = 0.2;
@@ -175,86 +139,59 @@ public class AbilityDash extends Ability implements IAbilityDash {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        // Safety timeout or missing state: force-complete to prevent stuck NPC
-        if (!isPreview() && (dashDirection == null || tick > maxActiveTicks)) {
-            stopDash(caster);
+        if (checkTimeout(tick)) {
+            stopMomentum(caster);
             signalCompletion();
             return;
         }
 
-        if (dashDirection == null) {
+        if (movementDirection == null) {
             signalCompletion();
             return;
         }
 
-        // Stall detection: if entity hasn't moved since last tick, it's stuck against a wall
-        if (!isPreview() && tick > 1) {
-            double dx = caster.posX - prevTickX;
-            double dz = caster.posZ - prevTickZ;
-            if (dx * dx + dz * dz < 0.0001) {
-                stopDash(caster);
-                signalCompletion();
-                return;
-            }
+        if (checkStall(caster, tick)) {
+            stopMomentum(caster);
+            signalCompletion();
+            return;
         }
-        prevTickX = caster.posX;
-        prevTickZ = caster.posZ;
+        updatePrevPosition(caster);
 
-        // Check if reached max distance
-        double travelDx = caster.posX - startX;
-        double travelDz = caster.posZ - startZ;
-        if (travelDx * travelDx + travelDz * travelDz >= (double) dashDistance * dashDistance) {
-            stopDash(caster);
+        if (getDistanceTraveledSq(caster) >= (double) dashDistance * dashDistance) {
+            stopMomentum(caster);
             signalCompletion();
             return;
         }
 
-        // Block detection (skip in preview - no real world collision)
-        if (!isPreview() && isDashBlocked(caster)) {
-            stopDash(caster);
+        if (checkBlocked(caster, dashSpeed)) {
+            stopMomentum(caster);
             signalCompletion();
             return;
         }
 
         // Move caster (motionY left to gravity for skip arc)
-        caster.motionX = dashDirection.xCoord * dashSpeed;
-        caster.motionZ = dashDirection.zCoord * dashSpeed;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
+        applyVelocity(caster, dashSpeed);
 
+        if (!isPreview()) {
             // Trail particles
             caster.worldObj.spawnParticle("smoke", caster.posX, caster.posY + 0.5, caster.posZ, 0, 0, 0);
         }
     }
 
-    private void stopDash(EntityLivingBase caster) {
-        caster.motionX = 0;
-        caster.motionZ = 0;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
-        }
-    }
-
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        stopDash(caster);
+        stopMomentum(caster);
     }
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
-        stopDash(caster);
+        stopMomentum(caster);
     }
 
     @Override
     public void cleanup() {
-        dashDirection = null;
+        super.cleanup();
         chosenDirection = null;
-        maxActiveTicks = 0;
-    }
-
-    private boolean isDashBlocked(EntityLivingBase caster) {
-        if (dashDirection == null) return true;
-        return isMovementBlocked(caster, dashDirection.xCoord, dashDirection.zCoord, dashSpeed);
     }
 
     @Override

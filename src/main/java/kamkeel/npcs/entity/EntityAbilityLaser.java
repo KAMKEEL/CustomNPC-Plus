@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
+import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
@@ -145,6 +146,9 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
             endZ = startZ + dirZ * currentLength;
 
             if (ticksSinceFullExtension >= lingerTicks) {
+                if (!worldObj.isRemote) {
+                    EventHooks.onEnergyProjectileExpired(this);
+                }
                 this.setDead();
             }
         }
@@ -156,8 +160,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
      */
     private void updateLaserOriginAndDirection() {
         Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) return;
-        if (!(owner instanceof EntityLivingBase)) return;
+        if (owner == null || !(owner instanceof EntityLivingBase)) return;
 
         EntityLivingBase livingOwner = (EntityLivingBase) owner;
 
@@ -237,6 +240,9 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
         MovingObjectPosition blockHit = worldObj.func_147447_a(start, end, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            if (!worldObj.isRemote) {
+                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
+            }
             // Laser stops at block
             currentLength = (float) Math.sqrt(
                 (blockHit.hitVec.xCoord - startX) * (blockHit.hitVec.xCoord - startX) +
@@ -354,6 +360,32 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
 
     public float getLaserWidth() {
         return laserWidth;
+    }
+
+    public void setLaserWidth(float width) {
+        this.laserWidth = width;
+    }
+
+    public float getExpansionSpeed() {
+        return expansionSpeed;
+    }
+
+    public void setExpansionSpeed(float speed) {
+        this.expansionSpeed = speed;
+    }
+
+    public int getLingerTicks() {
+        return lingerTicks;
+    }
+
+    public void setLingerTicks(int ticks) {
+        this.lingerTicks = ticks;
+    }
+
+    public void setDirection(double x, double y, double z) {
+        this.dirX = x;
+        this.dirY = y;
+        this.dirZ = z;
     }
 
     public float getCurrentLength() {

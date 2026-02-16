@@ -15,14 +15,21 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.LogWriter;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.ability.IPlayerAbilityData;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -53,6 +60,13 @@ public class PlayerAbilityData implements IPlayerAbilityData {
      * Currently selected ability index in the unlocked list.
      */
     private int selectedIndex = 0;
+
+    /**
+     * Tracks whether the current animation was started by an ability.
+     * Persisted to NBT so orphaned ability animations can be detected and
+     * cleared on login (ability state is transient, but animation state is not).
+     */
+    private boolean playingAbilityAnimation = false;
 
     // ═══════════════════════════════════════════════════════════════════
     // RUNTIME STATE (not saved)
@@ -147,6 +161,16 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         // Tick advances time and possibly changes phase
         boolean phaseChanged = currentAbility.tick();
 
+        // Fire tick event for scripts
+        firePlayerTickEvent(player, currentAbility, currentTarget);
+
+        // Fire extender tick hook (e.g., per-tick resource drain)
+        if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, player, currentTarget,
+                currentAbility.getPhase(), currentAbility.getCurrentTick())) {
+            interruptCurrentAbility();
+            return;
+        }
+
         switch (currentAbility.getPhase()) {
             case WINDUP:
                 if (phaseChanged && oldPhase == AbilityPhase.BURST_DELAY) {
@@ -197,6 +221,11 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                     playAbilitySound(player, currentAbility.getActiveSound());
                     playAbilityAnimation(currentAbility.getActiveAnimation());
 
+                    // Fire execute event (cancelable)
+                    if (firePlayerExecuteEvent(player, currentAbility, currentTarget)) {
+                        return; // Cancelled
+                    }
+
                     // Call onExecute
                     currentAbility.onExecute(player, currentTarget);
 
@@ -213,7 +242,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                 }
 
                 // Auto-complete for burst overlap mode (entities fly independently)
-                if (currentAbility.isBurstEnabled() && currentAbility.isBurstOverlap()
+                if (currentAbility.isBurstEnabled()
                     && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
                     && currentAbility.getPhase() == AbilityPhase.ACTIVE
                     && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
@@ -249,7 +278,13 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     private void handleAbilityCompletion(EntityPlayer player) {
         if (currentAbility == null) return;
 
+        // Fire extender complete hook
+        AbilityController.Instance.fireOnAbilityComplete(currentAbility, player, currentTarget, false);
+
         currentAbility.onComplete(player, currentTarget);
+
+        // Fire complete event
+        firePlayerCompleteEvent(player, currentAbility, currentTarget);
 
         // Release all locks
         releaseRotationControl();
@@ -318,6 +353,16 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         // Check conditions (skip target-requiring ones)
         if (!ability.checkConditionsForPlayer(player)) return false;
 
+        // Fire extender start hook (e.g., resource cost checks)
+        if (!AbilityController.Instance.fireOnAbilityStart(ability, player, null)) {
+            return false;
+        }
+
+        // Fire start event (cancelable)
+        if (firePlayerStartEvent(player, ability)) {
+            return false; // Cancelled
+        }
+
         // Start the ability
         currentAbility = ability;
         currentAbilityKey = key;
@@ -357,6 +402,11 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         // Play active sound and animation
         playAbilitySound(player, ability.getActiveSound());
         playAbilityAnimation(ability.getActiveAnimation());
+
+        // Fire execute event (cancelable)
+        if (firePlayerExecuteEvent(player, ability, currentTarget)) {
+            return; // Cancelled
+        }
 
         // Call onExecute
         ability.onExecute(player, currentTarget);
@@ -516,7 +566,17 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     }
 
     public void interruptCurrentAbility() {
+        interruptCurrentAbility(null, 0);
+    }
+
+    public void interruptCurrentAbility(DamageSource source, float damage) {
         if (currentAbility != null && currentAbility.isExecuting()) {
+            // Fire extender complete hook (interrupted)
+            AbilityController.Instance.fireOnAbilityComplete(currentAbility, playerData.player, currentTarget, true);
+
+            // Fire interrupt event
+            firePlayerInterruptEvent(playerData.player, currentAbility, currentTarget, source, damage);
+
             currentAbility.interrupt();
             stopAbilityAnimation();
             releaseRotationControl();
@@ -569,7 +629,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
         // Check for ability interruption
         if (currentAbility != null && currentAbility.canInterrupt(source)) {
-            interruptCurrentAbility();
+            interruptCurrentAbility(source, amount);
         }
 
         return amount;
@@ -674,6 +734,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         player.prevPosY = lockedPosY;
         player.prevPosZ = lockedPosZ;
         player.motionX = 0;
+        player.motionY = 0; // Full vertical freeze for position lock
         player.motionZ = 0;
     }
 
@@ -761,6 +822,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         playerData.animationData.setEnabled(true);
         playerData.animationData.setAnimation(animation);
         playerData.animationData.updateClient();
+        playingAbilityAnimation = true;
     }
 
     public void playAbilityAnimation(int animation) {
@@ -782,12 +844,96 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     private void stopAbilityAnimation() {
         playerData.animationData.setAnimation(null);
         playerData.animationData.updateClient();
+        playingAbilityAnimation = false;
+    }
+
+    /**
+     * Returns true if an ability-driven animation is currently playing.
+     * Used by PlayerData.onLogin() to detect orphaned ability animations.
+     */
+    public boolean isPlayingAbilityAnimation() {
+        return playingAbilityAnimation;
+    }
+
+    /**
+     * Clears an orphaned ability animation (e.g. after relog when the ability is gone).
+     * Stops the animation and resets the tracking flag.
+     */
+    public void clearOrphanedAbilityAnimation() {
+        stopAbilityAnimation();
     }
 
     private void playAbilitySound(EntityPlayer player, String sound) {
         if (sound != null && !sound.isEmpty()) {
             player.worldObj.playSoundAtEntity(player, sound, 1.0f, 1.0f);
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SCRIPT EVENTS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Fire the ability start event. Returns true if cancelled.
+     */
+    private boolean firePlayerStartEvent(EntityPlayer player, Ability ability) {
+        if (ScriptController.Instance == null) return false;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return false;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.StartEvent event = new PlayerAbilityEvent.StartEvent(iPlayer, ability, null);
+        return EventHooks.onPlayerAbilityStart(handler, event);
+    }
+
+    /**
+     * Fire the ability execute event. Returns true if cancelled.
+     */
+    private boolean firePlayerExecuteEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
+        if (ScriptController.Instance == null) return false;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return false;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.ExecuteEvent event = new PlayerAbilityEvent.ExecuteEvent(iPlayer, ability, target);
+        return EventHooks.onPlayerAbilityExecute(handler, event);
+    }
+
+    /**
+     * Fire the ability tick event.
+     */
+    private void firePlayerTickEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
+        if (ScriptController.Instance == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.TickEvent event = new PlayerAbilityEvent.TickEvent(
+            iPlayer, ability, target, ability.getPhase().ordinal(), ability.getCurrentTick());
+        EventHooks.onPlayerAbilityTick(handler, event);
+    }
+
+    /**
+     * Fire the ability interrupt event.
+     */
+    private void firePlayerInterruptEvent(EntityPlayer player, Ability ability, EntityLivingBase target,
+                                          DamageSource source, float damage) {
+        if (ScriptController.Instance == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.InterruptEvent event = new PlayerAbilityEvent.InterruptEvent(
+            iPlayer, ability, target, source, damage);
+        EventHooks.onPlayerAbilityInterrupt(handler, event);
+    }
+
+    /**
+     * Fire the ability complete event.
+     */
+    private void firePlayerCompleteEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
+        if (ScriptController.Instance == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.CompleteEvent event = new PlayerAbilityEvent.CompleteEvent(iPlayer, ability, target);
+        EventHooks.onPlayerAbilityComplete(handler, event);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -801,6 +947,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         }
         compound.setTag("PlayerAbilities", list);
         compound.setInteger("PlayerAbilitySelected", selectedIndex);
+        compound.setBoolean("AbilityAnimating", playingAbilityAnimation);
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -815,8 +962,30 @@ public class PlayerAbilityData implements IPlayerAbilityData {
             }
         }
         selectedIndex = compound.getInteger("PlayerAbilitySelected");
+
+        // Prune abilities that no longer exist (deleted custom abilities or removed built-ins)
+        validateUnlockedAbilities();
+
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
+        }
+        playingAbilityAnimation = compound.getBoolean("AbilityAnimating");
+    }
+
+    /**
+     * Remove any unlocked ability keys that can no longer be resolved.
+     * Called during load to clean up references to deleted abilities.
+     */
+    private void validateUnlockedAbilities() {
+        if (AbilityController.Instance == null) return;
+
+        Iterator<String> it = unlockedAbilities.iterator();
+        while (it.hasNext()) {
+            String key = it.next();
+            if (!AbilityController.Instance.canResolveAbility(key)) {
+                it.remove();
+                LogWriter.info("Removed invalid ability reference from player data: " + key);
+            }
         }
     }
 }

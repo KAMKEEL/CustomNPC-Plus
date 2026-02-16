@@ -317,9 +317,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Toggle selected ability on/off
         if (id == 77) {
             if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
-                Ability ability = npcSlots.get(selectedAbilityIndex).getAbility();
+                AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+                Ability ability = slot.getAbility();
                 if (ability != null) {
-                    ability.setEnabled(((GuiNpcButton) guibutton).getValue() == 1);
+                    boolean enabled = ((GuiNpcButton) guibutton).getValue() == 1;
+                    slot.setEnabled(enabled);
                     updateNpcAbilitiesList();
                     selectAbilityByIndex(selectedAbilityIndex);
                     initGui();
@@ -489,8 +491,31 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         for (int i = 0; i < npcSlots.size(); i++) {
             list.add(getAbilityListEntry(i));
         }
+
+        // Sort: enabled first, then numerically by slot index
+        Collections.sort(list, new Comparator<String>() {
+            @Override
+            public int compare(String a, String b) {
+                boolean aEnabled = a.startsWith("\u00A7a");
+                boolean bEnabled = b.startsWith("\u00A7a");
+                if (aEnabled != bEnabled) return aEnabled ? -1 : 1;
+                return extractIndex(a) - extractIndex(b);
+            }
+
+            private int extractIndex(String entry) {
+                String stripped = entry.replaceAll("\u00A7.", "").trim();
+                int dotIndex = stripped.indexOf(".");
+                if (dotIndex > 0) {
+                    try {
+                        return Integer.parseInt(stripped.substring(0, dotIndex).replaceAll("[^0-9]", ""));
+                    } catch (NumberFormatException e) { }
+                }
+                return Integer.MAX_VALUE;
+            }
+        });
+
         if (npcAbilitiesScroll != null) {
-            npcAbilitiesScroll.setList(list);
+            npcAbilitiesScroll.setUnsortedList(list);
         }
     }
 

@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
+import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
@@ -344,6 +345,9 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            if (!worldObj.isRemote) {
+                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
+            }
             hasHit = true;
             if (isExplosive()) {
                 posX = blockHit.hitVec.xCoord;
@@ -391,19 +395,13 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     protected void updateCharging() {
         chargeTick++;
 
-        Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) {
-            setDead();
-            return;
-        }
-
         // Grow size based on charge progress
         float progress = getChargeProgress();
         this.discRadius = targetDiscRadius * progress;
         this.discThickness = targetDiscThickness * progress;
         this.size = this.discRadius; // Base size for interpolation
 
-        // Calculate position based on anchor point, offset downward by half radius to center
+        Entity owner = getOwnerEntity();
         if (owner instanceof EntityLivingBase) {
             Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
@@ -419,12 +417,32 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
         return discRadius;
     }
 
+    public void setDiscRadius(float radius) {
+        this.discRadius = radius;
+    }
+
     public float getDiscThickness() {
         return discThickness;
     }
 
+    public void setDiscThickness(float thickness) {
+        this.discThickness = thickness;
+    }
+
     public boolean isBoomerang() {
         return boomerang;
+    }
+
+    public void setBoomerang(boolean boomerang) {
+        this.boomerang = boomerang;
+    }
+
+    public int getBoomerangDelay() {
+        return boomerangDelay;
+    }
+
+    public void setBoomerangDelay(int delay) {
+        this.boomerangDelay = delay;
     }
 
     public boolean isReturning() {
@@ -433,6 +451,10 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
 
     public boolean isVertical() {
         return vertical;
+    }
+
+    public void setVertical(boolean vertical) {
+        this.vertical = vertical;
     }
 
     /**

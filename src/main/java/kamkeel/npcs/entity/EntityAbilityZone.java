@@ -26,7 +26,7 @@ import java.util.UUID;
 
 /**
  * Shared zone entity for Trap and Hazard abilities.
- * Handles rendering, positioning, and damage logic.
+ * ZoneType distinguishes behavior: TRAP (proximity-triggered burst) vs HAZARD (persistent AoE).
  */
 public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnData {
 
@@ -76,11 +76,11 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         }
     }
 
-    /** Tiny Y offset above ground to prevent z-clipping */
     private static final double GROUND_OFFSET = 0.005;
+    private static final byte TRIGGER_FLASH_STATUS = 60;
 
     // ═══════════════════════════════════════════════════════════════════
-    // COMMON PROPERTIES (synced via ByteBuf)
+    // COMMON PROPERTIES
     // ═══════════════════════════════════════════════════════════════════
 
     private ZoneType zoneType = ZoneType.TRAP;
@@ -99,13 +99,12 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
     private float zoneHeight = 2.0f;
 
-    // Visual parameters (synced for renderer)
     private float particleDensity = 1.0f;
     private float particleScale = 1.0f;
     private float animSpeed = 1.0f;
     private float lightningDensity = 1.0f;
 
-    // Visual layer parameters (always active)
+    // Visual layer fields
     private boolean groundFill = true;
     private float groundAlpha = 0.25f;
     private boolean rings = true;
@@ -113,18 +112,15 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     private boolean border = true;
     private float borderSpeed = 1.0f;
     private boolean accents = true;
-    private int accentStyle = 0; // AccentStyle ordinal
+    private int accentStyle = 0;
     private boolean lightning = false;
     private boolean particles = true;
-    private int particleMotion = 0; // ParticleMotion ordinal
+    private int particleMotion = 0;
     private String particleDir = "";
     private int particleSize = 32;
     private boolean particleGlow = true;
 
-    // Lifetime
     private long deathWorldTime = -1;
-
-    // Effects
     private List<AbilityEffect> effects = new ArrayList<>();
 
     // ═══════════════════════════════════════════════════════════════════
@@ -138,6 +134,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     private float damage = 6.0f;
     private float damageRadius = 0.0f;
     private float knockback = 0.5f;
+    private boolean visible = true;
 
     // ═══════════════════════════════════════════════════════════════════
     // HAZARD-SPECIFIC PROPERTIES
@@ -149,21 +146,18 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     private boolean affectsCaster = false;
 
     // ═══════════════════════════════════════════════════════════════════
-    // RUNTIME STATE (transient)
+    // RUNTIME STATE
     // ═══════════════════════════════════════════════════════════════════
 
-    // Trap runtime
     private transient boolean armed = false;
     private transient int triggerCount = 0;
     private transient int ticksSinceLastTrigger = 0;
     private transient Set<UUID> triggeredEntities = new HashSet<>();
-    private transient int triggerFlashTick = -1; // For visual flash on trigger
+    private transient int triggerFlashTick = -1;
 
-    // Hazard runtime
     private transient int ticksSinceDamage = 0;
     private transient Set<Integer> damagedThisTick = new HashSet<>();
 
-    // Preview mode
     private boolean previewMode = false;
     private EntityLivingBase previewOwner = null;
 
@@ -179,11 +173,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.ignoreFrustumCheck = true;
     }
 
-    /**
-     * Full constructor for creating a zone entity.
-     * Use the static factory methods for cleaner creation.
-     * Position is snapped to ground level with a tiny offset to avoid z-clipping.
-     */
     private EntityAbilityZone(World world, ZoneType type, EntityLivingBase owner,
                                double x, double y, double z) {
         this(world);
@@ -194,9 +183,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.setPosition(x, groundY, z);
     }
 
-    /**
-     * Create a Trap zone entity.
-     */
     public static EntityAbilityZone createTrap(World world, EntityLivingBase owner,
                                                 double x, double y, double z,
                                                 ZoneShape shape,
@@ -207,6 +193,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                                                 float zoneHeight,
                                                 float particleDensity, float particleScale,
                                                 float animSpeed, float lightningDensity,
+                                                boolean visible,
                                                 List<AbilityEffect> effects) {
         EntityAbilityZone zone = new EntityAbilityZone(world, ZoneType.TRAP, owner, x, y, z);
         zone.shape = shape;
@@ -228,19 +215,16 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         zone.particleScale = particleScale;
         zone.animSpeed = animSpeed;
         zone.lightningDensity = lightningDensity;
+        zone.visible = visible;
         if (effects != null) {
             for (AbilityEffect e : effects) {
                 zone.effects.add(e.copy());
             }
         }
-        // Ready to trigger immediately after arm time
         zone.ticksSinceLastTrigger = triggerCooldown;
         return zone;
     }
 
-    /**
-     * Create a Hazard zone entity.
-     */
     public static EntityAbilityZone createHazard(World world, EntityLivingBase owner,
                                                   double x, double y, double z,
                                                   ZoneShape shape,
@@ -275,7 +259,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                 zone.effects.add(e.copy());
             }
         }
-        // Ready to deal damage immediately
         zone.ticksSinceDamage = damageInterval;
         return zone;
     }
@@ -285,8 +268,15 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     // ═══════════════════════════════════════════════════════════════════
 
     @Override
-    protected void entityInit() {
-        // No DataWatcher needed
+    protected void entityInit() {}
+
+    @Override
+    public void handleHealthUpdate(byte id) {
+        if (id == TRIGGER_FLASH_STATUS) {
+            this.triggerFlashTick = this.ticksExisted;
+        } else {
+            super.handleHealthUpdate(id);
+        }
     }
 
     @Override
@@ -297,18 +287,15 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
         super.onUpdate();
 
-        // Set death time on first tick
         if (deathWorldTime < 0 && worldObj != null) {
             deathWorldTime = worldObj.getTotalWorldTime() + maxTicks;
         }
 
-        // Check lifetime
         if (deathWorldTime > 0 && worldObj.getTotalWorldTime() >= deathWorldTime) {
             this.setDead();
             return;
         }
 
-        // Server handles damage
         if (!worldObj.isRemote && !previewMode) {
             switch (zoneType) {
                 case TRAP:
@@ -322,11 +309,10 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // TRAP LOGIC (server-only)
+    // TRAP LOGIC
     // ═══════════════════════════════════════════════════════════════════
 
     private void tickTrap() {
-        // Arm time countdown
         if (!armed) {
             if (ticksExisted >= armTime) {
                 armed = true;
@@ -336,18 +322,15 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
         ticksSinceLastTrigger++;
 
-        // All triggers used
         if (maxTriggers > 0 && triggerCount >= maxTriggers) {
             this.setDead();
             return;
         }
 
-        // Cooldown between triggers
         if (ticksSinceLastTrigger < triggerCooldown) {
             return;
         }
 
-        // Proximity detection
         AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
             posX - triggerRadius, posY - 0.5, posZ - triggerRadius,
             posX + triggerRadius, posY + zoneHeight, posZ + triggerRadius
@@ -419,7 +402,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                 anyDamaged = true;
             }
 
-            // Apply knockback only if damage landed
             if (hit && knockback > 0) {
                 double dx = entity.posX - posX;
                 double dz = entity.posZ - posZ;
@@ -430,23 +412,22 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                 }
             }
 
-            // Apply effects only if damage landed
             if (hit) {
                 applyEffects(entity);
             }
         }
 
-        // Only count the trigger if at least one entity was actually damaged
         if (anyDamaged) {
             triggerCount++;
             ticksSinceLastTrigger = 0;
             triggeredEntities.add(triggerer.getUniqueID());
             triggerFlashTick = ticksExisted;
+            worldObj.setEntityState(this, TRIGGER_FLASH_STATUS);
         }
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // HAZARD LOGIC (server-only)
+    // HAZARD LOGIC
     // ═══════════════════════════════════════════════════════════════════
 
     private void tickHazard() {
@@ -545,12 +526,12 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     @Override
     @SideOnly(Side.CLIENT)
     public boolean isInRangeToRenderDist(double distance) {
-        return distance < 16384.0D; // 128 blocks
+        return distance < 16384.0D;
     }
 
     @Override
     public boolean shouldRenderInPass(int pass) {
-        return pass == 1; // Translucent pass
+        return pass == 1;
     }
 
     @Override
@@ -576,6 +557,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     public boolean isOuterColorEnabled() { return outerColorEnabled; }
     public float getZoneHeight() { return zoneHeight; }
     public boolean isArmed() { return armed || ticksExisted >= armTime; }
+    public boolean isVisible() { return visible; }
     public int getTriggerFlashTick() { return triggerFlashTick; }
     public int getDurationTicks() { return durationTicks; }
     public int getMaxTicks() { return maxTicks; }
@@ -584,7 +566,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     public float getAnimSpeed() { return animSpeed; }
     public float getLightningDensity() { return lightningDensity; }
 
-    // Visual layer getters
     public boolean isGroundFill() { return groundFill; }
     public float getGroundAlpha() { return groundAlpha; }
     public boolean isRings() { return rings; }
@@ -600,9 +581,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     public int getParticleSize() { return particleSize; }
     public boolean isParticleGlow() { return particleGlow; }
 
-    /**
-     * Apply visual settings from ability data.
-     */
     public void applyVisual(boolean groundFill, float groundAlpha,
                              boolean rings, int ringCount,
                              boolean border, float borderSpeed,
@@ -626,44 +604,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.particleGlow = particleGlow;
     }
 
-    /**
-     * Apply preset defaults by old style name (for backward compatibility).
-     */
-    private void applyPresetDefaults(String styleName) {
-        switch (styleName) {
-            case "TOXIC":
-                groundFill = true; groundAlpha = 0.30f; rings = true; ringCount = 3;
-                border = false; borderSpeed = 1.0f; accents = true; accentStyle = 1;
-                lightning = false; particles = true; particleMotion = 0; particleGlow = true;
-                break;
-            case "INFERNO":
-                groundFill = true; groundAlpha = 0.35f; rings = true; ringCount = 3;
-                border = true; borderSpeed = 2.0f; accents = true; accentStyle = 2;
-                lightning = false; particles = true; particleMotion = 0; particleGlow = true;
-                break;
-            case "ARCANE":
-                groundFill = true; groundAlpha = 0.20f; rings = true; ringCount = 1;
-                border = true; borderSpeed = 0.8f; accents = true; accentStyle = 0;
-                lightning = false; particles = true; particleMotion = 1; particleGlow = true;
-                break;
-            case "ELECTRIC":
-                groundFill = true; groundAlpha = 0.15f; rings = false; ringCount = 1;
-                border = false; borderSpeed = 1.0f; accents = false; accentStyle = 0;
-                lightning = true; particles = true; particleMotion = 2; particleGlow = true;
-                break;
-            case "FROST":
-                groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;
-                border = true; borderSpeed = 0.3f; accents = true; accentStyle = 0;
-                lightning = false; particles = true; particleMotion = 1; particleGlow = true;
-                break;
-            default: // DEFAULT
-                groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;
-                border = true; borderSpeed = 1.0f; accents = true; accentStyle = 0;
-                lightning = false; particles = false; particleMotion = 0; particleGlow = true;
-                break;
-        }
-    }
-
     // ═══════════════════════════════════════════════════════════════════
     // NBT SERIALIZATION
     // ═══════════════════════════════════════════════════════════════════
@@ -671,16 +611,9 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
         this.zoneType = ZoneType.values()[nbt.getInteger("ZoneType")];
-
-        // Shape: read new string key first, fall back to old ordinal (always CIRCLE for old RING/CONE)
-        if (nbt.hasKey("ShapeName")) {
-            try {
-                this.shape = ZoneShape.valueOf(nbt.getString("ShapeName"));
-            } catch (Exception e) {
-                this.shape = ZoneShape.CIRCLE;
-            }
-        } else {
-            // Legacy: old ordinal data — RING(1) and CONE(2) map to CIRCLE
+        try {
+            this.shape = ZoneShape.valueOf(nbt.getString("ShapeName"));
+        } catch (Exception e) {
             this.shape = ZoneShape.CIRCLE;
         }
 
@@ -691,51 +624,28 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.innerColor = nbt.getInteger("InnerColor");
         this.outerColor = nbt.getInteger("OuterColor");
         this.outerColorEnabled = nbt.getBoolean("OuterColorEnabled");
-        this.zoneHeight = nbt.hasKey("ZoneHeight") ? nbt.getFloat("ZoneHeight") : 2.0f;
-        this.particleDensity = nbt.hasKey("ParticleDensity") ? nbt.getFloat("ParticleDensity") : 1.0f;
-        this.particleScale = nbt.hasKey("ParticleScale") ? nbt.getFloat("ParticleScale") : 1.0f;
-        this.animSpeed = nbt.hasKey("AnimSpeed") ? nbt.getFloat("AnimSpeed") : 1.0f;
-        this.lightningDensity = nbt.hasKey("LightningDensity") ? nbt.getFloat("LightningDensity") : 1.0f;
-        this.deathWorldTime = nbt.hasKey("DeathWorldTime") ? nbt.getLong("DeathWorldTime") : -1;
+        this.zoneHeight = nbt.getFloat("ZoneHeight");
+        this.particleDensity = nbt.getFloat("ParticleDensity");
+        this.particleScale = nbt.getFloat("ParticleScale");
+        this.animSpeed = nbt.getFloat("AnimSpeed");
+        this.lightningDensity = nbt.getFloat("LightningDensity");
+        this.deathWorldTime = nbt.getLong("DeathWorldTime");
 
-        // Visual fields — backward compat with old ZoneStyle format
-        if (nbt.hasKey("ZoneStyle")) {
-            // OLD FORMAT: apply preset defaults, then overlay CustomVisual
-            applyPresetDefaults(nbt.getString("ZoneStyle"));
-            if (nbt.hasKey("CustomVisual")) {
-                NBTTagCompound cv = nbt.getCompoundTag("CustomVisual");
-                this.groundFill = !cv.hasKey("GroundFill") || cv.getBoolean("GroundFill");
-                this.groundAlpha = cv.hasKey("GroundAlpha") ? cv.getFloat("GroundAlpha") : 0.25f;
-                this.rings = !cv.hasKey("Rings") || cv.getBoolean("Rings");
-                this.ringCount = cv.hasKey("RingCount") ? cv.getInteger("RingCount") : 3;
-                this.border = !cv.hasKey("Border") || cv.getBoolean("Border");
-                this.borderSpeed = cv.hasKey("BorderSpeed") ? cv.getFloat("BorderSpeed") : 1.0f;
-                this.accents = !cv.hasKey("Accents") || cv.getBoolean("Accents");
-                this.accentStyle = cv.hasKey("AccentStyle") ? cv.getInteger("AccentStyle") : 0;
-                this.lightning = cv.hasKey("Lightning") && cv.getBoolean("Lightning");
-                this.particles = !cv.hasKey("Particles") || cv.getBoolean("Particles");
-                this.particleMotion = cv.hasKey("ParticleMotion") ? cv.getInteger("ParticleMotion") : 0;
-                this.particleDir = cv.hasKey("ParticleDir") ? cv.getString("ParticleDir") : "";
-                this.particleSize = cv.hasKey("ParticleSize") ? cv.getInteger("ParticleSize") : 32;
-                this.particleGlow = !cv.hasKey("ParticleGlow") || cv.getBoolean("ParticleGlow");
-            }
-        } else {
-            // NEW FORMAT: read individual top-level keys
-            this.groundFill = !nbt.hasKey("GroundFill") || nbt.getBoolean("GroundFill");
-            this.groundAlpha = nbt.hasKey("GroundAlpha") ? nbt.getFloat("GroundAlpha") : 0.25f;
-            this.rings = !nbt.hasKey("Rings") || nbt.getBoolean("Rings");
-            this.ringCount = nbt.hasKey("RingCount") ? nbt.getInteger("RingCount") : 3;
-            this.border = !nbt.hasKey("Border") || nbt.getBoolean("Border");
-            this.borderSpeed = nbt.hasKey("BorderSpeed") ? nbt.getFloat("BorderSpeed") : 1.0f;
-            this.accents = !nbt.hasKey("Accents") || nbt.getBoolean("Accents");
-            this.accentStyle = nbt.hasKey("AccentStyle") ? nbt.getInteger("AccentStyle") : 0;
-            this.lightning = nbt.hasKey("Lightning") && nbt.getBoolean("Lightning");
-            this.particles = !nbt.hasKey("Particles") || nbt.getBoolean("Particles");
-            this.particleMotion = nbt.hasKey("ParticleMotion") ? nbt.getInteger("ParticleMotion") : 0;
-            this.particleDir = nbt.hasKey("ParticleDir") ? nbt.getString("ParticleDir") : "";
-            this.particleSize = nbt.hasKey("ParticleSize") ? nbt.getInteger("ParticleSize") : 32;
-            this.particleGlow = !nbt.hasKey("ParticleGlow") || nbt.getBoolean("ParticleGlow");
-        }
+        // Visual layer fields
+        this.groundFill = nbt.getBoolean("GroundFill");
+        this.groundAlpha = nbt.getFloat("GroundAlpha");
+        this.rings = nbt.getBoolean("Rings");
+        this.ringCount = nbt.getInteger("RingCount");
+        this.border = nbt.getBoolean("Border");
+        this.borderSpeed = nbt.getFloat("BorderSpeed");
+        this.accents = nbt.getBoolean("Accents");
+        this.accentStyle = nbt.getInteger("AccentStyle");
+        this.lightning = nbt.getBoolean("Lightning");
+        this.particles = nbt.getBoolean("Particles");
+        this.particleMotion = nbt.getInteger("ParticleMotion");
+        this.particleDir = nbt.getString("ParticleDir");
+        this.particleSize = nbt.getInteger("ParticleSize");
+        this.particleGlow = nbt.getBoolean("ParticleGlow");
 
         // Trap
         this.armTime = nbt.getInteger("ArmTime");
@@ -745,6 +655,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.damage = nbt.getFloat("Damage");
         this.damageRadius = nbt.getFloat("DamageRadius");
         this.knockback = nbt.getFloat("Knockback");
+        this.visible = nbt.getBoolean("Visible");
 
         // Hazard
         this.damagePerSecond = nbt.getFloat("DamagePerSecond");
@@ -783,7 +694,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         nbt.setFloat("LightningDensity", lightningDensity);
         nbt.setLong("DeathWorldTime", deathWorldTime);
 
-        // Visual fields — always written as top-level keys
+        // Visual layer fields
         nbt.setBoolean("GroundFill", groundFill);
         nbt.setFloat("GroundAlpha", groundAlpha);
         nbt.setBoolean("Rings", rings);
@@ -807,6 +718,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         nbt.setFloat("Damage", damage);
         nbt.setFloat("DamageRadius", damageRadius);
         nbt.setFloat("Knockback", knockback);
+        nbt.setBoolean("Visible", visible);
 
         // Hazard
         nbt.setFloat("DamagePerSecond", damagePerSecond);
@@ -843,7 +755,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         buffer.writeFloat(animSpeed);
         buffer.writeFloat(lightningDensity);
 
-        // Visual fields — always written individually
+        // Visual layer fields
         buffer.writeBoolean(groundFill);
         buffer.writeFloat(groundAlpha);
         buffer.writeBoolean(rings);
@@ -859,10 +771,11 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         buffer.writeInt(particleSize);
         buffer.writeBoolean(particleGlow);
 
-        // Trap-specific (client needs armTime for visual state)
+        // Trap-specific
         buffer.writeInt(armTime);
+        buffer.writeBoolean(visible);
 
-        // Effects via NBT in buffer
+        // Effects
         NBTTagCompound effectsNbt = new NBTTagCompound();
         NBTTagList effectList = new NBTTagList();
         for (AbilityEffect effect : effects) {
@@ -894,7 +807,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.animSpeed = buffer.readFloat();
         this.lightningDensity = buffer.readFloat();
 
-        // Visual fields — always read individually
+        // Visual layer fields
         this.groundFill = buffer.readBoolean();
         this.groundAlpha = buffer.readFloat();
         this.rings = buffer.readBoolean();
@@ -911,8 +824,9 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.particleGlow = buffer.readBoolean();
 
         this.armTime = buffer.readInt();
+        this.visible = buffer.readBoolean();
 
-        // Effects via NBT
+        // Effects
         NBTTagCompound effectsNbt = ByteBufUtils.readTag(buffer);
         effects.clear();
         if (effectsNbt != null && effectsNbt.hasKey("Effects")) {

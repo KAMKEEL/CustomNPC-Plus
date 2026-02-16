@@ -329,13 +329,10 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (damage > 0) {
-            // Check for external damage handler first (e.g., DBC Addon)
-            IAbilityDamageHandler handler = AbilityController.Instance.getDamageHandler();
-            boolean handled = false;
-            if (handler != null) {
-                handled = handler.handleDamage(this, caster, hitEntity, damage, knockback, knockbackUp,
-                                               knockbackDirX, knockbackDirZ);
-            }
+            // Check for ability extenders (e.g., DBC Addon damage routing)
+            boolean handled = AbilityController.Instance.fireOnAbilityDamage(
+                this, caster, hitEntity, damage, knockback, knockbackUp,
+                knockbackDirX, knockbackDirZ);
             if (!handled) {
                 // Default damage path
                 if (caster instanceof EntityNPCInterface) {
@@ -913,9 +910,9 @@ public abstract class Ability implements IAbility {
         if (phase == AbilityPhase.ACTIVE) {
             // Check if more burst iterations remain
             if (burstEnabled && burstAmount > 0 && burstIndex < burstAmount) {
-                if (!burstOverlap) {
-                    cleanup();
-                }
+                // Don't cleanup here - entities may still be in flight
+                // For non-overlap: cleaned up when next burst starts (in onExecute)
+                // For overlap: entities continue flying indefinitely
                 burstIndex++;
                 phase = AbilityPhase.BURST_DELAY;
                 currentTick = 0;

@@ -1,16 +1,16 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import kamkeel.npcs.controllers.data.ability.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-
-
 import noppes.npcs.api.ability.type.IAbilityTrap;
-
+import noppes.npcs.client.gui.SubGuiTrapPresetSelector;
 import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+import noppes.npcs.constants.EnumPotionType;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -19,14 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Trap ability: Places proximity-triggered traps around the caster.
- * Spawns one or more EntityAbilityZone entities in random positions
- * within spawnRadius of the caster. Damage and trigger logic handled by the entity.
- */
 public class AbilityTrap extends AbilityZone implements IAbilityTrap {
 
-    // Trap-specific fields
     private float triggerRadius = 2.0f;
     private int armTime = 20;
     private int maxTriggers = 1;
@@ -54,7 +48,6 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         activeEntities.clear();
 
-        // Use pre-calculated positions from telegraph phase, or generate new ones
         List<double[]> positions;
         if (!preCalculatedPositions.isEmpty() && preCalculatedPositions.size() == zoneCount) {
             positions = new ArrayList<>(preCalculatedPositions);
@@ -81,6 +74,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
                 colorData.innerColor, colorData.outerColor, colorData.outerColorEnabled,
                 zoneHeight,
                 particleDensity, particleScale, animSpeed, lightningDensity,
+                visible,
                 getEffects());
 
             applyVisualToEntity(entity);
@@ -94,9 +88,81 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // NBT
-    // ═══════════════════════════════════════════════════════════════════
+    @SideOnly(Side.CLIENT)
+    public enum TrapPreset {
+        HIDDEN, VENOM, EXPLOSIVE, CURSED, SHOCK, SNARE;
+
+        @Override
+        public String toString() {
+            return "ability.preset." + name().toLowerCase();
+        }
+    }
+
+    private void applyTrapPresetDefaults(String preset) {
+        effects.clear();
+        particleDir = "";
+
+        groundFill = true;
+        rings = false;
+        ringCount = 1;
+        border = false;
+        borderSpeed = 1.0f;
+        accents = false;
+        accentStyle = 0;
+        lightning = false;
+        particleGlow = false;
+
+        switch (preset) {
+            case "VENOM":
+                groundAlpha = 0.04f;
+                particles = true; particleDensity = 0.3f; particleScale = 0.5f;
+                particleMotion = 1; particleDir = "mc:mobSpell";
+                colorData.innerColor = 0x44DD44; colorData.outerColor = 0x116611;
+                windUpColor = 0x6044DD44; activeColor = 0xC044FF44;
+                effects.add(new AbilityEffect(EnumPotionType.Poison, 100, 0));
+                break;
+            case "EXPLOSIVE":
+                groundAlpha = 0.04f;
+                particles = true; particleDensity = 0.3f; particleScale = 0.6f;
+                particleMotion = 0; particleDir = "mc:smoke";
+                colorData.innerColor = 0xFF6611; colorData.outerColor = 0xCC2200;
+                windUpColor = 0x60FF6611; activeColor = 0xC0FF4400;
+                effects.add(new AbilityEffect(EnumPotionType.Fire, 60, 0));
+                break;
+            case "CURSED":
+                groundAlpha = 0.04f;
+                particles = true; particleDensity = 0.3f; particleScale = 0.5f;
+                particleMotion = 1; particleDir = "mc:portal";
+                colorData.innerColor = 0xAA44FF; colorData.outerColor = 0x6622BB;
+                windUpColor = 0x60AA44FF; activeColor = 0xC0CC66FF;
+                effects.add(new AbilityEffect(EnumPotionType.Weakness, 100, 0));
+                break;
+            case "SHOCK":
+                groundAlpha = 0.04f;
+                particles = true; particleDensity = 0.3f; particleScale = 0.4f;
+                particleMotion = 2; particleDir = "mc:enchantmenttable";
+                colorData.innerColor = 0x4488FF; colorData.outerColor = 0x2244BB;
+                windUpColor = 0x604488FF; activeColor = 0xC066AAFF;
+                effects.add(new AbilityEffect(EnumPotionType.MiningFatigue, 80, 1));
+                break;
+            case "SNARE":
+                groundAlpha = 0.04f;
+                particles = true; particleDensity = 0.3f; particleScale = 0.5f;
+                particleMotion = 1; particleDir = "mc:snowshovel";
+                colorData.innerColor = 0x88CCFF; colorData.outerColor = 0x4488CC;
+                windUpColor = 0x6088CCFF; activeColor = 0xC0AADDFF;
+                effects.add(new AbilityEffect(EnumPotionType.Slowness, 100, 1));
+                break;
+            case "HIDDEN":
+            default:
+                groundAlpha = 0.03f;
+                particles = false; particleDensity = 0.0f; particleScale = 1.0f;
+                particleMotion = 0;
+                colorData.innerColor = 0x888888; colorData.outerColor = 0x444444;
+                windUpColor = 0x60888888; activeColor = 0xC0AAAAAA;
+                break;
+        }
+    }
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
@@ -124,10 +190,6 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         this.visible = nbt.getBoolean("visible");
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // TRAP-SPECIFIC GETTERS & SETTERS
-    // ═══════════════════════════════════════════════════════════════════
-
     public float getTriggerRadius() { return triggerRadius; }
     public void setTriggerRadius(float triggerRadius) { this.triggerRadius = triggerRadius; }
     public int getArmTime() { return armTime; }
@@ -145,9 +207,18 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     public boolean isVisible() { return visible; }
     public void setVisible(boolean visible) { this.visible = visible; }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // GUI FIELD DEFINITIONS
-    // ═══════════════════════════════════════════════════════════════════
+    @SideOnly(Side.CLIENT)
+    @Override
+    protected void addPresetFieldDef(List<FieldDef> defs) {
+        defs.add(FieldDef.subGuiField("gui.applyPreset",
+            SubGuiTrapPresetSelector::new,
+            gui -> {
+                SubGuiTrapPresetSelector selector = (SubGuiTrapPresetSelector) gui;
+                if (selector.selectedPreset != null) {
+                    applyTrapPresetDefaults(selector.selectedPreset);
+                }
+            }));
+    }
 
     @SideOnly(Side.CLIENT)
     @Override

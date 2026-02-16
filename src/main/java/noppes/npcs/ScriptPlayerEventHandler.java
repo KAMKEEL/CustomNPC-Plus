@@ -9,6 +9,7 @@ import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -106,6 +107,9 @@ public class ScriptPlayerEventHandler {
                     Ability current = playerData.abilityData.getCurrentAbility();
                     if (current == null || !current.hasAbilityMovement()) {
                         player.motionX = 0;
+                        if (!AbilityController.Instance.isPlayerFlying(player)) {
+                            player.motionY = Math.min(player.motionY, 0);
+                        }
                         player.motionZ = 0;
                         player.velocityChanged = true;
                     }
@@ -328,6 +332,12 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
+            // Cancel any executing ability on dimension change
+            PlayerData playerData = PlayerData.get(event.player);
+            if (playerData != null) {
+                playerData.abilityData.interruptCurrentAbility();
+            }
+
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerChangeDim(handler, scriptPlayer, event.fromDim, event.toDim);
@@ -478,6 +488,13 @@ public class ScriptPlayerEventHandler {
 
         if (event.entityLiving.worldObj instanceof WorldServer) {
             if (event.entityLiving instanceof EntityPlayerMP) {
+                // Cancel jump if movement is locked by an ability
+                PlayerData playerData = PlayerData.get((EntityPlayer) event.entityLiving);
+                if (playerData != null && playerData.abilityData.isMovementLocked()) {
+                    event.entityLiving.motionY = 0;
+                    event.entityLiving.velocityChanged = true;
+                }
+
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityLiving);
                 EventHooks.onPlayerJump(handler, scriptPlayer);
@@ -532,6 +549,8 @@ public class ScriptPlayerEventHandler {
 
                 EntityPlayer player = (EntityPlayer) event.entityLiving;
                 PlayerData playerData = PlayerData.get(player);
+                // Cancel any executing ability on death
+                playerData.abilityData.interruptCurrentAbility();
                 if (ConfigScript.ClearActionsOnDeath)
                     playerData.actionManager.clear();
             }
@@ -631,6 +650,12 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
+            // Cancel any executing ability on respawn
+            PlayerData playerData = PlayerData.get(event.player);
+            if (playerData != null) {
+                playerData.abilityData.interruptCurrentAbility();
+            }
+
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerRespawn(handler, scriptPlayer);

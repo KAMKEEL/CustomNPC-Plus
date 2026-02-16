@@ -1578,6 +1578,12 @@ ability.preset.inferno=Inferno
 ability.preset.arcane=Arcane
 ability.preset.electric=Electric
 ability.preset.frost=Frost
+ability.preset.hidden=Hidden
+ability.preset.venom=Venom
+ability.preset.explosive=Explosive
+ability.preset.cursed=Cursed
+ability.preset.shock=Shock
+ability.preset.snare=Snare
 
 # Accent Styles
 ability.accentStyle.static=Static
@@ -1910,6 +1916,7 @@ ability.modifyParent=Edit Parent
 
 # Ability Variant Selection
 ability.selectVariant=Select Variant
+ability.variant.base=Base
 ability.variant.single=Single
 ability.variant.dual=Dual
 ability.variant.barrage=Barrage
