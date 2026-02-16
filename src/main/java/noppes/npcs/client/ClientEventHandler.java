@@ -84,8 +84,19 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
-        if (Minecraft.getMinecraft().currentScreen != null)
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.currentScreen != null)
             return;
+
+        // Block mouse movement during ability rotation lock.
+        // Allow clicks (button >= 0) and scroll (dwheel != 0) to pass through.
+        if (mc.theWorld != null && mc.thePlayer != null
+                && ClientAbilityState.shouldLockRotation()
+                && (event.dx != 0 || event.dy != 0)
+                && event.button == -1 && event.dwheel == 0) {
+            event.setCanceled(true);
+            return;
+        }
 
         ArrayList<Integer> removeList = new ArrayList<>();
         for (Map.Entry<Integer, Long> entry : disabledButtonTimes.entrySet()) {

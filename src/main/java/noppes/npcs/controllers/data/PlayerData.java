@@ -124,6 +124,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     }
 
     public void onLogout() {
+        // Cancel any executing ability and release all locks
+        abilityData.interruptCurrentAbility();
         this.partyInvites.clear();
         this.actionManager.clear();
     }

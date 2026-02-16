@@ -699,6 +699,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         player.prevPosY = lockedPosY;
         player.prevPosZ = lockedPosZ;
         player.motionX = 0;
+        player.motionY = 0; // Full vertical freeze for position lock
         player.motionZ = 0;
     }
 

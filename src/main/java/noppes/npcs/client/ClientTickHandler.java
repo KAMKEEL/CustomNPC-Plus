@@ -13,6 +13,7 @@ import kamkeel.npcs.network.packets.player.InputDevicePacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
@@ -75,13 +76,27 @@ public class ClientTickHandler {
                     lastSpecialKeyDown = specialKeyDown;
                 }
 
-                // Suppress player input during ability-controlled phases
-                if (ClientAbilityState.shouldSuppressMovementInput()) {
+                // Suppress player input during ability-controlled phases.
+                // Only suppress when no GUI screen is open (screens already capture input).
+                if (mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput()) {
+                    // Unpress movement keybinds at the source BEFORE updatePlayerMoveState() reads them.
+                    // This is more robust than just zeroing movementInput fields, because
+                    // updatePlayerMoveState() reads directly from keybind pressed state.
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false);
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false);
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false);
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false);
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
+
+                    // Also zero the movementInput values directly as a safety net
                     mc.thePlayer.movementInput.moveForward = 0;
                     mc.thePlayer.movementInput.moveStrafe = 0;
                     mc.thePlayer.movementInput.jump = false;
+                    mc.thePlayer.movementInput.sneak = false;
                 }
-                if (ClientAbilityState.shouldLockRotation()) {
+                if (mc.currentScreen == null && ClientAbilityState.shouldLockRotation()) {
                     mc.thePlayer.rotationYaw = ClientAbilityState.lockedYaw;
                     mc.thePlayer.rotationPitch = ClientAbilityState.lockedPitch;
                     mc.thePlayer.prevRotationYaw = ClientAbilityState.lockedYaw;
@@ -100,8 +115,42 @@ public class ClientTickHandler {
             }
         }
         if (event.phase == Phase.END) {
-            if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {
-                renderCNPCPlayer.itemRenderer.updateEquippedItem();
+            if (mc.thePlayer != null) {
+                // Re-enforce ability locks AFTER entity update.
+                // EntityPlayerSP.onLivingUpdate() calls updatePlayerMoveState() which
+                // overwrites Phase.START suppression with actual keyboard state, causing
+                // client-predicted movement that fights the server lock. Undo it here.
+                // Skip when a GUI screen is open (screens already capture all input).
+                if (mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput()) {
+                    mc.thePlayer.movementInput.moveForward = 0;
+                    mc.thePlayer.movementInput.moveStrafe = 0;
+                    mc.thePlayer.movementInput.jump = false;
+                    mc.thePlayer.movementInput.sneak = false;
+
+                    // Zero horizontal motion (unless ability provides its own movement)
+                    if (!ClientAbilityState.hasAbilityMovement) {
+                        mc.thePlayer.motionX = 0;
+                        mc.thePlayer.motionZ = 0;
+                    }
+
+                    // Prevent jumping: clamp upward motion when locked (allow gravity)
+                    if ((ClientAbilityState.movementLocked || ClientAbilityState.positionLocked)
+                            && !ClientAbilityState.hasAbilityMovement) {
+                        mc.thePlayer.motionY = Math.min(mc.thePlayer.motionY, 0);
+                    }
+                }
+
+                if (mc.currentScreen == null && ClientAbilityState.shouldLockRotation()) {
+                    mc.thePlayer.rotationYaw = ClientAbilityState.lockedYaw;
+                    mc.thePlayer.rotationPitch = ClientAbilityState.lockedPitch;
+                    mc.thePlayer.prevRotationYaw = ClientAbilityState.lockedYaw;
+                    mc.thePlayer.prevRotationPitch = ClientAbilityState.lockedPitch;
+                    mc.thePlayer.rotationYawHead = ClientAbilityState.lockedYaw;
+                }
+
+                if (mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {
+                    renderCNPCPlayer.itemRenderer.updateEquippedItem();
+                }
             }
             return;
         }
@@ -159,8 +208,9 @@ public class ClientTickHandler {
 
     @SubscribeEvent
     public void onKey(InputEvent.KeyInputEvent event) {
+        Minecraft mc = Minecraft.getMinecraft();
+
         if (ClientProxy.NPCButton.isPressed()) {
-            Minecraft mc = Minecraft.getMinecraft();
             if (mc.currentScreen == null) {
                 InventoryTabCustomNpc.tabHelper();
             } else if (mc.currentScreen instanceof GuiCNPCInventory)
@@ -171,8 +221,31 @@ public class ClientTickHandler {
             int key = Keyboard.getEventKey();
             boolean keyDown = Keyboard.isKeyDown(key);
 
+            // Block movement keys during ability lock (only when no GUI is open and world exists).
+            // Non-movement keys (ESC, chat, inventory, etc.) always pass through.
+            if (mc.theWorld != null && mc.currentScreen == null && keyDown
+                    && ClientAbilityState.shouldSuppressMovementInput() && isMovementKey(key)) {
+                // Unpress the keybind so vanilla doesn't process it
+                KeyBinding.setKeyBindState(key, false);
+                return;
+            }
+
             InputDevicePacket.sendKeyboard(key, keyDown);
         }
+    }
+
+    /**
+     * Check if a key code corresponds to a movement keybind (WASD, jump, sneak, sprint).
+     */
+    private boolean isMovementKey(int keyCode) {
+        Minecraft mc = Minecraft.getMinecraft();
+        return keyCode == mc.gameSettings.keyBindForward.getKeyCode()
+            || keyCode == mc.gameSettings.keyBindBack.getKeyCode()
+            || keyCode == mc.gameSettings.keyBindLeft.getKeyCode()
+            || keyCode == mc.gameSettings.keyBindRight.getKeyCode()
+            || keyCode == mc.gameSettings.keyBindJump.getKeyCode()
+            || keyCode == mc.gameSettings.keyBindSneak.getKeyCode()
+            || keyCode == mc.gameSettings.keyBindSprint.getKeyCode();
     }
 
     private boolean isIgnoredKey(int key) {
