@@ -286,14 +286,18 @@ public class EntityEnergyPanel extends Entity implements IEntityAdditionalSpawnD
         if (Math.abs(localRight) > halfW) return false;
         if (Math.abs(relY) > halfH) return false;
 
-        // Check incoming direction (dot product with panel normal)
+        // Check incoming direction via dot product with panel normal
         double normalX = -Math.sin(yawRad);
         double normalZ = Math.cos(yawRad);
         double dot = projectile.motionX * normalX + projectile.motionZ * normalZ;
 
-        // If the projectile is on the owner's side, it must be moving toward the panel
-        // (negative dot means moving into the panel from the front side)
-        return true; // If within bounds, it's a hit regardless of direction
+        // Determine which side of the panel the projectile is on
+        // If on the front (localForward > 0), it must be moving backward (dot < 0) to be incoming
+        // If on the back (localForward < 0), it must be moving forward (dot > 0) to be incoming
+        if (localForward > 0 && dot >= 0) return false; // Moving away from front side
+        if (localForward < 0 && dot <= 0) return false; // Moving away from back side
+
+        return true;
     }
 
     // ==================== HELPERS ====================
