@@ -54,6 +54,13 @@ public class PlayerAbilityData implements IPlayerAbilityData {
      */
     private int selectedIndex = 0;
 
+    /**
+     * Tracks whether the current animation was started by an ability.
+     * Persisted to NBT so orphaned ability animations can be detected and
+     * cleared on login (ability state is transient, but animation state is not).
+     */
+    private boolean playingAbilityAnimation = false;
+
     // ═══════════════════════════════════════════════════════════════════
     // RUNTIME STATE (not saved)
     // ═══════════════════════════════════════════════════════════════════
@@ -779,6 +786,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         playerData.animationData.setEnabled(true);
         playerData.animationData.setAnimation(animation);
         playerData.animationData.updateClient();
+        playingAbilityAnimation = true;
     }
 
     public void playAbilityAnimation(int animation) {
@@ -800,6 +808,23 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     private void stopAbilityAnimation() {
         playerData.animationData.setAnimation(null);
         playerData.animationData.updateClient();
+        playingAbilityAnimation = false;
+    }
+
+    /**
+     * Returns true if an ability-driven animation is currently playing.
+     * Used by PlayerData.onLogin() to detect orphaned ability animations.
+     */
+    public boolean isPlayingAbilityAnimation() {
+        return playingAbilityAnimation;
+    }
+
+    /**
+     * Clears an orphaned ability animation (e.g. after relog when the ability is gone).
+     * Stops the animation and resets the tracking flag.
+     */
+    public void clearOrphanedAbilityAnimation() {
+        stopAbilityAnimation();
     }
 
     private void playAbilitySound(EntityPlayer player, String sound) {
@@ -819,6 +844,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         }
         compound.setTag("PlayerAbilities", list);
         compound.setInteger("PlayerAbilitySelected", selectedIndex);
+        compound.setBoolean("AbilityAnimating", playingAbilityAnimation);
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -836,5 +862,6 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
+        playingAbilityAnimation = compound.getBoolean("AbilityAnimating");
     }
 }
