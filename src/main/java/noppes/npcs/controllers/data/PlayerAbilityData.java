@@ -15,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.LogWriter;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
@@ -23,6 +24,7 @@ import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -860,9 +862,30 @@ public class PlayerAbilityData implements IPlayerAbilityData {
             }
         }
         selectedIndex = compound.getInteger("PlayerAbilitySelected");
+
+        // Prune abilities that no longer exist (deleted custom abilities or removed built-ins)
+        validateUnlockedAbilities();
+
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
         playingAbilityAnimation = compound.getBoolean("AbilityAnimating");
+    }
+
+    /**
+     * Remove any unlocked ability keys that can no longer be resolved.
+     * Called during load to clean up references to deleted abilities.
+     */
+    private void validateUnlockedAbilities() {
+        if (AbilityController.Instance == null) return;
+
+        Iterator<String> it = unlockedAbilities.iterator();
+        while (it.hasNext()) {
+            String key = it.next();
+            if (!AbilityController.Instance.canResolveAbility(key)) {
+                it.remove();
+                LogWriter.info("Removed invalid ability reference from player data: " + key);
+            }
+        }
     }
 }

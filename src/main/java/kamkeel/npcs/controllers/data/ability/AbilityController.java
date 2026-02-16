@@ -340,6 +340,37 @@ public class AbilityController implements IAbilityHandler {
         return builtAbilities.containsKey(key) || customAbilities.containsKey(key);
     }
 
+    /**
+     * Check if a key can be resolved to a valid ability without creating a deep copy.
+     * Uses the same lookup chain as {@link #resolveAbility(String)}.
+     */
+    public boolean canResolveAbility(String key) {
+        if (key == null || key.isEmpty()) return false;
+
+        // Built-in: exact name
+        if (builtAbilities.containsKey(key)) return true;
+
+        // Built-in: case-insensitive name
+        for (String name : builtAbilities.keySet()) {
+            if (name.equalsIgnoreCase(key)) return true;
+        }
+
+        // Built-in: registry key / ID
+        for (Ability ability : builtAbilities.values()) {
+            if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) return true;
+        }
+
+        // Custom: exact UUID
+        if (customAbilities.containsKey(key)) return true;
+
+        // Custom: case-insensitive name
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) return true;
+        }
+
+        return false;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // EXTENSION POINTS
     // ═══════════════════════════════════════════════════════════════════════════
