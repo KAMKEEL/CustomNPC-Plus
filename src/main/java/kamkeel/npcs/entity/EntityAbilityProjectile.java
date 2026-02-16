@@ -270,6 +270,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             }
         }
 
+        // Check barrier collisions (server-side, non-preview, non-charging)
+        if (!previewMode && !worldObj.isRemote && !isCharging()) {
+            if (checkBarrierCollision()) {
+                return; // Projectile was absorbed by a barrier
+            }
+        }
+
         // Subclass-specific update
         updateProjectile();
 
@@ -309,6 +316,52 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      * Subclass-specific update logic. Called every tick.
      */
     protected abstract void updateProjectile();
+
+    // ==================== BARRIER COLLISION ====================
+
+    /**
+     * Check for collision with energy barrier entities (Dome, Panel).
+     * Barriers only block incoming projectiles from enemies.
+     * @return true if projectile was absorbed (caller should stop processing)
+     */
+    protected boolean checkBarrierCollision() {
+        // Search area for barriers - check a generous range
+        double searchRange = 10.0;
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+            posX - searchRange, posY - searchRange, posZ - searchRange,
+            posX + searchRange, posY + searchRange, posZ + searchRange
+        );
+
+        // Check domes
+        @SuppressWarnings("unchecked")
+        List<EntityEnergyDome> domes = worldObj.getEntitiesWithinAABB(EntityEnergyDome.class, searchBox);
+        for (EntityEnergyDome dome : domes) {
+            if (dome.isDead) continue;
+            if (dome.isIncomingProjectile(this)) {
+                if (dome.onProjectileHit(this, getDamage())) {
+                    hasHit = true;
+                    this.setDead();
+                    return true;
+                }
+            }
+        }
+
+        // Check panels
+        @SuppressWarnings("unchecked")
+        List<EntityEnergyPanel> panels = worldObj.getEntitiesWithinAABB(EntityEnergyPanel.class, searchBox);
+        for (EntityEnergyPanel panel : panels) {
+            if (panel.isDead) continue;
+            if (panel.isIncomingProjectile(this)) {
+                if (panel.onProjectileHit(this, getDamage())) {
+                    hasHit = true;
+                    this.setDead();
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     // ==================== POSITION INTERPOLATION ====================
 

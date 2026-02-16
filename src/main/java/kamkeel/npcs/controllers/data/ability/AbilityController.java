@@ -99,6 +99,11 @@ public class AbilityController implements IAbilityHandler {
 
         registerType("cnpc:hazard", AbilityHazard::new);
         registerType("cnpc:trap", AbilityTrap::new);
+
+        registerType("cnpc:energy_dome", AbilityEnergyDome::new);
+        registerType("cnpc:energy_wall", AbilityEnergyWall::new);
+        registerType("cnpc:energy_shield", AbilityEnergyShield::new);
+        registerType("cnpc:energy_slicer", AbilityEnergySlicer::new);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
