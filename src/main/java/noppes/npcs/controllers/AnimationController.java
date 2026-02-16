@@ -45,14 +45,13 @@ public class AnimationController implements IAnimationHandler {
     private static final String BUILTIN_ANIMATIONS_PATH = "/assets/customnpcs/animations";
     private static final String BUILTIN_ANIMATIONS_RESOURCE = "assets/customnpcs/animations";
 
-    public static AnimationController Instance;
+    public static AnimationController Instance = new AnimationController();
     private int lastUsedID = 0;
 
     public AnimationController() {
         Instance = this;
         bootOrder = new HashMap<>();
         animations = new HashMap<>();
-        load();
     }
 
     public static AnimationController getInstance() {

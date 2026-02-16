@@ -338,6 +338,7 @@ public class CustomNpcs {
             clientJaninoCompiler = null;
 
         Server = event.getServer();
+        AnimationController.Instance.load();
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
         MagicController.getInstance().load();
