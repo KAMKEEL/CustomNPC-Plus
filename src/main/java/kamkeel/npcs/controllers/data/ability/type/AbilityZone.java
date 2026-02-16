@@ -31,27 +31,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Abstract base class for zone-based abilities (Trap, Hazard).
- * Extracts shared fields: duration, shape, spawn, visual, lifecycle, and FieldDefs.
- */
 public abstract class AbilityZone extends Ability {
 
-    // Zone properties
     protected int durationTicks;
     protected ZoneShape zoneShape = ZoneShape.CIRCLE;
     protected float spawnRadius = 10.0f;
     protected int zoneCount = 3;
     protected float zoneHeight = 2.0f;
 
-    // Visual parameters
     protected float particleDensity = 1.0f;
     protected float particleScale = 1.0f;
     protected float animSpeed = 1.0f;
     protected float lightningDensity = 1.0f;
     protected EnergyDisplayData colorData;
 
-    // Visual layer fields (always active)
     protected boolean groundFill = true;
     protected float groundAlpha = 0.25f;
     protected boolean rings = true;
@@ -67,7 +60,6 @@ public abstract class AbilityZone extends Ability {
     protected int particleSize = 32;
     protected boolean particleGlow = true;
 
-    // Runtime state
     protected static final Random RANDOM = new Random();
     protected transient List<EntityAbilityZone> activeEntities = new ArrayList<>();
     protected transient List<double[]> preCalculatedPositions = new ArrayList<>();
@@ -81,10 +73,6 @@ public abstract class AbilityZone extends Ability {
         this.cooldownTicks = 0;
         this.allowedBy = UserType.NPC_ONLY;
     }
-
-    // ═════════════════════════════════════════════════════════════════
-    // SHARED OVERRIDES
-    // ═════════════════════════════════════════════════════════════════
 
     @Override
     public boolean allowBurst() {
@@ -101,17 +89,12 @@ public abstract class AbilityZone extends Ability {
         return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
     }
 
-    /**
-     * Returns the actual zone effect radius for telegraph sizing.
-     * AbilityHazard returns its damage radius, AbilityTrap returns triggerRadius.
-     */
     public abstract float getZoneRadius();
 
     @Override
     public List<TelegraphInstance> createTelegraphs(EntityLivingBase caster, EntityLivingBase target) {
         if (!showTelegraph || windUpTicks <= 0) return new ArrayList<>();
 
-        // Pre-calculate zone positions
         preCalculatedPositions.clear();
         List<double[]> placedPositions = new ArrayList<>();
         float minSeparation = getZoneRadius() * 2.0f;
@@ -122,7 +105,6 @@ public abstract class AbilityZone extends Ability {
             preCalculatedPositions.add(pos);
         }
 
-        // Create a telegraph for each zone position
         List<TelegraphInstance> telegraphs = new ArrayList<>();
         float zoneRadius = getZoneRadius();
 
@@ -152,7 +134,6 @@ public abstract class AbilityZone extends Ability {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        // Remove dead entities
         Iterator<EntityAbilityZone> it = activeEntities.iterator();
         while (it.hasNext()) {
             EntityAbilityZone entity = it.next();
@@ -192,13 +173,6 @@ public abstract class AbilityZone extends Ability {
         return durationTicks + 10;
     }
 
-    // ═════════════════════════════════════════════════════════════════
-    // SHARED SPAWN HELPER
-    // ═════════════════════════════════════════════════════════════════
-
-    /**
-     * Find a non-overlapping spawn position within spawnRadius of the caster.
-     */
     protected double[] findSpawnPosition(EntityLivingBase caster, List<double[]> placedPositions, float minSeparation) {
         double spawnX = caster.posX;
         double spawnZ = caster.posZ;
@@ -227,9 +201,6 @@ public abstract class AbilityZone extends Ability {
         return new double[]{spawnX, spawnZ};
     }
 
-    /**
-     * Apply visual settings to a zone entity.
-     */
     protected void applyVisualToEntity(EntityAbilityZone entity) {
         entity.applyVisual(groundFill, groundAlpha,
             rings, ringCount, border, borderSpeed,
@@ -238,13 +209,6 @@ public abstract class AbilityZone extends Ability {
             particleSize, particleGlow);
     }
 
-    // ═════════════════════════════════════════════════════════════════
-    // PRESET SUPPORT
-    // ═════════════════════════════════════════════════════════════════
-
-    /**
-     * Apply preset defaults by style name.
-     */
     private void applyPresetDefaults(String styleName) {
         effects.clear();
         particleDir = "";
@@ -307,10 +271,6 @@ public abstract class AbilityZone extends Ability {
         }
     }
 
-    /**
-     * Client-only preset enum for the GUI dropdown.
-     * Not persisted — presets simply set field values.
-     */
     @SideOnly(Side.CLIENT)
     public enum ZonePreset {
         DEFAULT, TOXIC, INFERNO, ARCANE, ELECTRIC, FROST;
@@ -320,10 +280,6 @@ public abstract class AbilityZone extends Ability {
             return "ability.preset." + name().toLowerCase();
         }
     }
-
-    // ═════════════════════════════════════════════════════════════════
-    // SHARED NBT
-    // ═════════════════════════════════════════════════════════════════
 
     protected void writeZoneNBT(NBTTagCompound nbt) {
         nbt.setInteger("durationTicks", durationTicks);
@@ -337,7 +293,6 @@ public abstract class AbilityZone extends Ability {
         nbt.setFloat("lightningDensity", lightningDensity);
         colorData.writeNBT(nbt);
 
-        // Visual layer fields — always written as top-level keys
         nbt.setBoolean("groundFill", groundFill);
         nbt.setFloat("groundAlpha", groundAlpha);
         nbt.setBoolean("rings", rings);
@@ -367,7 +322,6 @@ public abstract class AbilityZone extends Ability {
         this.lightningDensity = nbt.getFloat("lightningDensity");
         colorData.readNBT(nbt);
 
-        // Visual layer fields
         this.groundFill = nbt.getBoolean("groundFill");
         this.groundAlpha = nbt.getFloat("groundAlpha");
         this.rings = nbt.getBoolean("rings");
@@ -383,10 +337,6 @@ public abstract class AbilityZone extends Ability {
         this.particleSize = nbt.getInteger("particleSize");
         this.particleGlow = nbt.getBoolean("particleGlow");
     }
-
-    // ═════════════════════════════════════════════════════════════════
-    // SHARED GETTERS & SETTERS
-    // ═════════════════════════════════════════════════════════════════
 
     public int getDurationTicks() { return durationTicks; }
     public void setDurationTicks(int durationTicks) { this.durationTicks = Math.max(1, durationTicks); }
@@ -416,7 +366,6 @@ public abstract class AbilityZone extends Ability {
     public float getLightningDensity() { return lightningDensity; }
     public void setLightningDensity(float v) { this.lightningDensity = Math.max(0, Math.min(3, v)); }
 
-    // Color getters/setters
     public int getInnerColor() { return colorData.innerColor; }
     public void setInnerColor(int color) { colorData.innerColor = color; }
     public int getOuterColor() { return colorData.outerColor; }
@@ -424,7 +373,6 @@ public abstract class AbilityZone extends Ability {
     public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
     public void setOuterColorEnabled(boolean enabled) { colorData.outerColorEnabled = enabled; }
 
-    // Visual layer getters/setters
     public boolean isGroundFill() { return groundFill; }
     public void setGroundFill(boolean v) { this.groundFill = v; }
     public float getGroundAlpha() { return groundAlpha; }
@@ -458,10 +406,6 @@ public abstract class AbilityZone extends Ability {
     public boolean isParticleGlow() { return particleGlow; }
     public void setParticleGlow(boolean v) { this.particleGlow = v; }
 
-    // ═════════════════════════════════════════════════════════════════
-    // SHARED FIELD DEFINITIONS (client-only)
-    // ═════════════════════════════════════════════════════════════════
-
     @SideOnly(Side.CLIENT)
     protected void addPresetFieldDef(List<FieldDef> defs) {
         defs.add(FieldDef.subGuiField("gui.applyPreset",
@@ -477,42 +421,36 @@ public abstract class AbilityZone extends Ability {
     @SideOnly(Side.CLIENT)
     protected void addVisualFieldDefs(List<FieldDef> defs) {
         defs.addAll(Arrays.asList(
-            // Ground Fill
             FieldDef.section("ability.section.ground").tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.boolField("gui.enabled", this::isGroundFill, this::setGroundFill),
                 FieldDef.floatField("gui.alpha", this::getGroundAlpha, this::setGroundAlpha)
             ).tab("ability.tab.visual"),
 
-            // Rings
             FieldDef.section("ability.section.rings").tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.boolField("gui.enabled", this::isRings, this::setRings),
                 FieldDef.intField("gui.count", this::getRingCount, this::setRingCount).range(1, 5)
             ).tab("ability.tab.visual"),
 
-            // Border
             FieldDef.section("ability.section.border").tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.boolField("gui.enabled", this::isBorder, this::setBorder),
                 FieldDef.floatField("gui.speed", this::getBorderSpeed, this::setBorderSpeed)
             ).tab("ability.tab.visual"),
 
-            // Accents
             FieldDef.section("ability.section.accents").tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.boolField("gui.enabled", this::isAccents, this::setAccents),
                 FieldDef.enumField("gui.style", AccentStyle.class, this::getAccentStyleEnum, this::setAccentStyleEnum)
             ).tab("ability.tab.visual"),
 
-            // Lightning
             FieldDef.section("ability.section.lightning").tab("ability.tab.visual"),
             FieldDef.row(
                 FieldDef.boolField("gui.enabled", this::isLightning, this::setLightning),
                 FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
             ).tab("ability.tab.visual"),
 
-            // Particles
             FieldDef.section("ability.section.particles").tab("ability.tab.visual"),
             FieldDef.boolField("gui.enabled", this::isParticles, this::setParticles)
                 .tab("ability.tab.visual"),
@@ -527,12 +465,10 @@ public abstract class AbilityZone extends Ability {
             FieldDef.stringField("gui.texture", this::getParticleDir, this::setParticleDir)
                 .tab("ability.tab.visual").visibleWhen(this::isParticles),
 
-            // Animation
             FieldDef.section("ability.section.animation").tab("ability.tab.visual"),
             FieldDef.floatField("gui.speed", this::getAnimSpeed, this::setAnimSpeed)
                 .tab("ability.tab.visual"),
 
-            // Colors
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
                 .tab("ability.tab.visual"),

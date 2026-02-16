@@ -19,14 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Hazard ability: Creates persistent ground effect zones around the caster.
- * Spawns one or more EntityAbilityZone entities in random positions
- * within spawnRadius. Damage and zone logic handled by the entity.
- */
 public class AbilityHazard extends AbilityZone implements IAbilityHazard {
 
-    // Hazard-specific fields
     private float radius = 2.0f;
     private float damagePerSecond = 1.0f;
     private int damageInterval = 20;
@@ -51,7 +45,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         activeEntities.clear();
 
-        // Use pre-calculated positions from telegraph phase, or generate new ones
         List<double[]> positions;
         if (!preCalculatedPositions.isEmpty() && preCalculatedPositions.size() == zoneCount) {
             positions = new ArrayList<>(preCalculatedPositions);
@@ -93,10 +86,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // NBT
-    // ═══════════════════════════════════════════════════════════════════
-
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
         writeZoneNBT(nbt);
@@ -117,10 +106,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         this.affectsCaster = nbt.getBoolean("affectsCaster");
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // HAZARD-SPECIFIC GETTERS & SETTERS
-    // ═══════════════════════════════════════════════════════════════════
-
     public float getRadius() { return radius; }
     public void setRadius(float radius) { this.radius = radius; }
 
@@ -135,10 +120,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
 
     public boolean isAffectsCaster() { return affectsCaster; }
     public void setAffectsCaster(boolean affectsCaster) { this.affectsCaster = affectsCaster; }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // GUI FIELD DEFINITIONS
-    // ═══════════════════════════════════════════════════════════════════
 
     @SideOnly(Side.CLIENT)
     @Override
