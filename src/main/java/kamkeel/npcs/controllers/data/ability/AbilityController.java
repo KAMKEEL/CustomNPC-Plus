@@ -9,8 +9,11 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.util.NBTJsonUtil;
 
+import net.minecraft.entity.player.EntityPlayer;
+
 import java.io.File;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class AbilityController implements IAbilityHandler {
@@ -26,6 +29,7 @@ public class AbilityController implements IAbilityHandler {
     private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
     private final List<IAbilityExtender> extenders = new ArrayList<>();
+    private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
 
     // ── Derived State ────────────────────────────────────────────────────────
     private final Set<String> builtInTypeIds = new HashSet<>();
@@ -380,6 +384,18 @@ public class AbilityController implements IAbilityHandler {
 
     public List<IAbilityExtender> getExtenders() {
         return extenders;
+    }
+
+    public void registerFlightChecker(Predicate<EntityPlayer> checker) {
+        flightCheckers.add(checker);
+    }
+
+    public boolean isPlayerFlying(EntityPlayer player) {
+        if (player.capabilities.isFlying) return true;
+        for (Predicate<EntityPlayer> checker : flightCheckers) {
+            if (checker.test(player)) return true;
+        }
+        return false;
     }
 
     /**
