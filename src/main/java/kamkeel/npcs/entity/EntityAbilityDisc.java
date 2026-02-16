@@ -391,19 +391,13 @@ public class EntityAbilityDisc extends EntityAbilityProjectile {
     protected void updateCharging() {
         chargeTick++;
 
-        Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) {
-            setDead();
-            return;
-        }
-
         // Grow size based on charge progress
         float progress = getChargeProgress();
         this.discRadius = targetDiscRadius * progress;
         this.discThickness = targetDiscThickness * progress;
         this.size = this.discRadius; // Base size for interpolation
 
-        // Calculate position based on anchor point, offset downward by half radius to center
+        Entity owner = getOwnerEntity();
         if (owner instanceof EntityLivingBase) {
             Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);

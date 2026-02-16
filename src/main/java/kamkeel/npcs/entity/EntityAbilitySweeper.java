@@ -144,15 +144,19 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
             return;
         }
 
-        // Follow owner
         Entity owner = getOwner();
-        if (owner == null) {
+        if (owner != null && owner.isDead) {
+            this.setDead();
+            return;
+        }
+        if (owner instanceof EntityNPCInterface && ((EntityNPCInterface) owner).isKilled()) {
             this.setDead();
             return;
         }
 
-        // Update position to follow owner
-        this.setPosition(owner.posX, owner.posY + beamHeight, owner.posZ);
+        if (owner != null) {
+            this.setPosition(owner.posX, owner.posY + beamHeight, owner.posZ);
+        }
 
         // Check if sweep is done
         if (completedRotations >= numberOfRotations) {

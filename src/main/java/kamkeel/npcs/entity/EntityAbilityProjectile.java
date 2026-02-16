@@ -184,16 +184,20 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
 
         // Skip lifetime/distance checks in preview mode
         if (!previewMode) {
-            // Failsafe: if owner entity is gone, dead, or NPC was killed/reset, self-destruct
+            // Only self-destruct if the owner is confirmed dead/killed.
+            // A null owner (unloaded/out of chunk) is NOT treated as dead —
+            // the projectile keeps acting normally and deathWorldTime handles lifetime.
             if (ownerEntityId >= 0 && ticksExisted > 5) {
                 Entity owner = worldObj.getEntityByID(ownerEntityId);
-                if (owner == null || owner.isDead) {
-                    this.setDead();
-                    return;
-                }
-                if (owner instanceof EntityNPCInterface && ((EntityNPCInterface) owner).isKilled()) {
-                    this.setDead();
-                    return;
+                if (owner != null) {
+                    if (owner.isDead) {
+                        this.setDead();
+                        return;
+                    }
+                    if (owner instanceof EntityNPCInterface && ((EntityNPCInterface) owner).isKilled()) {
+                        this.setDead();
+                        return;
+                    }
                 }
             }
 
@@ -506,16 +510,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEnergyP
      * Update during charging state - grow size and follow anchor.
      * Default implementation grows {@code size} from 0 to {@code targetSize}.
      * Override in subclasses for type-specific charging (Disc, Beam).
+     *
+     * Note: Owner death checks are handled by onUpdate() before this is called.
      */
     protected void updateCharging() {
         chargeTick++;
-        Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) {
-            setDead();
-            return;
-        }
         float progress = getChargeProgress();
         this.size = targetSize * progress;
+        Entity owner = getOwnerEntity();
         if (owner instanceof EntityLivingBase) {
             Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
             setPosition(pos.xCoord, pos.yCoord, pos.zCoord);

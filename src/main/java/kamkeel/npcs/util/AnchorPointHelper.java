@@ -119,6 +119,20 @@ public class AnchorPointHelper {
         y += rotatedOffset.yCoord;
         z += rotatedOffset.zCoord;
 
+        // Apply FULL_MODEL rotation if active
+        FramePart fullModel = getFullModelPart(entity);
+        if (fullModel != null) {
+            double dx = x - entity.posX;
+            double dy = y - entity.posY;
+            double dz = z - entity.posZ;
+            Vec3 rotated = applyFullModelToWorldOffset(fullModel, entity, dx, dy, dz, bodyYaw, scale);
+            return Vec3.createVectorHelper(
+                entity.posX + rotated.xCoord,
+                entity.posY + rotated.yCoord,
+                entity.posZ + rotated.zCoord
+            );
+        }
+
         return Vec3.createVectorHelper(x, y, z);
     }
 
@@ -162,16 +176,32 @@ public class AnchorPointHelper {
 
     /**
      * Calculate hand position using animation data if available.
+     * Applies FULL_MODEL rotation if an active animation has it.
      */
     private static Vec3 calculateHandPosition(EntityLivingBase entity, EnergyAnchorData anchor, boolean rightHand, float scale) {
         // Try to get animated position first
-        Vec3 animatedPos = getAnimatedHandPosition(entity, anchor, rightHand, scale);
-        if (animatedPos != null) {
-            return animatedPos;
+        Vec3 pos = getAnimatedHandPosition(entity, anchor, rightHand, scale);
+        if (pos == null) {
+            // Fallback to static position
+            pos = calculateFallbackHandPosition(entity, anchor, rightHand, scale);
         }
 
-        // Fallback to static position
-        return calculateFallbackHandPosition(entity, anchor, rightHand, scale);
+        // Apply FULL_MODEL rotation if active
+        FramePart fullModel = getFullModelPart(entity);
+        if (fullModel != null) {
+            double dx = pos.xCoord - entity.posX;
+            double dy = pos.yCoord - entity.posY;
+            double dz = pos.zCoord - entity.posZ;
+            float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
+            Vec3 rotated = applyFullModelToWorldOffset(fullModel, entity, dx, dy, dz, bodyYaw, scale);
+            return Vec3.createVectorHelper(
+                entity.posX + rotated.xCoord,
+                entity.posY + rotated.yCoord,
+                entity.posZ + rotated.zCoord
+            );
+        }
+
+        return pos;
     }
 
     /**
@@ -389,5 +419,101 @@ public class AnchorPointHelper {
         double worldX = -offsetX * cos - offsetZ * sin;
         double worldZ = -offsetX * sin + offsetZ * cos;
         return Vec3.createVectorHelper(worldX, offsetY, worldZ);
+    }
+
+    // ==================== FULL_MODEL ANIMATION SUPPORT ====================
+
+    /**
+     * Get the FULL_MODEL FramePart if the entity has an active animation with it.
+     * Returns null if no FULL_MODEL animation is active.
+     */
+    private static FramePart getFullModelPart(EntityLivingBase entity) {
+        AnimationData animData = AnimationData.getData(entity);
+        if (animData == null || !animData.isActive() || animData.animation == null) {
+            return null;
+        }
+        Frame frame = (Frame) animData.animation.currentFrame();
+        if (frame == null) {
+            return null;
+        }
+        FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+        return part;
+    }
+
+    /**
+     * Apply FULL_MODEL rotation to a world-space offset from entity position.
+     * Converts the offset to model space, applies FULL_MODEL rotation and pivots,
+     * then converts back to world space.
+     *
+     * The rendering pipeline is: entity_pos * body_yaw * scale(-1,-1,1) * FULL_MODEL * parts
+     * Combined body_yaw + scale maps model space to world space:
+     *   worldX = mx*cos(yaw) + mz*sin(yaw)
+     *   worldY = -my  (model Y-down → world Y-up)
+     *   worldZ = mx*sin(yaw) - mz*cos(yaw)
+     * This transform is its own inverse for X,Z.
+     *
+     * FULL_MODEL rotation order matches renderer: vertex sees Z, then Y, then X.
+     */
+    private static Vec3 applyFullModelToWorldOffset(FramePart fullModel, EntityLivingBase entity,
+                                                     double worldDX, double worldDY, double worldDZ,
+                                                     float bodyYaw, float scale) {
+        float[] rotations = getRotations(fullModel, entity);
+        float[] pivots = getPivots(fullModel, entity);
+
+        // Quick exit if no transform needed
+        boolean hasRotation = rotations[0] != 0 || rotations[1] != 0 || rotations[2] != 0;
+        boolean hasPivot = pivots[0] != 0 || pivots[1] != 0 || pivots[2] != 0;
+        if (!hasRotation && !hasPivot) {
+            return Vec3.createVectorHelper(worldDX, worldDY, worldDZ);
+        }
+
+        // Convert world offset to model space
+        // Body yaw + scale combined transform is an involution (self-inverse) for X,Z
+        double cosYaw = Math.cos(bodyYaw);
+        double sinYaw = Math.sin(bodyYaw);
+
+        double mx = worldDX * cosYaw + worldDZ * sinYaw;
+        double mz = worldDX * sinYaw - worldDZ * cosYaw;
+        double my = -worldDY;  // Invert Y (world Y-up → model Y-down)
+
+        // Apply FULL_MODEL rotations (vertex order: Z first, then Y, then X)
+        // Matches renderer: glRotatef(X), glRotatef(Y), glRotatef(Z) → vertex sees Z,Y,X
+
+        // Z rotation
+        double cosZ = Math.cos(rotations[2]);
+        double sinZ = Math.sin(rotations[2]);
+        double nx = mx * cosZ - my * sinZ;
+        double ny = mx * sinZ + my * cosZ;
+        mx = nx;
+        my = ny;
+
+        // Y rotation
+        double cosY = Math.cos(rotations[1]);
+        double sinY = Math.sin(rotations[1]);
+        nx = mx * cosY + mz * sinY;
+        double nz = -mx * sinY + mz * cosY;
+        mx = nx;
+        mz = nz;
+
+        // X rotation
+        double cosX = Math.cos(rotations[0]);
+        double sinX = Math.sin(rotations[0]);
+        ny = my * cosX - mz * sinX;
+        nz = my * sinX + mz * cosX;
+        my = ny;
+        mz = nz;
+
+        // Apply pivots in model space (after rotation, matching GL vertex ordering)
+        // Renderer: glTranslatef(px, -py, pz) → pivot Y is negated for model Y-down space
+        mx += pivots[0] * MODEL_SCALE * scale;
+        my -= pivots[1] * MODEL_SCALE * scale;
+        mz += pivots[2] * MODEL_SCALE * scale;
+
+        // Convert back to world space (same involution for X,Z; invert Y back)
+        double newDX = mx * cosYaw + mz * sinYaw;
+        double newDZ = mx * sinYaw - mz * cosYaw;
+        double newDY = -my;
+
+        return Vec3.createVectorHelper(newDX, newDY, newDZ);
     }
 }

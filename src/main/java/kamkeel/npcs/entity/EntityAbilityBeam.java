@@ -386,33 +386,26 @@ public class EntityAbilityBeam extends EntityAbilityProjectile {
         chargeTick++;
 
         Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) {
-            setDead();
-            return;
+        if (owner != null) {
+            Vec3 pos;
+            if (owner instanceof EntityLivingBase) {
+                pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData, chargeOffsetDistance);
+            } else {
+                float yaw = (float) Math.toRadians(owner.rotationYaw);
+                double offsetX = -Math.sin(yaw) * chargeOffsetDistance;
+                double offsetZ = Math.cos(yaw) * chargeOffsetDistance;
+                pos = Vec3.createVectorHelper(
+                    owner.posX + offsetX,
+                    owner.posY + owner.getEyeHeight() * 0.7,
+                    owner.posZ + offsetZ
+                );
+            }
+
+            setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+            startX = pos.xCoord;
+            startY = pos.yCoord;
+            startZ = pos.zCoord;
         }
-
-        // Calculate position based on anchor point
-        Vec3 pos;
-        if (owner instanceof EntityLivingBase) {
-            pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData, chargeOffsetDistance);
-        } else {
-            // Fallback for non-living entities (shouldn't happen normally)
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            double offsetX = -Math.sin(yaw) * chargeOffsetDistance;
-            double offsetZ = Math.cos(yaw) * chargeOffsetDistance;
-            pos = Vec3.createVectorHelper(
-                owner.posX + offsetX,
-                owner.posY + owner.getEyeHeight() * 0.7,
-                owner.posZ + offsetZ
-            );
-        }
-
-        setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-
-        // Also update origin for when firing starts
-        startX = pos.xCoord;
-        startY = pos.yCoord;
-        startZ = pos.zCoord;
     }
 
     /**

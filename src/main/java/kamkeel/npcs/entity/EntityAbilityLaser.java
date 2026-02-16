@@ -156,8 +156,7 @@ public class EntityAbilityLaser extends EntityAbilityProjectile {
      */
     private void updateLaserOriginAndDirection() {
         Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) return;
-        if (!(owner instanceof EntityLivingBase)) return;
+        if (owner == null || !(owner instanceof EntityLivingBase)) return;
 
         EntityLivingBase livingOwner = (EntityLivingBase) owner;
 
