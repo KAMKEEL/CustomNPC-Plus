@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -30,7 +29,7 @@ import java.util.List;
  *
  * @param <E> The entity type this ability spawns
  */
-public abstract class AbstractEnergyProjectileAbility<E extends EntityAbilityProjectile>
+public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
     extends Ability implements IAbilityEnergyProjectile {
 
     protected static final int MAX_PROJECTILES = 8;
@@ -57,7 +56,7 @@ public abstract class AbstractEnergyProjectileAbility<E extends EntityAbilityPro
 
     // ==================== CONSTRUCTOR ====================
 
-    protected AbstractEnergyProjectileAbility(
+    protected AbilityEnergyProjectile(
         EnergyDisplayData displayData,
         EnergyCombatData combatData,
         EnergyHomingData homingData,

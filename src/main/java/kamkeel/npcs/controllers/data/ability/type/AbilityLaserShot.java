@@ -25,7 +25,7 @@ import java.util.List;
  * Travels in a straight line from origin, damaging all entities it passes through.
  * Single-projectile only (always projectileCount=1).
  */
-public class AbilityLaserShot extends AbstractEnergyProjectileAbility<EntityAbilityLaser> implements IAbilityLaserShot {
+public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser> implements IAbilityLaserShot {
 
     private float laserWidth = 0.3f;
     private float expansionSpeed = 3.0f;
