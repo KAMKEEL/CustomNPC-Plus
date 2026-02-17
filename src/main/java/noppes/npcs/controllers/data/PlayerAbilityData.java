@@ -579,6 +579,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
             currentAbility.interrupt();
             stopAbilityAnimation();
+            playAbilityAnimation(currentAbility.getDazedAnimation());
             releaseRotationControl();
             releaseLockedPosition();
             currentAbility = null;

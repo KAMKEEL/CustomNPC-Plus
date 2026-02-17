@@ -1694,6 +1694,7 @@ ability.activeSound=Active Sound
 ability.counterSound=Counter Sound
 ability.windUpAnimation=Wind Up Animation
 ability.activeAnimation=Active Animation
+ability.dazedAnimation=Dazed Animation
 ability.counterAnimation=Counter Animation
 ability.showTelegraph=Show Telegraph
 ability.windUpColor=Wind Up Color

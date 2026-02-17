@@ -81,10 +81,12 @@ public abstract class Ability implements IAbility {
     // Animations (global animation IDs, -1 = none)
     protected int windUpAnimationId = -1;     // Animation to play during wind up (user animations)
     protected int activeAnimationId = -1;     // Animation to play during active phase (user animations)
+    protected int dazedAnimationId = -1;     // Animation to play during dazed phase (user animations)
 
     // Built-in animation names (empty = none, takes priority over IDs if set)
     protected String windUpAnimationName = "";   // Built-in animation name for wind up
     protected String activeAnimationName = "";   // Built-in animation name for active phase
+    protected String dazedAnimationName = "Ability_Generic_Dazed";   // Built-in animation name for dazed phase
 
     // Telegraph configuration
     protected boolean showTelegraph = true;
@@ -596,6 +598,10 @@ public abstract class Ability implements IAbility {
         defs.add(FieldDef.animSubGui("ability.activeAnimation",
             this::getActiveAnimationId, this::setActiveAnimationId,
             this::getActiveAnimationName, this::setActiveAnimationName)
+            .tab("Effects"));
+        defs.add(FieldDef.animSubGui("ability.dazedAnimation",
+                this::getDazedAnimationId, this::setDazedAnimationId,
+                this::getDazedAnimationName, this::setDazedAnimationName)
             .tab("Effects"));
 
         TelegraphType tType = getTelegraphType();
@@ -1133,8 +1139,10 @@ public abstract class Ability implements IAbility {
         nbt.setString("activeSound", activeSound);
         nbt.setInteger("windUpAnimationId", windUpAnimationId);
         nbt.setInteger("activeAnimationId", activeAnimationId);
+        nbt.setInteger("dazedAnimationId", dazedAnimationId);
         nbt.setString("windUpAnimationName", windUpAnimationName);
         nbt.setString("activeAnimationName", activeAnimationName);
+        nbt.setString("dazedAnimationName", dazedAnimationName);
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
@@ -1192,8 +1200,10 @@ public abstract class Ability implements IAbility {
         activeSound = nbt.getString("activeSound");
         windUpAnimationId = nbt.getInteger("windUpAnimationId");
         activeAnimationId = nbt.getInteger("activeAnimationId");
+        dazedAnimationId = nbt.getInteger("dazedAnimationId");
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
+        dazedAnimationName = nbt.getString("dazedAnimationName");
         showTelegraph = nbt.getBoolean("showTelegraph");
         try {
             telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
@@ -1612,6 +1622,36 @@ public abstract class Ability implements IAbility {
 
     public void setActiveAnimationName(String activeAnimationName) {
         this.activeAnimationName = activeAnimationName != null ? activeAnimationName : "";
+    }
+
+    public Animation getDazedAnimation() {
+        if (AnimationController.Instance == null) return null;
+
+        // Built-in animation by name takes priority
+        if (dazedAnimationName != null && !dazedAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(dazedAnimationName, true);
+        }
+        // Fall back to user animation by ID
+        if (dazedAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(dazedAnimationId);
+        }
+        return null;
+    }
+
+    public int getDazedAnimationId() {
+        return dazedAnimationId;
+    }
+
+    public void setDazedAnimationId(int dazedAnimationId) {
+        this.dazedAnimationId = dazedAnimationId;
+    }
+
+    public String getDazedAnimationName() {
+        return dazedAnimationName;
+    }
+
+    public void setDazedAnimationName(String dazedAnimationName) {
+        this.dazedAnimationName = dazedAnimationName != null ? dazedAnimationName : "";
     }
 
     public boolean isShowTelegraph() {

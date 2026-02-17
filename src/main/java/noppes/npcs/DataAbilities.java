@@ -758,8 +758,8 @@ public class DataAbilities {
             // Remove telegraph early
             removeTelegraph(currentAbility);
 
-            // Stop any ability animation
-            stopAbilityAnimation();
+            // Plays dazed animation
+            playAbilityAnimation(currentAbility.getDazedAnimation());
 
             // Release locks
             releaseRotationControl();
