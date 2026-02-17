@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

@@ -15,11 +15,11 @@ import java.util.List;
 
 /**
  * Orb projectile - spherical homing energy ball.
- * Extends EntityAbilityProjectile for shared functionality.
+ * Extends EntityEnergyAbility for shared functionality.
  *
  * Design inspired by LouisXIV's energy attack system.
  */
-public class EntityAbilityOrb extends EntityAbilityProjectile {
+public class EntityAbilityOrb extends EntityEnergyProjectile {
 
     public EntityAbilityOrb(World world) {
         super(world);

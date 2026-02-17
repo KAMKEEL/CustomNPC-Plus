@@ -21,7 +21,7 @@ import java.util.Set;
  *
  * Design inspired by LouisXIV's energy attack system.
  */
-public class EntityAbilityLaser extends EntityAbilityProjectile {
+public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     // Laser-specific properties
     private float laserWidth = 0.2f;

@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import kamkeel.npcs.controllers.AttributeController;
-import kamkeel.npcs.entity.EntityAbilityProjectile;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -937,7 +937,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public IEnergyProjectile[] getActiveEnergyProjectiles() {
-        List<EntityAbilityProjectile> entities = EntityAbilityProjectile.getActiveProjectiles(player.getEntityId());
+        List<EntityEnergyProjectile> entities = EntityEnergyProjectile.getActiveProjectiles(player.getEntityId());
         IEnergyProjectile[] result = new IEnergyProjectile[entities.size()];
         for (int i = 0; i < entities.size(); i++) {
             result[i] = (IEnergyProjectile) NpcAPI.Instance().getIEntity(entities.get(i));

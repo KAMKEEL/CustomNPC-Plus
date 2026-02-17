@@ -1,7 +1,7 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import kamkeel.npcs.entity.EntityAbilityProjectile;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -455,7 +455,7 @@ public class EventHooks {
 
     // ==================== ENERGY PROJECTILE EVENTS ====================
 
-    public static void onEnergyProjectileFired(EntityAbilityProjectile projectile) {
+    public static void onEnergyProjectileFired(EntityEnergyProjectile projectile) {
         IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
         EnergyProjectileEvent.FiredEvent event = new EnergyProjectileEvent.FiredEvent(wrapped);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_FIRED, event);
@@ -473,7 +473,7 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onEnergyProjectileTick(EntityAbilityProjectile projectile) {
+    public static void onEnergyProjectileTick(EntityEnergyProjectile projectile) {
         IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
         EnergyProjectileEvent.UpdateEvent event = new EnergyProjectileEvent.UpdateEvent(wrapped);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_TICK, event);
@@ -494,7 +494,7 @@ public class EventHooks {
     /**
      * Fires the entity impact event. Returns the (possibly modified) damage, or -1 if cancelled.
      */
-    public static float onEnergyProjectileEntityImpact(EntityAbilityProjectile projectile, EntityLivingBase target, float damage) {
+    public static float onEnergyProjectileEntityImpact(EntityEnergyProjectile projectile, EntityLivingBase target, float damage) {
         IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
         IEntity wrappedTarget = NpcAPI.Instance().getIEntity(target);
         EnergyProjectileEvent.EntityImpactEvent event = new EnergyProjectileEvent.EntityImpactEvent(wrapped, wrappedTarget, damage);
@@ -518,7 +518,7 @@ public class EventHooks {
         return event.getDamage();
     }
 
-    public static void onEnergyProjectileBlockImpact(EntityAbilityProjectile projectile, int blockX, int blockY, int blockZ) {
+    public static void onEnergyProjectileBlockImpact(EntityEnergyProjectile projectile, int blockX, int blockY, int blockZ) {
         IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
         IPos pos = NpcAPI.Instance().getIPos(blockX, blockY, blockZ);
         IWorld world = NpcAPI.Instance().getIWorld(projectile.worldObj);
@@ -539,7 +539,7 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onEnergyProjectileExpired(EntityAbilityProjectile projectile) {
+    public static void onEnergyProjectileExpired(EntityEnergyProjectile projectile) {
         IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
         EnergyProjectileEvent.ExpiredEvent event = new EnergyProjectileEvent.ExpiredEvent(wrapped);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_EXPIRED, event);
@@ -555,6 +555,54 @@ public class EventHooks {
         }
 
         NpcAPI.EVENT_BUS.post(event);
+    }
+
+    // ==================== ENERGY BARRIER EVENTS ====================
+
+    private static void dispatchBarrierEvent(net.minecraft.entity.Entity barrierEntity, int ownerEntityId,
+                                              noppes.npcs.scripted.event.EnergyBarrierEvent event, EnumScriptType type) {
+        ScriptController.Instance.globalNpcScripts.callScript(type, event);
+
+        net.minecraft.entity.Entity owner = barrierEntity.worldObj.getEntityByID(ownerEntityId);
+        if (owner instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) owner).script.callScript(type, event);
+        } else if (owner instanceof EntityPlayer) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) owner);
+            if (handler != null) {
+                handler.callScript(type, event);
+            }
+        }
+
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onEnergyBarrierSpawned(net.minecraft.entity.Entity barrierEntity, int ownerEntityId) {
+        noppes.npcs.api.entity.IEnergyBarrier wrapped = (noppes.npcs.api.entity.IEnergyBarrier) NpcAPI.Instance().getIEntity(barrierEntity);
+        noppes.npcs.scripted.event.EnergyBarrierEvent.SpawnedEvent event = new noppes.npcs.scripted.event.EnergyBarrierEvent.SpawnedEvent(wrapped);
+        dispatchBarrierEvent(barrierEntity, ownerEntityId, event, EnumScriptType.ENERGY_BARRIER_SPAWNED);
+    }
+
+    public static void onEnergyBarrierTick(net.minecraft.entity.Entity barrierEntity, int ownerEntityId) {
+        noppes.npcs.api.entity.IEnergyBarrier wrapped = (noppes.npcs.api.entity.IEnergyBarrier) NpcAPI.Instance().getIEntity(barrierEntity);
+        noppes.npcs.scripted.event.EnergyBarrierEvent.UpdateEvent event = new noppes.npcs.scripted.event.EnergyBarrierEvent.UpdateEvent(wrapped);
+        dispatchBarrierEvent(barrierEntity, ownerEntityId, event, EnumScriptType.ENERGY_BARRIER_TICK);
+    }
+
+    public static float onEnergyBarrierHit(net.minecraft.entity.Entity barrierEntity, int ownerEntityId,
+                                           EntityEnergyProjectile projectile, float damage) {
+        noppes.npcs.api.entity.IEnergyBarrier wrappedBarrier = (noppes.npcs.api.entity.IEnergyBarrier) NpcAPI.Instance().getIEntity(barrierEntity);
+        noppes.npcs.api.entity.IEnergyProjectile wrappedProjectile = projectile != null
+            ? (noppes.npcs.api.entity.IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile) : null;
+        noppes.npcs.scripted.event.EnergyBarrierEvent.HitEvent event = new noppes.npcs.scripted.event.EnergyBarrierEvent.HitEvent(wrappedBarrier, wrappedProjectile, damage);
+        dispatchBarrierEvent(barrierEntity, ownerEntityId, event, EnumScriptType.ENERGY_BARRIER_HIT);
+        if (event.isCanceled()) return -1;
+        return event.getDamage();
+    }
+
+    public static void onEnergyBarrierDestroyed(net.minecraft.entity.Entity barrierEntity, int ownerEntityId) {
+        noppes.npcs.api.entity.IEnergyBarrier wrapped = (noppes.npcs.api.entity.IEnergyBarrier) NpcAPI.Instance().getIEntity(barrierEntity);
+        noppes.npcs.scripted.event.EnergyBarrierEvent.DestroyedEvent event = new noppes.npcs.scripted.event.EnergyBarrierEvent.DestroyedEvent(wrapped);
+        dispatchBarrierEvent(barrierEntity, ownerEntityId, event, EnumScriptType.ENERGY_BARRIER_DESTROYED);
     }
 
     public static void onPlayerInit(PlayerDataScript handler, IPlayer player) {

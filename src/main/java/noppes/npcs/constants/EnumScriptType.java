@@ -131,7 +131,13 @@ public enum EnumScriptType {
     ENERGY_PROJECTILE_TICK("energyProjectileTick"),
     ENERGY_PROJECTILE_ENTITY_IMPACT("energyProjectileEntityImpact"),
     ENERGY_PROJECTILE_BLOCK_IMPACT("energyProjectileBlockImpact"),
-    ENERGY_PROJECTILE_EXPIRED("energyProjectileExpired");
+    ENERGY_PROJECTILE_EXPIRED("energyProjectileExpired"),
+
+    // Energy Barrier Events
+    ENERGY_BARRIER_SPAWNED("energyBarrierSpawned"),
+    ENERGY_BARRIER_TICK("energyBarrierTick"),
+    ENERGY_BARRIER_HIT("energyBarrierHit"),
+    ENERGY_BARRIER_DESTROYED("energyBarrierDestroyed");
 
     public String function;
 

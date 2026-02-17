@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -73,7 +73,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     /**
      * LINE telegraph: positioned at caster, aimed toward target.
-     * Overrides the circle telegraph from AbstractEnergyProjectileAbility.
+     * Overrides the circle telegraph from AbilityEnergyProjectile.
      */
     @Override
     public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {

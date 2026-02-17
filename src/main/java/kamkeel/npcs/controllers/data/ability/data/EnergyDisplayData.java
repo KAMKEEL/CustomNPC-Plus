@@ -13,7 +13,12 @@ public class EnergyDisplayData implements IEnergyDisplayData {
     public boolean outerColorEnabled = true;
     public float outerColorWidth = 0.4f;
     public float outerColorAlpha = 0.5f;
+    public float innerAlpha = 1.0f;
     public float rotationSpeed = 4.0f;
+
+    // TODO: Skybox Feature
+    // public boolean skyboxEnabled = false;
+    // public String skyboxTexture = "";
 
     public EnergyDisplayData() {}
 
@@ -30,6 +35,12 @@ public class EnergyDisplayData implements IEnergyDisplayData {
         this.outerColorWidth = outerColorWidth;
         this.outerColorAlpha = outerColorAlpha;
         this.rotationSpeed = rotationSpeed;
+    }
+
+    public EnergyDisplayData(int innerColor, int outerColor, boolean outerColorEnabled,
+                             float outerColorWidth, float outerColorAlpha, float innerAlpha, float rotationSpeed) {
+        this(innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed);
+        this.innerAlpha = innerAlpha;
     }
 
     @Override
@@ -83,6 +94,16 @@ public class EnergyDisplayData implements IEnergyDisplayData {
     }
 
     @Override
+    public float getInnerAlpha() {
+        return innerAlpha;
+    }
+
+    @Override
+    public void setInnerAlpha(float innerAlpha) {
+        this.innerAlpha = innerAlpha;
+    }
+
+    @Override
     public float getRotationSpeed() {
         return rotationSpeed;
     }
@@ -98,7 +119,11 @@ public class EnergyDisplayData implements IEnergyDisplayData {
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
         nbt.setFloat("outerColorWidth", outerColorWidth);
         nbt.setFloat("outerColorAlpha", outerColorAlpha);
+        nbt.setFloat("innerAlpha", innerAlpha);
         nbt.setFloat("rotationSpeed", rotationSpeed);
+        // TODO: Skybox Feature
+        // nbt.setBoolean("skyboxEnabled", skyboxEnabled);
+        // nbt.setString("skyboxTexture", skyboxTexture);
     }
 
     public void readNBT(NBTTagCompound nbt) {
@@ -107,10 +132,18 @@ public class EnergyDisplayData implements IEnergyDisplayData {
         outerColorEnabled = nbt.getBoolean("outerColorEnabled");
         outerColorWidth = nbt.getFloat("outerColorWidth");
         outerColorAlpha = nbt.getFloat("outerColorAlpha");
+        innerAlpha = nbt.hasKey("innerAlpha") ? nbt.getFloat("innerAlpha") : 1.0f;
         rotationSpeed = nbt.getFloat("rotationSpeed");
+        // TODO: Skybox Feature
+        // skyboxEnabled = nbt.hasKey("skyboxEnabled") && nbt.getBoolean("skyboxEnabled");
+        // skyboxTexture = nbt.hasKey("skyboxTexture") ? nbt.getString("skyboxTexture") : "";
     }
 
     public EnergyDisplayData copy() {
-        return new EnergyDisplayData(innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed);
+        EnergyDisplayData copy = new EnergyDisplayData(innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, innerAlpha, rotationSpeed);
+        // TODO: Skybox Feature
+        // copy.skyboxEnabled = skyboxEnabled;
+        // copy.skyboxTexture = skyboxTexture;
+        return copy;
     }
 }
