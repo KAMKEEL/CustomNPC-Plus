@@ -25,7 +25,7 @@ import java.util.List;
  *
  * Design inspired by LouisXIV's energy attack system.
  */
-public class EntityAbilityBeam extends EntityAbilityProjectile {
+public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     // Beam shape properties
     private float beamWidth = 0.3f;

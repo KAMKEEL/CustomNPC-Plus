@@ -284,12 +284,12 @@ public class GuiFieldBuilder {
                 String btnText = def.getButtonLabel();
                 int btnW;
                 if (def.hasClearAction()) {
-                    btnW = contentRight - 22 - fieldX;
-                    GuiNpcButton clearBtn = new GuiNpcButton(clearId, contentRight - 20, y, 20, 20, "X");
+                    btnW = fieldW - 22;
+                    GuiNpcButton clearBtn = new GuiNpcButton(clearId, fieldX + fieldW - 20, y, 20, 20, "X");
                     sw.addButton(clearBtn);
                     clearFieldMap.put(clearId, def);
                 } else {
-                    btnW = contentRight - fieldX;
+                    btnW = fieldW;
                 }
                 GuiNpcButton btn = new GuiNpcButton(widgetId, fieldX, y, btnW, 20, btnText);
                 Integer textColor = def.getButtonTextColor();

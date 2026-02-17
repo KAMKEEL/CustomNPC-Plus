@@ -1,9 +1,7 @@
 package kamkeel.npcs.entity;
 
-import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -24,19 +22,16 @@ import java.util.Set;
  * Sweeper ability entity - a rotating beam attached to the NPC.
  * Unlike other projectiles, this handles its own damage logic since it's
  * attached to and rotates around the caster.
+ * Extends EntityEnergyAbility for shared visual/owner/charging state.
  *
  * Design: Similar to Beam trail visuals but rotating around origin.
  */
-public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpawnData {
+public class EntityAbilitySweeper extends EntityEnergyAbility {
 
     // Beam properties
     private float beamLength = 10.0f;
     private float beamWidth = 0.3f;  // Thin like beam trail
     private float beamHeight = 0.8f;
-    private int innerColor = 0xFF6600;
-    private int outerColor = 0xFF0000;
-    private boolean outerColorEnabled = true;
-    private float outerColorWidth = 1.8f;
 
     // Combat properties
     private float damage = 5.0f;
@@ -52,17 +47,12 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
     private float baseYaw = 0;  // Starting yaw direction
     private boolean lockOnTarget = false;
 
-    // Owner tracking
-    private int ownerEntityId = -1;
+    // Target tracking
     private int targetEntityId = -1;
 
     // Lifetime
     private int maxTicks = 400;
     private long deathWorldTime = -1;
-
-    // Preview mode
-    private boolean previewMode = false;
-    private EntityLivingBase previewOwner = null;
 
     // Damage state
     private transient int ticksSinceDamage = 0;
@@ -72,8 +62,6 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         super(world);
         this.setSize(0.1f, 0.1f);
         this.noClip = true;
-        this.isImmuneToFire = true;
-        this.ignoreFrustumCheck = true;
     }
 
     public EntityAbilitySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
@@ -89,10 +77,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.beamLength = beamLength;
         this.beamWidth = beamWidth;
         this.beamHeight = beamHeight;
-        this.innerColor = displayData.innerColor;
-        this.outerColor = displayData.outerColor;
-        this.outerColorEnabled = displayData.outerColorEnabled;
-        this.outerColorWidth = displayData.outerColorWidth;
+        this.displayData = displayData;
         this.sweepSpeed = sweepSpeed;
         this.numberOfRotations = numberOfRotations;
         this.damage = damage;
@@ -121,7 +106,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     @Override
     protected void entityInit() {
-        // No DataWatcher needed
+        super.entityInit();
     }
 
     @Override
@@ -144,7 +129,7 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
             return;
         }
 
-        Entity owner = getOwner();
+        Entity owner = getOwnerEntity();
         if (owner != null && owner.isDead) {
             this.setDead();
             return;
@@ -297,34 +282,12 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         this.previewOwner = owner;
     }
 
-    private Entity getOwner() {
-        if (previewMode && previewOwner != null) return previewOwner;
-        if (ownerEntityId == -1) return null;
-        return worldObj.getEntityByID(ownerEntityId);
-    }
-
     // ==================== RENDERING ====================
 
     @Override
     @SideOnly(Side.CLIENT)
     public boolean isInRangeToRenderDist(double distance) {
         return distance < 16384.0D; // 128 blocks squared
-    }
-
-    @Override
-    public boolean shouldRenderInPass(int pass) {
-        return pass == 1; // Translucent pass
-    }
-
-    @Override
-    public float getBrightness(float partialTicks) {
-        return 1.0f;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public int getBrightnessForRender(float partialTicks) {
-        return 0xF000F0;
     }
 
     // ==================== GETTERS FOR RENDERER ====================
@@ -339,22 +302,6 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     public float getBeamHeight() {
         return beamHeight;
-    }
-
-    public int getInnerColor() {
-        return innerColor;
-    }
-
-    public int getOuterColor() {
-        return outerColor;
-    }
-
-    public boolean isOuterColorEnabled() {
-        return outerColorEnabled;
-    }
-
-    public float getOuterColorWidth() {
-        return outerColorWidth;
     }
 
     /**
@@ -382,18 +329,14 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
+        readEnergyBaseNBT(nbt);
         this.beamLength = nbt.getFloat("BeamLength");
         this.beamWidth = nbt.getFloat("BeamWidth");
         this.beamHeight = nbt.getFloat("BeamHeight");
-        this.innerColor = nbt.getInteger("InnerColor");
-        this.outerColor = nbt.getInteger("OuterColor");
-        this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
-        this.outerColorWidth = nbt.hasKey("OuterColorWidth") ? nbt.getFloat("OuterColorWidth") : 1.8f;
         this.sweepSpeed = nbt.getFloat("SweepSpeed");
         this.numberOfRotations = nbt.getInteger("NumRotations");
         this.completedRotations = nbt.getInteger("CompletedRotations");
         this.maxTicks = nbt.getInteger("MaxTicks");
-        this.ownerEntityId = nbt.getInteger("OwnerId");
         this.targetEntityId = nbt.getInteger("TargetId");
         this.currentAngle = nbt.getFloat("CurrentAngle");
         this.baseYaw = nbt.getFloat("BaseYaw");
@@ -406,18 +349,14 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound nbt) {
+        writeEnergyBaseNBT(nbt);
         nbt.setFloat("BeamLength", beamLength);
         nbt.setFloat("BeamWidth", beamWidth);
         nbt.setFloat("BeamHeight", beamHeight);
-        nbt.setInteger("InnerColor", innerColor);
-        nbt.setInteger("OuterColor", outerColor);
-        nbt.setBoolean("OuterColorEnabled", outerColorEnabled);
-        nbt.setFloat("OuterColorWidth", outerColorWidth);
         nbt.setFloat("SweepSpeed", sweepSpeed);
         nbt.setInteger("NumRotations", numberOfRotations);
         nbt.setInteger("CompletedRotations", completedRotations);
         nbt.setInteger("MaxTicks", maxTicks);
-        nbt.setInteger("OwnerId", ownerEntityId);
         nbt.setInteger("TargetId", targetEntityId);
         nbt.setFloat("CurrentAngle", currentAngle);
         nbt.setFloat("BaseYaw", baseYaw);
@@ -426,54 +365,5 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         nbt.setInteger("DamageInterval", damageInterval);
         nbt.setBoolean("Piercing", piercing);
         nbt.setBoolean("LockOnTarget", lockOnTarget);
-    }
-
-    // ==================== SPAWN DATA ====================
-
-    @Override
-    public void writeSpawnData(ByteBuf buffer) {
-        buffer.writeFloat(beamLength);
-        buffer.writeFloat(beamWidth);
-        buffer.writeFloat(beamHeight);
-        buffer.writeInt(innerColor);
-        buffer.writeInt(outerColor);
-        buffer.writeBoolean(outerColorEnabled);
-        buffer.writeFloat(outerColorWidth);
-        buffer.writeFloat(sweepSpeed);
-        buffer.writeInt(numberOfRotations);
-        buffer.writeInt(completedRotations);
-        buffer.writeInt(maxTicks);
-        buffer.writeInt(ownerEntityId);
-        buffer.writeInt(targetEntityId);
-        buffer.writeFloat(currentAngle);
-        buffer.writeFloat(baseYaw);
-        buffer.writeFloat(damage);
-        buffer.writeInt(damageInterval);
-        buffer.writeBoolean(piercing);
-        buffer.writeBoolean(lockOnTarget);
-    }
-
-    @Override
-    public void readSpawnData(ByteBuf buffer) {
-        this.beamLength = buffer.readFloat();
-        this.beamWidth = buffer.readFloat();
-        this.beamHeight = buffer.readFloat();
-        this.innerColor = buffer.readInt();
-        this.outerColor = buffer.readInt();
-        this.outerColorEnabled = buffer.readBoolean();
-        this.outerColorWidth = buffer.readFloat();
-        this.sweepSpeed = buffer.readFloat();
-        this.numberOfRotations = buffer.readInt();
-        this.completedRotations = buffer.readInt();
-        this.maxTicks = buffer.readInt();
-        this.ownerEntityId = buffer.readInt();
-        this.targetEntityId = buffer.readInt();
-        this.currentAngle = buffer.readFloat();
-        this.baseYaw = buffer.readFloat();
-        this.damage = buffer.readFloat();
-        this.damageInterval = buffer.readInt();
-        this.piercing = buffer.readBoolean();
-        this.lockOnTarget = buffer.readBoolean();
-        this.prevAngle = this.currentAngle;
     }
 }

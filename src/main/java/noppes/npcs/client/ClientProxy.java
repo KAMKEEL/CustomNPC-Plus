@@ -152,6 +152,9 @@ import kamkeel.npcs.client.renderer.RenderAbilityLaser;
 import kamkeel.npcs.client.renderer.RenderAbilityBeam;
 import kamkeel.npcs.client.renderer.RenderAbilitySweeper;
 import kamkeel.npcs.client.renderer.RenderAbilityZone;
+import kamkeel.npcs.client.renderer.RenderEnergyDome;
+import kamkeel.npcs.client.renderer.RenderEnergyPanel;
+import kamkeel.npcs.client.renderer.RenderEnergySlicer;
 import kamkeel.npcs.client.renderer.lightning.LightningHandler;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import kamkeel.npcs.entity.EntityAbilityDisc;
@@ -159,6 +162,9 @@ import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityEnergySlicer;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -273,6 +279,9 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityBeam.class, new RenderAbilityBeam());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilitySweeper.class, new RenderAbilitySweeper());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityZone.class, new RenderAbilityZone());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyDome.class, new RenderEnergyDome());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyPanel.class, new RenderEnergyPanel());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergySlicer.class, new RenderEnergySlicer());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 

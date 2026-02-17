@@ -92,6 +92,9 @@ import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityEnergySlicer;
 import noppes.npcs.entity.old.EntityNPCDwarfFemale;
 import noppes.npcs.entity.old.EntityNPCDwarfMale;
 import noppes.npcs.entity.old.EntityNPCElfFemale;
@@ -294,6 +297,9 @@ public class CustomNpcs {
         registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 3, true);
         registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
         registerNewEntity(EntityAbilityZone.class, "abilityzone", 64, 3, true);
+        registerNewEntity(EntityEnergyDome.class, "energydome", 64, 3, true);
+        registerNewEntity(EntityEnergyPanel.class, "energypanel", 64, 3, true);
+        registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 3, true);
 
         new RecipeController();
 

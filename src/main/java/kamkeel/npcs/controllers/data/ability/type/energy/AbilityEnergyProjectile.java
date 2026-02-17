@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -9,7 +9,7 @@ import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityAbilityProjectile;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -29,8 +29,7 @@ import java.util.List;
  *
  * @param <E> The entity type this ability spawns
  */
-public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
-    extends Ability implements IAbilityEnergyProjectile {
+public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> extends AbilityEnergy implements IAbilityEnergyProjectile {
 
     protected static final int MAX_PROJECTILES = 8;
 
@@ -38,9 +37,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
     protected int projectileCount = 1;
     protected int fireDelay = 0;
 
-    // Shared visual data
-    protected EnergyDisplayData displayData;
-    protected EnergyLightningData lightningData;
+    // Trajectory data
     protected EnergyTrajectoryData trajectoryData;
 
     // Shared combat/movement data
@@ -62,11 +59,10 @@ public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
         EnergyHomingData homingData,
         EnergyLifespanData lifespanData
     ) {
-        this.displayData = displayData;
+        super(displayData);
         this.combatData = combatData;
         this.homingData = homingData;
         this.lifespanData = lifespanData;
-        this.lightningData = new EnergyLightningData();
         this.trajectoryData = new EnergyTrajectoryData();
         initProjectiles(1);
     }
@@ -389,8 +385,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
         nbt.setInteger("fireDelay", fireDelay);
 
         // Shared data classes
-        displayData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
+        writeEnergyNBT(nbt);
         combatData.writeNBT(nbt);
         homingData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
@@ -414,8 +409,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
         this.fireDelay = nbt.getInteger("fireDelay");
 
         // Shared data classes
-        displayData.readNBT(nbt);
-        lightningData.readNBT(nbt);
+        readEnergyNBT(nbt);
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
@@ -473,37 +467,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
     public float getHomingRange() { return homingData.homingRange; }
     public void setHomingRange(float range) { homingData.homingRange = range; }
 
-    // Display data - primary colors
-    @Override public int getInnerColor() { return displayData.innerColor; }
-    @Override public void setInnerColor(int color) { displayData.innerColor = color; }
-
-    @Override public int getOuterColor() { return displayData.outerColor; }
-    @Override public void setOuterColor(int color) { displayData.outerColor = color; }
-
-    @Override public boolean isOuterColorEnabled() { return displayData.outerColorEnabled; }
-    @Override public void setOuterColorEnabled(boolean enabled) { displayData.outerColorEnabled = enabled; }
-
-    @Override public float getOuterColorWidth() { return displayData.outerColorWidth; }
-    @Override public void setOuterColorWidth(float width) { displayData.outerColorWidth = width; }
-
-    @Override public float getOuterColorAlpha() { return displayData.outerColorAlpha; }
-    @Override public void setOuterColorAlpha(float alpha) { displayData.outerColorAlpha = alpha; }
-
-    public float getRotationSpeed() { return displayData.rotationSpeed; }
-    public void setRotationSpeed(float speed) { displayData.rotationSpeed = speed; }
-
-    // Lightning data
-    @Override public boolean hasLightningEffect() { return lightningData.lightningEffect; }
-    @Override public void setLightningEffect(boolean enabled) { lightningData.lightningEffect = enabled; }
-
-    @Override public float getLightningDensity() { return lightningData.lightningDensity; }
-    @Override public void setLightningDensity(float density) { lightningData.lightningDensity = density; }
-
-    @Override public float getLightningRadius() { return lightningData.lightningRadius; }
-    @Override public void setLightningRadius(float radius) { lightningData.lightningRadius = radius; }
-
-    public int getLightningFadeTime() { return lightningData.lightningFadeTime; }
-    public void setLightningFadeTime(int fadeTime) { lightningData.lightningFadeTime = fadeTime; }
+    // Display and lightning data inherited from AbilityEnergy
 
     // Anchor - default to projectile 0
     public AnchorPoint getAnchorPointEnum() { return projectiles[0].anchor.anchorPoint; }
@@ -556,33 +520,14 @@ public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
         // Type-specific fields first
         addTypeDefinitions(defs);
 
-        // Shared visual tab - primary colors
-        defs.add(FieldDef.section("ability.section.colors").tab("ability.tab.visual"));
-        defs.add(FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-            .tab("ability.tab.visual"));
-        defs.add(FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
-            .tab("ability.tab.visual"));
-        defs.add(FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-            .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled));
-        defs.add(FieldDef.row(
-            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .visibleWhen(this::isOuterColorEnabled),
-            FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
-                .range(0, 1).visibleWhen(this::isOuterColorEnabled)
-        ).tab("ability.tab.visual"));
+        // Shared visual tab - colors + effects (from AbilityEnergy)
+        addEnergyColorDefinitions(defs);
 
-        // Shared visual tab - effects
+        // Effects section with projectile-specific rotationSpeed before lightning
         defs.add(FieldDef.section("ability.section.effects").tab("ability.tab.visual"));
         defs.add(FieldDef.floatField("ability.rotationSpeed", this::getRotationSpeed, this::setRotationSpeed)
             .tab("ability.tab.visual"));
-        defs.add(FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect)
-            .tab("ability.tab.visual"));
-        defs.add(FieldDef.row(
-            FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                .visibleWhen(this::hasLightningEffect).range(0.01f, 100f),
-            FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
-        ).tab("ability.tab.visual"));
+        addEnergyLightningDefinitions(defs);
 
         // Shared visual tab - per-projectile sections
         for (int i = 0; i < MAX_PROJECTILES; i++) {

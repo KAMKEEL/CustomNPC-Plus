@@ -103,7 +103,7 @@ public abstract class Ability implements IAbility {
     protected boolean ignoreCooldown = false;
 
     // Configurable potion effects
-    protected List<AbilityEffect> effects = new ArrayList<>();
+    protected List<AbilityPotionEffect> effects = new ArrayList<>();
 
     // Burst
     protected boolean burstEnabled = false;
@@ -378,7 +378,7 @@ public abstract class Ability implements IAbility {
         if (entity == null || effects.isEmpty()) {
             return;
         }
-        for (AbilityEffect effect : effects) {
+        for (AbilityPotionEffect effect : effects) {
             effect.apply(entity);
         }
     }
@@ -1164,7 +1164,7 @@ public abstract class Ability implements IAbility {
 
         // Effects
         NBTTagList effectList = new NBTTagList();
-        for (AbilityEffect effect : effects) {
+        for (AbilityPotionEffect effect : effects) {
             effectList.appendTag(effect.writeNBT());
         }
         nbt.setTag("effects", effectList);
@@ -1235,7 +1235,7 @@ public abstract class Ability implements IAbility {
         if (nbt.hasKey("effects")) {
             NBTTagList effectList = nbt.getTagList("effects", 10);
             for (int i = 0; i < effectList.tagCount(); i++) {
-                AbilityEffect effect = AbilityEffect.fromNBT(effectList.getCompoundTagAt(i));
+                AbilityPotionEffect effect = AbilityPotionEffect.fromNBT(effectList.getCompoundTagAt(i));
                 if (effect != null && effect.isValid()) {
                     effects.add(effect);
                 }
@@ -1727,15 +1727,15 @@ public abstract class Ability implements IAbility {
         this.ignoreCooldown = ignoreCooldown;
     }
 
-    public List<AbilityEffect> getEffects() {
+    public List<AbilityPotionEffect> getEffects() {
         return effects;
     }
 
-    public void setEffects(List<AbilityEffect> effects) {
+    public void setEffects(List<AbilityPotionEffect> effects) {
         this.effects = effects != null ? effects : new ArrayList<>();
     }
 
-    public void addEffect(AbilityEffect effect) {
+    public void addEffect(AbilityPotionEffect effect) {
         if (effect != null && effect.isValid()) {
             effects.add(effect);
         }

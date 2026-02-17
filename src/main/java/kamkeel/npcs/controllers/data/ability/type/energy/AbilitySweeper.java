@@ -1,12 +1,10 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -14,8 +12,8 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.api.ability.type.IAbilitySweeper;
+import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +26,7 @@ import java.util.List;
  * All damage logic is handled by the EntityAbilitySweeper entity to ensure
  * visual and damage hitbox alignment.
  */
-public class AbilitySweeper extends Ability implements IAbilitySweeper {
+public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
 
     // Type-specific parameters
     private float beamLength = 10.0f;
@@ -41,13 +39,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     private int numberOfRotations = 2;  // How many full rotations before ability ends
     private boolean lockOnTarget = false;
 
-    // Visual properties
-    private EnergyDisplayData colorData = new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f);
-
     // Runtime state (transient)
     private transient EntityAbilitySweeper activeEntity = null;
 
     public AbilitySweeper() {
+        super(new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f));
         this.typeId = "ability.cnpc.sweeper";
         this.name = "Sweeper";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
@@ -83,7 +79,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         // Player: target is null — sweep rotates around caster's facing direction, lockOnTarget has no effect.
         activeEntity = new EntityAbilitySweeper(caster.worldObj, caster, target,
             beamLength, beamWidth, beamHeight,
-            colorData,
+            displayData,
             sweepSpeed, numberOfRotations,
             damage, damageInterval, piercing,
             lockOnTarget);
@@ -93,9 +89,6 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         }
 
         spawnAbilityEntity(activeEntity);
-
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
     }
 
     @Override
@@ -162,7 +155,7 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         nbt.setFloat("sweepSpeed", sweepSpeed);
         nbt.setInteger("numberOfRotations", numberOfRotations);
         nbt.setBoolean("lockOnTarget", lockOnTarget);
-        colorData.writeNBT(nbt);
+        writeEnergyNBT(nbt);
     }
 
     @Override
@@ -176,10 +169,10 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
         this.sweepSpeed = nbt.getFloat("sweepSpeed");
         this.numberOfRotations = nbt.getInteger("numberOfRotations");
         this.lockOnTarget = nbt.getBoolean("lockOnTarget");
-        colorData.readNBT(nbt);
+        readEnergyNBT(nbt);
     }
 
-    // Getters & Setters
+    // Getters & Setters (type-specific only; color/lightning inherited from AbilityEnergy)
     public float getBeamLength() { return beamLength; }
     public void setBeamLength(float beamLength) { this.beamLength = beamLength; }
     public float getBeamWidth() { return beamWidth; }
@@ -198,14 +191,6 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public void setNumberOfRotations(int numberOfRotations) { this.numberOfRotations = numberOfRotations; }
     public boolean isLockOnTarget() { return lockOnTarget; }
     public void setLockOnTarget(boolean lockOnTarget) { this.lockOnTarget = lockOnTarget; }
-    public int getInnerColor() { return colorData.innerColor; }
-    public void setInnerColor(int innerColor) { colorData.innerColor = innerColor; }
-    public int getOuterColor() { return colorData.outerColor; }
-    public void setOuterColor(int outerColor) { colorData.outerColor = outerColor; }
-    public float getOuterColorWidth() { return colorData.outerColorWidth; }
-    public void setOuterColorWidth(float outerColorWidth) { colorData.outerColorWidth = outerColorWidth; }
-    public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
-    public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
 
     @Override
     public int getMaxPreviewDuration() {
@@ -216,7 +201,6 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     @Override
     public void getAbilityDefinitions(List<FieldDef> defs) {
         defs.addAll(Arrays.asList(
-
             FieldDef.row(
                 FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
                 FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval)
@@ -237,18 +221,10 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
                 FieldDef.boolField("ability.lockTarget", this::isLockOnTarget, this::setLockOnTarget)
                     .hover("ability.hover.lockTarget")
             ),
-            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
-
-            // Visual tab
-            FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
-            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-                .tab("ability.tab.visual"),
-            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
-                .tab("ability.tab.visual"),
-            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
-            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled)
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         ));
+
+        // Visual tab - colors + effects (from AbilityEnergy)
+        addEnergyVisualDefinitions(defs);
     }
 }

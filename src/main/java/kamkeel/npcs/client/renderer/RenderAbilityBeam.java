@@ -2,7 +2,6 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -24,7 +23,7 @@ import java.util.List;
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityBeam extends RenderAbilityProjectile {
+public class RenderAbilityBeam extends RenderEnergyAbility {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
@@ -117,7 +116,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
 
         // Render lightning during charging if enabled
         if (beam.hasLightningEffect()) {
-            renderAttachedLightning(beam, scale);
+            renderAttachedLightning(beam, 0.6f * 0.5f, scale);
         }
 
         GL11.glPushMatrix();
@@ -545,7 +544,7 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
 
         // Render lightning BEFORE rotation so it crackles in all directions (only on head)
         if (beam.hasLightningEffect()) {
-            renderAttachedLightning(beam, scale);
+            renderAttachedLightning(beam, 0.6f * 0.5f, scale);
         }
 
         // Rotation
@@ -579,31 +578,4 @@ public class RenderAbilityBeam extends RenderAbilityProjectile {
         GL11.glPopMatrix();
     }
 
-    /**
-     * Render fading lightning arcs attached to the beam head (in local space).
-     */
-    private void renderAttachedLightning(EntityAbilityBeam beam, float headScale) {
-        AttachedLightningRenderer.LightningState state = getLightningState(beam);
-
-        float density = beam.getLightningDensity();
-        // Lightning radius extends outward from inner surface (innerScale = 0.6)
-        float innerRadius = 0.6f * headScale * 0.5f;
-        float radius = innerRadius + beam.getLightningRadius() * headScale;
-        int outerColor = beam.getOuterColor();
-        int innerColor = beam.getInnerColor();
-        int fadeTime = beam.getLightningFadeTime();
-
-        state.update(density, radius, outerColor, innerColor, fadeTime);
-        state.render();
-    }
-
-    /**
-     * Get or create the lightning state for an entity.
-     */
-    private AttachedLightningRenderer.LightningState getLightningState(EntityAbilityBeam beam) {
-        if (beam.lightningState == null) {
-            beam.lightningState = new AttachedLightningRenderer.LightningState();
-        }
-        return (AttachedLightningRenderer.LightningState) beam.lightningState;
-    }
 }
