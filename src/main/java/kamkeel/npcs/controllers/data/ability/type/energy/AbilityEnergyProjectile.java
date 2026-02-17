@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
@@ -28,13 +29,7 @@ import java.util.List;
  *
  * @param <E> The entity type this ability spawns
  */
-<<<<<<<< HEAD:src/main/java/kamkeel/npcs/controllers/data/ability/type/AbilityEnergyProjectile.java
-public abstract class AbilityEnergyProjectile<E extends EntityAbilityProjectile>
-    extends Ability implements IAbilityEnergyProjectile {
-========
-public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile>
-    extends AbilityEnergy implements IAbilityEnergyProjectile {
->>>>>>>> barriers:src/main/java/kamkeel/npcs/controllers/data/ability/type/energy/AbilityEnergyProjectile.java
+public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> extends AbilityEnergy implements IAbilityEnergyProjectile {
 
     protected static final int MAX_PROJECTILES = 8;
 
