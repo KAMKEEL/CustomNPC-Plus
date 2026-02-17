@@ -2,6 +2,7 @@ package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
@@ -36,6 +37,8 @@ public class Register<T> {
     }
 
     public static class Abilities extends Register<Ability> {
+        protected final Map<String, Supplier<AbilityVariant>> variantEntries = new LinkedHashMap<>();
+        protected final Map<String, String> variantNames = new LinkedHashMap<>();
         protected final Map<String, String> uniqueNames = new LinkedHashMap<>();
         protected final Set<String> typeOnly = new HashSet<>();
 
@@ -64,12 +67,23 @@ public class Register<T> {
             return factory.get();
         }
 
+        public AbilityVariant registerVariant(String variantName, Supplier<AbilityVariant> variantFactory) {
+            String name = registryKey + "." + namespace + "." + variantName.trim().toLowerCase().replaceAll(" ", "_");
+            variantEntries.put(name, variantFactory);
+            variantNames.put(name, variantName);
+            return variantFactory.get();
+        }
+
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
                 AbilityController.Instance.registerType(entry.getKey(), entry.getValue());
                 if (!typeOnly.contains(entry.getKey())) {
                     AbilityController.Instance.registerAbility(uniqueNames.get(entry.getKey()), entry.getValue().get());
                 }
+            }
+
+            for (Map.Entry<String, Supplier<AbilityVariant>> entry : variantEntries.entrySet()) {
+                AbilityController.Instance.registerVariant(variantNames.get(entry.getKey()), entry.getValue().get());
             }
         }
 
