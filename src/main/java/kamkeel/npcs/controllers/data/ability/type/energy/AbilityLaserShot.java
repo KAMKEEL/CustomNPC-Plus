@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -25,7 +25,7 @@ import java.util.List;
  * Travels in a straight line from origin, damaging all entities it passes through.
  * Single-projectile only (always projectileCount=1).
  */
-public class AbilityLaserShot extends AbstractEnergyProjectileAbility<EntityAbilityLaser> implements IAbilityLaserShot {
+public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser> implements IAbilityLaserShot {
 
     private float laserWidth = 0.3f;
     private float expansionSpeed = 3.0f;
@@ -73,7 +73,7 @@ public class AbilityLaserShot extends AbstractEnergyProjectileAbility<EntityAbil
 
     /**
      * LINE telegraph: positioned at caster, aimed toward target.
-     * Overrides the circle telegraph from AbstractEnergyProjectileAbility.
+     * Overrides the circle telegraph from AbilityEnergyProjectile.
      */
     @Override
     public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {

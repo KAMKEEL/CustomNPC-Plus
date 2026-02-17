@@ -1,39 +1,31 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import net.minecraft.entity.Entity;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Abstract base for energy barrier abilities (Dome, Wall, Shield).
  * Handles shared visual data, barrier configuration, and lifecycle management.
  */
-public abstract class AbstractEnergyBarrierAbility extends Ability {
+public abstract class AbilityEnergyBarrier extends AbilityEnergy {
 
-    protected EnergyDisplayData displayData;
-    protected EnergyLightningData lightningData;
     protected final EnergyBarrierData barrierData;
 
     // Runtime entity tracking
-    protected transient Entity barrierEntity;
+    protected transient EntityEnergyBarrier barrierEntity;
 
-    protected AbstractEnergyBarrierAbility(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
-        this.displayData = displayData;
+    protected AbilityEnergyBarrier(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
+        super(displayData);
         this.barrierData = barrierData;
-        this.lightningData = new EnergyLightningData();
     }
 
     // ==================== ABSTRACT METHODS ====================
@@ -41,7 +33,7 @@ public abstract class AbstractEnergyBarrierAbility extends Ability {
     /**
      * Create and spawn the barrier entity during execution.
      */
-    protected abstract Entity createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
+    protected abstract EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
 
     /**
      * Add type-specific GUI field definitions.
@@ -72,10 +64,29 @@ public abstract class AbstractEnergyBarrierAbility extends Ability {
     }
 
     @Override
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (caster.worldObj.isRemote) return;
+
+        if (tick == 1) {
+            barrierEntity = createBarrierEntity(caster, target);
+            if (barrierEntity != null) {
+                barrierEntity.setupCharging(getWindUpTicks());
+                spawnAbilityEntity(barrierEntity);
+            }
+        }
+    }
+
+    @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
-        barrierEntity = createBarrierEntity(caster, target);
-        if (barrierEntity != null) {
-            spawnAbilityEntity(barrierEntity);
+        if (barrierEntity != null && !barrierEntity.isDead) {
+            // Barrier was spawned during windup — transition to active
+            barrierEntity.finishCharging();
+        } else {
+            // No windup or entity died — create fresh
+            barrierEntity = createBarrierEntity(caster, target);
+            if (barrierEntity != null) {
+                spawnAbilityEntity(barrierEntity);
+            }
         }
     }
 
@@ -115,49 +126,20 @@ public abstract class AbstractEnergyBarrierAbility extends Ability {
     @Override
     public final void writeTypeNBT(NBTTagCompound nbt) {
         writeBarrierTypeNBT(nbt);
-        displayData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
+        writeEnergyNBT(nbt);
         barrierData.writeNBT(nbt);
     }
 
     @Override
     public final void readTypeNBT(NBTTagCompound nbt) {
         readBarrierTypeNBT(nbt);
-        displayData.readNBT(nbt);
-        lightningData.readNBT(nbt);
+        readEnergyNBT(nbt);
         barrierData.readNBT(nbt);
     }
 
     // ==================== API GETTERS & SETTERS ====================
 
-    // Display data
-    public int getInnerColor() { return displayData.innerColor; }
-    public void setInnerColor(int color) { displayData.innerColor = color; }
-
-    public int getOuterColor() { return displayData.outerColor; }
-    public void setOuterColor(int color) { displayData.outerColor = color; }
-
-    public boolean isOuterColorEnabled() { return displayData.outerColorEnabled; }
-    public void setOuterColorEnabled(boolean enabled) { displayData.outerColorEnabled = enabled; }
-
-    public float getOuterColorWidth() { return displayData.outerColorWidth; }
-    public void setOuterColorWidth(float width) { displayData.outerColorWidth = width; }
-
-    public float getOuterColorAlpha() { return displayData.outerColorAlpha; }
-    public void setOuterColorAlpha(float alpha) { displayData.outerColorAlpha = alpha; }
-
-    // Lightning data
-    public boolean hasLightningEffect() { return lightningData.lightningEffect; }
-    public void setLightningEffect(boolean enabled) { lightningData.lightningEffect = enabled; }
-
-    public float getLightningDensity() { return lightningData.lightningDensity; }
-    public void setLightningDensity(float density) { lightningData.lightningDensity = density; }
-
-    public float getLightningRadius() { return lightningData.lightningRadius; }
-    public void setLightningRadius(float radius) { lightningData.lightningRadius = radius; }
-
-    public int getLightningFadeTime() { return lightningData.lightningFadeTime; }
-    public void setLightningFadeTime(int fadeTime) { lightningData.lightningFadeTime = fadeTime; }
+    // Display and lightning data inherited from AbilityEnergy
 
     // Barrier data
     public float getBarrierMaxHealth() { return barrierData.maxHealth; }
@@ -178,6 +160,20 @@ public abstract class AbstractEnergyBarrierAbility extends Ability {
     public void setDamageMultiplier(String typeId, float mult) { barrierData.setMultiplier(typeId, mult); }
     public float getDamageMultiplier(String typeId) { return barrierData.getMultiplier(typeId); }
 
+    // Knockback data
+    public boolean isKnockbackEnabled() { return barrierData.knockbackEnabled; }
+    public void setKnockbackEnabled(boolean enabled) { barrierData.knockbackEnabled = enabled; }
+    public float getKnockbackStrength() { return barrierData.knockbackStrength; }
+    public void setKnockbackStrength(float strength) { barrierData.knockbackStrength = strength; }
+    public String getKnockbackTargetKey() { return barrierData.getKnockbackTargetKey(); }
+    public void setKnockbackTargetKey(String key) { barrierData.setKnockbackTargetFromKey(key); }
+
+    // Melee data
+    public boolean isMeleeEnabled() { return barrierData.meleeEnabled; }
+    public void setMeleeEnabled(boolean enabled) { barrierData.meleeEnabled = enabled; }
+    public float getMeleeDamageMultiplier() { return barrierData.meleeDamageMultiplier; }
+    public void setMeleeDamageMultiplier(float mult) { barrierData.meleeDamageMultiplier = mult; }
+
     // ==================== GUI ====================
 
     @SideOnly(Side.CLIENT)
@@ -196,29 +192,24 @@ public abstract class AbstractEnergyBarrierAbility extends Ability {
             .range(1, 6000).visibleWhen(this::isUseDuration));
         defs.add(FieldDef.floatField("ability.defaultMultiplier", this::getDefaultMultiplier, this::setDefaultMultiplier));
 
-        // Visual tab
-        defs.add(FieldDef.section("ability.section.colors").tab("ability.tab.visual"));
-        defs.add(FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-            .tab("ability.tab.visual"));
-        defs.add(FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
-            .tab("ability.tab.visual"));
-        defs.add(FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-            .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled));
+        // Knockback section
+        defs.add(FieldDef.section("ability.section.knockback"));
+        defs.add(FieldDef.boolField("ability.knockbackEnabled", this::isKnockbackEnabled, this::setKnockbackEnabled));
         defs.add(FieldDef.row(
-            FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                .visibleWhen(this::isOuterColorEnabled),
-            FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
-                .range(0, 1).visibleWhen(this::isOuterColorEnabled)
-        ).tab("ability.tab.visual"));
+            FieldDef.floatField("ability.knockbackStrength", this::getKnockbackStrength, this::setKnockbackStrength)
+                .range(0, 10).visibleWhen(this::isKnockbackEnabled),
+            FieldDef.stringEnumField("ability.knockbackTarget", EnergyBarrierData.getKnockbackTargetKeys(),
+                this::getKnockbackTargetKey, this::setKnockbackTargetKey)
+                .visibleWhen(this::isKnockbackEnabled)
+        ));
 
-        defs.add(FieldDef.section("ability.section.effects").tab("ability.tab.visual"));
-        defs.add(FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect)
-            .tab("ability.tab.visual"));
-        defs.add(FieldDef.row(
-            FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                .visibleWhen(this::hasLightningEffect).range(0.01f, 100f),
-            FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
-        ).tab("ability.tab.visual"));
+        // Melee section
+        defs.add(FieldDef.section("ability.section.melee"));
+        defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled));
+        defs.add(FieldDef.floatField("ability.meleeDamageMultiplier", this::getMeleeDamageMultiplier, this::setMeleeDamageMultiplier)
+            .range(0, 10).visibleWhen(this::isMeleeEnabled));
+
+        // Visual tab - colors + effects (from AbilityEnergy)
+        addEnergyVisualDefinitions(defs);
     }
 }

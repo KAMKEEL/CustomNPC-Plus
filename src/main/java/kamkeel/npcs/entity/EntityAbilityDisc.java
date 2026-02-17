@@ -19,7 +19,7 @@ import java.util.List;
  *
  * Design inspired by LouisXIV's energy attack system.
  */
-public class EntityAbilityDisc extends EntityAbilityProjectile {
+public class EntityAbilityDisc extends EntityEnergyProjectile {
 
     // Disc-specific movement propertie
 

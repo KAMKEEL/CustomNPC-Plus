@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -22,7 +22,7 @@ import java.util.List;
  * Orb ability: Spawns homing projectile sphere(s) that track target.
  * Supports 1-8 projectiles with shared visuals and per-projectile anchor points.
  */
-public class AbilityOrb extends AbstractEnergyProjectileAbility<EntityAbilityOrb> implements IAbilityOrb {
+public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implements IAbilityOrb {
 
     private float orbSize = 1.0f;
 

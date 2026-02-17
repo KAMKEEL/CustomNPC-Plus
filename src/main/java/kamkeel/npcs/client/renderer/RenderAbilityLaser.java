@@ -3,7 +3,6 @@ package kamkeel.npcs.client.renderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
-import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -15,7 +14,7 @@ import org.lwjgl.opengl.GL11;
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityLaser extends RenderAbilityProjectile {
+public class RenderAbilityLaser extends RenderEnergyAbility {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
@@ -147,7 +146,7 @@ public class RenderAbilityLaser extends RenderAbilityProjectile {
 
         // Render lightning during charging if enabled
         if (laser.hasLightningEffect()) {
-            renderAttachedLightning(laser, scale);
+            renderAttachedLightning(laser, 0.6f * 0.5f, scale);
         }
 
         GL11.glPushMatrix();
@@ -170,7 +169,7 @@ public class RenderAbilityLaser extends RenderAbilityProjectile {
 
         // Render inner core
         GL11.glScalef(innerScale, innerScale, innerScale);
-        renderCube(innerColor, 1.0f, 0.5f);
+        renderCube(innerColor, laser.getInnerAlpha(), 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();
@@ -214,31 +213,6 @@ public class RenderAbilityLaser extends RenderAbilityProjectile {
         GL11.glPopMatrix();
     }
 
-
-    private void renderAttachedLightning(EntityAbilityLaser laser, float headScale) {
-        AttachedLightningRenderer.LightningState state = getLightningState(laser);
-
-        float density = laser.getLightningDensity();
-        // Lightning radius extends outward from inner surface (innerScale = 0.6)
-        float innerRadius = 0.6f * headScale * 0.5f;
-        float radius = innerRadius + laser.getLightningRadius() * headScale;
-        int outerColor = laser.getOuterColor();
-        int innerColor = laser.getInnerColor();
-        int fadeTime = laser.getLightningFadeTime();
-
-        state.update(density, radius, outerColor, innerColor, fadeTime);
-        state.render();
-    }
-
-    /**
-     * Get or create the main lightning state for the laser.
-     */
-    private AttachedLightningRenderer.LightningState getLightningState(EntityAbilityLaser laser) {
-        if (laser.lightningState == null) {
-            laser.lightningState = new AttachedLightningRenderer.LightningState();
-        }
-        return (AttachedLightningRenderer.LightningState) laser.lightningState;
-    }
 
     /**
      * Get or create the tip lightning state for the laser.

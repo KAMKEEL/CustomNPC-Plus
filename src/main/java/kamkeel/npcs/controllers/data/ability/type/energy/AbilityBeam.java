@@ -1,9 +1,8 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.RotationMode;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -25,7 +24,7 @@ import java.util.List;
  * Energy Beam ability: A homing head with a trailing path.
  * Supports 1-8 projectiles with shared visuals and per-projectile anchor points.
  */
-public class AbilityBeam extends AbstractEnergyProjectileAbility<EntityAbilityBeam> implements IAbilityEnergyBeam {
+public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> implements IAbilityEnergyBeam {
 
     private float beamWidth = 0.4f;
     private float headSize = 0.6f;

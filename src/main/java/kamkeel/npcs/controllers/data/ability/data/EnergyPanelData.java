@@ -63,8 +63,8 @@ public class EnergyPanelData {
     public void readNBT(NBTTagCompound nbt) {
         panelWidth = nbt.hasKey("panelWidth") ? nbt.getFloat("panelWidth") : 3.0f;
         panelHeight = nbt.hasKey("panelHeight") ? nbt.getFloat("panelHeight") : 3.0f;
-        heightOffset = nbt.getFloat("panelHeightOffset");
-        launching = nbt.getBoolean("panelLaunching");
+        heightOffset = nbt.hasKey("panelHeightOffset") ? nbt.getFloat("panelHeightOffset") : 0.0f;
+        launching = nbt.hasKey("panelLaunching") && nbt.getBoolean("panelLaunching");
         launchSpeed = nbt.hasKey("panelLaunchSpeed") ? nbt.getFloat("panelLaunchSpeed") : 0.5f;
         launchDamage = nbt.hasKey("panelLaunchDamage") ? nbt.getFloat("panelLaunchDamage") : 8.0f;
         launchKnockback = nbt.hasKey("panelLaunchKnockback") ? nbt.getFloat("panelLaunchKnockback") : 2.0f;

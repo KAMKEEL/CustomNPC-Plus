@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -10,6 +10,7 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -24,35 +25,33 @@ import java.util.List;
  * The shield follows the caster's position and rotates with their look direction.
  * Cannot be placed — it's always held.
  */
-public class AbilityEnergyShield extends AbstractEnergyBarrierAbility {
+public class AbilityShield extends AbilityEnergyBarrier {
 
     private float shieldWidth = 2.5f;
     private float shieldHeight = 2.5f;
 
-    public AbilityEnergyShield() {
+    public AbilityShield() {
         super(
-            new EnergyDisplayData(0xFFDD44, 0xFFAA00, true, 0.3f, 0.4f, 0.0f),
+            new EnergyDisplayData(0xFFDD44, 0xFFAA00, true, 0.3f, 0.4f, 0.5f, 0.0f),
             new EnergyBarrierData(60.0f, true, 120, true)
         );
-        this.typeId = "ability.cnpc.energy_shield";
-        this.name = "Energy Shield";
+        this.typeId = "ability.cnpc.shield";
+        this.name = "Shield";
         this.targetingMode = TargetingMode.SELF;
-        this.maxRange = 0;
-        this.minRange = 0;
         this.cooldownTicks = 60;
         this.windUpTicks = 10;
-        this.lockMovement = LockMovementType.NO;
+        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
-        this.windUpAnimationName = "Ability_EnergyShield_Windup";
-        this.activeAnimationName = "Ability_EnergyShield_Active";
+        this.windUpAnimationName = "";
+        this.activeAnimationName = "";
         this.allowedBy = UserType.BOTH;
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected Entity createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         EnergyPanelData panelData = new EnergyPanelData(shieldWidth, shieldHeight, 0.0f);
 
         float frontDist = 1.5f;
@@ -92,15 +91,15 @@ public class AbilityEnergyShield extends AbstractEnergyBarrierAbility {
     public List<AbilityVariant> getVariants() {
         return Arrays.asList(
             new AbilityVariant("ability.variant.small", a -> {
-                AbilityEnergyShield shield = (AbilityEnergyShield) a;
-                a.setName("Small Energy Shield");
+                AbilityShield shield = (AbilityShield) a;
+                a.setName("Small Shield");
                 shield.setShieldWidth(1.5f);
                 shield.setShieldHeight(1.5f);
                 shield.setBarrierMaxHealth(40.0f);
             }),
             new AbilityVariant("ability.variant.large", a -> {
-                AbilityEnergyShield shield = (AbilityEnergyShield) a;
-                a.setName("Large Energy Shield");
+                AbilityShield shield = (AbilityShield) a;
+                a.setName("Large Shield");
                 shield.setShieldWidth(4.0f);
                 shield.setShieldHeight(4.0f);
                 shield.setBarrierMaxHealth(120.0f);

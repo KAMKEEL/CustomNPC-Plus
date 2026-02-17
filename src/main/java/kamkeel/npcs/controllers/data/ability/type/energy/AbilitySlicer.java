@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -20,23 +20,23 @@ import java.util.List;
 /**
  * Energy Slicer ability: Fires a thin, wide blade projectile in a straight line.
  * JJK Cleave/Dismantle inspired. Piercing by default.
- * Extends AbstractEnergyProjectileAbility to leverage the existing projectile infrastructure.
+ * Extends AbilityEnergyProjectile to leverage the existing projectile infrastructure.
  */
-public class AbilityEnergySlicer extends AbstractEnergyProjectileAbility<EntityEnergySlicer> {
+public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
 
     private float sliceWidth = 3.0f;
     private float sliceThickness = 0.15f;
     private boolean piercing = true;
 
-    public AbilityEnergySlicer() {
+    public AbilitySlicer() {
         super(
             new EnergyDisplayData(0xFF4444, 0xFF0000, true, 0.2f, 0.6f, 0.0f),
             new EnergyCombatData(12.0f, 0.5f, 0.0f, false, 3.0f, 0.5f),
             new EnergyHomingData(0.8f, false, 0.0f, 0.0f),
             new EnergyLifespanData(40.0f, 100)
         );
-        this.typeId = "ability.cnpc.energy_slicer";
-        this.name = "Energy Slicer";
+        this.typeId = "ability.cnpc.slicer";
+        this.name = "Slicer";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;
         this.minRange = 3.0f;
@@ -45,8 +45,8 @@ public class AbilityEnergySlicer extends AbstractEnergyProjectileAbility<EntityE
         this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
-        this.windUpAnimationName = "Ability_EnergySlicer_Windup";
-        this.activeAnimationName = "Ability_EnergySlicer_Active";
+        this.windUpAnimationName = "";
+        this.activeAnimationName = "";
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
@@ -99,15 +99,15 @@ public class AbilityEnergySlicer extends AbstractEnergyProjectileAbility<EntityE
     public List<AbilityVariant> getVariants() {
         return Arrays.asList(
             new AbilityVariant("ability.variant.single", a -> {
-                a.setName("Energy Slicer");
+                a.setName("Slicer");
             }),
             new AbilityVariant("ability.variant.dual", a -> {
-                AbilityEnergySlicer slicer = (AbilityEnergySlicer) a;
+                AbilitySlicer slicer = (AbilitySlicer) a;
                 a.setName("Double Slicer");
                 slicer.setProjectileCount(2);
                 slicer.setFireDelay(5);
-                a.setWindUpAnimationName("Ability_EnergySlicerDual_Windup");
-                a.setActiveAnimationName("Ability_EnergySlicerDual_Active");
+                a.setWindUpAnimationName("");
+                a.setActiveAnimationName("");
             })
         );
     }

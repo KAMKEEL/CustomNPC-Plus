@@ -16,9 +16,9 @@ import java.util.List;
 /**
  * Energy Slicer entity - a thin, wide blade projectile that flies in a straight line.
  * JJK Cleave/Dismantle inspired. Piercing by default (passes through entities).
- * Extends EntityAbilityProjectile to leverage the existing projectile infrastructure.
+ * Extends EntityEnergyAbility to leverage the existing projectile infrastructure.
  */
-public class EntityEnergySlicer extends EntityAbilityProjectile {
+public class EntityEnergySlicer extends EntityEnergyProjectile {
 
     private float sliceWidth = 3.0f;
     private float sliceThickness = 0.15f;
@@ -48,17 +48,6 @@ public class EntityEnergySlicer extends EntityAbilityProjectile {
         this.piercing = piercing;
 
         calculateInitialVelocity(owner, target, x, y, z);
-    }
-
-    /**
-     * Setup in charging mode (windup phase).
-     */
-    public void setupCharging(EnergyAnchorData anchor, int chargeDuration, float width, float thickness) {
-        this.sliceWidth = 0.01f;
-        this.sliceThickness = 0.01f;
-        super.setupCharging(anchor, chargeDuration);
-        // Store target dimensions
-        this.targetSize = width; // Re-use base field for width
     }
 
     // Targets stored during charging for grow animation

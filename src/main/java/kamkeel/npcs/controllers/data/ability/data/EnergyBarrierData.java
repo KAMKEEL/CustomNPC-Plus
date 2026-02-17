@@ -10,11 +10,24 @@ import java.util.Map;
  * Handles health/durability, duration, and per-projectile-type damage multipliers.
  */
 public class EnergyBarrierData {
+    // Knockback target display keys
+    private static final String[] KNOCKBACK_TARGET_KEYS = {"gui.both", "gui.players", "gui.npcs"};
+
     public float maxHealth = 100.0f;
     public boolean useHealth = true;
     public int durationTicks = 200;
     public boolean useDuration = true;
     public float defaultMultiplier = 1.0f;
+
+    // Knockback settings
+    public boolean knockbackEnabled = false;
+    public float knockbackStrength = 1.0f;
+    /** 0=Both, 1=Player only, 2=NPC only */
+    public int knockbackTarget = 0;
+
+    // Melee settings
+    public boolean meleeEnabled = false;
+    public float meleeDamageMultiplier = 1.0f;
 
     /**
      * Per-projectile-type damage multipliers.
@@ -72,6 +85,22 @@ public class EnergyBarrierData {
     public float getDefaultMultiplier() { return defaultMultiplier; }
     public void setDefaultMultiplier(float defaultMultiplier) { this.defaultMultiplier = defaultMultiplier; }
 
+    // Knockback target key helpers
+    public static String[] getKnockbackTargetKeys() { return KNOCKBACK_TARGET_KEYS; }
+
+    public String getKnockbackTargetKey() {
+        return KNOCKBACK_TARGET_KEYS[Math.max(0, Math.min(knockbackTarget, 2))];
+    }
+
+    public void setKnockbackTargetFromKey(String key) {
+        for (int i = 0; i < KNOCKBACK_TARGET_KEYS.length; i++) {
+            if (KNOCKBACK_TARGET_KEYS[i].equals(key)) {
+                knockbackTarget = i;
+                return;
+            }
+        }
+    }
+
     // ==================== NBT ====================
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -80,6 +109,11 @@ public class EnergyBarrierData {
         nbt.setInteger("barrierDuration", durationTicks);
         nbt.setBoolean("barrierUseDuration", useDuration);
         nbt.setFloat("barrierDefaultMult", defaultMultiplier);
+        nbt.setBoolean("barrierKnockback", knockbackEnabled);
+        nbt.setFloat("barrierKnockbackStr", knockbackStrength);
+        nbt.setInteger("barrierKnockbackTarget", knockbackTarget);
+        nbt.setBoolean("barrierMelee", meleeEnabled);
+        nbt.setFloat("barrierMeleeMult", meleeDamageMultiplier);
 
         NBTTagCompound multNbt = new NBTTagCompound();
         for (Map.Entry<String, Float> entry : damageMultipliers.entrySet()) {
@@ -89,11 +123,16 @@ public class EnergyBarrierData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        maxHealth = nbt.getFloat("barrierMaxHealth");
-        useHealth = nbt.getBoolean("barrierUseHealth");
-        durationTicks = nbt.getInteger("barrierDuration");
-        useDuration = nbt.getBoolean("barrierUseDuration");
+        maxHealth = nbt.hasKey("barrierMaxHealth") ? nbt.getFloat("barrierMaxHealth") : 100.0f;
+        useHealth = !nbt.hasKey("barrierUseHealth") || nbt.getBoolean("barrierUseHealth");
+        durationTicks = nbt.hasKey("barrierDuration") ? nbt.getInteger("barrierDuration") : 200;
+        useDuration = !nbt.hasKey("barrierUseDuration") || nbt.getBoolean("barrierUseDuration");
         defaultMultiplier = nbt.hasKey("barrierDefaultMult") ? nbt.getFloat("barrierDefaultMult") : 1.0f;
+        knockbackEnabled = nbt.hasKey("barrierKnockback") && nbt.getBoolean("barrierKnockback");
+        knockbackStrength = nbt.hasKey("barrierKnockbackStr") ? nbt.getFloat("barrierKnockbackStr") : 1.0f;
+        knockbackTarget = nbt.hasKey("barrierKnockbackTarget") ? nbt.getInteger("barrierKnockbackTarget") : 0;
+        meleeEnabled = nbt.hasKey("barrierMelee") && nbt.getBoolean("barrierMelee");
+        meleeDamageMultiplier = nbt.hasKey("barrierMeleeMult") ? nbt.getFloat("barrierMeleeMult") : 1.0f;
 
         damageMultipliers.clear();
         if (nbt.hasKey("barrierMultipliers")) {
@@ -109,6 +148,11 @@ public class EnergyBarrierData {
     public EnergyBarrierData copy() {
         EnergyBarrierData copy = new EnergyBarrierData(maxHealth, useHealth, durationTicks, useDuration);
         copy.defaultMultiplier = defaultMultiplier;
+        copy.knockbackEnabled = knockbackEnabled;
+        copy.knockbackStrength = knockbackStrength;
+        copy.knockbackTarget = knockbackTarget;
+        copy.meleeEnabled = meleeEnabled;
+        copy.meleeDamageMultiplier = meleeDamageMultiplier;
         copy.damageMultipliers = new HashMap<>(damageMultipliers);
         return copy;
     }

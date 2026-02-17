@@ -1,10 +1,7 @@
 package kamkeel.npcs.entity;
 
-import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
@@ -13,7 +10,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 
@@ -21,39 +17,18 @@ import java.util.List;
  * Energy Dome entity - a spherical barrier that blocks incoming energy projectiles.
  * Centered on the caster's position at time of casting.
  * Only blocks incoming attacks (not outgoing from allies inside).
+ * Extends EntityEnergyBarrier for shared barrier logic.
  */
-public class EntityEnergyDome extends Entity implements IEntityAdditionalSpawnData {
+public class EntityEnergyDome extends EntityEnergyBarrier {
 
-    // ==================== VISUAL PROPERTIES ====================
-    protected EnergyDisplayData displayData = new EnergyDisplayData();
-    protected EnergyLightningData lightningData = new EnergyLightningData();
-
-    // ==================== BARRIER PROPERTIES ====================
-    protected EnergyBarrierData barrierData = new EnergyBarrierData();
-    protected float currentHealth;
+    // ==================== DOME-SPECIFIC PROPERTIES ====================
     protected float domeRadius = 5.0f;
-
-    // ==================== TRACKING ====================
-    protected int ownerEntityId = -1;
-    protected int ticksAlive = 0;
-
-    // ==================== STATE ====================
-    protected transient Ability sourceAbility = null;
-
-    // ==================== DATA WATCHER INDICES ====================
-    private static final int DW_HEALTH_PERCENT = 20;
-    private static final int DW_HIT_FLASH = 21;
-
-    // ==================== CLIENT STATE ====================
-    @SideOnly(Side.CLIENT)
-    public transient Object lightningState;
+    protected float targetDomeRadius = 5.0f;
+    protected boolean followCaster = false;
 
     public EntityEnergyDome(World world) {
         super(world);
         this.setSize(1.0f, 1.0f); // Hitbox doesn't really matter, we use radius checks
-        this.noClip = true;
-        this.isImmuneToFire = true;
-        this.ignoreFrustumCheck = true;
     }
 
     public EntityEnergyDome(World world, EntityLivingBase owner, double x, double y, double z,
@@ -70,88 +45,57 @@ public class EntityEnergyDome extends Entity implements IEntityAdditionalSpawnDa
     }
 
     @Override
-    protected void entityInit() {
-        this.dataWatcher.addObject(DW_HEALTH_PERCENT, 1.0f);
-        this.dataWatcher.addObject(DW_HIT_FLASH, (byte) 0);
-    }
-
-    @Override
     public void onUpdate() {
         this.prevPosX = this.posX;
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
 
         super.onUpdate();
+
+        // Follow caster: both sides for smooth interpolated rendering
+        if (followCaster) {
+            Entity owner = ownerEntityId >= 0 ? worldObj.getEntityByID(ownerEntityId) : null;
+            if (owner != null) {
+                this.setPosition(owner.posX, owner.posY, owner.posZ);
+            }
+        }
+
+        // Handle charging animation (both sides for smooth rendering)
+        if (isCharging()) {
+            chargeTick++;
+            float progress = getChargeProgress();
+            this.domeRadius = targetDomeRadius * progress;
+            return; // Don't tick duration/death during charging
+        }
+
         ticksAlive++;
 
-        if (!worldObj.isRemote) {
-            // Check owner death
-            if (ownerEntityId >= 0 && ticksAlive > 5) {
-                Entity owner = worldObj.getEntityByID(ownerEntityId);
-                if (owner != null) {
-                    if (owner.isDead) { this.setDead(); return; }
-                    if (owner instanceof EntityNPCInterface && ((EntityNPCInterface) owner).isKilled()) {
-                        this.setDead(); return;
-                    }
-                }
-            }
+        if (updateBarrierTick()) return;
 
-            // Duration check
-            if (barrierData.useDuration && ticksAlive >= barrierData.durationTicks) {
-                this.setDead();
-                return;
-            }
-
-            // Reset hit flash
-            if (getHitFlash() > 0) {
-                setHitFlash((byte) (getHitFlash() - 1));
-            }
+        // Knockback entities inside the dome
+        if (!worldObj.isRemote && barrierData.knockbackEnabled) {
+            knockbackEntities();
         }
     }
 
-    /**
-     * Apply damage to this dome from a projectile.
-     * Returns true if the dome absorbed the hit (projectile should be destroyed).
-     */
-    public boolean onProjectileHit(EntityAbilityProjectile projectile, float baseDamage) {
-        if (!barrierData.useHealth) {
-            // Duration-only mode: block but don't take damage
-            triggerHitFlash();
-            return true;
-        }
-
-        // Get damage multiplier for this projectile type
-        String typeId = "";
-        if (projectile.getSourceAbility() != null) {
-            typeId = projectile.getSourceAbility().getTypeId();
-        }
-        float multiplier = barrierData.getMultiplier(typeId);
-        float damage = baseDamage * multiplier;
-
-        currentHealth -= damage;
-        syncHealthPercent();
-        triggerHitFlash();
-
-        if (currentHealth <= 0) {
-            this.setDead();
-        }
-
-        return true;
-    }
+    // ==================== INCOMING CHECK ====================
 
     /**
      * Check if a projectile at the given position is entering this dome from outside.
      * Only blocks incoming projectiles (dot product check).
      */
-    public boolean isIncomingProjectile(EntityAbilityProjectile projectile) {
+    @Override
+    public boolean isIncomingProjectile(EntityEnergyProjectile projectile) {
+        // Don't block during charging phase
+        if (isCharging()) return false;
         // Don't block projectiles from the dome's owner
         if (projectile.getOwnerEntityId() == this.ownerEntityId) return false;
 
         // Don't block projectiles from same-faction NPCs
         Entity owner = getOwnerEntity();
         Entity projOwner = projectile.getOwnerEntity();
-        if (owner instanceof EntityNPCInterface && projOwner instanceof EntityNPCInterface) {
-            if (((EntityNPCInterface) owner).faction.id == ((EntityNPCInterface) projOwner).faction.id) {
+        if (owner instanceof noppes.npcs.entity.EntityNPCInterface && projOwner instanceof noppes.npcs.entity.EntityNPCInterface) {
+            if (((noppes.npcs.entity.EntityNPCInterface) owner).faction.id == ((noppes.npcs.entity.EntityNPCInterface) projOwner).faction.id) {
                 return false;
             }
         }
@@ -170,73 +114,76 @@ public class EntityEnergyDome extends Entity implements IEntityAdditionalSpawnDa
         return dot < 0;
     }
 
-    // ==================== HELPERS ====================
+    // ==================== CHARGING ====================
 
-    private void syncHealthPercent() {
-        float percent = barrierData.useHealth && barrierData.maxHealth > 0
-            ? Math.max(0, currentHealth / barrierData.maxHealth)
-            : 1.0f;
-        if (!worldObj.isRemote) {
-            this.dataWatcher.updateObject(DW_HEALTH_PERCENT, percent);
+    @Override
+    public void setupCharging(int duration) {
+        this.targetDomeRadius = this.domeRadius;
+        this.domeRadius = 0.01f;
+        this.chargeDuration = duration;
+        this.chargeTick = 0;
+        setCharging(true);
+    }
+
+    @Override
+    public void finishCharging() {
+        this.domeRadius = targetDomeRadius;
+        setCharging(false);
+    }
+
+    // ==================== KNOCKBACK ====================
+
+    /**
+     * Push entities away from the dome surface.
+     * Entities outside are pushed outward, entities inside are pushed inward (containment).
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void knockbackEntities() {
+        float margin = 1.0f;
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+            posX - domeRadius - margin, posY - domeRadius - margin, posZ - domeRadius - margin,
+            posX + domeRadius + margin, posY + domeRadius + margin, posZ + domeRadius + margin
+        );
+
+        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
+        for (EntityLivingBase ent : entities) {
+            if (ent.getEntityId() == ownerEntityId) continue;
+            if (!isKnockbackTarget(ent)) continue;
+
+            double dx = ent.posX - posX;
+            double dy = (ent.posY + ent.height * 0.5) - posY;
+            double dz = ent.posZ - posZ;
+            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            if (dist < 0.01) continue;
+
+            // Only affect entities near the dome surface
+            if (dist < domeRadius + margin && dist > domeRadius - margin) {
+                double pushStrength = barrierData.knockbackStrength * 0.5;
+                double pushDir = dist >= domeRadius ? 1.0 : -1.0; // Outside = outward, Inside = inward
+                ent.addVelocity(
+                    (dx / dist) * pushStrength * pushDir,
+                    0.05 * pushDir,
+                    (dz / dist) * pushStrength * pushDir
+                );
+                ent.velocityChanged = true;
+            }
         }
     }
 
-    private void triggerHitFlash() {
-        if (!worldObj.isRemote) {
-            setHitFlash((byte) 4);
+    // ==================== BOUNDING BOX ====================
+
+    @Override
+    public AxisAlignedBB getBoundingBox() {
+        if (barrierData.meleeEnabled) {
+            return AxisAlignedBB.getBoundingBox(
+                posX - domeRadius, posY - domeRadius, posZ - domeRadius,
+                posX + domeRadius, posY + domeRadius, posZ + domeRadius
+            );
         }
+        return null;
     }
-
-    private void setHitFlash(byte value) {
-        this.dataWatcher.updateObject(DW_HIT_FLASH, value);
-    }
-
-    public byte getHitFlash() {
-        return this.dataWatcher.getWatchableObjectByte(DW_HIT_FLASH);
-    }
-
-    public float getHealthPercent() {
-        return this.dataWatcher.getWatchableObjectFloat(DW_HEALTH_PERCENT);
-    }
-
-    public Entity getOwnerEntity() {
-        if (ownerEntityId == -1) return null;
-        return worldObj.getEntityByID(ownerEntityId);
-    }
-
-    public int getOwnerEntityId() { return ownerEntityId; }
-    public float getDomeRadius() { return domeRadius; }
-    public EnergyDisplayData getDisplayData() { return displayData; }
-    public EnergyLightningData getLightningData() { return lightningData; }
-    public EnergyBarrierData getBarrierData() { return barrierData; }
-    public float getCurrentHealth() { return currentHealth; }
-
-    public void setSourceAbility(Ability ability) { this.sourceAbility = ability; }
-    public Ability getSourceAbility() { return sourceAbility; }
-
-    // ==================== VISUAL GETTERS ====================
-
-    public int getInnerColor() { return displayData.innerColor; }
-    public int getOuterColor() { return displayData.outerColor; }
-    public boolean isOuterColorEnabled() { return displayData.outerColorEnabled; }
-    public float getOuterColorWidth() { return displayData.outerColorWidth; }
-    public float getOuterColorAlpha() { return displayData.outerColorAlpha; }
-    public boolean hasLightningEffect() { return lightningData.lightningEffect; }
-    public float getLightningDensity() { return lightningData.lightningDensity; }
-    public float getLightningRadius() { return lightningData.lightningRadius; }
-    public int getLightningFadeTime() { return lightningData.lightningFadeTime; }
-
-    // ==================== BRIGHTNESS ====================
-
-    @Override
-    public float getBrightness(float partialTicks) { return 1.0f; }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public int getBrightnessForRender(float partialTicks) { return 0xF000F0; }
-
-    @Override
-    public boolean shouldRenderInPass(int pass) { return pass == 1; }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -246,69 +193,28 @@ public class EntityEnergyDome extends Entity implements IEntityAdditionalSpawnDa
         return distance < d * d;
     }
 
-    // ==================== COLLISION SETTINGS ====================
+    // ==================== GETTERS ====================
 
-    @Override
-    public boolean canBeCollidedWith() { return false; }
-
-    @Override
-    public boolean canBePushed() { return false; }
-
-    @Override
-    protected boolean canTriggerWalking() { return false; }
-
-    @Override
-    public boolean isBurning() { return false; }
-
-    @SideOnly(Side.CLIENT)
-    public float getShadowSize() { return 0.0f; }
+    public float getDomeRadius() { return domeRadius; }
+    public void setDomeRadius(float radius) { this.domeRadius = Math.max(0.1f, radius); }
+    public boolean isFollowCaster() { return followCaster; }
+    public void setFollowCaster(boolean follow) { this.followCaster = follow; }
 
     // ==================== NBT ====================
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
+        readBarrierBaseNBT(nbt);
         this.domeRadius = nbt.getFloat("DomeRadius");
-        this.ownerEntityId = nbt.getInteger("OwnerId");
-        this.ticksAlive = nbt.getInteger("TicksAlive");
-        this.currentHealth = nbt.getFloat("CurrentHealth");
-        displayData.readNBT(nbt);
-        lightningData.readNBT(nbt);
-        barrierData.readNBT(nbt);
+        this.targetDomeRadius = nbt.hasKey("TargetDomeRadius") ? nbt.getFloat("TargetDomeRadius") : domeRadius;
+        this.followCaster = nbt.hasKey("FollowCaster") && nbt.getBoolean("FollowCaster");
     }
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound nbt) {
+        writeBarrierBaseNBT(nbt);
         nbt.setFloat("DomeRadius", domeRadius);
-        nbt.setInteger("OwnerId", ownerEntityId);
-        nbt.setInteger("TicksAlive", ticksAlive);
-        nbt.setFloat("CurrentHealth", currentHealth);
-        displayData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
-        barrierData.writeNBT(nbt);
-    }
-
-    // ==================== SPAWN DATA ====================
-
-    @Override
-    public void writeSpawnData(ByteBuf buffer) {
-        try {
-            NBTTagCompound compound = new NBTTagCompound();
-            this.writeEntityToNBT(compound);
-            cpw.mods.fml.common.network.ByteBufUtils.writeTag(buffer, compound);
-        } catch (Exception e) {
-            noppes.npcs.LogWriter.error("Error writing energy dome spawn data", e);
-        }
-    }
-
-    @Override
-    public void readSpawnData(ByteBuf buffer) {
-        try {
-            NBTTagCompound compound = cpw.mods.fml.common.network.ByteBufUtils.readTag(buffer);
-            if (compound != null) {
-                this.readEntityFromNBT(compound);
-            }
-        } catch (Exception e) {
-            noppes.npcs.LogWriter.error("Error reading energy dome spawn data", e);
-        }
+        nbt.setFloat("TargetDomeRadius", targetDomeRadius);
+        nbt.setBoolean("FollowCaster", followCaster);
     }
 }

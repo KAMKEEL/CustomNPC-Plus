@@ -2,6 +2,15 @@ package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.*;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityBeam;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDisc;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDome;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityLaserShot;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityOrb;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityShield;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySlicer;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySweeper;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityWall;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
@@ -100,10 +109,10 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:hazard", AbilityHazard::new);
         registerType("cnpc:trap", AbilityTrap::new);
 
-        registerType("cnpc:energy_dome", AbilityEnergyDome::new);
-        registerType("cnpc:energy_wall", AbilityEnergyWall::new);
-        registerType("cnpc:energy_shield", AbilityEnergyShield::new);
-        registerType("cnpc:energy_slicer", AbilityEnergySlicer::new);
+        registerType("cnpc:dome", AbilityDome::new);
+        registerType("cnpc:wall", AbilityWall::new);
+        registerType("cnpc:shield", AbilityShield::new);
+        registerType("cnpc:slicer", AbilitySlicer::new);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

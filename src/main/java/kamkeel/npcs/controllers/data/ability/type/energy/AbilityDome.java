@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -8,6 +8,7 @@ import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityEnergyDome;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -22,38 +23,38 @@ import java.util.List;
  * Blocks incoming energy projectiles with configurable damage multipliers.
  * Duration and/or HP based.
  */
-public class AbilityEnergyDome extends AbstractEnergyBarrierAbility {
+public class AbilityDome extends AbilityEnergyBarrier {
 
     private float domeRadius = 5.0f;
+    private boolean followCaster = false;
 
-    public AbilityEnergyDome() {
+    public AbilityDome() {
         super(
-            new EnergyDisplayData(0x44CCFF, 0x2288FF, true, 0.3f, 0.35f, 0.0f),
+            new EnergyDisplayData(0x44CCFF, 0x2288FF, true, 0.3f, 0.35f, 0.5f, 0.0f),
             new EnergyBarrierData(100.0f, true, 200, true)
         );
-        this.typeId = "ability.cnpc.energy_dome";
-        this.name = "Energy Dome";
+        this.typeId = "ability.cnpc.dome";
+        this.name = "Dome";
         this.targetingMode = TargetingMode.SELF;
-        this.maxRange = 0;
-        this.minRange = 0;
         this.cooldownTicks = 100;
         this.windUpTicks = 30;
         this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.RING;
         this.showTelegraph = true;
-        this.windUpAnimationName = "Ability_EnergyDome_Windup";
-        this.activeAnimationName = "Ability_EnergyDome_Active";
+        this.windUpAnimationName = "";
+        this.activeAnimationName = "";
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected Entity createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         EntityEnergyDome dome = new EntityEnergyDome(
             caster.worldObj, caster,
             caster.posX, caster.posY, caster.posZ,
             domeRadius, displayData.copy(), lightningData.copy(), barrierData.copy()
         );
+        dome.setFollowCaster(followCaster);
         dome.setSourceAbility(this);
         return dome;
     }
@@ -79,14 +80,14 @@ public class AbilityEnergyDome extends AbstractEnergyBarrierAbility {
     public List<AbilityVariant> getVariants() {
         return Arrays.asList(
             new AbilityVariant("ability.variant.small", a -> {
-                AbilityEnergyDome dome = (AbilityEnergyDome) a;
-                a.setName("Small Energy Dome");
+                AbilityDome dome = (AbilityDome) a;
+                a.setName("Small Dome");
                 dome.setDomeRadius(3.0f);
                 dome.setBarrierMaxHealth(60.0f);
             }),
             new AbilityVariant("ability.variant.large", a -> {
-                AbilityEnergyDome dome = (AbilityEnergyDome) a;
-                a.setName("Large Energy Dome");
+                AbilityDome dome = (AbilityDome) a;
+                a.setName("Large Dome");
                 dome.setDomeRadius(8.0f);
                 dome.setBarrierMaxHealth(200.0f);
                 dome.setBarrierDuration(300);
@@ -99,17 +100,22 @@ public class AbilityEnergyDome extends AbstractEnergyBarrierAbility {
     @Override
     protected void writeBarrierTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("domeRadius", domeRadius);
+        nbt.setBoolean("followCaster", followCaster);
     }
 
     @Override
     protected void readBarrierTypeNBT(NBTTagCompound nbt) {
         this.domeRadius = nbt.hasKey("domeRadius") ? nbt.getFloat("domeRadius") : 5.0f;
+        this.followCaster = nbt.hasKey("followCaster") && nbt.getBoolean("followCaster");
     }
 
     // ==================== GETTERS & SETTERS ====================
 
     public float getDomeRadius() { return domeRadius; }
     public void setDomeRadius(float radius) { this.domeRadius = Math.max(1.0f, radius); }
+
+    public boolean isFollowCaster() { return followCaster; }
+    public void setFollowCaster(boolean follow) { this.followCaster = follow; }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 
@@ -118,5 +124,7 @@ public class AbilityEnergyDome extends AbstractEnergyBarrierAbility {
     protected void addBarrierTypeDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.floatField("ability.domeRadius", this::getDomeRadius, this::setDomeRadius)
             .range(1.0f, 30.0f));
+        defs.add(FieldDef.boolField("ability.followCaster", this::isFollowCaster, this::setFollowCaster)
+            .hover("ability.hover.followCaster"));
     }
 }

@@ -2,7 +2,6 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -14,7 +13,7 @@ import org.lwjgl.opengl.GL11;
  * Voxel-blocky style with inner/outer layers.
  */
 @SideOnly(Side.CLIENT)
-public class RenderEnergyPanel extends RenderAbilityProjectile {
+public class RenderEnergyPanel extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
@@ -30,19 +29,16 @@ public class RenderEnergyPanel extends RenderAbilityProjectile {
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, z);
 
+        // Lightning BEFORE rotation for uniform spread (like Orb pattern)
+        if (panel.hasLightningEffect()) {
+            renderAttachedLightning(panel, 0.9f, Math.max(width, height) * 0.5f);
+        }
+
         // Rotate panel to face the correct direction
         GL11.glRotatef(-panelYaw, 0.0f, 1.0f, 0.0f);
 
-        // Lightning (before rotation for uniform spread)
-        if (panel.hasLightningEffect()) {
-            renderAttachedLightning(panel, Math.max(width, height) * 0.5f);
-        }
-
         // Hit flash
-        float flashAlpha = 0.0f;
-        if (panel.getHitFlash() > 0) {
-            flashAlpha = panel.getHitFlash() / 4.0f * 0.3f;
-        }
+        float flashAlpha = computeFlashAlpha(panel);
 
         // Subtle pulsing
         float pulseTime = entity.ticksExisted + partialTicks;
@@ -65,9 +61,8 @@ public class RenderEnergyPanel extends RenderAbilityProjectile {
             GL11.glDepthMask(true);
         }
 
-        // Render inner panel (more opaque core)
-        float innerAlpha = (0.6f + 0.3f * healthPercent);
-        renderPanel(panel.getInnerColor(), innerAlpha + flashAlpha,
+        // Render inner panel (uses configurable innerAlpha for semi-transparency)
+        renderPanel(panel.getInnerColor(), panel.getInnerAlpha(),
             width * 0.5f * innerScale, height * 0.5f * innerScale, panelThickness);
 
         GL11.glPopMatrix();
@@ -79,93 +74,59 @@ public class RenderEnergyPanel extends RenderAbilityProjectile {
     /**
      * Render a flat panel (thin box) centered at origin.
      * Panel faces along the Z axis (width on X, height on Y).
+     * All 6 faces batched into a single draw call.
      */
     private void renderPanel(int color, float alpha, float halfWidth, float halfHeight, float halfThickness) {
         float[] rgb = extractRGB(color);
         float r = rgb[0], g = rgb[1], b = rgb[2];
 
         Tessellator tess = Tessellator.instance;
-
-        // Front face (z+)
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
+
+        // Front face (z+)
         tess.setNormal(0, 0, 1);
         tess.addVertex(-halfWidth, -halfHeight, halfThickness);
         tess.addVertex(halfWidth, -halfHeight, halfThickness);
         tess.addVertex(halfWidth, halfHeight, halfThickness);
         tess.addVertex(-halfWidth, halfHeight, halfThickness);
-        tess.draw();
 
         // Back face (z-)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
         tess.setNormal(0, 0, -1);
         tess.addVertex(halfWidth, -halfHeight, -halfThickness);
         tess.addVertex(-halfWidth, -halfHeight, -halfThickness);
         tess.addVertex(-halfWidth, halfHeight, -halfThickness);
         tess.addVertex(halfWidth, halfHeight, -halfThickness);
-        tess.draw();
 
         // Top edge (y+)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
         tess.setNormal(0, 1, 0);
         tess.addVertex(-halfWidth, halfHeight, halfThickness);
         tess.addVertex(halfWidth, halfHeight, halfThickness);
         tess.addVertex(halfWidth, halfHeight, -halfThickness);
         tess.addVertex(-halfWidth, halfHeight, -halfThickness);
-        tess.draw();
 
         // Bottom edge (y-)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
         tess.setNormal(0, -1, 0);
         tess.addVertex(-halfWidth, -halfHeight, -halfThickness);
         tess.addVertex(halfWidth, -halfHeight, -halfThickness);
         tess.addVertex(halfWidth, -halfHeight, halfThickness);
         tess.addVertex(-halfWidth, -halfHeight, halfThickness);
-        tess.draw();
 
         // Right edge (x+)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
         tess.setNormal(1, 0, 0);
         tess.addVertex(halfWidth, -halfHeight, halfThickness);
         tess.addVertex(halfWidth, -halfHeight, -halfThickness);
         tess.addVertex(halfWidth, halfHeight, -halfThickness);
         tess.addVertex(halfWidth, halfHeight, halfThickness);
-        tess.draw();
 
         // Left edge (x-)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
         tess.setNormal(-1, 0, 0);
         tess.addVertex(-halfWidth, -halfHeight, -halfThickness);
         tess.addVertex(-halfWidth, -halfHeight, halfThickness);
         tess.addVertex(-halfWidth, halfHeight, halfThickness);
         tess.addVertex(-halfWidth, halfHeight, -halfThickness);
+
         tess.draw();
     }
 
-    /**
-     * Render lightning arcs on the panel surface.
-     */
-    private void renderAttachedLightning(EntityEnergyPanel panel, float size) {
-        AttachedLightningRenderer.LightningState state = getLightningState(panel);
-        float density = panel.getLightningDensity();
-        float radius = size + panel.getLightningRadius();
-        int outerColor = panel.getOuterColor();
-        int innerColor = panel.getInnerColor();
-        int fadeTime = panel.getLightningFadeTime();
-
-        state.update(density, radius, outerColor, innerColor, fadeTime);
-        state.render();
-    }
-
-    private AttachedLightningRenderer.LightningState getLightningState(EntityEnergyPanel panel) {
-        if (panel.lightningState == null) {
-            panel.lightningState = new AttachedLightningRenderer.LightningState();
-        }
-        return (AttachedLightningRenderer.LightningState) panel.lightningState;
-    }
 }

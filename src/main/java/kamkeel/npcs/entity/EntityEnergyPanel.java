@@ -1,31 +1,29 @@
 package kamkeel.npcs.entity;
 
-import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.entity.EntityNPCInterface;
-import net.minecraft.entity.player.EntityPlayer;
 
 import java.util.List;
 
 /**
  * Energy Panel entity - a flat rectangular barrier used by Wall and Shield abilities.
  * Supports three modes: PLACED (stationary), HELD (tracks caster), LAUNCHED (moves forward).
+ * Extends EntityEnergyBarrier for shared barrier logic.
  */
-public class EntityEnergyPanel extends Entity implements IEntityAdditionalSpawnData {
+public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     public enum PanelMode {
         PLACED,     // Stationary wall
@@ -33,40 +31,18 @@ public class EntityEnergyPanel extends Entity implements IEntityAdditionalSpawnD
         LAUNCHED    // Moves forward, deals damage/knockback on contact
     }
 
-    // ==================== VISUAL PROPERTIES ====================
-    protected EnergyDisplayData displayData = new EnergyDisplayData();
-    protected EnergyLightningData lightningData = new EnergyLightningData();
-
-    // ==================== BARRIER PROPERTIES ====================
-    protected EnergyBarrierData barrierData = new EnergyBarrierData();
+    // ==================== PANEL-SPECIFIC PROPERTIES ====================
     protected EnergyPanelData panelData = new EnergyPanelData();
-    protected float currentHealth;
-
-    // ==================== PANEL STATE ====================
     protected PanelMode mode = PanelMode.PLACED;
     protected float panelYaw = 0.0f; // Rotation of the panel face (degrees)
 
-    // ==================== TRACKING ====================
-    protected int ownerEntityId = -1;
-    protected int ticksAlive = 0;
-
-    // ==================== STATE ====================
-    protected transient Ability sourceAbility = null;
-
-    // ==================== DATA WATCHER INDICES ====================
-    private static final int DW_HEALTH_PERCENT = 20;
-    private static final int DW_HIT_FLASH = 21;
-
-    // ==================== CLIENT STATE ====================
-    @SideOnly(Side.CLIENT)
-    public transient Object lightningState;
+    // ==================== CHARGING (panel-specific targets) ====================
+    protected float targetPanelWidth;
+    protected float targetPanelHeight;
 
     public EntityEnergyPanel(World world) {
         super(world);
         this.setSize(0.5f, 0.5f);
-        this.noClip = true;
-        this.isImmuneToFire = true;
-        this.ignoreFrustumCheck = true;
     }
 
     public EntityEnergyPanel(World world, EntityLivingBase owner, double x, double y, double z,
@@ -94,42 +70,34 @@ public class EntityEnergyPanel extends Entity implements IEntityAdditionalSpawnD
     }
 
     @Override
-    protected void entityInit() {
-        this.dataWatcher.addObject(DW_HEALTH_PERCENT, 1.0f);
-        this.dataWatcher.addObject(DW_HIT_FLASH, (byte) 0);
-    }
-
-    @Override
     public void onUpdate() {
         this.prevPosX = this.posX;
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
 
         super.onUpdate();
+
+        // Handle charging animation (both sides for smooth rendering)
+        if (isCharging()) {
+            chargeTick++;
+            float progress = getChargeProgress();
+            panelData.panelWidth = targetPanelWidth * progress;
+            panelData.panelHeight = targetPanelHeight * progress;
+
+            // During charging, held panels still track owner
+            if (mode == PanelMode.HELD) {
+                updateHeld();
+            }
+            return; // Don't tick duration/death during charging
+        }
+
         ticksAlive++;
 
-        if (!worldObj.isRemote) {
-            // Check owner death
-            if (ownerEntityId >= 0 && ticksAlive > 5) {
-                Entity owner = worldObj.getEntityByID(ownerEntityId);
-                if (owner != null) {
-                    if (owner.isDead) { this.setDead(); return; }
-                    if (owner instanceof EntityNPCInterface && ((EntityNPCInterface) owner).isKilled()) {
-                        this.setDead(); return;
-                    }
-                }
-            }
+        if (updateBarrierTick()) return;
 
-            // Duration check
-            if (barrierData.useDuration && ticksAlive >= barrierData.durationTicks) {
-                this.setDead();
-                return;
-            }
-
-            // Reset hit flash
-            if (getHitFlash() > 0) {
-                setHitFlash((byte) (getHitFlash() - 1));
-            }
+        // Knockback (not during launched mode)
+        if (!worldObj.isRemote && barrierData.knockbackEnabled && mode != PanelMode.LAUNCHED) {
+            knockbackEntities();
         }
 
         // Mode-specific updates
@@ -151,108 +119,90 @@ public class EntityEnergyPanel extends Entity implements IEntityAdditionalSpawnD
         Entity owner = getOwnerEntity();
         if (owner == null) return;
 
+        // Update yaw BEFORE position calc to avoid 1-tick lag
+        this.panelYaw = owner.rotationYaw;
+
         // Follow owner position
         float frontDist = 1.5f;
-        float yawRad = (float) Math.toRadians(owner.rotationYaw);
+        float yawRad = (float) Math.toRadians(panelYaw);
         double newX = owner.posX + (-Math.sin(yawRad) * frontDist);
         double newY = owner.posY + panelData.heightOffset + (owner.height * 0.5f);
         double newZ = owner.posZ + (Math.cos(yawRad) * frontDist);
 
         this.setPosition(newX, newY, newZ);
-        this.panelYaw = owner.rotationYaw;
     }
 
     private void updateLaunched() {
-        if (worldObj.isRemote) return;
-
-        // Move forward
+        // Move forward on both sides for smooth client rendering
         this.posX += motionX;
         this.posY += motionY;
         this.posZ += motionZ;
         this.setPosition(posX, posY, posZ);
 
-        // Check entity collision for damage
-        float halfW = panelData.panelWidth * 0.5f;
-        float halfH = panelData.panelHeight * 0.5f;
-        AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
-            posX - halfW, posY - halfH, posZ - halfW,
-            posX + halfW, posY + halfH, posZ + halfW
-        );
+        // Damage and knockback are server-only
+        if (!worldObj.isRemote) {
+            // Check entity collision for damage
+            float halfW = panelData.panelWidth * 0.5f;
+            float halfH = panelData.panelHeight * 0.5f;
+            float halfD = 0.5f; // Panel collision depth
+            float searchRadius = Math.max(halfW, halfD);
+            AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
+                posX - searchRadius, posY - halfH, posZ - searchRadius,
+                posX + searchRadius, posY + halfH, posZ + searchRadius
+            );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
-        Entity owner = getOwnerEntity();
+            @SuppressWarnings("unchecked")
+            List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+            Entity owner = getOwnerEntity();
 
-        for (EntityLivingBase target : entities) {
-            if (target == owner) continue;
-            if (owner instanceof EntityNPCInterface && target instanceof EntityNPCInterface) {
-                if (((EntityNPCInterface) owner).faction.id == ((EntityNPCInterface) target).faction.id) continue;
-            }
+            for (EntityLivingBase target : entities) {
+                if (target == owner) continue;
+                if (owner instanceof EntityNPCInterface && target instanceof EntityNPCInterface) {
+                    if (((EntityNPCInterface) owner).faction.id == ((EntityNPCInterface) target).faction.id) continue;
+                }
 
-            // Apply damage
-            if (panelData.launchDamage > 0) {
-                if (owner instanceof EntityNPCInterface) {
-                    target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), panelData.launchDamage);
-                } else if (owner instanceof EntityPlayer) {
-                    target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), panelData.launchDamage);
+                // Apply damage
+                if (panelData.launchDamage > 0) {
+                    if (owner instanceof EntityNPCInterface) {
+                        target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), panelData.launchDamage);
+                    } else if (owner instanceof EntityPlayer) {
+                        target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), panelData.launchDamage);
+                    }
+                }
+
+                // Apply knockback
+                if (panelData.launchKnockback > 0) {
+                    double dx = target.posX - posX;
+                    double dz = target.posZ - posZ;
+                    double len = Math.sqrt(dx * dx + dz * dz);
+                    if (len > 0) {
+                        target.addVelocity(
+                            (dx / len) * panelData.launchKnockback * 0.5,
+                            0.1,
+                            (dz / len) * panelData.launchKnockback * 0.5
+                        );
+                        target.velocityChanged = true;
+                    }
                 }
             }
 
-            // Apply knockback
-            if (panelData.launchKnockback > 0) {
-                double dx = target.posX - posX;
-                double dz = target.posZ - posZ;
-                double len = Math.sqrt(dx * dx + dz * dz);
-                if (len > 0) {
-                    target.addVelocity(
-                        (dx / len) * panelData.launchKnockback * 0.5,
-                        0.1,
-                        (dz / len) * panelData.launchKnockback * 0.5
-                    );
-                    target.velocityChanged = true;
-                }
+            // Max lifetime check
+            if (ticksAlive > 200) {
+                this.setDead();
             }
         }
-
-        // Max distance check (30 blocks)
-        double distSq = (posX - prevPosX) * (posX - prevPosX) + (posZ - prevPosZ) * (posZ - prevPosZ);
-        if (ticksAlive > 200) {
-            this.setDead();
-        }
     }
 
-    /**
-     * Apply damage to this panel from a projectile.
-     */
-    public boolean onProjectileHit(EntityAbilityProjectile projectile, float baseDamage) {
-        if (!barrierData.useHealth) {
-            triggerHitFlash();
-            return true;
-        }
-
-        String typeId = "";
-        if (projectile.getSourceAbility() != null) {
-            typeId = projectile.getSourceAbility().getTypeId();
-        }
-        float multiplier = barrierData.getMultiplier(typeId);
-        float damage = baseDamage * multiplier;
-
-        currentHealth -= damage;
-        syncHealthPercent();
-        triggerHitFlash();
-
-        if (currentHealth <= 0) {
-            this.setDead();
-        }
-
-        return true;
-    }
+    // ==================== INCOMING CHECK ====================
 
     /**
      * Check if a projectile hits this panel surface.
      * Only blocks incoming projectiles (not from the panel's owner).
      */
-    public boolean isIncomingProjectile(EntityAbilityProjectile projectile) {
+    @Override
+    public boolean isIncomingProjectile(EntityEnergyProjectile projectile) {
+        // Don't block during charging phase
+        if (isCharging()) return false;
         if (projectile.getOwnerEntityId() == this.ownerEntityId) return false;
 
         // Faction check
@@ -292,84 +242,96 @@ public class EntityEnergyPanel extends Entity implements IEntityAdditionalSpawnD
         double dot = projectile.motionX * normalX + projectile.motionZ * normalZ;
 
         // Determine which side of the panel the projectile is on
-        // If on the front (localForward > 0), it must be moving backward (dot < 0) to be incoming
-        // If on the back (localForward < 0), it must be moving forward (dot > 0) to be incoming
         if (localForward > 0 && dot >= 0) return false; // Moving away from front side
         if (localForward < 0 && dot <= 0) return false; // Moving away from back side
 
         return true;
     }
 
-    // ==================== HELPERS ====================
+    // ==================== CHARGING ====================
 
-    private void syncHealthPercent() {
-        float percent = barrierData.useHealth && barrierData.maxHealth > 0
-            ? Math.max(0, currentHealth / barrierData.maxHealth)
-            : 1.0f;
-        if (!worldObj.isRemote) {
-            this.dataWatcher.updateObject(DW_HEALTH_PERCENT, percent);
+    @Override
+    public void setupCharging(int duration) {
+        this.targetPanelWidth = panelData.panelWidth;
+        this.targetPanelHeight = panelData.panelHeight;
+        panelData.panelWidth = 0.01f;
+        panelData.panelHeight = 0.01f;
+        this.chargeDuration = duration;
+        this.chargeTick = 0;
+        setCharging(true);
+    }
+
+    @Override
+    public void finishCharging() {
+        panelData.panelWidth = targetPanelWidth;
+        panelData.panelHeight = targetPanelHeight;
+        setCharging(false);
+    }
+
+    // ==================== KNOCKBACK ====================
+
+    /**
+     * Push entities away from the panel surface.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void knockbackEntities() {
+        float halfW = panelData.panelWidth * 0.5f;
+        float halfH = panelData.panelHeight * 0.5f;
+        float margin = 1.0f;
+
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+            posX - halfW - margin, posY - halfH - margin, posZ - halfW - margin,
+            posX + halfW + margin, posY + halfH + margin, posZ + halfW + margin
+        );
+
+        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
+        float yawRad = (float) Math.toRadians(panelYaw);
+        float normalX = -(float) Math.sin(yawRad);
+        float normalZ = (float) Math.cos(yawRad);
+
+        for (EntityLivingBase ent : entities) {
+            if (ent.getEntityId() == ownerEntityId) continue;
+            if (!isKnockbackTarget(ent)) continue;
+
+            // Transform entity position to panel-local space
+            double dx = ent.posX - posX;
+            double dy = (ent.posY + ent.height * 0.5) - posY;
+            double dz = ent.posZ - posZ;
+
+            // Check proximity to panel surface
+            float localForward = (float) (dx * normalX + dz * normalZ);
+            float localRight = (float) (dx * (-normalZ) + dz * normalX);
+
+            if (Math.abs(localForward) < margin && Math.abs(localRight) < halfW + margin && Math.abs(dy) < halfH + margin) {
+                // Push entity away from the panel face
+                float pushDir = localForward >= 0 ? 1.0f : -1.0f;
+                double pushStrength = barrierData.knockbackStrength * 0.5;
+                ent.addVelocity(
+                    normalX * pushDir * pushStrength,
+                    0.1,
+                    normalZ * pushDir * pushStrength
+                );
+                ent.velocityChanged = true;
+            }
         }
     }
 
-    private void triggerHitFlash() {
-        if (!worldObj.isRemote) {
-            setHitFlash((byte) 4);
+    // ==================== BOUNDING BOX ====================
+
+    @Override
+    public AxisAlignedBB getBoundingBox() {
+        if (barrierData.meleeEnabled) {
+            float halfW = panelData.panelWidth * 0.5f;
+            float halfH = panelData.panelHeight * 0.5f;
+            float extent = Math.max(halfW, 0.5f);
+            return AxisAlignedBB.getBoundingBox(
+                posX - extent, posY - halfH, posZ - extent,
+                posX + extent, posY + halfH, posZ + extent
+            );
         }
+        return null;
     }
-
-    private void setHitFlash(byte value) {
-        this.dataWatcher.updateObject(DW_HIT_FLASH, value);
-    }
-
-    public byte getHitFlash() {
-        return this.dataWatcher.getWatchableObjectByte(DW_HIT_FLASH);
-    }
-
-    public float getHealthPercent() {
-        return this.dataWatcher.getWatchableObjectFloat(DW_HEALTH_PERCENT);
-    }
-
-    public Entity getOwnerEntity() {
-        if (ownerEntityId == -1) return null;
-        return worldObj.getEntityByID(ownerEntityId);
-    }
-
-    // ==================== GETTERS ====================
-
-    public int getOwnerEntityId() { return ownerEntityId; }
-    public PanelMode getMode() { return mode; }
-    public float getPanelYaw() { return panelYaw; }
-    public EnergyDisplayData getDisplayData() { return displayData; }
-    public EnergyLightningData getLightningData() { return lightningData; }
-    public EnergyBarrierData getBarrierData() { return barrierData; }
-    public EnergyPanelData getPanelData() { return panelData; }
-    public float getCurrentHealth() { return currentHealth; }
-
-    public void setSourceAbility(Ability ability) { this.sourceAbility = ability; }
-    public Ability getSourceAbility() { return sourceAbility; }
-
-    // Visual getters
-    public int getInnerColor() { return displayData.innerColor; }
-    public int getOuterColor() { return displayData.outerColor; }
-    public boolean isOuterColorEnabled() { return displayData.outerColorEnabled; }
-    public float getOuterColorWidth() { return displayData.outerColorWidth; }
-    public float getOuterColorAlpha() { return displayData.outerColorAlpha; }
-    public boolean hasLightningEffect() { return lightningData.lightningEffect; }
-    public float getLightningDensity() { return lightningData.lightningDensity; }
-    public float getLightningRadius() { return lightningData.lightningRadius; }
-    public int getLightningFadeTime() { return lightningData.lightningFadeTime; }
-
-    // ==================== BRIGHTNESS ====================
-
-    @Override
-    public float getBrightness(float partialTicks) { return 1.0f; }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public int getBrightnessForRender(float partialTicks) { return 0xF000F0; }
-
-    @Override
-    public boolean shouldRenderInPass(int pass) { return pass == 1; }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -379,73 +341,33 @@ public class EntityEnergyPanel extends Entity implements IEntityAdditionalSpawnD
         return distance < d * d;
     }
 
-    // ==================== COLLISION SETTINGS ====================
+    // ==================== GETTERS ====================
 
-    @Override
-    public boolean canBeCollidedWith() { return false; }
-
-    @Override
-    public boolean canBePushed() { return false; }
-
-    @Override
-    protected boolean canTriggerWalking() { return false; }
-
-    @Override
-    public boolean isBurning() { return false; }
-
-    @SideOnly(Side.CLIENT)
-    public float getShadowSize() { return 0.0f; }
+    public PanelMode getMode() { return mode; }
+    public float getPanelYaw() { return panelYaw; }
+    public EnergyPanelData getPanelData() { return panelData; }
 
     // ==================== NBT ====================
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
-        this.ownerEntityId = nbt.getInteger("OwnerId");
-        this.ticksAlive = nbt.getInteger("TicksAlive");
-        this.currentHealth = nbt.getFloat("CurrentHealth");
+        readBarrierBaseNBT(nbt);
         this.panelYaw = nbt.getFloat("PanelYaw");
-        this.mode = PanelMode.values()[nbt.getInteger("PanelMode")];
-        displayData.readNBT(nbt);
-        lightningData.readNBT(nbt);
-        barrierData.readNBT(nbt);
+        int modeOrdinal = nbt.getInteger("PanelMode");
+        this.mode = (modeOrdinal >= 0 && modeOrdinal < PanelMode.values().length)
+            ? PanelMode.values()[modeOrdinal] : PanelMode.PLACED;
         panelData.readNBT(nbt);
+        this.targetPanelWidth = nbt.hasKey("TargetPanelWidth") ? nbt.getFloat("TargetPanelWidth") : panelData.panelWidth;
+        this.targetPanelHeight = nbt.hasKey("TargetPanelHeight") ? nbt.getFloat("TargetPanelHeight") : panelData.panelHeight;
     }
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound nbt) {
-        nbt.setInteger("OwnerId", ownerEntityId);
-        nbt.setInteger("TicksAlive", ticksAlive);
-        nbt.setFloat("CurrentHealth", currentHealth);
+        writeBarrierBaseNBT(nbt);
         nbt.setFloat("PanelYaw", panelYaw);
         nbt.setInteger("PanelMode", mode.ordinal());
-        displayData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
-        barrierData.writeNBT(nbt);
+        nbt.setFloat("TargetPanelWidth", targetPanelWidth);
+        nbt.setFloat("TargetPanelHeight", targetPanelHeight);
         panelData.writeNBT(nbt);
-    }
-
-    // ==================== SPAWN DATA ====================
-
-    @Override
-    public void writeSpawnData(ByteBuf buffer) {
-        try {
-            NBTTagCompound compound = new NBTTagCompound();
-            this.writeEntityToNBT(compound);
-            cpw.mods.fml.common.network.ByteBufUtils.writeTag(buffer, compound);
-        } catch (Exception e) {
-            noppes.npcs.LogWriter.error("Error writing energy panel spawn data", e);
-        }
-    }
-
-    @Override
-    public void readSpawnData(ByteBuf buffer) {
-        try {
-            NBTTagCompound compound = cpw.mods.fml.common.network.ByteBufUtils.readTag(buffer);
-            if (compound != null) {
-                this.readEntityFromNBT(compound);
-            }
-        } catch (Exception e) {
-            noppes.npcs.LogWriter.error("Error reading energy panel spawn data", e);
-        }
     }
 }

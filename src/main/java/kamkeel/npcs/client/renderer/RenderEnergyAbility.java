@@ -2,6 +2,8 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
+import kamkeel.npcs.entity.EntityEnergyAbility;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
@@ -17,11 +19,11 @@ import org.lwjgl.opengl.GL12;
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
-public abstract class RenderAbilityProjectile extends Render {
+public abstract class RenderEnergyAbility extends Render {
 
     protected static final ResourceLocation WHITE_TEXTURE = new ResourceLocation("customnpcs", "textures/entity/white.png");
 
-    public RenderAbilityProjectile() {
+    public RenderEnergyAbility() {
         this.shadowSize = 0.0f;
     }
 
@@ -250,6 +252,40 @@ public abstract class RenderAbilityProjectile extends Render {
         tess.addVertex(x2 + perpX, y2 + perpY, z2 + perpZ);
         tess.addVertex(x1 + perpX, y1 + perpY, z1 + perpZ);
         tess.draw();
+    }
+
+    // ==================== SHARED LIGHTNING ====================
+
+    /**
+     * Get or create the lightning state for an energy entity.
+     * Uses the lightningState field on EntityEnergyAbility (stored as Object
+     * to avoid client class loading on server).
+     */
+    protected AttachedLightningRenderer.LightningState getLightningState(EntityEnergyAbility entity) {
+        if (entity.lightningState == null) {
+            entity.lightningState = new AttachedLightningRenderer.LightningState();
+        }
+        return (AttachedLightningRenderer.LightningState) entity.lightningState;
+    }
+
+    /**
+     * Render attached lightning arcs around an energy entity.
+     * @param entity the energy entity
+     * @param innerScale multiplier for inner radius (e.g. 0.3f for projectiles, 0.95f for dome)
+     * @param baseSize the entity's current render size/scale
+     */
+    protected void renderAttachedLightning(EntityEnergyAbility entity, float innerScale, float baseSize) {
+        AttachedLightningRenderer.LightningState state = getLightningState(entity);
+
+        float density = entity.getLightningDensity();
+        float innerRadius = innerScale * baseSize;
+        float radius = innerRadius + entity.getLightningRadius() * baseSize;
+        int outerColor = entity.getOuterColor();
+        int innerColor = entity.getInnerColor();
+        int fadeTime = entity.getLightningFadeTime();
+
+        state.update(density, radius, outerColor, innerColor, fadeTime);
+        state.render();
     }
 
     @Override

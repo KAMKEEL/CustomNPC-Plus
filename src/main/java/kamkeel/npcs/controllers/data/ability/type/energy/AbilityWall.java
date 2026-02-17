@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -9,6 +9,7 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -23,18 +24,18 @@ import java.util.List;
  * Can float above ground (configurable height offset).
  * Optional launching mode fires the wall forward with damage/knockback.
  */
-public class AbilityEnergyWall extends AbstractEnergyBarrierAbility {
+public class AbilityWall extends AbilityEnergyBarrier {
 
     private final EnergyPanelData panelData;
 
-    public AbilityEnergyWall() {
+    public AbilityWall() {
         super(
-            new EnergyDisplayData(0x44FFCC, 0x22CCAA, true, 0.3f, 0.4f, 0.0f),
+            new EnergyDisplayData(0x44FFCC, 0x22CCAA, true, 0.3f, 0.4f, 0.5f, 0.0f),
             new EnergyBarrierData(80.0f, true, 160, true)
         );
         this.panelData = new EnergyPanelData(4.0f, 3.0f, 0.0f);
-        this.typeId = "ability.cnpc.energy_wall";
-        this.name = "Energy Wall";
+        this.typeId = "ability.cnpc.wall";
+        this.name = "Wall";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;
         this.minRange = 2.0f;
@@ -43,8 +44,8 @@ public class AbilityEnergyWall extends AbstractEnergyBarrierAbility {
         this.lockMovement = LockMovementType.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
-        this.windUpAnimationName = "Ability_EnergyWall_Windup";
-        this.activeAnimationName = "Ability_EnergyWall_Active";
+        this.windUpAnimationName = "";
+        this.activeAnimationName = "";
     }
 
     @Override
@@ -55,7 +56,7 @@ public class AbilityEnergyWall extends AbstractEnergyBarrierAbility {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected Entity createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         // Place wall between caster and target
         double placeX, placeY, placeZ;
         float yaw;
@@ -64,12 +65,21 @@ public class AbilityEnergyWall extends AbstractEnergyBarrierAbility {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             double dist = Math.sqrt(dx * dx + dz * dz);
-            double placeDist = Math.min(dist * 0.5, 5.0);
 
-            placeX = caster.posX + (dx / dist) * placeDist;
-            placeY = caster.posY;
-            placeZ = caster.posZ + (dz / dist) * placeDist;
-            yaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
+            if (dist < 0.01) {
+                // Target at same position — fall through to look-direction placement
+                float yawRad = (float) Math.toRadians(caster.rotationYaw);
+                placeX = caster.posX + (-Math.sin(yawRad) * 3.0);
+                placeY = caster.posY;
+                placeZ = caster.posZ + (Math.cos(yawRad) * 3.0);
+                yaw = caster.rotationYaw;
+            } else {
+                double placeDist = Math.min(dist * 0.5, 5.0);
+                placeX = caster.posX + (dx / dist) * placeDist;
+                placeY = caster.posY;
+                placeZ = caster.posZ + (dz / dist) * placeDist;
+                yaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
+            }
         } else {
             float yawRad = (float) Math.toRadians(caster.rotationYaw);
             placeX = caster.posX + (-Math.sin(yawRad) * 3.0);
@@ -105,7 +115,7 @@ public class AbilityEnergyWall extends AbstractEnergyBarrierAbility {
                 a.setName("Static Wall");
             }),
             new AbilityVariant("ability.variant.launched", a -> {
-                AbilityEnergyWall wall = (AbilityEnergyWall) a;
+                AbilityWall wall = (AbilityWall) a;
                 a.setName("Launched Wall");
                 wall.panelData.launching = true;
                 wall.panelData.launchSpeed = 0.6f;

@@ -2,7 +2,6 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -12,7 +11,7 @@ import org.lwjgl.opengl.GL11;
  * Minecraft-style blocky appearance using Tessellator.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityOrb extends RenderAbilityProjectile {
+public class RenderAbilityOrb extends RenderEnergyAbility {
 
     private static final int LIGHTNING_FADE_TICKS = 6;
 
@@ -35,7 +34,7 @@ public class RenderAbilityOrb extends RenderAbilityProjectile {
 
         // Render lightning BEFORE rotation so it crackles in all directions
         if (orb.hasLightningEffect()) {
-            renderAttachedLightning(orb, scale);
+            renderAttachedLightning(orb, 0.6f * 0.5f, scale);
         }
 
         // Use entity's interpolated rotation for smooth spinning
@@ -63,7 +62,7 @@ public class RenderAbilityOrb extends RenderAbilityProjectile {
 
         // Render inner cube (solid)
         GL11.glScalef(innerScale, innerScale, innerScale);
-        renderCube(orb.getInnerColor(), 1.0f, 0.5f);
+        renderCube(orb.getInnerColor(), orb.getInnerAlpha(), 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();
@@ -71,36 +70,4 @@ public class RenderAbilityOrb extends RenderAbilityProjectile {
         restoreRenderState();
     }
 
-    /**
-     * Render fading lightning arcs attached to the orb (in local space).
-     * Arcs persist for a few ticks and fade out, while staying attached to the orb.
-     */
-    private void renderAttachedLightning(EntityAbilityOrb orb, float orbScale) {
-        // Get or create the lightning state for this entity
-        AttachedLightningRenderer.LightningState state = getLightningState(orb);
-
-        float density = orb.getLightningDensity();
-        // Lightning radius extends outward from inner surface (innerScale = 0.6)
-        float innerRadius = 0.6f * orbScale * 0.5f; // Half size of inner cube
-        float radius = innerRadius + orb.getLightningRadius() * orbScale;
-        int outerColor = orb.getOuterColor();
-        int innerColor = orb.getInnerColor();
-        int fadeTime = orb.getLightningFadeTime();
-
-        // Update: age existing arcs, spawn new ones based on density
-        state.update(density, radius, outerColor, innerColor, fadeTime);
-
-        // Render all active arcs in local space (they move with the orb)
-        state.render();
-    }
-
-    /**
-     * Get or create the lightning state for an entity.
-     */
-    private AttachedLightningRenderer.LightningState getLightningState(EntityAbilityOrb orb) {
-        if (orb.lightningState == null) {
-            orb.lightningState = new AttachedLightningRenderer.LightningState();
-        }
-        return (AttachedLightningRenderer.LightningState) orb.lightningState;
-    }
 }
