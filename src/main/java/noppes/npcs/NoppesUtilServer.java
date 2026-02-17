@@ -781,8 +781,9 @@ public class NoppesUtilServer {
         if (controller != null) {
             int index = 0;
             for (String typeId : controller.getTypes()) {
-                // Exclude built-in types from the NPC type list
-                if (controller.isBuiltInType(typeId)) continue;
+                if (!controller.isAllowedByNPC(typeId) && !controller.isAllowedByBoth(typeId))
+                    continue;
+
                 map.put(typeId, index++);
             }
         }

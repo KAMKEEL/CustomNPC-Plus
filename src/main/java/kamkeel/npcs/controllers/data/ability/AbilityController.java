@@ -497,6 +497,33 @@ public class AbilityController implements IAbilityHandler {
         return abilityTypes.containsKey(typeId);
     }
 
+    public boolean isAllowedByPlayer(String typeId) {
+        if (abilityTypes.containsKey(typeId)) {
+            Ability temp = abilityTypes.get(typeId).get();
+            return temp.getAllowedBy() == UserType.PLAYER_ONLY;
+        }
+
+        return false;
+    }
+
+    public boolean isAllowedByNPC(String typeId) {
+        if (abilityTypes.containsKey(typeId)) {
+            Ability temp = abilityTypes.get(typeId).get();
+            return temp.getAllowedBy() == UserType.NPC_ONLY;
+        }
+
+        return false;
+    }
+
+    public boolean isAllowedByBoth(String typeId) {
+        if (abilityTypes.containsKey(typeId)) {
+            Ability temp = abilityTypes.get(typeId).get();
+            return temp.getAllowedBy() == UserType.BOTH;
+        }
+
+        return false;
+    }
+
     @Override
     public String[] getAbilityNameArray() {
         return builtAbilities.keySet().toArray(new String[0]);
