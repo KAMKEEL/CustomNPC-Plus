@@ -6,7 +6,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -121,7 +121,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     private boolean particleGlow = true;
 
     private long deathWorldTime = -1;
-    private List<AbilityEffect> effects = new ArrayList<>();
+    private List<AbilityPotionEffect> effects = new ArrayList<>();
 
     // ═══════════════════════════════════════════════════════════════════
     // TRAP-SPECIFIC PROPERTIES
@@ -194,7 +194,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                                                 float particleDensity, float particleScale,
                                                 float animSpeed, float lightningDensity,
                                                 boolean visible,
-                                                List<AbilityEffect> effects) {
+                                                List<AbilityPotionEffect> effects) {
         EntityAbilityZone zone = new EntityAbilityZone(world, ZoneType.TRAP, owner, x, y, z);
         zone.shape = shape;
         zone.radius = triggerRadius;
@@ -217,7 +217,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         zone.lightningDensity = lightningDensity;
         zone.visible = visible;
         if (effects != null) {
-            for (AbilityEffect e : effects) {
+            for (AbilityPotionEffect e : effects) {
                 zone.effects.add(e.copy());
             }
         }
@@ -236,7 +236,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                                                   float zoneHeight,
                                                   float particleDensity, float particleScale,
                                                   float animSpeed, float lightningDensity,
-                                                  List<AbilityEffect> effects) {
+                                                  List<AbilityPotionEffect> effects) {
         EntityAbilityZone zone = new EntityAbilityZone(world, ZoneType.HAZARD, owner, x, y, z);
         zone.shape = shape;
         zone.radius = radius;
@@ -255,7 +255,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         zone.animSpeed = animSpeed;
         zone.lightningDensity = lightningDensity;
         if (effects != null) {
-            for (AbilityEffect e : effects) {
+            for (AbilityPotionEffect e : effects) {
                 zone.effects.add(e.copy());
             }
         }
@@ -499,7 +499,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
     private void applyEffects(EntityLivingBase entity) {
         if (entity == null || effects.isEmpty()) return;
-        for (AbilityEffect effect : effects) {
+        for (AbilityPotionEffect effect : effects) {
             effect.apply(entity);
         }
     }
@@ -668,7 +668,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         if (nbt.hasKey("Effects")) {
             NBTTagList effectList = nbt.getTagList("Effects", 10);
             for (int i = 0; i < effectList.tagCount(); i++) {
-                AbilityEffect effect = AbilityEffect.fromNBT(effectList.getCompoundTagAt(i));
+                AbilityPotionEffect effect = AbilityPotionEffect.fromNBT(effectList.getCompoundTagAt(i));
                 if (effect != null && effect.isValid()) {
                     effects.add(effect);
                 }
@@ -728,7 +728,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
         // Effects
         NBTTagList effectList = new NBTTagList();
-        for (AbilityEffect effect : effects) {
+        for (AbilityPotionEffect effect : effects) {
             effectList.appendTag(effect.writeNBT());
         }
         nbt.setTag("Effects", effectList);
@@ -778,7 +778,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         // Effects
         NBTTagCompound effectsNbt = new NBTTagCompound();
         NBTTagList effectList = new NBTTagList();
-        for (AbilityEffect effect : effects) {
+        for (AbilityPotionEffect effect : effects) {
             effectList.appendTag(effect.writeNBT());
         }
         effectsNbt.setTag("Effects", effectList);
@@ -832,7 +832,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         if (effectsNbt != null && effectsNbt.hasKey("Effects")) {
             NBTTagList effectList = effectsNbt.getTagList("Effects", 10);
             for (int i = 0; i < effectList.tagCount(); i++) {
-                AbilityEffect effect = AbilityEffect.fromNBT(effectList.getCompoundTagAt(i));
+                AbilityPotionEffect effect = AbilityPotionEffect.fromNBT(effectList.getCompoundTagAt(i));
                 if (effect != null && effect.isValid()) {
                     effects.add(effect);
                 }

@@ -3,7 +3,7 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
@@ -77,7 +77,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected EnergyCombatData combatData = new EnergyCombatData();
 
     // ==================== EFFECT PROPERTIES ====================
-    protected List<AbilityEffect> effects = new ArrayList<>();
+    protected List<AbilityPotionEffect> effects = new ArrayList<>();
 
     // ==================== ANCHOR PROPERTIES ====================
     protected EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
@@ -416,7 +416,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     protected void applyEffects(EntityLivingBase target) {
-        for (AbilityEffect effect : effects) {
+        for (AbilityPotionEffect effect : effects) {
             effect.apply(target);
         }
     }
@@ -424,7 +424,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     /**
      * Set the effects list from the ability's configured effects.
      */
-    public void setEffects(List<AbilityEffect> effects) {
+    public void setEffects(List<AbilityPotionEffect> effects) {
         this.effects = effects != null ? effects : new ArrayList<>();
     }
 
@@ -789,7 +789,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (nbt.hasKey("Effects")) {
             NBTTagList effectsList = nbt.getTagList("Effects", 10); // 10 = compound tag
             for (int i = 0; i < effectsList.tagCount(); i++) {
-                effects.add(AbilityEffect.fromNBT(effectsList.getCompoundTagAt(i)));
+                effects.add(AbilityPotionEffect.fromNBT(effectsList.getCompoundTagAt(i)));
             }
         }
 
@@ -828,7 +828,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         // Write effects list
         if (!effects.isEmpty()) {
             NBTTagList effectsList = new NBTTagList();
-            for (AbilityEffect effect : effects) {
+            for (AbilityPotionEffect effect : effects) {
                 effectsList.appendTag(effect.writeNBT());
             }
             nbt.setTag("Effects", effectsList);

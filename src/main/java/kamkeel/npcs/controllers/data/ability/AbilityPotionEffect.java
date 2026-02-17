@@ -9,17 +9,17 @@ import noppes.npcs.constants.EnumPotionType;
  * Represents a configurable potion effect that can be applied by abilities.
  * Uses the unified EnumPotionType enum shared across melee, ranged, and ability systems.
  */
-public class AbilityEffect {
+public class AbilityPotionEffect {
 
     private EnumPotionType type = EnumPotionType.None;
     private int manualPotionId = 0;
     private int durationTicks = 60;
     private int amplifier = 0;  // 0-10
 
-    public AbilityEffect() {
+    public AbilityPotionEffect() {
     }
 
-    public AbilityEffect(EnumPotionType type, int durationTicks, int amplifier) {
+    public AbilityPotionEffect(EnumPotionType type, int durationTicks, int amplifier) {
         this.type = type;
         this.durationTicks = Math.max(1, durationTicks);
         this.amplifier = Math.max(0, Math.min(10, amplifier));
@@ -28,8 +28,8 @@ public class AbilityEffect {
     /**
      * Creates a copy of this effect.
      */
-    public AbilityEffect copy() {
-        AbilityEffect copy = new AbilityEffect(type, durationTicks, amplifier);
+    public AbilityPotionEffect copy() {
+        AbilityPotionEffect copy = new AbilityPotionEffect(type, durationTicks, amplifier);
         copy.manualPotionId = this.manualPotionId;
         return copy;
     }
@@ -81,10 +81,10 @@ public class AbilityEffect {
     }
 
     /**
-     * Creates an AbilityEffect from NBT.
+     * Creates an AbilityPotionEffect from NBT.
      */
-    public static AbilityEffect fromNBT(NBTTagCompound nbt) {
-        AbilityEffect effect = new AbilityEffect();
+    public static AbilityPotionEffect fromNBT(NBTTagCompound nbt) {
+        AbilityPotionEffect effect = new AbilityPotionEffect();
         effect.readNBT(nbt);
         return effect;
     }

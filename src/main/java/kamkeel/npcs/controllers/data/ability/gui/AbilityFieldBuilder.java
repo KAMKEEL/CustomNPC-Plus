@@ -2,7 +2,7 @@ package kamkeel.npcs.controllers.data.ability.gui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -55,14 +55,14 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
         sw.addLabel(new GuiNpcLabel(labelId++, def.getLabel(), colLLabel, y + 2, 0xFFFF55));
         y += 15;
 
-        List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
+        List<AbilityPotionEffect> effects = (List<AbilityPotionEffect>) def.getValue();
         if (effects == null) effects = new ArrayList<>();
 
         String[] typeNames = EnumPotionType.getLangKeysNoNone();
         String[] ampValues = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
 
         for (int e = 0; e < effects.size() && e < 5; e++) {
-            AbilityEffect effect = effects.get(e);
+            AbilityPotionEffect effect = effects.get(e);
 
             // Type selector button (index offset by -1 since None is excluded)
             int typeIdx = effect.getType().ordinal() - 1;
@@ -144,7 +144,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
             FieldDef def = buttonFieldMap.get(buttonId);
             if (def == null) def = clearFieldMap.get(buttonId);
             if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
-                List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
+                List<AbilityPotionEffect> effects = (List<AbilityPotionEffect>) def.getValue();
                 if (effects == null) return false;
                 int effectIdx = meta[0];
                 int action = meta[1];
@@ -167,7 +167,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
                         return true;
                     case 4: // Add
                         if (effects.size() < 5) {
-                            effects.add(new AbilityEffect(EnumPotionType.Slowness, 60, 0));
+                            effects.add(new AbilityPotionEffect(EnumPotionType.Slowness, 60, 0));
                         }
                         return true;
                 }
@@ -184,7 +184,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
         if (meta != null) {
             FieldDef def = textFieldMap.get(textFieldId);
             if (def != null && def.getType() == FieldType.EFFECTS_LIST) {
-                List<AbilityEffect> effects = (List<AbilityEffect>) def.getValue();
+                List<AbilityPotionEffect> effects = (List<AbilityPotionEffect>) def.getValue();
                 if (effects != null && meta[0] < effects.size()) {
                     if (meta[1] == 1) { // duration field
                         effects.get(meta[0]).setDurationTicks(field.getInteger());

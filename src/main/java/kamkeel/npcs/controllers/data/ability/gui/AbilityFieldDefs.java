@@ -2,7 +2,7 @@ package kamkeel.npcs.controllers.data.ability.gui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.builder.FieldType;
 
@@ -18,10 +18,10 @@ import java.util.function.Supplier;
 public class AbilityFieldDefs {
 
     @SuppressWarnings("unchecked")
-    public static FieldDef effectsListField(String label, Supplier<List<AbilityEffect>> getter, Consumer<List<AbilityEffect>> setter) {
+    public static FieldDef effectsListField(String label, Supplier<List<AbilityPotionEffect>> getter, Consumer<List<AbilityPotionEffect>> setter) {
         return FieldDef.custom(label, FieldType.EFFECTS_LIST,
             () -> getter.get(),
-            v -> setter.accept((List<AbilityEffect>) v));
+            v -> setter.accept((List<AbilityPotionEffect>) v));
     }
 
 }
