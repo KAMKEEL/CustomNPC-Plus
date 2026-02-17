@@ -8,6 +8,7 @@ import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class Register<T> {
@@ -37,8 +38,7 @@ public class Register<T> {
     }
 
     public static class Abilities extends Register<Ability> {
-        protected final Map<String, Supplier<AbilityVariant>> variantEntries = new LinkedHashMap<>();
-        protected final Map<String, String> variantNames = new LinkedHashMap<>();
+        protected final Map<String, Map<String, Supplier<AbilityVariant>>> variantEntries = new LinkedHashMap<>();
         protected final Map<String, String> uniqueNames = new LinkedHashMap<>();
         protected final Set<String> typeOnly = new HashSet<>();
 
@@ -67,11 +67,21 @@ public class Register<T> {
             return factory.get();
         }
 
-        public AbilityVariant registerVariant(String variantName, Supplier<AbilityVariant> variantFactory) {
-            String name = registryKey + "." + namespace + "." + variantName.trim().toLowerCase().replaceAll(" ", "_");
-            variantEntries.put(name, variantFactory);
-            variantNames.put(name, variantName);
-            return variantFactory.get();
+        public AbilityVariant registerVariant(String typeId, String variantName, String group, Consumer<Ability> configurator) {
+            registerVariant(typeId, variantName, () -> new AbilityVariant(variantName, group, configurator));
+            return new AbilityVariant(variantName, group, configurator);
+        }
+
+        public AbilityVariant registerVariant(String typeId, String factoryName, Supplier<AbilityVariant> factory) {
+            if (!variantEntries.containsKey(typeId)) {
+                variantEntries.put(typeId, new HashMap<>());
+            }
+
+            Map<String, Supplier<AbilityVariant>> type = variantEntries.get(typeId);
+
+            String name = registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_");
+            type.put(name, factory);
+            return factory.get();
         }
 
         public void register() {
@@ -82,8 +92,12 @@ public class Register<T> {
                 }
             }
 
-            for (Map.Entry<String, Supplier<AbilityVariant>> entry : variantEntries.entrySet()) {
-                AbilityController.Instance.registerVariant(variantNames.get(entry.getKey()), entry.getValue().get());
+            for (Map.Entry<String, Map<String, Supplier<AbilityVariant>>> entry : variantEntries.entrySet()) {
+                String typeId = entry.getKey();
+                Map<String, Supplier<AbilityVariant>> map = entry.getValue();
+                for (Map.Entry<String, Supplier<AbilityVariant>> innerEntry : map.entrySet()) {
+                    AbilityController.Instance.registerVariant(typeId, innerEntry.getValue().get());
+                }
             }
         }
 
