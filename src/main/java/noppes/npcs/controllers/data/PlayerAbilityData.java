@@ -271,6 +271,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             return;
         }
 
+        // Tick active toggles (independent of currentAbility)
+        tickActiveToggles();
+
         if (chainDelayRemaining > 0 || (currentAbility != null && currentAbility.isExecuting())) {
             tickCurrentAbility();
 
@@ -420,6 +423,11 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (player instanceof EntityPlayerMP) {
             PlayerAbilitySyncPacket.sendToPlayer((EntityPlayerMP) player);
         }
+    }
+
+    @Override
+    protected void onToggleStateChanged(String key, boolean active) {
+        syncToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -787,6 +795,13 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         compound.setTag("PlayerAbilities", list);
         compound.setInteger("PlayerAbilitySelected", selectedIndex);
         compound.setBoolean("AbilityAnimating", playingAbilityAnimation);
+
+        // Active toggles
+        NBTTagList toggleList = new NBTTagList();
+        for (String key : activeToggles.keySet()) {
+            toggleList.appendTag(new NBTTagString(key));
+        }
+        compound.setTag("ActiveToggles", toggleList);
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -809,6 +824,16 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
         playingAbilityAnimation = compound.getBoolean("AbilityAnimating");
+
+        // Active toggles - restore state directly (no onToggleOn callback during load)
+        activeToggles.clear();
+        if (compound.hasKey("ActiveToggles")) {
+            NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 8); // 8 = TAG_STRING
+            for (int i = 0; i < toggleNbt.tagCount(); i++) {
+                String key = toggleNbt.getStringTagAt(i);
+                setToggleEntryDirect(key, true);
+            }
+        }
     }
 
     /**

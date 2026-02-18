@@ -22,7 +22,9 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     // CONFIGURATION (saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
-    private String name = "";
+    private String id = "";               // UUID (stable persistent reference)
+    private String name = "";             // Unique file key / identifier
+    private String displayName = "";      // Cosmetic name (falls back to name when empty)
 
     private boolean enabled = true;
 
@@ -60,12 +62,36 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     // GETTERS / SETTERS
     // ═══════════════════════════════════════════════════════════════════
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id != null ? id : "";
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name != null ? name : "";
+    }
+
+    /**
+     * Get the display name for this chained ability.
+     * Returns displayName if set, otherwise falls back to name.
+     */
+    public String getDisplayName() {
+        return (displayName != null && !displayName.isEmpty()) ? displayName : name;
+    }
+
+    public String getRawDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName != null ? displayName : "";
     }
 
     public boolean isEnabled() {
@@ -288,7 +314,9 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
     public NBTTagCompound writeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setString("Id", id);
         nbt.setString("Name", name);
+        nbt.setString("DisplayName", displayName);
         nbt.setBoolean("Enabled", enabled);
         nbt.setInteger("Weight", weight);
         nbt.setBoolean("WindUpAll", windUpAll);
@@ -315,7 +343,9 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     }
 
     public void readNBT(NBTTagCompound nbt) {
+        id = nbt.getString("Id");
         name = nbt.getString("Name");
+        displayName = nbt.getString("DisplayName");
         enabled = !nbt.hasKey("Enabled") || nbt.getBoolean("Enabled");
         weight = nbt.hasKey("Weight") ? nbt.getInteger("Weight") : 10;
         windUpAll = !nbt.hasKey("WindUpAll") || nbt.getBoolean("WindUpAll");

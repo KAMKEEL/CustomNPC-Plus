@@ -61,7 +61,9 @@ public class ScriptDataAbilities implements IDataAbilities {
         if (!ability.getAllowedBy().allowsNpc()) {
             return; // Ability is PLAYER_ONLY
         }
-        data.addAbilityReference(key);
+        // Store by UUID/registry key for stable reference
+        String canonicalKey = ability.getId() != null ? ability.getId() : key;
+        data.addAbilityReference(canonicalKey);
     }
 
     @Override

@@ -474,9 +474,12 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private boolean hasDuplicateName(Ability ability) {
         String name = ability.getName();
         if (name == null || name.isEmpty()) return false;
-        String oldName = ability.getId();
-        // A duplicate exists if the name is already in use and it's not the same ability being edited
-        return customData.containsKey(name) && !name.equals(oldName);
+        if (!customData.containsKey(name)) return false;
+        // Name exists — check if it belongs to a different ability (by UUID)
+        String uuid = ability.getId();
+        if (uuid == null || uuid.isEmpty()) return true; // New ability with conflicting name
+        Ability existing = AbilityController.Instance.getCustomAbilityByName(name);
+        return existing == null || !uuid.equals(existing.getId());
     }
 
     @Override

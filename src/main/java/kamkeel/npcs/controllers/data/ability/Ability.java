@@ -44,9 +44,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // CONFIGURATION (saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
-    protected String id;
-    protected String name;
-    protected String typeId;                // e.g., "ability.cnpc.slam" (also used as lang key)
+    protected String id = "";              // UUID for custom, registry key for built-in
+    protected String name = "";             // Unique file key / identifier
+    protected String displayName = "";      // Cosmetic name (falls back to name when empty)
+    protected String typeId = "";           // e.g., "ability.cnpc.slam" (also used as lang key)
 
     // Selection
     protected int weight = 10;
@@ -101,6 +102,23 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     // Cooldown override
     protected boolean ignoreCooldown = false;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BUILT-IN (set in constructor via configureAsBuiltIn, NOT persisted)
+    // ═══════════════════════════════════════════════════════════════════
+
+    protected transient boolean builtIn = false;
+    protected transient String registryKey;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TOGGLE CONFIGURATION (saved to NBT for custom abilities)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Whether this ability is a toggle (ON/OFF) rather than a phased execution */
+    protected boolean toggleable = false;
+
+    /** Whether the toggled-ON state ticks each game tick (e.g., Kaioken drains ki per tick) */
+    protected boolean hasActiveToggle = false;
 
     // Configurable potion effects
     protected List<AbilityPotionEffect> effects = new ArrayList<>();
@@ -203,6 +221,31 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     public boolean allowOverlap() {
         return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TOGGLE CALLBACKS (optional overrides for toggleable abilities)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Called when this toggle ability is turned ON for an entity.
+     * Override to apply effects (e.g., set a DBC flag, apply a buff).
+     */
+    public void onToggleOn(EntityLivingBase caster) {}
+
+    /**
+     * Called when this toggle ability is turned OFF for an entity.
+     * Override to remove effects (e.g., clear a DBC flag, remove a buff).
+     */
+    public void onToggleOff(EntityLivingBase caster) {}
+
+    /**
+     * Called every tick while this toggle is active (only if hasActiveToggle is true).
+     * Override for per-tick effects (e.g., ki drain for Kaioken).
+     * @return true to keep the toggle active, false to auto-deactivate
+     */
+    public boolean onToggleTick(EntityLivingBase caster, int tickCount) {
+        return true;
     }
 
     /**
@@ -482,6 +525,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
         // ── General tab ──────────────────────────────────────────────
         defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
+            .tab("General"));
+        defs.add(FieldDef.stringField("gui.displayName", this::getRawDisplayName, this::setDisplayName)
             .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
@@ -1119,6 +1164,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("id", id);
         nbt.setString("name", name);
+        nbt.setString("displayName", displayName);
         nbt.setString("typeId", typeId);
         nbt.setInteger("weight", weight);
         nbt.setBoolean("enabled", enabled);
@@ -1150,6 +1196,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
+        // Toggle
+        nbt.setBoolean("toggleable", toggleable);
+        nbt.setBoolean("hasActiveToggle", hasActiveToggle);
+
         // Burst
         nbt.setBoolean("burstEnabled", burstEnabled);
         nbt.setInteger("burstAmount", burstAmount);
@@ -1169,10 +1219,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
         nbt.setTag("effects", effectList);
 
-        // Type-specific
-        NBTTagCompound typeNBT = new NBTTagCompound();
-        writeTypeNBT(typeNBT);
-        nbt.setTag("typeData", typeNBT);
+        // Type-specific (skip for built-in abilities with fixed configs)
+        if (!builtIn) {
+            NBTTagCompound typeNBT = new NBTTagCompound();
+            writeTypeNBT(typeNBT);
+            nbt.setTag("typeData", typeNBT);
+        }
 
         return nbt;
     }
@@ -1180,6 +1232,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public void readNBT(NBTTagCompound nbt) {
         id = nbt.getString("id");
         name = nbt.getString("name");
+        displayName = nbt.getString("displayName");
         typeId = nbt.getString("typeId");
         weight = nbt.getInteger("weight");
         enabled = nbt.getBoolean("enabled");
@@ -1215,6 +1268,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
 
+        // Toggle
+        toggleable = nbt.getBoolean("toggleable");
+        hasActiveToggle = nbt.getBoolean("hasActiveToggle");
+
         // Burst
         burstEnabled = nbt.getBoolean("burstEnabled");
         burstAmount = nbt.getInteger("burstAmount");
@@ -1242,7 +1299,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
-        readTypeNBT(nbt.getCompoundTag("typeData"));
+        // Type-specific (skip for built-in abilities with fixed configs)
+        if (!builtIn) {
+            readTypeNBT(nbt.getCompoundTag("typeData"));
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1265,12 +1325,52 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.name = name;
     }
 
+    /**
+     * Get the display name for this ability.
+     * Returns displayName if set, otherwise falls back to name.
+     */
+    public String getDisplayName() {
+        return (displayName != null && !displayName.isEmpty()) ? displayName : name;
+    }
+
+    /**
+     * Get the raw display name (may be empty).
+     */
+    public String getRawDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName != null ? displayName : "";
+    }
+
     public String getTypeId() {
         return typeId;
     }
 
     public boolean isBuiltIn() {
-        return false;
+        return builtIn;
+    }
+
+    /**
+     * Get the registry key for built-in abilities.
+     * Returns null for custom abilities.
+     */
+    public String getRegistryKey() {
+        return registryKey;
+    }
+
+    /**
+     * Configure this ability as a built-in ability with fixed config.
+     * Sets builtIn flag, assigns registry key, id, name, and derives typeId.
+     * Call this in the constructor of any ability that should be non-customizable.
+     */
+    protected void configureAsBuiltIn(String registryKey) {
+        this.builtIn = true;
+        this.registryKey = registryKey;
+        this.id = registryKey;
+        this.name = registryKey;
+        this.typeId = "ability." + registryKey.replace(':', '.');
     }
 
     public Ability deepCopy() {
@@ -1735,6 +1835,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public void setIgnoreCooldown(boolean ignoreCooldown) {
         this.ignoreCooldown = ignoreCooldown;
+    }
+
+    public boolean isToggleable() {
+        return toggleable;
+    }
+
+    public void setToggleable(boolean toggleable) {
+        this.toggleable = toggleable;
+    }
+
+    public boolean hasActiveToggle() {
+        return hasActiveToggle;
+    }
+
+    public void setHasActiveToggle(boolean hasActiveToggle) {
+        this.hasActiveToggle = hasActiveToggle;
     }
 
     public List<AbilityPotionEffect> getEffects() {

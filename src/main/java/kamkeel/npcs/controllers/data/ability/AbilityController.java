@@ -33,7 +33,8 @@ public class AbilityController implements IAbilityHandler {
     // ── Core Registries ──────────────────────────────────────────────────────
     private final Map<String, Supplier<Ability>> abilityTypes = new LinkedHashMap<>();
     private final Map<String, Ability> builtAbilities = new LinkedHashMap<>();
-    private final Map<String, Ability> customAbilities = new LinkedHashMap<>();
+    private final Map<String, Ability> customAbilities = new LinkedHashMap<>();      // name → Ability
+    private final Map<String, Ability> customAbilitiesById = new LinkedHashMap<>();  // UUID → Ability
 
     // ── Extension Points ─────────────────────────────────────────────────────
     private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
@@ -162,6 +163,7 @@ public class AbilityController implements IAbilityHandler {
 
     public void load() {
         customAbilities.clear();
+        customAbilitiesById.clear();
         int migrated = 0;
 
         File dir = getDir();
@@ -176,6 +178,13 @@ public class AbilityController implements IAbilityHandler {
                     NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
                     Ability ability = fromNBT(nbt);
                     if (ability == null) continue;
+
+                    // Skip built-in abilities that were erroneously saved as custom files
+                    if (ability.isBuiltIn()) {
+                        file.delete();
+                        LogWriter.info("Removed stale built-in ability file: " + filename);
+                        continue;
+                    }
 
                     // Legacy migration: UUID-named files get renamed to name-based
                     if (UUID_PATTERN.matcher(key).matches()) {
@@ -202,8 +211,24 @@ public class AbilityController implements IAbilityHandler {
                         migrated++;
                     }
 
-                    ability.setId(key);
+                    // Ensure ability has a UUID; generate one for legacy abilities
+                    String uuid = ability.getId();
+                    if (uuid == null || uuid.isEmpty() || uuid.equals(key)) {
+                        // Legacy: id was the name or empty — generate a real UUID
+                        uuid = UUID.randomUUID().toString();
+                        ability.setId(uuid);
+                        // Re-save file with the new UUID
+                        try {
+                            NBTJsonUtil.SaveFile(file, ability.writeNBT());
+                        } catch (Exception ex) {
+                            LogWriter.error("Failed to save UUID for ability: " + key, ex);
+                        }
+                        migrated++;
+                    }
+
+                    ability.setName(key);
                     customAbilities.put(key, ability);
+                    customAbilitiesById.put(uuid, ability);
                 } catch (Exception e) {
                     LogWriter.error("Error loading custom ability: " + file.getAbsolutePath(), e);
                 }
@@ -212,7 +237,7 @@ public class AbilityController implements IAbilityHandler {
 
         customAbilityRevision++;
         if (migrated > 0) {
-            LogWriter.info("Migrated " + migrated + " UUID-named abilities to name-based files");
+            LogWriter.info("Migrated " + migrated + " abilities (UUID-named files or missing UUIDs)");
         }
         LogWriter.info("Loaded " + customAbilities.size() + " custom abilities");
     }
@@ -223,41 +248,49 @@ public class AbilityController implements IAbilityHandler {
 
     public boolean saveCustomAbility(Ability ability) {
         if (ability == null) return false;
+        if (ability.isBuiltIn()) return false;
 
         String name = ability.getName();
         if (name == null || name.isEmpty()) return false;
 
-        // Ensure unique name for new abilities (no existing id)
-        String oldName = ability.getId();
-        boolean isNew = oldName == null || oldName.isEmpty();
+        String uuid = ability.getId();
+        boolean isNew = (uuid == null || uuid.isEmpty());
+
         if (isNew) {
+            // Generate UUID for new ability
+            uuid = UUID.randomUUID().toString();
+            ability.setId(uuid);
+
+            // Ensure unique name
             while (hasCustomAbilityName(name)) {
                 name = name + "_";
             }
             ability.setName(name);
+        } else {
+            // Existing ability — check for rename via UUID lookup
+            Ability existing = customAbilitiesById.get(uuid);
+            if (existing != null) {
+                String oldName = existing.getName();
+                if (!oldName.equals(name)) {
+                    // Name changed! Ensure new name is unique (excluding self)
+                    String testName = name;
+                    while (customAbilities.containsKey(testName) && !testName.equals(oldName)) {
+                        testName = testName + "_";
+                    }
+                    if (!testName.equals(name)) {
+                        name = testName;
+                        ability.setName(name);
+                    }
+
+                    // Delete old file and remove old map entry
+                    File oldFile = new File(getDir(), oldName + ".json");
+                    if (oldFile.exists()) {
+                        oldFile.delete();
+                    }
+                    customAbilities.remove(oldName);
+                }
+            }
         }
-
-        // Handle rename: old id (previous name) differs from current name
-        if (!isNew && !oldName.equals(name)) {
-            // Check uniqueness of new name (excluding the entry being renamed)
-            String testName = name;
-            while (customAbilities.containsKey(testName) && !testName.equals(oldName)) {
-                testName = testName + "_";
-            }
-            if (!testName.equals(name)) {
-                name = testName;
-                ability.setName(name);
-            }
-
-            // Delete old file and remove old map entry
-            File oldFile = new File(getDir(), oldName + ".json");
-            if (oldFile.exists()) {
-                oldFile.delete();
-            }
-            customAbilities.remove(oldName);
-        }
-
-        ability.setId(name);
 
         File dir = getDir();
         File fileNew = new File(dir, name + ".json_new");
@@ -276,8 +309,9 @@ public class AbilityController implements IAbilityHandler {
             }
 
             customAbilities.put(name, ability);
+            customAbilitiesById.put(uuid, ability);
             customAbilityRevision++;
-            LogWriter.info("Saved custom ability: " + name);
+            LogWriter.info("Saved custom ability: " + name + " [" + uuid + "]");
             SyncController.syncAllCustomAbilities();
             return true;
         } catch (Exception e) {
@@ -291,6 +325,12 @@ public class AbilityController implements IAbilityHandler {
 
         Ability removed = customAbilities.remove(name);
         if (removed == null) return false;
+
+        // Also remove from UUID index
+        String uuid = removed.getId();
+        if (uuid != null && !uuid.isEmpty()) {
+            customAbilitiesById.remove(uuid);
+        }
 
         File dir = getDir();
         File file = new File(dir, name + ".json");
@@ -318,7 +358,14 @@ public class AbilityController implements IAbilityHandler {
 
     public void setCustomAbilities(Map<String, Ability> synced) {
         customAbilities.clear();
+        customAbilitiesById.clear();
         customAbilities.putAll(synced);
+        for (Ability ability : synced.values()) {
+            String uuid = ability.getId();
+            if (uuid != null && !uuid.isEmpty()) {
+                customAbilitiesById.put(uuid, ability);
+            }
+        }
         customAbilityRevision++;
     }
 
@@ -341,6 +388,10 @@ public class AbilityController implements IAbilityHandler {
     public Ability resolveAbility(String key) {
         if (key == null || key.isEmpty()) return null;
 
+        // Custom: UUID lookup (most common for persistent references)
+        Ability byUuid = customAbilitiesById.get(key);
+        if (byUuid != null) return byUuid.deepCopy();
+
         // Built-in: exact name
         Ability builtIn = builtAbilities.get(key);
         if (builtIn != null) return builtIn.deepCopy();
@@ -359,7 +410,7 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
-        // Custom: exact name
+        // Custom: exact name (fallback for legacy references)
         Ability custom = customAbilities.get(key);
         if (custom != null) return custom.deepCopy();
 
@@ -381,11 +432,11 @@ public class AbilityController implements IAbilityHandler {
                 keys.add(id);
             }
         }
-        // Custom abilities keyed by name
+        // Custom abilities keyed by UUID (stable references)
         for (Ability ability : customAbilities.values()) {
-            String name = ability.getName();
-            if (name != null && !name.isEmpty()) {
-                keys.add(name);
+            String id = ability.getId();
+            if (id != null && !id.isEmpty()) {
+                keys.add(id);
             }
         }
         return keys;
@@ -401,12 +452,12 @@ public class AbilityController implements IAbilityHandler {
                 }
             }
         }
-        // Custom abilities keyed by name
+        // Custom abilities keyed by UUID (stable references)
         for (Ability ability : customAbilities.values()) {
             if (ability.getAllowedBy().allowsPlayer()) {
-                String name = ability.getName();
-                if (name != null && !name.isEmpty()) {
-                    keys.add(name);
+                String id = ability.getId();
+                if (id != null && !id.isEmpty()) {
+                    keys.add(id);
                 }
             }
         }
@@ -414,7 +465,16 @@ public class AbilityController implements IAbilityHandler {
     }
 
     public boolean hasAbility(String key) {
-        return builtAbilities.containsKey(key) || customAbilities.containsKey(key);
+        return builtAbilities.containsKey(key) || customAbilities.containsKey(key)
+            || customAbilitiesById.containsKey(key);
+    }
+
+    public Ability getCustomAbilityByUUID(String uuid) {
+        return customAbilitiesById.get(uuid);
+    }
+
+    public Ability getCustomAbilityByName(String name) {
+        return customAbilities.get(name);
     }
 
     /**
@@ -423,6 +483,9 @@ public class AbilityController implements IAbilityHandler {
      */
     public boolean canResolveAbility(String key) {
         if (key == null || key.isEmpty()) return false;
+
+        // Custom: UUID lookup (most common for persistent references)
+        if (customAbilitiesById.containsKey(key)) return true;
 
         // Built-in: exact name
         if (builtAbilities.containsKey(key)) return true;
@@ -437,7 +500,7 @@ public class AbilityController implements IAbilityHandler {
             if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) return true;
         }
 
-        // Custom: exact name
+        // Custom: exact name (fallback for legacy references)
         if (customAbilities.containsKey(key)) return true;
 
         // Custom: case-insensitive name
