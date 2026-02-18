@@ -19,6 +19,9 @@ import net.minecraft.world.World;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.controllers.PartyController;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 
@@ -207,7 +210,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             }
 
             // Set death time on first tick if not already set (handles chunk load/unload)
-            if (deathWorldTime < 0 && worldObj != null) {
+            // Skip during charging phase - lifetime starts when the entity actually fires
+            if (deathWorldTime < 0 && worldObj != null && !isCharging()) {
                 deathWorldTime = worldObj.getTotalWorldTime() + getMaxLifetime();
             }
 
@@ -643,22 +647,48 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     /**
      * Check if an entity should be ignored for collision.
-     * Ignores: the owner, same-faction NPCs, and other projectiles from the same caster.
+     * Ignores: the owner, same-faction NPCs, passive NPCs, NPCs friendly to player owner,
+     * party members (if friendly fire is off), and other projectiles from the same caster.
      */
     protected boolean shouldIgnoreEntity(Entity entity) {
         Entity owner = getOwnerEntity();
         if (entity == owner) return true;
 
-        if (owner instanceof EntityNPCInterface && entity instanceof EntityNPCInterface) {
-            EntityNPCInterface ownerNpc = (EntityNPCInterface) owner;
-            EntityNPCInterface targetNpc = (EntityNPCInterface) entity;
-            if (ownerNpc.faction.id == targetNpc.faction.id) return true;
-        }
-
         // Ignore other projectiles from the same caster (e.g. multi-projectile abilities)
         if (entity instanceof EntityEnergyProjectile) {
             EntityEnergyProjectile other = (EntityEnergyProjectile) entity;
             if (other.ownerEntityId == this.ownerEntityId) return true;
+        }
+
+        // NPC target checks
+        if (entity instanceof EntityNPCInterface) {
+            EntityNPCInterface targetNpc = (EntityNPCInterface) entity;
+
+            // Ignore passive NPCs
+            if (targetNpc.faction.isPassive) return true;
+
+            // NPC owner: ignore same-faction NPCs
+            if (owner instanceof EntityNPCInterface) {
+                EntityNPCInterface ownerNpc = (EntityNPCInterface) owner;
+                if (ownerNpc.faction.id == targetNpc.faction.id) return true;
+            }
+
+            // Player owner: ignore NPCs whose faction is friendly to the player
+            if (owner instanceof EntityPlayer) {
+                if (targetNpc.faction.isFriendlyToPlayer((EntityPlayer) owner)) return true;
+            }
+        }
+
+        // Party friendly fire check: player owner hitting another player
+        if (owner instanceof EntityPlayer && entity instanceof EntityPlayer) {
+            EntityPlayer ownerPlayer = (EntityPlayer) owner;
+            EntityPlayer targetPlayer = (EntityPlayer) entity;
+            PlayerData ownerData = PlayerData.get(ownerPlayer);
+            PlayerData targetData = PlayerData.get(targetPlayer);
+            if (ownerData.partyUUID != null && ownerData.partyUUID.equals(targetData.partyUUID)) {
+                Party party = PartyController.Instance().getParty(ownerData.partyUUID);
+                if (party != null && !party.friendlyFire()) return true;
+            }
         }
 
         return false;

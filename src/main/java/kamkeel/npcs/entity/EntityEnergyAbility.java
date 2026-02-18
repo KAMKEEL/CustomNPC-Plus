@@ -66,7 +66,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     /**
      * Set charging state (server only, synced to clients via data watcher).
      */
-    protected void setCharging(boolean value) {
+    public void setCharging(boolean value) {
         this.charging = value;
         if (!worldObj.isRemote) {
             this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));

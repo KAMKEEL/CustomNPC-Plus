@@ -202,9 +202,13 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     /**
      * Fire an entity if it's valid.
+     * Clears charging state first so the entity can move and check collisions.
      */
     protected void fireEntitySafe(E entity, EntityLivingBase target) {
         if (entity != null && !entity.isDead) {
+            if (entity.isCharging()) {
+                entity.setCharging(false);
+            }
             fireEntity(entity, target);
         }
     }
@@ -261,6 +265,18 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
                 cleanup();
             }
             entities = createAllEntities(caster, target);
+
+            // If there's a fire delay, put unfired entities in charging state
+            // to prevent collision checks before they're actually fired.
+            // Entity[0] will be fired immediately below, so skip it.
+            if (fireDelay > 0 && projectileCount > 1) {
+                for (int i = 1; i < projectileCount; i++) {
+                    if (entities[i] != null) {
+                        entities[i].setCharging(true);
+                    }
+                }
+            }
+
             for (E entity : entities) {
                 spawnAbilityEntity(entity);
             }
@@ -299,7 +315,8 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
             if (entity == null || entity.isDead) continue;
 
             // Check if entity was removed from world (chunk unload, etc.)
-            if (tick > 5 && entity.worldObj != null
+            // Skip this check for preview entities - they're not registered in the world
+            if (!isPreview() && tick > 5 && entity.worldObj != null
                     && entity.worldObj.getEntityByID(entity.getEntityId()) != entity) {
                 entity.setDead();
                 continue;
