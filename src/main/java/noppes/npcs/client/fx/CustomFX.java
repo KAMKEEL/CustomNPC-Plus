@@ -84,6 +84,10 @@ public class CustomFX extends EntityFX {
         this.imageData = ClientCacheHandler.getImageData(this.directory);
     }
 
+    public void setMaxAge(int age) {
+        this.particleMaxAge = age;
+    }
+
     public static CustomFX fromScriptedParticle(ScriptParticle particle, World worldObj, Entity entity) {
         EntityClientPlayerMP player = Minecraft.getMinecraft().thePlayer;
         if (entity == player) {

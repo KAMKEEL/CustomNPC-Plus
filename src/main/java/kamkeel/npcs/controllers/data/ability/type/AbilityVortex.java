@@ -79,41 +79,50 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         getPulledEntities().clear();
         pullComplete = false;
         ticksSincePullDamage = 0;
 
-        if (aoe) {
-            AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
-            @SuppressWarnings("unchecked")
-            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+        if (!isPreview()) {
+            if (aoe) {
+                AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+                @SuppressWarnings("unchecked")
+                List<EntityLivingBase> entities = caster.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-            int count = 0;
-            for (EntityLivingBase entity : entities) {
-                if (entity == caster) continue;
-                if (entity.isDead) continue;
+                int count = 0;
+                for (EntityLivingBase entity : entities) {
+                    if (entity == caster) continue;
+                    if (entity.isDead) continue;
 
-                double dist = caster.getDistanceToEntity(entity);
-                if (dist <= pullRadius) {
-                    getPulledEntities().add(entity.getUniqueID());
-                    count++;
-                    if (count >= maxTargets) break;
+                    double dist = caster.getDistanceToEntity(entity);
+                    if (dist <= pullRadius) {
+                        getPulledEntities().add(entity.getUniqueID());
+                        count++;
+                        if (count >= maxTargets) break;
+                    }
                 }
-            }
-        } else {
-            // Single target mode - still check pullRadius
-            if (target != null && !target.isDead) {
-                double dist = caster.getDistanceToEntity(target);
-                if (dist <= pullRadius) {
-                    getPulledEntities().add(target.getUniqueID());
+            } else {
+                // NPC single-target mode: pull the aggro target
+                // Player: single-target mode has no effect (no target to pull — use AOE mode instead)
+                if (!isPlayerCaster(caster) && target != null && !target.isDead) {
+                    double dist = caster.getDistanceToEntity(target);
+                    if (dist <= pullRadius) {
+                        getPulledEntities().add(target.getUniqueID());
+                    }
                 }
             }
         }
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (isPreview()) {
+            // No entities to pull in preview, just run animation for a duration
+            if (tick >= 60) signalCompletion();
+            return;
+        }
+
         if (pullComplete || getPulledEntities().isEmpty()) {
             signalCompletion();
             return;
@@ -127,7 +136,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         ticksSincePullDamage++;
 
         for (UUID uuid : new HashSet<>(getPulledEntities())) {
-            EntityLivingBase entity = findEntity(caster, world, uuid);
+            EntityLivingBase entity = findEntity(caster, caster.worldObj, uuid);
             if (entity == null || entity.isDead) {
                 getPulledEntities().remove(uuid);
                 continue;
@@ -140,7 +149,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
             if (dist <= 1.5f) {
                 getPulledEntities().remove(uuid);
-                onTargetArrived(caster, entity, world);
+                onTargetArrived(caster, entity, caster.worldObj);
                 continue;
             }
 
@@ -155,7 +164,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             double nextZ = dz * factor;
 
             AxisAlignedBB nextBox = entity.boundingBox.copy().offset(nextX, nextY, nextZ);
-            if (!world.getCollidingBoundingBoxes(entity, nextBox).isEmpty()) {
+            if (!caster.worldObj.getCollidingBoundingBoxes(entity, nextBox).isEmpty()) {
                 getPulledEntities().remove(uuid);
                 continue;
             }
@@ -227,14 +236,14 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.pullRadius = nbt.hasKey("pullRadius") ? nbt.getFloat("pullRadius") : 8.0f;
-        this.pullStrength = nbt.hasKey("pullStrength") ? nbt.getFloat("pullStrength") : 0.8f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 0.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.0f;
-        this.aoe = nbt.hasKey("aoe") && nbt.getBoolean("aoe");
-        this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 5;
-        this.damageOnPull = nbt.hasKey("damageOnPull") && nbt.getBoolean("damageOnPull");
-        this.pullDamage = nbt.hasKey("pullDamage") ? nbt.getFloat("pullDamage") : 0.0f;
+        this.pullRadius = nbt.getFloat("pullRadius");
+        this.pullStrength = nbt.getFloat("pullStrength");
+        this.damage = nbt.getFloat("damage");
+        this.knockback = nbt.getFloat("knockback");
+        this.aoe = nbt.getBoolean("aoe");
+        this.maxTargets = nbt.getInteger("maxTargets");
+        this.damageOnPull = nbt.getBoolean("damageOnPull");
+        this.pullDamage = nbt.getFloat("pullDamage");
     }
 
     // Getters & Setters

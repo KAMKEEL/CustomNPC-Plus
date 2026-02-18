@@ -9,7 +9,6 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
 import noppes.npcs.client.gui.builder.FieldDef;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityHeavyHit;
@@ -28,6 +27,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     private float knockback = 2.0f;
     private float hitLength = 4.0f;   // How far in front of the caster the hit reaches
     private float hitWidth = 3.0f;    // How wide to each side (total width = hitWidth * 2)
+    private int activeDisplayTicks = 10; // How long active animation plays before completing
 
     public AbilityHeavyHit() {
         this.typeId = "ability.cnpc.heavy_hit";
@@ -67,59 +67,60 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        if (caster.worldObj.isRemote && !isPreview()) {
             signalCompletion();
             return;
         }
 
-        // Calculate forward and right vectors from caster yaw
-        float yawRad = (float) Math.toRadians(caster.rotationYaw);
-        double forwardX = -Math.sin(yawRad);
-        double forwardZ = Math.cos(yawRad);
-        double rightX = forwardZ;   // perpendicular right
-        double rightZ = -forwardX;
+        if (!isPreview()) {
+            // Calculate forward and right vectors from caster yaw
+            float yawRad = (float) Math.toRadians(caster.rotationYaw);
+            double forwardX = -Math.sin(yawRad);
+            double forwardZ = Math.cos(yawRad);
+            double rightX = forwardZ;   // perpendicular right
+            double rightZ = -forwardX;
 
-        // Search area: AABB that encompasses the rectangle
-        float searchDist = Math.max(hitLength, hitWidth) + 1.0f;
-        @SuppressWarnings("unchecked")
-        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(
-            caster, caster.boundingBox.expand(searchDist, 2, searchDist));
+            // Search area: AABB that encompasses the rectangle
+            float searchDist = Math.max(hitLength, hitWidth) + 1.0f;
+            @SuppressWarnings("unchecked")
+            List<Entity> entities = caster.worldObj.getEntitiesWithinAABBExcludingEntity(
+                caster, caster.boundingBox.expand(searchDist, 2, searchDist));
 
-        boolean anyHit = false;
-        for (Entity entity : entities) {
-            if (!(entity instanceof EntityLivingBase) || entity == caster) continue;
-            EntityLivingBase livingTarget = (EntityLivingBase) entity;
+            boolean anyHit = false;
+            for (Entity entity : entities) {
+                if (!(entity instanceof EntityLivingBase) || entity == caster) continue;
+                EntityLivingBase livingTarget = (EntityLivingBase) entity;
 
-            double dx = livingTarget.posX - caster.posX;
-            double dz = livingTarget.posZ - caster.posZ;
+                double dx = livingTarget.posX - caster.posX;
+                double dz = livingTarget.posZ - caster.posZ;
 
-            // Project onto forward direction (must be in front, within hitLength)
-            double forwardDist = dx * forwardX + dz * forwardZ;
-            if (forwardDist < 0 || forwardDist > hitLength) continue;
+                // Project onto forward direction (must be in front, within hitLength)
+                double forwardDist = dx * forwardX + dz * forwardZ;
+                if (forwardDist < 0 || forwardDist > hitLength) continue;
 
-            // Project onto right direction (must be within hitWidth to each side)
-            double sideDist = dx * rightX + dz * rightZ;
-            if (Math.abs(sideDist) > hitWidth) continue;
+                // Project onto right direction (must be within hitWidth to each side)
+                double sideDist = dx * rightX + dz * rightZ;
+                if (Math.abs(sideDist) > hitWidth) continue;
 
-            // Entity is within the rectangle - apply damage
-            boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockback);
-            if (wasHit) {
-                applyEffects(livingTarget);
-                anyHit = true;
+                // Entity is within the rectangle - apply damage
+                boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockback);
+                if (wasHit) {
+                    applyEffects(livingTarget);
+                    anyHit = true;
+                }
             }
-        }
 
-        // Play hit sound even if nothing was hit (the attack still happens)
-        if (!anyHit) {
-            world.playSoundAtEntity(caster, "random.anvil_land", 0.5f, 1.2f);
+            // Play hit sound even if nothing was hit (the attack still happens)
+            if (!anyHit) {
+                caster.worldObj.playSoundAtEntity(caster, "random.anvil_land", 0.5f, 1.2f);
+            }
         }
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Just enough delay to see the active animation
-        if (tick == 10)
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (tick >= activeDisplayTicks)
             signalCompletion();
     }
 
@@ -129,14 +130,16 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         nbt.setFloat("knockback", knockback);
         nbt.setFloat("hitLength", hitLength);
         nbt.setFloat("hitWidth", hitWidth);
+        nbt.setInteger("activeDisplayTicks", activeDisplayTicks);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
-        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 2.0f;
-        this.hitLength = nbt.hasKey("hitLength") ? nbt.getFloat("hitLength") : 4.0f;
-        this.hitWidth = nbt.hasKey("hitWidth") ? nbt.getFloat("hitWidth") : 3.0f;
+        this.damage = nbt.getFloat("damage");
+        this.knockback = nbt.getFloat("knockback");
+        this.hitLength = nbt.getFloat("hitLength");
+        this.hitWidth = nbt.getFloat("hitWidth");
+        this.activeDisplayTicks = nbt.hasKey("activeDisplayTicks") ? nbt.getInteger("activeDisplayTicks") : 10;
     }
 
     // Getters & Setters
@@ -172,6 +175,14 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.hitWidth = hitWidth;
     }
 
+    public int getActiveDisplayTicks() {
+        return activeDisplayTicks;
+    }
+
+    public void setActiveDisplayTicks(int activeDisplayTicks) {
+        this.activeDisplayTicks = activeDisplayTicks;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void getAbilityDefinitions(List<FieldDef> defs) {
@@ -185,6 +196,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
                 FieldDef.floatField("ability.hitLength", this::getHitLength, this::setHitLength),
                 FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth)
             ),
+            FieldDef.intField("ability.activeDisplayTicks", this::getActiveDisplayTicks, this::setActiveDisplayTicks).range(1, 200),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         ));
     }

@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
+import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
@@ -20,45 +21,8 @@ import java.util.List;
  */
 public class EntityAbilityOrb extends EntityAbilityProjectile {
 
-    // Charging state (during windup)
-    private boolean charging = false;
-    private int chargeDuration = 40;
-    private int chargeTick = 0;
-    private float targetSize = 1.0f; // Full size to grow to during charging
-
-    // Data watcher index for charging state (synced to clients)
-    private static final int DW_CHARGING = 20;
-
     public EntityAbilityOrb(World world) {
         super(world);
-    }
-
-    @Override
-    protected void entityInit() {
-        super.entityInit();
-        // Register data watcher for charging state
-        this.dataWatcher.addObject(DW_CHARGING, (byte) 0);
-    }
-
-    /**
-     * Check if orb is in charging state (synced via data watcher).
-     * In preview mode, uses local field since data watcher isn't synced.
-     */
-    public boolean isCharging() {
-        if (previewMode) {
-            return this.charging;
-        }
-        return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
-    }
-
-    /**
-     * Set charging state (server only, synced to clients via data watcher).
-     */
-    private void setCharging(boolean value) {
-        this.charging = value;
-        if (!worldObj.isRemote) {
-            this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));
-        }
     }
 
     /**
@@ -77,43 +41,7 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         this.homingData = homing;
 
         // Calculate initial velocity toward target
-        if (target != null) {
-            double dx = target.posX - x;
-            double dy = (target.posY + target.getEyeHeight()) - y;
-            double dz = target.posZ - z;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                this.motionX = (dx / len) * homing.speed;
-                this.motionY = (dy / len) * homing.speed;
-                this.motionZ = (dz / len) * homing.speed;
-            }
-        } else {
-            // Fire in NPC's facing direction
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            this.motionX = -Math.sin(yaw) * Math.cos(pitch) * homing.speed;
-            this.motionY = -Math.sin(pitch) * homing.speed;
-            this.motionZ = Math.cos(yaw) * Math.cos(pitch) * homing.speed;
-        }
-    }
-
-    /**
-     * Setup this orb in charging mode (for windup phase).
-     * The orb will grow from 0 to orbSize over chargeDuration ticks.
-     * Position follows the owner based on anchor point.
-     */
-    public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
-        setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
-        this.targetSize = this.size;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        calculateInitialVelocity(owner, target, x, y, z);
     }
 
     /**
@@ -161,8 +89,6 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        if (!isCharging()) return;
-
         setCharging(false);
 
         // Update start position to current position
@@ -196,9 +122,10 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
      * Called by ability when windup ends.
      */
     public void startMoving(EntityLivingBase target) {
-        if (!isCharging()) return;
-
         setCharging(false);
+
+        // For player casters, snap to look vector for crosshair-aligned launch
+        snapToPlayerLookVector();
 
         // Update start position to current position
         startX = posX;
@@ -299,47 +226,6 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         return true;
     }
 
-    private void updateHoming() {
-        if (!isHoming()) return;
-
-        Entity target = getTargetEntity();
-        if (target == null || !target.isEntityAlive()) return;
-
-        double dx = target.posX - posX;
-        double dy = (target.posY + target.getEyeHeight()) - posY;
-        double dz = target.posZ - posZ;
-        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-        if (dist <= getHomingRange() && dist > 0) {
-            // Calculate effective homing strength - increases when closer to commit to target
-            // This prevents orbiting behavior at close range
-            float effectiveStrength = getHomingStrength();
-            if (dist < getHomingRange() * 0.3) {
-                // Within 30% of homing range, dramatically increase strength to commit
-                effectiveStrength = Math.min(1.0f, getHomingStrength() * 2.5f);
-            } else if (dist < getHomingRange() * 0.6) {
-                // Within 60% of homing range, moderately increase strength
-                effectiveStrength = Math.min(0.8f, getHomingStrength() * 1.5f);
-            }
-
-            double desiredVX = (dx / dist) * getSpeed();
-            double desiredVY = (dy / dist) * getSpeed();
-            double desiredVZ = (dz / dist) * getSpeed();
-
-            motionX += (desiredVX - motionX) * effectiveStrength;
-            motionY += (desiredVY - motionY) * effectiveStrength;
-            motionZ += (desiredVZ - motionZ) * effectiveStrength;
-
-            // Normalize to maintain speed
-            double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
-            if (vLen > 0) {
-                motionX = (motionX / vLen) * getSpeed();
-                motionY = (motionY / vLen) * getSpeed();
-                motionZ = (motionZ / vLen) * getSpeed();
-            }
-        }
-    }
-
     private void checkBlockCollision() {
         Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
         Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
@@ -347,6 +233,9 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            if (!worldObj.isRemote) {
+                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
+            }
             hasHit = true;
             if (isExplosive()) {
                 posX = blockHit.hitVec.xCoord;
@@ -384,47 +273,6 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
         }
     }
 
-    /**
-     * Update during charging state - follow owner based on anchor point.
-     */
-    private void updateCharging() {
-        chargeTick++;
-
-        Entity owner = getOwnerEntity();
-        if (owner == null || owner.isDead) {
-            setDead();
-            return;
-        }
-
-        // Grow size based on charge progress
-        float progress = getChargeProgress();
-        this.size = targetSize * progress;
-
-        // Calculate position based on anchor point, offset downward by half size to center
-        if (owner instanceof EntityLivingBase) {
-            Vec3 pos = AnchorPointHelper.calculateAnchorPosition((EntityLivingBase) owner, anchorData);
-            setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        }
-    }
-
-    /**
-     * Get the charge progress (0-1).
-     */
-    public float getChargeProgress() {
-        if (chargeDuration <= 0) return 1.0f;
-        return Math.min(1.0f, (float) chargeTick / chargeDuration);
-    }
-
-    /**
-     * Get interpolated charge progress for smooth rendering.
-     */
-    public float getInterpolatedChargeProgress(float partialTicks) {
-        if (chargeDuration <= 0) return 1.0f;
-        float prevProgress = Math.max(0, (float) (chargeTick - 1) / chargeDuration);
-        float currProgress = Math.min(1.0f, (float) chargeTick / chargeDuration);
-        return prevProgress + (currProgress - prevProgress) * partialTicks;
-    }
-
     // ==================== GETTERS ====================
 
     // Legacy getter for renderer compatibility
@@ -436,22 +284,11 @@ public class EntityAbilityOrb extends EntityAbilityProjectile {
 
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
-        // Charging state
-        boolean isCharging = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
-        this.charging = isCharging;
-        this.dataWatcher.updateObject(DW_CHARGING, (byte) (isCharging ? 1 : 0));
-        this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 40;
-        this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
-        this.targetSize = nbt.hasKey("TargetSize") ? nbt.getFloat("TargetSize") : this.size;
+        readChargingNBT(nbt);
     }
 
     @Override
     protected void writeProjectileNBT(NBTTagCompound nbt) {
-        // Charging state
-        nbt.setBoolean("Charging", isCharging());
-        nbt.setInteger("ChargeDuration", chargeDuration);
-        nbt.setInteger("ChargeTick", chargeTick);
-        anchorData.writeNBT(nbt);
-        nbt.setFloat("TargetSize", targetSize);
+        writeChargingNBT(nbt);
     }
 }

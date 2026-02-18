@@ -308,6 +308,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     @Override
     public void onUpdate() {
         super.onUpdate();
+
+        // Re-apply locks after super.onUpdate() to override body rotation smoothing
+        // in EntityLivingBase.onUpdate() (func_110146_f) which runs AFTER onLivingUpdate()
+        // and overwrites renderYawOffset, causing a visible twitch each frame.
+        abilities.applyRotationControl();
+        abilities.applyLockedPosition();
+
         if (!isRemote()) {
             if (this.ticksExisted % 10 == 0) {
                 EventHooks.onNPCUpdate(this);
@@ -377,11 +384,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             }
         }
 
-        if (stats.potionType != EnumPotionType.None) {
-            if (stats.potionType != EnumPotionType.Fire)
-                ((EntityLivingBase) receiver).addPotionEffect(new PotionEffect(this.getPotionEffect(stats.potionType), stats.potionDuration * 20, stats.potionAmp));
-            else
-                receiver.setFire(stats.potionDuration);
+        if (stats.potionType == EnumPotionType.Fire) {
+            receiver.setFire(stats.potionDuration);
+        } else if (stats.potionType != EnumPotionType.None) {
+            int potionId = stats.potionType.getResolvedPotionId(stats.potionManualId);
+            if (EnumPotionType.isValidPotionId(potionId)) {
+                ((EntityLivingBase) receiver).addPotionEffect(new PotionEffect(potionId, stats.potionDuration * 20, stats.potionAmp));
+            }
         }
         return didAttack;
     }
@@ -481,8 +490,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         super.onLivingUpdate();
 
-        // Apply locked rotation after super.onLivingUpdate() to override look helper changes
-        abilities.applyLockedRotation();
+        // Apply locks after super.onLivingUpdate() to override AI/physics changes
+        abilities.applyRotationControl();
+        abilities.applyLockedPosition();
 
         handleMountRiderState();
 
@@ -669,6 +679,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         if (entity instanceof EntityLivingBase)
             attackingEntity = (EntityLivingBase) entity;
+
+        if (faction.isPassive)
+            return false;
 
         if (attackingEntity != null && attackingEntity == getOwner())
             return false;
@@ -1032,29 +1045,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         return weight;
     }
 
-    /*
-     * Used for getting the applied potion effect from dataStats.
-     */
-    private int getPotionEffect(EnumPotionType p) {
-        switch (p) {
-            case Poison:
-                return Potion.poison.id;
-            case Hunger:
-                return Potion.hunger.id;
-            case Weakness:
-                return Potion.weakness.id;
-            case Slowness:
-                return Potion.moveSlowdown.id;
-            case Nausea:
-                return Potion.confusion.id;
-            case Blindness:
-                return Potion.blindness.id;
-            case Wither:
-                return Potion.wither.id;
-            default:
-                return 0;
-        }
-    }
 
     @Override
     public void setAir(int air) {

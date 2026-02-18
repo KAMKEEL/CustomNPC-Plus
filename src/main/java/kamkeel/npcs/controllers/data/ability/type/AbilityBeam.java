@@ -2,53 +2,41 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.RotationMode;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.*;
-import kamkeel.npcs.controllers.data.telegraph.Telegraph;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.util.AnchorPointHelper;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
-import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import noppes.npcs.api.ability.type.IAbilityEnergyBeam;
+import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.Arrays;
 import java.util.List;
-import noppes.npcs.entity.EntityNPCInterface;
 
 /**
  * Energy Beam ability: A homing head with a trailing path.
- * The beam stays attached to the origin and curves as it homes in on target.
- * Cannot cross over itself (self-intersection prevention).
+ * Supports 1-8 projectiles with shared visuals and per-projectile anchor points.
  */
-public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
+public class AbilityBeam extends AbstractEnergyProjectileAbility<EntityAbilityBeam> implements IAbilityEnergyBeam {
 
-    // Shape properties (standalone)
     private float beamWidth = 0.4f;
     private float headSize = 0.6f;
 
-    // Data classes
-    private final EnergyDisplayData colorData = new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f);
-    private final EnergyCombatData combatData = new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f);
-    private final EnergyHomingData homingData = new EnergyHomingData(0.4f, true, 0.1f, 15.0f);
-    private final EnergyLightningData lightningData = new EnergyLightningData();
-    private final EnergyLifespanData lifespanData = new EnergyLifespanData(25.0f, 200);
-    private final EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.RIGHT_HAND);
-    private final EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
-
-    // Transient state for beam entity (used during windup charging)
-    private transient EntityAbilityBeam beamEntity = null;
-
     public AbilityBeam() {
+        super(
+            new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
+            new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f),
+            new EnergyHomingData(0.4f, true, 0.1f, 15.0f),
+            new EnergyLifespanData(25.0f, 200)
+        );
         this.typeId = "ability.cnpc.beam";
         this.name = "Beam";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
@@ -57,291 +45,143 @@ public class AbilityBeam extends Ability implements IAbilityEnergyBeam {
         this.cooldownTicks = 0;
         this.windUpTicks = 40;
         this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
+        this.rotationMode = RotationMode.TRACK;
+        this.rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
-        // Default built-in animations
         this.windUpAnimationName = "Ability_Beam_Windup";
         this.activeAnimationName = "Ability_Beam_Active";
     }
 
+    // ==================== ABSTRACT IMPLEMENTATIONS ====================
+
     @Override
-    public boolean isTargetingModeLocked() {
-        return true;
+    protected EntityAbilityBeam createEntity(EntityLivingBase caster, EntityLivingBase target,
+                                              Vec3 spawnPos, EnergyDisplayData resolved, int index) {
+        return new EntityAbilityBeam(
+            caster.worldObj, caster, target,
+            spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
+            beamWidth, headSize,
+            resolved, combatData, homingData, lightningData, lifespanData, trajectoryData,
+            lockMovement.locksActive());
     }
 
     @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
-    }
-
-    @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
-            signalCompletion();
-            return;
-        }
-
-        // Start firing the beam that was spawned during windup
-        if (beamEntity != null && !beamEntity.isDead) {
-            beamEntity.startFiring(target);
-        }
-
-        // Ability stays active until entity dies (prevents firing another while projectile is alive)
-        // Movement locking is handled separately by the base class
-    }
-
-    @Override
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
-
-        // Spawn beam in charging mode on first tick of windup
-        if (tick == 1) {
-            float offsetDist = 1.0f;
-
-            // Create beam in charging mode - follows caster based on anchor point during windup
-            Vec3 spawnPos = AnchorPointHelper.calculateAnchorPosition(caster, anchorData, offsetDist);
-            beamEntity = new EntityAbilityBeam(
-                world, caster, target,
-                spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
-                beamWidth, headSize,
-                colorData, combatData, homingData, lightningData, lifespanData, trajectoryData,
-                lockMovement.locksActive());
-            beamEntity.setupCharging(anchorData, windUpTicks, offsetDist);
-
-            beamEntity.setEffects(this.effects);
-            beamEntity.setSourceAbility(this);
-            world.spawnEntityInWorld(beamEntity);
+    protected void fireEntity(EntityAbilityBeam beam, EntityLivingBase target) {
+        if (isPreview()) {
+            beam.startPreviewFiring();
+        } else {
+            beam.startFiring(target);
         }
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // Signal completion when entity dies
-        if (beamEntity == null || beamEntity.isDead) {
-            beamEntity = null;
-            signalCompletion();
-        }
+    protected void setupEntityCharging(EntityAbilityBeam beam, ProjectileData projData, int index) {
+        beam.setupCharging(projData.anchor, windUpTicks, 1.0f);
     }
 
     @Override
-    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    protected void setupEntityPreview(EntityAbilityBeam beam, EntityLivingBase caster,
+                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
+        beam.setupPreview(caster, beamWidth, headSize, resolved, lightningData, projData.anchor, windUpTicks, 1.0f);
     }
 
     @Override
-    public void onInterrupt(EntityLivingBase caster, net.minecraft.util.DamageSource source, float damage) {
-        cleanup();
+    protected EntityAbilityBeam[] createEntityArray(int size) {
+        return new EntityAbilityBeam[size];
     }
 
     @Override
-    public void cleanup() {
-        // Despawn beam entity if still alive
-        if (beamEntity != null && !beamEntity.isDead) {
-            beamEntity.setDead();
-        }
-        beamEntity = null;
-    }
-
-    @Override
-    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        if (!showTelegraph || telegraphType == TelegraphType.NONE || target == null) {
-            return null;
-        }
-
-        // Create circle telegraph at target position
-        Telegraph telegraph = Telegraph.circle(headSize * 2.0f);
-        telegraph.setDurationTicks(windUpTicks);
-        telegraph.setColor(windUpColor);
-        telegraph.setWarningColor(activeColor);
-        telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
-        telegraph.setHeightOffset(telegraphHeightOffset);
-
-        // Position at target and follow target during windup
-        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, caster.rotationYaw);
-        instance.setCasterEntityId(caster.getEntityId());
-        instance.setEntityIdToFollow(target.getEntityId());
-
-        return instance;
-    }
-
-    @Override
-    public float getTelegraphRadius() {
+    protected float getProjectileTelegraphRadius() {
         return headSize * 2.0f;
     }
 
     @Override
-    public void writeTypeNBT(NBTTagCompound nbt) {
+    protected Vec3 getSpawnPosition(EntityLivingBase caster, int index) {
+        return AnchorPointHelper.calculateAnchorPosition(caster, projectiles[index].anchor, 1.0f);
+    }
+
+    // ==================== VARIANTS ====================
+
+    @Override
+    public List<AbilityVariant> getVariants() {
+        return Arrays.asList(
+            new AbilityVariant("ability.variant.single", a -> {
+                a.setName("Beam");
+            }),
+            new AbilityVariant("ability.variant.dual", a -> {
+                AbilityBeam beam = (AbilityBeam) a;
+                a.setName("Dual Beam");
+                beam.setProjectileCount(2);
+                beam.setFireDelay(0);
+                beam.projectiles[1].colorOverride = true;
+                beam.projectiles[1].innerColor = 0xFFFFFF;
+                beam.projectiles[1].outerColor = 0xFF0000;
+                a.setWindUpTicks(80);
+                a.setWindUpAnimationName("Ability_BeamDual_Windup");
+                a.setActiveAnimationName("Ability_BeamDual_Active");
+            })
+        );
+    }
+
+    // ==================== TYPE-SPECIFIC NBT ====================
+
+    @Override
+    protected void writeTypeSpecificNBT(NBTTagCompound nbt) {
         nbt.setFloat("beamWidth", beamWidth);
         nbt.setFloat("headSize", headSize);
-        anchorData.writeNBT(nbt);
-        colorData.writeNBT(nbt);
-        combatData.writeNBT(nbt);
-        homingData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
-        lifespanData.writeNBT(nbt);
     }
 
     @Override
-    public void readTypeNBT(NBTTagCompound nbt) {
-        this.beamWidth = nbt.hasKey("beamWidth") ? nbt.getFloat("beamWidth") : 0.4f;
-        this.headSize = nbt.hasKey("headSize") ? nbt.getFloat("headSize") : 0.6f;
-        anchorData.readNBT(nbt);
-        colorData.readNBT(nbt);
-        combatData.readNBT(nbt);
-        homingData.readNBT(nbt);
-        lightningData.readNBT(nbt);
-        lifespanData.readNBT(nbt);
+    protected void readTypeSpecificNBT(NBTTagCompound nbt) {
+        this.beamWidth = nbt.getFloat("beamWidth");
+        this.headSize = nbt.getFloat("headSize");
     }
 
-    // Getters & Setters - Standalone fields
+    // ==================== TYPE-SPECIFIC GETTERS ====================
+
+    public float getSpeed() { return homingData.speed; }
+    public void setSpeed(float speed) { homingData.speed = speed; }
+
     public float getBeamWidth() { return beamWidth; }
     public void setBeamWidth(float beamWidth) { this.beamWidth = beamWidth; }
+
     public float getHeadSize() { return headSize; }
     public void setHeadSize(float headSize) { this.headSize = headSize; }
 
-    // Getters & Setters - Color data
-    public int getInnerColor() { return colorData.innerColor; }
-    public void setInnerColor(int innerColor) { this.colorData.innerColor = innerColor; }
-    public int getOuterColor() { return colorData.outerColor; }
-    public void setOuterColor(int outerColor) { this.colorData.outerColor = outerColor; }
-    public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
-    public void setOuterColorEnabled(boolean outerColorEnabled) { this.colorData.outerColorEnabled = outerColorEnabled; }
-    public float getOuterColorWidth() { return colorData.outerColorWidth; }
-    public void setOuterColorWidth(float outerColorWidth) { this.colorData.outerColorWidth = outerColorWidth; }
-    public float getOuterColorAlpha() { return colorData.outerColorAlpha; }
-    public void setOuterColorAlpha(float outerColorAlpha) { this.colorData.outerColorAlpha = outerColorAlpha; }
-    public float getRotationSpeed() { return colorData.rotationSpeed; }
-    public void setRotationSpeed(float rotationSpeed) { this.colorData.rotationSpeed = rotationSpeed; }
-
-    // Getters & Setters - Combat data
-    public float getDamage() { return combatData.damage; }
-    public void setDamage(float damage) { this.combatData.damage = damage; }
-    public float getKnockback() { return combatData.knockback; }
-    public void setKnockback(float knockback) { this.combatData.knockback = knockback; }
-    public float getKnockbackUp() { return combatData.knockbackUp; }
-    public void setKnockbackUp(float knockbackUp) { this.combatData.knockbackUp = knockbackUp; }
-    public boolean isExplosive() { return combatData.explosive; }
-    public void setExplosive(boolean explosive) { this.combatData.explosive = explosive; }
-    public float getExplosionRadius() { return combatData.explosionRadius; }
-    public void setExplosionRadius(float explosionRadius) { this.combatData.explosionRadius = explosionRadius; }
-    public float getExplosionDamageFalloff() { return combatData.explosionDamageFalloff; }
-    public void setExplosionDamageFalloff(float explosionDamageFalloff) { this.combatData.explosionDamageFalloff = explosionDamageFalloff; }
-
-    // Getters & Setters - Homing data
-    public float getSpeed() { return homingData.speed; }
-    public void setSpeed(float speed) { this.homingData.speed = speed; }
-    public boolean isHoming() { return homingData.homing; }
-    public void setHoming(boolean homing) { this.homingData.homing = homing; }
-    public float getHomingStrength() { return homingData.homingStrength; }
-    public void setHomingStrength(float homingStrength) { this.homingData.homingStrength = homingStrength; }
-    public float getHomingRange() { return homingData.homingRange; }
-    public void setHomingRange(float homingRange) { this.homingData.homingRange = homingRange; }
-
-    // Getters & Setters - Lightning data
-    public boolean hasLightningEffect() { return lightningData.lightningEffect; }
-    public void setLightningEffect(boolean lightningEffect) { this.lightningData.lightningEffect = lightningEffect; }
-    public float getLightningDensity() { return lightningData.lightningDensity; }
-    public void setLightningDensity(float lightningDensity) { this.lightningData.lightningDensity = lightningDensity; }
-    public float getLightningRadius() { return lightningData.lightningRadius; }
-    public void setLightningRadius(float lightningRadius) { this.lightningData.lightningRadius = lightningRadius; }
-
-    // Getters & Setters - Lifespan data
-    public float getMaxDistance() { return lifespanData.maxDistance; }
-    public void setMaxDistance(float maxDistance) { this.lifespanData.maxDistance = maxDistance; }
-    public int getMaxLifetime() { return lifespanData.maxLifetime; }
-    public void setMaxLifetime(int maxLifetime) { this.lifespanData.maxLifetime = maxLifetime; }
-
-    // Getters & Setters - Anchor point
-    public AnchorPoint getAnchorPointEnum() { return anchorData.anchorPoint; }
-    public float getAnchorOffsetX() { return anchorData.anchorOffsetX; }
-    public float getAnchorOffsetY() { return anchorData.anchorOffsetY; }
-    public float getAnchorOffsetZ() { return anchorData.anchorOffsetZ; }
-    public void setAnchorPointEnum(AnchorPoint anchorPoint) { this.anchorData.anchorPoint = anchorPoint; }
-    public void setAnchorOffsetX(float x) { this.anchorData.anchorOffsetX = x; }
-    public void setAnchorOffsetY(float y) { this.anchorData.anchorOffsetY = y; }
-    public void setAnchorOffsetZ(float z) { this.anchorData.anchorOffsetZ = z; }
-
-    @Override
-    public int getAnchorPoint() { return anchorData.anchorPoint.ordinal(); }
-
-    @Override
-    public void setAnchorPoint(int point) { this.anchorData.anchorPoint = AnchorPoint.fromOrdinal(point); }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        if (npc == null || npc.worldObj == null) return null;
-
-        EntityAbilityBeam beam = new EntityAbilityBeam(npc.worldObj);
-        beam.setupPreview(npc, beamWidth, headSize, colorData, lightningData, anchorData, windUpTicks, 1.0f);
-        return beam;
-    }
-
-    @Override
-    public int getPreviewActiveDuration() {
-        return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 100) : 100;
-    }
+    // ==================== TYPE-SPECIFIC GUI ====================
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void getAbilityDefinitions(List<FieldDef> defs) {
-        defs.addAll(Arrays.asList(
-            // Type tab
-            FieldDef.row(
-                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
-                FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
-            ),
-            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
-            FieldDef.section("ability.section.beam"),
-            FieldDef.row(
-                FieldDef.floatField("ability.beamWidth", this::getBeamWidth, this::setBeamWidth),
-                FieldDef.floatField("ability.headSize", this::getHeadSize, this::setHeadSize)
-            ),
-            FieldDef.row(
-                FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
-                FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
-            ),
-            FieldDef.section("ability.section.homing"),
-            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming)
-                .hover("ability.hover.homing"),
-            FieldDef.row(
-                FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength)
-                    .visibleWhen(this::isHoming),
-                FieldDef.floatField("gui.range", this::getHomingRange, this::setHomingRange)
-                    .visibleWhen(this::isHoming)
-            ),
-            FieldDef.section("ability.section.explosive"),
-            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive)
-                .hover("ability.hover.explosive"),
-            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
-                .visibleWhen(this::isExplosive),
-            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects),
-            // Visual tab
-            FieldDef.enumField("ability.anchorPoint", AnchorPoint.class, this::getAnchorPointEnum, this::setAnchorPointEnum)
-                .tab("ability.tab.visual"),
-            FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
-            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-                .tab("ability.tab.visual"),
-            FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
-                .tab("ability.tab.visual"),
-            FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
-            FieldDef.row(
-                FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
-                    .visibleWhen(this::isOuterColorEnabled),
-                FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
-                    .range(0, 1).visibleWhen(this::isOuterColorEnabled)
-            ).tab("ability.tab.visual"),
-            FieldDef.section("ability.section.effects").tab("ability.tab.visual"),
-            FieldDef.floatField("ability.rotationSpeed", this::getRotationSpeed, this::setRotationSpeed)
-                .tab("ability.tab.visual"),
-            FieldDef.boolField("ability.lightning", this::hasLightningEffect, this::setLightningEffect)
-                .tab("ability.tab.visual"),
-            FieldDef.row(
-                FieldDef.floatField("gui.density", this::getLightningDensity, this::setLightningDensity)
-                    .range(0.01f, 100f).visibleWhen(this::hasLightningEffect),
-                FieldDef.floatField("gui.radius", this::getLightningRadius, this::setLightningRadius)
-                    .range(0.1f, 100f).visibleWhen(this::hasLightningEffect)
-            ).tab("ability.tab.visual")
+    protected void addTypeDefinitions(List<FieldDef> defs) {
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.projectileCount", this::getProjectileCount, this::setProjectileCount).range(1, MAX_PROJECTILES),
+            FieldDef.intField("ability.fireDelay", this::getFireDelay, this::setFireDelay)
+                .range(0, 200).visibleWhen(() -> projectileCount > 1)
         ));
+        defs.add(FieldDef.row(
+            FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+            FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
+        ));
+        defs.add(FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback));
+        defs.add(FieldDef.section("ability.section.beam"));
+        defs.add(FieldDef.row(
+            FieldDef.floatField("ability.beamWidth", this::getBeamWidth, this::setBeamWidth),
+            FieldDef.floatField("ability.headSize", this::getHeadSize, this::setHeadSize)
+        ));
+        defs.add(FieldDef.row(
+            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+        ));
+        defs.add(FieldDef.section("ability.section.homing"));
+        defs.add(FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"));
+        defs.add(FieldDef.row(
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
+            FieldDef.floatField("gui.range", this::getHomingRange, this::setHomingRange).visibleWhen(this::isHoming)
+        ));
+        defs.add(FieldDef.section("ability.section.explosive"));
+        defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
+        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));
+        defs.add(AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects));
     }
 }

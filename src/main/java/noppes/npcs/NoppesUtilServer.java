@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.ParticlePacket;
@@ -780,10 +781,27 @@ public class NoppesUtilServer {
         if (controller != null) {
             int index = 0;
             for (String typeId : controller.getTypes()) {
+                // Exclude built-in types from the NPC type list
+                if (controller.isBuiltInType(typeId)) continue;
                 map.put(typeId, index++);
             }
         }
         sendScrollData(player, map, EnumScrollData.ABILITY_TYPES);
+    }
+
+    public static void sendBuiltInAbilitiesData(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        AbilityController controller = AbilityController.Instance;
+        if (controller != null) {
+            int index = 0;
+            for (String name : controller.getAbilityNames()) {
+                Ability ability = controller.getAbility(name);
+                if (ability != null) {
+                    map.put(ability.getName(), index++);
+                }
+            }
+        }
+        sendScrollData(player, map, EnumScrollData.BUILTIN_ABILITIES);
     }
 
     public static void sendCustomAbilitiesData(EntityPlayerMP player) {
@@ -792,6 +810,9 @@ public class NoppesUtilServer {
         if (controller != null) {
             int index = 0;
             for (String uuid : controller.getCustomAbilityIds()) {
+                Ability ability = controller.getCustomAbility(uuid);
+                if (ability == null || !ability.getAllowedBy().allowsNpc()) continue;
+
                 String name = controller.getCustomAbilityName(uuid);
                 if (name == null || name.isEmpty()) name = uuid;
                 map.put(name + "\t" + uuid, index++);

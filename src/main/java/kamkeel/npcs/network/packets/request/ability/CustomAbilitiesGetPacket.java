@@ -47,5 +47,6 @@ public final class CustomAbilitiesGetPacket extends AbstractPacket {
             return;
 
         NoppesUtilServer.sendCustomAbilitiesData((EntityPlayerMP) player);
+        NoppesUtilServer.sendBuiltInAbilitiesData((EntityPlayerMP) player);
     }
 }

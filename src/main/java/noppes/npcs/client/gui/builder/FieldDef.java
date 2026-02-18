@@ -32,8 +32,8 @@ public class FieldDef {
     private String hoverText = null;
 
     // Numeric range
-    private float min = Float.MIN_VALUE;
-    private float max = Float.MAX_VALUE;
+    private float min = 0;
+    private float max = Float.POSITIVE_INFINITY;
 
     // Enum support
     private Class<? extends Enum<?>> enumClass;
@@ -154,8 +154,8 @@ public class FieldDef {
 
     public static FieldDef colorSubGui(String label, Supplier<Integer> getter, Consumer<Integer> setter) {
         return subGuiField(label,
-            () -> new SubGuiColorSelector(getter.get()),
-            gui -> setter.accept(((SubGuiColorSelector) gui).color & 0x00FFFFFF))
+            () -> new SubGuiColorSelector(getter.get() & 0xFFFFFF),
+            gui -> setter.accept((((SubGuiColorSelector) gui).color & 0x00FFFFFF) | (getter.get() & 0xFF000000)))
             .buttonLabel(() -> String.format("%06X", getter.get() & 0xFFFFFF))
             .buttonTextColor(() -> getter.get() & 0xFFFFFF);
     }
@@ -272,7 +272,7 @@ public class FieldDef {
     public String getHoverText() { return hoverText; }
     public float getMin() { return min; }
     public float getMax() { return max; }
-    public boolean hasRange() { return min != Float.MIN_VALUE || max != Float.MAX_VALUE; }
+    public boolean hasRange() { return min != Float.NEGATIVE_INFINITY || max != Float.POSITIVE_INFINITY; }
     public Class<? extends Enum<?>> getEnumClass() { return enumClass; }
     public String[] getStringEnumValues() { return stringEnumValues; }
     public Supplier<SubGuiInterface> getSubGuiFactory() { return subGuiFactory; }

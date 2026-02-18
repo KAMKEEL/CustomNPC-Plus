@@ -2,66 +2,24 @@ package kamkeel.npcs.controllers.data.ability;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import noppes.npcs.constants.EnumPotionType;
 
 /**
  * Represents a configurable potion effect that can be applied by abilities.
- * Provides a unified system for managing debuffs like slowness, weakness, poison, etc.
+ * Uses the unified EnumPotionType enum shared across melee, ranged, and ability systems.
  */
 public class AbilityEffect {
 
-    public enum EffectType {
-        NONE("gui.none", -1),
-        SLOWNESS("potion.moveSlowdown", Potion.moveSlowdown.id),
-        WEAKNESS("potion.weakness", Potion.weakness.id),
-        POISON("potion.poison", Potion.poison.id),
-        WITHER("potion.wither", Potion.wither.id),
-        BLINDNESS("potion.blindness", Potion.blindness.id),
-        NAUSEA("potion.confusion", Potion.confusion.id),
-        HUNGER("potion.hunger", Potion.hunger.id),
-        MINING_FATIGUE("potion.digSlowDown", Potion.digSlowdown.id);
-
-        private final String langKey;
-        private final int potionId;
-
-        EffectType(String langKey, int potionId) {
-            this.langKey = langKey;
-            this.potionId = potionId;
-        }
-
-        public String getLangKey() {
-            return langKey;
-        }
-
-        public int getPotionId() {
-            return potionId;
-        }
-
-        public static String[] getLangKeys() {
-            EffectType[] types = values();
-            String[] keys = new String[types.length];
-            for (int i = 0; i < types.length; i++) keys[i] = types[i].langKey;
-            return keys;
-        }
-
-        public static EffectType fromOrdinal(int ordinal) {
-            EffectType[] values = values();
-            if (ordinal >= 0 && ordinal < values.length) {
-                return values[ordinal];
-            }
-            return NONE;
-        }
-    }
-
-    private EffectType type = EffectType.NONE;
+    private EnumPotionType type = EnumPotionType.None;
+    private int manualPotionId = 0;
     private int durationTicks = 60;
     private int amplifier = 0;  // 0-10
 
     public AbilityEffect() {
     }
 
-    public AbilityEffect(EffectType type, int durationTicks, int amplifier) {
+    public AbilityEffect(EnumPotionType type, int durationTicks, int amplifier) {
         this.type = type;
         this.durationTicks = Math.max(1, durationTicks);
         this.amplifier = Math.max(0, Math.min(10, amplifier));
@@ -71,20 +29,27 @@ public class AbilityEffect {
      * Creates a copy of this effect.
      */
     public AbilityEffect copy() {
-        return new AbilityEffect(type, durationTicks, amplifier);
+        AbilityEffect copy = new AbilityEffect(type, durationTicks, amplifier);
+        copy.manualPotionId = this.manualPotionId;
+        return copy;
     }
 
     /**
      * Applies this effect to the given entity.
-     * Does nothing if type is NONE.
+     * Does nothing if type is None. Validates potion IDs before applying.
      */
     public void apply(EntityLivingBase entity) {
-        if (entity == null || type == EffectType.NONE) {
+        if (entity == null || type == EnumPotionType.None) {
             return;
         }
 
-        int potionId = type.getPotionId();
-        if (potionId >= 0) {
+        if (type == EnumPotionType.Fire) {
+            entity.setFire(Math.max(1, durationTicks / 20));
+            return;
+        }
+
+        int potionId = type.getResolvedPotionId(manualPotionId);
+        if (EnumPotionType.isValidPotionId(potionId)) {
             entity.addPotionEffect(new PotionEffect(potionId, durationTicks, amplifier));
         }
     }
@@ -94,9 +59,12 @@ public class AbilityEffect {
      */
     public NBTTagCompound writeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
-        nbt.setInteger("type", type.ordinal());
+        nbt.setInteger("potionType", type.ordinal());
         nbt.setInteger("duration", durationTicks);
         nbt.setInteger("amplifier", amplifier);
+        if (type == EnumPotionType.Manual) {
+            nbt.setInteger("manualPotionId", manualPotionId);
+        }
         return nbt;
     }
 
@@ -104,9 +72,12 @@ public class AbilityEffect {
      * Reads this effect from NBT.
      */
     public void readNBT(NBTTagCompound nbt) {
-        this.type = EffectType.fromOrdinal(nbt.getInteger("type"));
-        this.durationTicks = nbt.hasKey("duration") ? nbt.getInteger("duration") : 60;
-        this.amplifier = nbt.hasKey("amplifier") ? nbt.getInteger("amplifier") : 0;
+        this.type = EnumPotionType.fromOrdinal(nbt.getInteger("potionType"));
+        this.durationTicks = nbt.getInteger("duration");
+        this.amplifier = nbt.getInteger("amplifier");
+        if (type == EnumPotionType.Manual) {
+            this.manualPotionId = nbt.getInteger("manualPotionId");
+        }
     }
 
     /**
@@ -120,12 +91,20 @@ public class AbilityEffect {
 
     // Getters & Setters
 
-    public EffectType getType() {
+    public EnumPotionType getType() {
         return type;
     }
 
-    public void setType(EffectType type) {
-        this.type = type != null ? type : EffectType.NONE;
+    public void setType(EnumPotionType type) {
+        this.type = type != null ? type : EnumPotionType.None;
+    }
+
+    public int getManualPotionId() {
+        return manualPotionId;
+    }
+
+    public void setManualPotionId(int manualPotionId) {
+        this.manualPotionId = Math.max(0, manualPotionId);
     }
 
     public int getDurationTicks() {
@@ -145,9 +124,9 @@ public class AbilityEffect {
     }
 
     /**
-     * Returns true if this effect is configured (not NONE).
+     * Returns true if this effect is configured (not None).
      */
     public boolean isValid() {
-        return type != EffectType.NONE;
+        return type != EnumPotionType.None;
     }
 }

@@ -6,6 +6,7 @@ import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.CustomNPCsException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -344,6 +345,10 @@ public class Action implements IAction {
         try {
             onStart.accept(this);
         } catch (Throwable t) {
+            String err = "IAction"  + getName() + "  onStart threw an exception:";
+            if (reportTo != null)
+                reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
+            
             manager.LOGGER.error("onStart Task of " + this + " threw an exception:", t);
         }
 
@@ -359,6 +364,11 @@ public class Action implements IAction {
             task.accept(this);
             count++;
         } catch (Throwable t) {
+            String err = "IAction '" + name + "' threw an exception:";
+
+            if (reportTo != null)
+                reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
+
             manager.LOGGER.error("Task of " + this + " threw an exception:", t);
             markDone();
         }
@@ -374,6 +384,10 @@ public class Action implements IAction {
         try {
             onDone.accept(this);
         } catch (Throwable t) {
+            String err = "IAction"  + getName() + "  onDone threw an exception:";
+            if (reportTo != null)
+                reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
+
             manager.LOGGER.error("onDone Task of " + this + " threw an exception:", t);
         }
 

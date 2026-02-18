@@ -7,6 +7,7 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.ITimers;
 import noppes.npcs.api.ability.IDataAbilities;
 import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.data.IModelData;
@@ -28,6 +29,7 @@ import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.EnumStandingType;
+import kamkeel.npcs.entity.EntityAbilityProjectile;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.Line;
@@ -1462,5 +1464,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
     public IDataAbilities getAbilityData() {
         return new ScriptDataAbilities(npc);
+    }
+
+    public IEnergyProjectile[] getActiveEnergyProjectiles() {
+        java.util.List<EntityAbilityProjectile> entities = EntityAbilityProjectile.getActiveProjectiles(npc.getEntityId());
+        IEnergyProjectile[] result = new IEnergyProjectile[entities.size()];
+        for (int i = 0; i < entities.size(); i++) {
+            result[i] = (IEnergyProjectile) NpcAPI.Instance().getIEntity(entities.get(i));
+        }
+        return result;
     }
 }

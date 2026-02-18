@@ -120,6 +120,9 @@ public class GuiFieldBuilder {
                 continue;
             }
 
+            // Skip invisible fields
+            if (!def.isVisible()) continue;
+
             // Section header
             if (def.getType() == FieldType.SECTION_HEADER) {
                 y += 3;
@@ -391,7 +394,7 @@ public class GuiFieldBuilder {
 
     /**
      * Handles text field unfocus events for declarative fields.
-     * Call from parent GUI's unFocused(). Returns true if the event was handled.
+     * Call from parent GUI's unFocused(). Returns true if the value actually changed.
      */
     public boolean handleTextFieldEvent(int textFieldId, GuiNpcTextField field) {
         FieldDef def = textFieldMap.get(textFieldId);
@@ -399,14 +402,36 @@ public class GuiFieldBuilder {
 
         switch (def.getType()) {
             case FLOAT:
-                try { def.setValue(Float.parseFloat(field.getText())); } catch (NumberFormatException ignored) {}
-                return true;
+                try {
+                    float newVal = Float.parseFloat(field.getText());
+                    Object old = def.getValue();
+                    float oldVal = old instanceof Number ? ((Number) old).floatValue() : 0f;
+                    if (newVal != oldVal) {
+                        def.setValue(newVal);
+                        return true;
+                    }
+                } catch (NumberFormatException ignored) {}
+                return false;
             case INT:
-                try { def.setValue(Integer.parseInt(field.getText())); } catch (NumberFormatException ignored) {}
-                return true;
+                try {
+                    int newVal = Integer.parseInt(field.getText());
+                    Object old = def.getValue();
+                    int oldVal = old instanceof Number ? ((Number) old).intValue() : 0;
+                    if (newVal != oldVal) {
+                        def.setValue(newVal);
+                        return true;
+                    }
+                } catch (NumberFormatException ignored) {}
+                return false;
             case STRING:
-                def.setValue(field.getText());
-                return true;
+                String newVal = field.getText();
+                Object old = def.getValue();
+                String oldVal = old != null ? old.toString() : "";
+                if (!newVal.equals(oldVal)) {
+                    def.setValue(newVal);
+                    return true;
+                }
+                return false;
             default:
                 return false;
         }

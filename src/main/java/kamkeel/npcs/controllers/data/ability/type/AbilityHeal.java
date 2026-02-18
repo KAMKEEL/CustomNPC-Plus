@@ -64,6 +64,11 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }
@@ -74,28 +79,32 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) return;
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        if (caster.worldObj.isRemote && !isPreview()) return;
 
-        getHealedAllies().clear();
+        if (!isPreview()) {
+            getHealedAllies().clear();
 
-        // Always find allies if we're healing them (needed for both instant and HoT)
-        if (healAllies && healRadius > 0) {
-            findAlliesInRadius(caster, world);
+            // Always find allies if we're healing them (needed for both instant and HoT)
+            if (healAllies && healRadius > 0) {
+                findAlliesInRadius(caster, caster.worldObj);
+            }
+
+            if (instantHeal) {
+                // Instant heal - apply all healing now
+                if (healSelf) {
+                    healEntity(caster);
+                    spawnHealParticles(caster.worldObj, caster);
+                }
+
+                for (EntityLivingBase ally : getHealedAllies()) {
+                    healEntity(ally);
+                    spawnHealParticles(caster.worldObj, ally);
+                }
+            }
         }
 
         if (instantHeal) {
-            // Instant heal - apply all healing now
-            if (healSelf) {
-                healEntity(caster);
-                spawnHealParticles(world, caster);
-            }
-
-            for (EntityLivingBase ally : getHealedAllies()) {
-                healEntity(ally);
-                spawnHealParticles(world, ally);
-            }
-
             // Instant heal completes immediately
             signalCompletion();
         }
@@ -103,8 +112,8 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote || instantHeal) return;
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if ((caster.worldObj.isRemote && !isPreview()) || instantHeal) return;
 
         // Heal over time - distribute heal across duration ticks
         if (tick % 10 == 0) {
@@ -119,7 +128,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
                 }
                 caster.heal(selfTickHeal);
                 if (tick % 20 == 0) {
-                    spawnHealParticles(world, caster);
+                    spawnHealParticles(caster.worldObj, caster);
                 }
             }
 
@@ -133,7 +142,7 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
                         }
                         ally.heal(allyTickHeal);
                         if (tick % 20 == 0) {
-                            spawnHealParticles(world, ally);
+                            spawnHealParticles(caster.worldObj, ally);
                         }
                     }
                 }
@@ -218,13 +227,13 @@ public class AbilityHeal extends Ability implements IAbilityHeal {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
-        this.healAmount = nbt.hasKey("healAmount") ? nbt.getFloat("healAmount") : 10.0f;
-        this.healPercent = nbt.hasKey("healPercent") ? nbt.getFloat("healPercent") : 0.0f;
-        this.healSelf = !nbt.hasKey("healSelf") || nbt.getBoolean("healSelf");
-        this.healAllies = nbt.hasKey("healAllies") && nbt.getBoolean("healAllies");
-        this.healRadius = nbt.hasKey("healRadius") ? nbt.getFloat("healRadius") : 0.0f;
-        this.instantHeal = !nbt.hasKey("instantHeal") || nbt.getBoolean("instantHeal");
+        this.durationTicks = nbt.getInteger("durationTicks");
+        this.healAmount = nbt.getFloat("healAmount");
+        this.healPercent = nbt.getFloat("healPercent");
+        this.healSelf = nbt.getBoolean("healSelf");
+        this.healAllies = nbt.getBoolean("healAllies");
+        this.healRadius = nbt.getFloat("healRadius");
+        this.instantHeal = nbt.getBoolean("instantHeal");
     }
 
     // Getters & Setters

@@ -14,6 +14,9 @@ public class AbilitySlot {
     private Ability inlineAbility;
     private String referenceId;
 
+    /** Per-slot enabled override for reference slots (null = use master's default). */
+    private Boolean enabledOverride;
+
     private transient Ability cachedAbility;
     private transient int cachedVersion = -1;
 
@@ -61,14 +64,36 @@ public class AbilitySlot {
         AbilityController controller = AbilityController.Instance;
         if (controller == null) return null;
 
-        int currentVersion = controller.getVersion();
+        int currentVersion = controller.getCustomAbilityRevision();
         if (cachedAbility != null && cachedVersion == currentVersion) {
             return cachedAbility;
         }
 
         cachedAbility = controller.resolveAbility(referenceId);
+        // Apply per-slot enabled override so NPC-specific enable/disable persists
+        if (cachedAbility != null && enabledOverride != null) {
+            cachedAbility.setEnabled(enabledOverride);
+        }
         cachedVersion = currentVersion;
         return cachedAbility;
+    }
+
+    /**
+     * Set the per-slot enabled override for reference slots.
+     * For inline slots, delegates directly to the ability.
+     */
+    public void setEnabled(boolean enabled) {
+        if (!isReference()) {
+            if (inlineAbility != null) {
+                inlineAbility.setEnabled(enabled);
+            }
+        } else {
+            this.enabledOverride = enabled;
+            // Also update the cached ability immediately if present
+            if (cachedAbility != null) {
+                cachedAbility.setEnabled(enabled);
+            }
+        }
     }
 
     /**
@@ -104,6 +129,9 @@ public class AbilitySlot {
         if (isReference()) {
             NBTTagCompound nbt = new NBTTagCompound();
             nbt.setString("Reference", referenceId);
+            if (enabledOverride != null) {
+                nbt.setBoolean("RefEnabled", enabledOverride);
+            }
             return nbt;
         }
         return inlineAbility != null ? inlineAbility.writeNBT() : new NBTTagCompound();
@@ -113,7 +141,11 @@ public class AbilitySlot {
         if (nbt == null) return null;
 
         if (nbt.hasKey("Reference")) {
-            return reference(nbt.getString("Reference"));
+            AbilitySlot slot = reference(nbt.getString("Reference"));
+            if (nbt.hasKey("RefEnabled")) {
+                slot.enabledOverride = nbt.getBoolean("RefEnabled");
+            }
+            return slot;
         }
 
         // Inline ability

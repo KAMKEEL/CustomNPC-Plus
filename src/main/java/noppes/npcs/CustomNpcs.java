@@ -91,6 +91,7 @@ import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
+import kamkeel.npcs.entity.EntityAbilityZone;
 import noppes.npcs.entity.old.EntityNPCDwarfFemale;
 import noppes.npcs.entity.old.EntityNPCDwarfMale;
 import noppes.npcs.entity.old.EntityNPCElfFemale;
@@ -117,7 +118,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11-beta1")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11-beta3")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -292,6 +293,7 @@ public class CustomNpcs {
         registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 3, true);
         registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 3, true);
         registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
+        registerNewEntity(EntityAbilityZone.class, "abilityzone", 64, 3, true);
 
         new RecipeController();
 

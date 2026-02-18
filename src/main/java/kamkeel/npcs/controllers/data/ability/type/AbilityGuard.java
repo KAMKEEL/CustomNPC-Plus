@@ -66,7 +66,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
-    public boolean hasDamage() {
+    public boolean allowBurst() {
         return false;
     }
 
@@ -95,7 +95,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         lastAttacker = null;
         counterTriggered = false;
         lastDamageTaken = 0.0f;
@@ -103,9 +103,9 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (canCounter && counterEligible && counterTriggered && lastAttacker != null && !world.isRemote) {
-            performCounter(caster, world);
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (canCounter && counterEligible && counterTriggered && lastAttacker != null && !caster.worldObj.isRemote) {
+            performCounter(caster, caster.worldObj);
         }
 
         if (tick > counterWindow && counterEligible) {
@@ -128,16 +128,22 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         lastAttacker = attacker;
         lastDamageTaken = damage;
 
-        float reduction = ValueUtil.clamp(getDamageReductionFactor(), 0, damage);
-        float newHealth = ValueUtil.clamp(caster.getHealth() + reduction, 0, caster.getMaxHealth());
-
-        caster.setHealth(newHealth);
-
-        if (!canCounter || !counterEligible || counterTriggered || !isDirectHit(source)) {
-            caster.setHealth(newHealth);
+        // Players: damage reduction handled via LivingHurtEvent (event.ammount modification)
+        // NPCs: called AFTER damageEntity() so health was already reduced — heal back here
+        if (caster instanceof EntityPlayer) {
+            if (canCounter && counterEligible && !counterTriggered && isDirectHit(source)) {
+                counterTriggered = true;
+            }
         } else {
-            caster.setHealth(ValueUtil.clamp(caster.getHealth() + damage, 0, caster.getMaxHealth()));
-            counterTriggered = true;
+            float reduction = ValueUtil.clamp(getDamageReductionFactor(), 0, damage);
+            float newHealth = ValueUtil.clamp(caster.getHealth() + reduction, 0, caster.getMaxHealth());
+
+            if (canCounter && counterEligible && !counterTriggered && isDirectHit(source)) {
+                caster.setHealth(ValueUtil.clamp(caster.getHealth() + damage, 0, caster.getMaxHealth()));
+                counterTriggered = true;
+            } else {
+                caster.setHealth(newHealth);
+            }
         }
     }
 
@@ -232,27 +238,19 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
-        this.damageReduction = nbt.hasKey("damageReduction") ? nbt.getFloat("damageReduction") : 0.5f;
-        this.canCounter = nbt.hasKey("canCounter") && nbt.getBoolean("canCounter");
-        this.counterWindow = nbt.hasKey("counterWindow") ? nbt.getInteger("counterWindow") : 10;
+        this.durationTicks = nbt.getInteger("durationTicks");
+        this.damageReduction = nbt.getFloat("damageReduction");
+        this.canCounter = nbt.getBoolean("canCounter");
+        this.counterWindow = nbt.getInteger("counterWindow");
         try {
             this.counterType = CounterType.valueOf(nbt.getString("counterType"));
         } catch (Exception e) {
             this.counterType = CounterType.FLAT;
         }
-        if (nbt.hasKey("counterValue")) {
-            this.counterValue = nbt.getFloat("counterValue");
-        } else if (nbt.hasKey("counterDamage")) {
-            this.counterValue = nbt.getFloat("counterDamage");
-        } else {
-            this.counterValue = 6.0f;
-        }
-        this.counterSound = nbt.hasKey("counterSound") ? nbt.getString("counterSound") : "random.wood_click";
-        this.counterAnimationId = nbt.hasKey("counterAnimationId") ? nbt.getInteger("counterAnimationId") : -1;
-        this.counterAnimationName = nbt.hasKey("counterAnimationName") ?
-            nbt.getString("counterAnimationName") :
-            "Ability_Guard_Counter";
+        this.counterValue = nbt.getFloat("counterValue");
+        this.counterSound = nbt.getString("counterSound");
+        this.counterAnimationId = nbt.getInteger("counterAnimationId");
+        this.counterAnimationName = nbt.getString("counterAnimationName");
     }
 
     // Getters & Setters
@@ -335,6 +333,10 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     public void setCounterAnimationId(int counterAnimationId) {
         this.counterAnimationId = counterAnimationId;
+    }
+
+    public boolean isCounterTriggered() {
+        return counterTriggered;
     }
 
     public String getCounterAnimationName() {

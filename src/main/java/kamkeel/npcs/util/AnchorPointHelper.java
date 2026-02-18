@@ -2,6 +2,7 @@ package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.Vec3;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -17,6 +18,12 @@ import noppes.npcs.entity.data.ModelScalePart;
  * Supports both EntityNPCInterface and EntityPlayer with animation and model size awareness.
  */
 public class AnchorPointHelper {
+
+    // Y offset correction for the local client player.
+    // EntityPlayerSP.posY is at feet, but the renderer adds yOffset (1.62) visually,
+    // so anchor positions computed from posY appear ~1.6 blocks too high for the local player.
+    // Remote players and NPCs don't have this discrepancy.
+    private static final float CLIENT_PLAYER_Y_OFFSET = -1.6F;
 
     // Default biped model constants (in model units, 1 unit = 1/16 block)
     private static final float MODEL_SCALE = 1f / 16f;
@@ -37,6 +44,7 @@ public class AnchorPointHelper {
     private static final float ARM_HEIGHT = 0.75f;
     private static final float ABOVE_HEAD_HEIGHT = 1.2f;
     private static final float CHEST_HEIGHT = 0.65f;
+    private static final float EYE_HEIGHT = 0.85f;
 
     // Distance in front for FRONT anchor
     private static final float DEFAULT_FRONT_DISTANCE = 1.0f;
@@ -67,7 +75,7 @@ public class AnchorPointHelper {
         float anchorZ = anchorData.anchorOffsetZ;
 
         double x = entity.posX;
-        double y = entity.posY;
+        double y = entity.posY + getClientPlayerYCorrection(entity);
         double z = entity.posZ;
 
         float headYaw = (float) Math.toRadians(entity.rotationYawHead);
@@ -98,11 +106,32 @@ public class AnchorPointHelper {
             case CHEST:
                 y += height * CHEST_HEIGHT;
                 break;
+
+            case EYE:
+                y += entity.getEyeHeight();
+                break;
         }
 
-        x += anchorX * scale;
-        y += anchorY * scale;
-        z += anchorZ * scale;
+        // Rotate offsets relative to entity's body yaw
+        // +X = entity's right, +Y = up, +Z = entity's forward
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchorX * scale, anchorY * scale, anchorZ * scale, bodyYaw);
+        x += rotatedOffset.xCoord;
+        y += rotatedOffset.yCoord;
+        z += rotatedOffset.zCoord;
+
+        // Apply FULL_MODEL rotation if active
+        FramePart fullModel = getFullModelPart(entity);
+        if (fullModel != null) {
+            double dx = x - entity.posX;
+            double dy = y - entity.posY;
+            double dz = z - entity.posZ;
+            Vec3 rotated = applyFullModelToWorldOffset(fullModel, entity, dx, dy, dz, bodyYaw, scale);
+            return Vec3.createVectorHelper(
+                entity.posX + rotated.xCoord,
+                entity.posY + rotated.yCoord,
+                entity.posZ + rotated.zCoord
+            );
+        }
 
         return Vec3.createVectorHelper(x, y, z);
     }
@@ -117,6 +146,18 @@ public class AnchorPointHelper {
             return modelSize / 5f;  // modelSize 5 = 100% scale
         }
         return 1f;
+    }
+
+    /**
+     * Returns Y offset correction for the local client player.
+     * On the client, EntityPlayerSP.posY is at feet level but the renderer adds yOffset (1.62),
+     * causing anchor positions to appear ~1.6 blocks too high. This matches DBC's correction.
+     */
+    private static double getClientPlayerYCorrection(EntityLivingBase entity) {
+        if (entity.worldObj.isRemote && entity instanceof EntityPlayerSP) {
+            return CLIENT_PLAYER_Y_OFFSET;
+        }
+        return 0.0;
     }
 
     // Default arm scale (no scaling)
@@ -135,16 +176,32 @@ public class AnchorPointHelper {
 
     /**
      * Calculate hand position using animation data if available.
+     * Applies FULL_MODEL rotation if an active animation has it.
      */
     private static Vec3 calculateHandPosition(EntityLivingBase entity, EnergyAnchorData anchor, boolean rightHand, float scale) {
         // Try to get animated position first
-        Vec3 animatedPos = getAnimatedHandPosition(entity, anchor, rightHand, scale);
-        if (animatedPos != null) {
-            return animatedPos;
+        Vec3 pos = getAnimatedHandPosition(entity, anchor, rightHand, scale);
+        if (pos == null) {
+            // Fallback to static position
+            pos = calculateFallbackHandPosition(entity, anchor, rightHand, scale);
         }
 
-        // Fallback to static position
-        return calculateFallbackHandPosition(entity, anchor, rightHand, scale);
+        // Apply FULL_MODEL rotation if active
+        FramePart fullModel = getFullModelPart(entity);
+        if (fullModel != null) {
+            double dx = pos.xCoord - entity.posX;
+            double dy = pos.yCoord - entity.posY;
+            double dz = pos.zCoord - entity.posZ;
+            float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
+            Vec3 rotated = applyFullModelToWorldOffset(fullModel, entity, dx, dy, dz, bodyYaw, scale);
+            return Vec3.createVectorHelper(
+                entity.posX + rotated.xCoord,
+                entity.posY + rotated.yCoord,
+                entity.posZ + rotated.zCoord
+            );
+        }
+
+        return pos;
     }
 
     /**
@@ -243,12 +300,14 @@ public class AnchorPointHelper {
 
         // Final world position
         double worldX = entity.posX + worldOffsetX;
-        double worldY = entity.posY + shoulderHeight - blockY;
+        double worldY = entity.posY + getClientPlayerYCorrection(entity) + shoulderHeight - blockY;
         double worldZ = entity.posZ + worldOffsetZ;
 
-        worldX += anchor.anchorOffsetX * scale;
-        worldY += anchor.anchorOffsetY * scale;
-        worldZ += anchor.anchorOffsetZ * scale;
+        // Rotate offsets relative to entity's body yaw
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchor.anchorOffsetX * scale, anchor.anchorOffsetY * scale, anchor.anchorOffsetZ * scale, bodyYaw);
+        worldX += rotatedOffset.xCoord;
+        worldY += rotatedOffset.yCoord;
+        worldZ += rotatedOffset.zCoord;
 
         return Vec3.createVectorHelper(worldX, worldY, worldZ);
     }
@@ -314,12 +373,14 @@ public class AnchorPointHelper {
         double armLengthOffset = armScale.scaleY * 0.3 * scale;
 
         double x = entity.posX + lateralX + forwardX;
-        double y = entity.posY + entity.height * FALLBACK_ARM_HEIGHT + armLengthOffset;
+        double y = entity.posY + getClientPlayerYCorrection(entity) + entity.height * FALLBACK_ARM_HEIGHT + armLengthOffset;
         double z = entity.posZ + lateralZ + forwardZ;
 
-        x += anchor.anchorOffsetX * scale;
-        y += anchor.anchorOffsetY * scale;
-        z += anchor.anchorOffsetZ * scale;
+        // Rotate offsets relative to entity's body yaw
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchor.anchorOffsetX * scale, anchor.anchorOffsetY * scale, anchor.anchorOffsetZ * scale, bodyYaw);
+        x += rotatedOffset.xCoord;
+        y += rotatedOffset.yCoord;
+        z += rotatedOffset.zCoord;
 
         return Vec3.createVectorHelper(x, y, z);
     }
@@ -340,8 +401,119 @@ public class AnchorPointHelper {
                 return ABOVE_HEAD_HEIGHT;
             case CHEST:
                 return CHEST_HEIGHT;
+            case EYE:
+                return EYE_HEIGHT;
             default:
                 return FRONT_HEIGHT;
         }
+    }
+
+    /**
+     * Rotate an offset vector by the entity's body yaw so offsets are entity-relative.
+     * +X = entity's right, +Y = up, +Z = entity's forward.
+     * @param bodyYawRad body yaw in radians
+     */
+    private static Vec3 rotateOffsetByYaw(double offsetX, double offsetY, double offsetZ, float bodyYawRad) {
+        double cos = Math.cos(bodyYawRad);
+        double sin = Math.sin(bodyYawRad);
+        double worldX = -offsetX * cos - offsetZ * sin;
+        double worldZ = -offsetX * sin + offsetZ * cos;
+        return Vec3.createVectorHelper(worldX, offsetY, worldZ);
+    }
+
+    // ==================== FULL_MODEL ANIMATION SUPPORT ====================
+
+    /**
+     * Get the FULL_MODEL FramePart if the entity has an active animation with it.
+     * Returns null if no FULL_MODEL animation is active.
+     */
+    private static FramePart getFullModelPart(EntityLivingBase entity) {
+        AnimationData animData = AnimationData.getData(entity);
+        if (animData == null || !animData.isActive() || animData.animation == null) {
+            return null;
+        }
+        Frame frame = (Frame) animData.animation.currentFrame();
+        if (frame == null) {
+            return null;
+        }
+        FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+        return part;
+    }
+
+    /**
+     * Apply FULL_MODEL rotation to a world-space offset from entity position.
+     * Converts the offset to model space, applies FULL_MODEL rotation and pivots,
+     * then converts back to world space.
+     *
+     * The rendering pipeline is: entity_pos * body_yaw * scale(-1,-1,1) * FULL_MODEL * parts
+     * Combined body_yaw + scale maps model space to world space:
+     *   worldX = mx*cos(yaw) + mz*sin(yaw)
+     *   worldY = -my  (model Y-down → world Y-up)
+     *   worldZ = mx*sin(yaw) - mz*cos(yaw)
+     * This transform is its own inverse for X,Z.
+     *
+     * FULL_MODEL rotation order matches renderer: vertex sees Z, then Y, then X.
+     */
+    private static Vec3 applyFullModelToWorldOffset(FramePart fullModel, EntityLivingBase entity,
+                                                     double worldDX, double worldDY, double worldDZ,
+                                                     float bodyYaw, float scale) {
+        float[] rotations = getRotations(fullModel, entity);
+        float[] pivots = getPivots(fullModel, entity);
+
+        // Quick exit if no transform needed
+        boolean hasRotation = rotations[0] != 0 || rotations[1] != 0 || rotations[2] != 0;
+        boolean hasPivot = pivots[0] != 0 || pivots[1] != 0 || pivots[2] != 0;
+        if (!hasRotation && !hasPivot) {
+            return Vec3.createVectorHelper(worldDX, worldDY, worldDZ);
+        }
+
+        // Convert world offset to model space
+        // Body yaw + scale combined transform is an involution (self-inverse) for X,Z
+        double cosYaw = Math.cos(bodyYaw);
+        double sinYaw = Math.sin(bodyYaw);
+
+        double mx = worldDX * cosYaw + worldDZ * sinYaw;
+        double mz = worldDX * sinYaw - worldDZ * cosYaw;
+        double my = -worldDY;  // Invert Y (world Y-up → model Y-down)
+
+        // Apply FULL_MODEL rotations (vertex order: Z first, then Y, then X)
+        // Matches renderer: glRotatef(X), glRotatef(Y), glRotatef(Z) → vertex sees Z,Y,X
+
+        // Z rotation
+        double cosZ = Math.cos(rotations[2]);
+        double sinZ = Math.sin(rotations[2]);
+        double nx = mx * cosZ - my * sinZ;
+        double ny = mx * sinZ + my * cosZ;
+        mx = nx;
+        my = ny;
+
+        // Y rotation
+        double cosY = Math.cos(rotations[1]);
+        double sinY = Math.sin(rotations[1]);
+        nx = mx * cosY + mz * sinY;
+        double nz = -mx * sinY + mz * cosY;
+        mx = nx;
+        mz = nz;
+
+        // X rotation
+        double cosX = Math.cos(rotations[0]);
+        double sinX = Math.sin(rotations[0]);
+        ny = my * cosX - mz * sinX;
+        nz = my * sinX + mz * cosX;
+        my = ny;
+        mz = nz;
+
+        // Apply pivots in model space (after rotation, matching GL vertex ordering)
+        // Renderer: glTranslatef(px, -py, pz) → pivot Y is negated for model Y-down space
+        mx += pivots[0] * MODEL_SCALE * scale;
+        my -= pivots[1] * MODEL_SCALE * scale;
+        mz += pivots[2] * MODEL_SCALE * scale;
+
+        // Convert back to world space (same involution for X,Z; invert Y back)
+        double newDX = mx * cosYaw + mz * sinYaw;
+        double newDZ = mx * sinYaw - mz * cosYaw;
+        double newDY = -my;
+
+        return Vec3.createVectorHelper(newDX, newDY, newDZ);
     }
 }

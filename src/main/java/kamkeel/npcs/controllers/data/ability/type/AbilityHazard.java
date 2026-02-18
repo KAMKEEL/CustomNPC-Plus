@@ -1,18 +1,11 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.entity.EntityAbilityZone;
+import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
-import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
+
 
 import noppes.npcs.api.ability.type.IAbilityHazard;
 
@@ -22,640 +15,141 @@ import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
 
-/**
- * Hazard ability: Creates persistent ground effect zones.
- * Deals damage and/or applies debuffs to entities in the zone over time.
- */
-public class AbilityHazard extends Ability implements IAbilityHazard {
+public class AbilityHazard extends AbilityZone implements IAbilityHazard {
 
-    public enum HazardShape {
-        CIRCLE,
-        RING,
-        CONE;
-
-        @Override
-        public String toString() {
-            switch (this) {
-                case CIRCLE: return "ability.shape.circle";
-                case RING: return "ability.shape.ring";
-                case CONE: return "ability.shape.cone";
-                default: return name();
-            }
-        }
-    }
-
-    public enum PlacementMode {
-        AT_CASTER,
-        AT_TARGET,
-        FOLLOW_CASTER,
-        FOLLOW_TARGET;
-
-        @Override
-        public String toString() {
-            switch (this) {
-                case AT_CASTER: return "ability.placement.atCaster";
-                case AT_TARGET: return "ability.placement.atTarget";
-                case FOLLOW_CASTER: return "ability.placement.followCaster";
-                case FOLLOW_TARGET: return "ability.placement.followTarget";
-                default: return name();
-            }
-        }
-    }
-
-    private int durationTicks = 100;
-    private float radius = 4.0f;
-    private float innerRadius = 0.0f;
-    private float coneAngle = 45.0f;
-    private HazardShape shape = HazardShape.CIRCLE;
-    private PlacementMode placement = PlacementMode.AT_TARGET;
-
+    private float radius = 2.0f;
     private float damagePerSecond = 1.0f;
     private int damageInterval = 20;
     private boolean ignoreInvulnFrames = false;
-
-    private int slownessLevel = -1;
-    private int weaknessLevel = -1;
-    private int poisonLevel = -1;
-    private int witherLevel = -1;
-    private int blindnessLevel = -1;
-    private int debuffDuration = 40;
-
     private boolean affectsCaster = false;
-    private float heightAbove = 2.0f;
-    private float heightBelow = 1.0f;
-
-    // Offset parameters - hazard spawns near target, not exactly on them
-    private float minOffset = 0.0f;  // Minimum offset from target
-    private float maxOffset = 2.0f;  // Maximum offset from target
-    private boolean randomOffset = true; // Random or fixed offset
-
-    // Runtime state
-    private static final Random RANDOM = new Random();
-    private transient double zoneX, zoneY, zoneZ;
-    private transient boolean positionLocked = false;
-    private transient int ticksSinceDamage = 0;
-    private transient Set<Integer> damagedThisTick = new HashSet<>();
 
     public AbilityHazard() {
+        super(300, new EnergyDisplayData(0x00CC00, 0x006600, true, 1.0f, 0.5f, 1.5f));
         this.typeId = "ability.cnpc.hazard";
         this.name = "Hazard";
-        this.targetingMode = TargetingMode.AGGRO_TARGET;
-        this.maxRange = 15.0f;
-        this.lockMovement = LockMovementType.WINDUP;
-        this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.telegraphType = TelegraphType.CIRCLE;
+        this.windUpAnimationName = "Ability_Zone_Windup";
+        this.activeAnimationName = "Ability_Zone_Active";
     }
 
     @Override
-    public boolean isTargetingModeLocked() {
-        return true;
-    }
-
-    @Override
-    public TargetingMode[] getAllowedTargetingModes() {
-        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
-    }
-
-    @Override
-    public float getTelegraphRadius() {
+    public float getZoneRadius() {
         return radius;
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
-        TelegraphInstance instance = super.createTelegraph(caster, target);
-        if (instance == null) return null;
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        activeEntities.clear();
 
-        // Control telegraph following based on placement mode
-        switch (placement) {
-            case AT_CASTER:
-            case FOLLOW_CASTER:
-                // Telegraph stays at caster position, no following
-                instance.setEntityIdToFollow(-1);
-                instance.setX(caster.posX);
-                instance.setY(caster.posY);
-                instance.setZ(caster.posZ);
-                break;
-            case AT_TARGET:
-                // Telegraph follows target during windup, locks on execute
-                if (target != null) {
-                    instance.setEntityIdToFollow(target.getEntityId());
-                }
-                break;
-            case FOLLOW_TARGET:
-                // Telegraph follows target during windup AND active phase
-                if (target != null) {
-                    instance.setEntityIdToFollow(target.getEntityId());
-                }
-                break;
-        }
-        return instance;
-    }
-
-    @Override
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        // AT_CASTER locks immediately, AT_TARGET follows during windup and locks on execute
-        if (tick == 0) {
-            switch (placement) {
-                case AT_CASTER:
-                    zoneX = caster.posX;
-                    zoneY = caster.posY;
-                    zoneZ = caster.posZ;
-                    positionLocked = true;
-                    break;
-                case AT_TARGET:
-                    // Position will be set from telegraph on execute
-                    // Telegraph follows target during windup
-                    positionLocked = false;
-                    break;
-                default:
-                    positionLocked = false;
-                    break;
+        List<double[]> positions;
+        if (!preCalculatedPositions.isEmpty() && preCalculatedPositions.size() == zoneCount) {
+            positions = new ArrayList<>(preCalculatedPositions);
+            preCalculatedPositions.clear();
+        } else {
+            positions = new ArrayList<>();
+            List<double[]> placedPositions = new ArrayList<>();
+            float minSeparation = radius * 2.0f;
+            for (int i = 0; i < zoneCount; i++) {
+                double[] pos = findSpawnPosition(caster, placedPositions, minSeparation);
+                placedPositions.add(pos);
+                positions.add(pos);
             }
         }
-    }
 
-    @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        // Lock position from telegraph (which was following target) or calculate it now
-        TelegraphInstance telegraph = getTelegraphInstance();
+        for (int i = 0; i < zoneCount; i++) {
+            double[] pos = positions.get(i);
 
-        switch (placement) {
-            case AT_CASTER:
-                // Already locked during windup
-                if (!positionLocked) {
-                    zoneX = caster.posX;
-                    zoneY = caster.posY;
-                    zoneZ = caster.posZ;
-                }
-                break;
-            case AT_TARGET:
-                // Use telegraph position if available, apply offset
-                if (telegraph != null) {
-                    double[] pos = Ability.calculateOffsetPosition(telegraph.getX(), telegraph.getY(), telegraph.getZ(),
-                        minOffset, maxOffset, randomOffset, RANDOM);
-                    zoneX = pos[0];
-                    zoneY = pos[1];
-                    zoneZ = pos[2];
-                    // Update telegraph to show actual hazard position
-                    telegraph.setX(zoneX);
-                    telegraph.setY(zoneY);
-                    telegraph.setZ(zoneZ);
-                } else if (target != null) {
-                    double[] pos = Ability.calculateOffsetPosition(target.posX, target.posY, target.posZ,
-                        minOffset, maxOffset, randomOffset, RANDOM);
-                    zoneX = pos[0];
-                    zoneY = pos[1];
-                    zoneZ = pos[2];
-                } else {
-                    zoneX = caster.posX;
-                    zoneY = caster.posY;
-                    zoneZ = caster.posZ;
-                }
-                break;
-            case FOLLOW_CASTER:
-                zoneX = caster.posX;
-                zoneY = caster.posY;
-                zoneZ = caster.posZ;
-                break;
-            case FOLLOW_TARGET:
-                if (target != null) {
-                    zoneX = target.posX;
-                    zoneY = target.posY;
-                    zoneZ = target.posZ;
-                } else {
-                    zoneX = caster.posX;
-                    zoneY = caster.posY;
-                    zoneZ = caster.posZ;
-                }
-                break;
-        }
-        positionLocked = true;
-        ticksSinceDamage = damageInterval;
-    }
+            EntityAbilityZone entity = EntityAbilityZone.createHazard(caster.worldObj, caster,
+                pos[0], caster.posY, pos[1],
+                zoneShape,
+                radius,
+                damagePerSecond, damageInterval,
+                ignoreInvulnFrames, affectsCaster,
+                durationTicks,
+                colorData.innerColor, colorData.outerColor, colorData.outerColorEnabled,
+                zoneHeight,
+                particleDensity, particleScale, animSpeed, lightningDensity,
+                getEffects());
 
-    @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
-        if (world.isRemote) return;
+            applyVisualToEntity(entity);
 
-        // Check if hazard duration has ended
-        if (tick >= durationTicks) {
-            signalCompletion();
-            return;
-        }
-
-        damagedThisTick.clear();
-        ticksSinceDamage++;
-
-        switch (placement) {
-            case FOLLOW_CASTER:
-                zoneX = caster.posX;
-                zoneY = caster.posY;
-                zoneZ = caster.posZ;
-                break;
-            case FOLLOW_TARGET:
-                if (target != null) {
-                    zoneX = target.posX;
-                    zoneY = target.posY;
-                    zoneZ = target.posZ;
-                }
-                break;
-            default:
-                break;
-        }
-
-        if (ticksSinceDamage >= damageInterval) {
-            ticksSinceDamage = 0;
-
-            AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-                zoneX - radius, zoneY - heightBelow, zoneZ - radius,
-                zoneX + radius, zoneY + heightAbove, zoneZ + radius
-            );
-
-            @SuppressWarnings("unchecked")
-            List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
-
-            for (EntityLivingBase entity : entities) {
-                if (entity == caster && !affectsCaster) continue;
-                if (damagedThisTick.contains(entity.getEntityId())) continue;
-                if (!isInZone(entity, caster)) continue;
-
-                if (damagePerSecond > 0) {
-                    if (ignoreInvulnFrames) {
-                        entity.hurtResistantTime = 0;
-                    }
-                    // Apply damage with scripted event support (no knockback for hazard)
-                    boolean wasHit = applyAbilityDamage(caster, entity, damagePerSecond, 0);
-                    if (!wasHit) continue; // Skip debuffs if hit was cancelled
-                }
-
-                applyDebuffs(entity);
-                damagedThisTick.add(entity.getEntityId());
+            if (isPreview()) {
+                entity.setupPreview(caster);
             }
-        }
-    }
 
-    private boolean isInZone(EntityLivingBase entity, EntityLivingBase caster) {
-        double dx = entity.posX - zoneX;
-        double dz = entity.posZ - zoneZ;
-        double dist = Math.sqrt(dx * dx + dz * dz);
-
-        switch (shape) {
-            case CIRCLE:
-                return dist <= radius;
-            case RING:
-                return dist >= innerRadius && dist <= radius;
-            case CONE:
-                if (dist > radius) return false;
-                float casterYaw = caster.rotationYaw;
-                double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
-                double angleDiff = Math.abs(normalizeAngle(angleToEntity - casterYaw));
-                return angleDiff <= coneAngle / 2;
-            default:
-                return dist <= radius;
+            spawnAbilityEntity(entity);
+            activeEntities.add(entity);
         }
-    }
-
-    private double normalizeAngle(double angle) {
-        while (angle > 180) angle -= 360;
-        while (angle < -180) angle += 360;
-        return angle;
-    }
-
-    private void applyDebuffs(EntityLivingBase target) {
-        if (slownessLevel >= 0) {
-            target.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, debuffDuration, slownessLevel));
-        }
-        if (weaknessLevel >= 0) {
-            target.addPotionEffect(new PotionEffect(Potion.weakness.id, debuffDuration, weaknessLevel));
-        }
-        if (poisonLevel >= 0) {
-            target.addPotionEffect(new PotionEffect(Potion.poison.id, debuffDuration, poisonLevel));
-        }
-        if (witherLevel >= 0) {
-            target.addPotionEffect(new PotionEffect(Potion.wither.id, debuffDuration, witherLevel));
-        }
-        if (blindnessLevel >= 0) {
-            target.addPotionEffect(new PotionEffect(Potion.blindness.id, debuffDuration, blindnessLevel));
-        }
-    }
-
-    @Override
-    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        damagedThisTick.clear();
-        positionLocked = false;
-    }
-
-    @Override
-    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
-        damagedThisTick.clear();
-        positionLocked = false;
     }
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
-        nbt.setInteger("durationTicks", durationTicks);
+        writeZoneNBT(nbt);
         nbt.setFloat("radius", radius);
-        nbt.setFloat("innerRadius", innerRadius);
-        nbt.setFloat("coneAngle", coneAngle);
-        nbt.setString("shape", shape.name());
-        nbt.setString("placement", placement.name());
         nbt.setFloat("damagePerSecond", damagePerSecond);
         nbt.setInteger("damageInterval", damageInterval);
         nbt.setBoolean("ignoreInvulnFrames", ignoreInvulnFrames);
-        nbt.setInteger("slownessLevel", slownessLevel);
-        nbt.setInteger("weaknessLevel", weaknessLevel);
-        nbt.setInteger("poisonLevel", poisonLevel);
-        nbt.setInteger("witherLevel", witherLevel);
-        nbt.setInteger("blindnessLevel", blindnessLevel);
-        nbt.setInteger("debuffDuration", debuffDuration);
         nbt.setBoolean("affectsCaster", affectsCaster);
-        nbt.setFloat("heightAbove", heightAbove);
-        nbt.setFloat("heightBelow", heightBelow);
-        nbt.setFloat("minOffset", minOffset);
-        nbt.setFloat("maxOffset", maxOffset);
-        nbt.setBoolean("randomOffset", randomOffset);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 100;
-        this.radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 4.0f;
-        this.innerRadius = nbt.hasKey("innerRadius") ? nbt.getFloat("innerRadius") : 0.0f;
-        this.coneAngle = nbt.hasKey("coneAngle") ? nbt.getFloat("coneAngle") : 45.0f;
-        try {
-            this.shape = HazardShape.valueOf(nbt.getString("shape"));
-        } catch (Exception e) {
-            this.shape = HazardShape.CIRCLE;
-        }
-        try {
-            this.placement = PlacementMode.valueOf(nbt.getString("placement"));
-        } catch (Exception e) {
-            this.placement = PlacementMode.AT_TARGET;
-        }
-        // Support legacy "damagePerTick" key for backwards compatibility
-        if (nbt.hasKey("damagePerSecond")) {
-            this.damagePerSecond = nbt.getFloat("damagePerSecond");
-        } else if (nbt.hasKey("damagePerTick")) {
-            this.damagePerSecond = nbt.getFloat("damagePerTick");
-        } else {
-            this.damagePerSecond = 1.0f;
-        }
-        this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 20;
-        this.ignoreInvulnFrames = nbt.hasKey("ignoreInvulnFrames") && nbt.getBoolean("ignoreInvulnFrames");
-        this.slownessLevel = nbt.hasKey("slownessLevel") ? nbt.getInteger("slownessLevel") : -1;
-        this.weaknessLevel = nbt.hasKey("weaknessLevel") ? nbt.getInteger("weaknessLevel") : -1;
-        this.poisonLevel = nbt.hasKey("poisonLevel") ? nbt.getInteger("poisonLevel") : -1;
-        this.witherLevel = nbt.hasKey("witherLevel") ? nbt.getInteger("witherLevel") : -1;
-        this.blindnessLevel = nbt.hasKey("blindnessLevel") ? nbt.getInteger("blindnessLevel") : -1;
-        this.debuffDuration = nbt.hasKey("debuffDuration") ? nbt.getInteger("debuffDuration") : 40;
-        this.affectsCaster = nbt.hasKey("affectsCaster") && nbt.getBoolean("affectsCaster");
-        this.heightAbove = nbt.hasKey("heightAbove") ? nbt.getFloat("heightAbove") : 2.0f;
-        this.heightBelow = nbt.hasKey("heightBelow") ? nbt.getFloat("heightBelow") : 1.0f;
-        this.minOffset = nbt.hasKey("minOffset") ? nbt.getFloat("minOffset") : 0.0f;
-        this.maxOffset = nbt.hasKey("maxOffset") ? nbt.getFloat("maxOffset") : 2.0f;
-        this.randomOffset = !nbt.hasKey("randomOffset") || nbt.getBoolean("randomOffset");
+        readZoneNBT(nbt, 300);
+        this.radius = nbt.getFloat("radius");
+        this.damagePerSecond = nbt.getFloat("damagePerSecond");
+        this.damageInterval = nbt.getInteger("damageInterval");
+        this.ignoreInvulnFrames = nbt.getBoolean("ignoreInvulnFrames");
+        this.affectsCaster = nbt.getBoolean("affectsCaster");
     }
 
-    // Getters & Setters
-    public int getDurationTicks() {
-        return durationTicks;
-    }
+    public float getRadius() { return radius; }
+    public void setRadius(float radius) { this.radius = radius; }
 
-    public void setDurationTicks(int durationTicks) {
-        this.durationTicks = Math.max(1, durationTicks);
-    }
+    public float getDamagePerSecond() { return damagePerSecond; }
+    public void setDamagePerSecond(float damagePerSecond) { this.damagePerSecond = damagePerSecond; }
 
-    public float getRadius() {
-        return radius;
-    }
+    public int getDamageInterval() { return damageInterval; }
+    public void setDamageInterval(int damageInterval) { this.damageInterval = damageInterval; }
 
-    public void setRadius(float radius) {
-        this.radius = radius;
-    }
+    public boolean isIgnoreInvulnFrames() { return ignoreInvulnFrames; }
+    public void setIgnoreInvulnFrames(boolean ignoreInvulnFrames) { this.ignoreInvulnFrames = ignoreInvulnFrames; }
 
-    public float getInnerRadius() {
-        return innerRadius;
-    }
-
-    public void setInnerRadius(float innerRadius) {
-        this.innerRadius = innerRadius;
-    }
-
-    public float getConeAngle() {
-        return coneAngle;
-    }
-
-    public void setConeAngle(float coneAngle) {
-        this.coneAngle = coneAngle;
-    }
-
-    public HazardShape getShapeEnum() {
-        return shape;
-    }
-
-    public void setShapeEnum(HazardShape shape) {
-        this.shape = shape;
-    }
-
-    @Override
-    public int getShape() {
-        return shape.ordinal();
-    }
-
-    @Override
-    public void setShape(int shape) {
-        HazardShape[] values = HazardShape.values();
-        this.shape = shape >= 0 && shape < values.length ? values[shape] : HazardShape.CIRCLE;
-    }
-
-    public PlacementMode getPlacementEnum() {
-        return placement;
-    }
-
-    public void setPlacementEnum(PlacementMode placement) {
-        this.placement = placement;
-    }
-
-    @Override
-    public int getPlacement() {
-        return placement.ordinal();
-    }
-
-    @Override
-    public void setPlacement(int placement) {
-        PlacementMode[] values = PlacementMode.values();
-        this.placement = placement >= 0 && placement < values.length ? values[placement] : PlacementMode.AT_CASTER;
-    }
-
-    public float getDamagePerSecond() {
-        return damagePerSecond;
-    }
-
-    public void setDamagePerSecond(float damagePerSecond) {
-        this.damagePerSecond = damagePerSecond;
-    }
-
-    public int getDamageInterval() {
-        return damageInterval;
-    }
-
-    public void setDamageInterval(int damageInterval) {
-        this.damageInterval = damageInterval;
-    }
-
-    public boolean isIgnoreInvulnFrames() {
-        return ignoreInvulnFrames;
-    }
-
-    public void setIgnoreInvulnFrames(boolean ignoreInvulnFrames) {
-        this.ignoreInvulnFrames = ignoreInvulnFrames;
-    }
-
-    public int getSlownessLevel() {
-        return slownessLevel;
-    }
-
-    public void setSlownessLevel(int slownessLevel) {
-        this.slownessLevel = slownessLevel;
-    }
-
-    public int getWeaknessLevel() {
-        return weaknessLevel;
-    }
-
-    public void setWeaknessLevel(int weaknessLevel) {
-        this.weaknessLevel = weaknessLevel;
-    }
-
-    public int getPoisonLevel() {
-        return poisonLevel;
-    }
-
-    public void setPoisonLevel(int poisonLevel) {
-        this.poisonLevel = poisonLevel;
-    }
-
-    public int getWitherLevel() {
-        return witherLevel;
-    }
-
-    public void setWitherLevel(int witherLevel) {
-        this.witherLevel = witherLevel;
-    }
-
-    public int getBlindnessLevel() {
-        return blindnessLevel;
-    }
-
-    public void setBlindnessLevel(int blindnessLevel) {
-        this.blindnessLevel = blindnessLevel;
-    }
-
-    public int getDebuffDuration() {
-        return debuffDuration;
-    }
-
-    public void setDebuffDuration(int debuffDuration) {
-        this.debuffDuration = debuffDuration;
-    }
-
-    public boolean isAffectsCaster() {
-        return affectsCaster;
-    }
-
-    public void setAffectsCaster(boolean affectsCaster) {
-        this.affectsCaster = affectsCaster;
-    }
-
-    public float getHeightAbove() {
-        return heightAbove;
-    }
-
-    public void setHeightAbove(float heightAbove) {
-        this.heightAbove = heightAbove;
-    }
-
-    public float getHeightBelow() {
-        return heightBelow;
-    }
-
-    public void setHeightBelow(float heightBelow) {
-        this.heightBelow = heightBelow;
-    }
-
-    public float getMinOffset() {
-        return minOffset;
-    }
-
-    public void setMinOffset(float minOffset) {
-        this.minOffset = minOffset;
-    }
-
-    public float getMaxOffset() {
-        return maxOffset;
-    }
-
-    public void setMaxOffset(float maxOffset) {
-        this.maxOffset = maxOffset;
-    }
-
-    public boolean isRandomOffset() {
-        return randomOffset;
-    }
-
-    public void setRandomOffset(boolean randomOffset) {
-        this.randomOffset = randomOffset;
-    }
-
-    // Runtime getters
-    public double getZoneX() {
-        return zoneX;
-    }
-
-    public double getZoneY() {
-        return zoneY;
-    }
-
-    public double getZoneZ() {
-        return zoneZ;
-    }
+    public boolean isAffectsCaster() { return affectsCaster; }
+    public void setAffectsCaster(boolean affectsCaster) { this.affectsCaster = affectsCaster; }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void getAbilityDefinitions(List<FieldDef> defs) {
+        addPresetFieldDef(defs);
+
         defs.addAll(Arrays.asList(
-            FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
-            FieldDef.enumField("ability.shape", HazardShape.class, this::getShapeEnum, this::setShapeEnum)
-                .hover("ability.hover.shape"),
-            FieldDef.enumField("ability.placement", PlacementMode.class, this::getPlacementEnum, this::setPlacementEnum)
-                .hover("ability.hover.placement"),
-            FieldDef.section("ability.section.area"),
             FieldDef.row(
-                FieldDef.floatField("gui.radius", this::getRadius, this::setRadius),
-                FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius)
+                FieldDef.intField("ability.duration", this::getDurationTicks, this::setDurationTicks).range(1, 2000),
+                FieldDef.enumField("ability.zoneShape", ZoneShape.class, this::getZoneShapeEnum, this::setZoneShapeEnum)
             ),
+            FieldDef.section("ability.section.zone"),
+            FieldDef.row(
+                FieldDef.floatField("gui.radius", this::getSpawnRadius, this::setSpawnRadius),
+                FieldDef.intField("gui.count", this::getZoneCount, this::setZoneCount).range(1, 20)
+            ),
+            FieldDef.floatField("gui.height", this::getZoneHeight, this::setZoneHeight),
+            FieldDef.section("ability.section.area"),
+            FieldDef.floatField("gui.radius", this::getRadius, this::setRadius),
             FieldDef.section("ability.section.damage"),
             FieldDef.row(
-                FieldDef.floatField("ability.damagePerSecond", this::getDamagePerSecond, this::setDamagePerSecond),
-                FieldDef.intField("ability.damageInterval", this::getDamageInterval, this::setDamageInterval)
+                FieldDef.floatField("gui.dps", this::getDamagePerSecond, this::setDamagePerSecond),
+                FieldDef.intField("gui.interval", this::getDamageInterval, this::setDamageInterval)
             ),
-            FieldDef.section("ability.section.debuffs"),
-            FieldDef.row(
-                FieldDef.intField("ability.slownessLevel", this::getSlownessLevel, this::setSlownessLevel),
-                FieldDef.intField("ability.debuffDuration", this::getDebuffDuration, this::setDebuffDuration)
-            ),
-            FieldDef.intField("ability.poisonLevel", this::getPoisonLevel, this::setPoisonLevel),
+            FieldDef.boolField("ability.ignoreInvulnFrames", this::isIgnoreInvulnFrames, this::setIgnoreInvulnFrames),
             FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
                 .hover("ability.hover.affectsCaster"),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         ));
+
+        addVisualFieldDefs(defs);
     }
 }

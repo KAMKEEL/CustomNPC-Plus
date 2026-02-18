@@ -2,102 +2,172 @@ package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.*;
 import kamkeel.npcs.controllers.SyncController;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.util.NBTJsonUtil;
 
+import net.minecraft.entity.player.EntityPlayer;
+
 import java.io.File;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-/**
- * Central controller for ability types and presets.
- * <p>
- * Three maps:
- * <ul>
- *   <li>{@code typeFactories} — keyed by typeId (lang key), creates new instances of each ability type</li>
- *   <li>{@code abilities} — built-in pre-configured abilities, keyed by unique name</li>
- *   <li>{@code customAbilities} — user-created presets, keyed by UUID</li>
- * </ul>
- */
 public class AbilityController implements IAbilityHandler {
 
     public static AbilityController Instance = new AbilityController();
 
-    /** Type factories keyed by typeId (lang key, e.g. "ability.cnpc.slam"). */
-    private final Map<String, Supplier<Ability>> typeFactories = new LinkedHashMap<>();
-
-    /** Built-in pre-configured abilities keyed by unique name. */
-    private final Map<String, Ability> abilities = new LinkedHashMap<>();
-
-    /** User-created custom ability presets keyed by UUID. */
+    // ── Core Registries ──────────────────────────────────────────────────────
+    private final Map<String, Supplier<Ability>> abilityTypes = new LinkedHashMap<>();
+    private final Map<String, Ability> builtAbilities = new LinkedHashMap<>();
     private final Map<String, Ability> customAbilities = new LinkedHashMap<>();
 
-    /** Version counter — incremented on any custom ability add/modify/delete.
-     *  Used by AbilitySlot for cache invalidation. */
-    private int version = 0;
-
-    /** External damage handler (e.g., DBC Addon). */
-    private IAbilityDamageHandler damageHandler = null;
-
-    /** External field providers for ability GUI (e.g., DBC Addon). Client-side only. */
+    // ── Extension Points ─────────────────────────────────────────────────────
+    private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
+    private final List<IAbilityExtender> extenders = new ArrayList<>();
+    private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
+
+    // ── Derived State ────────────────────────────────────────────────────────
+    private final Set<String> builtInTypeIds = new HashSet<>();
 
     public AbilityController() {
         registerBuiltinTypes();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // LOADING / SAVING CUSTOM ABILITIES
+    // TYPE REGISTRATION
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Load custom ability presets from world directory.
-     * Called when world loads. Files are named {@code <uuid>.json}.
-     */
-    public void load() {
-        customAbilities.clear();
-        File dir = getDir();
-        if (!dir.exists()) {
-            return;
+    public void registerType(String factoryKey, Supplier<Ability> factory) {
+        Ability temp = factory.get();
+        String typeId = temp.getTypeId();
+        if (abilityTypes.containsKey(typeId)) {
+            LogWriter.info("AbilityController: Overwriting type: " + typeId);
+        }
+        abilityTypes.put(typeId, factory);
+        if (temp.isBuiltIn()) {
+            builtInTypeIds.add(typeId);
+        }
+    }
+
+    public Ability create(String typeId) {
+        Supplier<Ability> factory = abilityTypes.get(typeId);
+        return factory != null ? factory.get() : null;
+    }
+
+    public Ability fromNBT(NBTTagCompound nbt) {
+        if (nbt == null || !nbt.hasKey("typeId")) {
+            return null;
         }
 
-        File[] files = dir.listFiles();
-        if (files == null) return;
+        String typeId = nbt.getString("typeId");
+        Supplier<Ability> factory = abilityTypes.get(typeId);
+        if (factory == null) {
+            LogWriter.info("AbilityController: Unknown ability type: " + typeId);
+            return null;
+        }
 
-        for (File file : files) {
-            if (!file.isFile() || !file.getName().endsWith(".json")) continue;
-            try {
-                String filename = file.getName();
-                String uuid = filename.substring(0, filename.length() - 5); // strip .json
+        Ability ability = factory.get();
+        ability.readNBT(nbt);
+        return ability;
+    }
 
-                NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
-                Ability ability = fromNBT(nbt);
-                if (ability != null) {
-                    ability.setId(uuid);
-                    customAbilities.put(uuid, ability);
-                }
-            } catch (Exception e) {
-                LogWriter.error("Error loading custom ability: " + file.getAbsolutePath(), e);
+    private void registerBuiltinTypes() {
+        registerType("cnpc:slam", AbilitySlam::new);
+        registerType("cnpc:heavy_hit", AbilityHeavyHit::new);
+        registerType("cnpc:cutter", AbilityCutter::new);
+
+        registerType("cnpc:sweeper", AbilitySweeper::new);
+        registerType("cnpc:projectile", AbilityProjectile::new);
+        registerType("cnpc:orb", AbilityOrb::new);
+        registerType("cnpc:disc", AbilityDisc::new);
+        registerType("cnpc:laser_shot", AbilityLaserShot::new);
+        registerType("cnpc:beam", AbilityBeam::new);
+
+        registerType("cnpc:charge", AbilityCharge::new);
+        registerType("cnpc:dash", AbilityDash::new);
+        registerType("cnpc:teleport", AbilityTeleport::new);
+        registerType("cnpc:vortex", AbilityVortex::new);
+        registerType("cnpc:shockwave", AbilityShockwave::new);
+
+        registerType("cnpc:guard", AbilityGuard::new);
+        registerType("cnpc:heal", AbilityHeal::new);
+
+        registerType("cnpc:hazard", AbilityHazard::new);
+        registerType("cnpc:trap", AbilityTrap::new);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // BUILT-IN ABILITIES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public void registerAbility(String name, Ability ability) {
+        if (builtAbilities.containsKey(name)) {
+            LogWriter.info("AbilityController: Overwriting built-in ability: " + name);
+        }
+        if (!ability.isBuiltIn()) {
+            ability.setName(name);
+        }
+        builtAbilities.put(name, ability);
+        LogWriter.info("Registered ability: " + name);
+    }
+
+    public Ability getAbility(String name) {
+        return builtAbilities.get(name);
+    }
+
+    public Ability getAbilityByDisplayName(String displayName) {
+        for (Ability ability : builtAbilities.values()) {
+            if (ability.getName().equals(displayName)) {
+                return ability;
             }
         }
+        return null;
+    }
+
+    public Set<String> getAbilityNames() {
+        return new LinkedHashSet<>(builtAbilities.keySet());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CUSTOM ABILITIES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Incremented on any custom ability change; used by AbilitySlot for cache invalidation
+    private int customAbilityRevision = 0;
+
+    public void load() {
+        customAbilities.clear();
+
+        File dir = getDir();
+        File[] files = dir.exists() ? dir.listFiles() : null;
+        if (files != null) {
+            for (File file : files) {
+                if (!file.isFile() || !file.getName().endsWith(".json")) continue;
+                try {
+                    String filename = file.getName();
+                    String uuid = filename.substring(0, filename.length() - 5);
+
+                    NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
+                    Ability ability = fromNBT(nbt);
+                    if (ability != null) {
+                        ability.setId(uuid);
+                        customAbilities.put(uuid, ability);
+                    }
+                } catch (Exception e) {
+                    LogWriter.error("Error loading custom ability: " + file.getAbsolutePath(), e);
+                }
+            }
+        }
+
+        customAbilityRevision++;
         LogWriter.info("Loaded " + customAbilities.size() + " custom abilities");
     }
 
-    private File getDir() {
-        File dir = new File(CustomNpcs.getWorldSaveDirectory(), "abilities");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        return dir;
-    }
-
-    /**
-     * Save a custom ability preset. If the ability has no id, generates a UUID.
-     * Stores in customAbilities map and writes to disk.
-     */
     public boolean saveCustomAbility(Ability ability) {
         if (ability == null) return false;
 
@@ -124,7 +194,7 @@ public class AbilityController implements IAbilityHandler {
             }
 
             customAbilities.put(uuid, ability);
-            version++;
+            customAbilityRevision++;
             LogWriter.info("Saved custom ability: " + ability.getName() + " [" + uuid + "]");
             SyncController.syncAllCustomAbilities();
             return true;
@@ -134,9 +204,6 @@ public class AbilityController implements IAbilityHandler {
         }
     }
 
-    /**
-     * Delete a custom ability preset by UUID.
-     */
     public boolean deleteCustomAbility(String uuid) {
         if (uuid == null || uuid.isEmpty()) return false;
 
@@ -149,142 +216,295 @@ public class AbilityController implements IAbilityHandler {
             file.delete();
         }
 
-        version++;
+        customAbilityRevision++;
         LogWriter.info("Deleted custom ability: " + uuid);
         SyncController.syncAllCustomAbilities();
         return true;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // BUILT-IN ABILITY REGISTRY
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Register a pre-configured built-in ability by name.
-     * These are looked up by name in {@link #resolveAbility(String)}.
-     *
-     * @param name    Unique name (e.g., "Jump Attack", "Ki Blast")
-     * @param ability Pre-configured ability instance
-     */
-    public void registerAbility(String name, Ability ability) {
-        if (abilities.containsKey(name)) {
-            LogWriter.info("AbilityController: Overwriting built-in ability: " + name);
-        }
-        ability.setName(name);
-        abilities.put(name, ability);
-        LogWriter.info("Registered ability: " + name);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // RESOLUTION (used by AbilitySlot, PlayerAbilityData, etc.)
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Resolve an ability by key. Checks built-in abilities first (by name),
-     * then custom abilities (by UUID). Returns a copy safe to modify.
-     *
-     * @param key The ability name (built-in) or UUID (custom)
-     * @return A copy of the resolved ability, or null if not found
-     */
-    public Ability resolveAbility(String key) {
-        if (key == null || key.isEmpty()) return null;
-
-        // Check built-in abilities first
-        Ability builtIn = abilities.get(key);
-        if (builtIn != null) {
-            return fromNBT(builtIn.writeNBT());
-        }
-
-        // Check custom abilities
-        Ability custom = customAbilities.get(key);
-        if (custom != null) {
-            return fromNBT(custom.writeNBT());
-        }
-
-        return null;
-    }
-
-    /**
-     * Check if an ability key exists (either built-in or custom).
-     */
-    public boolean hasAbility(String key) {
-        return abilities.containsKey(key) || customAbilities.containsKey(key);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACCESSORS
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /** Get a built-in ability by name. Returns the stored instance (not a copy). */
-    public Ability getAbility(String name) {
-        return abilities.get(name);
-    }
-
-    /** Get all built-in ability names. */
-    public Set<String> getAbilityNames() {
-        return new LinkedHashSet<>(abilities.keySet());
-    }
-
-    /** Get a custom ability by UUID. Returns the stored instance (not a copy). */
     public Ability getCustomAbility(String uuid) {
         return customAbilities.get(uuid);
     }
 
-    /** Check if a custom ability exists by UUID. */
     public boolean hasCustomAbility(String uuid) {
         return customAbilities.containsKey(uuid);
     }
 
-    /** Get all custom ability UUIDs. */
     public Set<String> getCustomAbilityIds() {
         return new LinkedHashSet<>(customAbilities.keySet());
     }
 
-    /** Get the display name for a custom ability by UUID. */
     public String getCustomAbilityName(String uuid) {
         Ability a = customAbilities.get(uuid);
         return a != null ? a.getName() : null;
     }
 
-    /** Get the custom abilities map (used by SyncController). */
     public Map<String, Ability> getCustomAbilities() {
         return customAbilities;
     }
 
-    /** Replace the custom abilities map (used by client-side sync). */
     public void setCustomAbilities(Map<String, Ability> synced) {
         customAbilities.clear();
         customAbilities.putAll(synced);
-        version++;
+        customAbilityRevision++;
     }
 
-    /** Get the version counter (incremented on custom ability changes). */
-    public int getVersion() {
-        return version;
+    public int getCustomAbilityRevision() {
+        return customAbilityRevision;
+    }
+
+    private File getDir() {
+        File dir = new File(CustomNpcs.getWorldSaveDirectory(), "abilities");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return dir;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // IAbilityHandler INTERFACE IMPLEMENTATION
+    // RESOLUTION
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public Ability resolveAbility(String key) {
+        if (key == null || key.isEmpty()) return null;
+
+        // Built-in: exact name
+        Ability builtIn = builtAbilities.get(key);
+        if (builtIn != null) return builtIn.deepCopy();
+
+        // Built-in: case-insensitive name
+        for (Map.Entry<String, Ability> entry : builtAbilities.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue().deepCopy();
+            }
+        }
+
+        // Built-in: registry key / ID
+        for (Ability ability : builtAbilities.values()) {
+            if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) {
+                return ability.deepCopy();
+            }
+        }
+
+        // Custom: exact UUID
+        Ability custom = customAbilities.get(key);
+        if (custom != null) return custom.deepCopy();
+
+        // Custom: case-insensitive name
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) {
+                return ability.deepCopy();
+            }
+        }
+
+        return null;
+    }
+
+    public Set<String> getAbilityKeys() {
+        Set<String> keys = new LinkedHashSet<>();
+        for (Ability ability : builtAbilities.values()) {
+            String id = ability.getId();
+            if (id != null && !id.isEmpty()) {
+                keys.add(id);
+            }
+        }
+        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        for (Ability ability : customAbilities.values()) {
+            String name = ability.getName();
+            if (name != null && !name.isEmpty()) {
+                keys.add(name);
+            }
+        }
+        return keys;
+    }
+
+    public Set<String> getPlayerAbilityKeys() {
+        Set<String> keys = new LinkedHashSet<>();
+        for (Ability ability : builtAbilities.values()) {
+            if (ability.getAllowedBy().allowsPlayer()) {
+                String id = ability.getId();
+                if (id != null && !id.isEmpty()) {
+                    keys.add(id);
+                }
+            }
+        }
+        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getAllowedBy().allowsPlayer()) {
+                String name = ability.getName();
+                if (name != null && !name.isEmpty()) {
+                    keys.add(name);
+                }
+            }
+        }
+        return keys;
+    }
+
+    public boolean hasAbility(String key) {
+        return builtAbilities.containsKey(key) || customAbilities.containsKey(key);
+    }
+
+    /**
+     * Check if a key can be resolved to a valid ability without creating a deep copy.
+     * Uses the same lookup chain as {@link #resolveAbility(String)}.
+     */
+    public boolean canResolveAbility(String key) {
+        if (key == null || key.isEmpty()) return false;
+
+        // Built-in: exact name
+        if (builtAbilities.containsKey(key)) return true;
+
+        // Built-in: case-insensitive name
+        for (String name : builtAbilities.keySet()) {
+            if (name.equalsIgnoreCase(key)) return true;
+        }
+
+        // Built-in: registry key / ID
+        for (Ability ability : builtAbilities.values()) {
+            if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) return true;
+        }
+
+        // Custom: exact UUID
+        if (customAbilities.containsKey(key)) return true;
+
+        // Custom: case-insensitive name
+        for (Ability ability : customAbilities.values()) {
+            if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) return true;
+        }
+
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EXTENSION POINTS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public void registerVariant(String typeId, AbilityVariant variant) {
+        externalVariants.computeIfAbsent(typeId, k -> new ArrayList<>()).add(variant);
+    }
+
+    public List<AbilityVariant> getVariantsForType(String typeId) {
+        List<AbilityVariant> result = new ArrayList<>();
+        Ability temp = create(typeId);
+        if (temp != null) {
+            result.addAll(temp.getVariants());
+        }
+        List<AbilityVariant> ext = externalVariants.get(typeId);
+        if (ext != null) {
+            // If no built-in variants exist but external ones do,
+            // inject a "Base" variant so the user always gets a choice
+            if (result.isEmpty()) {
+                result.add(new AbilityVariant("ability.variant.base", a -> {}));
+            }
+            result.addAll(ext);
+        }
+        return result;
+    }
+
+    public void registerFieldProvider(IAbilityFieldProvider provider) {
+        fieldProviders.add(provider);
+    }
+
+    public List<IAbilityFieldProvider> getFieldProviders() {
+        return fieldProviders;
+    }
+
+    public void registerExtender(IAbilityExtender extender) {
+        extenders.add(extender);
+    }
+
+    public List<IAbilityExtender> getExtenders() {
+        return extenders;
+    }
+
+    public void registerFlightChecker(Predicate<EntityPlayer> checker) {
+        flightCheckers.add(checker);
+    }
+
+    public boolean isPlayerFlying(EntityPlayer player) {
+        if (player.capabilities.isFlying) return true;
+        for (Predicate<EntityPlayer> checker : flightCheckers) {
+            if (checker.test(player)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Fire onAbilityStart on all extenders. Returns false if ANY extender cancels.
+     */
+    public boolean fireOnAbilityStart(Ability ability, EntityLivingBase caster, EntityLivingBase target) {
+        for (IAbilityExtender ext : extenders) {
+            if (!ext.onAbilityStart(ability, caster, target)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fire onAbilityTick on all extenders. Returns false if ANY extender says to interrupt.
+     */
+    public boolean fireOnAbilityTick(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                     AbilityPhase phase, int tick) {
+        for (IAbilityExtender ext : extenders) {
+            if (!ext.onAbilityTick(ability, caster, target, phase, tick)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fire onAbilityComplete on all extenders.
+     */
+    public void fireOnAbilityComplete(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                      boolean interrupted) {
+        for (IAbilityExtender ext : extenders) {
+            ext.onAbilityComplete(ability, caster, target, interrupted);
+        }
+    }
+
+    /**
+     * Fire onAbilityDamage on all extenders. Chain of responsibility — first true wins.
+     */
+    public boolean fireOnAbilityDamage(Ability ability, EntityLivingBase caster, EntityLivingBase target,
+                                       float damage, float knockback, float knockbackUp,
+                                       double knockbackDirX, double knockbackDirZ) {
+        for (IAbilityExtender ext : extenders) {
+            if (ext.onAbilityDamage(ability, caster, target, damage, knockback, knockbackUp,
+                                    knockbackDirX, knockbackDirZ)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // IAbilityHandler
     // ═══════════════════════════════════════════════════════════════════════════
 
     @Override
     public String[] getTypes() {
-        return typeFactories.keySet().toArray(new String[0]);
+        return abilityTypes.keySet().toArray(new String[0]);
+    }
+
+    public boolean isBuiltInType(String typeId) {
+        return builtInTypeIds.contains(typeId);
     }
 
     @Override
     public boolean hasType(String typeId) {
-        return typeFactories.containsKey(typeId);
+        return abilityTypes.containsKey(typeId);
     }
 
     @Override
     public String[] getAbilityNameArray() {
-        return abilities.keySet().toArray(new String[0]);
+        return builtAbilities.keySet().toArray(new String[0]);
     }
 
     @Override
     public boolean hasAbilityName(String name) {
-        return abilities.containsKey(name);
+        return builtAbilities.containsKey(name);
     }
 
     @Override
@@ -300,131 +520,5 @@ public class AbilityController implements IAbilityHandler {
     @Override
     public boolean deleteCustomAbilityById(String uuid) {
         return deleteCustomAbility(uuid);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // TYPE REGISTRATION
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Register a new ability type.
-     * Extracts the typeId from a temporary instance and stores in typeFactories.
-     *
-     * @param factoryKey Unused legacy key — the typeId from the created instance is used
-     * @param factory    Factory lambda that creates a new instance
-     */
-    public void registerType(String factoryKey, Supplier<Ability> factory) {
-        Ability temp = factory.get();
-        String typeId = temp.getTypeId();
-        if (typeFactories.containsKey(typeId)) {
-            LogWriter.info("AbilityController: Overwriting type: " + typeId);
-        }
-        typeFactories.put(typeId, factory);
-    }
-
-    /**
-     * Create an ability from NBT data.
-     * Uses the "typeId" field to look up in typeFactories.
-     */
-    public Ability fromNBT(NBTTagCompound nbt) {
-        if (nbt == null || !nbt.hasKey("typeId")) {
-            return null;
-        }
-
-        String typeId = nbt.getString("typeId");
-        Supplier<Ability> factory = typeFactories.get(typeId);
-        if (factory == null) {
-            LogWriter.info("AbilityController: Unknown ability type: " + typeId);
-            return null;
-        }
-
-        Ability ability = factory.get();
-        ability.readNBT(nbt);
-        return ability;
-    }
-
-    /**
-     * Create a new empty ability of the given type.
-     *
-     * @param typeId The ability typeId (e.g., "ability.cnpc.slam")
-     */
-    public Ability create(String typeId) {
-        Supplier<Ability> factory = typeFactories.get(typeId);
-        if (factory == null) {
-            return null;
-        }
-        return factory.get();
-    }
-
-    /**
-     * Register built-in ability types.
-     */
-    private void registerBuiltinTypes() {
-        // Melee/AOE damage abilities
-        registerType("cnpc:slam", AbilitySlam::new);
-        registerType("cnpc:heavy_hit", AbilityHeavyHit::new);
-        registerType("cnpc:cutter", AbilityCutter::new);
-
-        // Ranged/Projectile abilities
-        registerType("cnpc:sweeper", AbilitySweeper::new);
-        registerType("cnpc:projectile", AbilityProjectile::new);
-        registerType("cnpc:orb", AbilityOrb::new);
-        registerType("cnpc:dual_orb", AbilityOrbDual::new);
-        registerType("cnpc:orb_barrage", AbilityOrbBarrage::new);
-        registerType("cnpc:dual_disc", AbilityDisc::new);
-        registerType("cnpc:dual_disc", AbilityDiscDual::new);
-        registerType("cnpc:laser_shot", AbilityLaserShot::new);
-        registerType("cnpc:beam", AbilityBeam::new);
-        registerType("cnpc:dual_beam", AbilityBeamDual::new);
-
-        // Movement abilities
-        registerType("cnpc:charge", AbilityCharge::new);
-        registerType("cnpc:dash", AbilityDash::new);
-        registerType("cnpc:teleport", AbilityTeleport::new);
-        registerType("cnpc:vortex", AbilityVortex::new);
-        registerType("cnpc:shockwave", AbilityShockwave::new);
-
-        // Defensive abilities
-        registerType("cnpc:guard", AbilityGuard::new);
-        registerType("cnpc:heal", AbilityHeal::new);
-
-        // Zone/Trap abilities
-        registerType("cnpc:hazard", AbilityHazard::new);
-        registerType("cnpc:trap", AbilityTrap::new);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EXTERNAL DAMAGE HANDLER
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Register an external damage handler for abilities.
-     * When set, the handler is called before default damage application.
-     * If the handler returns true, default damage is skipped.
-     */
-    public void registerDamageHandler(IAbilityDamageHandler handler) {
-        this.damageHandler = handler;
-    }
-
-    /** Get the registered damage handler, or null if none. */
-    public IAbilityDamageHandler getDamageHandler() {
-        return damageHandler;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EXTERNAL FIELD PROVIDERS
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Register an external field provider for ability GUIs.
-     * Providers are called during getAllDefinitions() to inject custom tabs/fields.
-     */
-    public void registerFieldProvider(IAbilityFieldProvider provider) {
-        fieldProviders.add(provider);
-    }
-
-    /** Get all registered field providers. */
-    public List<IAbilityFieldProvider> getFieldProviders() {
-        return fieldProviders;
     }
 }

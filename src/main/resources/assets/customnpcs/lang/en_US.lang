@@ -164,6 +164,7 @@ gui.playerMap=Regen PlayerMap
 gui.unused=Unused
 gui.apply=Apply
 gui.cancel=Cancel
+gui.continue=Continue
 gui.yes=Yes
 
 gui.lineColor1=Upper line color
@@ -638,6 +639,7 @@ faction.friendly=Friendly
 faction.points=Points
 faction.ondeath=On death
 faction.hidden=Hidden
+faction.hidden.hover=Hides this faction from the player's faction standings UI
 faction.default=Default
 faction.attackHostile=Attack hostile factions
 faction.defend=Defence faction members
@@ -646,8 +648,9 @@ faction.options=Faction Options
 faction.increasepoints=Faction %s increased by %s points
 faction.decreasepoints=Faction %s decreased by %s points
 faction.attacked=Attacked by mobs
+faction.attacked.hover=Whether vanilla mobs will target and attack NPCs in this faction
 faction.passive=Is Passive
-faction.passive.hover=Passive factions will not queue any attacking tasks [Good for Performance]
+faction.passive.hover=Passive faction NPCs cannot be damaged and will not queue any attacking tasks [Good for Performance]
 
 menu.inventory=Inventory
 menu.display=Display
@@ -1546,6 +1549,7 @@ ability.anchor.rightHand=Right Hand
 ability.anchor.leftHand=Left Hand
 ability.anchor.aboveHead=Above Head
 ability.anchor.chest=Chest
+ability.anchor.eye=Eye
 
 # Sweep Mode
 ability.sweep.swipe=Swipe
@@ -1559,10 +1563,52 @@ ability.dash.defensive=Defensive
 ability.counter.flat=Flat
 ability.counter.percent=Percent
 
-# Hazard Shape
+# Zone Shape
 ability.shape.circle=Circle
+ability.shape.square=Square
 ability.shape.ring=Ring
 ability.shape.cone=Cone
+ability.zoneShape=Shape
+
+# Zone Presets
+ability.preset.custom=Custom
+ability.preset.default=Default
+ability.preset.toxic=Toxic
+ability.preset.inferno=Inferno
+ability.preset.arcane=Arcane
+ability.preset.electric=Electric
+ability.preset.frost=Frost
+ability.preset.hidden=Hidden
+ability.preset.venom=Venom
+ability.preset.explosive=Explosive
+ability.preset.cursed=Cursed
+ability.preset.shock=Shock
+ability.preset.snare=Snare
+
+# Accent Styles
+ability.accentStyle.static=Static
+ability.accentStyle.swaying=Swaying
+ability.accentStyle.flickering=Flickering
+
+# Particle Motion Styles
+ability.particleMotion.rising=Rising
+ability.particleMotion.drifting=Drifting
+ability.particleMotion.sparks=Sparks
+
+# Zone Settings
+ability.section.zone=Zone Placement
+ability.telegraphSize=Telegraph Size
+ability.coneAngle=Cone Angle
+ability.ignoreInvulnFrames=Ignore Invuln Frames
+ability.visible=Visible
+
+# Visual Layer Section Headers
+ability.section.ground=Ground Fill
+ability.section.rings=Rings
+ability.section.border=Border
+ability.section.accents=Accents
+ability.section.lightning=Lightning
+ability.section.particles=Particles
 
 # Placement Mode
 ability.placement.atCaster=At Caster
@@ -1604,11 +1650,8 @@ ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
 ability.cnpc.cutter=Cutter
 ability.cnpc.beam=Beam
-ability.cnpc.beam_dual=Beam Dual
 ability.cnpc.projectile=Projectile
 ability.cnpc.orb=Orb
-ability.cnpc.orb_dual=Orb Dual
-ability.cnpc.orb_barrage=Orb Barrage
 ability.cnpc.charge=Charge
 ability.cnpc.dash=Dash
 ability.cnpc.teleport=Teleport
@@ -1619,7 +1662,6 @@ ability.cnpc.heal=Heal
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
 ability.cnpc.disc=Disc
-ability.cnpc.disc_dual=Disc Dual
 ability.cnpc.laser_shot=Laser Shot
 ability.cnpc.sweeper=Sweeper
 
@@ -1631,11 +1673,12 @@ ability.cnpc.sweeper=Sweeper
 ability.weight=Weight
 ability.windUpTicks=Wind Up
 ability.cooldownTicks=Cooldown
-ability.lockPosition=Lock Position
-ability.lockType=Lock Type
-ability.lockType.movement=Movement
-ability.lockType.rotation=Rotation
-ability.lockType.both=Both
+ability.lockMovement=Lock Movement
+ability.rotationMode=Rotation
+ability.rotationPhase=Phase
+ability.rotation.free=Free
+ability.rotation.locked=Locked
+ability.rotation.track=Track
 ability.interruptible=Interruptible
 ability.dazedTicks=Dazed Ticks
 ability.targetingMode=Targeting
@@ -1661,6 +1704,7 @@ ability.section.timing=Timing
 ability.section.movement=Movement
 ability.section.sounds=Sounds
 ability.section.animations=Animations
+ability.section.animation=Animation
 ability.section.telegraph=Telegraph
 ability.section.beam=Beam
 ability.section.sweep=Sweep
@@ -1672,14 +1716,16 @@ ability.section.boomerang=Boomerang
 ability.section.explosive=Explosive
 ability.section.colors=Colors
 ability.section.effects=Effects
-ability.section.dual=Dual
-ability.section.beam1=Beam 1
-ability.section.beam2=Beam 2
-ability.section.disc1=Disc 1
-ability.section.disc2=Disc 2
-ability.section.orb1=Orb 1
-ability.section.orb2=Orb 2
-ability.section.barrage=Barrage
+ability.section.burst=Burst
+ability.section.visual=Visual
+ability.section.projectile1=Projectile 1
+ability.section.projectile2=Projectile 2
+ability.section.projectile3=Projectile 3
+ability.section.projectile4=Projectile 4
+ability.section.projectile5=Projectile 5
+ability.section.projectile6=Projectile 6
+ability.section.projectile7=Projectile 7
+ability.section.projectile8=Projectile 8
 ability.section.counter=Counter
 ability.section.area=Area
 ability.section.damage=Damage
@@ -1708,6 +1754,20 @@ gui.animation=Animation
 gui.duration=Duration
 gui.amp=Amp
 gui.speed=Speed
+gui.size=Size
+gui.alpha=Alpha
+gui.count=Count
+gui.style=Style
+gui.scale=Scale
+gui.motion=Motion
+gui.glow=Glow
+gui.texture=Texture
+gui.dps=DPS
+gui.interval=Interval
+gui.cooldown=Cooldown
+gui.max=Max
+gui.preset=Preset
+gui.applyPreset=Apply Preset
 
 # Common Type Settings
 ability.radius=Radius
@@ -1720,9 +1780,14 @@ ability.stunTicks=Stun Ticks
 ability.hitWidth=Hit Width
 ability.hitLength=Hit Length
 ability.effects=Effects
+ability.effect.burn=Burn
 ability.mode=Mode
 ability.duration=Duration
 ability.anchorPoint=Anchor Point
+ability.anchor.offsetX=Offset X
+ability.anchor.offsetY=Offset Y
+ability.anchor.offsetZ=Offset Z
+ability.vertical=Vertical
 ability.rotationSpeed=Rotation Speed
 
 # Slam
@@ -1786,7 +1851,6 @@ ability.healAllies=Heal Allies
 # Hazard
 ability.shape=Shape
 ability.placement=Placement
-ability.damagePerSecond=Damage/Sec
 ability.damageInterval=Damage Interval
 ability.slownessLevel=Slowness Level
 ability.debuffDuration=Debuff Duration
@@ -1795,8 +1859,6 @@ ability.affectsCaster=Affects Caster
 
 # Trap
 ability.armTime=Arm Time
-ability.maxTriggers=Max Triggers
-ability.triggerCooldown=Trigger Cooldown
 
 # Sweeper
 ability.sweepSpeed=Sweep Speed
@@ -1819,16 +1881,27 @@ ability.outerEnabled=Outer Glow
 ability.outerWidth=Outer Width
 ability.outerAlpha=Outer Alpha
 ability.lightning=Lightning
-ability.lightningDensity=Density
 ability.lightningRadius=Radius
 
-# Dual Energy Projectile Settings
-ability.dualFire=Dual Fire
+# Projectile Count / Settings
+ability.projectileCount=Count
 ability.dualFireDelay=Fire Delay
+ability.fireDelay=Fire Delay
+ability.colorOverride=Color Override
+
+# Burst System
+ability.burstEnabled=Burst
+ability.burstAmount=Amount
+ability.burstDelay=Delay
+ability.burstReplayAnimations=Replay Animations
+ability.burstOverlap=Overlap
+ability.hover.burstOverlap=When enabled, projectiles from previous bursts keep flying while new ones fire
+ability.hover.burstReplay=Replay windup and active animations for each burst iteration
 
 # Ability Save/Load
 ability.save.confirm=Save ability preset
 ability.save.overwrite=Overwrite existing preset
+ability.duplicate.name=A preset with this name already exists
 ability.load.select=Select ability to load:
 ability.load.mode=How should this ability be loaded?
 ability.clone=Clone
@@ -1840,6 +1913,13 @@ gui.load=Load
 ability.edit.mode=How should this ability be edited?
 ability.cloneModify=Clone & Edit
 ability.modifyParent=Edit Parent
+
+# Ability Variant Selection
+ability.selectVariant=Select Variant
+ability.variant.base=Base
+ability.variant.single=Single
+ability.variant.dual=Dual
+ability.variant.barrage=Barrage
 
 # Ability Type Selection
 ability.selectType=Select Ability Type:
@@ -1862,8 +1942,9 @@ ability.noTypeSettings=No type-specific settings
 # ═══════════════════════════════════════════════════════════════
 
 ability.hover.weight=Higher weight = more likely to be chosen when multiple abilities available
-ability.hover.lockPosition=Prevents NPC from moving or rotating while ability is charging or active
-ability.hover.lockType=What to lock: Movement (pathfinding), Rotation (facing direction), or Both
+ability.hover.lockMovement=Prevents NPC pathfinding during the selected phases (Windup, Active, or Both)
+ability.hover.rotationMode=Free: normal AI rotation. Locked: freeze facing direction. Track: force face target for precise aiming.
+ability.hover.rotationPhase=When the rotation mode applies (Windup, Active, or Both)
 ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
 ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)
 ability.hover.windup=Charge-up time before ability activates (20 ticks = 1 second)
@@ -1884,6 +1965,7 @@ ability.hover.piercing=Hits multiple targets instead of stopping on first hit
 ability.hover.lightning=Add electrical effect to visuals
 ability.hover.outerGlow=Enable outer glow layer around projectile
 ability.hover.anchorPoint=Where on the NPC the ability spawns from
+ability.hover.vertical=Disc flies standing up with thin edge facing target (like a saw blade)
 ability.hover.dualCharge=Whether or not should create two anchor points
 ability.hover.damage=Base damage dealt to targets
 ability.hover.speed=Movement speed of projectile
@@ -1903,7 +1985,6 @@ ability.hover.placement=Where the ability effect is placed (Caster, Target, etc.
 ability.hover.lockTarget=Sweeper beam tracks the target's position
 ability.hover.canCounter=Enable counterattack when blocking damage
 ability.hover.counterType=Flat = fixed damage, Percent = % of blocked damage
-ability.hover.shape=Shape of the hazard zone (Circle, Ring, Cone)
 ability.hover.affectsCaster=Hazard can damage the NPC that created it
 ability.hover.sweepMode=Swipe = single arc attack, Spin = continuous rotation
 
@@ -1933,6 +2014,8 @@ condition.hover.threshold=Health percentage threshold (1-99%)
 effect.hover.type=Potion effect type to apply to targets
 effect.hover.duration=Effect duration in ticks (20 ticks = 1 second)
 effect.hover.amplifier=Effect strength level (higher = stronger)
+effect.manual=Manual
+effect.potionid=Potion ID
 
 # =========================================
 # Auction House

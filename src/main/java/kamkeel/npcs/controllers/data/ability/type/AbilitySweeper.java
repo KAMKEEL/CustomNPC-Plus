@@ -14,7 +14,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
+
 import noppes.npcs.api.ability.type.IAbilitySweeper;
 
 import java.util.Arrays;
@@ -62,6 +62,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }
@@ -72,27 +77,29 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     }
 
     @Override
-    public void onExecute(EntityLivingBase caster, EntityLivingBase target, World world) {
-        if (world.isRemote) {
-            signalCompletion();
-            return;
-        }
-
-        // Spawn the entity that handles BOTH visuals AND damage
-        activeEntity = new EntityAbilitySweeper(world, caster, target,
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        // Spawn the sweeper entity that handles BOTH visuals AND damage.
+        // NPC: target is the aggro target — lockOnTarget tracks it during sweep.
+        // Player: target is null — sweep rotates around caster's facing direction, lockOnTarget has no effect.
+        activeEntity = new EntityAbilitySweeper(caster.worldObj, caster, target,
             beamLength, beamWidth, beamHeight,
             colorData,
             sweepSpeed, numberOfRotations,
             damage, damageInterval, piercing,
             lockOnTarget);
-        world.spawnEntityInWorld(activeEntity);
+
+        if (isPreview()) {
+            activeEntity.setupPreview(caster);
+        }
+
+        spawnAbilityEntity(activeEntity);
 
         // Ability stays active until entity dies (prevents firing another while projectile is alive)
         // Movement locking is handled separately by the base class
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         // Signal completion when entity dies
         if (activeEntity == null || activeEntity.isDead) {
             activeEntity = null;
@@ -160,15 +167,15 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.beamLength = nbt.hasKey("beamLength") ? nbt.getFloat("beamLength") : 10.0f;
-        this.beamWidth = nbt.hasKey("beamWidth") ? nbt.getFloat("beamWidth") : 0.3f;
-        this.beamHeight = nbt.hasKey("beamHeight") ? nbt.getFloat("beamHeight") : 0.5f;
-        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 5.0f;
-        this.damageInterval = nbt.hasKey("damageInterval") ? nbt.getInteger("damageInterval") : 5;
-        this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");
-        this.sweepSpeed = nbt.hasKey("sweepSpeed") ? nbt.getFloat("sweepSpeed") : 3.0f;
-        this.numberOfRotations = nbt.hasKey("numberOfRotations") ? nbt.getInteger("numberOfRotations") : 2;
-        this.lockOnTarget = nbt.hasKey("lockOnTarget") && nbt.getBoolean("lockOnTarget");
+        this.beamLength = nbt.getFloat("beamLength");
+        this.beamWidth = nbt.getFloat("beamWidth");
+        this.beamHeight = nbt.getFloat("beamHeight");
+        this.damage = nbt.getFloat("damage");
+        this.damageInterval = nbt.getInteger("damageInterval");
+        this.piercing = nbt.getBoolean("piercing");
+        this.sweepSpeed = nbt.getFloat("sweepSpeed");
+        this.numberOfRotations = nbt.getInteger("numberOfRotations");
+        this.lockOnTarget = nbt.getBoolean("lockOnTarget");
         colorData.readNBT(nbt);
     }
 
@@ -199,6 +206,11 @@ public class AbilitySweeper extends Ability implements IAbilitySweeper {
     public void setOuterColorWidth(float outerColorWidth) { colorData.outerColorWidth = outerColorWidth; }
     public boolean isOuterColorEnabled() { return colorData.outerColorEnabled; }
     public void setOuterColorEnabled(boolean outerColorEnabled) { colorData.outerColorEnabled = outerColorEnabled; }
+
+    @Override
+    public int getMaxPreviewDuration() {
+        return (int) ((360.0f * numberOfRotations) / sweepSpeed) + 10;
+    }
 
     @SideOnly(Side.CLIENT)
     @Override

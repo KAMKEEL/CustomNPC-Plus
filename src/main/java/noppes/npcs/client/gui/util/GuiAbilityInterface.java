@@ -11,10 +11,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.ClientEventHandler;
-import noppes.npcs.client.EntityUtil;
-import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.entity.data.ModelData;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -50,7 +47,6 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
     private GuiNpcButton btnLeft, btnRight;
 
     // ==================== NPC STATE ====================
-    public ModelData playerdata;
     public EntityNPCInterface npc;
 
     /** NPC starting position (saved when preview starts, used to track movement) */
@@ -85,7 +81,6 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
     public GuiAbilityInterface(EntityNPCInterface npc, boolean hasMenuNpc) {
         super(hasMenuNpc ? npc : null);
         this.npc = npc;
-        this.playerdata = ((EntityCustomNpc) npc).modelData;
         this.drawDefaultBackground = false;
 
         CAMERA_ZOOM = 30f;
@@ -135,20 +130,17 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
      * Draw the 3D preview with NPC and entities.
      */
     protected void drawPreview(int mouseX, int mouseY, float partialTicks) {
+        if (hasSubGui())
+            return;
+
         GL11.glColor4f(1, 1, 1, 1);
 
         // Enable scissor to clip rendering to preview area
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         setScissorClip(previewX, previewY, previewWidth, previewHeight);
 
-        // Get the entity to render (could be transformed player model)
-        EntityLivingBase renderEntity = playerdata.getEntity(npc);
-        if (renderEntity == null) {
-            renderEntity = this.npc;
-        }
-
-        // Sync NPC properties to render entity
-        EntityUtil.Copy(npc, renderEntity);
+        // Always use the standard NPC animation renderer for ability preview
+        EntityLivingBase renderEntity = this.npc;
 
         // Set NPC facing direction (affects anchor points and visual facing)
         npc.prevRenderYawOffset = npc.renderYawOffset = NPC_FACING_YAW;
@@ -204,11 +196,7 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
         ClientEventHandler.renderingEntityInGUI = true;
 
         // Render the NPC at its position delta (for movement like slam jumps)
-        try {
-            RenderManager.instance.renderEntityWithPosYaw(renderEntity, npcDeltaX, npcDeltaY, npcDeltaZ, 0.0F, partialTicks);
-        } catch (Exception e) {
-            playerdata.setEntityClass(null);
-        }
+        RenderManager.instance.renderEntityWithPosYaw(renderEntity, npcDeltaX, npcDeltaY, npcDeltaZ, 0.0F, partialTicks);
 
         // Render preview entities at their positions relative to NPC start position
         renderPreviewEntities(partialTicks);

@@ -60,6 +60,10 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
     private int maxTicks = 400;
     private long deathWorldTime = -1;
 
+    // Preview mode
+    private boolean previewMode = false;
+    private EntityLivingBase previewOwner = null;
+
     // Damage state
     private transient int ticksSinceDamage = 0;
     private transient Set<Integer> hitThisTick = new HashSet<>();
@@ -140,15 +144,19 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
             return;
         }
 
-        // Follow owner
         Entity owner = getOwner();
-        if (owner == null) {
+        if (owner != null && owner.isDead) {
+            this.setDead();
+            return;
+        }
+        if (owner instanceof EntityNPCInterface && ((EntityNPCInterface) owner).isKilled()) {
             this.setDead();
             return;
         }
 
-        // Update position to follow owner
-        this.setPosition(owner.posX, owner.posY + beamHeight, owner.posZ);
+        if (owner != null) {
+            this.setPosition(owner.posX, owner.posY + beamHeight, owner.posZ);
+        }
 
         // Check if sweep is done
         if (completedRotations >= numberOfRotations) {
@@ -281,7 +289,16 @@ public class EntityAbilitySweeper extends Entity implements IEntityAdditionalSpa
         target.velocityChanged = true;
     }
 
+    /**
+     * Set up preview mode. Owner is stored directly since world entity lookup won't work.
+     */
+    public void setupPreview(EntityLivingBase owner) {
+        this.previewMode = true;
+        this.previewOwner = owner;
+    }
+
     private Entity getOwner() {
+        if (previewMode && previewOwner != null) return previewOwner;
         if (ownerEntityId == -1) return null;
         return worldObj.getEntityByID(ownerEntityId);
     }

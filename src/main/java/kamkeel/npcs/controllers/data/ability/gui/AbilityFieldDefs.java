@@ -23,4 +23,5 @@ public class AbilityFieldDefs {
             () -> getter.get(),
             v -> setter.accept((List<AbilityEffect>) v));
     }
+
 }

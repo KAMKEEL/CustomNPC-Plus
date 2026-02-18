@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.DamageSource;
@@ -32,6 +33,7 @@ import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
@@ -67,7 +69,8 @@ public abstract class Ability implements IAbility {
 
     // Feedback
     protected LockMovementType lockMovement = LockMovementType.WINDUP;
-    protected LockType lockType = LockType.BOTH;
+    protected RotationMode rotationMode = RotationMode.FREE;
+    protected LockMovementType rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -100,6 +103,13 @@ public abstract class Ability implements IAbility {
     // Configurable potion effects
     protected List<AbilityEffect> effects = new ArrayList<>();
 
+    // Burst
+    protected boolean burstEnabled = false;
+    protected int burstAmount = 0;             // number of EXTRA repetitions
+    protected int burstDelay = 0;              // ticks between bursts
+    protected boolean burstReplayAnimations = true;
+    protected boolean burstOverlap = false;    // if true, don't wait for entity death between bursts
+
     // ═══════════════════════════════════════════════════════════════════
     // EXECUTION STATE (not saved, reset each combat)
     // ═══════════════════════════════════════════════════════════════════
@@ -108,21 +118,41 @@ public abstract class Ability implements IAbility {
     protected transient int currentTick = 0;
     protected transient EntityLivingBase currentTarget;
     protected transient long executionStartTime;
-    protected transient TelegraphInstance telegraphInstance;
+    protected transient List<TelegraphInstance> telegraphInstances = new ArrayList<>();
+
+    // Burst execution state
+    protected transient int burstIndex = 0;
+    protected transient List<Entity> burstEntities = new ArrayList<>();
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PREVIEW STATE (client-side only, not saved)
+    // ═══════════════════════════════════════════════════════════════════
+
+    protected transient boolean previewMode = false;
+    protected transient PreviewEntityHandler previewEntityHandler;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // GUI CONTEXT (client-side only, not saved)
+    // ═══════════════════════════════════════════════════════════════════
+
+    protected transient boolean npcInlineEdit = false;
 
     // ═══════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Called first tick of ACTIVE phase
+     * Called first tick of ACTIVE phase.
+     * For burst without replay (burstReplayAnimations=false), this is called directly
+     * after BURST_DELAY without a preceding windup. Check isBurstRefire() or null-check
+     * entity state to detect and handle the burst refire case.
      */
-    public abstract void onExecute(EntityLivingBase caster, EntityLivingBase target, World world);
+    public abstract void onExecute(EntityLivingBase caster, EntityLivingBase target);
 
     /**
      * Called every tick of ACTIVE phase
      */
-    public abstract void onActiveTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick);
+    public abstract void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick);
 
     /**
      * Write type-specific config to NBT
@@ -148,7 +178,49 @@ public abstract class Ability implements IAbility {
         return true;
     }
 
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, World world, int tick) {
+    /**
+     * Override to provide variant templates for this ability type.
+     * When a user creates this ability type, they will be shown a selection dialog
+     * with the returned variants. If empty or single-entry, the dialog is skipped.
+     */
+    public List<AbilityVariant> getVariants() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Whether this ability type supports the burst system.
+     * Override to return false for abilities that shouldn't repeat (Guard, Heal, Sweeper, etc.).
+     */
+    public boolean allowBurst() {
+        return true;
+    }
+
+    /**
+     * Whether this ability supports overlap mode for burst (entities from previous bursts keep flying).
+     * Override to return true for entity-spawning projectile abilities (Orb, Beam, Disc, LaserShot).
+     */
+    public boolean allowOverlap() {
+        return false;
+    }
+
+    /**
+     * Whether this ability is ready for auto-completion during burst overlap mode.
+     * Override to delay auto-completion until all staggered projectiles have been fired.
+     * @param activeTick the current tick within the ACTIVE phase
+     */
+    public boolean isReadyForBurstCompletion(int activeTick) {
+        return true;
+    }
+
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+    }
+
+    /**
+     * Whether this execution is a burst refire (not the first execution).
+     * Useful in onExecute() to detect when windup was skipped and entities need fresh creation.
+     */
+    public boolean isBurstRefire() {
+        return burstEnabled && burstIndex > 0;
     }
 
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
@@ -257,13 +329,10 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (damage > 0) {
-            // Check for external damage handler first (e.g., DBC Addon)
-            IAbilityDamageHandler handler = AbilityController.Instance.getDamageHandler();
-            boolean handled = false;
-            if (handler != null) {
-                handled = handler.handleDamage(this, caster, hitEntity, damage, knockback, knockbackUp,
-                                               knockbackDirX, knockbackDirZ);
-            }
+            // Check for ability extenders (e.g., DBC Addon damage routing)
+            boolean handled = AbilityController.Instance.fireOnAbilityDamage(
+                this, caster, hitEntity, damage, knockback, knockbackUp,
+                knockbackDirX, knockbackDirZ);
             if (!handled) {
                 // Default damage path
                 if (caster instanceof EntityNPCInterface) {
@@ -326,6 +395,28 @@ public abstract class Ability implements IAbility {
 
     public float getTelegraphAngle() {
         return 45.0f;
+    }
+
+    /**
+     * Returns true if the caster is a player (not an NPC).
+     * Use this instead of checking {@code target != null} to make NPC/Player
+     * code paths explicit and readable.
+     * <p>
+     * NPCs always have an aggro target passed to ability methods.
+     * Players never do — they use look direction for aiming instead.
+     */
+    protected final boolean isPlayerCaster(EntityLivingBase caster) {
+        return caster instanceof EntityPlayer;
+    }
+
+    /**
+     * Whether the telegraph should remain visible during the ACTIVE phase.
+     * Default: false (telegraph removed at WINDUP→ACTIVE transition).
+     * Override for abilities where the active phase IS the attack (e.g., sweeping/spinning attacks)
+     * so the telegraph stays visible while damage is being dealt.
+     */
+    public boolean keepTelegraphDuringActive() {
+        return false;
     }
 
     /**
@@ -411,26 +502,33 @@ public abstract class Ability implements IAbility {
         defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
             .tab("General").range(0, 10000));
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
-        defs.add(FieldDef.row(
-            FieldDef.stringEnumField("ability.lockPosition", LockMovementType.getDisplayKeys(),
+        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
                 () -> this.getLockMovement().getDisplayKey(),
                 v -> {
-                    String[] keys = LockMovementType.getDisplayKeys();
-                    for (int i = 0; i < keys.length; i++) {
-                        if (keys[i].equals(v)) { this.setLockMovement(LockMovementType.fromOrdinal(i)); break; }
+                    for (LockMovementType t : LockMovementType.values()) {
+                        if (t.getDisplayKey().equals(v)) { this.setLockMovement(t); break; }
                     }
                 })
-                .hover("ability.hover.lockPosition"),
-            FieldDef.stringEnumField("ability.lockType", LockType.getDisplayKeys(),
-                () -> this.getLockType().getDisplayKey(),
+                .hover("ability.hover.lockMovement")
+                .tab("General"));
+        defs.add(FieldDef.row(
+            FieldDef.stringEnumField("ability.rotationMode", RotationMode.getDisplayKeys(),
+                () -> this.getRotationMode().getDisplayKey(),
                 v -> {
-                    String[] keys = LockType.getDisplayKeys();
-                    for (int i = 0; i < keys.length; i++) {
-                        if (keys[i].equals(v)) { this.setLockType(LockType.fromOrdinal(i)); break; }
+                    for (RotationMode m : RotationMode.values()) {
+                        if (m.getDisplayKey().equals(v)) { this.setRotationMode(m); break; }
                     }
                 })
-                .hover("ability.hover.lockType")
-                .visibleWhen(() -> this.lockMovement != LockMovementType.NO)
+                .hover("ability.hover.rotationMode"),
+            FieldDef.stringEnumField("ability.rotationPhase", getRotationPhaseKeys(),
+                () -> this.getRotationPhase().getDisplayKey(),
+                v -> {
+                    for (LockMovementType t : LockMovementType.values()) {
+                        if (t.getDisplayKey().equals(v)) { this.setRotationPhase(t); break; }
+                    }
+                })
+                .hover("ability.hover.rotationPhase")
+                .visibleWhen(() -> this.rotationMode != RotationMode.FREE)
         ).tab("General"));
         defs.add(FieldDef.row(
             FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
@@ -438,6 +536,25 @@ public abstract class Ability implements IAbility {
             FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
                 .range(0, 1000).visibleWhen(this::isInterruptible)
         ).tab("General"));
+
+        // ── Burst section ────────────────────────────────────────────
+        if (allowBurst()) {
+            defs.add(FieldDef.section("ability.section.burst").tab("General"));
+            defs.add(FieldDef.boolField("ability.burstEnabled", this::isBurstEnabled, this::setBurstEnabled)
+                .tab("General"));
+            defs.add(FieldDef.row(
+                FieldDef.intField("ability.burstAmount", this::getBurstAmount, this::setBurstAmount).range(1, 100),
+                FieldDef.intField("ability.burstDelay", this::getBurstDelay, this::setBurstDelay).range(0, 1000)
+            ).tab("General").visibleWhen(this::isBurstEnabled));
+            defs.add(FieldDef.boolField("ability.burstReplayAnimations", this::isBurstReplayAnimations, this::setBurstReplayAnimations)
+                .tab("General").visibleWhen(this::isBurstEnabled)
+                .hover("ability.hover.burstReplay"));
+            if (allowOverlap()) {
+                defs.add(FieldDef.boolField("ability.burstOverlap", this::isBurstOverlap, this::setBurstOverlap)
+                    .tab("General").visibleWhen(this::isBurstEnabled)
+                    .hover("ability.hover.burstOverlap"));
+            }
+        }
 
         // ── Target tab ───────────────────────────────────────────────
         defs.add(FieldDef.row(
@@ -580,6 +697,9 @@ public abstract class Ability implements IAbility {
             case POINT:
                 telegraph = new Telegraph("", TelegraphType.POINT);
                 break;
+            case SQUARE:
+                telegraph = Telegraph.square(getTelegraphRadius());
+                break;
             default:
                 return null;
         }
@@ -599,12 +719,12 @@ public abstract class Ability implements IAbility {
             instance.setEntityIdToFollow(caster.getEntityId());
 
             // For LINE/CONE telegraphs: track target direction during windup
-            // Only track if movement is NOT locked during windup (locked = NPC can't rotate)
+            // Only track if rotation is NOT locked during windup (NPC can still turn)
             if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
-                if (!lockMovement.locksWindup()) {
+                if (!isRotationLockedDuringWindup()) {
                     instance.setTargetEntityId(target.getEntityId());
                 }
-                // If windup is locked, yaw stays fixed at creation time
+                // If rotation is locked, yaw stays fixed at creation time
             }
         } else if (target != null) {
             // AOE_TARGET abilities: telegraph follows target during windup
@@ -612,6 +732,17 @@ public abstract class Ability implements IAbility {
         }
 
         return instance;
+    }
+
+    /**
+     * Create all telegraph instances for this ability.
+     * Override for abilities that need multiple telegraphs (e.g., zone abilities).
+     * Default wraps createTelegraph() in a singleton list.
+     */
+    public List<TelegraphInstance> createTelegraphs(EntityLivingBase caster, EntityLivingBase target) {
+        TelegraphInstance instance = createTelegraph(caster, target);
+        if (instance == null) return new ArrayList<>();
+        return new ArrayList<>(Collections.singletonList(instance));
     }
 
     /**
@@ -682,17 +813,17 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * Get the current telegraph instance.
+     * Get the current telegraph instances.
      */
-    public TelegraphInstance getTelegraphInstance() {
-        return telegraphInstance;
+    public List<TelegraphInstance> getTelegraphInstances() {
+        return telegraphInstances;
     }
 
     /**
-     * Set the telegraph instance (called by DataAbilities).
+     * Set the telegraph instances (called by DataAbilities).
      */
-    public void setTelegraphInstance(TelegraphInstance instance) {
-        this.telegraphInstance = instance;
+    public void setTelegraphInstances(List<TelegraphInstance> instances) {
+        this.telegraphInstances = instances != null ? instances : new ArrayList<>();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -707,6 +838,8 @@ public abstract class Ability implements IAbility {
         this.currentTick = 0;
         this.currentTarget = target;
         this.executionStartTime = System.currentTimeMillis();
+        this.burstIndex = 0;
+        this.burstEntities.clear();
 
         if (windUpTicks <= 0) {
             this.phase = AbilityPhase.ACTIVE;
@@ -749,6 +882,19 @@ public abstract class Ability implements IAbility {
                     return true;
                 }
                 break;
+
+            case BURST_DELAY:
+                // Waiting between burst repetitions - free movement/rotation
+                if (currentTick >= burstDelay) {
+                    if (burstReplayAnimations && getWindUpTicks() > 0) {
+                        phase = AbilityPhase.WINDUP;
+                    } else {
+                        phase = AbilityPhase.ACTIVE;
+                    }
+                    currentTick = 0;
+                    return true;
+                }
+                break;
         }
         return false;
     }
@@ -762,6 +908,19 @@ public abstract class Ability implements IAbility {
      */
     public boolean signalCompletion() {
         if (phase == AbilityPhase.ACTIVE) {
+            // Check if more burst iterations remain
+            if (burstEnabled && burstAmount > 0 && burstIndex < burstAmount) {
+                // Don't cleanup here - entities may still be in flight
+                // For non-overlap: cleaned up when next burst starts (in onExecute)
+                // For overlap: entities continue flying indefinitely
+                burstIndex++;
+                phase = AbilityPhase.BURST_DELAY;
+                currentTick = 0;
+                return true;
+            }
+
+            // Final completion - let burst entities die naturally (don't force-kill)
+            burstEntities.clear();
             cleanup();
             phase = AbilityPhase.IDLE;
             currentTick = 0;
@@ -775,9 +934,10 @@ public abstract class Ability implements IAbility {
      * Called when NPC takes direct damage during WINDUP.
      */
     public void interrupt() {
+        cleanupBurstEntities();
         cleanup();
-        if (interruptible && phase == AbilityPhase.WINDUP) {
-            // Interrupted during windup - go to dazed state
+        if (interruptible && (phase == AbilityPhase.WINDUP || phase == AbilityPhase.BURST_DELAY)) {
+            // Interrupted during windup or burst delay - go to dazed state
             phase = AbilityPhase.DAZED;
             currentTick = 0;
         } else {
@@ -785,8 +945,9 @@ public abstract class Ability implements IAbility {
             phase = AbilityPhase.IDLE;
             currentTick = 0;
         }
+        burstIndex = 0;
         currentTarget = null;
-        telegraphInstance = null;
+        telegraphInstances.clear();
     }
 
     /**
@@ -805,7 +966,7 @@ public abstract class Ability implements IAbility {
      * @return true if the ability should be interrupted
      */
     public boolean canInterrupt(DamageSource source) {
-        if (!interruptible || phase != AbilityPhase.WINDUP) {
+        if (!interruptible || (phase != AbilityPhase.WINDUP && phase != AbilityPhase.BURST_DELAY)) {
             return false;
         }
 
@@ -832,11 +993,15 @@ public abstract class Ability implements IAbility {
      * Reset all execution state (called on combat end, NPC death, target lost, etc.)
      */
     public void reset() {
+        cleanupBurstEntities();
         cleanup();
         phase = AbilityPhase.IDLE;
         currentTick = 0;
+        burstIndex = 0;
         currentTarget = null;
-        telegraphInstance = null;
+        telegraphInstances.clear();
+        previewMode = false;
+        previewEntityHandler = null;
     }
 
     /**
@@ -848,91 +1013,73 @@ public abstract class Ability implements IAbility {
         // Override in subclasses to clean up spawned entities, etc.
     }
 
+    /**
+     * Kill all entities tracked during burst overlap and clear the list.
+     */
+    protected void cleanupBurstEntities() {
+        for (Entity e : burstEntities) {
+            if (e != null && !e.isDead) {
+                killAbilityEntity(e);
+            }
+        }
+        burstEntities.clear();
+    }
+
     // ═══════════════════════════════════════════════════════════════════
-    // CLIENT-SIDE PREVIEW METHODS
+    // PREVIEW MODE SUPPORT
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Get total active phase duration for preview (in ticks).
-     * Override in subclasses to provide accurate preview duration.
-     *
-     * @return Duration of active phase in ticks (default: 40 = 2 seconds)
+     * Whether this ability is running in preview mode (GUI preview).
+     * When true, abilities should skip damage, effects, sounds, and particles
+     * but still run their core logic (entity spawning, movement, timing).
      */
-    public int getPreviewActiveDuration() {
-        return 40;
+    public boolean isPreview() {
+        return previewMode;
+    }
+
+    public void setPreviewMode(boolean preview) {
+        this.previewMode = preview;
+    }
+
+    public void setPreviewEntityHandler(PreviewEntityHandler handler) {
+        this.previewEntityHandler = handler;
     }
 
     /**
-     * Called during preview windup tick (client-side only).
-     * Override for visual updates during windup preview.
-     * Do NOT apply damage or world effects here.
-     *
-     * @param npc  The preview NPC
-     * @param tick Current tick within windup phase
+     * Spawn an entity during ability execution.
+     * In preview mode, routes to PreviewEntityHandler instead of world.spawnEntityInWorld().
      */
-    @SideOnly(Side.CLIENT)
-    public void onPreviewWindUpTick(EntityNPCInterface npc, int tick) {
-        // Default: no-op. Override in subclasses for visual effects.
+    protected void spawnAbilityEntity(Entity entity) {
+        if (previewMode && previewEntityHandler != null) {
+            previewEntityHandler.onEntitySpawned(entity);
+        } else {
+            entity.worldObj.spawnEntityInWorld(entity);
+        }
+        if (burstEnabled && burstOverlap) {
+            burstEntities.add(entity);
+        }
     }
 
     /**
-     * Called during preview active tick (client-side only).
-     * Override for visual updates during active preview.
-     * Do NOT apply damage or world effects here.
-     *
-     * @param npc  The preview NPC
-     * @param tick Current tick within active phase
+     * Kill an entity spawned by this ability.
+     * In preview mode, notifies PreviewEntityHandler of removal.
      */
-    @SideOnly(Side.CLIENT)
-    public void onPreviewActiveTick(EntityNPCInterface npc, int tick) {
-        // Default: no-op. Override in subclasses for visual effects.
+    protected void killAbilityEntity(Entity entity) {
+        if (entity == null) return;
+        entity.setDead();
+        if (previewMode && previewEntityHandler != null) {
+            previewEntityHandler.onEntityRemoved(entity);
+        }
     }
 
     /**
-     * Create a preview entity for GUI display (client-side only).
-     * The entity should be in preview mode and not apply damage.
-     * Override in abilities that spawn entities (Beam, Orb, Disc, etc.)
-     *
-     * @param npc The preview NPC
-     * @return Preview entity, or null if ability doesn't spawn entities
+     * Maximum duration (in ticks) for preview before auto-stopping.
+     * Override in movement abilities that have variable duration.
+     * Default: 200 ticks (10 seconds).
      */
-    @SideOnly(Side.CLIENT)
-    public Entity createPreviewEntity(EntityNPCInterface npc) {
-        return null; // Override in entity-spawning abilities
-    }
-
-    /**
-     * Whether to spawn preview entity during WINDUP phase (true) or ACTIVE phase (false).
-     * Most abilities (Orb, Beam, Disc) spawn during windup for charging effect.
-     * Laser spawns at active phase since it has no charging state.
-     */
-    public boolean spawnPreviewDuringWindup() {
-        return true; // Default: spawn during windup for charging
-    }
-
-    // ── Preview target (set by executor for abilities that need targeting) ──
-
-    protected transient EntityLivingBase previewTarget;
-
-    /**
-     * Set the fake target entity for preview mode.
-     * Called by AbilityPreviewExecutor before starting preview.
-     */
-    public void setPreviewTarget(EntityLivingBase target) {
-        this.previewTarget = target;
-    }
-
-    public EntityLivingBase getPreviewTarget() {
-        return previewTarget;
-    }
-
-    /**
-     * Called once when transitioning from WINDUP to ACTIVE in preview mode.
-     * Override in movement-based abilities to initiate movement.
-     */
-    @SideOnly(Side.CLIENT)
-    public void onPreviewExecute(EntityNPCInterface npc) {
-        // Default: no-op. Override in movement abilities.
+    public int getMaxPreviewDuration() {
+        return 200;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -978,7 +1125,8 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
         nbt.setInteger("lockMovement", lockMovement.ordinal());
-        nbt.setInteger("lockType", lockType.ordinal());
+        nbt.setInteger("rotationMode", rotationMode.ordinal());
+        nbt.setInteger("rotationPhase", rotationPhase.ordinal());
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
@@ -990,9 +1138,16 @@ public abstract class Ability implements IAbility {
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
-        nbt.setTag("customData", customData);
+        nbt.setTag("customData", (NBTTagCompound) customData.copy());
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
+
+        // Burst
+        nbt.setBoolean("burstEnabled", burstEnabled);
+        nbt.setInteger("burstAmount", burstAmount);
+        nbt.setInteger("burstDelay", burstDelay);
+        nbt.setBoolean("burstReplayAnimations", burstReplayAnimations);
+        nbt.setBoolean("burstOverlap", burstOverlap);
 
         // Conditions
         NBTTagList condList = new NBTTagList();
@@ -1025,31 +1180,37 @@ public abstract class Ability implements IAbility {
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
-        syncWindupWithAnimation = !nbt.hasKey("syncWindup") || nbt.getBoolean("syncWindup");
+        syncWindupWithAnimation = nbt.getBoolean("syncWindup");
         dazedTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
-        lockType = nbt.hasKey("lockType") ? LockType.fromOrdinal(nbt.getInteger("lockType")) : LockType.BOTH;
+        rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
+        rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
         windUpColor = nbt.getInteger("windUpColor");
         activeColor = nbt.getInteger("activeColor");
         windUpSound = nbt.getString("windUpSound");
         activeSound = nbt.getString("activeSound");
-        windUpAnimationId = nbt.hasKey("windUpAnimationId") ? nbt.getInteger("windUpAnimationId") : -1;
-        activeAnimationId = nbt.hasKey("activeAnimationId") ? nbt.getInteger("activeAnimationId") : -1;
+        windUpAnimationId = nbt.getInteger("windUpAnimationId");
+        activeAnimationId = nbt.getInteger("activeAnimationId");
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
-        showTelegraph = !nbt.hasKey("showTelegraph") || nbt.getBoolean("showTelegraph");
-        if (nbt.hasKey("telegraphType")) {
-            try {
-                telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
-            } catch (Exception e) {
-                telegraphType = TelegraphType.CIRCLE;
-            }
+        showTelegraph = nbt.getBoolean("showTelegraph");
+        try {
+            telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
+        } catch (Exception e) {
+            telegraphType = TelegraphType.CIRCLE;
         }
-        telegraphHeightOffset = nbt.hasKey("telegraphHeightOffset") ? nbt.getFloat("telegraphHeightOffset") : 0.1f;
+        telegraphHeightOffset = nbt.getFloat("telegraphHeightOffset");
         customData = nbt.getCompoundTag("customData");
-        allowedBy = nbt.hasKey("allowedBy") ? UserType.fromOrdinal(nbt.getInteger("allowedBy")) : UserType.BOTH;
-        ignoreCooldown = nbt.hasKey("ignoreCooldown") && nbt.getBoolean("ignoreCooldown");
+        allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
+        ignoreCooldown = nbt.getBoolean("ignoreCooldown");
+
+        // Burst
+        burstEnabled = nbt.getBoolean("burstEnabled");
+        burstAmount = nbt.getInteger("burstAmount");
+        burstDelay = nbt.getInteger("burstDelay");
+        burstReplayAnimations = nbt.getBoolean("burstReplayAnimations");
+        burstOverlap = nbt.getBoolean("burstOverlap");
 
         // Conditions
         conditions.clear();
@@ -1096,6 +1257,22 @@ public abstract class Ability implements IAbility {
 
     public String getTypeId() {
         return typeId;
+    }
+
+    public boolean isBuiltIn() {
+        return false;
+    }
+
+    public Ability deepCopy() {
+        return AbilityController.Instance.fromNBT(this.writeNBT());
+    }
+
+    public boolean isNpcInlineEdit() {
+        return npcInlineEdit;
+    }
+
+    public void setNpcInlineEdit(boolean npcInlineEdit) {
+        this.npcInlineEdit = npcInlineEdit;
     }
 
     public int getWeight() {
@@ -1194,12 +1371,20 @@ public abstract class Ability implements IAbility {
         this.lockMovement = lockMovement;
     }
 
-    public LockType getLockType() {
-        return lockType;
+    public RotationMode getRotationMode() {
+        return rotationMode;
     }
 
-    public void setLockType(LockType lockType) {
-        this.lockType = lockType;
+    public void setRotationMode(RotationMode rotationMode) {
+        this.rotationMode = rotationMode;
+    }
+
+    public LockMovementType getRotationPhase() {
+        return rotationPhase;
+    }
+
+    public void setRotationPhase(LockMovementType rotationPhase) {
+        this.rotationPhase = rotationPhase;
     }
 
     /**
@@ -1221,21 +1406,39 @@ public abstract class Ability implements IAbility {
     }
 
     /**
-     * API method: Get lock type as integer.
-     * @return 0=MOVEMENT, 1=ROTATION, 2=BOTH
+     * API method: Get rotation mode as integer.
+     * @return 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
-    public int getLockTypeOrdinal() {
-        return lockType.ordinal();
+    public int getRotationModeType() {
+        return rotationMode.ordinal();
     }
 
     /**
-     * API method: Set lock type from integer.
-     * @param type 0=MOVEMENT, 1=ROTATION, 2=BOTH
+     * API method: Set rotation mode from integer.
+     * @param type 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
-    public void setLockTypeOrdinal(int type) {
-        this.lockType = LockType.fromOrdinal(type);
+    public void setRotationModeType(int type) {
+        this.rotationMode = RotationMode.fromOrdinal(type);
+    }
+
+    /**
+     * API method: Get rotation phase as integer.
+     * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public int getRotationPhaseType() {
+        return rotationPhase.ordinal();
+    }
+
+    /**
+     * API method: Set rotation phase from integer.
+     * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
+     */
+    @Override
+    public void setRotationPhaseType(int type) {
+        this.rotationPhase = LockMovementType.fromOrdinal(type);
     }
 
     /**
@@ -1243,7 +1446,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isMovementLockedDuringWindup() {
-        return lockMovement.locksWindup() && lockType.locksMovement();
+        return lockMovement.locksWindup();
     }
 
     /**
@@ -1251,7 +1454,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isMovementLockedDuringActive() {
-        return lockMovement.locksActive() && lockType.locksMovement();
+        return lockMovement.locksActive();
     }
 
     /**
@@ -1259,7 +1462,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isRotationLockedDuringWindup() {
-        return lockMovement.locksWindup() && lockType.locksRotation();
+        return rotationMode == RotationMode.LOCKED && rotationPhase.locksWindup();
     }
 
     /**
@@ -1267,7 +1470,7 @@ public abstract class Ability implements IAbility {
      */
     @Override
     public boolean isRotationLockedDuringActive() {
-        return lockMovement.locksActive() && lockType.locksRotation();
+        return rotationMode == RotationMode.LOCKED && rotationPhase.locksActive();
     }
 
     /**
@@ -1279,6 +1482,8 @@ public abstract class Ability implements IAbility {
                 return isMovementLockedDuringWindup();
             case ACTIVE:
                 return isMovementLockedDuringActive();
+            case BURST_DELAY:
+                return false; // Free movement during burst delay
             default:
                 return false;
         }
@@ -1293,6 +1498,25 @@ public abstract class Ability implements IAbility {
                 return isRotationLockedDuringWindup();
             case ACTIVE:
                 return isRotationLockedDuringActive();
+            case BURST_DELAY:
+                return false; // Free rotation during burst delay
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if hit scan (force face target) is active during the current phase.
+     */
+    public boolean isHitScanForCurrentPhase() {
+        if (rotationMode != RotationMode.TRACK) return false;
+        switch (phase) {
+            case WINDUP:
+                return rotationPhase.locksWindup();
+            case ACTIVE:
+                return rotationPhase.locksActive();
+            case BURST_DELAY:
+                return false; // Free rotation during burst delay
             default:
                 return false;
         }
@@ -1481,6 +1705,63 @@ public abstract class Ability implements IAbility {
         effects.clear();
     }
 
+    // Burst getters/setters
+
+    public boolean isBurstEnabled() {
+        return burstEnabled;
+    }
+
+    public void setBurstEnabled(boolean burstEnabled) {
+        this.burstEnabled = burstEnabled;
+    }
+
+    public int getBurstAmount() {
+        return burstAmount;
+    }
+
+    public void setBurstAmount(int burstAmount) {
+        this.burstAmount = Math.max(0, burstAmount);
+    }
+
+    public int getBurstDelay() {
+        return burstDelay;
+    }
+
+    public void setBurstDelay(int burstDelay) {
+        this.burstDelay = Math.max(0, burstDelay);
+    }
+
+    public boolean isBurstReplayAnimations() {
+        return burstReplayAnimations;
+    }
+
+    public void setBurstReplayAnimations(boolean burstReplayAnimations) {
+        this.burstReplayAnimations = burstReplayAnimations;
+    }
+
+    public boolean isBurstOverlap() {
+        return burstOverlap;
+    }
+
+    public void setBurstOverlap(boolean burstOverlap) {
+        this.burstOverlap = burstOverlap;
+    }
+
+    public int getBurstIndex() {
+        return burstIndex;
+    }
+
+    /**
+     * Get display keys for rotation phase dropdown (excludes "None" since mode=FREE handles that).
+     */
+    private static String[] getRotationPhaseKeys() {
+        return new String[]{
+            "ability.lockMove.windup",
+            "ability.lockMove.active",
+            "ability.lockMove.both"
+        };
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // SHIT FROM THE ASS
     // ═══════════════════════════════════════════════════════════════════
@@ -1516,6 +1797,52 @@ public abstract class Ability implements IAbility {
 
         // Return total duration
         return totalDuration;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // MOVEMENT COLLISION UTILITY
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Check if a caster's movement in a given direction is blocked by walls/blocks.
+     * Used by Charge and Dash abilities to detect wall collision.
+     *
+     * @param caster The entity moving
+     * @param dirX   X component of normalized movement direction
+     * @param dirZ   Z component of normalized movement direction
+     * @param speed  Movement speed (blocks per tick)
+     * @return true if movement is blocked
+     */
+    protected static boolean isMovementBlocked(EntityLivingBase caster, double dirX, double dirZ, double speed) {
+        double nextX = dirX * speed;
+        double nextZ = dirZ * speed;
+        AxisAlignedBB nextBox = caster.boundingBox.copy().offset(nextX, 0, nextZ);
+        double stepThreshold = nextBox.minY + Math.max(caster.stepHeight, 0.5);
+
+        int x1 = (int) Math.floor(nextBox.minX);
+        int x2 = (int) Math.floor(nextBox.maxX + 1.0);
+        int y1 = (int) Math.floor(nextBox.minY) - 1;
+        int y2 = (int) Math.floor(nextBox.maxY + 1.0);
+        int z1 = (int) Math.floor(nextBox.minZ);
+        int z2 = (int) Math.floor(nextBox.maxZ + 1.0);
+
+        java.util.ArrayList<AxisAlignedBB> collisionBoxes = new java.util.ArrayList<>();
+        for (int bx = x1; bx < x2; bx++) {
+            for (int bz = z1; bz < z2; bz++) {
+                for (int by = y1; by < y2; by++) {
+                    Block block = caster.worldObj.getBlock(bx, by, bz);
+                    if (!block.getMaterial().blocksMovement()) continue;
+                    collisionBoxes.clear();
+                    block.addCollisionBoxesToList(caster.worldObj, bx, by, bz, nextBox, collisionBoxes, caster);
+                    for (AxisAlignedBB box : collisionBoxes) {
+                        if (box.maxY > stepThreshold) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════
