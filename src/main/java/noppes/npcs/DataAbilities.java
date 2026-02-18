@@ -950,7 +950,7 @@ public class DataAbilities {
         abilitySlots.add(AbilitySlot.inline(ability));
     }
 
-    /** Add a reference ability by key (built-in name or custom UUID). */
+    /** Add a reference ability by key (built-in name or custom ability name). */
     public void addAbilityReference(String key) {
         abilitySlots.add(AbilitySlot.reference(key));
     }

@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.global;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
-import java.util.UUID;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
@@ -62,10 +61,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private GuiCustomScroll scroll;
     private HashMap<String, Integer> customData = new HashMap<>();
     private HashMap<String, Integer> builtInData = new HashMap<>();
-    /** Maps display name -> UUID for custom abilities */
-    private final HashMap<String, String> displayToUuid = new HashMap<>();
     private String selected = null;
-    private String selectedUuid = null;
     private String search = "";
     private Ability selectedAbility = null;
 
@@ -117,7 +113,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
             // Remove button — only for custom view
             addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
-            getButton(1).setEnabled(selected != null && !selected.isEmpty() && displayToUuid.containsKey(selected));
+            getButton(1).setEnabled(selected != null && !selected.isEmpty() && customData.containsKey(selected));
         }
 
         // Edit button — hidden when viewing built-in
@@ -178,29 +174,17 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     }
 
     private List<String> getSearchList() {
-        if (showingBuiltIn) {
-            if (search.isEmpty()) {
-                return new ArrayList<>(builtInData.keySet());
-            }
-            List<String> list = new ArrayList<>();
-            for (String name : builtInData.keySet()) {
-                if (name.toLowerCase().contains(search.toLowerCase())) {
-                    list.add(name);
-                }
-            }
-            return list;
-        } else {
-            if (search.isEmpty()) {
-                return new ArrayList<>(displayToUuid.keySet());
-            }
-            List<String> list = new ArrayList<>();
-            for (String name : displayToUuid.keySet()) {
-                if (name.toLowerCase().contains(search.toLowerCase())) {
-                    list.add(name);
-                }
-            }
-            return list;
+        HashMap<String, Integer> data = getCurrentData();
+        if (search.isEmpty()) {
+            return new ArrayList<>(data.keySet());
         }
+        List<String> list = new ArrayList<>();
+        for (String name : data.keySet()) {
+            if (name.toLowerCase().contains(search.toLowerCase())) {
+                list.add(name);
+            }
+        }
+        return list;
     }
 
     @Override
@@ -260,7 +244,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (id == 10) {
             showingBuiltIn = !showingBuiltIn;
             selected = null;
-            selectedUuid = null;
             selectedAbility = null;
             currentIsBuiltIn = false;
             search = "";
@@ -276,7 +259,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (id == 2 && !showingBuiltIn) {
             // Add — open type selection
             setSubGui(new SubGuiAbilityTypeSelect());
-        } else if (id == 1 && !showingBuiltIn && selected != null && selectedUuid != null) {
+        } else if (id == 1 && !showingBuiltIn && selected != null) {
             GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), 1);
             displayGuiScreen(guiyesno);
         } else if (id == 100 && !showingBuiltIn && !currentIsBuiltIn && selectedAbility != null) {
@@ -325,17 +308,11 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                 selected = newSelection;
 
                 if (showingBuiltIn) {
-                    // Fetch built-in ability by display name
-                    selectedUuid = null;
                     currentIsBuiltIn = true;
                     PacketClient.sendClient(new BuiltInAbilityGetPacket(selected));
                 } else {
-                    // Fetch custom ability by UUID
-                    selectedUuid = displayToUuid.get(selected);
                     currentIsBuiltIn = false;
-                    if (selectedUuid != null) {
-                        PacketClient.sendClient(new CustomAbilityGetPacket(selectedUuid));
-                    }
+                    PacketClient.sendClient(new CustomAbilityGetPacket(selected));
                 }
             }
         }
@@ -357,21 +334,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (type == EnumScrollData.CUSTOM_ABILITIES) {
             String prevSelected = scroll != null ? scroll.getSelected() : null;
             this.customData = data;
-            displayToUuid.clear();
-            for (String key : data.keySet()) {
-                // key format: "displayName\tUUID"
-                int tabIndex = key.indexOf('\t');
-                if (tabIndex > 0) {
-                    String displayName = key.substring(0, tabIndex);
-                    String uuid = key.substring(tabIndex + 1);
-                    displayToUuid.put(displayName, uuid);
-                } else {
-                    displayToUuid.put(key, key);
-                }
-            }
             if (!showingBuiltIn && scroll != null) {
                 scroll.setList(getSearchList());
-                if (prevSelected != null && displayToUuid.containsKey(prevSelected)) {
+                if (prevSelected != null && customData.containsKey(prevSelected)) {
                     scroll.setSelected(prevSelected);
                 }
             }
@@ -422,7 +387,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                 Ability newAbility = AbilityController.Instance.create(pendingTypeId);
                 if (newAbility != null) {
                     variantGui.getVariants().get(idx).apply(newAbility);
-                    newAbility.setId(UUID.randomUUID().toString());
                     if (hasDuplicateName(newAbility)) {
                         pendingSaveAbility = newAbility;
                         pendingNewCreation = true;
@@ -450,7 +414,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                     if (variants.size() == 1) {
                         variants.get(0).apply(newAbility);
                     }
-                    newAbility.setId(UUID.randomUUID().toString());
                     if (hasDuplicateName(newAbility)) {
                         pendingSaveAbility = newAbility;
                         pendingNewCreation = true;
@@ -504,7 +467,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private void openConfig(Ability ability) {
         selectedAbility = ability;
         selected = ability.getName();
-        selectedUuid = ability.getId();
         previewExecutor.stop();
         setSubGui(ability.createConfigGui(this));
     }
@@ -512,12 +474,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private boolean hasDuplicateName(Ability ability) {
         String name = ability.getName();
         if (name == null || name.isEmpty()) return false;
-        for (java.util.Map.Entry<String, String> entry : displayToUuid.entrySet()) {
-            if (entry.getKey().equals(name) && !entry.getValue().equals(ability.getId())) {
-                return true;
-            }
-        }
-        return false;
+        String oldName = ability.getId();
+        // A duplicate exists if the name is already in use and it's not the same ability being edited
+        return customData.containsKey(name) && !name.equals(oldName);
     }
 
     @Override
@@ -525,11 +484,10 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         NoppesUtil.openGUI(player, this);
         if (!result) return;
 
-        if (id == 1 && selected != null && selectedUuid != null) {
-            PacketClient.sendClient(new CustomAbilityRemovePacket(selectedUuid));
+        if (id == 1 && selected != null) {
+            PacketClient.sendClient(new CustomAbilityRemovePacket(selected));
             scroll.clear();
             selected = null;
-            selectedUuid = null;
             selectedAbility = null;
             initGui();
         }

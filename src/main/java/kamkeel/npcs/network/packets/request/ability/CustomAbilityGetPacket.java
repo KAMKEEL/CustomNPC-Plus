@@ -20,18 +20,18 @@ import net.minecraft.nbt.NBTTagCompound;
 import java.io.IOException;
 
 /**
- * Request packet to get a specific custom ability by UUID.
+ * Request packet to get a specific custom ability by name.
  */
 public final class CustomAbilityGetPacket extends AbstractPacket {
     public static String packetName = "Request|CustomAbilityGet";
 
-    private String uuid;
+    private String name;
 
     public CustomAbilityGetPacket() {
     }
 
-    public CustomAbilityGetPacket(String uuid) {
-        this.uuid = uuid;
+    public CustomAbilityGetPacket(String name) {
+        this.name = name;
     }
 
     @Override
@@ -47,7 +47,7 @@ public final class CustomAbilityGetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, uuid);
+        ByteBufUtils.writeString(out, name);
     }
 
     @Override
@@ -58,12 +58,10 @@ public final class CustomAbilityGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
-        String id = ByteBufUtils.readString(in);
-        Ability ability = AbilityController.Instance.getCustomAbility(id);
+        String abilityName = ByteBufUtils.readString(in);
+        Ability ability = AbilityController.Instance.getCustomAbility(abilityName);
         if (ability != null) {
             NBTTagCompound compound = ability.writeNBT();
-            // Include the UUID so the client can track it
-            compound.setString("_uuid", id);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }
     }

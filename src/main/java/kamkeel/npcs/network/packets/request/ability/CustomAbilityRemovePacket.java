@@ -19,18 +19,18 @@ import noppes.npcs.NoppesUtilServer;
 import java.io.IOException;
 
 /**
- * Request packet to remove a custom ability by UUID.
+ * Request packet to remove a custom ability by name.
  */
 public final class CustomAbilityRemovePacket extends AbstractPacket {
     public static String packetName = "Request|CustomAbilityRemove";
 
-    private String uuid;
+    private String name;
 
     public CustomAbilityRemovePacket() {
     }
 
-    public CustomAbilityRemovePacket(String uuid) {
-        this.uuid = uuid;
+    public CustomAbilityRemovePacket(String name) {
+        this.name = name;
     }
 
     @Override
@@ -51,7 +51,7 @@ public final class CustomAbilityRemovePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, uuid);
+        ByteBufUtils.writeString(out, name);
     }
 
     @Override

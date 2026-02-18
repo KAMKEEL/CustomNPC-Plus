@@ -71,7 +71,6 @@ public final class CustomAbilitySavePacket extends AbstractPacket {
             AbilityController.Instance.saveCustomAbility(ability);
             NoppesUtilServer.sendCustomAbilitiesData((EntityPlayerMP) player);
             NBTTagCompound responseNbt = ability.writeNBT();
-            responseNbt.setString("_uuid", ability.getId());
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, responseNbt);
         }
     }
