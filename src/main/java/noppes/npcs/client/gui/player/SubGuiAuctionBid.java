@@ -78,7 +78,7 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
         int totalBtnWidth = btnWidth * 2 + btnSpacing;
         int btnX = centerX - totalBtnWidth / 2;
 
-        addButton(new GuiNpcButton(btnBidId, btnX, y, btnWidth, 20, "auction.bid.placeBid"));
+        addButton(new GuiNpcButton(btnBidId, btnX, y, btnWidth, 20, "auction.bid.place"));
         addButton(new GuiNpcButton(btnCancelId, btnX + btnWidth + btnSpacing, y, btnWidth, 20, "gui.cancel"));
     }
 

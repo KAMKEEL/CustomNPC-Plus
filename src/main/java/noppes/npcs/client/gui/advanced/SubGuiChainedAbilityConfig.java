@@ -6,6 +6,7 @@ import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.Condition;
+import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -25,11 +26,14 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * SubGui for editing a {@link ChainedAbility}.
- * Three tabs: General, Entries, Conditions.
+ * Core tabs: General, Entries, Conditions.
+ * Additional tabs are injected dynamically by {@link IChainedAbilityFieldProvider}s.
  */
 public class SubGuiChainedAbilityConfig extends SubGuiInterface implements ITextfieldListener, ISubGuiListener, IAbilityConfigCallback {
 
@@ -38,15 +42,17 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private static final int CLEAR_ID_START = 2000;
     private static final int LABEL_ID_START = 3000;
 
-    // ── Tab constants ─────────────────────────────────────────────────────────
+    // ── Tab constants (core tabs) ────────────────────────────────────────────
     private static final int TAB_GENERAL    = 0;
     private static final int TAB_ENTRIES    = 1;
     private static final int TAB_CONDITIONS = 2;
+    private static final int CORE_TAB_COUNT = 3;
 
     // ── Tab button IDs ────────────────────────────────────────────────────────
     private static final int BTN_TAB_GENERAL    = 90;
     private static final int BTN_TAB_ENTRIES    = 91;
     private static final int BTN_TAB_CONDITIONS = 92;
+    private static final int BTN_TAB_EXTRA_BASE = 93;
     private static final int BTN_CLOSE          = -1000;
 
     // ── Entries tab: per-entry ID encoding ─────────────────────────────────────
@@ -80,8 +86,11 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private List<ChainedAbilityEntry> entries;
     private List<Condition> conditions;
 
+    // Dynamic tabs injected by field providers (e.g., "Icon")
+    private List<String> extraTabs = new ArrayList<>();
+
     private GuiFieldBuilder builder;
-    private float[] tabScrollY = new float[3];
+    private float[] tabScrollY;
 
     // Entry editing
     private int editingEntryIndex = -1;
@@ -128,7 +137,57 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             FieldDef.floatField("ability.minRange", chain::getMinRange, chain::setMinRange).range(0, 64),
             FieldDef.floatField("ability.maxRange", chain::getMaxRange, chain::setMaxRange).range(0, 64)
         ).tab("General"));
-        fieldDefs.add(FieldDef.enumField("ability.allowedBy", UserType.class, chain::getAllowedBy, chain::setAllowedBy).tab("General"));
+
+        // Computed compatibility label (derived from child abilities)
+        fieldDefs.add(FieldDef.labelField("ability.compatible", () -> {
+            UserType ut = computeAllowedBy();
+            return StatCollector.translateToLocal("ability.compatible") + ": \u00A7e" + ut.name();
+        }).tab("General"));
+
+        // External field providers (e.g., DBC Addon injecting an "Icon" tab)
+        if (AbilityController.Instance != null) {
+            for (IChainedAbilityFieldProvider provider : AbilityController.Instance.getChainedFieldProviders()) {
+                provider.addFieldDefinitions(chain, fieldDefs);
+            }
+        }
+
+        // Collect extra tab names from provider-injected fields
+        Set<String> tabNames = new LinkedHashSet<>();
+        for (FieldDef def : fieldDefs) {
+            String tab = def.getTab();
+            if (tab != null && !tab.isEmpty() && !"General".equals(tab)) {
+                tabNames.add(tab);
+            }
+        }
+        extraTabs = new ArrayList<>(tabNames);
+
+        // Size scroll array for all tabs
+        tabScrollY = new float[CORE_TAB_COUNT + extraTabs.size()];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMPUTED USERTYPE
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Compute the allowed UserType from the current (possibly modified) entries list.
+     * Mirrors ChainedAbility.getAllowedBy() but uses the local entries.
+     */
+    private UserType computeAllowedBy() {
+        if (entries.isEmpty()) return UserType.BOTH;
+        boolean allAllowPlayer = true;
+        boolean allAllowNpc = true;
+        for (ChainedAbilityEntry entry : entries) {
+            Ability a = entry.resolve();
+            if (a == null) continue;
+            UserType ut = a.getAllowedBy();
+            if (!ut.allowsPlayer()) allAllowPlayer = false;
+            if (!ut.allowsNpc()) allAllowNpc = false;
+        }
+        if (allAllowPlayer && allAllowNpc) return UserType.BOTH;
+        if (allAllowPlayer) return UserType.PLAYER_ONLY;
+        if (allAllowNpc) return UserType.NPC_ONLY;
+        return UserType.NPC_ONLY;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -145,7 +204,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         super.initGui();
 
-        // Tab buttons
+        // Tab buttons — core tabs
         GuiMenuTopButton generalTab = new GuiMenuTopButton(BTN_TAB_GENERAL, guiLeft + 4, guiTop - 17, "menu.general");
         generalTab.active = (activeTab == TAB_GENERAL);
         addTopButton(generalTab);
@@ -158,6 +217,16 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         conditionsTab.active = (activeTab == TAB_CONDITIONS);
         addTopButton(conditionsTab);
 
+        // Dynamic extra tabs from field providers
+        GuiMenuTopButton prevTab = conditionsTab;
+        for (int i = 0; i < extraTabs.size(); i++) {
+            int tabIndex = CORE_TAB_COUNT + i;
+            GuiMenuTopButton extraTab = new GuiMenuTopButton(BTN_TAB_EXTRA_BASE + i, prevTab, extraTabs.get(i));
+            extraTab.active = (activeTab == tabIndex);
+            addTopButton(extraTab);
+            prevTab = extraTab;
+        }
+
         GuiMenuTopButton closeBtn = new GuiMenuTopButton(BTN_CLOSE, guiLeft + xSize - 22, guiTop - 17, "X");
         addTopButton(closeBtn);
 
@@ -168,22 +237,27 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         int swH = ySize - 10;
 
         if (activeTab == TAB_GENERAL) {
-            buildGeneralTab(swX, swY, swW, swH);
+            buildFieldDefTab("General", swX, swY, swW, swH);
         } else if (activeTab == TAB_ENTRIES) {
             buildEntriesTab(swX, swY, swW, swH);
         } else if (activeTab == TAB_CONDITIONS) {
             buildConditionsTab(swX, swY, swW, swH);
+        } else if (activeTab >= CORE_TAB_COUNT) {
+            int extraIndex = activeTab - CORE_TAB_COUNT;
+            if (extraIndex < extraTabs.size()) {
+                buildFieldDefTab(extraTabs.get(extraIndex), swX, swY, swW, swH);
+            }
         }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // GENERAL TAB
+    // FIELDDEF-BASED TAB (General + dynamic provider tabs)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private void buildGeneralTab(int swX, int swY, int swW, int swH) {
+    private void buildFieldDefTab(String tabName, int swX, int swY, int swW, int swH) {
         List<FieldDef> tabFields = new ArrayList<>();
         for (FieldDef def : fieldDefs) {
-            if ("General".equals(def.getTab()) && def.isVisible()) {
+            if (tabName.equals(def.getTab()) && def.isVisible()) {
                 tabFields.add(def);
             }
         }
@@ -342,11 +416,18 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
 
-        // Tab switching
+        // Tab switching — core tabs
         if (id == BTN_TAB_GENERAL)    { activeTab = TAB_GENERAL;    initGui(); return; }
         if (id == BTN_TAB_ENTRIES)    { activeTab = TAB_ENTRIES;    initGui(); return; }
         if (id == BTN_TAB_CONDITIONS) { activeTab = TAB_CONDITIONS; initGui(); return; }
         if (id == BTN_CLOSE)          { saveOnClose = true; close(); return; }
+
+        // Tab switching — extra tabs
+        if (id >= BTN_TAB_EXTRA_BASE && id < BTN_TAB_EXTRA_BASE + extraTabs.size()) {
+            activeTab = CORE_TAB_COUNT + (id - BTN_TAB_EXTRA_BASE);
+            initGui();
+            return;
+        }
 
         // Entries tab
         if (activeTab == TAB_ENTRIES) {
@@ -358,8 +439,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             if (handleConditionButton(id)) return;
         }
 
-        // General tab — declarative field handling
-        if (activeTab == TAB_GENERAL && builder != null) {
+        // FieldDef-based tabs (General + extra tabs) — declarative field handling
+        if (isFieldDefTab() && builder != null) {
             if (builder.handleButtonEvent(id, guibutton)) {
                 if (!hasSubGui()) {
                     initGui();
@@ -367,6 +448,13 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                 return;
             }
         }
+    }
+
+    /**
+     * Whether the current active tab uses the declarative FieldDef system.
+     */
+    private boolean isFieldDefTab() {
+        return activeTab == TAB_GENERAL || activeTab >= CORE_TAB_COUNT;
     }
 
     private boolean handleEntryButton(int id) {
@@ -456,8 +544,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     public void unFocused(GuiNpcTextField textField) {
         int id = textField.id;
 
-        // General tab — declarative fields
-        if (activeTab == TAB_GENERAL && builder != null && id >= DECLARATIVE_ID_START) {
+        // FieldDef-based tabs — declarative fields
+        if (isFieldDefTab() && builder != null && id >= DECLARATIVE_ID_START) {
             if (builder.handleTextFieldEvent(id, textField)) {
                 initGui();
             }
@@ -479,8 +567,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        // General tab — declarative sub-gui handling
-        if (activeTab == TAB_GENERAL && builder != null) {
+        // FieldDef-based tabs — declarative sub-gui handling
+        if (isFieldDefTab() && builder != null) {
             if (builder.handleSubGuiClosed(subgui)) {
                 initGui();
                 return;

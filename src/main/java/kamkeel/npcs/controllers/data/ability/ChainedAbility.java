@@ -44,14 +44,14 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     /** Maximum range for NPC eligibility check. */
     private float maxRange = 20;
 
-    /** Which entity types can use this chained ability. */
-    private UserType allowedBy = UserType.BOTH;
-
     /** Chain-level conditions (individual ability conditions are ignored). */
     private List<Condition> conditions = new ArrayList<>();
 
     /** Ordered list of ability entries to execute. */
     private List<ChainedAbilityEntry> entries = new ArrayList<>();
+
+    /** Extension data for external mods (e.g., icons, DBC stats). */
+    private NBTTagCompound customData = new NBTTagCompound();
 
     public ChainedAbility() {}
 
@@ -145,12 +145,27 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         this.maxRange = Math.max(0, maxRange);
     }
 
+    /**
+     * Compute the allowed user type from child abilities.
+     * A chain allows players if ALL resolved entries allow players.
+     * A chain allows NPCs if ALL resolved entries allow NPCs.
+     * Unresolvable entries are skipped (don't restrict).
+     */
     public UserType getAllowedBy() {
-        return allowedBy;
-    }
-
-    public void setAllowedBy(UserType allowedBy) {
-        this.allowedBy = allowedBy != null ? allowedBy : UserType.BOTH;
+        if (entries.isEmpty()) return UserType.BOTH;
+        boolean allAllowPlayer = true;
+        boolean allAllowNpc = true;
+        for (ChainedAbilityEntry entry : entries) {
+            Ability a = entry.resolve();
+            if (a == null) continue;
+            UserType ut = a.getAllowedBy();
+            if (!ut.allowsPlayer()) allAllowPlayer = false;
+            if (!ut.allowsNpc()) allAllowNpc = false;
+        }
+        if (allAllowPlayer && allAllowNpc) return UserType.BOTH;
+        if (allAllowPlayer) return UserType.PLAYER_ONLY;
+        if (allAllowNpc) return UserType.NPC_ONLY;
+        return UserType.NPC_ONLY;
     }
 
     public List<Condition> getConditions() {
@@ -167,6 +182,10 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
     public void setEntries(List<ChainedAbilityEntry> entries) {
         this.entries = entries != null ? entries : new ArrayList<>();
+    }
+
+    public NBTTagCompound getCustomData() {
+        return customData;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -343,7 +362,6 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         nbt.setInteger("CooldownTicks", cooldownTicks);
         nbt.setFloat("MinRange", minRange);
         nbt.setFloat("MaxRange", maxRange);
-        nbt.setInteger("AllowedBy", allowedBy.ordinal());
 
         // Conditions
         NBTTagList condList = new NBTTagList();
@@ -359,6 +377,9 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         }
         nbt.setTag("Entries", entryList);
 
+        // Custom data (for external mods)
+        nbt.setTag("customData", (NBTTagCompound) customData.copy());
+
         return nbt;
     }
 
@@ -372,7 +393,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         cooldownTicks = nbt.hasKey("CooldownTicks") ? nbt.getInteger("CooldownTicks") : 100;
         minRange = nbt.getFloat("MinRange");
         maxRange = nbt.hasKey("MaxRange") ? nbt.getFloat("MaxRange") : 20;
-        allowedBy = UserType.fromOrdinal(nbt.getInteger("AllowedBy"));
+        // AllowedBy is computed from child abilities — old NBT data silently ignored
 
         // Conditions
         conditions.clear();
@@ -393,5 +414,8 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
                 entries.add(entry);
             }
         }
+
+        // Custom data (for external mods)
+        customData = nbt.getCompoundTag("customData");
     }
 }

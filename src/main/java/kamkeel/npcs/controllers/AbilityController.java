@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.IAbilityExtender;
 import kamkeel.npcs.controllers.data.ability.IAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.ability.type.*;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityBeam;
@@ -46,6 +47,7 @@ public class AbilityController implements IAbilityHandler {
     // ── Extension Points ─────────────────────────────────────────────────────
     private final Map<String, List<AbilityVariant>> externalVariants = new LinkedHashMap<>();
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
+    private final List<IChainedAbilityFieldProvider> chainedFieldProviders = new ArrayList<>();
     private final List<IAbilityExtender> extenders = new ArrayList<>();
     private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
 
@@ -805,6 +807,14 @@ public class AbilityController implements IAbilityHandler {
 
     public List<IAbilityFieldProvider> getFieldProviders() {
         return fieldProviders;
+    }
+
+    public void registerChainedFieldProvider(IChainedAbilityFieldProvider provider) {
+        chainedFieldProviders.add(provider);
+    }
+
+    public List<IChainedAbilityFieldProvider> getChainedFieldProviders() {
+        return chainedFieldProviders;
     }
 
     public void registerExtender(IAbilityExtender extender) {
