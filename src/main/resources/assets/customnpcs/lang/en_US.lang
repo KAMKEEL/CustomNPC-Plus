@@ -2037,6 +2037,11 @@ ability.selectSlot=Select NPC Ability
 ability.loadType=Load Type
 ability.loadAbility=Load Ability
 ability.loadChain=Load Chain
+ability.validFor=Valid For
+ability.userType.NPC_ONLY=NPCs
+ability.userType.PLAYER_ONLY=Players
+ability.userType.BOTH=Both
+ability.dieOnImpact=Die on Impact
 
 gui.both=Both
 gui.players=Players

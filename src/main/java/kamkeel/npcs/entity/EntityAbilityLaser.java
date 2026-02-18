@@ -43,6 +43,9 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     // Lock vertical direction after firing (only update yaw, keep pitch fixed)
     private boolean lockVerticalDirection = false;
 
+    // Whether to die on first entity impact (hit-scan mode)
+    private boolean dieOnImpact = false;
+
     // Track hit entities to avoid double-damage
     private Set<Integer> hitEntities = new HashSet<>();
 
@@ -298,6 +301,20 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                 hitEntities.add(entity.getEntityId());
                 applyDamage(entity);
 
+                if (dieOnImpact) {
+                    // Stop at impact point and begin linger/fade
+                    double dx = entity.posX - startX;
+                    double dy = (entity.posY + entity.height * 0.5) - startY;
+                    double dz = entity.posZ - startZ;
+                    float impactDist = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    currentLength = Math.min(impactDist, currentLength);
+                    endX = startX + dirX * currentLength;
+                    endY = startY + dirY * currentLength;
+                    endZ = startZ + dirZ * currentLength;
+                    fullyExtended = true;
+                    return; // Stop checking further entities
+                }
+
                 // Piercing - don't stop, continue to next entity
             }
         }
@@ -386,6 +403,14 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.lingerTicks = ticks;
     }
 
+    public boolean isDieOnImpact() {
+        return dieOnImpact;
+    }
+
+    public void setDieOnImpact(boolean dieOnImpact) {
+        this.dieOnImpact = dieOnImpact;
+    }
+
     public void setDirection(double x, double y, double z) {
         this.dirX = x;
         this.dirY = y;
@@ -451,6 +476,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.laserWidth = nbt.hasKey("LaserWidth") ? nbt.getFloat("LaserWidth") : 0.2f;
         this.expansionSpeed = nbt.hasKey("ExpansionSpeed") ? nbt.getFloat("ExpansionSpeed") : 2.0f;
         this.lingerTicks = nbt.hasKey("LingerTicks") ? nbt.getInteger("LingerTicks") : 10;
+        this.dieOnImpact = nbt.getBoolean("DieOnImpact");
         this.dirX = nbt.getDouble("DirX");
         this.dirY = nbt.getDouble("DirY");
         this.dirZ = nbt.getDouble("DirZ");
@@ -468,6 +494,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         nbt.setFloat("LaserWidth", laserWidth);
         nbt.setFloat("ExpansionSpeed", expansionSpeed);
         nbt.setInteger("LingerTicks", lingerTicks);
+        nbt.setBoolean("DieOnImpact", dieOnImpact);
         nbt.setDouble("DirX", dirX);
         nbt.setDouble("DirY", dirY);
         nbt.setDouble("DirZ", dirZ);

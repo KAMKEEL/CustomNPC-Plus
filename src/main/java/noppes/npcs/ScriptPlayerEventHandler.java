@@ -332,10 +332,10 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
-            // Cancel any executing ability on dimension change
+            // Fully reset ability state on dimension change (no cooldown rollover)
             PlayerData playerData = PlayerData.get(event.player);
             if (playerData != null) {
-                playerData.abilityData.interruptCurrentAbility();
+                playerData.abilityData.resetOnDimensionChange();
             }
 
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);

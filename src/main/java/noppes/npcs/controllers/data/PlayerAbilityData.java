@@ -582,6 +582,51 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    // DIMENSION CHANGE RESET
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Fully reset ability state when changing dimensions.
+     * Unlike interruptCurrentAbility(), this does NOT roll any cooldowns
+     * and ensures the player can immediately use abilities in the new dimension.
+     * Also re-syncs to client since the entity may be re-created.
+     */
+    public void resetOnDimensionChange() {
+        // Clean up any executing ability without rolling cooldowns
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            removeTelegraph(currentAbility);
+            currentAbility.cleanup();
+            currentAbility.interrupt();
+            stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
+        }
+
+        // Clear chain state
+        currentChain = null;
+        chainEntryIndex = -1;
+        chainDelayRemaining = -1;
+
+        // Clear all transient state
+        currentAbility = null;
+        currentAbilityKey = null;
+        currentTarget = null;
+
+        // Reset cooldowns completely
+        cooldownEndTime = 0;
+        interruptCooldownRolled = false;
+
+        // Sync cleared state to client
+        EntityPlayer player = playerData.player;
+        if (player != null) {
+            syncAbilityStateClear(player);
+        }
+
+        // Re-sync ability data (unlocked list, selection) to client
+        syncToClient();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     // DAMAGE HANDLING
     // ═══════════════════════════════════════════════════════════════════
 

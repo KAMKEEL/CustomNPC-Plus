@@ -34,6 +34,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     private float laserWidth = 0.3f;
     private float expansionSpeed = 3.0f;
     private int lingerTicks = 8;
+    private boolean dieOnImpact = false;
 
     public AbilityLaserShot() {
         super(
@@ -116,12 +117,14 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     @Override
     protected EntityAbilityLaser createEntity(EntityLivingBase caster, EntityLivingBase target,
                                               Vec3 spawnPos, EnergyDisplayData resolved, int index) {
-        return new EntityAbilityLaser(
+        EntityAbilityLaser laser = new EntityAbilityLaser(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             laserWidth,
             resolved, combatData, lightningData, lifespanData, trajectoryData,
             expansionSpeed, lingerTicks);
+        laser.setDieOnImpact(dieOnImpact);
+        return laser;
     }
 
     @Override
@@ -158,6 +161,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         nbt.setFloat("laserWidth", laserWidth);
         nbt.setFloat("expansionSpeed", expansionSpeed);
         nbt.setInteger("lingerTicks", lingerTicks);
+        nbt.setBoolean("dieOnImpact", dieOnImpact);
     }
 
     @Override
@@ -165,6 +169,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         this.laserWidth = nbt.getFloat("laserWidth");
         this.expansionSpeed = nbt.getFloat("expansionSpeed");
         this.lingerTicks = nbt.getInteger("lingerTicks");
+        this.dieOnImpact = nbt.getBoolean("dieOnImpact");
     }
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
@@ -193,6 +198,14 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         this.lingerTicks = lingerTicks;
     }
 
+    public boolean isDieOnImpact() {
+        return dieOnImpact;
+    }
+
+    public void setDieOnImpact(boolean dieOnImpact) {
+        this.dieOnImpact = dieOnImpact;
+    }
+
     // ==================== TYPE-SPECIFIC GUI ====================
 
     @SideOnly(Side.CLIENT)
@@ -213,6 +226,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
         ));
         defs.add(FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance));
+        defs.add(FieldDef.boolField("ability.dieOnImpact", this::isDieOnImpact, this::setDieOnImpact));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
         defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));

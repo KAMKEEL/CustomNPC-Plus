@@ -175,13 +175,12 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         // Search bar
         addTextField(new GuiNpcTextField(TF_SEARCH, this, fontRendererObj, guiLeft + 220, guiTop + 192, 143, 20, search));
 
-        // Preview only for ability views (not chained)
+        // Check if we have something to preview
         if (showingChained) {
-            return;
-        }
-
-        // Show ability info only if one is selected
-        if (selectedAbility == null || selected == null) {
+            if (selectedChain == null || selected == null || selectedChain.getEntries().isEmpty()) {
+                return;
+            }
+        } else if (selectedAbility == null || selected == null) {
             return;
         }
 
@@ -311,6 +310,27 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             return;
         }
 
+        // Preview controls (shared across all views)
+        if (id == BTN_PREVIEW_PLAY) {
+            if (previewExecutor.isPaused()) {
+                previewExecutor.play();
+            } else if (showingChained && selectedChain != null) {
+                previewExecutor.startChainPreview(selectedChain, npc);
+            } else if (selectedAbility != null) {
+                previewExecutor.startPreview(selectedAbility, npc);
+            }
+            initGui();
+            return;
+        } else if (id == BTN_PREVIEW_PAUSE) {
+            previewExecutor.pause();
+            initGui();
+            return;
+        } else if (id == BTN_PREVIEW_STOP) {
+            previewExecutor.stop();
+            initGui();
+            return;
+        }
+
         if (showingChained) {
             if (id == BTN_ADD) {
                 // New chained ability
@@ -320,6 +340,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                 GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), CONFIRM_REMOVE_CHAIN);
                 displayGuiScreen(guiyesno);
             } else if (id == BTN_EDIT && selectedChain != null) {
+                previewExecutor.stop();
                 setSubGui(new SubGuiChainedAbilityConfig(selectedChain, this));
             }
             return;
@@ -335,24 +356,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             // Edit
             previewExecutor.stop();
             setSubGui(selectedAbility.createConfigGui(this));
-        } else if (id == BTN_PREVIEW_PLAY) {
-            // Play button
-            if (selectedAbility != null) {
-                if (previewExecutor.isPaused()) {
-                    previewExecutor.play();
-                } else {
-                    previewExecutor.startPreview(selectedAbility, npc);
-                }
-                initGui();
-            }
-        } else if (id == BTN_PREVIEW_PAUSE) {
-            // Pause button
-            previewExecutor.pause();
-            initGui();
-        } else if (id == BTN_PREVIEW_STOP) {
-            // Stop button
-            previewExecutor.stop();
-            initGui();
         }
     }
 

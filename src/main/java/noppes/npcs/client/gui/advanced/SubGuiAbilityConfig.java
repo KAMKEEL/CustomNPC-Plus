@@ -92,6 +92,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     @Override
     public void initGui() {
+        // Commit any focused text field before rebuilding
+        GuiNpcTextField.unfocus();
+
         // Save scroll position before super clears scroll windows
         GuiScrollWindow oldSw = getScrollableGui(0);
         if (oldSw != null && activeTab < tabScrollY.length) {
