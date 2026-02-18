@@ -85,15 +85,27 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * Create from a Java MethodInfo.
      */
     public static AutocompleteItem fromMethod(MethodInfo method) {
+        return fromMethod(method, false);
+    }
+    
+    /**
+     * Create from a Java MethodInfo, optionally for method reference context.
+     * @param method The method info
+     * @param forMethodReference If true, insert text will NOT include parentheses
+     */
+    public static AutocompleteItem fromMethod(MethodInfo method, boolean forMethodReference) {
         String name = method.getName();
         StringBuilder insertText = new StringBuilder(name);
-        insertText.append("(");
         
-        // Add placeholders for parameters if any
-        if (method.getParameterCount() > 0) {
-            // Just add () - user will fill in params
+        // For method references, don't add () since it's ::methodName not ::methodName()
+        if (!forMethodReference) {
+            insertText.append("(");
+            // Add placeholders for parameters if any
+            if (method.getParameterCount() > 0) {
+                // Just add () - user will fill in params
+            }
+            insertText.append(")");
         }
-        insertText.append(")");
         
         String returnType = method.getReturnType() != null ?
                 getName(method.getReturnType()) : "void";
@@ -208,7 +220,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * Create from a JavaScript JSMethodInfo.
      */
     public static AutocompleteItem fromJSMethod(JSMethodInfo method) {
-        return fromJSMethod(method, null, 0);
+        return fromJSMethod(method, null, 0, false);
     }
     
     /**
@@ -217,7 +229,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
      */
     public static AutocompleteItem fromJSMethod(JSMethodInfo method, int inheritanceDepth) {
-        return fromJSMethod(method, null, inheritanceDepth);
+        return fromJSMethod(method, null, inheritanceDepth, false);
     }
     
     /**
@@ -227,10 +239,25 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
      */
     public static AutocompleteItem fromJSMethod(JSMethodInfo method, TypeInfo contextType, int inheritanceDepth) {
+        return fromJSMethod(method, contextType, inheritanceDepth, false);
+    }
+    
+    /**
+     * Create from a JavaScript JSMethodInfo with type parameter resolution for display.
+     * @param method The method info
+     * @param contextType The TypeInfo context for resolving type parameters (e.g., IPlayer to resolve T → EntityPlayerMP)
+     * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
+     * @param forMethodReference If true, insert text will NOT include parentheses
+     */
+    public static AutocompleteItem fromJSMethod(JSMethodInfo method, TypeInfo contextType, int inheritanceDepth, boolean forMethodReference) {
         String name = method.getName();
         StringBuilder insertText = new StringBuilder(name);
-        insertText.append("(");
-        insertText.append(")");
+        
+        // For method references, don't add () since it's ::methodName not ::methodName()
+        if (!forMethodReference) {
+            insertText.append("(");
+            insertText.append(")");
+        }
 
         // Build display name with resolved parameter types
         StringBuilder displayName = new StringBuilder(name);
@@ -338,10 +365,27 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public static AutocompleteItem fromSyntheticMethod(
             SyntheticMethod method,
             TypeInfo containingType) {
+        return fromSyntheticMethod(method, containingType, false);
+    }
+    
+    /**
+     * Create from a synthetic method (e.g., Nashorn built-in like Java.type).
+     * @param method The synthetic method
+     * @param containingType The containing type info
+     * @param forMethodReference If true, insert text will NOT include parentheses
+     */
+    public static AutocompleteItem fromSyntheticMethod(
+            SyntheticMethod method,
+            TypeInfo containingType,
+            boolean forMethodReference) {
         String name = method.name;
         StringBuilder insertText = new StringBuilder(name);
-        insertText.append("(");
-        insertText.append(")");
+        
+        // For method references, don't add () since it's ::methodName not ::methodName()
+        if (!forMethodReference) {
+            insertText.append("(");
+            insertText.append(")");
+        }
 
         // Build display name with parameters - use simple names for types
         StringBuilder displayName = new StringBuilder(name);

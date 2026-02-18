@@ -61,6 +61,27 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             addScopeSuggestions(context, items);
         }
         
+        // For method reference context, filter to show only methods (and constructor "new")
+        if (context.methodsOnly) {
+            items.removeIf(item -> item.getKind() != AutocompleteItem.Kind.METHOD);
+            
+            // Add "new" constructor reference option if the receiver is a class
+            if (context.receiverExpression != null) {
+                int resolvePos = getMemberAccessResolvePosition(context);
+                TypeInfo receiverType = document.resolveExpressionType(
+                    context.receiverExpression, resolvePos);
+                if (receiverType != null && receiverType.isResolved() && isStaticContext) {
+                    items.add(new AutocompleteItem.Builder()
+                        .name("new")
+                        .insertText("new")
+                        .kind(AutocompleteItem.Kind.KEYWORD)
+                        .typeLabel("constructor")
+                        .signature(receiverType.getSimpleName() + "::new")
+                        .build());
+                }
+            }
+        }
+        
         // Filter and score by prefix, then apply usage boosts and static penalties
         filterAndScore(items, context.prefix, context.isMemberAccess, isStaticContext, ownerFullName);
         
@@ -93,7 +114,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         if (clazz == null) {
             // Try ScriptTypeInfo
             if (receiverType instanceof ScriptTypeInfo) {
-                addScriptTypeMembers((ScriptTypeInfo) receiverType, items, isStaticContext);
+                addScriptTypeMembers((ScriptTypeInfo) receiverType, items, isStaticContext, context.methodsOnly);
             }
             return;
         }
@@ -111,21 +132,23 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 if (!addedMethods.contains(sig)) {
                     addedMethods.add(sig);
                     MethodInfo methodInfo = MethodInfo.fromReflection(method, receiverType);
-                    items.add(AutocompleteItem.fromMethod(methodInfo));
+                    items.add(AutocompleteItem.fromMethod(methodInfo, context.methodsOnly));
                 }
             }
         }
         
-        // Add fields
-        for (Field field : clazz.getFields()) {
-            if (Modifier.isPublic(field.getModifiers())) {
-                // Filter by static context
-                if (isStaticContext && !Modifier.isStatic(field.getModifiers())) {
-                    continue;
+        // Add fields (skip if methodsOnly is true - but the filtering will be done in getSuggestions)
+        if (!context.methodsOnly) {
+            for (Field field : clazz.getFields()) {
+                if (Modifier.isPublic(field.getModifiers())) {
+                    // Filter by static context
+                    if (isStaticContext && !Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
+                    
+                    FieldInfo fieldInfo = FieldInfo.fromReflection(field, receiverType);
+                    items.add(AutocompleteItem.fromField(fieldInfo));
                 }
-                
-                FieldInfo fieldInfo = FieldInfo.fromReflection(field, receiverType);
-                items.add(AutocompleteItem.fromField(fieldInfo));
             }
         }
         
@@ -165,6 +188,17 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * Add members from a script-defined type.
      */
     protected void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext) {
+        addScriptTypeMembers(scriptType, items, isStaticContext, false);
+    }
+    
+    /**
+     * Add members from a script-defined type.
+     * @param scriptType The script type to get members from
+     * @param items The list to add items to
+     * @param isStaticContext Whether we're in a static context
+     * @param forMethodReference If true, only add methods with no parentheses in insert text
+     */
+    protected void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext, boolean forMethodReference) {
         // Add methods (getMethods returns Map<String, List<MethodInfo>>)
         for (List<MethodInfo> overloads : scriptType.getMethods().values()) {
             for (MethodInfo method : overloads) {
@@ -172,22 +206,25 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 if (isStaticContext && !method.isStatic()) {
                     continue;
                 }
-                items.add(AutocompleteItem.fromMethod(method));
+                items.add(AutocompleteItem.fromMethod(method, forMethodReference));
             }
         }
         
-        // Add fields (getFields returns Map<String, FieldInfo>)
-        for (FieldInfo field : scriptType.getFields().values()) {
-            // Filter by static context
-            if (isStaticContext && !field.isStatic()) {
-                continue;
+        // Add fields (skip if methodsOnly/forMethodReference is true)
+        if (!forMethodReference) {
+            // Add fields (getFields returns Map<String, FieldInfo>)
+            for (FieldInfo field : scriptType.getFields().values()) {
+                // Filter by static context
+                if (isStaticContext && !field.isStatic()) {
+                    continue;
+                }
+                items.add(AutocompleteItem.fromField(field));
             }
-            items.add(AutocompleteItem.fromField(field));
-        }
-        
-        // Add enum constants (getEnumConstants returns Map<String, EnumConstantInfo>)
-        for (EnumConstantInfo enumConstant : scriptType.getEnumConstants().values()) {
-            items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
+            
+            // Add enum constants (getEnumConstants returns Map<String, EnumConstantInfo>)
+            for (EnumConstantInfo enumConstant : scriptType.getEnumConstants().values()) {
+                items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
+            }
         }
         
         // Add parent class members
@@ -202,7 +239,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                         if (!addedMethods.contains(sig)) {
                             addedMethods.add(sig);
                             MethodInfo methodInfo = MethodInfo.fromReflection(method, superType);
-                            items.add(AutocompleteItem.fromMethod(methodInfo));
+                            items.add(AutocompleteItem.fromMethod(methodInfo, forMethodReference));
                         }
                     }
                 }
@@ -255,14 +292,14 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             // Add methods from enclosing type
             for (List<MethodInfo> overloads : enclosingType.getMethods().values()) {
                 for (MethodInfo method : overloads) {
-                    items.add(AutocompleteItem.fromMethod(method));
+                    items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
                 }
             }
         }
         
         // Add script-defined methods
         for (MethodInfo method : document.getAllMethods()) {
-            items.add(AutocompleteItem.fromMethod(method));
+            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
         }
 
         addLanguageUniqueSuggestions(context, items);

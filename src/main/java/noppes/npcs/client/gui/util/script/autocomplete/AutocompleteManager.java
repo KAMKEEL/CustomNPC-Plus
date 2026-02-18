@@ -177,6 +177,21 @@ public class AutocompleteManager {
             return;
         }
         
+        // Check if this completes a :: (method reference)
+        if (c == ':') {
+            // Normalize cursor position - some callers pass pre-insert position
+            int effectiveCursor = cursorPosition;
+            if (effectiveCursor >= 0 && effectiveCursor < text.length() && text.charAt(effectiveCursor) == c) {
+                effectiveCursor = effectiveCursor + 1;
+            }
+            
+            // Check if the previous character is also :
+            if (effectiveCursor >= 2 && text.charAt(effectiveCursor - 2) == ':') {
+                triggerAfterMethodReference(text, effectiveCursor);
+                return;
+            }
+        }
+        
         // Check if we're typing an identifier
         if (Character.isJavaIdentifierPart(c)) {
             // GuiScriptTextArea passes a cursor position captured BEFORE insertion while `text`
@@ -324,7 +339,100 @@ public class AutocompleteManager {
         prefixStartPosition = prefixStart;
         currentPrefix = prefix;
         
-        showSuggestions(text, caretPos, prefix, prefixStartPosition, true, receiverExpr);
+        showSuggestions(text, caretPos, prefix, prefixStartPosition, true, receiverExpr, false);
+    }
+    
+    /**
+     * Trigger autocomplete after :: is typed (method reference).
+     * Shows only method suggestions filtered for method references.
+     */
+    private void triggerAfterMethodReference(String text, int cursorPosition) {
+        int doubleColonPos = cursorPosition - 2;
+        
+        // Find the receiver expression before ::
+        String receiverExpr = findMethodRefReceiverExpression(text, doubleColonPos);
+        if (receiverExpr == null || receiverExpr.isEmpty()) return;
+        
+        // Skip whitespace after :: when establishing prefix start position
+        int prefixStart = cursorPosition;
+        while (prefixStart < text.length() && Character.isWhitespace(text.charAt(prefixStart))) {
+            prefixStart++;
+        }
+        
+        String prefix = "";
+        
+        prefixStartPosition = prefixStart;
+        currentPrefix = prefix;
+        
+        // Show suggestions filtered for methods only
+        showSuggestions(text, cursorPosition, prefix, prefixStart, true, receiverExpr, true);
+    }
+    
+    /**
+     * Find the receiver expression before :: for method references.
+     * Similar to findReceiverExpression but stops at ::
+     */
+    private String findMethodRefReceiverExpression(String text, int doubleColonPos) {
+        if (text == null || doubleColonPos <= 0) return "";
+        
+        int pos = doubleColonPos - 1;
+        
+        // Skip whitespace immediately left of ::
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) pos--;
+        if (pos < 0) return "";
+        
+        int end = pos + 1;
+        
+        // Walk left across a dotted receiver chain
+        while (pos >= 0) {
+            char c = text.charAt(pos);
+            
+            if (Character.isWhitespace(c)) {
+                pos--;
+                continue;
+            }
+            
+            if (c == ')') {
+                int open = findMatchingBackward(text, pos, '(', ')');
+                if (open < 0) break;
+                pos = open - 1;
+                continue;
+            }
+            
+            if (c == ']') {
+                int open = findMatchingBackward(text, pos, '[', ']');
+                if (open < 0) break;
+                pos = open - 1;
+                continue;
+            }
+            
+            if (Character.isJavaIdentifierPart(c)) {
+                // Consume identifier
+                while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) pos--;
+                
+                // If preceded by a dot, keep going
+                int checkPos = pos;
+                while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) {
+                    checkPos--;
+                }
+                if (checkPos >= 0 && text.charAt(checkPos) == '.') {
+                    pos = checkPos - 1;
+                    continue;
+                }
+                break;
+            }
+            
+            // Anything else terminates the receiver
+            break;
+        }
+        
+        int start = pos + 1;
+        if (start < 0) start = 0;
+        if (end > text.length()) end = text.length();
+        if (start >= end) return "";
+        
+        String expr = text.substring(start, end).replaceAll("\\s+", " ").trim();
+        return expr;
     }
     
     /**
@@ -347,7 +455,7 @@ public class AutocompleteManager {
         prefixStartPosition = prefixStart;
         currentPrefix = prefix;
         
-        showSuggestions(text, cursorPosition, prefix, prefixStart, false, null);
+        showSuggestions(text, cursorPosition, prefix, prefixStart, false, null, false);
     }
     
     /**
@@ -370,17 +478,58 @@ public class AutocompleteManager {
         
         currentPrefix = newPrefix;
         
+        // Check if this is a method reference context (after ::)
+        boolean isMethodReference = isAfterMethodReference(text, prefixStartPosition);
+        
         // Check if after dot (skipping whitespace)
         int dotPos = findDotBeforeWhitespace(text, prefixStartPosition - 1);
-        boolean isMemberAccess = dotPos >= 0;
+        boolean isMemberAccess = dotPos >= 0 || isMethodReference;
         
         String receiverExpr = null;
-        if (isMemberAccess) {
+        if (isMethodReference) {
+            // Find :: position
+            int doubleColonPos = findDoubleColonBefore(text, prefixStartPosition);
+            if (doubleColonPos >= 0) {
+                receiverExpr = findMethodRefReceiverExpression(text, doubleColonPos);
+            }
+        } else if (isMemberAccess) {
             receiverExpr = findReceiverExpression(text, dotPos);
         }
         
         showSuggestions(text, cursorPosition, currentPrefix, prefixStartPosition, 
-            isMemberAccess, receiverExpr);
+            isMemberAccess, receiverExpr, isMethodReference);
+    }
+    
+    /**
+     * Check if position is after :: (method reference).
+     */
+    private boolean isAfterMethodReference(String text, int pos) {
+        int checkPos = pos - 1;
+        // Skip whitespace
+        while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) {
+            checkPos--;
+        }
+        // Check for ::
+        if (checkPos >= 1 && text.charAt(checkPos) == ':' && text.charAt(checkPos - 1) == ':') {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Find the position of :: before the given position.
+     */
+    private int findDoubleColonBefore(String text, int pos) {
+        int checkPos = pos - 1;
+        // Skip whitespace
+        while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) {
+            checkPos--;
+        }
+        // Check for ::
+        if (checkPos >= 1 && text.charAt(checkPos) == ':' && text.charAt(checkPos - 1) == ':') {
+            return checkPos - 1;
+        }
+        return -1;
     }
     
     // ==================== SUGGESTION LOGIC ====================
@@ -389,7 +538,8 @@ public class AutocompleteManager {
      * Show autocomplete suggestions.
      */
     private void showSuggestions(String text, int cursorPosition, String prefix, 
-                                  int prefixStart, boolean isMemberAccess, String receiverExpr) {
+                                  int prefixStart, boolean isMemberAccess, String receiverExpr,
+                                  boolean methodsOnly) {
         if (insertCallback == null || document == null) return;
         
         // Track context for usage recording when item is selected
@@ -416,7 +566,7 @@ public class AutocompleteManager {
         
         AutocompleteProvider.Context context = new AutocompleteProvider.Context(
             text, cursorPosition, lineNumber, columnPosition, currentLine,
-            prefix, prefixStart, isMemberAccess, receiverExpr, explicitTrigger
+            prefix, prefixStart, isMemberAccess, receiverExpr, explicitTrigger, methodsOnly
         );
         
         // Get suggestions from appropriate provider

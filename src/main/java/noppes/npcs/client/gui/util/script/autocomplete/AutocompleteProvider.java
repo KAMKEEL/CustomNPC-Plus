@@ -32,10 +32,20 @@ public interface AutocompleteProvider {
         public final String receiverExpression;
         /** Whether autocomplete was explicitly triggered (CTRL+Space) */
         public final boolean explicitTrigger;
+        /** Whether to show only methods (for method reference context ::) */
+        public final boolean methodsOnly;
         
         public Context(String text, int cursorPosition, int lineNumber, int columnPosition,
                        String currentLine, String prefix, int prefixStart,
                        boolean isMemberAccess, String receiverExpression, boolean explicitTrigger) {
+            this(text, cursorPosition, lineNumber, columnPosition, currentLine, prefix, prefixStart,
+                 isMemberAccess, receiverExpression, explicitTrigger, false);
+        }
+        
+        public Context(String text, int cursorPosition, int lineNumber, int columnPosition,
+                       String currentLine, String prefix, int prefixStart,
+                       boolean isMemberAccess, String receiverExpression, boolean explicitTrigger,
+                       boolean methodsOnly) {
             this.text = text;
             this.cursorPosition = cursorPosition;
             this.lineNumber = lineNumber;
@@ -46,6 +56,7 @@ public interface AutocompleteProvider {
             this.isMemberAccess = isMemberAccess;
             this.receiverExpression = receiverExpression;
             this.explicitTrigger = explicitTrigger;
+            this.methodsOnly = methodsOnly;
         }
     }
     
