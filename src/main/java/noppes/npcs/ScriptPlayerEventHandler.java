@@ -9,7 +9,7 @@ import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;

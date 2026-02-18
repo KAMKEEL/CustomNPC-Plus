@@ -25,8 +25,7 @@ import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.TelegraphController;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.ability.ChainedAbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.network.PacketHandler;
@@ -356,7 +355,6 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         AbilityController.Instance.load();
-        ChainedAbilityController.Instance.load();
         TelegraphController.init();
 
         LinkedItemController.getInstance().load();
@@ -422,6 +420,8 @@ public class CustomNpcs {
         if (AuctionController.Instance != null) {
             AuctionController.Instance.save();
         }
+
+        kamkeel.npcs.entity.EntityEnergyProjectile.clearAllProjectiles();
 
         if (FMLCommonHandler.instance().getSide().isClient())
             clientJaninoCompiler = null;

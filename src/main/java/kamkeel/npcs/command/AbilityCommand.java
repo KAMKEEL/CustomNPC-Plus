@@ -1,13 +1,14 @@
 package kamkeel.npcs.command;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.ability.ChainedAbilityController;
+import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerAbilityData;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.util.ArrayList;
@@ -78,7 +79,6 @@ public class AbilityCommand extends CommandKamkeelBase {
     )
     public void reload(ICommandSender sender, String[] args) {
         AbilityController.Instance.load();
-        ChainedAbilityController.Instance.load();
         sendResult(sender, "Abilities and chained abilities reloaded from disk.");
     }
 
@@ -112,7 +112,7 @@ public class AbilityCommand extends CommandKamkeelBase {
             return;
         }
 
-        String key = args[0];
+        String key = joinArgs(args, 0);
         Ability ability = AbilityController.Instance.resolveAbility(key);
         if (ability == null) {
             sendError(sender, "No ability found for: " + key);
@@ -165,26 +165,24 @@ public class AbilityCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-        desc = "Unlock an ability for a player",
+        desc = "Give an ability to a player",
         usage = "<player> <ability>"
     )
-    public void unlock(ICommandSender sender, String[] args) {
+    public void give(ICommandSender sender, String[] args) {
         if (args.length < 2) {
-            sendError(sender, "Usage: /kam ability unlock <player> <ability>");
+            sendError(sender, "Usage: /kam ability give <player> <ability>");
             return;
         }
 
         String playerName = args[0];
         String abilityKey = joinArgs(args, 1);
 
-        // Find player
         EntityPlayerMP player = (EntityPlayerMP) NoppesUtilServer.getPlayerByName(playerName);
         if (player == null) {
             sendError(sender, "Player not found: " + playerName);
             return;
         }
 
-        // Resolve ability
         Ability ability = AbilityController.Instance.resolveAbility(abilityKey);
         if (ability == null) {
             sendError(sender, "Ability not found: " + abilityKey);
@@ -194,17 +192,15 @@ public class AbilityCommand extends CommandKamkeelBase {
         // Use the ability's canonical ID for storage (registry key for built-in, UUID for custom)
         String canonicalKey = ability.getId();
         if (canonicalKey == null || canonicalKey.isEmpty()) {
-            canonicalKey = abilityKey; // Fallback to user-provided key
+            canonicalKey = abilityKey;
         }
         String displayName = ability.getDisplayName();
 
-        // Check if ability allows players
         if (!ability.getAllowedBy().allowsPlayer()) {
             sendError(sender, "Ability '\u00A7b" + displayName + "\u00A7c' is NPC-only and cannot be given to players.");
             return;
         }
 
-        // Get player data and unlock
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         if (data.abilityData.hasUnlockedAbility(canonicalKey)) {
             sendError(sender, "Player already has ability: " + displayName);
@@ -212,30 +208,28 @@ public class AbilityCommand extends CommandKamkeelBase {
         }
 
         data.abilityData.unlockAbility(canonicalKey);
-        sendResult(sender, "Unlocked ability '\u00A7b" + displayName + "\u00A77' for player \u00A7a" + playerName);
+        sendResult(sender, "Gave ability '\u00A7b" + displayName + "\u00A77' to player \u00A7a" + playerName);
     }
 
     @SubCommand(
-        desc = "Lock (revoke) an ability from a player",
+        desc = "Remove an ability from a player",
         usage = "<player> <ability>"
     )
-    public void lock(ICommandSender sender, String[] args) {
+    public void remove(ICommandSender sender, String[] args) {
         if (args.length < 2) {
-            sendError(sender, "Usage: /kam ability lock <player> <ability>");
+            sendError(sender, "Usage: /kam ability remove <player> <ability>");
             return;
         }
 
         String playerName = args[0];
         String abilityKey = joinArgs(args, 1);
 
-        // Find player
         EntityPlayerMP player = (EntityPlayerMP) NoppesUtilServer.getPlayerByName(playerName);
         if (player == null) {
             sendError(sender, "Player not found: " + playerName);
             return;
         }
 
-        // Resolve ability to get canonical key (registry key for built-in, UUID for custom)
         Ability ability = AbilityController.Instance.resolveAbility(abilityKey);
         String canonicalKey = abilityKey;
         String displayName = abilityKey;
@@ -244,7 +238,6 @@ public class AbilityCommand extends CommandKamkeelBase {
             displayName = ability.getDisplayName();
         }
 
-        // Get player data and lock
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         if (!data.abilityData.hasUnlockedAbility(canonicalKey)) {
             sendError(sender, "Player doesn't have ability: " + displayName);
@@ -252,7 +245,98 @@ public class AbilityCommand extends CommandKamkeelBase {
         }
 
         data.abilityData.lockAbility(canonicalKey);
-        sendResult(sender, "Locked ability '\u00A7b" + displayName + "\u00A77' from player \u00A7a" + playerName);
+        sendResult(sender, "Removed ability '\u00A7b" + displayName + "\u00A77' from player \u00A7a" + playerName);
+    }
+
+    @SubCommand(
+        desc = "Give a chained ability to a player",
+        usage = "<player> <chain>"
+    )
+    public void giveChain(ICommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sendError(sender, "Usage: /kam ability giveChain <player> <chain>");
+            return;
+        }
+
+        String playerName = args[0];
+        String chainKey = joinArgs(args, 1);
+
+        EntityPlayerMP player = (EntityPlayerMP) NoppesUtilServer.getPlayerByName(playerName);
+        if (player == null) {
+            sendError(sender, "Player not found: " + playerName);
+            return;
+        }
+
+        ChainedAbility chain = AbilityController.Instance.resolveChainedAbility(chainKey);
+        if (chain == null) {
+            sendError(sender, "Chained ability not found: " + chainKey);
+            return;
+        }
+
+        if (!chain.getAllowedBy().allowsPlayer()) {
+            sendError(sender, "Chained ability '\u00A7b" + chain.getDisplayName() + "\u00A7c' is NPC-only and cannot be given to players.");
+            return;
+        }
+
+        String chainId = chain.getId();
+        if (chainId == null || chainId.isEmpty()) {
+            sendError(sender, "Chained ability has no ID: " + chain.getDisplayName());
+            return;
+        }
+
+        // Store by UUID: chain:<uuid>
+        String storageKey = PlayerAbilityData.CHAIN_PREFIX + chainId;
+        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        if (data.abilityData.hasUnlockedAbility(storageKey)) {
+            sendError(sender, "Player already has chained ability: " + chain.getDisplayName());
+            return;
+        }
+
+        data.abilityData.unlockAbility(storageKey);
+        sendResult(sender, "Gave chained ability '\u00A7b" + chain.getDisplayName() + "\u00A77' to player \u00A7a" + playerName);
+    }
+
+    @SubCommand(
+        desc = "Remove a chained ability from a player",
+        usage = "<player> <chain>"
+    )
+    public void removeChain(ICommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sendError(sender, "Usage: /kam ability removeChain <player> <chain>");
+            return;
+        }
+
+        String playerName = args[0];
+        String chainKey = joinArgs(args, 1);
+
+        EntityPlayerMP player = (EntityPlayerMP) NoppesUtilServer.getPlayerByName(playerName);
+        if (player == null) {
+            sendError(sender, "Player not found: " + playerName);
+            return;
+        }
+
+        ChainedAbility chain = AbilityController.Instance.resolveChainedAbility(chainKey);
+        if (chain == null) {
+            sendError(sender, "Chained ability not found: " + chainKey);
+            return;
+        }
+
+        String chainId = chain.getId();
+        if (chainId == null || chainId.isEmpty()) {
+            sendError(sender, "Chained ability has no ID: " + chain.getDisplayName());
+            return;
+        }
+
+        // Storage uses UUID: chain:<uuid>
+        String storageKey = PlayerAbilityData.CHAIN_PREFIX + chainId;
+        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        if (!data.abilityData.hasUnlockedAbility(storageKey)) {
+            sendError(sender, "Player doesn't have chained ability: " + chain.getDisplayName());
+            return;
+        }
+
+        data.abilityData.lockAbility(storageKey);
+        sendResult(sender, "Removed chained ability '\u00A7b" + chain.getDisplayName() + "\u00A77' from player \u00A7a" + playerName);
     }
 
     @SubCommand(
@@ -286,14 +370,23 @@ public class AbilityCommand extends CommandKamkeelBase {
         int selected = data.abilityData.getSelectedIndex();
         for (int i = 0; i < abilityKeys.length; i++) {
             String key = abilityKeys[i];
-            Ability ability = AbilityController.Instance.resolveAbility(key);
-            String displayName = ability != null ? ability.getDisplayName() : key;
             String prefix = (i == selected) ? "\u00A7e> " : "  ";
-            // Show display name and key if different
-            if (!displayName.equals(key)) {
-                sendResult(sender, prefix + "\u00A7b" + displayName + " \u00A78[" + key + "]");
+
+            if (key.startsWith(PlayerAbilityData.CHAIN_PREFIX)) {
+                // Chained ability
+                String chainName = key.substring(PlayerAbilityData.CHAIN_PREFIX.length());
+                ChainedAbility chain = AbilityController.Instance.resolveChainedAbility(chainName);
+                String displayName = chain != null ? chain.getDisplayName() : chainName;
+                sendResult(sender, prefix + "\u00A7d[Chain] \u00A7b" + displayName);
             } else {
-                sendResult(sender, prefix + "\u00A7b" + displayName);
+                // Regular ability
+                Ability ability = AbilityController.Instance.resolveAbility(key);
+                String displayName = ability != null ? ability.getDisplayName() : key;
+                if (!displayName.equals(key)) {
+                    sendResult(sender, prefix + "\u00A7b" + displayName + " \u00A78[" + key + "]");
+                } else {
+                    sendResult(sender, prefix + "\u00A7b" + displayName);
+                }
             }
         }
     }
@@ -310,7 +403,7 @@ public class AbilityCommand extends CommandKamkeelBase {
     /**
      * Get list of player-usable ability names (for tab completion).
      * Resolves UUIDs to names so tab completion shows human-readable names.
-     * Used by CommandKamkeel for <ability> usage token.
+     * Used by CommandKamkeel for {@code <ability>} usage token.
      */
     public static List<String> getPlayerAbilityNames() {
         Set<String> keys = AbilityController.Instance.getPlayerAbilityKeys();
@@ -318,6 +411,22 @@ public class AbilityCommand extends CommandKamkeelBase {
         for (String key : keys) {
             Ability a = AbilityController.Instance.resolveAbility(key);
             names.add(a != null ? a.getName() : key);
+        }
+        Collections.sort(names);
+        return names;
+    }
+
+    /**
+     * Get list of player-usable chained ability names (for tab completion).
+     * Used by CommandKamkeel for {@code <chain>} usage token.
+     */
+    public static List<String> getPlayerChainNames() {
+        List<String> names = new ArrayList<>();
+        for (String chainName : AbilityController.Instance.getChainedAbilityNamesSet()) {
+            ChainedAbility chain = AbilityController.Instance.getChainedAbility(chainName);
+            if (chain != null && chain.getAllowedBy().allowsPlayer()) {
+                names.add(chainName);
+            }
         }
         Collections.sort(names);
         return names;

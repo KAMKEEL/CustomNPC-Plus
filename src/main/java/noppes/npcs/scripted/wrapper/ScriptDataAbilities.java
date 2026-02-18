@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.wrapper;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.DataAbilities;
@@ -90,7 +90,7 @@ public class ScriptDataAbilities implements IDataAbilities {
                 if (slot.getReferenceId().equals(abilityId)) return true;
             } else if (!slot.isReference()) {
                 Ability a = slot.getAbility();
-                if (a != null && a.getId().equals(abilityId)) return false;
+                if (a != null && abilityId.equals(a.getId())) return false;
             }
         }
         return false;
@@ -135,10 +135,11 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public void setGlobalCooldown(int ticks) {
-        // Set the cooldown by manipulating the internal cooldown end time
-        // Not directly exposed, but we can reset and let it tick down
-        data.resetCooldown();
-        // This is a best-effort implementation
+        if (ticks <= 0) {
+            data.resetCooldown();
+        } else {
+            data.setCooldownEndTime(npc.worldObj.getTotalWorldTime() + ticks);
+        }
     }
 
     @Override

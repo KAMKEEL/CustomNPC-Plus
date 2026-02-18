@@ -1,7 +1,7 @@
 package noppes.npcs;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
@@ -352,6 +352,11 @@ public abstract class AbstractDataAbilities {
         cooldownEndTime = 0;
     }
 
+    /** Set the cooldown end time directly. */
+    public void setCooldownEndTime(long endTime) {
+        cooldownEndTime = endTime;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // POSITION LOCKING
     // ═══════════════════════════════════════════════════════════════════
@@ -500,7 +505,10 @@ public abstract class AbstractDataAbilities {
 
                     // Fire execute event (cancelable)
                     if (fireExecuteEvent(currentAbility, target)) {
-                        return; // Cancelled
+                        // Script cancelled — abort cleanly instead of leaving stuck in ACTIVE
+                        currentAbility.interrupt();
+                        handleAbilityCompletion(target);
+                        return;
                     }
 
                     // Call onExecute
@@ -638,7 +646,10 @@ public abstract class AbstractDataAbilities {
 
         // Fire execute event (cancelable)
         if (fireExecuteEvent(ability, target)) {
-            return; // Cancelled
+            // Script cancelled — abort cleanly instead of leaving stuck in ACTIVE
+            ability.interrupt();
+            handleAbilityCompletion(target);
+            return;
         }
 
         // Call onExecute
@@ -741,7 +752,7 @@ public abstract class AbstractDataAbilities {
         }
 
         ChainedAbilityEntry entry = currentChain.getEntries().get(chainEntryIndex);
-        Ability ability = AbilityController.Instance.resolveAbility(entry.getAbilityReference());
+        Ability ability = entry.resolve();
         if (ability == null) {
             // Broken reference - complete chain
             completeChain();

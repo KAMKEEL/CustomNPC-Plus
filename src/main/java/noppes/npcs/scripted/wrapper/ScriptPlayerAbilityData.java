@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.wrapper;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.api.ability.IAbility;
 import noppes.npcs.api.ability.IPlayerAbilityData;
@@ -43,12 +43,14 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
 
     @Override
     public void lockAbility(String key) {
-        data.lockAbility(key);
+        String canonicalKey = resolveCanonicalKey(key);
+        data.lockAbility(canonicalKey);
     }
 
     @Override
     public boolean hasUnlockedAbility(String key) {
-        return data.hasUnlockedAbility(key);
+        String canonicalKey = resolveCanonicalKey(key);
+        return data.hasUnlockedAbility(canonicalKey);
     }
 
     @Override
@@ -130,5 +132,17 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
         EntityPlayer player = playerData.player;
         if (player == null) return false;
         return data.activateAbility(player, key);
+    }
+
+    /**
+     * Resolve a user-provided key to the canonical storage key.
+     * Uses the same resolution as unlockAbility: registry key for built-in, UUID for custom.
+     */
+    private String resolveCanonicalKey(String key) {
+        Ability ability = AbilityController.Instance.resolveAbility(key);
+        if (ability != null && ability.getId() != null) {
+            return ability.getId();
+        }
+        return key;
     }
 }

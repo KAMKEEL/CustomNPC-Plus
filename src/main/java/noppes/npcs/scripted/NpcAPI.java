@@ -6,7 +6,7 @@ import foxz.command.ScriptedCommand;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.TelegraphController;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityAbilityLaser;
@@ -480,6 +480,8 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergyDome<>((kamkeel.npcs.entity.EntityEnergyDome) entity));
                 else if (entity instanceof kamkeel.npcs.entity.EntityEnergyPanel)
                     data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergyPanel<>((kamkeel.npcs.entity.EntityEnergyPanel) entity));
+                else if (entity instanceof kamkeel.npcs.entity.EntityAbilitySweeper)
+                    data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergySweeper<>((kamkeel.npcs.entity.EntityAbilitySweeper) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);

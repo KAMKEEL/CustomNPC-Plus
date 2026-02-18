@@ -122,6 +122,7 @@ gui.copy=Copy
 gui.clear=Clear
 gui.builtin=Built-in
 gui.custom=Custom
+gui.chained=Chained
 gui.builtinAnimations=Built-in Animations
 gui.customAnimations=Custom Animations
 gui.done=Done
@@ -1688,6 +1689,13 @@ ability.minRange=Min Range
 ability.maxRange=Max Range
 ability.conditions=Conditions
 
+# Chained Ability
+ability.select=Select Ability
+ability.entries=Entries
+ability.delay=Delay
+ability.windUpAll=Wind Up All
+ability.allowedBy=Allowed By
+
 # Effects Tab
 ability.windUpSound=Wind Up Sound
 ability.activeSound=Active Sound
@@ -2029,6 +2037,16 @@ ability.variant.small=Small
 ability.variant.large=Large
 ability.variant.static=Static
 ability.variant.launched=Launched
+
+ability.addChain=Chain
+ability.entrySource=Add Entry Source
+ability.fromNpc=From NPC
+ability.byReference=By Reference
+ability.createNew=Create New
+ability.selectSlot=Select NPC Ability
+ability.loadType=Load Type
+ability.loadAbility=Load Ability
+ability.loadChain=Load Chain
 
 gui.both=Both
 gui.players=Players

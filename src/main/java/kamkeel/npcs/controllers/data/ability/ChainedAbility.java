@@ -1,5 +1,6 @@
 package kamkeel.npcs.controllers.data.ability;
 
+import kamkeel.npcs.controllers.AbilityController;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -81,9 +82,11 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     /**
      * Get the display name for this chained ability.
      * Returns displayName if set, otherwise falls back to name.
+     * Converts &amp; color codes to § for rendering.
      */
     public String getDisplayName() {
-        return (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        String result = (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        return result != null ? result.replaceAll("&([0-9a-fk-or])", "\u00A7$1") : "";
     }
 
     public String getRawDisplayName() {
@@ -178,7 +181,18 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     @Override
     public String getEntryReference(int index) {
         if (index < 0 || index >= entries.size()) return null;
-        return entries.get(index).getAbilityReference();
+        ChainedAbilityEntry entry = entries.get(index);
+        if (entry.isInline()) {
+            Ability a = entry.getInlineAbility();
+            return a != null ? a.getName() : "";
+        }
+        return entry.getAbilityReference();
+    }
+
+    @Override
+    public boolean isEntryInline(int index) {
+        if (index < 0 || index >= entries.size()) return false;
+        return entries.get(index).isInline();
     }
 
     @Override
@@ -273,11 +287,17 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         if (controller != null) {
             for (int i = 0; i < entries.size(); i++) {
                 ChainedAbilityEntry entry = entries.get(i);
-                String ref = entry.getAbilityReference();
-                if (ref == null || ref.isEmpty()) {
-                    errors.add("Entry " + (i + 1) + ": ability reference is empty");
-                } else if (!controller.canResolveAbility(ref)) {
-                    errors.add("Entry " + (i + 1) + ": cannot resolve ability '" + ref + "'");
+                if (entry.isInline()) {
+                    if (entry.getInlineAbility() == null) {
+                        errors.add("Entry " + (i + 1) + ": inline ability is null");
+                    }
+                } else {
+                    String ref = entry.getAbilityReference();
+                    if (ref == null || ref.isEmpty()) {
+                        errors.add("Entry " + (i + 1) + ": ability reference is empty");
+                    } else if (!controller.canResolveAbility(ref)) {
+                        errors.add("Entry " + (i + 1) + ": cannot resolve ability '" + ref + "'");
+                    }
                 }
             }
         }

@@ -3,7 +3,7 @@ package kamkeel.npcs.network.packets.request.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -16,28 +16,29 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.NoppesUtilServer;
 
 import java.io.IOException;
 
 /**
- * Request packet to get a specific built-in ability by name.
- * Built-in abilities are registered presets with fixed configurations.
+ * Request packet to save a chained ability.
  */
-public final class BuiltInAbilityGetPacket extends AbstractPacket {
-    public static String packetName = "Request|BuiltInAbilityGet";
+public final class ChainedAbilitySavePacket extends AbstractPacket {
+    public static String packetName = "Request|ChainedAbilitySave";
 
-    private String abilityName;
+    private NBTTagCompound chainNBT;
 
-    public BuiltInAbilityGetPacket() {
+    public ChainedAbilitySavePacket() {
     }
 
-    public BuiltInAbilityGetPacket(String abilityName) {
-        this.abilityName = abilityName;
+    public ChainedAbilitySavePacket(NBTTagCompound chainNBT) {
+        this.chainNBT = chainNBT;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.BuiltInAbilityGet;
+        return EnumRequestPacket.ChainedAbilitySave;
     }
 
     @Override
@@ -45,10 +46,15 @@ public final class BuiltInAbilityGetPacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_ABILITY;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, abilityName);
+        ByteBufUtils.writeNBT(out, chainNBT);
     }
 
     @Override
@@ -59,12 +65,15 @@ public final class BuiltInAbilityGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
-        String name = ByteBufUtils.readString(in);
-        Ability ability = AbilityController.Instance.getAbilityByDisplayName(name);
-        if (ability != null) {
-            NBTTagCompound compound = ability.writeNBT();
-            compound.setBoolean("BuiltIn", true);
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
+        NBTTagCompound compound = ByteBufUtils.readNBT(in);
+        if (compound == null) return;
+        ChainedAbility chain = new ChainedAbility();
+        chain.readNBT(compound);
+
+        if (chain.getName() != null && !chain.getName().isEmpty()) {
+            AbilityController.Instance.saveChainedAbility(chain);
+            NoppesUtilServer.sendChainedAbilitiesData((EntityPlayerMP) player);
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, chain.writeNBT());
         }
     }
 }

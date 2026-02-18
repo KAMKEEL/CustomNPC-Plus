@@ -6,7 +6,7 @@ import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.client.renderer.lightning.LightningBolt;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;

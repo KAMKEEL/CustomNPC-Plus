@@ -1,5 +1,6 @@
 package kamkeel.npcs.controllers.data.ability;
 
+import kamkeel.npcs.controllers.AbilityController;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**
@@ -14,11 +15,13 @@ public class AbilityAction {
     public enum SlotType {
         INLINE_ABILITY,
         ABILITY_REFERENCE,
-        CHAIN_REFERENCE
+        CHAIN_REFERENCE,
+        INLINE_CHAIN
     }
 
     private SlotType slotType;
     private Ability inlineAbility;
+    private ChainedAbility inlineChain;
     private String referenceId;
 
     /** Per-slot enabled override for reference slots (null = use master's default). */
@@ -55,6 +58,13 @@ public class AbilityAction {
         return slot;
     }
 
+    public static AbilityAction inlineChain(ChainedAbility chain) {
+        AbilityAction slot = new AbilityAction();
+        slot.slotType = SlotType.INLINE_CHAIN;
+        slot.inlineChain = chain;
+        return slot;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // QUERIES
     // ═══════════════════════════════════════════════════════════════════
@@ -64,11 +74,19 @@ public class AbilityAction {
     }
 
     public boolean isReference() {
-        return slotType != SlotType.INLINE_ABILITY;
+        return slotType == SlotType.ABILITY_REFERENCE || slotType == SlotType.CHAIN_REFERENCE;
     }
 
     public boolean isChainReference() {
         return slotType == SlotType.CHAIN_REFERENCE;
+    }
+
+    public boolean isInlineChain() {
+        return slotType == SlotType.INLINE_CHAIN;
+    }
+
+    public boolean isChain() {
+        return slotType == SlotType.CHAIN_REFERENCE || slotType == SlotType.INLINE_CHAIN;
     }
 
     public boolean isAbilityReference() {
@@ -92,6 +110,9 @@ public class AbilityAction {
             case INLINE_ABILITY:
                 return inlineAbility;
 
+            case INLINE_CHAIN:
+                return inlineChain;
+
             case ABILITY_REFERENCE: {
                 AbilityController ctrl = AbilityController.Instance;
                 if (ctrl == null) return null;
@@ -109,13 +130,13 @@ public class AbilityAction {
             }
 
             case CHAIN_REFERENCE: {
-                ChainedAbilityController ctrl = ChainedAbilityController.Instance;
+                AbilityController ctrl = AbilityController.Instance;
                 if (ctrl == null) return null;
-                int rev = ctrl.getRevision();
+                int rev = ctrl.getChainedAbilityRevision();
                 if (cachedAction != null && cachedRevision == rev) {
                     return cachedAction;
                 }
-                ChainedAbility resolved = ctrl.resolve(referenceId);
+                ChainedAbility resolved = ctrl.resolveChainedAbility(referenceId);
                 if (resolved != null && enabledOverride != null) {
                     resolved.setEnabled(enabledOverride);
                 }
@@ -154,6 +175,10 @@ public class AbilityAction {
             if (inlineAbility != null) {
                 inlineAbility.setEnabled(enabled);
             }
+        } else if (slotType == SlotType.INLINE_CHAIN) {
+            if (inlineChain != null) {
+                inlineChain.setEnabled(enabled);
+            }
         } else {
             this.enabledOverride = enabled;
             if (cachedAction != null) {
@@ -170,22 +195,41 @@ public class AbilityAction {
         return inlineAbility;
     }
 
+    public ChainedAbility getInlineChain() {
+        return inlineChain;
+    }
+
     /**
-     * Convert this reference slot to an inline slot by copying the resolved ability.
-     * Only works for ability references (chains cannot be inlined).
+     * Convert this reference slot to an inline slot by copying the resolved data.
+     * Works for ability references (→ INLINE_ABILITY) and chain references (→ INLINE_CHAIN).
+     * Chain entries are kept as-is (not auto-converted to inline).
      */
     public boolean convertToInline() {
-        if (slotType != SlotType.ABILITY_REFERENCE) return false;
+        if (slotType == SlotType.ABILITY_REFERENCE) {
+            Ability resolved = getAbility();
+            if (resolved == null) return false;
 
-        Ability resolved = getAbility();
-        if (resolved == null) return false;
+            inlineAbility = AbilityController.Instance.fromNBT(resolved.writeNBT());
+            slotType = SlotType.INLINE_ABILITY;
+            referenceId = null;
+            cachedAction = null;
+            cachedRevision = -1;
+            return true;
+        }
 
-        inlineAbility = AbilityController.Instance.fromNBT(resolved.writeNBT());
-        slotType = SlotType.INLINE_ABILITY;
-        referenceId = null;
-        cachedAction = null;
-        cachedRevision = -1;
-        return true;
+        if (slotType == SlotType.CHAIN_REFERENCE) {
+            ChainedAbility resolved = getChainedAbility();
+            if (resolved == null) return false;
+
+            inlineChain = resolved.deepCopy();
+            slotType = SlotType.INLINE_CHAIN;
+            referenceId = null;
+            cachedAction = null;
+            cachedRevision = -1;
+            return true;
+        }
+
+        return false;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -194,6 +238,14 @@ public class AbilityAction {
 
     public NBTTagCompound writeNBT() {
         switch (slotType) {
+            case INLINE_CHAIN: {
+                NBTTagCompound nbt = new NBTTagCompound();
+                if (inlineChain != null) {
+                    nbt.setTag("InlineChain", inlineChain.writeNBT());
+                }
+                return nbt;
+            }
+
             case CHAIN_REFERENCE: {
                 NBTTagCompound nbt = new NBTTagCompound();
                 nbt.setString("ChainReference", referenceId);
@@ -221,7 +273,14 @@ public class AbilityAction {
     public static AbilityAction fromNBT(NBTTagCompound nbt) {
         if (nbt == null) return null;
 
-        // Chain reference (new format)
+        // Inline chain (new format)
+        if (nbt.hasKey("InlineChain")) {
+            ChainedAbility chain = new ChainedAbility();
+            chain.readNBT(nbt.getCompoundTag("InlineChain"));
+            return inlineChain(chain);
+        }
+
+        // Chain reference
         if (nbt.hasKey("ChainReference")) {
             AbilityAction slot = chainReference(nbt.getString("ChainReference"));
             if (nbt.hasKey("RefEnabled")) {
@@ -230,7 +289,7 @@ public class AbilityAction {
             return slot;
         }
 
-        // Ability reference (existing format)
+        // Ability reference
         if (nbt.hasKey("Reference")) {
             AbilityAction slot = abilityReference(nbt.getString("Reference"));
             if (nbt.hasKey("RefEnabled")) {
@@ -239,7 +298,7 @@ public class AbilityAction {
             return slot;
         }
 
-        // Inline ability (existing format)
+        // Inline ability
         Ability ability = AbilityController.Instance.fromNBT(nbt);
         if (ability == null) return null;
         return inline(ability);

@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.ability;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -1219,12 +1220,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
         nbt.setTag("effects", effectList);
 
-        // Type-specific (skip for built-in abilities with fixed configs)
-        if (!builtIn) {
-            NBTTagCompound typeNBT = new NBTTagCompound();
-            writeTypeNBT(typeNBT);
-            nbt.setTag("typeData", typeNBT);
-        }
+        // Type-specific
+        NBTTagCompound typeNBT = new NBTTagCompound();
+        writeTypeNBT(typeNBT);
+        nbt.setTag("typeData", typeNBT);
 
         return nbt;
     }
@@ -1234,16 +1233,20 @@ public abstract class Ability implements IAbility, IAbilityAction {
         name = nbt.getString("name");
         displayName = nbt.getString("displayName");
         typeId = nbt.getString("typeId");
-        weight = nbt.getInteger("weight");
-        enabled = nbt.getBoolean("enabled");
-        targetingMode = TargetingMode.valueOf(nbt.getString("targetingMode"));
+        weight = nbt.hasKey("weight") ? nbt.getInteger("weight") : 10;
+        enabled = nbt.hasKey("enabled") ? nbt.getBoolean("enabled") : true;
+        try {
+            targetingMode = TargetingMode.valueOf(nbt.getString("targetingMode"));
+        } catch (Exception e) {
+            targetingMode = TargetingMode.AGGRO_TARGET;
+        }
         minRange = nbt.getFloat("minRange");
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
-        syncWindupWithAnimation = nbt.getBoolean("syncWindup");
-        dazedTicks = nbt.getInteger("recovery");
-        interruptible = nbt.getBoolean("interruptible");
+        syncWindupWithAnimation = nbt.hasKey("syncWindup") ? nbt.getBoolean("syncWindup") : true;
+        dazedTicks = nbt.hasKey("recovery") ? nbt.getInteger("recovery") : 80;
+        interruptible = nbt.hasKey("interruptible") ? nbt.getBoolean("interruptible") : true;
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
@@ -1257,7 +1260,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
         dazedAnimationName = nbt.getString("dazedAnimationName");
-        showTelegraph = nbt.getBoolean("showTelegraph");
+        showTelegraph = nbt.hasKey("showTelegraph") ? nbt.getBoolean("showTelegraph") : true;
         try {
             telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
         } catch (Exception e) {
@@ -1299,8 +1302,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
-        // Type-specific (skip for built-in abilities with fixed configs)
-        if (!builtIn) {
+        // Type-specific
+        if (nbt.hasKey("typeData")) {
             readTypeNBT(nbt.getCompoundTag("typeData"));
         }
     }
@@ -1328,9 +1331,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
     /**
      * Get the display name for this ability.
      * Returns displayName if set, otherwise falls back to name.
+     * Converts &amp; color codes to § for rendering.
      */
     public String getDisplayName() {
-        return (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        String result = (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        return result != null ? result.replaceAll("&([0-9a-fk-or])", "\u00A7$1") : "";
     }
 
     /**

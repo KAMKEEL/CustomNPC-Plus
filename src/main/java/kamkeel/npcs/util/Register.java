@@ -1,7 +1,7 @@
 package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
@@ -68,8 +68,7 @@ public class Register<T> {
         }
 
         public AbilityVariant registerVariant(String typeId, String variantName, String group, Consumer<Ability> configurator) {
-            registerVariant(typeId, variantName, () -> new AbilityVariant(variantName, group, configurator));
-            return new AbilityVariant(variantName, group, configurator);
+            return registerVariant(typeId, variantName, () -> new AbilityVariant(variantName, group, configurator));
         }
 
         public AbilityVariant registerVariant(String typeId, String factoryName, Supplier<AbilityVariant> factory) {

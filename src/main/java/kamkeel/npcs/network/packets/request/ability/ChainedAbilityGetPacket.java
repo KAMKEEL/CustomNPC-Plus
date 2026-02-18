@@ -3,7 +3,7 @@ package kamkeel.npcs.network.packets.request.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -20,24 +20,23 @@ import net.minecraft.nbt.NBTTagCompound;
 import java.io.IOException;
 
 /**
- * Request packet to get a specific built-in ability by name.
- * Built-in abilities are registered presets with fixed configurations.
+ * Request packet to get a specific chained ability by name.
  */
-public final class BuiltInAbilityGetPacket extends AbstractPacket {
-    public static String packetName = "Request|BuiltInAbilityGet";
+public final class ChainedAbilityGetPacket extends AbstractPacket {
+    public static String packetName = "Request|ChainedAbilityGet";
 
-    private String abilityName;
+    private String name;
 
-    public BuiltInAbilityGetPacket() {
+    public ChainedAbilityGetPacket() {
     }
 
-    public BuiltInAbilityGetPacket(String abilityName) {
-        this.abilityName = abilityName;
+    public ChainedAbilityGetPacket(String name) {
+        this.name = name;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.BuiltInAbilityGet;
+        return EnumRequestPacket.ChainedAbilityGet;
     }
 
     @Override
@@ -48,7 +47,7 @@ public final class BuiltInAbilityGetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, abilityName);
+        ByteBufUtils.writeString(out, name);
     }
 
     @Override
@@ -59,11 +58,10 @@ public final class BuiltInAbilityGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
-        String name = ByteBufUtils.readString(in);
-        Ability ability = AbilityController.Instance.getAbilityByDisplayName(name);
-        if (ability != null) {
-            NBTTagCompound compound = ability.writeNBT();
-            compound.setBoolean("BuiltIn", true);
+        String chainName = ByteBufUtils.readString(in);
+        ChainedAbility chain = AbilityController.Instance.getChainedAbility(chainName);
+        if (chain != null) {
+            NBTTagCompound compound = chain.writeNBT();
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }
     }

@@ -1,10 +1,9 @@
 package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.ChainedAbilityController;
 import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -22,9 +21,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
@@ -322,16 +319,14 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      */
     private IAbilityAction resolveActionKey(String key) {
         if (key.startsWith(CHAIN_PREFIX)) {
-            if (ChainedAbilityController.Instance == null) return null;
-            return ChainedAbilityController.Instance.resolve(key.substring(CHAIN_PREFIX.length()));
+            return AbilityController.Instance.resolveChainedAbility(key.substring(CHAIN_PREFIX.length()));
         }
-        if (AbilityController.Instance == null) return null;
         return AbilityController.Instance.resolveAbility(key);
     }
 
     /**
      * Activate a specific ability by key. Keys prefixed with "chain:" are
-     * treated as chained abilities and resolved from {@link ChainedAbilityController}.
+     * treated as chained abilities and resolved from {@link AbilityController}.
      *
      * @param player The player
      * @param key    The ability key (built-in or preset name), or "chain:name" for chains

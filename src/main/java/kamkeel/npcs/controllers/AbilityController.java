@@ -1,7 +1,14 @@
-package kamkeel.npcs.controllers.data.ability;
+package kamkeel.npcs.controllers;
 
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.IAbilityExtender;
+import kamkeel.npcs.controllers.data.ability.IAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.ability.type.*;
-import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityBeam;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDisc;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDome;
@@ -46,6 +53,11 @@ public class AbilityController implements IAbilityHandler {
     private static final Pattern UUID_PATTERN =
         Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             Pattern.CASE_INSENSITIVE);
+
+    // ── Chained Abilities ──────────────────────────────────────────────────
+    private final Map<String, ChainedAbility> chainedAbilities = new LinkedHashMap<>();      // name → ChainedAbility
+    private final Map<String, ChainedAbility> chainedAbilitiesById = new LinkedHashMap<>();  // UUID → ChainedAbility
+    private int chainedAbilityRevision = 0;
 
     // ── Derived State ────────────────────────────────────────────────────────
     private final Set<String> builtInTypeIds = new HashSet<>();
@@ -240,6 +252,8 @@ public class AbilityController implements IAbilityHandler {
             LogWriter.info("Migrated " + migrated + " abilities (UUID-named files or missing UUIDs)");
         }
         LogWriter.info("Loaded " + customAbilities.size() + " custom abilities");
+
+        loadChainedAbilities();
     }
 
     private boolean nameFileExists(File dir, String name) {
@@ -375,6 +389,229 @@ public class AbilityController implements IAbilityHandler {
 
     private File getDir() {
         File dir = new File(CustomNpcs.getWorldSaveDirectory(), "abilities");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return dir;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CHAINED ABILITIES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private void loadChainedAbilities() {
+        chainedAbilities.clear();
+        chainedAbilitiesById.clear();
+
+        File dir = getChainedDir();
+        File[] files = dir.exists() ? dir.listFiles() : null;
+        if (files != null) {
+            for (File file : files) {
+                if (!file.isFile() || !file.getName().endsWith(".json")) continue;
+                try {
+                    String filename = file.getName();
+                    String key = filename.substring(0, filename.length() - 5);
+
+                    NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
+                    ChainedAbility chain = new ChainedAbility();
+                    chain.readNBT(nbt);
+
+                    chain.setName(key);
+                    chainedAbilities.put(key, chain);
+
+                    String uuid = chain.getId();
+                    if (uuid != null && !uuid.isEmpty()) {
+                        chainedAbilitiesById.put(uuid, chain);
+                    }
+                } catch (Exception e) {
+                    LogWriter.error("Error loading chained ability: " + file.getAbsolutePath(), e);
+                }
+            }
+        }
+
+        chainedAbilityRevision++;
+        LogWriter.info("Loaded " + chainedAbilities.size() + " chained abilities");
+    }
+
+    public boolean saveChainedAbility(ChainedAbility chain) {
+        if (chain == null) return false;
+
+        String name = chain.getName();
+        if (name == null || name.isEmpty()) return false;
+
+        String uuid = chain.getId();
+        boolean isNew = (uuid == null || uuid.isEmpty());
+
+        if (isNew) {
+            uuid = UUID.randomUUID().toString();
+            chain.setId(uuid);
+
+            while (hasChainedAbilityName(name)) {
+                name = name + "_";
+            }
+            chain.setName(name);
+        } else {
+            ChainedAbility existing = chainedAbilitiesById.get(uuid);
+            if (existing != null) {
+                String oldName = existing.getName();
+                if (!oldName.equals(name)) {
+                    String testName = name;
+                    while (chainedAbilities.containsKey(testName) && !testName.equals(oldName)) {
+                        testName = testName + "_";
+                    }
+                    if (!testName.equals(name)) {
+                        name = testName;
+                        chain.setName(name);
+                    }
+
+                    File oldFile = new File(getChainedDir(), oldName + ".json");
+                    if (oldFile.exists()) {
+                        oldFile.delete();
+                    }
+                    chainedAbilities.remove(oldName);
+                }
+            }
+        }
+
+        File dir = getChainedDir();
+        File fileNew = new File(dir, name + ".json_new");
+        File fileCurrent = new File(dir, name + ".json");
+
+        try {
+            NBTTagCompound nbt = chain.writeNBT();
+            NBTJsonUtil.SaveFile(fileNew, nbt);
+
+            if (fileCurrent.exists()) {
+                fileCurrent.delete();
+            }
+            fileNew.renameTo(fileCurrent);
+            if (fileNew.exists()) {
+                fileNew.delete();
+            }
+
+            chainedAbilities.put(name, chain);
+            chainedAbilitiesById.put(uuid, chain);
+            chainedAbilityRevision++;
+            LogWriter.info("Saved chained ability: " + name + " [" + uuid + "]");
+            SyncController.syncAllChainedAbilities();
+            return true;
+        } catch (Exception e) {
+            LogWriter.error("Error saving chained ability: " + name, e);
+            return false;
+        }
+    }
+
+    public boolean deleteChainedAbility(String name) {
+        if (name == null || name.isEmpty()) return false;
+
+        ChainedAbility removed = chainedAbilities.remove(name);
+        if (removed == null) return false;
+
+        String uuid = removed.getId();
+        if (uuid != null && !uuid.isEmpty()) {
+            chainedAbilitiesById.remove(uuid);
+        }
+
+        File dir = getChainedDir();
+        File file = new File(dir, name + ".json");
+        if (file.exists()) {
+            file.delete();
+        }
+
+        chainedAbilityRevision++;
+        LogWriter.info("Deleted chained ability: " + name);
+        SyncController.syncAllChainedAbilities();
+        return true;
+    }
+
+    public ChainedAbility resolveChainedAbility(String key) {
+        if (key == null || key.isEmpty()) return null;
+
+        ChainedAbility byId = chainedAbilitiesById.get(key);
+        if (byId != null) return byId.deepCopy();
+
+        ChainedAbility chain = chainedAbilities.get(key);
+        if (chain != null) return chain.deepCopy();
+
+        for (Map.Entry<String, ChainedAbility> entry : chainedAbilities.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue().deepCopy();
+            }
+        }
+
+        return null;
+    }
+
+    public boolean canResolveChainedAbility(String key) {
+        if (key == null || key.isEmpty()) return false;
+        if (chainedAbilitiesById.containsKey(key)) return true;
+        if (chainedAbilities.containsKey(key)) return true;
+        for (String name : chainedAbilities.keySet()) {
+            if (name.equalsIgnoreCase(key)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public ChainedAbility getChainedAbility(String name) {
+        ChainedAbility chain = chainedAbilities.get(name);
+        return chain != null ? chain.deepCopy() : null;
+    }
+
+    public ChainedAbility getChainedAbilityByUUID(String uuid) {
+        return chainedAbilitiesById.get(uuid);
+    }
+
+    public Set<String> getChainedAbilityNamesSet() {
+        return new LinkedHashSet<>(chainedAbilities.keySet());
+    }
+
+    public Map<String, ChainedAbility> getChainedAbilities() {
+        return chainedAbilities;
+    }
+
+    @Override
+    public String[] getChainedAbilityNames() {
+        return chainedAbilities.keySet().toArray(new String[0]);
+    }
+
+    @Override
+    public boolean hasChainedAbilityName(String name) {
+        return chainedAbilities.containsKey(name);
+    }
+
+    @Override
+    public boolean deleteChainedAbilityByName(String name) {
+        return deleteChainedAbility(name);
+    }
+
+    @Override
+    public boolean saveChainedAbility(noppes.npcs.api.ability.IChainedAbility chain) {
+        if (chain instanceof ChainedAbility) {
+            return saveChainedAbility((ChainedAbility) chain);
+        }
+        return false;
+    }
+
+    public int getChainedAbilityRevision() {
+        return chainedAbilityRevision;
+    }
+
+    public void setChainedAbilities(Map<String, ChainedAbility> synced) {
+        chainedAbilities.clear();
+        chainedAbilitiesById.clear();
+        chainedAbilities.putAll(synced);
+        for (ChainedAbility chain : synced.values()) {
+            String uuid = chain.getId();
+            if (uuid != null && !uuid.isEmpty()) {
+                chainedAbilitiesById.put(uuid, chain);
+            }
+        }
+        chainedAbilityRevision++;
+    }
+
+    private File getChainedDir() {
+        File dir = new File(CustomNpcs.getWorldSaveDirectory(), "abilities" + File.separator + "chained");
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -525,11 +762,7 @@ public class AbilityController implements IAbilityHandler {
         Ability ability = resolveAbility(key);
         if (ability != null) return ability;
 
-        if (ChainedAbilityController.Instance != null) {
-            return ChainedAbilityController.Instance.resolve(key);
-        }
-
-        return null;
+        return resolveChainedAbility(key);
     }
 
     /**
@@ -537,8 +770,7 @@ public class AbilityController implements IAbilityHandler {
      */
     public boolean canResolveAction(String key) {
         if (canResolveAbility(key)) return true;
-        return ChainedAbilityController.Instance != null
-            && ChainedAbilityController.Instance.canResolve(key);
+        return canResolveChainedAbility(key);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -715,18 +947,4 @@ public class AbilityController implements IAbilityHandler {
         return deleteCustomAbility(name);
     }
 
-    @Override
-    public String[] getChainedAbilityNames() {
-        return ChainedAbilityController.Instance.getNames().toArray(new String[0]);
-    }
-
-    @Override
-    public boolean hasChainedAbilityName(String name) {
-        return ChainedAbilityController.Instance.hasName(name);
-    }
-
-    @Override
-    public boolean deleteChainedAbilityByName(String name) {
-        return ChainedAbilityController.Instance.delete(name);
-    }
 }

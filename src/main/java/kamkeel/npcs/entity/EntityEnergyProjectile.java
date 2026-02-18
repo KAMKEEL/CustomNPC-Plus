@@ -2,7 +2,7 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.*;
@@ -54,6 +54,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             activeProjectiles.put(ownerId, refs);
         }
         refs.add(new WeakReference<>(projectile));
+    }
+
+    public static void clearAllProjectiles() {
+        activeProjectiles.clear();
     }
 
     public static List<EntityEnergyProjectile> getActiveProjectiles(int ownerEntityId) {
@@ -455,8 +459,9 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                 Math.pow(target.posZ - posZ, 2)
             );
 
-            if (dist <= getExplosionRadius()) {
-                float falloff = 1.0f - (float) (dist / getExplosionRadius()) * getExplosionDamageFalloff();
+            float radius = getExplosionRadius();
+            if (radius > 0 && dist <= radius) {
+                float falloff = 1.0f - (float) (dist / radius) * getExplosionDamageFalloff();
                 applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
             }
         }

@@ -40,9 +40,7 @@ import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.ChainedAbilityController;
 
 import java.io.IOException;
 import java.util.EnumMap;
@@ -356,7 +354,7 @@ public class SyncController {
     public static NBTTagCompound chainedAbilitiesNBT() {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
-        for (Map.Entry<String, ChainedAbility> entry : ChainedAbilityController.Instance.getChainedAbilities().entrySet()) {
+        for (Map.Entry<String, ChainedAbility> entry : AbilityController.Instance.getChainedAbilities().entrySet()) {
             NBTTagCompound chainNBT = entry.getValue().writeNBT();
             chainNBT.setString("ChainedAbilityId", entry.getKey());
             list.appendTag(chainNBT);
@@ -651,11 +649,11 @@ public class SyncController {
                 LinkedHashMap<String, Ability> sync = new LinkedHashMap<>();
                 for (int i = 0; i < list.tagCount(); i++) {
                     NBTTagCompound nbt = list.getCompoundTagAt(i);
-                    String uuid = nbt.getString("CustomAbilityId");
+                    String name = nbt.getString("CustomAbilityId");
                     Ability ability = AbilityController.Instance.fromNBT(nbt);
                     if (ability != null) {
-                        ability.setId(uuid);
-                        sync.put(uuid, ability);
+                        ability.setName(name);
+                        sync.put(name, ability);
                     }
                 }
                 AbilityController.Instance.setCustomAbilities(sync);
@@ -672,7 +670,7 @@ public class SyncController {
                     chain.setName(id);
                     sync.put(id, chain);
                 }
-                ChainedAbilityController.Instance.setChainedAbilities(sync);
+                AbilityController.Instance.setChainedAbilities(sync);
                 break;
             }
         }

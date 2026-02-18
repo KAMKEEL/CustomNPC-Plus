@@ -98,6 +98,10 @@ import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilityRemovePacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
@@ -519,6 +523,10 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new CustomAbilityRemovePacket());
         REQUEST_PACKET.registerPacket(new CustomAbilitySavePacket());
         REQUEST_PACKET.registerPacket(new BuiltInAbilityGetPacket());
+        REQUEST_PACKET.registerPacket(new ChainedAbilitiesGetPacket());
+        REQUEST_PACKET.registerPacket(new ChainedAbilityGetPacket());
+        REQUEST_PACKET.registerPacket(new ChainedAbilitySavePacket());
+        REQUEST_PACKET.registerPacket(new ChainedAbilityRemovePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

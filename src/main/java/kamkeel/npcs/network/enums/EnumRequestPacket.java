@@ -206,6 +206,10 @@ public enum EnumRequestPacket {
     CustomAbilityRemove,
     CustomAbilitySave,
     BuiltInAbilityGet,
+    ChainedAbilitiesGet,
+    ChainedAbilityGet,
+    ChainedAbilitySave,
+    ChainedAbilityRemove,
     Hammer,
 
     RecipeScript,
