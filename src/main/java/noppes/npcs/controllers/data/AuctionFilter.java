@@ -4,16 +4,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import noppes.npcs.constants.EnumAuctionSort;
 
-import java.util.regex.Pattern;
-
 /**
  * Filter for auction listings.
  * Supports search by item name or seller name and sorting options.
  */
 public class AuctionFilter {
-    private static final Pattern COLOR_CODE_PATTERN = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
-
-    public String searchText;
+    private String searchText;
     public EnumAuctionSort sortBy;
 
     // Cached normalized search for efficiency
@@ -32,9 +28,8 @@ public class AuctionFilter {
     /** Normalize string for search (strip colors, lowercase, trim) */
     public static String normalizeForSearch(String input) {
         if (input == null || input.isEmpty()) return "";
-        String stripped = COLOR_CODE_PATTERN.matcher(input).replaceAll("");
-        stripped = EnumChatFormatting.getTextWithoutFormattingCodes(stripped);
-        return stripped.toLowerCase().trim();
+        String stripped = EnumChatFormatting.getTextWithoutFormattingCodes(input);
+        return stripped != null ? stripped.toLowerCase().trim() : input.toLowerCase().trim();
     }
 
     /** Check if item name or seller name matches search text */

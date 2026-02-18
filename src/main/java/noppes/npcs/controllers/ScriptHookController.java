@@ -2,6 +2,8 @@ package noppes.npcs.controllers;
 
 import noppes.npcs.api.event.IAbilityEvent;
 import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IAuctionEvent;
+import noppes.npcs.api.event.IEnergyBarrierEvent;
 import noppes.npcs.api.event.IPlayerAbilityEvent;
 import noppes.npcs.api.event.IBlockEvent;
 import noppes.npcs.api.event.ICustomGuiEvent;
@@ -123,6 +125,12 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(NPC, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
         hook(NPC, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
 
+        // Energy Barrier
+        hook(NPC, ENERGY_BARRIER_SPAWNED, IEnergyBarrierEvent.SpawnedEvent.class);
+        hook(NPC, ENERGY_BARRIER_TICK, IEnergyBarrierEvent.UpdateEvent.class);
+        hook(NPC, ENERGY_BARRIER_HIT, IEnergyBarrierEvent.HitEvent.class);
+        hook(NPC, ENERGY_BARRIER_DESTROYED, IEnergyBarrierEvent.DestroyedEvent.class);
+
         // Animation
         hook(NPC, ANIMATION_START, IAnimationEvent.Started.class);
         hook(NPC, ANIMATION_END, IAnimationEvent.Ended.class);
@@ -230,6 +238,12 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(PLAYER, ENERGY_PROJECTILE_BLOCK_IMPACT, IEnergyProjectileEvent.BlockImpactEvent.class);
         hook(PLAYER, ENERGY_PROJECTILE_EXPIRED, IEnergyProjectileEvent.ExpiredEvent.class);
 
+        // Energy Barrier
+        hook(PLAYER, ENERGY_BARRIER_SPAWNED, IEnergyBarrierEvent.SpawnedEvent.class);
+        hook(PLAYER, ENERGY_BARRIER_TICK, IEnergyBarrierEvent.UpdateEvent.class);
+        hook(PLAYER, ENERGY_BARRIER_HIT, IEnergyBarrierEvent.HitEvent.class);
+        hook(PLAYER, ENERGY_BARRIER_DESTROYED, IEnergyBarrierEvent.DestroyedEvent.class);
+
         // Ability
         hook(PLAYER, ABILITY_START, IPlayerAbilityEvent.StartEvent.class);
         hook(PLAYER, ABILITY_EXECUTE, IPlayerAbilityEvent.ExecuteEvent.class);
@@ -237,6 +251,13 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(PLAYER, ABILITY_TICK, IPlayerAbilityEvent.TickEvent.class);
         hook(PLAYER, ABILITY_INTERRUPT, IPlayerAbilityEvent.InterruptEvent.class);
         hook(PLAYER, ABILITY_COMPLETE, IPlayerAbilityEvent.CompleteEvent.class);
+
+        // Auction
+        hook(PLAYER, AUCTION_CREATE, IAuctionEvent.CreateEvent.class);
+        hook(PLAYER, AUCTION_BID, IAuctionEvent.BidEvent.class);
+        hook(PLAYER, AUCTION_BUYOUT, IAuctionEvent.BuyoutEvent.class);
+        hook(PLAYER, AUCTION_CANCEL, IAuctionEvent.CancelEvent.class);
+        hook(PLAYER, AUCTION_CLAIM, IAuctionEvent.ClaimEvent.class);
 
         // Profile
         hook(PLAYER, PROFILE_CHANGE, IPlayerEvent.ProfileEvent.Changed.class);

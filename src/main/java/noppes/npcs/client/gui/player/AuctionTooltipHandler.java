@@ -12,6 +12,7 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.constants.EnumClaimType;
+import noppes.npcs.util.AuctionFormatUtil;
 import noppes.npcs.containers.ContainerAuctionListing;
 import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.containers.ContainerAuctionTrades;
@@ -88,25 +89,25 @@ public class AuctionTooltipHandler {
         // Current bid or starting price
         if (listing.hasBids()) {
             tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.currentBid")
-                .replace("%s", EnumChatFormatting.GOLD + formatCurrency(listing.currentBid)));
+                .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.currentBid)));
             tooltip.add(EnumChatFormatting.GRAY + String.format(StatCollector.translateToLocal("auction.bids"), listing.bidCount));
         } else {
             tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.startingPrice")
-                .replace("%s", EnumChatFormatting.GOLD + formatCurrency(listing.startingPrice)));
+                .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.startingPrice)));
             tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.noBids"));
         }
 
         // Buyout price
         if (listing.hasBuyout()) {
             tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.buyout")
-                .replace("%s", EnumChatFormatting.GREEN + formatCurrency(listing.buyoutPrice)));
+                .replace("%s", EnumChatFormatting.GREEN + AuctionFormatUtil.formatCurrencyWithName(listing.buyoutPrice)));
         }
 
         // Time remaining
         long timeRemaining = listing.getTimeRemaining();
         String timeText = StatCollector.translateToLocal("auction.timeLeft")
-            .replace("%s", formatTimeRemaining(timeRemaining));
-        tooltip.add((timeRemaining < 3600000 ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
+            .replace("%s", AuctionFormatUtil.formatTimeRemaining(timeRemaining));
+        tooltip.add((AuctionFormatUtil.isTimeUrgent(timeRemaining) ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
     }
 
     // ========== Trades Page ==========
@@ -144,7 +145,7 @@ public class AuctionTooltipHandler {
 
         if (listing.hasBids()) {
             tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.currentBid")
-                .replace("%s", EnumChatFormatting.GOLD + formatCurrency(listing.currentBid)));
+                .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.currentBid)));
             tooltip.add(EnumChatFormatting.GRAY + String.format(StatCollector.translateToLocal("auction.bids"), listing.bidCount));
         } else {
             tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.noBids"));
@@ -152,8 +153,8 @@ public class AuctionTooltipHandler {
 
         long timeRemaining = listing.getTimeRemaining();
         String timeText = StatCollector.translateToLocal("auction.timeLeft")
-            .replace("%s", formatTimeRemaining(timeRemaining));
-        tooltip.add((timeRemaining < 3600000 ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
+            .replace("%s", AuctionFormatUtil.formatTimeRemaining(timeRemaining));
+        tooltip.add((AuctionFormatUtil.isTimeUrgent(timeRemaining) ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
 
         tooltip.add("");
         tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.rightClickToCancel"));
@@ -164,13 +165,13 @@ public class AuctionTooltipHandler {
         tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.bidding"));
 
         tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.currentBid")
-            .replace("%s", EnumChatFormatting.GOLD + formatCurrency(listing.currentBid)));
+            .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.currentBid)));
         tooltip.add(EnumChatFormatting.GRAY + String.format(StatCollector.translateToLocal("auction.bids"), listing.bidCount));
 
         long timeRemaining = listing.getTimeRemaining();
         String timeText = StatCollector.translateToLocal("auction.timeLeft")
-            .replace("%s", formatTimeRemaining(timeRemaining));
-        tooltip.add((timeRemaining < 3600000 ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
+            .replace("%s", AuctionFormatUtil.formatTimeRemaining(timeRemaining));
+        tooltip.add((AuctionFormatUtil.isTimeUrgent(timeRemaining) ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
 
         tooltip.add("");
         tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.clickToRebid"));
@@ -210,7 +211,7 @@ public class AuctionTooltipHandler {
         // Amount for currency claims
         if (claim.type.isCurrency()) {
             tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.claim.amount")
-                .replace("%s", EnumChatFormatting.GOLD + formatCurrency(claim.currency)));
+                .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(claim.currency)));
         }
 
         // Expiration
@@ -254,48 +255,4 @@ public class AuctionTooltipHandler {
         }
     }
 
-    // ========== Formatting Utilities ==========
-
-    private static String formatCurrency(long amount) {
-        if (amount < 1000) {
-            return amount + " " + AuctionClientConfig.getCurrencyName();
-        }
-        StringBuilder sb = new StringBuilder();
-        String str = "" + amount;
-        int count = 0;
-        for (int i = str.length() - 1; i >= 0; i--) {
-            if (count > 0 && count % 3 == 0) {
-                sb.insert(0, ',');
-            }
-            sb.insert(0, str.charAt(i));
-            count++;
-        }
-        return sb.toString() + " " + AuctionClientConfig.getCurrencyName();
-    }
-
-    private static String formatTimeRemaining(long milliseconds) {
-        if (milliseconds <= 0) {
-            return StatCollector.translateToLocal("auction.ended");
-        }
-
-        long seconds = (milliseconds / 1000) % 60;
-        long minutes = (milliseconds / 60000) % 60;
-        long hours = (milliseconds / 3600000) % 24;
-        long days = milliseconds / 86400000;
-
-        StringBuilder sb = new StringBuilder();
-        if (days > 0) {
-            sb.append(days).append("d ");
-        }
-        if (hours > 0 || days > 0) {
-            sb.append(hours).append("h ");
-        }
-        if (minutes > 0 || hours > 0 || days > 0) {
-            sb.append(minutes).append("m");
-        } else {
-            sb.append(seconds).append("s");
-        }
-
-        return sb.toString();
-    }
 }

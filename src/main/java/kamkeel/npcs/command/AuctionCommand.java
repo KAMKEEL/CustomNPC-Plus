@@ -20,6 +20,7 @@ import static kamkeel.npcs.util.ColorUtil.sendMessage;
 import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class AuctionCommand extends CommandKamkeelBase {
+    private static final int COMMAND_PAGE_SIZE = 10;
 
     public AuctionCommand() {
         super();
@@ -62,9 +63,10 @@ public class AuctionCommand extends CommandKamkeelBase {
             }
         }
 
-        List<AuctionListing> listings = controller.getActiveListings(null, page - 1, 10);
+        page = Math.max(1, page);
+        List<AuctionListing> listings = controller.getActiveListings(null, page - 1, COMMAND_PAGE_SIZE);
         int total = controller.getTotalActiveListings(null);
-        int totalPages = Math.max(1, (int) Math.ceil((double) total / 10));
+        int totalPages = Math.max(1, (int) Math.ceil((double) total / COMMAND_PAGE_SIZE));
 
         if (listings.isEmpty()) {
             sendMessage(sender, "\u00A77No active auctions found");
@@ -96,6 +98,10 @@ public class AuctionCommand extends CommandKamkeelBase {
         if (controller == null) {
             sendError(sender, "Auction system is not available");
             return;
+        }
+
+        if (args.length < 1) {
+            throw new CommandException("Usage: /auction view <player>");
         }
 
         String playername = args[0];

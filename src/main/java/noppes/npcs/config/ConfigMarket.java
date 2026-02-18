@@ -79,11 +79,12 @@ public class ConfigMarket {
             CurrencyName = config.get(CURRENCY, "Currency Name", "Coins",
                 "Display name for the currency (e.g. 'Coins', 'Gold', 'Credits')").getString();
 
-            StartingBalance = config.get(CURRENCY, "Starting Balance", 0,
-                "Starting currency balance for new players").getInt(0);
+            StartingBalance = parseLongConfig(config.get(CURRENCY, "Starting Balance", "0",
+                "Starting currency balance for new players").getString(), 0);
 
-            MaxBalance = config.get(CURRENCY, "Max Balance", Integer.MAX_VALUE,
-                "Maximum currency balance a player can have").getInt(Integer.MAX_VALUE);
+            MaxBalance = parseLongConfig(config.get(CURRENCY, "Max Balance", String.valueOf(Long.MAX_VALUE),
+                "Maximum currency balance a player can have").getString(), Long.MAX_VALUE);
+            if (MaxBalance < 0) MaxBalance = Long.MAX_VALUE;
 
             // =========================================
             // Auction Settings
@@ -95,16 +96,19 @@ public class ConfigMarket {
 
             AuctionDurationHours = config.get(AUCTION, "Auction Duration Hours", 24,
                 "Default duration for auctions in hours").getInt(24);
+            if (AuctionDurationHours < 1) AuctionDurationHours = 1;
 
-            ListingFee = config.get(AUCTION, "Listing Fee", 10,
-                "Flat fee charged when creating a listing").getInt(10);
+            ListingFee = parseLongConfig(config.get(AUCTION, "Listing Fee", "10",
+                "Flat fee charged when creating a listing").getString(), 10);
+            if (ListingFee < 0) ListingFee = 0;
 
-            MinimumListingPrice = config.get(AUCTION, "Minimum Listing Price", 1,
-                "Minimum starting price for auction listings").getInt(1);
+            MinimumListingPrice = parseLongConfig(config.get(AUCTION, "Minimum Listing Price", "1",
+                "Minimum starting price for auction listings").getString(), 1);
             if (MinimumListingPrice < 1) MinimumListingPrice = 1;
 
             SalesTaxPercent = config.get(AUCTION, "Sales Tax Percent", 0.05,
                 "Percentage of sale price taken as tax (0.05 = 5%). Tax is deleted as a currency sink.").getDouble(0.05);
+            SalesTaxPercent = Math.max(0.0, Math.min(1.0, SalesTaxPercent));
 
             int maxTrades = config.get(AUCTION, "Default Max Trades", 8,
                 "Default maximum number of trade slots per player (listings + bids + claims). Min: 1, Max: 45. Players can have more via customnpcs.auction.trades.X permissions.").getInt(8);
@@ -112,15 +116,19 @@ public class ConfigMarket {
 
             SnipeProtectionMinutes = config.get(AUCTION, "Snipe Protection Minutes", 2,
                 "When a bid is placed with less than this many minutes remaining, the auction is extended to this duration").getInt(2);
+            if (SnipeProtectionMinutes < 0) SnipeProtectionMinutes = 0;
 
             ClaimExpirationDays = config.get(AUCTION, "Claim Expiration Days", 20,
                 "Number of days before unclaimed items/currency are deleted").getInt(20);
+            if (ClaimExpirationDays < 1) ClaimExpirationDays = 1;
 
             MinBidIncrementPercent = config.get(AUCTION, "Min Bid Increment Percent", 0.05,
                 "Minimum bid increment as a percentage of current bid (0.05 = 5%)").getDouble(0.05);
+            MinBidIncrementPercent = Math.max(0.0, Math.min(1.0, MinBidIncrementPercent));
 
             CancellationPenaltyPercent = config.get(AUCTION, "Cancellation Penalty Percent", 0.10,
                 "Percentage of current bid taken as penalty when seller cancels an auction with bids (0.10 = 10%)").getDouble(0.10);
+            CancellationPenaltyPercent = Math.max(0.0, Math.min(1.0, CancellationPenaltyPercent));
 
             // =========================================
             // Auction Blacklist Settings
@@ -235,6 +243,15 @@ public class ConfigMarket {
             if (config.hasChanged()) {
                 config.save();
             }
+        }
+    }
+
+    private static long parseLongConfig(String value, long defaultValue) {
+        if (value == null || value.trim().isEmpty()) return defaultValue;
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
         }
     }
 }

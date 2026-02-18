@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigMarket;
+import noppes.npcs.constants.EnumAuctionPage;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.AuctionController;
@@ -315,13 +316,8 @@ public class AuctionActionPacket extends AbstractPacket {
 
     private void handleOpenPage(ByteBuf in, EntityPlayerMP player) {
         int page = in.readInt();
-        EnumGuiType guiType;
-        switch (page) {
-            case 0: guiType = EnumGuiType.PlayerAuction; break;
-            case 1: guiType = EnumGuiType.PlayerAuctionSell; break;
-            case 2: guiType = EnumGuiType.PlayerAuctionTrades; break;
-            default: guiType = EnumGuiType.PlayerAuction; break;
-        }
+        EnumAuctionPage auctionPage = EnumAuctionPage.fromOrdinal(page);
+        EnumGuiType guiType = auctionPage.getGuiType();
         NoppesUtilServer.sendOpenGui(player, guiType, npc);
 
         // Send trades data when opening the trades page
@@ -481,6 +477,9 @@ public class AuctionActionPacket extends AbstractPacket {
             } else {
                 // Need only part of stack
                 stack.splitStack(needed);
+                if (stack.stackSize <= 0) {
+                    player.inventory.setInventorySlotContents(i, null);
+                }
                 needed = 0;
             }
         }

@@ -13,12 +13,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.Iterator;
 
 public class AuctionBlacklist {
-    private static Set<String> blacklistedItems = new HashSet<>();
-    private static Set<Pattern> wildcardPatterns = new HashSet<>();
-    private static Set<String> blacklistedMods = new HashSet<>();
-    private static Set<String> blacklistedNBTTags = new HashSet<>();
+    private static volatile Set<String> blacklistedItems = new HashSet<>();
+    private static volatile Set<Pattern> wildcardPatterns = new HashSet<>();
+    private static volatile Set<String> blacklistedMods = new HashSet<>();
+    private static volatile Set<String> blacklistedNBTTags = new HashSet<>();
 
     // Built-in bound item requirement keys (always blocked)
     private static final String SOULBIND_KEY = "cnpc_soulbind";
@@ -28,10 +29,10 @@ public class AuctionBlacklist {
     private static final String BYPASS_PERMISSION = "customnpcs.auction.blacklist.bypass";
 
     public static void reload() {
-        blacklistedItems.clear();
-        wildcardPatterns.clear();
-        blacklistedMods.clear();
-        blacklistedNBTTags.clear();
+        Set<String> newItems = new HashSet<>();
+        Set<Pattern> newWildcards = new HashSet<>();
+        Set<String> newMods = new HashSet<>();
+        Set<String> newNBTTags = new HashSet<>();
 
         // Load blacklisted items
         for (String item : ConfigMarket.BlacklistedItems) {
@@ -40,23 +41,29 @@ public class AuctionBlacklist {
 
             if (item.contains("*")) {
                 String regex = "^" + item.replace(".", "\\.").replace("*", ".*") + "$";
-                wildcardPatterns.add(Pattern.compile(regex));
+                newWildcards.add(Pattern.compile(regex));
             } else {
-                blacklistedItems.add(item);
+                newItems.add(item);
             }
         }
 
         // Load blacklisted mods
         for (String mod : ConfigMarket.BlacklistedMods) {
             if (mod == null || mod.isEmpty()) continue;
-            blacklistedMods.add(mod.toLowerCase().trim());
+            newMods.add(mod.toLowerCase().trim());
         }
 
         // Load blacklisted NBT tags
         for (String tag : ConfigMarket.BlacklistedNBTTags) {
             if (tag == null || tag.isEmpty()) continue;
-            blacklistedNBTTags.add(tag.trim());
+            newNBTTags.add(tag.trim());
         }
+
+        // Atomic swap
+        blacklistedItems = newItems;
+        wildcardPatterns = newWildcards;
+        blacklistedMods = newMods;
+        blacklistedNBTTags = newNBTTags;
     }
 
     /**
@@ -78,13 +85,14 @@ public class AuctionBlacklist {
      * Check if item is blacklisted (without bypass check)
      */
     public static boolean isBlacklisted(ItemStack item) {
-        if (!ConfigMarket.BlacklistEnabled) return false;
         if (item == null || item.getItem() == null) return true;
 
         // Check bound items (always blocked, even if blacklist is "disabled")
         if (hasBoundRequirement(item)) {
             return true;
         }
+
+        if (!ConfigMarket.BlacklistEnabled) return false;
 
         // Get registry name
         GameRegistry.UniqueIdentifier uid = GameRegistry.findUniqueIdentifierFor(item.getItem());
@@ -172,9 +180,13 @@ public class AuctionBlacklist {
 
         if (registryName.contains("*")) {
             String regex = "^" + registryName.replace(".", "\\.").replace("*", ".*") + "$";
-            wildcardPatterns.add(Pattern.compile(regex));
+            Set<Pattern> newWildcards = new HashSet<>(wildcardPatterns);
+            newWildcards.add(Pattern.compile(regex));
+            wildcardPatterns = newWildcards;
         } else {
-            blacklistedItems.add(registryName);
+            Set<String> newItems = new HashSet<>(blacklistedItems);
+            newItems.add(registryName);
+            blacklistedItems = newItems;
         }
         return true;
     }
@@ -185,30 +197,55 @@ public class AuctionBlacklist {
 
         if (registryName.contains("*")) {
             String regex = "^" + registryName.replace(".", "\\.").replace("*", ".*") + "$";
-            return wildcardPatterns.removeIf(p -> p.pattern().equals(regex));
+            Set<Pattern> newWildcards = new HashSet<>(wildcardPatterns);
+            boolean removed = false;
+            Iterator<Pattern> it = newWildcards.iterator();
+            while (it.hasNext()) {
+                if (it.next().pattern().equals(regex)) {
+                    it.remove();
+                    removed = true;
+                }
+            }
+            wildcardPatterns = newWildcards;
+            return removed;
         } else {
-            return blacklistedItems.remove(registryName);
+            Set<String> newItems = new HashSet<>(blacklistedItems);
+            boolean removed = newItems.remove(registryName);
+            blacklistedItems = newItems;
+            return removed;
         }
     }
 
     public static boolean addMod(String modId) {
         if (modId == null || modId.isEmpty()) return false;
-        return blacklistedMods.add(modId.toLowerCase().trim());
+        Set<String> newMods = new HashSet<>(blacklistedMods);
+        boolean added = newMods.add(modId.toLowerCase().trim());
+        blacklistedMods = newMods;
+        return added;
     }
 
     public static boolean removeMod(String modId) {
         if (modId == null || modId.isEmpty()) return false;
-        return blacklistedMods.remove(modId.toLowerCase().trim());
+        Set<String> newMods = new HashSet<>(blacklistedMods);
+        boolean removed = newMods.remove(modId.toLowerCase().trim());
+        blacklistedMods = newMods;
+        return removed;
     }
 
     public static boolean addNBTTag(String tag) {
         if (tag == null || tag.isEmpty()) return false;
-        return blacklistedNBTTags.add(tag.trim());
+        Set<String> newTags = new HashSet<>(blacklistedNBTTags);
+        boolean added = newTags.add(tag.trim());
+        blacklistedNBTTags = newTags;
+        return added;
     }
 
     public static boolean removeNBTTag(String tag) {
         if (tag == null || tag.isEmpty()) return false;
-        return blacklistedNBTTags.remove(tag.trim());
+        Set<String> newTags = new HashSet<>(blacklistedNBTTags);
+        boolean removed = newTags.remove(tag.trim());
+        blacklistedNBTTags = newTags;
+        return removed;
     }
 
     // =========================================

@@ -67,6 +67,7 @@ import noppes.npcs.scripted.event.RecipeScriptEvent;
 import noppes.npcs.scripted.event.player.CustomGuiEvent;
 import noppes.npcs.scripted.event.player.DialogEvent;
 import noppes.npcs.scripted.event.player.FactionEvent;
+import noppes.npcs.scripted.event.player.AuctionEvent;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 import noppes.npcs.scripted.event.player.PlayerEvent.ChatEvent;
@@ -1252,5 +1253,32 @@ public class EventHooks {
             return;
         }
         postAnimationEvent(new AnimationEvent.FrameEvent.Exited(animation, frame));
+    }
+
+    // ==================== AUCTION EVENTS ====================
+
+    public static boolean onAuctionCreate(PlayerDataScript handler, AuctionEvent.CreateEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_CREATE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionBid(PlayerDataScript handler, AuctionEvent.BidEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_BID, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionBuyout(PlayerDataScript handler, AuctionEvent.BuyoutEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_BUYOUT, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionCancel(PlayerDataScript handler, AuctionEvent.CancelEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_CANCEL, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionClaim(PlayerDataScript handler, AuctionEvent.ClaimEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_CLAIM, event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 }

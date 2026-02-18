@@ -137,7 +137,14 @@ public enum EnumScriptType {
     ENERGY_BARRIER_SPAWNED("energyBarrierSpawned"),
     ENERGY_BARRIER_TICK("energyBarrierTick"),
     ENERGY_BARRIER_HIT("energyBarrierHit"),
-    ENERGY_BARRIER_DESTROYED("energyBarrierDestroyed");
+    ENERGY_BARRIER_DESTROYED("energyBarrierDestroyed"),
+
+    // Auction Events
+    AUCTION_CREATE("auctionCreate"),
+    AUCTION_BID("auctionBid"),
+    AUCTION_BUYOUT("auctionBuyout"),
+    AUCTION_CANCEL("auctionCancel"),
+    AUCTION_CLAIM("auctionClaim");
 
     public String function;
 

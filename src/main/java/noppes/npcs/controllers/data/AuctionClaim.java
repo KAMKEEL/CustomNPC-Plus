@@ -140,7 +140,7 @@ public class AuctionClaim implements IAuctionClaim {
 
     @Override
     public boolean isCurrencyClaim() {
-        return type == EnumClaimType.CURRENCY;
+        return type.isCurrency();
     }
 
     @Override

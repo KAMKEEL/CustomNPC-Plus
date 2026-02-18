@@ -34,6 +34,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
     public static final int PAGE_SELL = 1;
     public static final int PAGE_CLAIMS = 2;
 
+    // Overlay color
+    protected static final int OVERLAY_DARK = 0xC0000000;
+
     // Navigation button IDs
     protected static final int BTN_NAV_LISTINGS = 100;
     protected static final int BTN_NAV_SELL = 101;
@@ -172,7 +175,7 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
 
     /** Draw dark overlay for unavailable slots */
     protected void drawDarkenedOverlay(int x, int y) {
-        drawColoredOverlay(x, y, 0xC0000000);
+        drawColoredOverlay(x, y, OVERLAY_DARK);
     }
 
     /** Draw icon texture on slot (16x16) */
@@ -191,39 +194,6 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
 
     /** Subclasses implement this to draw specific content */
     protected abstract void drawAuctionContent(float partialTicks, int mouseX, int mouseY);
-
-    // ========== Formatting Utilities ==========
-
-    /** Format currency with commas (e.g., 1000 -> "1,000") */
-    protected String formatCurrency(long amount) {
-        if (amount < 1000) return "" + amount;
-        StringBuilder sb = new StringBuilder();
-        String str = "" + amount;
-        int count = 0;
-        for (int i = str.length() - 1; i >= 0; i--) {
-            if (count > 0 && count % 3 == 0) sb.insert(0, ',');
-            sb.insert(0, str.charAt(i));
-            count++;
-        }
-        return sb.toString();
-    }
-
-    /** Format time remaining (e.g., "2d 5h 30m") */
-    protected String formatTimeRemaining(long ms) {
-        if (ms <= 0) return "Ended";
-
-        long seconds = (ms / 1000) % 60;
-        long minutes = (ms / 60000) % 60;
-        long hours = (ms / 3600000) % 24;
-        long days = ms / 86400000;
-
-        StringBuilder sb = new StringBuilder();
-        if (days > 0) sb.append(days).append("d ");
-        if (hours > 0 || days > 0) sb.append(hours).append("h ");
-        if (minutes > 0 || hours > 0 || days > 0) sb.append(minutes).append("m");
-        else sb.append(seconds).append("s");
-        return sb.toString();
-    }
 
     @Override
     public void save() {

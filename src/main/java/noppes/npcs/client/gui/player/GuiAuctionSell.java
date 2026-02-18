@@ -15,7 +15,9 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.containers.ContainerAuctionSell;
+import noppes.npcs.util.AuctionFormatUtil;
 import noppes.npcs.entity.EntityNPCInterface;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -239,7 +241,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
 
         // Draw listing fee info (uses cached config from server)
         String feeText = StatCollector.translateToLocal("auction.sell.fee")
-            .replace("%s", formatCurrency(AuctionClientConfig.getListingFee()) + " " + AuctionClientConfig.getCurrencyName());
+            .replace("%s", AuctionFormatUtil.formatCurrency(AuctionClientConfig.getListingFee()) + " " + AuctionClientConfig.getCurrencyName());
         fontRendererObj.drawString(EnumChatFormatting.GRAY + feeText, guiLeft + contentX, guiTop + contentY + 77, 0xFFFFFF);
 
         // Draw error message if any
@@ -326,7 +328,11 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         }
 
         if (tooltip != null && !tooltip.isEmpty()) {
+            GL11.glPushMatrix();
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
             drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj);
+            GL11.glPopAttrib();
+            GL11.glPopMatrix();
         }
     }
 }

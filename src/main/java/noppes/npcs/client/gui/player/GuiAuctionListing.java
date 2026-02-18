@@ -58,8 +58,6 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
     private AuctionFilter filter;
     private int currentPage = 0;
     private int totalPages = 1;
-    private int totalListings = 0;
-    private boolean dataLoaded = false;
 
     // Buttons defined on this page
     private GuiAuctionNavButton btnFilter;
@@ -204,7 +202,6 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
         if (compound.hasKey("ListingsData")) {
             currentPage = compound.getInteger("Page");
             totalPages = compound.getInteger("TotalPages");
-            totalListings = compound.getInteger("TotalListings");
 
             // Load listings
             listingContainer.displayInventory.clear();
@@ -213,7 +210,7 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
                 AuctionListing listing = AuctionListing.fromNBT(list.getCompoundTagAt(i));
                 listingContainer.displayInventory.setListing(i, listing);
             }
-            dataLoaded = true;
+            updatePaginationVisibility();
         } else if (compound.hasKey("ListingsRefresh")) {
             requestListings();
         }

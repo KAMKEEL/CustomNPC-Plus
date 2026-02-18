@@ -14,10 +14,10 @@ import net.minecraft.nbt.NBTTagCompound;
 @SideOnly(Side.CLIENT)
 public class AuctionClientConfig {
     // Cached values from server
-    private static long listingFee = 0;
+    private static volatile long listingFee = 0;
     private static String currencyName = "Coins";
     private static int auctionDurationHours = 24;
-    private static double minBidIncrement = 0.05;
+    private static volatile double minBidIncrement = 0.05;
     private static int maxActiveListings = 8;
     private static int claimExpirationDays = 20;
     private static boolean auctionEnabled = false;
@@ -38,7 +38,7 @@ public class AuctionClientConfig {
         claimExpirationDays = compound.getInteger("ClaimExpirationDays");
 
         if (currencyName.isEmpty()) {
-            currencyName = "Gold";
+            currencyName = "Coins";
         }
     }
 

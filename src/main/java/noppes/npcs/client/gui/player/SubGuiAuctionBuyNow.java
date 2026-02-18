@@ -8,6 +8,7 @@ import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.util.AuctionFormatUtil;
 
 /**
  * Sub GUI for confirming a buyout purchase.
@@ -54,14 +55,14 @@ public class SubGuiAuctionBuyNow extends SubGuiInterface {
         y += 16;
 
         // Buyout price
-        String priceText = EnumChatFormatting.DARK_RED + formatCurrency(buyoutPrice) + " " + currencyName;
+        String priceText = EnumChatFormatting.DARK_RED + AuctionFormatUtil.formatCurrency(buyoutPrice) + " " + currencyName;
         int priceWidth = fontRendererObj.getStringWidth(priceText);
         addLabel(new GuiNpcLabel(2, priceText, centerX - priceWidth / 2, y));
         y += 20;
 
         // Your balance
         String balanceLabel = StatCollector.translateToLocal("auction.bid.yourBalance");
-        String balanceText = balanceLabel.replace("%s", EnumChatFormatting.DARK_GREEN + formatCurrency(playerBalance) + " " + currencyName);
+        String balanceText = balanceLabel.replace("%s", EnumChatFormatting.DARK_GREEN + AuctionFormatUtil.formatCurrency(playerBalance) + " " + currencyName);
         addLabel(new GuiNpcLabel(3, balanceText, guiLeft + 20, y));
         y += 14;
 
@@ -104,18 +105,5 @@ public class SubGuiAuctionBuyNow extends SubGuiInterface {
 
     public boolean wasSuccessful() {
         return successful;
-    }
-
-    private String formatCurrency(long amount) {
-        if (amount < 1000) return "" + amount;
-        StringBuilder sb = new StringBuilder();
-        String str = "" + amount;
-        int count = 0;
-        for (int i = str.length() - 1; i >= 0; i--) {
-            if (count > 0 && count % 3 == 0) sb.insert(0, ',');
-            sb.insert(0, str.charAt(i));
-            count++;
-        }
-        return sb.toString();
     }
 }

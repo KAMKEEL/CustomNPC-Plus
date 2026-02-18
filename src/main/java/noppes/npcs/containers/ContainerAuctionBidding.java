@@ -14,9 +14,9 @@ import noppes.npcs.entity.EntityNPCInterface;
  */
 public class ContainerAuctionBidding extends ContainerAuction {
     // Display slot layout
-    private int itemSlotX = 71;
-    private int itemSlotY = 76;
-    private int itemSlotIndex = PLAYER_INV_SLOT_COUNT;
+    private static final int ITEM_SLOT_X = 71;
+    private static final int ITEM_SLOT_Y = 76;
+    private static final int ITEM_SLOT_INDEX = PLAYER_INV_SLOT_COUNT;
 
     private final IInventory displayInventory;
     private AuctionListing listing;
@@ -26,7 +26,7 @@ public class ContainerAuctionBidding extends ContainerAuction {
         displayInventory = new InventoryBasic("Display", false, 1);
 
         // Display slot (read-only)
-        addSlotToContainer(new Slot(displayInventory, 0, itemSlotX, itemSlotY) {
+        addSlotToContainer(new Slot(displayInventory, 0, ITEM_SLOT_X, ITEM_SLOT_Y) {
             @Override
             public boolean isItemValid(ItemStack stack) { return false; }
             @Override
@@ -58,6 +58,6 @@ public class ContainerAuctionBidding extends ContainerAuction {
      * Check if this is the display slot.
      */
     public boolean isDisplaySlot(int slotIndex) {
-        return slotIndex == itemSlotIndex;
+        return slotIndex == ITEM_SLOT_INDEX;
     }
 }

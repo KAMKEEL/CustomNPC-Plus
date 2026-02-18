@@ -40,7 +40,7 @@ public class AuctionConfigSync {
     public static String getEffectiveCurrencyName() {
         if (ConfigMarket.UseVault && VaultUtil.isEnabled()) {
             String vaultName = VaultUtil.getCurrencyNamePlural();
-            if (vaultName != null && !vaultName.isEmpty() && !vaultName.equals("coins")) {
+            if (vaultName != null && !vaultName.isEmpty()) {
                 return vaultName;
             }
         }

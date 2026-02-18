@@ -8,7 +8,6 @@ import noppes.npcs.api.handler.data.IAuctionClaim;
 import noppes.npcs.config.ConfigMarket;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -129,12 +128,13 @@ public class PlayerTradeData implements IPlayerTradeData {
 
         // Built-in currency
         long newBalance = this.balance + amount;
-        if (newBalance > ConfigMarket.MaxBalance) {
-            return false;
-        }
+        // Overflow protection
         if (newBalance < this.balance) {
-            // Overflow protection
-            return false;
+            newBalance = ConfigMarket.MaxBalance;
+        }
+        // Cap at MaxBalance instead of rejecting
+        if (newBalance > ConfigMarket.MaxBalance) {
+            newBalance = ConfigMarket.MaxBalance;
         }
         this.balance = newBalance;
         this.lifetimeEarned += amount;
@@ -341,18 +341,16 @@ public class PlayerTradeData implements IPlayerTradeData {
      */
     public int processExpiredClaims() {
         int expirationDays = ConfigMarket.ClaimExpirationDays;
-        int removed = 0;
-
-        Iterator<AuctionClaim> iterator = claims.iterator();
-        while (iterator.hasNext()) {
-            AuctionClaim claim = iterator.next();
+        List<AuctionClaim> expired = new ArrayList<>();
+        for (AuctionClaim claim : claims) {
             if (!claim.claimed && claim.isExpired(expirationDays)) {
-                claims.remove(claim);
-                removed++;
+                expired.add(claim);
             }
         }
-
-        return removed;
+        if (!expired.isEmpty()) {
+            claims.removeAll(expired);
+        }
+        return expired.size();
     }
 
     // =========================================
