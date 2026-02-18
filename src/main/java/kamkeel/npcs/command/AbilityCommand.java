@@ -33,20 +33,19 @@ public class AbilityCommand extends CommandKamkeelBase {
         desc = "List all custom abilities"
     )
     public void list(ICommandSender sender, String[] args) {
-        Set<String> uuids = AbilityController.Instance.getCustomAbilityIds();
-        if (uuids.isEmpty()) {
+        Set<String> names = AbilityController.Instance.getCustomAbilityNames();
+        if (names.isEmpty()) {
             sendResult(sender, "No custom abilities found.");
             return;
         }
 
-        sendResult(sender, "Custom Abilities (" + uuids.size() + "):");
-        for (String uuid : uuids) {
-            Ability ability = AbilityController.Instance.getCustomAbility(uuid);
+        sendResult(sender, "Custom Abilities (" + names.size() + "):");
+        for (String name : names) {
+            Ability ability = AbilityController.Instance.getCustomAbility(name);
             if (ability != null) {
-                String name = ability.getName() != null ? ability.getName() : uuid;
-                sendResult(sender, "  - \u00A7b" + name + "\u00A77 (" + ability.getTypeId() + ") [" + uuid + "]");
+                sendResult(sender, "  - \u00A7b" + name + "\u00A77 (" + ability.getTypeId() + ")");
             } else {
-                sendResult(sender, "  - \u00A7b" + uuid);
+                sendResult(sender, "  - \u00A7b" + name);
             }
         }
     }
@@ -82,23 +81,23 @@ public class AbilityCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-        desc = "Delete a custom ability by UUID",
-        usage = "<uuid>"
+        desc = "Delete a custom ability by name",
+        usage = "<name>"
     )
     public void delete(ICommandSender sender, String[] args) {
         if (args.length < 1) {
-            sendError(sender, "Usage: /kam ability delete <uuid>");
+            sendError(sender, "Usage: /kam ability delete <name>");
             return;
         }
 
-        String uuid = args[0];
-        if (!AbilityController.Instance.hasCustomAbility(uuid)) {
-            sendError(sender, "No custom ability with UUID: " + uuid);
+        String name = joinArgs(args, 0);
+        if (!AbilityController.Instance.hasCustomAbilityName(name)) {
+            sendError(sender, "No custom ability with name: " + name);
             return;
         }
 
-        AbilityController.Instance.deleteCustomAbility(uuid);
-        sendResult(sender, "Deleted ability: \u00A7b" + uuid);
+        AbilityController.Instance.deleteCustomAbility(name);
+        sendResult(sender, "Deleted ability: \u00A7b" + name);
     }
 
     @SubCommand(
@@ -189,7 +188,7 @@ public class AbilityCommand extends CommandKamkeelBase {
             return;
         }
 
-        // Use the ability's canonical ID for storage (registry key for built-in, UUID for custom)
+        // Use the ability's canonical ID for storage (registry key for built-in, name for custom)
         String canonicalKey = ability.getId();
         if (canonicalKey == null || canonicalKey.isEmpty()) {
             canonicalKey = abilityKey; // Fallback to user-provided key

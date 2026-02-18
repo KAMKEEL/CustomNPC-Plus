@@ -21,7 +21,6 @@ import noppes.npcs.constants.EnumScrollData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.Vector;
 
 /**
@@ -33,10 +32,8 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
     private final SubGuiAbilityConfig parentConfig;
     private final GuiNPCAbilities parentAbilities;
     private String selectedDisplayName = null;
-    private String selectedUuid = null;
+    private String selectedName = null;
 
-    /** Maps display name -> UUID for custom abilities. */
-    private final HashMap<String, String> displayToUuid = new HashMap<>();
     private HashMap<String, Integer> rawData = new HashMap<>();
     private GuiCustomScroll scroll;
 
@@ -97,15 +94,15 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
         addButton(new GuiNpcButton(0, guiLeft + 10, y, 95, 20, "gui.load"));
         addButton(new GuiNpcButton(2, guiLeft + 115, y, 95, 20, "gui.cancel"));
 
-        getButton(0).setEnabled(selectedUuid != null);
+        getButton(0).setEnabled(selectedName != null);
     }
 
     private List<String> getFilteredList() {
         if (search.isEmpty()) {
-            return new ArrayList<>(displayToUuid.keySet());
+            return new ArrayList<>(rawData.keySet());
         }
         List<String> list = new ArrayList<>();
-        for (String name : displayToUuid.keySet()) {
+        for (String name : rawData.keySet()) {
             if (name.toLowerCase().contains(search.toLowerCase())) {
                 list.add(name);
             }
@@ -117,7 +114,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
 
-        if (id == 0 && selectedUuid != null) {
+        if (id == 0 && selectedName != null) {
             if (parentAbilities != null) {
                 // From NPC abilities GUI - ask clone/reference
                 setSubGui(new SubGuiAbilityLoadMode());
@@ -125,7 +122,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
                 // From config GUI - always clone
                 waitingForLoad = true;
                 pendingLoadMode = SubGuiAbilityLoadMode.MODE_CLONE;
-                PacketClient.sendClient(new CustomAbilityGetPacket(selectedUuid));
+                PacketClient.sendClient(new CustomAbilityGetPacket(selectedName));
             }
         } else if (id == 2) {
             close();
@@ -152,16 +149,16 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
             if (mode < 0) return; // cancelled
 
             if (mode == SubGuiAbilityLoadMode.MODE_REFERENCE) {
-                // Reference mode - just pass the reference ID
-                if (parentAbilities != null && selectedUuid != null) {
-                    parentAbilities.loadAbilityReference(selectedUuid);
+                // Reference mode - just pass the reference name
+                if (parentAbilities != null && selectedName != null) {
+                    parentAbilities.loadAbilityReference(selectedName);
                 }
                 close();
             } else {
                 // Clone mode - request full data
                 waitingForLoad = true;
                 pendingLoadMode = SubGuiAbilityLoadMode.MODE_CLONE;
-                PacketClient.sendClient(new CustomAbilityGetPacket(selectedUuid));
+                PacketClient.sendClient(new CustomAbilityGetPacket(selectedName));
             }
         }
     }
@@ -170,9 +167,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
         if (scroll.id == 0) {
             selectedDisplayName = scroll.getSelected();
-            if (selectedDisplayName != null) {
-                selectedUuid = displayToUuid.get(selectedDisplayName);
-            }
+            selectedName = selectedDisplayName;
             initGui();
         }
     }
@@ -181,15 +176,13 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
         if (scroll.id == 0 && selection != null && !selection.isEmpty()) {
             selectedDisplayName = selection;
-            selectedUuid = displayToUuid.get(selectedDisplayName);
-            if (selectedUuid != null) {
-                if (parentAbilities != null) {
-                    setSubGui(new SubGuiAbilityLoadMode());
-                } else {
-                    waitingForLoad = true;
-                    pendingLoadMode = SubGuiAbilityLoadMode.MODE_CLONE;
-                    PacketClient.sendClient(new CustomAbilityGetPacket(selectedUuid));
-                }
+            selectedName = selection;
+            if (parentAbilities != null) {
+                setSubGui(new SubGuiAbilityLoadMode());
+            } else {
+                waitingForLoad = true;
+                pendingLoadMode = SubGuiAbilityLoadMode.MODE_CLONE;
+                PacketClient.sendClient(new CustomAbilityGetPacket(selectedName));
             }
         }
     }
@@ -197,22 +190,10 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
         if (type == EnumScrollData.CUSTOM_ABILITIES) {
-            displayToUuid.clear();
             rawData = data;
-            for (String key : data.keySet()) {
-                // key format: "displayName\tUUID"
-                int tabIndex = key.indexOf('\t');
-                if (tabIndex > 0) {
-                    String displayName = key.substring(0, tabIndex);
-                    String uuid = key.substring(tabIndex + 1);
-                    displayToUuid.put(displayName, uuid);
-                } else {
-                    displayToUuid.put(key, key);
-                }
-            }
             if (scroll != null) {
                 scroll.setList(getFilteredList());
-                if (selectedDisplayName != null && displayToUuid.containsKey(selectedDisplayName)) {
+                if (selectedDisplayName != null && rawData.containsKey(selectedDisplayName)) {
                     scroll.setSelected(selectedDisplayName);
                 }
             }
@@ -226,11 +207,6 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
             waitingForLoad = false;
             Ability loaded = AbilityController.Instance.fromNBT(compound);
             if (loaded != null) {
-                if (pendingLoadMode == SubGuiAbilityLoadMode.MODE_CLONE) {
-                    // Give it a new UUID so it's a unique inline copy
-                    loaded.setId(UUID.randomUUID().toString());
-                }
-
                 if (parentConfig != null) {
                     parentConfig.loadAbility(loaded);
                 } else if (parentAbilities != null) {

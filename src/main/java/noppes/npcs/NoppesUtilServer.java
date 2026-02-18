@@ -810,13 +810,10 @@ public class NoppesUtilServer {
         kamkeel.npcs.controllers.data.ability.AbilityController controller = kamkeel.npcs.controllers.data.ability.AbilityController.Instance;
         if (controller != null) {
             int index = 0;
-            for (String uuid : controller.getCustomAbilityIds()) {
-                Ability ability = controller.getCustomAbility(uuid);
+            for (String name : controller.getCustomAbilityNames()) {
+                Ability ability = controller.getCustomAbility(name);
                 if (ability == null || !ability.getAllowedBy().allowsNpc()) continue;
-
-                String name = controller.getCustomAbilityName(uuid);
-                if (name == null || name.isEmpty()) name = uuid;
-                map.put(name + "\t" + uuid, index++);
+                map.put(name, index++);
             }
         }
         sendScrollData(player, map, EnumScrollData.CUSTOM_ABILITIES);
