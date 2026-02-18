@@ -151,8 +151,9 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
 
     @Override
     public void keyTyped(char par1, int par2) {
+        boolean hadSubGui = hasSubGui();
         super.keyTyped(par1, par2);
-        if (par2 == 1) {
+        if (par2 == 1 && !hadSubGui) {
             close();
         }
     }
