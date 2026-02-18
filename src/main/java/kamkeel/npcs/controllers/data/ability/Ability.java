@@ -14,6 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
@@ -281,6 +282,17 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
     }
 
+    /**
+     * Called when the ability enters BURST_DELAY between burst iterations.
+     * Override in subclasses to reset transient state that should not carry
+     * across burst repetitions (e.g., movement direction, hit entity lists).
+     * <p>
+     * Unlike {@link #cleanup()}, this does NOT kill spawned entities (they may
+     * still be in flight for overlap mode).
+     */
+    public void resetForBurst() {
+    }
+
     public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
     }
 
@@ -534,6 +546,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
         defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
             .tab("General"));
         defs.add(FieldDef.stringField("gui.displayName", this::getRawDisplayName, this::setDisplayName)
+            .tab("General"));
+        defs.add(FieldDef.labelField("ability.validFor", () ->
+            StatCollector.translateToLocal("ability.validFor") + ": \u00A7e"
+                + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
             .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
@@ -979,9 +995,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
         if (phase == AbilityPhase.ACTIVE) {
             // Check if more burst iterations remain
             if (burstEnabled && burstAmount > 0 && burstIndex < burstAmount) {
-                // Don't cleanup here - entities may still be in flight
-                // For non-overlap: cleaned up when next burst starts (in onExecute)
-                // For overlap: entities continue flying indefinitely
+                // Reset transient state for next burst iteration (e.g., movement direction, hit lists)
+                // Does NOT kill entities - they may still be in flight (overlap mode)
+                resetForBurst();
                 burstIndex++;
                 phase = AbilityPhase.BURST_DELAY;
                 currentTick = 0;

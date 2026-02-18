@@ -3,11 +3,14 @@ package noppes.npcs.client.gui.advanced;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -79,6 +82,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private final ChainedAbility chain;
     private final IChainedAbilityConfigCallback callback;
     private final boolean npcContext;
+    private final boolean readOnlyEntries;
     private final List<AbilityAction> npcSlots;
     private int activeTab = TAB_GENERAL;
 
@@ -94,6 +98,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
     // Entry editing
     private int editingEntryIndex = -1;
+    private String pendingTypeId;
+    private boolean editingParentAbility = false;
 
     // Condition editing
     private int editingConditionIndex = -1;
@@ -105,14 +111,20 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private final List<Integer> consumedSlotIndices = new ArrayList<>();
 
     public SubGuiChainedAbilityConfig(ChainedAbility chain, IChainedAbilityConfigCallback callback) {
-        this(chain, callback, false, null);
+        this(chain, callback, false, null, false);
     }
 
     public SubGuiChainedAbilityConfig(ChainedAbility chain, IChainedAbilityConfigCallback callback,
                                       boolean npcContext, List<AbilityAction> npcSlots) {
+        this(chain, callback, npcContext, npcSlots, false);
+    }
+
+    public SubGuiChainedAbilityConfig(ChainedAbility chain, IChainedAbilityConfigCallback callback,
+                                      boolean npcContext, List<AbilityAction> npcSlots, boolean readOnlyEntries) {
         this.chain = chain;
         this.callback = callback;
         this.npcContext = npcContext;
+        this.readOnlyEntries = readOnlyEntries;
         this.npcSlots = npcSlots;
         this.entries = new ArrayList<>(chain.getEntries());
         this.conditions = new ArrayList<>(chain.getConditions());
@@ -129,6 +141,11 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         fieldDefs.add(FieldDef.stringField("gui.name", chain::getName, chain::setName).tab("General"));
         fieldDefs.add(FieldDef.stringField("gui.displayName", chain::getRawDisplayName, chain::setDisplayName).tab("General"));
+        // Computed "Valid For" label (derived from child abilities)
+        fieldDefs.add(FieldDef.labelField("ability.validFor", () -> {
+            UserType ut = computeAllowedBy();
+            return StatCollector.translateToLocal("ability.validFor") + ": \u00A7e" + StatCollector.translateToLocal("ability.userType." + ut.name());
+        }).tab("General"));
         fieldDefs.add(FieldDef.boolField("gui.enabled", chain::isEnabled, chain::setEnabled).tab("General"));
         fieldDefs.add(FieldDef.intField("ability.weight", chain::getWeight, chain::setWeight).range(1, 100).tab("General"));
         fieldDefs.add(FieldDef.boolField("ability.windUpAll", chain::isWindUpAll, chain::setWindUpAll).tab("General"));
@@ -139,12 +156,6 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             FieldDef.floatField("ability.minRange", chain::getMinRange, chain::setMinRange).range(0, 64),
             FieldDef.floatField("ability.maxRange", chain::getMaxRange, chain::setMaxRange).range(0, 64)
         ).tab("Target"));
-
-        // Computed "Valid For" label (derived from child abilities)
-        fieldDefs.add(FieldDef.labelField("ability.validFor", () -> {
-            UserType ut = computeAllowedBy();
-            return StatCollector.translateToLocal("ability.validFor") + ": \u00A7e" + StatCollector.translateToLocal("ability.userType." + ut.name());
-        }).tab("Target"));
 
         // External field providers (e.g., DBC Addon injecting an "Icon" tab)
         if (AbilityController.Instance != null) {
@@ -307,34 +318,46 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     btnLabel = "\u00A7e> " + (resolved != null ? resolved.getDisplayName() : refName);
                 }
             }
-            sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE, L_LABEL_X + 15, y, 140, 20, btnLabel));
-
-            // Delay label + field
-            sw.addLabel(new GuiNpcLabel(labelCounter++, "ability.delay", L_LABEL_X + 160, y + 5, 0xAAAAAA));
-            GuiNpcTextField delayField = new GuiNpcTextField(ENTRY_BASE + i * ENTRY_STRIDE + 1, this, fontRendererObj,
-                L_LABEL_X + 195, y, 40, 20, String.valueOf(entry.getDelayTicks()));
-            delayField.setIntegersOnly();
-            delayField.setMinMaxDefault(0, 6000, 0);
-            sw.addTextField(delayField);
-
-            // Up button
-            if (i > 0) {
-                sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 2, L_LABEL_X + 240, y, 20, 20, "\u2191"));
+            GuiNpcButton entryBtn = new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE, L_LABEL_X + 15, y, 140, 20, btnLabel);
+            if (readOnlyEntries) {
+                entryBtn.setEnabled(false);
             }
+            sw.addButton(entryBtn);
 
-            // Down button
-            if (i < entries.size() - 1) {
-                sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 3, L_LABEL_X + 263, y, 20, 20, "\u2193"));
+            if (!readOnlyEntries) {
+                // Delay label + field
+                sw.addLabel(new GuiNpcLabel(labelCounter++, "ability.delay", L_LABEL_X + 160, y + 5, 0xAAAAAA));
+                GuiNpcTextField delayField = new GuiNpcTextField(ENTRY_BASE + i * ENTRY_STRIDE + 1, this, fontRendererObj,
+                    L_LABEL_X + 195, y, 40, 20, String.valueOf(entry.getDelayTicks()));
+                delayField.setIntegersOnly();
+                delayField.setMinMaxDefault(0, 6000, 0);
+                sw.addTextField(delayField);
+
+                // Up button
+                if (i > 0) {
+                    sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 2, L_LABEL_X + 240, y, 20, 20, "\u2191"));
+                }
+
+                // Down button
+                if (i < entries.size() - 1) {
+                    sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 3, L_LABEL_X + 263, y, 20, 20, "\u2193"));
+                }
+
+                // Delete button
+                sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 4, L_LABEL_X + 288, y, 20, 20, "X"));
+            } else {
+                // Read-only: show delay as label only
+                int delay = entry.getDelayTicks();
+                if (delay > 0) {
+                    sw.addLabel(new GuiNpcLabel(labelCounter++, delay + "t", L_LABEL_X + 165, y + 5, 0x888888));
+                }
             }
-
-            // Delete button
-            sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 4, L_LABEL_X + 288, y, 20, 20, "X"));
 
             y += ROW_H;
         }
 
-        // Add entry button
-        if (entries.size() < MAX_ENTRIES) {
+        // Add entry button (hidden in read-only mode)
+        if (!readOnlyEntries && entries.size() < MAX_ENTRIES) {
             sw.addButton(new GuiNpcButton(BTN_ADD_ENTRY, L_LABEL_X, y, 80, 20, "gui.add"));
             y += ROW_H;
         }
@@ -512,11 +535,11 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             if (entryIndex < 0 || entryIndex >= entries.size()) return false;
 
             switch (action) {
-                case 0: // Entry name button — reference: select ability; inline: edit config
+                case 0: // Entry name button — reference: clone/modify dialog; inline: edit config
                     ChainedAbilityEntry clickedEntry = entries.get(entryIndex);
                     if (clickedEntry.isReference()) {
                         editingEntryIndex = entryIndex;
-                        setSubGui(new SubGuiAbilitySelect());
+                        setSubGui(new SubGuiAbilityEditMode());
                     } else if (clickedEntry.isInline() && clickedEntry.getInlineAbility() != null) {
                         editingEntryIndex = entryIndex;
                         setSubGui(new SubGuiAbilityConfig(clickedEntry.getInlineAbility(), this));
@@ -626,13 +649,24 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             initGui();
             return;
         }
+        if (subgui instanceof SubGuiAbilityVariantSelect) {
+            handleVariantSelectClosed((SubGuiAbilityVariantSelect) subgui);
+            if (!hasSubGui()) initGui();
+            return;
+        }
         if (subgui instanceof SubGuiAbilityTypeSelect) {
             handleTypeSelectClosed((SubGuiAbilityTypeSelect) subgui);
             if (!hasSubGui()) initGui();
             return;
         }
+        if (subgui instanceof SubGuiAbilityEditMode) {
+            handleEditModeClosed((SubGuiAbilityEditMode) subgui);
+            if (!hasSubGui()) initGui();
+            return;
+        }
         if (subgui instanceof SubGuiAbilityConfig) {
             editingEntryIndex = -1;
+            editingParentAbility = false;
             initGui();
             return;
         }
@@ -687,13 +721,69 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private void handleTypeSelectClosed(SubGuiAbilityTypeSelect gui) {
         String typeId = gui.getSelectedTypeId();
         if (typeId != null) {
+            List<AbilityVariant> variants = AbilityController.Instance.getVariantsForType(typeId);
+            if (variants.size() > 1) {
+                pendingTypeId = typeId;
+                setSubGui(new SubGuiAbilityVariantSelect(variants));
+                return;
+            }
             Ability newAbility = AbilityController.Instance.create(typeId);
             if (newAbility != null) {
+                if (variants.size() == 1) {
+                    variants.get(0).apply(newAbility);
+                }
                 newAbility.setId(java.util.UUID.randomUUID().toString());
                 entries.add(ChainedAbilityEntry.inline(newAbility, 0));
                 editingEntryIndex = entries.size() - 1;
                 setSubGui(new SubGuiAbilityConfig(newAbility, this));
             }
+        }
+    }
+
+    private void handleVariantSelectClosed(SubGuiAbilityVariantSelect gui) {
+        int idx = gui.getSelectedIndex();
+        if (idx >= 0 && pendingTypeId != null) {
+            Ability newAbility = AbilityController.Instance.create(pendingTypeId);
+            if (newAbility != null) {
+                gui.getVariants().get(idx).apply(newAbility);
+                newAbility.setId(java.util.UUID.randomUUID().toString());
+                entries.add(ChainedAbilityEntry.inline(newAbility, 0));
+                editingEntryIndex = entries.size() - 1;
+                pendingTypeId = null;
+                setSubGui(new SubGuiAbilityConfig(newAbility, this));
+                return;
+            }
+        }
+        pendingTypeId = null;
+    }
+
+    private void handleEditModeClosed(SubGuiAbilityEditMode gui) {
+        int mode = gui.getResult();
+        if (mode < 0 || editingEntryIndex < 0 || editingEntryIndex >= entries.size()) {
+            editingEntryIndex = -1;
+            return;
+        }
+
+        ChainedAbilityEntry entry = entries.get(editingEntryIndex);
+
+        if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
+            if (entry.convertToInline()) {
+                Ability a = entry.getInlineAbility();
+                if (a != null) {
+                    a.setId(java.util.UUID.randomUUID().toString());
+                    setSubGui(new SubGuiAbilityConfig(a, this));
+                    return;
+                }
+            }
+            editingEntryIndex = -1;
+        } else if (mode == SubGuiAbilityEditMode.MODE_MODIFY_PARENT) {
+            Ability resolved = entry.resolve();
+            if (resolved != null) {
+                editingParentAbility = true;
+                setSubGui(resolved.createConfigGui(this));
+                return;
+            }
+            editingEntryIndex = -1;
         }
     }
 
@@ -715,6 +805,12 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
     @Override
     public void onAbilitySaved(Ability ability) {
+        if (editingParentAbility) {
+            // Persist the global parent ability to the server
+            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+            editingParentAbility = false;
+            return;
+        }
         // Inline ability mutated in-place; entry already holds the reference
     }
 

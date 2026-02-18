@@ -616,8 +616,10 @@ public abstract class AbstractDataAbilities {
                     return;
                 }
 
-                // Auto-complete for burst overlap mode
+                // Auto-complete for burst overlap mode only.
+                // Non-overlap waits for all entities to die naturally (via allDead check in onActiveTick).
                 if (currentAbility.isBurstEnabled()
+                    && currentAbility.isBurstOverlap()
                     && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
                     && currentAbility.getPhase() == AbilityPhase.ACTIVE
                     && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
@@ -682,10 +684,12 @@ public abstract class AbstractDataAbilities {
 
         // Chain mode: advance to next entry instead of completing
         if (currentChain != null) {
+            // AFTER semantics: delay from the CURRENT (just-completed) entry
+            ChainedAbilityEntry completedEntry = currentChain.getEntries().get(chainEntryIndex);
+            int delay = completedEntry.getDelayTicks();
+
             chainEntryIndex++;
             if (chainEntryIndex < currentChain.getEntries().size()) {
-                ChainedAbilityEntry nextEntry = currentChain.getEntries().get(chainEntryIndex);
-
                 // Check if target died and retarget
                 if (target != null && target.isDead) {
                     target = retargetForChain();
@@ -695,13 +699,9 @@ public abstract class AbstractDataAbilities {
                     }
                 }
 
-                int delay = nextEntry.getDelayTicks();
-                if (delay > 0) {
-                    chainDelayRemaining = delay;
-                    currentAbility = null;
-                } else {
-                    startChainEntry(target);
-                }
+                // Enforce minimum 1-tick delay between chain entries
+                chainDelayRemaining = Math.max(1, delay);
+                currentAbility = null;
                 return;
             }
             // All entries complete
@@ -819,14 +819,7 @@ public abstract class AbstractDataAbilities {
         chainEntryIndex = 0;
         chainDelayRemaining = -1;
 
-        // Check if first entry has a delay
-        ChainedAbilityEntry firstEntry = chain.getEntries().get(0);
-        int delay = firstEntry.getDelayTicks();
-        if (delay > 0) {
-            chainDelayRemaining = delay;
-            return true;
-        }
-
+        // AFTER semantics: no delay before first entry (delay applies after each entry completes)
         return startChainEntry(target);
     }
 

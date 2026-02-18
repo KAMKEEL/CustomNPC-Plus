@@ -197,6 +197,12 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
     }
 
     @Override
+    public void resetForBurst() {
+        super.resetForBurst();
+        chosenDirection = null;
+    }
+
+    @Override
     public int getMaxPreviewDuration() {
         return (int) Math.ceil(dashDistance / dashSpeed) + 5;
     }

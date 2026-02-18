@@ -100,6 +100,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     // ── Pending: chain editing ────────────────────────────────────────────────
     private ChainedAbility pendingChain = null;
+    private int pendingChainSlotIdx = -1;
 
     // ── Pending: inline chain-entry editing ──────────────────────────────────
     private boolean editingChainEntry = false;
@@ -233,17 +234,22 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Check if selected slot is editable
         boolean selectedIsBuiltIn = false;
         boolean selectedIsChainEntry = selectedEntryIndex >= 0;
-        if (selectedSlotIndex >= 0 && selectedSlotIndex < npcSlots.size() && !selectedIsChainEntry) {
+        boolean selectedIsRefChainEntry = false;
+        if (selectedSlotIndex >= 0 && selectedSlotIndex < npcSlots.size()) {
             AbilityAction sel = npcSlots.get(selectedSlotIndex);
-            if (!sel.isChain()) {
+            if (!selectedIsChainEntry && !sel.isChain()) {
                 Ability a = sel.getAbility();
                 if (a != null && a.isBuiltIn()) selectedIsBuiltIn = true;
+            }
+            // Sub-entries of reference chains are not directly editable from the NPC list
+            if (selectedIsChainEntry && sel.isChainReference()) {
+                selectedIsRefChainEntry = true;
             }
         }
 
         // Right side buttons: Edit and Up/Down carrots with Save button
         addButton(new GuiNpcButton(BTN_EDIT, guiLeft + 210, y + 145, 55, 20, "gui.edit"));
-        getButton(BTN_EDIT).setEnabled(selectedSlotIndex >= 0 && !selectedIsBuiltIn);
+        getButton(BTN_EDIT).setEnabled(selectedSlotIndex >= 0 && !selectedIsBuiltIn && !selectedIsRefChainEntry);
 
         // Up/Down carrot buttons
         addButton(new GuiNpcButton(BTN_MOVE_UP, guiLeft + 270, y + 145, 20, 20, "<"));
@@ -354,6 +360,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                         ChainedAbility chain = slot.getInlineChain();
                         if (chain != null) {
                             pendingChain = chain;
+                            pendingChainSlotIdx = selectedSlotIndex;
                             setSubGui(new SubGuiChainedAbilityConfig(chain, this, true, npcSlots));
                         }
                     }
@@ -484,6 +491,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             newChain.setId(UUID.randomUUID().toString());
             newChain.setName("NewChain");
             pendingChain = newChain;
+            pendingChainSlotIdx = -1;
             setSubGui(new SubGuiChainedAbilityConfig(newChain, this, true, npcSlots));
             return;
         }
@@ -837,8 +845,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
         if (scroll == npcAbilitiesScroll && selectedSlotIndex >= 0 && selectedSlotIndex < npcSlots.size()) {
-            // Double-click mirrors Edit button logic
-            buttonEvent(new GuiNpcButton(BTN_EDIT, 0, 0, 0, 0, ""));
+            GuiNpcButton editBtn = getButton(BTN_EDIT);
+            if (editBtn != null && editBtn.enabled) {
+                buttonEvent(new GuiNpcButton(BTN_EDIT, 0, 0, 0, 0, ""));
+            }
         }
     }
 
@@ -918,22 +928,17 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     private void handleChainConfigClosed() {
         if (pendingChain != null) {
-            boolean found = false;
-            for (int i = 0; i < npcSlots.size(); i++) {
-                AbilityAction slot = npcSlots.get(i);
-                if (slot.isInlineChain() && slot.getInlineChain() == pendingChain) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (pendingChainSlotIdx < 0) {
+                // New chain — add to NPC slots
                 npcSlots.add(AbilityAction.inlineChain(pendingChain));
                 selectedSlotIndex = npcSlots.size() - 1;
                 selectedEntryIndex = -1;
                 selectedAbilityIndex = selectedSlotIndex;
                 if (npcAbilitiesScroll != null) npcAbilitiesScroll.resetScroll();
             }
+            // Existing slot (pendingChainSlotIdx >= 0): already updated in-place, nothing to add
             pendingChain = null;
+            pendingChainSlotIdx = -1;
         }
         updateNpcAbilitiesList();
         save();
@@ -953,6 +958,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     ChainedAbility chain = slot.getInlineChain();
                     if (chain != null) {
                         pendingChain = chain;
+                        pendingChainSlotIdx = selectedSlotIndex;
                         setSubGui(new SubGuiChainedAbilityConfig(chain, this, true, npcSlots));
                     }
                     updateNpcAbilitiesList();
@@ -962,6 +968,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 ChainedAbility chain = slot.getChainedAbility();
                 if (chain != null) {
                     pendingChain = chain;
+                    pendingChainSlotIdx = selectedSlotIndex;
                     setSubGui(new SubGuiChainedAbilityConfig(chain, this, true, npcSlots));
                 }
             }

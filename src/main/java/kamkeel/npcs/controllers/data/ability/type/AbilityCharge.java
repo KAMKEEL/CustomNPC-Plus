@@ -172,6 +172,12 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
     }
 
     @Override
+    public void resetForBurst() {
+        super.resetForBurst();
+        hitEntities.clear();
+    }
+
+    @Override
     public float getTelegraphLength() {
         return maxRange;
     }

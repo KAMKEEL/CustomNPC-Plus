@@ -68,6 +68,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         this.homingData = homingData;
         this.lifespanData = lifespanData;
         this.trajectoryData = new EnergyTrajectoryData();
+        this.burstOverlap = true;
         initProjectiles(1);
     }
 
