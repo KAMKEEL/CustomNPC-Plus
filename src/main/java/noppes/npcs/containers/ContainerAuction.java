@@ -71,6 +71,7 @@ public class ContainerAuction extends ContainerNpcInterface {
 
     /**
      * Get the ItemStack in a player inventory slot.
+     *
      * @param containerSlotIndex The container slot index (0-35 for player inv)
      */
     public ItemStack getPlayerInventoryStack(int containerSlotIndex) {

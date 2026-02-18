@@ -6,7 +6,11 @@ import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.RotationMode;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -111,7 +115,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     @Override
     protected EntityAbilityLaser createEntity(EntityLivingBase caster, EntityLivingBase target,
-                                               Vec3 spawnPos, EnergyDisplayData resolved, int index) {
+                                              Vec3 spawnPos, EnergyDisplayData resolved, int index) {
         return new EntityAbilityLaser(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
@@ -133,7 +137,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     @Override
     protected void setupEntityPreview(EntityAbilityLaser laser, EntityLivingBase caster,
-                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
+                                      EnergyDisplayData resolved, ProjectileData projData, int index) {
         laser.setupPreview(caster, laserWidth, resolved, lightningData, expansionSpeed, lifespanData.maxDistance);
     }
 
@@ -165,14 +169,29 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
 
-    public float getLaserWidth() { return laserWidth; }
-    public void setLaserWidth(float laserWidth) { this.laserWidth = laserWidth; }
+    public float getLaserWidth() {
+        return laserWidth;
+    }
 
-    public float getExpansionSpeed() { return expansionSpeed; }
-    public void setExpansionSpeed(float expansionSpeed) { this.expansionSpeed = expansionSpeed; }
+    public void setLaserWidth(float laserWidth) {
+        this.laserWidth = laserWidth;
+    }
 
-    public int getLingerTicks() { return lingerTicks; }
-    public void setLingerTicks(int lingerTicks) { this.lingerTicks = lingerTicks; }
+    public float getExpansionSpeed() {
+        return expansionSpeed;
+    }
+
+    public void setExpansionSpeed(float expansionSpeed) {
+        this.expansionSpeed = expansionSpeed;
+    }
+
+    public int getLingerTicks() {
+        return lingerTicks;
+    }
+
+    public void setLingerTicks(int lingerTicks) {
+        this.lingerTicks = lingerTicks;
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 

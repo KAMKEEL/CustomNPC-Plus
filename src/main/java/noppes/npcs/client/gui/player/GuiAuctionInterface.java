@@ -69,7 +69,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         initNavigationButtons();
     }
 
-    /** Initialize navigation buttons */
+    /**
+     * Initialize navigation buttons
+     */
     protected void initNavigationButtons() {
         int page = getCurrentPage();
 
@@ -89,7 +91,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         addButton(btnClaims);
     }
 
-    /** Returns current page constant - implement in subclass */
+    /**
+     * Returns current page constant - implement in subclass
+     */
     protected abstract int getCurrentPage();
 
     @Override
@@ -136,7 +140,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         }
     }
 
-    /** Draw navigation button tooltips */
+    /**
+     * Draw navigation button tooltips
+     */
     protected void drawNavButtonTooltips(int mouseX, int mouseY) {
         List<String> tooltip = null;
         if (btnListings != null && btnListings.isHovered()) tooltip = btnListings.getTooltipLines();
@@ -154,14 +160,18 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
 
     // ========== Slot Drawing Utilities ==========
 
-    /** Draw auction slot background (18x18) */
+    /**
+     * Draw auction slot background (18x18)
+     */
     protected void drawAuctionSlot(int x, int y) {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(AUCTION_SLOT);
         Gui.func_146110_a(x, y, 0, 0, 18, 18, 18, 18);
     }
 
-    /** Draw colored overlay on slot (ARGB format) */
+    /**
+     * Draw colored overlay on slot (ARGB format)
+     */
     protected void drawColoredOverlay(int x, int y, int color) {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -173,12 +183,16 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    /** Draw dark overlay for unavailable slots */
+    /**
+     * Draw dark overlay for unavailable slots
+     */
     protected void drawDarkenedOverlay(int x, int y) {
         drawColoredOverlay(x, y, OVERLAY_DARK);
     }
 
-    /** Draw icon texture on slot (16x16) */
+    /**
+     * Draw icon texture on slot (16x16)
+     */
     protected void drawIconOverlay(int x, int y, ResourceLocation icon) {
         GL11.glPushMatrix();
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
@@ -192,7 +206,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         GL11.glPopMatrix();
     }
 
-    /** Subclasses implement this to draw specific content */
+    /**
+     * Subclasses implement this to draw specific content
+     */
     protected abstract void drawAuctionContent(float partialTicks, int mouseX, int mouseY);
 
     @Override

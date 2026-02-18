@@ -2,10 +2,14 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
+import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -24,7 +28,7 @@ import java.util.List;
  * Abstract base for energy projectile abilities (Orb, Disc, Beam, LaserShot).
  * Handles shared lifecycle (windup → execute → active → completion), multi-projectile
  * support with staggered firing, telegraph creation, NBT persistence, and GUI definitions.
- *
+ * <p>
  * Subclasses provide entity creation/firing/charging logic and type-specific fields.
  *
  * @param <E> The entity type this ability spawns
@@ -74,7 +78,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
      * Called during windup (tick 1) and burst refire (onExecute when entities are null).
      */
     protected abstract E createEntity(EntityLivingBase caster, EntityLivingBase target,
-                                       Vec3 spawnPos, EnergyDisplayData resolved, int index);
+                                      Vec3 spawnPos, EnergyDisplayData resolved, int index);
 
     /**
      * Fire an entity (start moving toward target). Entity is guaranteed non-null and alive.
@@ -90,7 +94,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
      * Setup entity for preview mode during windup.
      */
     protected abstract void setupEntityPreview(E entity, EntityLivingBase caster,
-                                                EnergyDisplayData resolved, ProjectileData projData, int index);
+                                               EnergyDisplayData resolved, ProjectileData projData, int index);
 
     /**
      * Create typed array (Java generics can't create generic arrays).
@@ -129,9 +133,12 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
      */
     protected AnchorPoint getDefaultAnchor(int index) {
         switch (index) {
-            case 0: return AnchorPoint.RIGHT_HAND;
-            case 1: return AnchorPoint.LEFT_HAND;
-            default: return AnchorPoint.FRONT;
+            case 0:
+                return AnchorPoint.RIGHT_HAND;
+            case 1:
+                return AnchorPoint.LEFT_HAND;
+            default:
+                return AnchorPoint.FRONT;
         }
     }
 
@@ -168,15 +175,31 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         }
     }
 
-    public int getProjectileCount() { return projectileCount; }
+    public int getProjectileCount() {
+        return projectileCount;
+    }
 
-    public int getFireDelay() { return fireDelay; }
-    public void setFireDelay(int delay) { this.fireDelay = Math.max(0, delay); }
+    public int getFireDelay() {
+        return fireDelay;
+    }
 
-    /** @deprecated Use {@link #getFireDelay()} */
-    public int getDualFireDelay() { return fireDelay; }
-    /** @deprecated Use {@link #setFireDelay(int)} */
-    public void setDualFireDelay(int delay) { setFireDelay(delay); }
+    public void setFireDelay(int delay) {
+        this.fireDelay = Math.max(0, delay);
+    }
+
+    /**
+     * @deprecated Use {@link #getFireDelay()}
+     */
+    public int getDualFireDelay() {
+        return fireDelay;
+    }
+
+    /**
+     * @deprecated Use {@link #setFireDelay(int)}
+     */
+    public void setDualFireDelay(int delay) {
+        setFireDelay(delay);
+    }
 
     protected int clampIndex(int index) {
         return Math.max(0, Math.min(index, projectileCount - 1));
@@ -317,7 +340,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
             // Check if entity was removed from world (chunk unload, etc.)
             // Skip this check for preview entities - they're not registered in the world
             if (!isPreview() && tick > 5 && entity.worldObj != null
-                    && entity.worldObj.getEntityByID(entity.getEntityId()) != entity) {
+                && entity.worldObj.getEntityByID(entity.getEntityId()) != entity) {
                 entity.setDead();
                 continue;
             }
@@ -449,64 +472,163 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     // ==================== API GETTERS & SETTERS ====================
 
     // Combat data
-    @Override public float getDamage() { return combatData.damage; }
-    @Override public void setDamage(float damage) { combatData.damage = damage; }
+    @Override
+    public float getDamage() {
+        return combatData.damage;
+    }
 
-    @Override public float getKnockback() { return combatData.knockback; }
-    @Override public void setKnockback(float knockback) { combatData.knockback = knockback; }
+    @Override
+    public void setDamage(float damage) {
+        combatData.damage = damage;
+    }
 
-    @Override public float getKnockbackUp() { return combatData.knockbackUp; }
-    @Override public void setKnockbackUp(float knockbackUp) { combatData.knockbackUp = knockbackUp; }
+    @Override
+    public float getKnockback() {
+        return combatData.knockback;
+    }
 
-    @Override public boolean isExplosive() { return combatData.explosive; }
-    @Override public void setExplosive(boolean explosive) { combatData.explosive = explosive; }
+    @Override
+    public void setKnockback(float knockback) {
+        combatData.knockback = knockback;
+    }
 
-    @Override public float getExplosionRadius() { return combatData.explosionRadius; }
-    @Override public void setExplosionRadius(float explosionRadius) { combatData.explosionRadius = explosionRadius; }
+    @Override
+    public float getKnockbackUp() {
+        return combatData.knockbackUp;
+    }
 
-    @Override public float getExplosionDamageFalloff() { return combatData.explosionDamageFalloff; }
-    @Override public void setExplosionDamageFalloff(float falloff) { combatData.explosionDamageFalloff = falloff; }
+    @Override
+    public void setKnockbackUp(float knockbackUp) {
+        combatData.knockbackUp = knockbackUp;
+    }
+
+    @Override
+    public boolean isExplosive() {
+        return combatData.explosive;
+    }
+
+    @Override
+    public void setExplosive(boolean explosive) {
+        combatData.explosive = explosive;
+    }
+
+    @Override
+    public float getExplosionRadius() {
+        return combatData.explosionRadius;
+    }
+
+    @Override
+    public void setExplosionRadius(float explosionRadius) {
+        combatData.explosionRadius = explosionRadius;
+    }
+
+    @Override
+    public float getExplosionDamageFalloff() {
+        return combatData.explosionDamageFalloff;
+    }
+
+    @Override
+    public void setExplosionDamageFalloff(float falloff) {
+        combatData.explosionDamageFalloff = falloff;
+    }
 
     // Lifespan data
-    @Override public float getMaxDistance() { return lifespanData.maxDistance; }
-    @Override public void setMaxDistance(float maxDistance) { lifespanData.maxDistance = maxDistance; }
+    @Override
+    public float getMaxDistance() {
+        return lifespanData.maxDistance;
+    }
 
-    @Override public int getMaxLifetime() { return lifespanData.maxLifetime; }
-    @Override public void setMaxLifetime(int maxLifetime) { lifespanData.maxLifetime = maxLifetime; }
+    @Override
+    public void setMaxDistance(float maxDistance) {
+        lifespanData.maxDistance = maxDistance;
+    }
+
+    @Override
+    public int getMaxLifetime() {
+        return lifespanData.maxLifetime;
+    }
+
+    @Override
+    public void setMaxLifetime(int maxLifetime) {
+        lifespanData.maxLifetime = maxLifetime;
+    }
 
     // Homing data
-    public boolean isHoming() { return homingData.homing; }
-    public void setHoming(boolean homing) { homingData.homing = homing; }
+    public boolean isHoming() {
+        return homingData.homing;
+    }
 
-    public float getHomingStrength() { return homingData.homingStrength; }
-    public void setHomingStrength(float strength) { homingData.homingStrength = strength; }
+    public void setHoming(boolean homing) {
+        homingData.homing = homing;
+    }
 
-    public float getHomingRange() { return homingData.homingRange; }
-    public void setHomingRange(float range) { homingData.homingRange = range; }
+    public float getHomingStrength() {
+        return homingData.homingStrength;
+    }
+
+    public void setHomingStrength(float strength) {
+        homingData.homingStrength = strength;
+    }
+
+    public float getHomingRange() {
+        return homingData.homingRange;
+    }
+
+    public void setHomingRange(float range) {
+        homingData.homingRange = range;
+    }
 
     // Display and lightning data inherited from AbilityEnergy
 
     // Anchor - default to projectile 0
-    public AnchorPoint getAnchorPointEnum() { return projectiles[0].anchor.anchorPoint; }
-    public void setAnchorPointEnum(AnchorPoint point) { projectiles[0].anchor.anchorPoint = point; }
+    public AnchorPoint getAnchorPointEnum() {
+        return projectiles[0].anchor.anchorPoint;
+    }
 
-    public float getAnchorOffsetX() { return projectiles[0].anchor.anchorOffsetX; }
-    public void setAnchorOffsetX(float x) { projectiles[0].anchor.anchorOffsetX = x; }
+    public void setAnchorPointEnum(AnchorPoint point) {
+        projectiles[0].anchor.anchorPoint = point;
+    }
 
-    public float getAnchorOffsetY() { return projectiles[0].anchor.anchorOffsetY; }
-    public void setAnchorOffsetY(float y) { projectiles[0].anchor.anchorOffsetY = y; }
+    public float getAnchorOffsetX() {
+        return projectiles[0].anchor.anchorOffsetX;
+    }
 
-    public float getAnchorOffsetZ() { return projectiles[0].anchor.anchorOffsetZ; }
-    public void setAnchorOffsetZ(float z) { projectiles[0].anchor.anchorOffsetZ = z; }
+    public void setAnchorOffsetX(float x) {
+        projectiles[0].anchor.anchorOffsetX = x;
+    }
 
-    @Override public int getAnchorPoint() { return projectiles[0].anchor.anchorPoint.ordinal(); }
-    @Override public void setAnchorPoint(int point) { projectiles[0].anchor.anchorPoint = AnchorPoint.fromOrdinal(point); }
+    public float getAnchorOffsetY() {
+        return projectiles[0].anchor.anchorOffsetY;
+    }
+
+    public void setAnchorOffsetY(float y) {
+        projectiles[0].anchor.anchorOffsetY = y;
+    }
+
+    public float getAnchorOffsetZ() {
+        return projectiles[0].anchor.anchorOffsetZ;
+    }
+
+    public void setAnchorOffsetZ(float z) {
+        projectiles[0].anchor.anchorOffsetZ = z;
+    }
+
+    @Override
+    public int getAnchorPoint() {
+        return projectiles[0].anchor.anchorPoint.ordinal();
+    }
+
+    @Override
+    public void setAnchorPoint(int point) {
+        projectiles[0].anchor.anchorPoint = AnchorPoint.fromOrdinal(point);
+    }
 
     // Indexed API methods
     public int getInnerColor(int index) {
         ProjectileData p = projectiles[clampIndex(index)];
         return p.colorOverride ? p.innerColor : displayData.innerColor;
     }
+
     public void setInnerColor(int index, int color) {
         ProjectileData p = projectiles[clampIndex(index)];
         p.colorOverride = true;
@@ -517,17 +639,32 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         ProjectileData p = projectiles[clampIndex(index)];
         return p.colorOverride ? p.outerColor : displayData.outerColor;
     }
+
     public void setOuterColor(int index, int color) {
         ProjectileData p = projectiles[clampIndex(index)];
         p.colorOverride = true;
         p.outerColor = color;
     }
 
-    public int getAnchorPoint(int index) { return projectiles[clampIndex(index)].anchor.anchorPoint.ordinal(); }
-    public void setAnchorPoint(int index, int point) { projectiles[clampIndex(index)].anchor.anchorPoint = AnchorPoint.fromOrdinal(point); }
-    public void setAnchorOffsetX(int index, float offset) { projectiles[clampIndex(index)].anchor.anchorOffsetX = offset; }
-    public void setAnchorOffsetY(int index, float offset) { projectiles[clampIndex(index)].anchor.anchorOffsetY = offset; }
-    public void setAnchorOffsetZ(int index, float offset) { projectiles[clampIndex(index)].anchor.anchorOffsetZ = offset; }
+    public int getAnchorPoint(int index) {
+        return projectiles[clampIndex(index)].anchor.anchorPoint.ordinal();
+    }
+
+    public void setAnchorPoint(int index, int point) {
+        projectiles[clampIndex(index)].anchor.anchorPoint = AnchorPoint.fromOrdinal(point);
+    }
+
+    public void setAnchorOffsetX(int index, float offset) {
+        projectiles[clampIndex(index)].anchor.anchorOffsetX = offset;
+    }
+
+    public void setAnchorOffsetY(int index, float offset) {
+        projectiles[clampIndex(index)].anchor.anchorOffsetY = offset;
+    }
+
+    public void setAnchorOffsetZ(int index, float offset) {
+        projectiles[clampIndex(index)].anchor.anchorOffsetZ = offset;
+    }
 
     // ==================== GUI FIELD DEFINITIONS ====================
 
@@ -555,7 +692,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
                 .visibleWhen(() -> idx < projectileCount));
 
             defs.add(FieldDef.enumField("ability.anchorPoint", AnchorPoint.class,
-                () -> projectiles[idx].anchor.anchorPoint, v -> projectiles[idx].anchor.anchorPoint = v)
+                    () -> projectiles[idx].anchor.anchorPoint, v -> projectiles[idx].anchor.anchorPoint = v)
                 .tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount));
             defs.add(FieldDef.row(
                 FieldDef.floatField("ability.anchor.offsetX", () -> projectiles[idx].anchor.anchorOffsetX, v -> projectiles[idx].anchor.anchorOffsetX = v)

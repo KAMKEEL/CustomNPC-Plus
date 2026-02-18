@@ -34,7 +34,7 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
     }
 
     /**
-     * @param npc       The NPC for preview rendering
+     * @param npc        The NPC for preview rendering
      * @param hasMenuNpc If false, the top menu tabs (Display, Stats, etc.) are hidden.
      *                   Use false when opened from the global menu without a real NPC.
      */

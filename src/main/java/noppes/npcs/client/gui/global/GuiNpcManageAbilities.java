@@ -1,7 +1,8 @@
 package noppes.npcs.client.gui.global;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
@@ -19,7 +20,6 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
-import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityTypeSelect;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityVariantSelect;
 import noppes.npcs.client.gui.advanced.SubGuiChainedAbilityConfig;
@@ -50,7 +50,7 @@ import java.util.Vector;
 
 /**
  * Global GUI for managing saved ability presets with 3D preview.
- *
+ * <p>
  * Features:
  * - Left side: 3D preview of NPC with ability effects
  * - Right side: Ability list with search
@@ -58,29 +58,29 @@ import java.util.Vector;
  * - Toggle between Custom and Built-in ability views
  */
 public class GuiNpcManageAbilities extends GuiAbilityInterface
-        implements ICustomScrollListener, ISubGuiListener, IAbilityConfigCallback,
-                   IChainedAbilityConfigCallback, ITextfieldListener, GuiYesNoCallback,
-                   IScrollData, IGuiData {
+    implements ICustomScrollListener, ISubGuiListener, IAbilityConfigCallback,
+    IChainedAbilityConfigCallback, ITextfieldListener, GuiYesNoCallback,
+    IScrollData, IGuiData {
 
     // ── Button IDs ────────────────────────────────────────────────────────────
-    private static final int BTN_REMOVE         = 1;
-    private static final int BTN_ADD            = 2;
-    private static final int BTN_TOGGLE_VIEW    = 10;
-    private static final int BTN_EDIT           = 100;
-    private static final int BTN_PREVIEW_PLAY   = 91;
-    private static final int BTN_PREVIEW_PAUSE  = 92;
-    private static final int BTN_PREVIEW_STOP   = 93;
+    private static final int BTN_REMOVE = 1;
+    private static final int BTN_ADD = 2;
+    private static final int BTN_TOGGLE_VIEW = 10;
+    private static final int BTN_EDIT = 100;
+    private static final int BTN_PREVIEW_PLAY = 91;
+    private static final int BTN_PREVIEW_PAUSE = 92;
+    private static final int BTN_PREVIEW_STOP = 93;
 
     // ── TextField / Label IDs ─────────────────────────────────────────────────
-    private static final int TF_SEARCH          = 55;
+    private static final int TF_SEARCH = 55;
     private static final int LBL_PREVIEW_STATUS = 90;
 
     // ── Scroll IDs ────────────────────────────────────────────────────────────
-    private static final int SCROLL_MAIN        = 0;
+    private static final int SCROLL_MAIN = 0;
 
     // ── Confirm dialog IDs ────────────────────────────────────────────────────
     private static final int CONFIRM_REMOVE_ABILITY = 1;
-    private static final int CONFIRM_REMOVE_CHAIN   = 2;
+    private static final int CONFIRM_REMOVE_CHAIN = 2;
 
     // ==================== DATA ====================
     private GuiCustomScroll scroll;
@@ -474,11 +474,20 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if (subgui instanceof SubGuiChainedAbilityConfig)    { handleChainConfigClosed();                                           initGui(); return; }
-        if (subgui instanceof SubGuiAbilityVariantSelect)    { if (handleVariantSelectClosed((SubGuiAbilityVariantSelect) subgui))   return; }
-        else if (subgui instanceof SubGuiAbilityTypeSelect)  { if (handleTypeSelectClosed((SubGuiAbilityTypeSelect) subgui))         return; }
-        else if (subgui instanceof SubGuiDuplicateNameConfirm) { if (handleDuplicateNameClosed((SubGuiDuplicateNameConfirm) subgui)) return; }
-        else if (pendingSaveAbility != null)                  { if (handlePendingSave())                                             return; }
+        if (subgui instanceof SubGuiChainedAbilityConfig) {
+            handleChainConfigClosed();
+            initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiAbilityVariantSelect) {
+            if (handleVariantSelectClosed((SubGuiAbilityVariantSelect) subgui)) return;
+        } else if (subgui instanceof SubGuiAbilityTypeSelect) {
+            if (handleTypeSelectClosed((SubGuiAbilityTypeSelect) subgui)) return;
+        } else if (subgui instanceof SubGuiDuplicateNameConfirm) {
+            if (handleDuplicateNameClosed((SubGuiDuplicateNameConfirm) subgui)) return;
+        } else if (pendingSaveAbility != null) {
+            if (handlePendingSave()) return;
+        }
         initGui();
     }
 
@@ -491,7 +500,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         }
     }
 
-    /** @return true if a SubGui was opened (caller should return early, skipping initGui) */
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
     private boolean handleVariantSelectClosed(SubGuiAbilityVariantSelect gui) {
         int idx = gui.getSelectedIndex();
         if (idx >= 0 && pendingTypeId != null) {
@@ -514,7 +525,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         return false;
     }
 
-    /** @return true if a SubGui was opened (caller should return early, skipping initGui) */
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
     private boolean handleTypeSelectClosed(SubGuiAbilityTypeSelect gui) {
         String typeId = gui.getSelectedTypeId();
         if (typeId != null) {
@@ -542,7 +555,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         return false;
     }
 
-    /** @return true if a SubGui was opened (caller should return early, skipping initGui) */
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
     private boolean handleDuplicateNameClosed(SubGuiDuplicateNameConfirm gui) {
         if (gui.isConfirmed() && pendingSaveAbility != null) {
             if (pendingNewCreation) {
@@ -569,7 +584,9 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         return false;
     }
 
-    /** @return true if a SubGui was opened (caller should return early, skipping initGui) */
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
     private boolean handlePendingSave() {
         if (hasDuplicateName(pendingSaveAbility)) {
             pendingNewCreation = false;

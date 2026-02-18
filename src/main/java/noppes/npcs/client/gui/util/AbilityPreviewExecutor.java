@@ -19,10 +19,10 @@ import java.util.List;
 
 /**
  * Client-side executor for previewing abilities in the GUI.
- *
+ * <p>
  * Uses unified execution: calls the REAL ability methods (onWindUpTick, onExecute, onActiveTick)
  * with previewMode=true. Abilities skip damage/effects/sounds when isPreview() returns true.
- *
+ * <p>
  * Lifecycle:
  * 1. WINDUP phase - real onWindUpTick() called, telegraph shown, entities may spawn
  * 2. ACTIVE phase - real onExecute() then onActiveTick() called, physics simulated
@@ -36,8 +36,11 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
     private Ability previewAbility;
     private EntityNPCInterface previewNpc;
 
-    /** Executor's own phase tracking (separate from ability.getPhase()) */
-    private enum ExecutorPhase { IDLE, WINDUP, ACTIVE, EXTENDED }
+    /**
+     * Executor's own phase tracking (separate from ability.getPhase())
+     */
+    private enum ExecutorPhase {IDLE, WINDUP, ACTIVE, EXTENDED}
+
     private ExecutorPhase executorPhase = ExecutorPhase.IDLE;
 
     private int currentTick = 0;
@@ -424,21 +427,48 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
 
     // ==================== GETTERS ====================
 
-    public boolean isPlaying() { return playing; }
-    public boolean isPaused() { return paused; }
-    public boolean isActive() { return playing || paused; }
+    public boolean isPlaying() {
+        return playing;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public boolean isActive() {
+        return playing || paused;
+    }
+
     public AbilityPhase getPhase() {
         switch (executorPhase) {
-            case WINDUP: return AbilityPhase.WINDUP;
-            case ACTIVE: return AbilityPhase.ACTIVE;
-            default: return AbilityPhase.IDLE;
+            case WINDUP:
+                return AbilityPhase.WINDUP;
+            case ACTIVE:
+                return AbilityPhase.ACTIVE;
+            default:
+                return AbilityPhase.IDLE;
         }
     }
-    public int getCurrentTick() { return currentTick; }
-    public TelegraphInstance getTelegraph() { return previewTelegraph; }
-    public List<Entity> getPreviewEntities() { return previewEntities; }
-    public Ability getPreviewAbility() { return previewAbility; }
-    public EntityNPCInterface getPreviewNpc() { return previewNpc; }
+
+    public int getCurrentTick() {
+        return currentTick;
+    }
+
+    public TelegraphInstance getTelegraph() {
+        return previewTelegraph;
+    }
+
+    public List<Entity> getPreviewEntities() {
+        return previewEntities;
+    }
+
+    public Ability getPreviewAbility() {
+        return previewAbility;
+    }
+
+    public EntityNPCInterface getPreviewNpc() {
+        return previewNpc;
+    }
 
     public String getStatusString() {
         if (!playing && !paused) {

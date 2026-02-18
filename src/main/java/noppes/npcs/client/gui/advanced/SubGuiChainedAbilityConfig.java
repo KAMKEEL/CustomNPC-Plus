@@ -43,37 +43,37 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private static final int LABEL_ID_START = 3000;
 
     // ── Tab constants (core tabs) ────────────────────────────────────────────
-    private static final int TAB_GENERAL    = 0;
-    private static final int TAB_ENTRIES    = 1;
+    private static final int TAB_GENERAL = 0;
+    private static final int TAB_ENTRIES = 1;
     private static final int TAB_CONDITIONS = 2;
     private static final int CORE_TAB_COUNT = 3;
 
     // ── Tab button IDs ────────────────────────────────────────────────────────
-    private static final int BTN_TAB_GENERAL    = 90;
-    private static final int BTN_TAB_ENTRIES    = 91;
+    private static final int BTN_TAB_GENERAL = 90;
+    private static final int BTN_TAB_ENTRIES = 91;
     private static final int BTN_TAB_CONDITIONS = 92;
     private static final int BTN_TAB_EXTRA_BASE = 93;
-    private static final int BTN_CLOSE          = -1000;
+    private static final int BTN_CLOSE = -1000;
 
     // ── Entries tab: per-entry ID encoding ─────────────────────────────────────
     // Actual ID = ENTRY_BASE + i * ENTRY_STRIDE + offset
     // offset 0 = name/select button, 1 = delay text field, 2 = up, 3 = down, 4 = delete
-    private static final int ENTRY_BASE    = 100;
-    private static final int ENTRY_END     = 200;
-    private static final int ENTRY_STRIDE  = 10;
+    private static final int ENTRY_BASE = 100;
+    private static final int ENTRY_END = 200;
+    private static final int ENTRY_STRIDE = 10;
     private static final int BTN_ADD_ENTRY = 200;
 
     // ── Conditions tab: per-condition ID encoding ─────────────────────────────
     // Actual ID = COND_BASE + i * COND_STRIDE + offset
     // offset 0 = name/click, 1 = edit, 2 = delete
-    private static final int COND_BASE     = 50;
-    private static final int COND_END      = 80;
-    private static final int COND_STRIDE   = 10;
-    private static final int BTN_ADD_COND  = 80;
+    private static final int COND_BASE = 50;
+    private static final int COND_END = 80;
+    private static final int COND_STRIDE = 10;
+    private static final int BTN_ADD_COND = 80;
 
     // ── Layout constants ──────────────────────────────────────────────────────
-    private static final int L_LABEL_X   = 5;
-    private static final int ROW_H       = 24;
+    private static final int L_LABEL_X = 5;
+    private static final int ROW_H = 24;
     private static final int MAX_ENTRIES = 10;
 
     private final ChainedAbility chain;
@@ -109,7 +109,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     }
 
     public SubGuiChainedAbilityConfig(ChainedAbility chain, IChainedAbilityConfigCallback callback,
-                                       boolean npcContext, List<AbilityAction> npcSlots) {
+                                      boolean npcContext, List<AbilityAction> npcSlots) {
         this.chain = chain;
         this.callback = callback;
         this.npcContext = npcContext;
@@ -417,10 +417,26 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         int id = guibutton.id;
 
         // Tab switching — core tabs
-        if (id == BTN_TAB_GENERAL)    { activeTab = TAB_GENERAL;    initGui(); return; }
-        if (id == BTN_TAB_ENTRIES)    { activeTab = TAB_ENTRIES;    initGui(); return; }
-        if (id == BTN_TAB_CONDITIONS) { activeTab = TAB_CONDITIONS; initGui(); return; }
-        if (id == BTN_CLOSE)          { saveOnClose = true; close(); return; }
+        if (id == BTN_TAB_GENERAL) {
+            activeTab = TAB_GENERAL;
+            initGui();
+            return;
+        }
+        if (id == BTN_TAB_ENTRIES) {
+            activeTab = TAB_ENTRIES;
+            initGui();
+            return;
+        }
+        if (id == BTN_TAB_CONDITIONS) {
+            activeTab = TAB_CONDITIONS;
+            initGui();
+            return;
+        }
+        if (id == BTN_CLOSE) {
+            saveOnClose = true;
+            close();
+            return;
+        }
 
         // Tab switching — extra tabs
         if (id >= BTN_TAB_EXTRA_BASE && id < BTN_TAB_EXTRA_BASE + extraTabs.size()) {
@@ -575,12 +591,35 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             }
         }
 
-        if (subgui instanceof SubGuiAbilitySelect)      { handleAbilitySelectClosed((SubGuiAbilitySelect) subgui);          initGui(); return; }
-        if (subgui instanceof SubGuiChainedEntrySource)  { handleEntrySourceClosed((SubGuiChainedEntrySource) subgui);       return; }
-        if (subgui instanceof SubGuiNpcSlotPicker)       { handleSlotPickerClosed((SubGuiNpcSlotPicker) subgui);             initGui(); return; }
-        if (subgui instanceof SubGuiAbilityTypeSelect)   { handleTypeSelectClosed((SubGuiAbilityTypeSelect) subgui);         if (!hasSubGui()) initGui(); return; }
-        if (subgui instanceof SubGuiAbilityConfig)       { editingEntryIndex = -1; initGui(); return; }
-        if (subgui instanceof SubGuiConditionEdit)       { handleConditionEditClosed((SubGuiConditionEdit) subgui);          initGui(); return; }
+        if (subgui instanceof SubGuiAbilitySelect) {
+            handleAbilitySelectClosed((SubGuiAbilitySelect) subgui);
+            initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiChainedEntrySource) {
+            handleEntrySourceClosed((SubGuiChainedEntrySource) subgui);
+            return;
+        }
+        if (subgui instanceof SubGuiNpcSlotPicker) {
+            handleSlotPickerClosed((SubGuiNpcSlotPicker) subgui);
+            initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiAbilityTypeSelect) {
+            handleTypeSelectClosed((SubGuiAbilityTypeSelect) subgui);
+            if (!hasSubGui()) initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiAbilityConfig) {
+            editingEntryIndex = -1;
+            initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiConditionEdit) {
+            handleConditionEditClosed((SubGuiConditionEdit) subgui);
+            initGui();
+            return;
+        }
     }
 
     private void handleAbilitySelectClosed(SubGuiAbilitySelect gui) {

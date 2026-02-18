@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * Base GUI class for ability preview with fixed camera.
- *
+ * <p>
  * Key concepts:
  * - NPC positioned on left side of preview area
  * - NPC faces a fixed direction (NPC_FACING_YAW)
@@ -33,15 +33,23 @@ import java.util.List;
 public class GuiAbilityInterface extends GuiNPCInterface2 {
 
     // ==================== FIXED CAMERA SETTINGS ====================
-    /** Fixed camera zoom level (higher = more zoomed in) */
+    /**
+     * Fixed camera zoom level (higher = more zoomed in)
+     */
     protected static float CAMERA_ZOOM = 45.0f;
-    /** NPC facing direction - affects anchor points and visual facing */
+    /**
+     * NPC facing direction - affects anchor points and visual facing
+     */
     protected static float NPC_FACING_YAW = 160.0f;
-    /** Camera pitch (slight downward angle) */
+    /**
+     * Camera pitch (slight downward angle)
+     */
     protected static float CAMERA_PITCH = 10.0f;
 
     // ==================== VIEWING ROTATION ====================
-    /** Viewing direction rotation (rotates entire 3D space) */
+    /**
+     * Viewing direction rotation (rotates entire 3D space)
+     */
     protected static float viewRotation = 0.0f;
 
     private GuiNpcButton btnLeft, btnRight;
@@ -49,21 +57,33 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
     // ==================== NPC STATE ====================
     public EntityNPCInterface npc;
 
-    /** NPC starting position (saved when preview starts, used to track movement) */
+    /**
+     * NPC starting position (saved when preview starts, used to track movement)
+     */
     protected double npcStartX, npcStartY, npcStartZ;
-    /** Whether we're tracking NPC movement */
+    /**
+     * Whether we're tracking NPC movement
+     */
     protected boolean trackingNpcMovement = false;
 
-    /** Entities to render in preview space */
+    /**
+     * Entities to render in preview space
+     */
     protected List<Entity> previewEntities = new ArrayList<>();
 
-    /** Current telegraph to render in preview */
+    /**
+     * Current telegraph to render in preview
+     */
     protected TelegraphInstance previewTelegraph;
 
     // ==================== LAYOUT ====================
-    /** Preview area bounds */
+    /**
+     * Preview area bounds
+     */
     protected int previewX, previewY, previewWidth, previewHeight;
-    /** NPC render position on screen */
+    /**
+     * NPC render position on screen
+     */
     protected int npcScreenX, npcScreenY;
 
     public int xOffset = 0;
@@ -74,7 +94,7 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
     }
 
     /**
-     * @param npc       The NPC for preview rendering
+     * @param npc        The NPC for preview rendering
      * @param hasMenuNpc If false, the top menu tabs (Display, Stats, etc.) are hidden.
      *                   Use false when opened from the global menu without a real NPC.
      */
@@ -99,8 +119,8 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
         previewHeight = 180;
 
         // NPC position: left side of preview, slightly below center
-        npcScreenX = previewX + (int)(previewWidth * 0.33f) + xOffset;
-        npcScreenY = previewY + (int)(previewHeight * 0.85f) + yOffset;
+        npcScreenX = previewX + (int) (previewWidth * 0.33f) + xOffset;
+        npcScreenY = previewY + (int) (previewHeight * 0.85f) + yOffset;
 
         // Viewing rotation buttons (below preview area)
         int btnY = guiTop + 192;
@@ -351,7 +371,7 @@ public class GuiAbilityInterface extends GuiNPCInterface2 {
         super.drawBackground();
 
         drawGradientRect(previewX, previewY, previewX + previewWidth, previewY + previewHeight,
-                        0xc0101010, 0xd0101010);
+            0xc0101010, 0xd0101010);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 

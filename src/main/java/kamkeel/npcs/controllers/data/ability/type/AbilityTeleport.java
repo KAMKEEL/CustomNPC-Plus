@@ -1,9 +1,12 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -13,15 +16,8 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
-
 import noppes.npcs.api.ability.type.IAbilityTeleport;
-
 import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,10 +39,14 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         @Override
         public String toString() {
             switch (this) {
-                case BLINK: return "ability.teleport.blink";
-                case BEHIND: return "ability.teleport.behind";
-                case SINGLE: return "ability.teleport.single";
-                default: return name();
+                case BLINK:
+                    return "ability.teleport.blink";
+                case BEHIND:
+                    return "ability.teleport.behind";
+                case SINGLE:
+                    return "ability.teleport.single";
+                default:
+                    return name();
             }
         }
     }

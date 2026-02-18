@@ -29,40 +29,95 @@ public abstract class ScriptEnergyAbility<T extends EntityEnergyAbility> extends
 
     // ==================== DISPLAY ====================
 
-    public int getInnerColor() { return entity.getInnerColor(); }
-    public void setInnerColor(int color) { entity.setInnerColor(color); }
+    public int getInnerColor() {
+        return entity.getInnerColor();
+    }
 
-    public float getInnerAlpha() { return entity.getInnerAlpha(); }
-    public void setInnerAlpha(float alpha) { entity.setInnerAlpha(alpha); }
+    public void setInnerColor(int color) {
+        entity.setInnerColor(color);
+    }
 
-    public int getOuterColor() { return entity.getOuterColor(); }
-    public void setOuterColor(int color) { entity.setOuterColor(color); }
+    public float getInnerAlpha() {
+        return entity.getInnerAlpha();
+    }
 
-    public boolean isOuterColorEnabled() { return entity.isOuterColorEnabled(); }
-    public void setOuterColorEnabled(boolean enabled) { entity.setOuterColorEnabled(enabled); }
+    public void setInnerAlpha(float alpha) {
+        entity.setInnerAlpha(alpha);
+    }
 
-    public float getOuterColorWidth() { return entity.getOuterColorWidth(); }
-    public void setOuterColorWidth(float width) { entity.setOuterColorWidth(width); }
+    public int getOuterColor() {
+        return entity.getOuterColor();
+    }
 
-    public float getOuterColorAlpha() { return entity.getOuterColorAlpha(); }
-    public void setOuterColorAlpha(float alpha) { entity.setOuterColorAlpha(alpha); }
+    public void setOuterColor(int color) {
+        entity.setOuterColor(color);
+    }
+
+    public boolean isOuterColorEnabled() {
+        return entity.isOuterColorEnabled();
+    }
+
+    public void setOuterColorEnabled(boolean enabled) {
+        entity.setOuterColorEnabled(enabled);
+    }
+
+    public float getOuterColorWidth() {
+        return entity.getOuterColorWidth();
+    }
+
+    public void setOuterColorWidth(float width) {
+        entity.setOuterColorWidth(width);
+    }
+
+    public float getOuterColorAlpha() {
+        return entity.getOuterColorAlpha();
+    }
+
+    public void setOuterColorAlpha(float alpha) {
+        entity.setOuterColorAlpha(alpha);
+    }
 
     // ==================== LIGHTNING ====================
 
-    public boolean hasLightningEffect() { return entity.hasLightningEffect(); }
-    public void setLightningEffect(boolean enabled) { entity.setLightningEffect(enabled); }
+    public boolean hasLightningEffect() {
+        return entity.hasLightningEffect();
+    }
 
-    public float getLightningDensity() { return entity.getLightningDensity(); }
-    public void setLightningDensity(float density) { entity.setLightningDensity(density); }
+    public void setLightningEffect(boolean enabled) {
+        entity.setLightningEffect(enabled);
+    }
 
-    public float getLightningRadius() { return entity.getLightningRadius(); }
-    public void setLightningRadius(float radius) { entity.setLightningRadius(radius); }
+    public float getLightningDensity() {
+        return entity.getLightningDensity();
+    }
 
-    public int getLightningFadeTime() { return entity.getLightningFadeTime(); }
-    public void setLightningFadeTime(int ticks) { entity.setLightningFadeTime(ticks); }
+    public void setLightningDensity(float density) {
+        entity.setLightningDensity(density);
+    }
+
+    public float getLightningRadius() {
+        return entity.getLightningRadius();
+    }
+
+    public void setLightningRadius(float radius) {
+        entity.setLightningRadius(radius);
+    }
+
+    public int getLightningFadeTime() {
+        return entity.getLightningFadeTime();
+    }
+
+    public void setLightningFadeTime(int ticks) {
+        entity.setLightningFadeTime(ticks);
+    }
 
     // ==================== STATE ====================
 
-    public boolean isCharging() { return entity.isCharging(); }
-    public float getChargeProgress() { return entity.getChargeProgress(); }
+    public boolean isCharging() {
+        return entity.isCharging();
+    }
+
+    public float getChargeProgress() {
+        return entity.getChargeProgress();
+    }
 }

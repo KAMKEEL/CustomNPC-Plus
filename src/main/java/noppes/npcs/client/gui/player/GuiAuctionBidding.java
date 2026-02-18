@@ -82,7 +82,9 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         return -1;
     }
 
-    /** Update button visibility based on listing state */
+    /**
+     * Update button visibility based on listing state
+     */
     private void updateButtonState() {
         if (listing == null) {
             if (btnBid != null) btnBid.setVisible(false);
@@ -185,7 +187,9 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         drawAuctionInfo();
     }
 
-    /** Draw auction listing information on the right side */
+    /**
+     * Draw auction listing information on the right side
+     */
     private void drawAuctionInfo() {
         int x = guiLeft + infoX;
         int y = guiTop + infoY;
@@ -226,7 +230,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
 
             label = AuctionFormatUtil.formatCurrency(listing.startingPrice);
             length = fontRendererObj.getStringWidth(label);
-            fontRendererObj.drawString(EnumChatFormatting.GOLD +  label, xRight - length, y, 0xFFFFFF);
+            fontRendererObj.drawString(EnumChatFormatting.GOLD + label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
         }
 
@@ -237,7 +241,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
 
             label = AuctionFormatUtil.formatCurrency(listing.buyoutPrice);
             length = fontRendererObj.getStringWidth(label);
-            fontRendererObj.drawString(EnumChatFormatting.GREEN +  label, xRight - length, y, 0xFFFFFF);
+            fontRendererObj.drawString(EnumChatFormatting.GREEN + label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
         }
 
@@ -306,5 +310,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         // Block all slot interactions - view only
     }
 
-    public AuctionListing getListing() { return listing; }
+    public AuctionListing getListing() {
+        return listing;
+    }
 }

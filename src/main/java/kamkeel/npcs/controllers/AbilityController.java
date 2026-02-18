@@ -9,7 +9,19 @@ import kamkeel.npcs.controllers.data.ability.IAbilityExtender;
 import kamkeel.npcs.controllers.data.ability.IAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
-import kamkeel.npcs.controllers.data.ability.type.*;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
+import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
+import kamkeel.npcs.controllers.data.ability.type.AbilityHeal;
+import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
+import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
+import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
+import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
+import kamkeel.npcs.controllers.data.ability.type.AbilityTeleport;
+import kamkeel.npcs.controllers.data.ability.type.AbilityTrap;
+import kamkeel.npcs.controllers.data.ability.type.AbilityVortex;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityBeam;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDisc;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDome;
@@ -20,16 +32,22 @@ import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySlicer;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySweeper;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityWall;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.util.NBTJsonUtil;
 
-import net.minecraft.entity.player.EntityPlayer;
-
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -794,7 +812,8 @@ public class AbilityController implements IAbilityHandler {
             // If no built-in variants exist but external ones do,
             // inject a "Base" variant so the user always gets a choice
             if (result.isEmpty()) {
-                result.add(new AbilityVariant("ability.variant.base", a -> {}));
+                result.add(new AbilityVariant("ability.variant.base", a -> {
+                }));
             }
             result.addAll(ext);
         }
@@ -880,7 +899,7 @@ public class AbilityController implements IAbilityHandler {
                                        double knockbackDirX, double knockbackDirZ) {
         for (IAbilityExtender ext : extenders) {
             if (ext.onAbilityDamage(ability, caster, target, damage, knockback, knockbackUp,
-                                    knockbackDirX, knockbackDirZ)) {
+                knockbackDirX, knockbackDirZ)) {
                 return true;
             }
         }

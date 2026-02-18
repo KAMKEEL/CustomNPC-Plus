@@ -20,9 +20,9 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IBlock;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
-import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IAnimatable;
 import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.IProjectile;
@@ -64,10 +64,10 @@ import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.scripted.event.PartyEvent;
 import noppes.npcs.scripted.event.ProjectileEvent;
 import noppes.npcs.scripted.event.RecipeScriptEvent;
+import noppes.npcs.scripted.event.player.AuctionEvent;
 import noppes.npcs.scripted.event.player.CustomGuiEvent;
 import noppes.npcs.scripted.event.player.DialogEvent;
 import noppes.npcs.scripted.event.player.FactionEvent;
-import noppes.npcs.scripted.event.player.AuctionEvent;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 import noppes.npcs.scripted.event.player.PlayerEvent.ChatEvent;
@@ -561,7 +561,7 @@ public class EventHooks {
     // ==================== ENERGY BARRIER EVENTS ====================
 
     private static void dispatchBarrierEvent(net.minecraft.entity.Entity barrierEntity, int ownerEntityId,
-                                              noppes.npcs.scripted.event.EnergyBarrierEvent event, EnumScriptType type) {
+                                             noppes.npcs.scripted.event.EnergyBarrierEvent event, EnumScriptType type) {
         ScriptController.Instance.globalNpcScripts.callScript(type, event);
 
         net.minecraft.entity.Entity owner = barrierEntity.worldObj.getEntityByID(ownerEntityId);

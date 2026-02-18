@@ -5,8 +5,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.constants.EnumClaimType;
-import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.constants.EnumTradeSlotType;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionListing;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -55,7 +55,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         refreshData();
     }
 
-    /** Refresh data from controller (server-side only) */
+    /**
+     * Refresh data from controller (server-side only)
+     */
     public void refreshData() {
         // Clear existing data
         clearData();
@@ -70,7 +72,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         populateDisplay(newListings, newBids, newClaims);
     }
 
-    /** Set data from NBT received from server (client-side) */
+    /**
+     * Set data from NBT received from server (client-side)
+     */
     public void setTradesData(NBTTagCompound compound) {
         // Clear existing data
         clearData();
@@ -111,7 +115,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         populateDisplay(newListings, newBids, newClaims);
     }
 
-    /** Clear all data and reset display */
+    /**
+     * Clear all data and reset display
+     */
     private void clearData() {
         activeListings.clear();
         activeBids.clear();
@@ -125,7 +131,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         }
     }
 
-    /** Populate display from provided data lists */
+    /**
+     * Populate display from provided data lists
+     */
     private void populateDisplay(List<AuctionListing> newListings, List<AuctionListing> newBids, List<AuctionClaim> allClaims) {
         activeListings = new ArrayList<>(newListings);
         activeBids = new ArrayList<>(newBids);
@@ -218,7 +226,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
 
     // ========== Slot Data Accessors ==========
 
-    /** Get listing at slot (or null if claim/empty) */
+    /**
+     * Get listing at slot (or null if claim/empty)
+     */
     public AuctionListing getListingAt(int slot) {
         if (slot < 0 || slot >= SLOT_COUNT) return null;
         EnumTradeSlotType type = slotTypes[slot];
@@ -233,7 +243,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         return null;
     }
 
-    /** Get claim at slot (or null if listing/empty) */
+    /**
+     * Get claim at slot (or null if listing/empty)
+     */
     public AuctionClaim getClaimAt(int slot) {
         if (slot < 0 || slot >= SLOT_COUNT) return null;
         if (slotTypes[slot] == EnumTradeSlotType.CLAIM) {
@@ -245,17 +257,23 @@ public class ContainerAuctionTrades extends ContainerAuction {
         return null;
     }
 
-    /** Check if slot is player's active listing */
+    /**
+     * Check if slot is player's active listing
+     */
     public boolean isSellingAt(int slot) {
         return slot >= 0 && slot < SLOT_COUNT && slotTypes[slot] == EnumTradeSlotType.SELLING;
     }
 
-    /** Check if slot is player's active bid */
+    /**
+     * Check if slot is player's active bid
+     */
     public boolean isBiddingAt(int slot) {
         return slot >= 0 && slot < SLOT_COUNT && slotTypes[slot] == EnumTradeSlotType.BIDDING;
     }
 
-    /** Find listing matching item (searches both selling and bidding) */
+    /**
+     * Find listing matching item (searches both selling and bidding)
+     */
     public AuctionListing getListingForItem(ItemStack stack) {
         if (stack == null) return null;
         for (AuctionListing listing : activeListings) {
@@ -267,7 +285,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         return null;
     }
 
-    /** Find listing in selling list */
+    /**
+     * Find listing in selling list
+     */
     public AuctionListing getSellingListingForItem(ItemStack stack) {
         if (stack == null) return null;
         for (AuctionListing listing : activeListings) {
@@ -276,7 +296,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         return null;
     }
 
-    /** Find listing in bidding list */
+    /**
+     * Find listing in bidding list
+     */
     public AuctionListing getBiddingListingForItem(ItemStack stack) {
         if (stack == null) return null;
         for (AuctionListing bid : activeBids) {
@@ -285,7 +307,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         return null;
     }
 
-    /** Find claim matching item */
+    /**
+     * Find claim matching item
+     */
     public AuctionClaim getClaimForItem(ItemStack stack) {
         if (stack == null) return null;
         for (AuctionClaim claim : claims) {
@@ -296,14 +320,27 @@ public class ContainerAuctionTrades extends ContainerAuction {
 
     // ========== List Getters ==========
 
-    public List<AuctionListing> getActiveListings() { return activeListings; }
-    public List<AuctionListing> getActiveBids() { return activeBids; }
-    public List<AuctionClaim> getClaims() { return claims; }
-    public int getTotalTradeCount() { return activeListings.size() + activeBids.size() + claims.size(); }
+    public List<AuctionListing> getActiveListings() {
+        return activeListings;
+    }
+
+    public List<AuctionListing> getActiveBids() {
+        return activeBids;
+    }
+
+    public List<AuctionClaim> getClaims() {
+        return claims;
+    }
+
+    public int getTotalTradeCount() {
+        return activeListings.size() + activeBids.size() + claims.size();
+    }
 
     // ========== Slot Hiding (for pending operations) ==========
 
-    /** Hide slot for pending operation display */
+    /**
+     * Hide slot for pending operation display
+     */
     public void setHiddenSlot(int slot) {
         if (hiddenSlot >= 0 && hiddenSlot < SLOT_COUNT) {
             restoreSlotItem(hiddenSlot);
@@ -314,7 +351,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         }
     }
 
-    /** Restore hidden slot */
+    /**
+     * Restore hidden slot
+     */
     public void clearHiddenSlot() {
         if (hiddenSlot >= 0 && hiddenSlot < SLOT_COUNT) {
             restoreSlotItem(hiddenSlot);
@@ -322,7 +361,9 @@ public class ContainerAuctionTrades extends ContainerAuction {
         hiddenSlot = -1;
     }
 
-    /** Restore item at slot from data using slot tracking */
+    /**
+     * Restore item at slot from data using slot tracking
+     */
     private void restoreSlotItem(int slot) {
         if (slot < 0 || slot >= SLOT_COUNT) return;
 
@@ -348,8 +389,14 @@ public class ContainerAuctionTrades extends ContainerAuction {
         }
     }
 
-    public int getHiddenSlot() { return hiddenSlot; }
+    public int getHiddenSlot() {
+        return hiddenSlot;
+    }
 
-    /** Get player's max trade slots (synced from server based on permissions) */
-    public int getMaxTradeSlots() { return maxTradeSlots; }
+    /**
+     * Get player's max trade slots (synced from server based on permissions)
+     */
+    public int getMaxTradeSlots() {
+        return maxTradeSlots;
+    }
 }

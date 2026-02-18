@@ -38,13 +38,19 @@ public class AuctionEvent extends PlayerEvent implements IAuctionEvent {
         }
 
         @Override
-        public IItemStack getItem() { return item; }
+        public IItemStack getItem() {
+            return item;
+        }
 
         @Override
-        public long getStartingPrice() { return startingPrice; }
+        public long getStartingPrice() {
+            return startingPrice;
+        }
 
         @Override
-        public long getBuyoutPrice() { return buyoutPrice; }
+        public long getBuyoutPrice() {
+            return buyoutPrice;
+        }
     }
 
     @Cancelable
@@ -64,10 +70,14 @@ public class AuctionEvent extends PlayerEvent implements IAuctionEvent {
         }
 
         @Override
-        public IAuctionListing getListing() { return listing; }
+        public IAuctionListing getListing() {
+            return listing;
+        }
 
         @Override
-        public long getBidAmount() { return bidAmount; }
+        public long getBidAmount() {
+            return bidAmount;
+        }
     }
 
     @Cancelable
@@ -85,7 +95,9 @@ public class AuctionEvent extends PlayerEvent implements IAuctionEvent {
         }
 
         @Override
-        public IAuctionListing getListing() { return listing; }
+        public IAuctionListing getListing() {
+            return listing;
+        }
     }
 
     @Cancelable
@@ -105,10 +117,14 @@ public class AuctionEvent extends PlayerEvent implements IAuctionEvent {
         }
 
         @Override
-        public IAuctionListing getListing() { return listing; }
+        public IAuctionListing getListing() {
+            return listing;
+        }
 
         @Override
-        public boolean isAdmin() { return admin; }
+        public boolean isAdmin() {
+            return admin;
+        }
     }
 
     @Cancelable
@@ -126,6 +142,8 @@ public class AuctionEvent extends PlayerEvent implements IAuctionEvent {
         }
 
         @Override
-        public IAuctionClaim getClaim() { return claim; }
+        public IAuctionClaim getClaim() {
+            return claim;
+        }
     }
 }

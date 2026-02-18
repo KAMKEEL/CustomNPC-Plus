@@ -5,7 +5,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityDisc;
@@ -56,7 +60,7 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
 
     @Override
     protected EntityAbilityDisc createEntity(EntityLivingBase caster, EntityLivingBase target,
-                                              Vec3 spawnPos, EnergyDisplayData resolved, int index) {
+                                             Vec3 spawnPos, EnergyDisplayData resolved, int index) {
         return new EntityAbilityDisc(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
@@ -81,7 +85,7 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
 
     @Override
     protected void setupEntityPreview(EntityAbilityDisc disc, EntityLivingBase caster,
-                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
+                                      EnergyDisplayData resolved, ProjectileData projData, int index) {
         disc.setupPreview(caster, discRadius, discThickness, resolved, lightningData, projData.anchor, windUpTicks, vertical);
     }
 
@@ -139,23 +143,53 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
 
-    public float getSpeed() { return homingData.speed; }
-    public void setSpeed(float speed) { homingData.speed = speed; }
+    public float getSpeed() {
+        return homingData.speed;
+    }
 
-    public float getDiscRadius() { return discRadius; }
-    public void setDiscRadius(float discRadius) { this.discRadius = discRadius; }
+    public void setSpeed(float speed) {
+        homingData.speed = speed;
+    }
 
-    public float getDiscThickness() { return discThickness; }
-    public void setDiscThickness(float discThickness) { this.discThickness = discThickness; }
+    public float getDiscRadius() {
+        return discRadius;
+    }
 
-    public boolean isVertical() { return vertical; }
-    public void setVertical(boolean vertical) { this.vertical = vertical; }
+    public void setDiscRadius(float discRadius) {
+        this.discRadius = discRadius;
+    }
 
-    public boolean isBoomerang() { return boomerang; }
-    public void setBoomerang(boolean boomerang) { this.boomerang = boomerang; }
+    public float getDiscThickness() {
+        return discThickness;
+    }
 
-    public int getBoomerangDelay() { return boomerangDelay; }
-    public void setBoomerangDelay(int boomerangDelay) { this.boomerangDelay = boomerangDelay; }
+    public void setDiscThickness(float discThickness) {
+        this.discThickness = discThickness;
+    }
+
+    public boolean isVertical() {
+        return vertical;
+    }
+
+    public void setVertical(boolean vertical) {
+        this.vertical = vertical;
+    }
+
+    public boolean isBoomerang() {
+        return boomerang;
+    }
+
+    public void setBoomerang(boolean boomerang) {
+        this.boomerang = boomerang;
+    }
+
+    public int getBoomerangDelay() {
+        return boomerangDelay;
+    }
+
+    public void setBoomerangDelay(int boomerangDelay) {
+        this.boomerangDelay = boomerangDelay;
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 

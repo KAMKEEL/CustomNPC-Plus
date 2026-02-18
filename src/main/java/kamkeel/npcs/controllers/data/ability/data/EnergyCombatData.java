@@ -15,7 +15,8 @@ public class EnergyCombatData implements IEnergyCombatData {
     public float explosionRadius = 3.0f;
     public float explosionDamageFalloff = 0.5f;
 
-    public EnergyCombatData() {}
+    public EnergyCombatData() {
+    }
 
     public EnergyCombatData(float damage, float knockback, float knockbackUp,
                             boolean explosive, float explosionRadius, float explosionDamageFalloff) {

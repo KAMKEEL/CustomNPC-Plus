@@ -165,8 +165,8 @@ public class AttachedLightningRenderer {
      * Generate a jagged lightning path between two points.
      */
     private static List<double[]> generateLightningPath(double x1, double y1, double z1,
-                                                         double x2, double y2, double z2,
-                                                         int segments, float displacement) {
+                                                        double x2, double y2, double z2,
+                                                        int segments, float displacement) {
         List<double[]> points = new ArrayList<>();
         points.add(new double[]{x1, y1, z1});
 
@@ -257,8 +257,8 @@ public class AttachedLightningRenderer {
      * Create a lightning arc between two arbitrary points.
      */
     public static LightningArc createArcBetween(double x1, double y1, double z1,
-                                                  double x2, double y2, double z2,
-                                                  float displacement, int outerColor, int innerColor, int maxAge) {
+                                                double x2, double y2, double z2,
+                                                float displacement, int outerColor, int innerColor, int maxAge) {
         int segments = 4 + rand.nextInt(3);
         List<double[]> points = generateLightningPath(x1, y1, z1, x2, y2, z2, segments, displacement);
         return new LightningArc(points, maxAge, outerColor, innerColor);

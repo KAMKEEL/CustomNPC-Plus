@@ -134,7 +134,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
             String err = "IConditionalAction '" + getName() + "' threw an exception:";
             if (reportTo != null)
                 reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
-            
+
             manager.LOGGER.error("Task of " + this + " threw an exception:", t);
             markDone();
         }
@@ -151,7 +151,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
         try {
             onTermination.accept(this);
         } catch (Throwable t) {
-            String err = "IConditionalAction"  + getName() + "  onTermination threw an exception:";
+            String err = "IConditionalAction" + getName() + "  onTermination threw an exception:";
             if (reportTo != null)
                 reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
 

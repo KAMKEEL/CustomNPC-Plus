@@ -142,37 +142,95 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
     // Display and lightning data inherited from AbilityEnergy
 
     // Barrier data
-    public float getBarrierMaxHealth() { return barrierData.maxHealth; }
-    public void setBarrierMaxHealth(float maxHealth) { barrierData.setMaxHealth(maxHealth); }
+    public float getBarrierMaxHealth() {
+        return barrierData.maxHealth;
+    }
 
-    public boolean isUseHealth() { return barrierData.useHealth; }
-    public void setUseHealth(boolean useHealth) { barrierData.useHealth = useHealth; }
+    public void setBarrierMaxHealth(float maxHealth) {
+        barrierData.setMaxHealth(maxHealth);
+    }
 
-    public int getBarrierDuration() { return barrierData.durationTicks; }
-    public void setBarrierDuration(int ticks) { barrierData.setDurationTicks(ticks); }
+    public boolean isUseHealth() {
+        return barrierData.useHealth;
+    }
 
-    public boolean isUseDuration() { return barrierData.useDuration; }
-    public void setUseDuration(boolean useDuration) { barrierData.useDuration = useDuration; }
+    public void setUseHealth(boolean useHealth) {
+        barrierData.useHealth = useHealth;
+    }
 
-    public float getDefaultMultiplier() { return barrierData.defaultMultiplier; }
-    public void setDefaultMultiplier(float mult) { barrierData.defaultMultiplier = mult; }
+    public int getBarrierDuration() {
+        return barrierData.durationTicks;
+    }
 
-    public void setDamageMultiplier(String typeId, float mult) { barrierData.setMultiplier(typeId, mult); }
-    public float getDamageMultiplier(String typeId) { return barrierData.getMultiplier(typeId); }
+    public void setBarrierDuration(int ticks) {
+        barrierData.setDurationTicks(ticks);
+    }
+
+    public boolean isUseDuration() {
+        return barrierData.useDuration;
+    }
+
+    public void setUseDuration(boolean useDuration) {
+        barrierData.useDuration = useDuration;
+    }
+
+    public float getDefaultMultiplier() {
+        return barrierData.defaultMultiplier;
+    }
+
+    public void setDefaultMultiplier(float mult) {
+        barrierData.defaultMultiplier = mult;
+    }
+
+    public void setDamageMultiplier(String typeId, float mult) {
+        barrierData.setMultiplier(typeId, mult);
+    }
+
+    public float getDamageMultiplier(String typeId) {
+        return barrierData.getMultiplier(typeId);
+    }
 
     // Knockback data
-    public boolean isKnockbackEnabled() { return barrierData.knockbackEnabled; }
-    public void setKnockbackEnabled(boolean enabled) { barrierData.knockbackEnabled = enabled; }
-    public float getKnockbackStrength() { return barrierData.knockbackStrength; }
-    public void setKnockbackStrength(float strength) { barrierData.knockbackStrength = strength; }
-    public String getKnockbackTargetKey() { return barrierData.getKnockbackTargetKey(); }
-    public void setKnockbackTargetKey(String key) { barrierData.setKnockbackTargetFromKey(key); }
+    public boolean isKnockbackEnabled() {
+        return barrierData.knockbackEnabled;
+    }
+
+    public void setKnockbackEnabled(boolean enabled) {
+        barrierData.knockbackEnabled = enabled;
+    }
+
+    public float getKnockbackStrength() {
+        return barrierData.knockbackStrength;
+    }
+
+    public void setKnockbackStrength(float strength) {
+        barrierData.knockbackStrength = strength;
+    }
+
+    public String getKnockbackTargetKey() {
+        return barrierData.getKnockbackTargetKey();
+    }
+
+    public void setKnockbackTargetKey(String key) {
+        barrierData.setKnockbackTargetFromKey(key);
+    }
 
     // Melee data
-    public boolean isMeleeEnabled() { return barrierData.meleeEnabled; }
-    public void setMeleeEnabled(boolean enabled) { barrierData.meleeEnabled = enabled; }
-    public float getMeleeDamageMultiplier() { return barrierData.meleeDamageMultiplier; }
-    public void setMeleeDamageMultiplier(float mult) { barrierData.meleeDamageMultiplier = mult; }
+    public boolean isMeleeEnabled() {
+        return barrierData.meleeEnabled;
+    }
+
+    public void setMeleeEnabled(boolean enabled) {
+        barrierData.meleeEnabled = enabled;
+    }
+
+    public float getMeleeDamageMultiplier() {
+        return barrierData.meleeDamageMultiplier;
+    }
+
+    public void setMeleeDamageMultiplier(float mult) {
+        barrierData.meleeDamageMultiplier = mult;
+    }
 
     // ==================== GUI ====================
 
@@ -199,7 +257,7 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
             FieldDef.floatField("ability.knockbackStrength", this::getKnockbackStrength, this::setKnockbackStrength)
                 .range(0, 10).visibleWhen(this::isKnockbackEnabled),
             FieldDef.stringEnumField("ability.knockbackTarget", EnergyBarrierData.getKnockbackTargetKeys(),
-                this::getKnockbackTargetKey, this::setKnockbackTargetKey)
+                    this::getKnockbackTargetKey, this::setKnockbackTargetKey)
                 .visibleWhen(this::isKnockbackEnabled)
         ));
 

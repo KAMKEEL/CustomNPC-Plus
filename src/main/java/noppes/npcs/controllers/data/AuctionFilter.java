@@ -25,14 +25,18 @@ public class AuctionFilter {
         return searchText != null && !searchText.trim().isEmpty();
     }
 
-    /** Normalize string for search (strip colors, lowercase, trim) */
+    /**
+     * Normalize string for search (strip colors, lowercase, trim)
+     */
     public static String normalizeForSearch(String input) {
         if (input == null || input.isEmpty()) return "";
         String stripped = EnumChatFormatting.getTextWithoutFormattingCodes(input);
         return stripped != null ? stripped.toLowerCase().trim() : input.toLowerCase().trim();
     }
 
-    /** Check if item name or seller name matches search text */
+    /**
+     * Check if item name or seller name matches search text
+     */
     public boolean matchesSearch(String itemName, String sellerName) {
         if (!hasSearchText()) return true;
         String normalizedItem = normalizeForSearch(itemName);
@@ -41,12 +45,16 @@ public class AuctionFilter {
         return normalizedItem.contains(normalizedSearch) || normalizedSeller.contains(normalizedSearch);
     }
 
-    /** Legacy method - only checks item name */
+    /**
+     * Legacy method - only checks item name
+     */
     public boolean matchesSearch(String itemName) {
         return matchesSearch(itemName, "");
     }
 
-    /** Advanced search - all words must be present in item name OR seller name */
+    /**
+     * Advanced search - all words must be present in item name OR seller name
+     */
     public boolean matchesSearchAdvanced(String itemName, String sellerName) {
         if (!hasSearchText()) return true;
         String normalizedItem = normalizeForSearch(itemName);
@@ -63,7 +71,9 @@ public class AuctionFilter {
         return true;
     }
 
-    /** Legacy method - only checks item name */
+    /**
+     * Legacy method - only checks item name
+     */
     public boolean matchesSearchAdvanced(String itemName) {
         return matchesSearchAdvanced(itemName, "");
     }
@@ -101,13 +111,20 @@ public class AuctionFilter {
     }
 
     // Getters and setters
-    public String getSearchText() { return searchText; }
+    public String getSearchText() {
+        return searchText;
+    }
 
     public void setSearchText(String searchText) {
         this.searchText = searchText;
         this.normalizedSearch = normalizeForSearch(searchText);
     }
 
-    public EnumAuctionSort getSortBy() { return sortBy; }
-    public void setSortBy(EnumAuctionSort sortBy) { this.sortBy = sortBy; }
+    public EnumAuctionSort getSortBy() {
+        return sortBy;
+    }
+
+    public void setSortBy(EnumAuctionSort sortBy) {
+        this.sortBy = sortBy;
+    }
 }

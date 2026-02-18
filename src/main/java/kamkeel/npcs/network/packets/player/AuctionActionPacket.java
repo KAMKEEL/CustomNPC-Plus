@@ -40,7 +40,8 @@ public class AuctionActionPacket extends AbstractPacket {
     private long amount;
     private NBTTagCompound data;
 
-    public AuctionActionPacket() {}
+    public AuctionActionPacket() {
+    }
 
     private AuctionActionPacket(Action action) {
         this.action = action;
@@ -58,7 +59,9 @@ public class AuctionActionPacket extends AbstractPacket {
     }
 
     @Override
-    public boolean needsNPC() { return false; }  // Allow opening via command without NPC
+    public boolean needsNPC() {
+        return false;
+    }  // Allow opening via command without NPC
 
     // =========================================
     // Client-side static methods
@@ -117,7 +120,9 @@ public class AuctionActionPacket extends AbstractPacket {
         PacketClient.sendClient(packet);
     }
 
-    /** Request listings from server with filter and page */
+    /**
+     * Request listings from server with filter and page
+     */
     @SideOnly(Side.CLIENT)
     public static void requestListings(AuctionFilter filter, int page) {
         AuctionActionPacket packet = new AuctionActionPacket(Action.RequestListings);
@@ -131,10 +136,14 @@ public class AuctionActionPacket extends AbstractPacket {
     // =========================================
 
     @Override
-    public Enum getType() { return EnumPlayerPacket.AuctionAction; }
+    public Enum getType() {
+        return EnumPlayerPacket.AuctionAction;
+    }
 
     @Override
-    public PacketChannel getChannel() { return PacketHandler.PLAYER_PACKET; }
+    public PacketChannel getChannel() {
+        return PacketHandler.PLAYER_PACKET;
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -291,7 +300,10 @@ public class AuctionActionPacket extends AbstractPacket {
         long startingPrice = in.readLong();
         String buyoutStr = ByteBufUtils.readString(in);
         long buyoutPrice = 0;
-        try { buyoutPrice = Long.parseLong(buyoutStr); } catch (NumberFormatException ignored) {}
+        try {
+            buyoutPrice = Long.parseLong(buyoutStr);
+        } catch (NumberFormatException ignored) {
+        }
 
         NBTTagCompound itemNBT = ByteBufUtils.readNBT(in);
         if (itemNBT == null) return "No item data received.";
@@ -329,7 +341,9 @@ public class AuctionActionPacket extends AbstractPacket {
         }
     }
 
-    /** Send full trades data to player (listings, bids, claims) */
+    /**
+     * Send full trades data to player (listings, bids, claims)
+     */
     private void sendTradesData(EntityPlayerMP player, AuctionController controller) {
         NBTTagCompound response = new NBTTagCompound();
         response.setBoolean("TradesData", true);

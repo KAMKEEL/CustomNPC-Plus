@@ -12,20 +12,27 @@ import net.minecraft.nbt.NBTTagCompound;
  */
 public class ChainedAbilityEntry {
 
-    public enum EntryType { REFERENCE, INLINE }
+    public enum EntryType {REFERENCE, INLINE}
 
     private EntryType entryType = EntryType.REFERENCE;
 
-    /** Reference key (built-in name or custom ability name). Used when entryType == REFERENCE. */
+    /**
+     * Reference key (built-in name or custom ability name). Used when entryType == REFERENCE.
+     */
     private String abilityReference = "";
 
-    /** Inline ability data. Used when entryType == INLINE. */
+    /**
+     * Inline ability data. Used when entryType == INLINE.
+     */
     private Ability inlineAbility = null;
 
-    /** Delay in ticks BEFORE this ability starts (after previous entry completes). */
+    /**
+     * Delay in ticks BEFORE this ability starts (after previous entry completes).
+     */
     private int delayTicks = 0;
 
-    public ChainedAbilityEntry() {}
+    public ChainedAbilityEntry() {
+    }
 
     public ChainedAbilityEntry(String abilityReference, int delayTicks) {
         this.entryType = EntryType.REFERENCE;

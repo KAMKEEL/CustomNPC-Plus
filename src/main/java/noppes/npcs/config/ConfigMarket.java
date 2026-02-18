@@ -135,11 +135,11 @@ public class ConfigMarket {
             // =========================================
             config.setCategoryComment(AUCTION_BLACKLIST,
                 "Item Blacklist settings for the Auction House.\n" +
-                "Prevents specific items, mods, or items with certain NBT tags from being listed.\n\n" +
-                "ITEM FORMAT: Use 'modid:itemname' format (e.g., 'minecraft:bedrock', 'customnpcs:npcWand')\n" +
-                "WILDCARDS: Use * for wildcards (e.g., 'customnpcs:npc*' blocks all items starting with 'npc')\n" +
-                "MOD FORMAT: Use just the mod ID (e.g., 'projecte' blocks all items from that mod)\n" +
-                "NBT FORMAT: Use the NBT tag key name (e.g., 'AdminOnly' blocks items with that tag)");
+                    "Prevents specific items, mods, or items with certain NBT tags from being listed.\n\n" +
+                    "ITEM FORMAT: Use 'modid:itemname' format (e.g., 'minecraft:bedrock', 'customnpcs:npcWand')\n" +
+                    "WILDCARDS: Use * for wildcards (e.g., 'customnpcs:npc*' blocks all items starting with 'npc')\n" +
+                    "MOD FORMAT: Use just the mod ID (e.g., 'projecte' blocks all items from that mod)\n" +
+                    "NBT FORMAT: Use the NBT tag key name (e.g., 'AdminOnly' blocks items with that tag)");
 
             BlacklistEnabled = config.get(AUCTION_BLACKLIST, "Enable Blacklist", true,
                 "Enable item blacklist checking when creating listings").getBoolean(true);
@@ -157,17 +157,17 @@ public class ConfigMarket {
                     "customnpcs:npcSoulstoneFilled"
                 },
                 "Items that cannot be listed on the Auction House.\n" +
-                "Format: modid:itemname (supports * wildcards)\n" +
-                "Example: 'minecraft:diamond_sword' or 'customnpcs:npc*'").getStringList();
+                    "Format: modid:itemname (supports * wildcards)\n" +
+                    "Example: 'minecraft:diamond_sword' or 'customnpcs:npc*'").getStringList();
 
             BlacklistedMods = config.get(AUCTION_BLACKLIST, "Blacklisted Mods", new String[]{},
                 "All items from these mods are blocked from the Auction House.\n" +
-                "Format: modid (e.g., 'projecte', 'thaumcraft')").getStringList();
+                    "Format: modid (e.g., 'projecte', 'thaumcraft')").getStringList();
 
             BlacklistedNBTTags = config.get(AUCTION_BLACKLIST, "Blacklisted NBT Tags", new String[]{},
                 "Items containing any of these NBT tag keys are blocked.\n" +
-                "Checks the root level of the item's NBT compound.\n" +
-                "Example: 'AdminOnly', 'CreativeMode'").getStringList();
+                    "Checks the root level of the item's NBT compound.\n" +
+                    "Example: 'AdminOnly', 'CreativeMode'").getStringList();
 
             // =========================================
             // Auction Logging Settings

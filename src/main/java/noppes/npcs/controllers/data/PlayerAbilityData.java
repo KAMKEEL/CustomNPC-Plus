@@ -1,12 +1,14 @@
 package noppes.npcs.controllers.data;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import net.minecraft.entity.EntityLivingBase;
@@ -17,16 +19,13 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.AbstractDataAbilities;
-import noppes.npcs.LogWriter;
 import noppes.npcs.EventHooks;
+import noppes.npcs.LogWriter;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
-
-import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
-import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -152,7 +151,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     @Override
     protected void fireInterruptEvent(Ability ability, EntityLivingBase target,
-                                       DamageSource source, float damage) {
+                                      DamageSource source, float damage) {
         EntityPlayer player = playerData.player;
         if (ScriptController.Instance == null || player == null) return;
         PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
@@ -310,7 +309,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         return activateAbility(player, key);
     }
 
-    /** Prefix used to identify chained ability keys in the unlocked list. */
+    /**
+     * Prefix used to identify chained ability keys in the unlocked list.
+     */
     public static final String CHAIN_PREFIX = "chain:";
 
     /**

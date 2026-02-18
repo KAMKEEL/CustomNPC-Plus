@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -13,13 +14,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.api.ability.type.IAbilitySlam;
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.api.ability.type.IAbilitySlam;
-import somehussar.gui.annotationHandling.GuiEditable;
-
-import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import java.util.Arrays;
 import java.util.List;
 

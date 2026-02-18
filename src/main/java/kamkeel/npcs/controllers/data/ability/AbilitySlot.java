@@ -18,13 +18,16 @@ public class AbilitySlot {
     private Ability inlineAbility;
     private String referenceId;
 
-    /** Per-slot enabled override for reference slots (null = use master's default). */
+    /**
+     * Per-slot enabled override for reference slots (null = use master's default).
+     */
     private Boolean enabledOverride;
 
     private transient Ability cachedAbility;
     private transient int cachedVersion = -1;
 
-    private AbilitySlot() {}
+    private AbilitySlot() {
+    }
 
     /**
      * Create a slot with an inline (embedded) ability.

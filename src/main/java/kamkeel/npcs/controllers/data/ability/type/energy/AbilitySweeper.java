@@ -22,7 +22,7 @@ import java.util.List;
  * Sweeper ability: A low sweeping beam that rotates around the NPC.
  * Players can jump over it. The beam completes a set number of rotations before ending.
  * Telegraph shows a large circle on the ground indicating range.
- *
+ * <p>
  * All damage logic is handled by the EntityAbilitySweeper entity to ensure
  * visual and damage hitbox alignment.
  */
@@ -173,24 +173,77 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
     }
 
     // Getters & Setters (type-specific only; color/lightning inherited from AbilityEnergy)
-    public float getBeamLength() { return beamLength; }
-    public void setBeamLength(float beamLength) { this.beamLength = beamLength; }
-    public float getBeamWidth() { return beamWidth; }
-    public void setBeamWidth(float beamWidth) { this.beamWidth = beamWidth; }
-    public float getBeamHeight() { return beamHeight; }
-    public void setBeamHeight(float beamHeight) { this.beamHeight = beamHeight; }
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
-    public int getDamageInterval() { return damageInterval; }
-    public void setDamageInterval(int damageInterval) { this.damageInterval = damageInterval; }
-    public boolean isPiercing() { return piercing; }
-    public void setPiercing(boolean piercing) { this.piercing = piercing; }
-    public float getSweepSpeed() { return sweepSpeed; }
-    public void setSweepSpeed(float sweepSpeed) { this.sweepSpeed = sweepSpeed; }
-    public int getNumberOfRotations() { return numberOfRotations; }
-    public void setNumberOfRotations(int numberOfRotations) { this.numberOfRotations = numberOfRotations; }
-    public boolean isLockOnTarget() { return lockOnTarget; }
-    public void setLockOnTarget(boolean lockOnTarget) { this.lockOnTarget = lockOnTarget; }
+    public float getBeamLength() {
+        return beamLength;
+    }
+
+    public void setBeamLength(float beamLength) {
+        this.beamLength = beamLength;
+    }
+
+    public float getBeamWidth() {
+        return beamWidth;
+    }
+
+    public void setBeamWidth(float beamWidth) {
+        this.beamWidth = beamWidth;
+    }
+
+    public float getBeamHeight() {
+        return beamHeight;
+    }
+
+    public void setBeamHeight(float beamHeight) {
+        this.beamHeight = beamHeight;
+    }
+
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public int getDamageInterval() {
+        return damageInterval;
+    }
+
+    public void setDamageInterval(int damageInterval) {
+        this.damageInterval = damageInterval;
+    }
+
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public void setPiercing(boolean piercing) {
+        this.piercing = piercing;
+    }
+
+    public float getSweepSpeed() {
+        return sweepSpeed;
+    }
+
+    public void setSweepSpeed(float sweepSpeed) {
+        this.sweepSpeed = sweepSpeed;
+    }
+
+    public int getNumberOfRotations() {
+        return numberOfRotations;
+    }
+
+    public void setNumberOfRotations(int numberOfRotations) {
+        this.numberOfRotations = numberOfRotations;
+    }
+
+    public boolean isLockOnTarget() {
+        return lockOnTarget;
+    }
+
+    public void setLockOnTarget(boolean lockOnTarget) {
+        this.lockOnTarget = lockOnTarget;
+    }
 
     @Override
     public int getMaxPreviewDuration() {

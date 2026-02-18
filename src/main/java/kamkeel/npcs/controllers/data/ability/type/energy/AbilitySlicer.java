@@ -5,7 +5,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityEnergySlicer;
@@ -53,7 +57,7 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
 
     @Override
     protected EntityEnergySlicer createEntity(EntityLivingBase caster, EntityLivingBase target,
-                                               Vec3 spawnPos, EnergyDisplayData resolved, int index) {
+                                              Vec3 spawnPos, EnergyDisplayData resolved, int index) {
         return new EntityEnergySlicer(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
@@ -79,7 +83,7 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
 
     @Override
     protected void setupEntityPreview(EntityEnergySlicer slicer, EntityLivingBase caster,
-                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
+                                      EnergyDisplayData resolved, ProjectileData projData, int index) {
         slicer.setupPreview(caster, sliceWidth, sliceThickness, resolved, lightningData, projData.anchor, windUpTicks);
     }
 
@@ -130,17 +134,37 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
 
-    public float getSlicerSpeed() { return homingData.speed; }
-    public void setSlicerSpeed(float speed) { homingData.speed = speed; }
+    public float getSlicerSpeed() {
+        return homingData.speed;
+    }
 
-    public float getSliceWidth() { return sliceWidth; }
-    public void setSliceWidth(float width) { this.sliceWidth = Math.max(0.5f, width); }
+    public void setSlicerSpeed(float speed) {
+        homingData.speed = speed;
+    }
 
-    public float getSliceThickness() { return sliceThickness; }
-    public void setSliceThickness(float thickness) { this.sliceThickness = Math.max(0.05f, thickness); }
+    public float getSliceWidth() {
+        return sliceWidth;
+    }
 
-    public boolean isPiercing() { return piercing; }
-    public void setPiercing(boolean piercing) { this.piercing = piercing; }
+    public void setSliceWidth(float width) {
+        this.sliceWidth = Math.max(0.5f, width);
+    }
+
+    public float getSliceThickness() {
+        return sliceThickness;
+    }
+
+    public void setSliceThickness(float thickness) {
+        this.sliceThickness = Math.max(0.05f, thickness);
+    }
+
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public void setPiercing(boolean piercing) {
+        this.piercing = piercing;
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 

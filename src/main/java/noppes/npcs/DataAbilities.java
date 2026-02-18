@@ -1,9 +1,9 @@
 package noppes.npcs;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.AbilityController;
-import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
+import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
@@ -86,10 +86,14 @@ public class DataAbilities extends AbstractDataAbilities {
     private transient boolean hitScanActive = false;
     private transient EntityLivingBase hitScanTarget = null;
 
-    /** Bit flag for rotation control (LOCKED or TRACK) in data watcher slot 15 */
+    /**
+     * Bit flag for rotation control (LOCKED or TRACK) in data watcher slot 15
+     */
     private static final int ROTATION_CONTROLLED_FLAG = 16;
 
-    /** Bit flag for position lock in data watcher slot 15 */
+    /**
+     * Bit flag for position lock in data watcher slot 15
+     */
     private static final int POSITION_LOCKED_FLAG = 32;
 
     // ═══════════════════════════════════════════════════════════════════
@@ -143,7 +147,7 @@ public class DataAbilities extends AbstractDataAbilities {
 
     @Override
     protected void fireInterruptEvent(Ability ability, EntityLivingBase target,
-                                       DamageSource source, float damage) {
+                                      DamageSource source, float damage) {
         AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(
             npc.wrappedNPC, ability, target, source, damage);
         NpcAPI.EVENT_BUS.post(interruptEvent);
@@ -247,7 +251,7 @@ public class DataAbilities extends AbstractDataAbilities {
         // Update hit scan state - actual facing is deferred to applyRotationControl()
         // which runs AFTER super.onLivingUpdate() to override AI look helper
         if (ability != null && ability.isExecuting()
-                && ability.isHitScanForCurrentPhase() && target != null) {
+            && ability.isHitScanForCurrentPhase() && target != null) {
             enableHitScan(target);
         } else if (hitScanActive) {
             releaseRotationControl();
@@ -613,7 +617,7 @@ public class DataAbilities extends AbstractDataAbilities {
      * If an ability is currently executing, it will be cancelled.
      *
      * @param ability The ability to start
-     * @param target The target entity (can be null for self-targeted abilities)
+     * @param target  The target entity (can be null for self-targeted abilities)
      * @return true if the ability was started successfully
      */
     public boolean forceStartAbility(Ability ability, EntityLivingBase target) {
@@ -640,7 +644,7 @@ public class DataAbilities extends AbstractDataAbilities {
      * Execute an ability on this NPC by key (built-in name or custom UUID).
      * The NPC does NOT need to have this ability assigned.
      *
-     * @param key The ability key (built-in name or custom UUID)
+     * @param key    The ability key (built-in name or custom UUID)
      * @param target The target entity (can be null for self-targeted abilities)
      * @return true if the ability was started successfully
      */
@@ -729,7 +733,9 @@ public class DataAbilities extends AbstractDataAbilities {
     // ACTION SLOT MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Get the unified action slot list. */
+    /**
+     * Get the unified action slot list.
+     */
     public List<AbilityAction> getAbilityActions() {
         return actionSlots;
     }
@@ -748,17 +754,23 @@ public class DataAbilities extends AbstractDataAbilities {
         return resolved;
     }
 
-    /** Add an inline ability. */
+    /**
+     * Add an inline ability.
+     */
     public void addAbility(Ability ability) {
         actionSlots.add(AbilityAction.inline(ability));
     }
 
-    /** Add a reference ability by key (built-in name or custom ability name). */
+    /**
+     * Add a reference ability by key (built-in name or custom ability name).
+     */
     public void addAbilityReference(String key) {
         actionSlots.add(AbilityAction.abilityReference(key));
     }
 
-    /** Add a chained ability reference by name. */
+    /**
+     * Add a chained ability reference by name.
+     */
     public void addChainReference(String name) {
         if (name != null && !name.isEmpty()) {
             for (AbilityAction slot : actionSlots) {
@@ -770,7 +782,9 @@ public class DataAbilities extends AbstractDataAbilities {
         }
     }
 
-    /** Remove an action slot by index. */
+    /**
+     * Remove an action slot by index.
+     */
     public void removeAction(int index) {
         if (index >= 0 && index < actionSlots.size()) {
             actionSlots.remove(index);
@@ -804,13 +818,17 @@ public class DataAbilities extends AbstractDataAbilities {
         return null;
     }
 
-    /** Check if a slot at a given index is a reference. */
+    /**
+     * Check if a slot at a given index is a reference.
+     */
     public boolean isSlotReference(int index) {
         if (index < 0 || index >= actionSlots.size()) return false;
         return actionSlots.get(index).isReference();
     }
 
-    /** Convert a reference slot to inline. Returns false if resolution fails or is a chain. */
+    /**
+     * Convert a reference slot to inline. Returns false if resolution fails or is a chain.
+     */
     public boolean convertToInline(int index) {
         if (index < 0 || index >= actionSlots.size()) return false;
         return actionSlots.get(index).convertToInline();
@@ -934,7 +952,7 @@ public class DataAbilities extends AbstractDataAbilities {
     /**
      * Apply rotation control after super.onLivingUpdate() and super.onUpdate().
      * Handles both LOCKED (freeze at captured values) and TRACK (face target) modes.
-     *
+     * <p>
      * Server: computes the correct rotation (locked values or target facing).
      * Client: trusts the server-synced rotation values and prevents body smoothing override.
      */

@@ -28,9 +28,14 @@ public class ContainerAuctionBidding extends ContainerAuction {
         // Display slot (read-only)
         addSlotToContainer(new Slot(displayInventory, 0, ITEM_SLOT_X, ITEM_SLOT_Y) {
             @Override
-            public boolean isItemValid(ItemStack stack) { return false; }
+            public boolean isItemValid(ItemStack stack) {
+                return false;
+            }
+
             @Override
-            public boolean canTakeStack(EntityPlayer player) { return false; }
+            public boolean canTakeStack(EntityPlayer player) {
+                return false;
+            }
         });
     }
 

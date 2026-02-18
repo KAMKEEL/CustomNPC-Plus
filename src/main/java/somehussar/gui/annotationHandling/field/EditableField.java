@@ -46,7 +46,9 @@ public final class EditableField<T> {
         return this.constraints;
     }
 
-    public int getOrder() { return this.order; }
+    public int getOrder() {
+        return this.order;
+    }
 
     EditableField(Builder<T> b) {
         this.name = b.name;
@@ -69,14 +71,45 @@ public final class EditableField<T> {
         private String group = null;
         private GuiEditable.Size size;
 
-        public Builder<T> name(String v) { this.name = v; return this; }
-        public Builder<T> type(Class<T> v) { this.type = v; return this; }
-        public Builder<T> getter(MethodHandle v) { this.getter = v; return this; }
-        public Builder<T> setter(MethodHandle v) { this.setter = v; return this; }
-        public Builder<T> constraints(FieldConstraints v) { this.constraints = v; return this; }
-        public Builder<T> order(int order) { this.order = order; return this; }
-        public Builder<T> group(String value) { this.group = value; return this; }
-        public Builder<T> size(GuiEditable.Size size) { this.size = size; return this; }
+        public Builder<T> name(String v) {
+            this.name = v;
+            return this;
+        }
+
+        public Builder<T> type(Class<T> v) {
+            this.type = v;
+            return this;
+        }
+
+        public Builder<T> getter(MethodHandle v) {
+            this.getter = v;
+            return this;
+        }
+
+        public Builder<T> setter(MethodHandle v) {
+            this.setter = v;
+            return this;
+        }
+
+        public Builder<T> constraints(FieldConstraints v) {
+            this.constraints = v;
+            return this;
+        }
+
+        public Builder<T> order(int order) {
+            this.order = order;
+            return this;
+        }
+
+        public Builder<T> group(String value) {
+            this.group = value;
+            return this;
+        }
+
+        public Builder<T> size(GuiEditable.Size size) {
+            this.size = size;
+            return this;
+        }
 
         public EditableField<T> build() {
             return new EditableField<>(this);

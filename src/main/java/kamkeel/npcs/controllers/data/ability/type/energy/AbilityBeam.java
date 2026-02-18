@@ -6,7 +6,11 @@ import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.RotationMode;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityBeam;
@@ -56,7 +60,7 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
 
     @Override
     protected EntityAbilityBeam createEntity(EntityLivingBase caster, EntityLivingBase target,
-                                              Vec3 spawnPos, EnergyDisplayData resolved, int index) {
+                                             Vec3 spawnPos, EnergyDisplayData resolved, int index) {
         return new EntityAbilityBeam(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
@@ -81,7 +85,7 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
 
     @Override
     protected void setupEntityPreview(EntityAbilityBeam beam, EntityLivingBase caster,
-                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
+                                      EnergyDisplayData resolved, ProjectileData projData, int index) {
         beam.setupPreview(caster, beamWidth, headSize, resolved, lightningData, projData.anchor, windUpTicks, 1.0f);
     }
 
@@ -139,14 +143,29 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
 
-    public float getSpeed() { return homingData.speed; }
-    public void setSpeed(float speed) { homingData.speed = speed; }
+    public float getSpeed() {
+        return homingData.speed;
+    }
 
-    public float getBeamWidth() { return beamWidth; }
-    public void setBeamWidth(float beamWidth) { this.beamWidth = beamWidth; }
+    public void setSpeed(float speed) {
+        homingData.speed = speed;
+    }
 
-    public float getHeadSize() { return headSize; }
-    public void setHeadSize(float headSize) { this.headSize = headSize; }
+    public float getBeamWidth() {
+        return beamWidth;
+    }
+
+    public void setBeamWidth(float beamWidth) {
+        this.beamWidth = beamWidth;
+    }
+
+    public float getHeadSize() {
+        return headSize;
+    }
+
+    public void setHeadSize(float headSize) {
+        this.headSize = headSize;
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 

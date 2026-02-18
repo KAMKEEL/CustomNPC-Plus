@@ -1,7 +1,6 @@
 package noppes.npcs.ai;
 
 import kamkeel.npcs.addon.DBCAddon;
-import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;

@@ -11,7 +11,8 @@ public class EnergyLifespanData implements IEnergyLifespanData {
     public float maxDistance = 30.0f;
     public int maxLifetime = 200;
 
-    public EnergyLifespanData() {}
+    public EnergyLifespanData() {
+    }
 
     public EnergyLifespanData(float maxDistance, int maxLifetime) {
         this.maxDistance = maxDistance;

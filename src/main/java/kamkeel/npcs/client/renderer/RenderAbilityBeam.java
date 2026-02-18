@@ -14,12 +14,12 @@ import java.util.List;
 /**
  * Renders the AbilityBeam entity with a head, tail orb, and curving trail.
  * The trail shows the path the head has traveled using laser-style rectangular segments.
- *
+ * <p>
  * IMPORTANT: Trail points are stored RELATIVE to the origin position.
  * We render by translating to the origin first, then drawing all points relative to that.
- *
+ * <p>
  * Trail segments now share vertices at connection points to prevent gaps during curves.
- *
+ * <p>
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
@@ -182,7 +182,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Uses averaged perpendicular vectors at connection points to prevent gaps.
      */
     private void renderSmoothTrail(List<Vec3> trail, float width, int innerColor, int outerColor,
-                                    boolean outerColorEnabled, float outerColorWidth) {
+                                   boolean outerColorEnabled, float outerColorWidth) {
         if (trail.size() < 2) return;
 
         int trailSize = trail.size();
@@ -213,7 +213,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Older trail points fade out based on their age.
      */
     private void renderFadingTrail(EntityAbilityBeam beam, List<Vec3> trail, float width, int innerColor, int outerColor,
-                                    boolean outerColorEnabled, float outerColorWidth) {
+                                   boolean outerColorEnabled, float outerColorWidth) {
         if (trail.size() < 2) return;
 
         List<Integer> ages = beam.getTrailPointAges();
@@ -242,7 +242,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Render trail tube with age-based fading.
      */
     private void renderFadingTrailTube(List<Vec3> trail, List<double[]> perpFrames, List<Integer> ages,
-                                        int fadeTime, float width, int color, float baseAlpha) {
+                                       int fadeTime, float width, int color, float baseAlpha) {
         float[] rgb = extractRGB(color);
         float r = rgb[0], g = rgb[1], b = rgb[2];
         float halfWidth = width * 0.5f;
@@ -392,13 +392,17 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
                 dy /= len;
                 dz /= len;
             } else {
-                dx = 0; dy = 0; dz = 1;
+                dx = 0;
+                dy = 0;
+                dz = 1;
             }
 
             // Calculate perpendicular vectors using consistent up reference
             double upX = 0, upY = 1, upZ = 0;
             if (Math.abs(dy) > 0.9) {
-                upX = 1; upY = 0; upZ = 0;
+                upX = 1;
+                upY = 0;
+                upZ = 0;
             }
 
             // Cross product for horizontal perpendicular
@@ -417,8 +421,12 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
             double vertY = dz * horzX - dx * horzZ;
             double vertZ = dx * horzY - dy * horzX;
 
-            frame[0] = horzX; frame[1] = horzY; frame[2] = horzZ;
-            frame[3] = vertX; frame[4] = vertY; frame[5] = vertZ;
+            frame[0] = horzX;
+            frame[1] = horzY;
+            frame[2] = horzZ;
+            frame[3] = vertX;
+            frame[4] = vertY;
+            frame[5] = vertZ;
             frames.add(frame);
         }
 
@@ -429,7 +437,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Render the trail as a continuous tube using pre-computed perpendicular frames.
      */
     private void renderTrailTube(List<Vec3> trail, List<double[]> perpFrames,
-                                  float width, int color, float baseAlpha, boolean fadeFromStart) {
+                                 float width, int color, float baseAlpha, boolean fadeFromStart) {
         float[] rgb = extractRGB(color);
         float r = rgb[0], g = rgb[1], b = rgb[2];
         float halfWidth = width * 0.5f;

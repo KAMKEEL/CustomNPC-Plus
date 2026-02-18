@@ -1,8 +1,11 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -11,15 +14,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
-
 import noppes.npcs.api.ability.type.IAbilityCutter;
-
 import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -40,9 +36,12 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         @Override
         public String toString() {
             switch (this) {
-                case SWIPE: return "ability.sweep.swipe";
-                case SPIN: return "ability.sweep.spin";
-                default: return name();
+                case SWIPE:
+                    return "ability.sweep.swipe";
+                case SPIN:
+                    return "ability.sweep.spin";
+                default:
+                    return name();
             }
         }
     }
@@ -232,7 +231,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
      * For SWIPE mode, this covers the continuous arc from startAngle to endAngle.
      */
     private void performSweepDamageRange(EntityLivingBase caster, World world, float minDist, float maxDist,
-                                          float startAngle, float endAngle) {
+                                         float startAngle, float endAngle) {
         // Calculate the angular range covered this tick
         float minAngle = Math.min(startAngle, endAngle);
         float maxAngle = Math.max(startAngle, endAngle);

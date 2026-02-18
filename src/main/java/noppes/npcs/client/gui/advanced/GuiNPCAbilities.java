@@ -1,7 +1,7 @@
 package noppes.npcs.client.gui.advanced;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
@@ -33,7 +33,14 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.Vector;
 
 /**
  * GUI for managing NPC abilities.
@@ -42,30 +49,30 @@ import java.util.*;
 public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, ICustomScrollListener, IGuiData, ITextfieldListener, ISubGuiListener, IAbilityConfigCallback, IChainedAbilityConfigCallback {
 
     // ── Button IDs ────────────────────────────────────────────────────────────
-    private static final int BTN_SCROLL_TYPE    = 50;
-    private static final int BTN_ADD_ABILITY    = 70;
-    private static final int BTN_REMOVE         = 71;
-    private static final int BTN_EDIT           = 72;
-    private static final int BTN_MOVE_UP        = 73;
-    private static final int BTN_MOVE_DOWN      = 74;
-    private static final int BTN_LOAD           = 75;
-    private static final int BTN_SAVE_PRESET    = 76;
-    private static final int BTN_TOGGLE_SLOT    = 77;
-    private static final int BTN_ADD_CHAIN      = 78;
-    private static final int BTN_ENABLED        = 100;
+    private static final int BTN_SCROLL_TYPE = 50;
+    private static final int BTN_ADD_ABILITY = 70;
+    private static final int BTN_REMOVE = 71;
+    private static final int BTN_EDIT = 72;
+    private static final int BTN_MOVE_UP = 73;
+    private static final int BTN_MOVE_DOWN = 74;
+    private static final int BTN_LOAD = 75;
+    private static final int BTN_SAVE_PRESET = 76;
+    private static final int BTN_TOGGLE_SLOT = 77;
+    private static final int BTN_ADD_CHAIN = 78;
+    private static final int BTN_ENABLED = 100;
 
     // ── Scroll IDs ────────────────────────────────────────────────────────────
-    private static final int SCROLL_TYPES       = 0;
-    private static final int SCROLL_NPC         = 1;
+    private static final int SCROLL_TYPES = 0;
+    private static final int SCROLL_NPC = 1;
 
     // ── TextField / Label IDs ─────────────────────────────────────────────────
-    private static final int TF_MIN_COOLDOWN    = 101;
-    private static final int TF_MAX_COOLDOWN    = 102;
-    private static final int TF_SEARCH          = 4;
-    private static final int LBL_TYPES          = 1;
-    private static final int LBL_NPC            = 2;
-    private static final int LBL_MIN_COOLDOWN   = 101;
-    private static final int LBL_MAX_COOLDOWN   = 102;
+    private static final int TF_MIN_COOLDOWN = 101;
+    private static final int TF_MAX_COOLDOWN = 102;
+    private static final int TF_SEARCH = 4;
+    private static final int LBL_TYPES = 1;
+    private static final int LBL_NPC = 2;
+    private static final int LBL_MIN_COOLDOWN = 101;
+    private static final int LBL_MAX_COOLDOWN = 102;
 
     // ── Scroll lists ──────────────────────────────────────────────────────────
     private GuiCustomScroll availableTypesScroll;
@@ -127,7 +134,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         @Override
         public String toString() {
             switch (this) {
-                case CNPC: return "CustomNPCs";
+                case CNPC:
+                    return "CustomNPCs";
                 case MODDED:
                     if (Register.isEmpty("ability"))
                         return "modded";
@@ -135,8 +143,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     String namespace = Register.REGISTERED_NAMESPACES.get("ability").get(modIndex);
                     String displayName = Register.NAMESPACE_DISPLAY_NAMES.get(namespace);
                     return displayName != null ? displayName : namespace;
-                case ALL: return "filter.all";
-                default: return name();
+                case ALL:
+                    return "filter.all";
+                default:
+                    return name();
             }
         }
     }
@@ -855,13 +865,37 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if (subgui instanceof SubGuiAbilityVariantSelect)  { handleVariantSelectClosed((SubGuiAbilityVariantSelect) subgui);  initGui(); return; }
-        if (subgui instanceof SubGuiChainedAbilityConfig)  { handleChainConfigClosed();                                       initGui(); return; }
-        if (subgui instanceof SubGuiAbilityEditMode)       { handleEditModeClosed((SubGuiAbilityEditMode) subgui);            return; }
-        if (subgui instanceof SubGuiAbilitySaveConfirm)    { handleSaveConfirmClosed((SubGuiAbilitySaveConfirm) subgui);      initGui(); return; }
-        if (subgui instanceof SubGuiLoadTypeChoice)        { handleLoadTypeChoiceClosed((SubGuiLoadTypeChoice) subgui);       return; }
-        if (subgui instanceof SubGuiChainSelect)           { handleChainSelectClosed((SubGuiChainSelect) subgui);             return; }
-        if (subgui instanceof SubGuiAbilityConfig)         { handleAbilityConfigClosed();                                     return; }
+        if (subgui instanceof SubGuiAbilityVariantSelect) {
+            handleVariantSelectClosed((SubGuiAbilityVariantSelect) subgui);
+            initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiChainedAbilityConfig) {
+            handleChainConfigClosed();
+            initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiAbilityEditMode) {
+            handleEditModeClosed((SubGuiAbilityEditMode) subgui);
+            return;
+        }
+        if (subgui instanceof SubGuiAbilitySaveConfirm) {
+            handleSaveConfirmClosed((SubGuiAbilitySaveConfirm) subgui);
+            initGui();
+            return;
+        }
+        if (subgui instanceof SubGuiLoadTypeChoice) {
+            handleLoadTypeChoiceClosed((SubGuiLoadTypeChoice) subgui);
+            return;
+        }
+        if (subgui instanceof SubGuiChainSelect) {
+            handleChainSelectClosed((SubGuiChainSelect) subgui);
+            return;
+        }
+        if (subgui instanceof SubGuiAbilityConfig) {
+            handleAbilityConfigClosed();
+            return;
+        }
     }
 
     private void handleVariantSelectClosed(SubGuiAbilityVariantSelect gui) {

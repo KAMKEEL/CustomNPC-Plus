@@ -98,12 +98,16 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
         return PAGE_LISTINGS;
     }
 
-    /** Request listings from server */
+    /**
+     * Request listings from server
+     */
     private void requestListings() {
         AuctionActionPacket.requestListings(filter, currentPage);
     }
 
-    /** Update pagination button visibility based on current page state */
+    /**
+     * Update pagination button visibility based on current page state
+     */
     private void updatePaginationVisibility() {
         if (btnPageUp != null) {
             btnPageUp.setVisible(currentPage > 0);
@@ -193,7 +197,8 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
     }
 
     @Override
-    public void subGuiClosed(SubGuiInterface subgui) {}
+    public void subGuiClosed(SubGuiInterface subgui) {
+    }
 
     // ========== Data Handling ==========
 
@@ -294,6 +299,11 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
         // Block other slot interactions
     }
 
-    public AuctionFilter getFilter() { return filter; }
-    public ContainerAuctionListing getListingContainer() { return listingContainer; }
+    public AuctionFilter getFilter() {
+        return filter;
+    }
+
+    public ContainerAuctionListing getListingContainer() {
+        return listingContainer;
+    }
 }

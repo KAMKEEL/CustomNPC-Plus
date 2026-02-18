@@ -7,37 +7,35 @@ import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.data.Animation;
-import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
-import noppes.npcs.client.gui.builder.FieldDef;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import net.minecraft.entity.Entity;
 
 public abstract class Ability implements IAbility, IAbilityAction {
 
@@ -115,10 +113,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // TOGGLE CONFIGURATION (saved to NBT for custom abilities)
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Whether this ability is a toggle (ON/OFF) rather than a phased execution */
+    /**
+     * Whether this ability is a toggle (ON/OFF) rather than a phased execution
+     */
     protected boolean toggleable = false;
 
-    /** Whether the toggled-ON state ticks each game tick (e.g., Kaioken drains ki per tick) */
+    /**
+     * Whether the toggled-ON state ticks each game tick (e.g., Kaioken drains ki per tick)
+     */
     protected boolean hasActiveToggle = false;
 
     // Configurable potion effects
@@ -232,17 +234,20 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Called when this toggle ability is turned ON for an entity.
      * Override to apply effects (e.g., set a DBC flag, apply a buff).
      */
-    public void onToggleOn(EntityLivingBase caster) {}
+    public void onToggleOn(EntityLivingBase caster) {
+    }
 
     /**
      * Called when this toggle ability is turned OFF for an entity.
      * Override to remove effects (e.g., clear a DBC flag, remove a buff).
      */
-    public void onToggleOff(EntityLivingBase caster) {}
+    public void onToggleOff(EntityLivingBase caster) {
+    }
 
     /**
      * Called every tick while this toggle is active (only if hasActiveToggle is true).
      * Override for per-tick effects (e.g., ki drain for Kaioken).
+     *
      * @return true to keep the toggle active, false to auto-deactivate
      */
     public boolean onToggleTick(EntityLivingBase caster, int tickCount) {
@@ -252,6 +257,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     /**
      * Whether this ability is ready for auto-completion during burst overlap mode.
      * Override to delay auto-completion until all staggered projectiles have been fired.
+     *
      * @param activeTick the current tick within the ACTIVE phase
      */
     public boolean isReadyForBurstCompletion(int activeTick) {
@@ -554,27 +560,36 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 () -> this.getLockMovement().getDisplayKey(),
                 v -> {
                     for (LockMovementType t : LockMovementType.values()) {
-                        if (t.getDisplayKey().equals(v)) { this.setLockMovement(t); break; }
+                        if (t.getDisplayKey().equals(v)) {
+                            this.setLockMovement(t);
+                            break;
+                        }
                     }
                 })
-                .hover("ability.hover.lockMovement")
-                .tab("General"));
+            .hover("ability.hover.lockMovement")
+            .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.stringEnumField("ability.rotationMode", RotationMode.getDisplayKeys(),
-                () -> this.getRotationMode().getDisplayKey(),
-                v -> {
-                    for (RotationMode m : RotationMode.values()) {
-                        if (m.getDisplayKey().equals(v)) { this.setRotationMode(m); break; }
-                    }
-                })
+                    () -> this.getRotationMode().getDisplayKey(),
+                    v -> {
+                        for (RotationMode m : RotationMode.values()) {
+                            if (m.getDisplayKey().equals(v)) {
+                                this.setRotationMode(m);
+                                break;
+                            }
+                        }
+                    })
                 .hover("ability.hover.rotationMode"),
             FieldDef.stringEnumField("ability.rotationPhase", getRotationPhaseKeys(),
-                () -> this.getRotationPhase().getDisplayKey(),
-                v -> {
-                    for (LockMovementType t : LockMovementType.values()) {
-                        if (t.getDisplayKey().equals(v)) { this.setRotationPhase(t); break; }
-                    }
-                })
+                    () -> this.getRotationPhase().getDisplayKey(),
+                    v -> {
+                        for (LockMovementType t : LockMovementType.values()) {
+                            if (t.getDisplayKey().equals(v)) {
+                                this.setRotationPhase(t);
+                                break;
+                            }
+                        }
+                    })
                 .hover("ability.hover.rotationPhase")
                 .visibleWhen(() -> this.rotationMode != RotationMode.FREE)
         ).tab("General"));
@@ -617,15 +632,17 @@ public abstract class Ability implements IAbility, IAbilityAction {
                     allowedKeys[i] = allowed[i].name();
                 }
                 defs.add(FieldDef.stringEnumField("ability.targetingMode", allowedKeys,
-                    () -> this.getTargetingMode().name(),
-                    v -> {
-                        try { this.setTargetingMode(TargetingMode.valueOf(v)); }
-                        catch (Exception ignored) {}
-                    })
+                        () -> this.getTargetingMode().name(),
+                        v -> {
+                            try {
+                                this.setTargetingMode(TargetingMode.valueOf(v));
+                            } catch (Exception ignored) {
+                            }
+                        })
                     .tab("Target").hover("ability.hover.targeting"));
             } else {
                 defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
-                    this::getTargetingMode, this::setTargetingMode)
+                        this::getTargetingMode, this::setTargetingMode)
                     .tab("Target").hover("ability.hover.targeting"));
             }
         }
@@ -638,12 +655,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
             .tab("Effects"));
         defs.add(FieldDef.section("ability.section.animations").tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.windUpAnimation",
-            this::getWindUpAnimationId, this::setWindUpAnimationId,
-            this::getWindUpAnimationName, this::setWindUpAnimationName)
+                this::getWindUpAnimationId, this::setWindUpAnimationId,
+                this::getWindUpAnimationName, this::setWindUpAnimationName)
             .tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.activeAnimation",
-            this::getActiveAnimationId, this::setActiveAnimationId,
-            this::getActiveAnimationName, this::setActiveAnimationName)
+                this::getActiveAnimationId, this::setActiveAnimationId,
+                this::getActiveAnimationName, this::setActiveAnimationName)
             .tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.dazedAnimation",
                 this::getDazedAnimationId, this::setDazedAnimationId,
@@ -699,7 +716,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Create a telegraph instance for this ability.
      * Override for custom telegraph shapes.
      *
-     * @param caster    The caster
+     * @param caster The caster
      * @param target The target (for position calculation)
      * @return The telegraph instance, or null if no telegraph
      */
@@ -1514,6 +1531,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     /**
      * API method: Get lock movement type as integer.
+     *
      * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override
@@ -1523,6 +1541,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     /**
      * API method: Set lock movement type from integer.
+     *
      * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override
@@ -1532,6 +1551,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     /**
      * API method: Get rotation mode as integer.
+     *
      * @return 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
@@ -1541,6 +1561,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     /**
      * API method: Set rotation mode from integer.
+     *
      * @param type 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
@@ -1550,6 +1571,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     /**
      * API method: Get rotation phase as integer.
+     *
      * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override
@@ -1559,6 +1581,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     /**
      * API method: Set rotation phase from integer.
+     *
      * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override

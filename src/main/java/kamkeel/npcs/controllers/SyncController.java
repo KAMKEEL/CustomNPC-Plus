@@ -5,6 +5,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSyncAction;
@@ -39,8 +41,6 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
-import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 
 import java.io.IOException;
 import java.util.EnumMap;

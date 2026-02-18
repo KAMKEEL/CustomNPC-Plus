@@ -50,7 +50,7 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
     private int pendingSlot = -1;
     private PendingOp pendingOp = PendingOp.NONE;
 
-    private enum PendingOp { NONE, CANCEL, CLAIM }
+    private enum PendingOp {NONE, CANCEL, CLAIM}
 
     public GuiAuctionTrades(EntityNPCInterface npc, ContainerAuctionTrades container) {
         super(npc, container);
@@ -117,7 +117,9 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         }
     }
 
-    /** Handle click on pending operation slot */
+    /**
+     * Handle click on pending operation slot
+     */
     private void handlePendingClick(int mouseButton) {
         if (pendingOp == PendingOp.CANCEL && mouseButton == 1) {
             // Right-click confirms cancel
@@ -159,14 +161,18 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         }
     }
 
-    /** Set pending operation and hide slot item */
+    /**
+     * Set pending operation and hide slot item
+     */
     private void setPending(int slot, PendingOp op) {
         pendingSlot = slot;
         pendingOp = op;
         tradesContainer.setHiddenSlot(slot);
     }
 
-    /** Clear pending operation and restore slot */
+    /**
+     * Clear pending operation and restore slot
+     */
     private void clearPending() {
         if (pendingSlot >= 0) {
             tradesContainer.clearHiddenSlot();
@@ -175,13 +181,17 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         pendingOp = PendingOp.NONE;
     }
 
-    /** Play confirmation sound */
+    /**
+     * Play confirmation sound
+     */
     private void playConfirmSound() {
         mc.getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(
             new ResourceLocation("random.orb"), 1.0F));
     }
 
-    /** Get slot index at mouse position */
+    /**
+     * Get slot index at mouse position
+     */
     private int getSlotAt(int mouseX, int mouseY) {
         int relX = mouseX - guiLeft - GRID_X;
         int relY = mouseY - guiTop - GRID_Y;
@@ -239,7 +249,9 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         }
     }
 
-    /** Get tint color for slot based on contents */
+    /**
+     * Get tint color for slot based on contents
+     */
     private int getSlotTint(int slot) {
         AuctionListing listing = tradesContainer.getListingAt(slot);
         AuctionClaim claim = tradesContainer.getClaimAt(slot);
@@ -281,7 +293,9 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         }
     }
 
-    /** Draw tooltip for a trade slot */
+    /**
+     * Draw tooltip for a trade slot
+     */
     private void drawTradeTooltip(int slot, int x, int y) {
         List<String> tooltip = new ArrayList<>();
 

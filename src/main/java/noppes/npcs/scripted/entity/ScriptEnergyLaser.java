@@ -29,31 +29,77 @@ public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnerg
 
     // ==================== LASER-SPECIFIC ====================
 
-    public float getLaserWidth() { return entity.getLaserWidth(); }
-    public void setLaserWidth(float width) { entity.setLaserWidth(width); }
+    public float getLaserWidth() {
+        return entity.getLaserWidth();
+    }
 
-    public float getExpansionSpeed() { return entity.getExpansionSpeed(); }
-    public void setExpansionSpeed(float speed) { entity.setExpansionSpeed(speed); }
+    public void setLaserWidth(float width) {
+        entity.setLaserWidth(width);
+    }
 
-    public int getLingerTicks() { return entity.getLingerTicks(); }
-    public void setLingerTicks(int ticks) { entity.setLingerTicks(ticks); }
+    public float getExpansionSpeed() {
+        return entity.getExpansionSpeed();
+    }
 
-    public float getCurrentLength() { return entity.getCurrentLength(); }
-    public boolean isFullyExtended() { return entity.isFullyExtended(); }
+    public void setExpansionSpeed(float speed) {
+        entity.setExpansionSpeed(speed);
+    }
 
-    public double getDirX() { return entity.getDirX(); }
-    public double getDirY() { return entity.getDirY(); }
-    public double getDirZ() { return entity.getDirZ(); }
-    public void setDirection(double x, double y, double z) { entity.setDirection(x, y, z); }
+    public int getLingerTicks() {
+        return entity.getLingerTicks();
+    }
 
-    public double getEndX() { return entity.getEndX(); }
-    public double getEndY() { return entity.getEndY(); }
-    public double getEndZ() { return entity.getEndZ(); }
+    public void setLingerTicks(int ticks) {
+        entity.setLingerTicks(ticks);
+    }
 
-    public float getLingerAlpha() { return entity.getLingerAlpha(); }
+    public float getCurrentLength() {
+        return entity.getCurrentLength();
+    }
 
-    public boolean isLockVerticalDirection() { return entity.isLockVerticalDirection(); }
-    public void setLockVerticalDirection(boolean lock) { entity.setLockVerticalDirection(lock); }
+    public boolean isFullyExtended() {
+        return entity.isFullyExtended();
+    }
+
+    public double getDirX() {
+        return entity.getDirX();
+    }
+
+    public double getDirY() {
+        return entity.getDirY();
+    }
+
+    public double getDirZ() {
+        return entity.getDirZ();
+    }
+
+    public void setDirection(double x, double y, double z) {
+        entity.setDirection(x, y, z);
+    }
+
+    public double getEndX() {
+        return entity.getEndX();
+    }
+
+    public double getEndY() {
+        return entity.getEndY();
+    }
+
+    public double getEndZ() {
+        return entity.getEndZ();
+    }
+
+    public float getLingerAlpha() {
+        return entity.getLingerAlpha();
+    }
+
+    public boolean isLockVerticalDirection() {
+        return entity.isLockVerticalDirection();
+    }
+
+    public void setLockVerticalDirection(boolean lock) {
+        entity.setLockVerticalDirection(lock);
+    }
 
     // ==================== FIRE ====================
 

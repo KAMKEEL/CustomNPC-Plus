@@ -1,7 +1,7 @@
 package noppes.npcs;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
@@ -12,7 +12,12 @@ import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Shared base class for NPC and Player ability data management.
@@ -31,81 +36,119 @@ public abstract class AbstractDataAbilities {
     // SHARED RUNTIME STATE (not saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Currently executing ability (null if none) */
+    /**
+     * Currently executing ability (null if none)
+     */
     protected Ability currentAbility;
 
-    /** World time when cooldown ends */
+    /**
+     * World time when cooldown ends
+     */
     protected long cooldownEndTime = 0;
 
-    /** Rotation lock state */
+    /**
+     * Rotation lock state
+     */
     protected boolean rotationLocked = false;
     protected float lockedYaw = 0;
     protected float lockedPitch = 0;
 
-    /** Position lock state */
+    /**
+     * Position lock state
+     */
     protected boolean positionLocked = false;
     protected double lockedPosX = 0;
     protected double lockedPosY = 0;
     protected double lockedPosZ = 0;
 
-    /** Chained ability execution state */
+    /**
+     * Chained ability execution state
+     */
     protected ChainedAbility currentChain;
     protected int chainEntryIndex = -1;
     protected int chainDelayRemaining = -1;
 
-    /** Set when interrupt already rolled cooldown (prevents double cooldown on NPC dazed completion). */
+    /**
+     * Set when interrupt already rolled cooldown (prevents double cooldown on NPC dazed completion).
+     */
     protected boolean interruptCooldownRolled = false;
 
     // ═══════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS - Subclasses must implement
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Get the entity this ability data belongs to (NPC or Player). */
+    /**
+     * Get the entity this ability data belongs to (NPC or Player).
+     */
     protected abstract EntityLivingBase getEntity();
 
-    /** Get the current target for ability execution. */
+    /**
+     * Get the current target for ability execution.
+     */
     protected abstract EntityLivingBase getTarget();
 
-    /** Get the current world time. */
+    /**
+     * Get the current world time.
+     */
     protected abstract long getWorldTime();
 
     // -- Event Firing --
 
-    /** Fire tick event. Implementation differs between NPC (NpcAPI) and Player (ScriptController). */
+    /**
+     * Fire tick event. Implementation differs between NPC (NpcAPI) and Player (ScriptController).
+     */
     protected abstract void fireTickEvent(Ability ability, EntityLivingBase target);
 
-    /** Fire execute event. Returns true if cancelled. */
+    /**
+     * Fire execute event. Returns true if cancelled.
+     */
     protected abstract boolean fireExecuteEvent(Ability ability, EntityLivingBase target);
 
-    /** Fire complete event. */
+    /**
+     * Fire complete event.
+     */
     protected abstract void fireCompleteEvent(Ability ability, EntityLivingBase target);
 
-    /** Fire interrupt event. */
+    /**
+     * Fire interrupt event.
+     */
     protected abstract void fireInterruptEvent(Ability ability, EntityLivingBase target,
                                                DamageSource source, float damage);
 
     // -- Telegraph --
 
-    /** Spawn telegraphs for an ability. */
+    /**
+     * Spawn telegraphs for an ability.
+     */
     protected abstract void spawnTelegraph(Ability ability, EntityLivingBase target);
 
-    /** Remove telegraphs for an ability. */
+    /**
+     * Remove telegraphs for an ability.
+     */
     protected abstract void removeTelegraph(Ability ability);
 
     // -- Animation/Sound Data Access --
 
-    /** Set animation data on the entity. */
+    /**
+     * Set animation data on the entity.
+     */
     protected abstract void setAnimationData(Animation animation);
 
-    /** Clear animation data on the entity. */
+    /**
+     * Clear animation data on the entity.
+     */
     protected abstract void clearAnimationData();
 
-    /** Play a sound at the entity's location. */
+    /**
+     * Play a sound at the entity's location.
+     */
     protected abstract void playAbilitySound(String sound);
 
     // -- Rotation (subclass handles extra fields and application) --
 
-    /** Capture rotation values for locking. NPC captures 4 fields, Player captures 2. */
+    /**
+     * Capture rotation values for locking. NPC captures 4 fields, Player captures 2.
+     */
     protected abstract void captureLockedRotation();
 
     // -- Completion --
@@ -116,7 +159,9 @@ public abstract class AbstractDataAbilities {
      */
     protected abstract void rollCooldown(Ability ability);
 
-    /** Additional completion logic (NPC clears lastTarget, Player clears key/target and syncs). */
+    /**
+     * Additional completion logic (NPC clears lastTarget, Player clears key/target and syncs).
+     */
     protected abstract void onAbilityComplete();
 
     /**
@@ -128,17 +173,30 @@ public abstract class AbstractDataAbilities {
 
     // -- Hooks (optional overrides) --
 
-    /** Called before onExecute in ACTIVE phase. NPC uses this for faceTarget/hitScan. */
-    protected void onPreExecute(Ability ability, EntityLivingBase target) {}
+    /**
+     * Called before onExecute in ACTIVE phase. NPC uses this for faceTarget/hitScan.
+     */
+    protected void onPreExecute(Ability ability, EntityLivingBase target) {
+    }
 
-    /** Called after the phase switch. NPC uses this for hit scan updates and movement control. */
-    protected void onPostPhaseTick(Ability ability, EntityLivingBase target) {}
+    /**
+     * Called after the phase switch. NPC uses this for hit scan updates and movement control.
+     */
+    protected void onPostPhaseTick(Ability ability, EntityLivingBase target) {
+    }
 
-    /** Additional lock releases in BURST_DELAY. NPC releases hitScan. */
-    protected void onBurstDelayReleaseLocks() {}
+    /**
+     * Additional lock releases in BURST_DELAY. NPC releases hitScan.
+     */
+    protected void onBurstDelayReleaseLocks() {
+    }
 
-    /** Hook for retargeting during chain execution when target dies. NPC overrides, Player returns null. */
-    protected EntityLivingBase retargetForChain() { return null; }
+    /**
+     * Hook for retargeting during chain execution when target dies. NPC overrides, Player returns null.
+     */
+    protected EntityLivingBase retargetForChain() {
+        return null;
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // SHARED ANIMATION METHODS
@@ -178,22 +236,30 @@ public abstract class AbstractDataAbilities {
     // STATE QUERIES
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Check if an ability is currently executing. */
+    /**
+     * Check if an ability is currently executing.
+     */
     public boolean isExecutingAbility() {
         return currentAbility != null && currentAbility.isExecuting();
     }
 
-    /** Get the currently executing ability. */
+    /**
+     * Get the currently executing ability.
+     */
     public Ability getCurrentAbility() {
         return currentAbility;
     }
 
-    /** Check if a chained ability is currently executing. */
+    /**
+     * Check if a chained ability is currently executing.
+     */
     public boolean isExecutingChain() {
         return currentChain != null;
     }
 
-    /** Get the currently executing chained ability. */
+    /**
+     * Get the currently executing chained ability.
+     */
     public ChainedAbility getCurrentChain() {
         return currentChain;
     }
@@ -202,11 +268,14 @@ public abstract class AbstractDataAbilities {
     // TOGGLE STATE (active toggles, independent of currentAbility)
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Currently active toggles. Key = ability key, Value = toggle entry with tick counter. */
+    /**
+     * Currently active toggles. Key = ability key, Value = toggle entry with tick counter.
+     */
     protected Map<String, ToggleEntry> activeToggles = new LinkedHashMap<>();
 
     /**
      * Toggle an ability ON or OFF. If currently on, turns off; if off, turns on.
+     *
      * @param key The ability key (e.g., "npcdbc:ki_fist")
      * @return true if the toggle is now ON, false if OFF
      */
@@ -221,8 +290,9 @@ public abstract class AbstractDataAbilities {
 
     /**
      * Set a toggle to a specific state.
+     *
      * @param key The ability key
-     * @param on true to activate, false to deactivate
+     * @param on  true to activate, false to deactivate
      */
     public void setAbilityToggled(String key, boolean on) {
         if (on && !activeToggles.containsKey(key)) {
@@ -300,8 +370,11 @@ public abstract class AbstractDataAbilities {
         }
     }
 
-    /** Hook for subclass to react to toggle state changes (sync packets, script events). */
-    protected void onToggleStateChanged(String key, boolean active) {}
+    /**
+     * Hook for subclass to react to toggle state changes (sync packets, script events).
+     */
+    protected void onToggleStateChanged(String key, boolean active) {
+    }
 
     /**
      * Clear all active toggles (e.g., on death/reset).
@@ -336,23 +409,31 @@ public abstract class AbstractDataAbilities {
     // COOLDOWN MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Check if on cooldown. */
+    /**
+     * Check if on cooldown.
+     */
     public boolean isOnCooldown() {
         return getWorldTime() < cooldownEndTime;
     }
 
-    /** Get remaining cooldown ticks. */
+    /**
+     * Get remaining cooldown ticks.
+     */
     public long getRemainingCooldown() {
         long remaining = cooldownEndTime - getWorldTime();
         return remaining > 0 ? remaining : 0;
     }
 
-    /** Reset cooldown (allow immediate ability use). */
+    /**
+     * Reset cooldown (allow immediate ability use).
+     */
     public void resetCooldown() {
         cooldownEndTime = 0;
     }
 
-    /** Set the cooldown end time directly. */
+    /**
+     * Set the cooldown end time directly.
+     */
     public void setCooldownEndTime(long endTime) {
         cooldownEndTime = endTime;
     }
@@ -381,8 +462,11 @@ public abstract class AbstractDataAbilities {
         onPositionLockChanged(false);
     }
 
-    /** Hook for subclass to react to position lock state changes (e.g., NPC sets data watcher flag). */
-    protected void onPositionLockChanged(boolean locked) {}
+    /**
+     * Hook for subclass to react to position lock state changes (e.g., NPC sets data watcher flag).
+     */
+    protected void onPositionLockChanged(boolean locked) {
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // ROTATION LOCKING
@@ -396,8 +480,11 @@ public abstract class AbstractDataAbilities {
         onRotationLockChanged(false);
     }
 
-    /** Hook for subclass to react to rotation lock state changes (e.g., NPC sets flag, clears hitScan). */
-    protected void onRotationLockChanged(boolean locked) {}
+    /**
+     * Hook for subclass to react to rotation lock state changes (e.g., NPC sets flag, clears hitScan).
+     */
+    protected void onRotationLockChanged(boolean locked) {
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // CORE TICK - Phase transition logic shared between NPC and Player
@@ -441,7 +528,7 @@ public abstract class AbstractDataAbilities {
 
         // Fire extender tick hook (e.g., per-tick resource drain)
         if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, entity, target,
-                currentAbility.getPhase(), currentAbility.getCurrentTick())) {
+            currentAbility.getPhase(), currentAbility.getCurrentTick())) {
             interruptCurrentAbility(null, 0);
             return;
         }
@@ -711,7 +798,8 @@ public abstract class AbstractDataAbilities {
      * Hook called after interrupt completes. Subclass handles clearing state and syncing.
      * NPC: keeps currentAbility (ticks through DAZED). Player: clears immediately.
      */
-    protected void onInterruptComplete() {}
+    protected void onInterruptComplete() {
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // CHAINED ABILITY EXECUTION

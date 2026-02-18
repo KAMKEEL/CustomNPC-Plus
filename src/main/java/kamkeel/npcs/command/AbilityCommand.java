@@ -1,7 +1,7 @@
 package kamkeel.npcs.command;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import net.minecraft.command.ICommandSender;

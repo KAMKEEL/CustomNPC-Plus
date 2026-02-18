@@ -1,6 +1,12 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -293,14 +299,29 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
 
     // ==================== GETTERS ====================
 
-    public float getSliceWidth() { return sliceWidth; }
-    public void setSliceWidth(float width) { this.sliceWidth = width; }
+    public float getSliceWidth() {
+        return sliceWidth;
+    }
 
-    public float getSliceThickness() { return sliceThickness; }
-    public void setSliceThickness(float thickness) { this.sliceThickness = thickness; }
+    public void setSliceWidth(float width) {
+        this.sliceWidth = width;
+    }
 
-    public boolean isPiercing() { return piercing; }
-    public void setPiercing(boolean piercing) { this.piercing = piercing; }
+    public float getSliceThickness() {
+        return sliceThickness;
+    }
+
+    public void setSliceThickness(float thickness) {
+        this.sliceThickness = thickness;
+    }
+
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public void setPiercing(boolean piercing) {
+        this.piercing = piercing;
+    }
 
     // ==================== NBT ====================
 

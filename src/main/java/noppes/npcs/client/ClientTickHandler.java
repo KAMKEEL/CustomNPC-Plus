@@ -136,8 +136,8 @@ public class ClientTickHandler {
 
                     // Prevent jumping when locked (allow gravity only if not flying)
                     if ((ClientAbilityState.movementLocked || ClientAbilityState.positionLocked)
-                            && !ClientAbilityState.hasAbilityMovement
-                            && !AbilityController.Instance.isPlayerFlying(mc.thePlayer)) {
+                        && !ClientAbilityState.hasAbilityMovement
+                        && !AbilityController.Instance.isPlayerFlying(mc.thePlayer)) {
                         mc.thePlayer.motionY = Math.min(mc.thePlayer.motionY, 0);
                     }
                 }
@@ -226,7 +226,7 @@ public class ClientTickHandler {
             // Block movement keys during ability lock (only when no GUI is open and world exists).
             // Non-movement keys (ESC, chat, inventory, etc.) always pass through.
             if (mc.theWorld != null && mc.currentScreen == null && keyDown
-                    && ClientAbilityState.shouldSuppressMovementInput() && isMovementKey(key)) {
+                && ClientAbilityState.shouldSuppressMovementInput() && isMovementKey(key)) {
                 // Unpress the keybind so vanilla doesn't process it
                 KeyBinding.setKeyBindState(key, false);
                 return;

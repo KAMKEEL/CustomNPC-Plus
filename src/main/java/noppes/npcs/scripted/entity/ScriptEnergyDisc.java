@@ -29,22 +29,49 @@ public class ScriptEnergyDisc<T extends EntityAbilityDisc> extends ScriptEnergyP
 
     // ==================== DISC-SPECIFIC ====================
 
-    public float getDiscRadius() { return entity.getDiscRadius(); }
-    public void setDiscRadius(float radius) { entity.setDiscRadius(radius); }
+    public float getDiscRadius() {
+        return entity.getDiscRadius();
+    }
 
-    public float getDiscThickness() { return entity.getDiscThickness(); }
-    public void setDiscThickness(float thickness) { entity.setDiscThickness(thickness); }
+    public void setDiscRadius(float radius) {
+        entity.setDiscRadius(radius);
+    }
 
-    public boolean isVertical() { return entity.isVertical(); }
-    public void setVertical(boolean vertical) { entity.setVertical(vertical); }
+    public float getDiscThickness() {
+        return entity.getDiscThickness();
+    }
 
-    public boolean isBoomerang() { return entity.isBoomerang(); }
-    public void setBoomerang(boolean boomerang) { entity.setBoomerang(boomerang); }
+    public void setDiscThickness(float thickness) {
+        entity.setDiscThickness(thickness);
+    }
 
-    public int getBoomerangDelay() { return entity.getBoomerangDelay(); }
-    public void setBoomerangDelay(int ticks) { entity.setBoomerangDelay(ticks); }
+    public boolean isVertical() {
+        return entity.isVertical();
+    }
 
-    public boolean isReturning() { return entity.isReturning(); }
+    public void setVertical(boolean vertical) {
+        entity.setVertical(vertical);
+    }
+
+    public boolean isBoomerang() {
+        return entity.isBoomerang();
+    }
+
+    public void setBoomerang(boolean boomerang) {
+        entity.setBoomerang(boomerang);
+    }
+
+    public int getBoomerangDelay() {
+        return entity.getBoomerangDelay();
+    }
+
+    public void setBoomerangDelay(int ticks) {
+        entity.setBoomerangDelay(ticks);
+    }
+
+    public boolean isReturning() {
+        return entity.isReturning();
+    }
 
     // ==================== FIRE ====================
 

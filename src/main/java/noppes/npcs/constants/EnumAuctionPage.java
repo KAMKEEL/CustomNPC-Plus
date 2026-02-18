@@ -1,7 +1,5 @@
 package noppes.npcs.constants;
 
-import noppes.npcs.constants.EnumGuiType;
-
 /**
  * Enum for auction GUI page navigation.
  * Maps page indices to GUI types for packet-based navigation.

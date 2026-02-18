@@ -24,14 +24,17 @@ public class AbilityAction {
     private ChainedAbility inlineChain;
     private String referenceId;
 
-    /** Per-slot enabled override for reference slots (null = use master's default). */
+    /**
+     * Per-slot enabled override for reference slots (null = use master's default).
+     */
     private Boolean enabledOverride;
 
     // Cache
     private transient IAbilityAction cachedAction;
     private transient int cachedRevision = -1;
 
-    private AbilityAction() {}
+    private AbilityAction() {
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // FACTORY METHODS

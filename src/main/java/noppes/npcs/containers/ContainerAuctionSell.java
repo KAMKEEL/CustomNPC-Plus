@@ -27,9 +27,14 @@ public class ContainerAuctionSell extends ContainerAuction {
         // Sell slot blocks direct interaction
         addSlotToContainer(new Slot(sellInventory, 0, SELL_SLOT_X, SELL_SLOT_Y) {
             @Override
-            public boolean isItemValid(ItemStack stack) { return false; }
+            public boolean isItemValid(ItemStack stack) {
+                return false;
+            }
+
             @Override
-            public boolean canTakeStack(EntityPlayer player) { return false; }
+            public boolean canTakeStack(EntityPlayer player) {
+                return false;
+            }
         });
     }
 
@@ -44,8 +49,9 @@ public class ContainerAuctionSell extends ContainerAuction {
     /**
      * Add items from inventory to sell slot.
      * Not limited by inventory - just stages items for sale. Validation on submit.
+     *
      * @param sourceSlot Inventory slot index
-     * @param fullStack True=full stack, False=1 item
+     * @param fullStack  True=full stack, False=1 item
      */
     public void addToSellSlot(int sourceSlot, boolean fullStack) {
         if (!isPlayerInventorySlot(sourceSlot)) return;
@@ -78,6 +84,7 @@ public class ContainerAuctionSell extends ContainerAuction {
 
     /**
      * Remove items from sell slot.
+     *
      * @param removeAll True=clear slot, False=remove 1 item
      */
     public void removeFromSellSlot(boolean removeAll) {
@@ -91,12 +98,16 @@ public class ContainerAuctionSell extends ContainerAuction {
         }
     }
 
-    /** Check if sell slot is this container slot index */
+    /**
+     * Check if sell slot is this container slot index
+     */
     public boolean isSellSlot(int slotIndex) {
         return slotIndex == SELL_SLOT_INDEX;
     }
 
-    /** Check if two stacks match using NoppesUtilPlayer.compareItems (same item, damage, and NBT) */
+    /**
+     * Check if two stacks match using NoppesUtilPlayer.compareItems (same item, damage, and NBT)
+     */
     private boolean itemsMatch(ItemStack a, ItemStack b) {
         return NoppesUtilPlayer.compareItems(a, b, false, false);
     }

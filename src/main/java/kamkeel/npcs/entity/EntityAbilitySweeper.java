@@ -23,7 +23,7 @@ import java.util.Set;
  * Unlike other projectiles, this handles its own damage logic since it's
  * attached to and rotates around the caster.
  * Extends EntityEnergyAbility for shared visual/owner/charging state.
- *
+ * <p>
  * Design: Similar to Beam trail visuals but rotating around origin.
  */
 public class EntityAbilitySweeper extends EntityEnergyAbility {
@@ -65,11 +65,11 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
     }
 
     public EntityAbilitySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
-                                 float beamLength, float beamWidth, float beamHeight,
-                                 EnergyDisplayData displayData,
-                                 float sweepSpeed, int numberOfRotations,
-                                 float damage, int damageInterval, boolean piercing,
-                                 boolean lockOnTarget) {
+                                float beamLength, float beamWidth, float beamHeight,
+                                EnergyDisplayData displayData,
+                                float sweepSpeed, int numberOfRotations,
+                                float damage, int damageInterval, boolean piercing,
+                                boolean lockOnTarget) {
         this(world);
 
         this.ownerEntityId = owner.getEntityId();

@@ -1,15 +1,19 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
-import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.EventHooks;
 
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +22,7 @@ import java.util.Set;
 /**
  * Laser projectile - fast expanding thin line that pierces through multiple targets.
  * No homing, travels in a straight line from origin to max distance.
- *
+ * <p>
  * Design inspired by LouisXIV's energy attack system.
  */
 public class EntityAbilityLaser extends EntityEnergyProjectile {
@@ -246,8 +250,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             // Laser stops at block
             currentLength = (float) Math.sqrt(
                 (blockHit.hitVec.xCoord - startX) * (blockHit.hitVec.xCoord - startX) +
-                (blockHit.hitVec.yCoord - startY) * (blockHit.hitVec.yCoord - startY) +
-                (blockHit.hitVec.zCoord - startZ) * (blockHit.hitVec.zCoord - startZ)
+                    (blockHit.hitVec.yCoord - startY) * (blockHit.hitVec.yCoord - startY) +
+                    (blockHit.hitVec.zCoord - startZ) * (blockHit.hitVec.zCoord - startZ)
             );
             endX = blockHit.hitVec.xCoord;
             endY = blockHit.hitVec.yCoord;

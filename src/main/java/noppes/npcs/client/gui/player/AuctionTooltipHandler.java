@@ -12,20 +12,20 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.constants.EnumClaimType;
-import noppes.npcs.util.AuctionFormatUtil;
 import noppes.npcs.containers.ContainerAuctionListing;
 import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.containers.ContainerAuctionTrades;
 import noppes.npcs.containers.SlotAuctionDisplay;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionListing;
+import noppes.npcs.util.AuctionFormatUtil;
 
 import java.util.List;
 
 /**
  * Handles adding auction information to item tooltips when viewing auction GUIs.
  * Called from ItemTooltipEvent in ClientEventHandler.
- *
+ * <p>
  * Uses slot-based lookup (slot index) instead of ItemStack comparison to correctly
  * handle duplicate items with different auction data (e.g., two porkchops at different prices).
  */

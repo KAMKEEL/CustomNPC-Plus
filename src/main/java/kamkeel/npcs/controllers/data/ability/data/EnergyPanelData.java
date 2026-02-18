@@ -17,7 +17,8 @@ public class EnergyPanelData {
     public float launchDamage = 8.0f;
     public float launchKnockback = 2.0f;
 
-    public EnergyPanelData() {}
+    public EnergyPanelData() {
+    }
 
     public EnergyPanelData(float panelWidth, float panelHeight, float heightOffset) {
         this.panelWidth = panelWidth;
@@ -27,26 +28,61 @@ public class EnergyPanelData {
 
     // ==================== GETTERS & SETTERS ====================
 
-    public float getPanelWidth() { return panelWidth; }
-    public void setPanelWidth(float panelWidth) { this.panelWidth = Math.max(0.5f, panelWidth); }
+    public float getPanelWidth() {
+        return panelWidth;
+    }
 
-    public float getPanelHeight() { return panelHeight; }
-    public void setPanelHeight(float panelHeight) { this.panelHeight = Math.max(0.5f, panelHeight); }
+    public void setPanelWidth(float panelWidth) {
+        this.panelWidth = Math.max(0.5f, panelWidth);
+    }
 
-    public float getHeightOffset() { return heightOffset; }
-    public void setHeightOffset(float heightOffset) { this.heightOffset = heightOffset; }
+    public float getPanelHeight() {
+        return panelHeight;
+    }
 
-    public boolean isLaunching() { return launching; }
-    public void setLaunching(boolean launching) { this.launching = launching; }
+    public void setPanelHeight(float panelHeight) {
+        this.panelHeight = Math.max(0.5f, panelHeight);
+    }
 
-    public float getLaunchSpeed() { return launchSpeed; }
-    public void setLaunchSpeed(float launchSpeed) { this.launchSpeed = Math.max(0.1f, launchSpeed); }
+    public float getHeightOffset() {
+        return heightOffset;
+    }
 
-    public float getLaunchDamage() { return launchDamage; }
-    public void setLaunchDamage(float launchDamage) { this.launchDamage = Math.max(0, launchDamage); }
+    public void setHeightOffset(float heightOffset) {
+        this.heightOffset = heightOffset;
+    }
 
-    public float getLaunchKnockback() { return launchKnockback; }
-    public void setLaunchKnockback(float launchKnockback) { this.launchKnockback = Math.max(0, launchKnockback); }
+    public boolean isLaunching() {
+        return launching;
+    }
+
+    public void setLaunching(boolean launching) {
+        this.launching = launching;
+    }
+
+    public float getLaunchSpeed() {
+        return launchSpeed;
+    }
+
+    public void setLaunchSpeed(float launchSpeed) {
+        this.launchSpeed = Math.max(0.1f, launchSpeed);
+    }
+
+    public float getLaunchDamage() {
+        return launchDamage;
+    }
+
+    public void setLaunchDamage(float launchDamage) {
+        this.launchDamage = Math.max(0, launchDamage);
+    }
+
+    public float getLaunchKnockback() {
+        return launchKnockback;
+    }
+
+    public void setLaunchKnockback(float launchKnockback) {
+        this.launchKnockback = Math.max(0, launchKnockback);
+    }
 
     // ==================== NBT ====================
 

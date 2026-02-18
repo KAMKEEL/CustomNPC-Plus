@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import noppes.npcs.CustomNpcs;
@@ -23,12 +22,12 @@ import noppes.npcs.constants.EnumAuctionSort;
 import noppes.npcs.constants.EnumAuctionStatus;
 import noppes.npcs.constants.EnumClaimType;
 import noppes.npcs.constants.EnumNotificationType;
-import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.controllers.data.AuctionBlacklist;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.controllers.data.PlayerTradeData;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.player.AuctionEvent;
@@ -37,18 +36,23 @@ import noppes.npcs.util.CustomNPCsThreader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Main controller for the Auction system.
- *
+ * <p>
  * Thread Safety:
  * - Uses ConcurrentHashMap for all data stores - no locking required
  * - Claims are stored in PlayerData, not here - reduces contention
  * - Saves are performed asynchronously on the CNPC+ thread
- *
+ * <p>
  * Performance:
  * - Auction processing runs every 30 seconds (600 ticks)
  * - Save interval is every 30 seconds (600 ticks)
@@ -65,29 +69,41 @@ public class AuctionController implements IAuctionHandler {
     // Player Indices for O(1) Lookups
     // =========================================
 
-    /** Listings by seller UUID - for quick "my listings" lookups */
+    /**
+     * Listings by seller UUID - for quick "my listings" lookups
+     */
     private final Map<UUID, Set<String>> playerListingIds = new ConcurrentHashMap<>();
 
-    /** Listings where player is current high bidder */
+    /**
+     * Listings where player is current high bidder
+     */
     private final Map<UUID, Set<String>> playerBidIds = new ConcurrentHashMap<>();
 
-    /** Cached max trade slots per player - computed on login, cleared on logout */
+    /**
+     * Cached max trade slots per player - computed on login, cleared on logout
+     */
     private final Map<UUID, Integer> playerMaxTradesCache = new ConcurrentHashMap<>();
 
     // =========================================
     // Threading & State
     // =========================================
 
-    /** Flag indicating data needs to be saved */
+    /**
+     * Flag indicating data needs to be saved
+     */
     private final AtomicBoolean dirty = new AtomicBoolean(false);
 
-    /** Flag to prevent concurrent saves */
+    /**
+     * Flag to prevent concurrent saves
+     */
     private final AtomicBoolean saving = new AtomicBoolean(false);
 
     private String filePath = "";
     private int tickCounter = 0;
 
-    /** Process auctions and save every 30 seconds (600 ticks) */
+    /**
+     * Process auctions and save every 30 seconds (600 ticks)
+     */
     private static final int TICK_INTERVAL = 600;
 
     public AuctionController() {
@@ -375,7 +391,7 @@ public class AuctionController implements IAuctionHandler {
 
                 logAuction(EnumAuctionLogAction.CANCELLED, listing.sellerName, listing.item.getDisplayName(), listing.currentBid,
                     "Penalty: " + penalty + ", Bidder refunded: " + listing.highBidderName +
-                    (isAdmin ? ", Cancelled by admin: " + player.getCommandSenderName() : ""));
+                        (isAdmin ? ", Cancelled by admin: " + player.getCommandSenderName() : ""));
             } else {
                 // No bids - just return item
                 AuctionClaim itemClaim = AuctionClaim.createItemReturnedClaim(
@@ -1126,12 +1142,16 @@ public class AuctionController implements IAuctionHandler {
     // Save / Load - Async on CNPC+ Thread
     // =========================================
 
-    /** Mark data as dirty - will be saved on next save cycle */
+    /**
+     * Mark data as dirty - will be saved on next save cycle
+     */
     private void markDirty() {
         dirty.set(true);
     }
 
-    /** Save synchronously - used for server shutdown */
+    /**
+     * Save synchronously - used for server shutdown
+     */
     public void save() {
         if (!dirty.compareAndSet(true, false)) {
             return; // Nothing to save
@@ -1139,7 +1159,9 @@ public class AuctionController implements IAuctionHandler {
         saveInternal();
     }
 
-    /** Save asynchronously on CNPC+ thread */
+    /**
+     * Save asynchronously on CNPC+ thread
+     */
     public void saveAsync() {
         if (!dirty.compareAndSet(true, false)) {
             return; // Nothing to save
@@ -1167,7 +1189,9 @@ public class AuctionController implements IAuctionHandler {
         });
     }
 
-    /** Internal synchronous save */
+    /**
+     * Internal synchronous save
+     */
     private void saveInternal() {
         try {
             NBTTagCompound compound = writeToNBT(new NBTTagCompound());
@@ -1236,7 +1260,9 @@ public class AuctionController implements IAuctionHandler {
         }
     }
 
-    /** Rebuild all indices from loaded data */
+    /**
+     * Rebuild all indices from loaded data
+     */
     private void rebuildIndices() {
         playerListingIds.clear();
         playerBidIds.clear();
@@ -1460,8 +1486,8 @@ public class AuctionController implements IAuctionHandler {
         // Remove ended/cancelled listings (claims are in PlayerData now)
         listings.entrySet().removeIf(entry ->
             entry.getValue().status == EnumAuctionStatus.CLAIMED ||
-            entry.getValue().status == EnumAuctionStatus.ENDED ||
-            entry.getValue().status == EnumAuctionStatus.CANCELLED);
+                entry.getValue().status == EnumAuctionStatus.ENDED ||
+                entry.getValue().status == EnumAuctionStatus.CANCELLED);
 
         // Rebuild indices
         rebuildIndices();

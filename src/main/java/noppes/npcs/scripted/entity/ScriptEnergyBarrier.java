@@ -81,17 +81,37 @@ public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEn
 
     // ==================== BARRIER ====================
 
-    public float getDefaultMultiplier() { return entity.getBarrierData().defaultMultiplier; }
-    public void setDefaultMultiplier(float multiplier) { entity.getBarrierData().defaultMultiplier = multiplier; }
+    public float getDefaultMultiplier() {
+        return entity.getBarrierData().defaultMultiplier;
+    }
 
-    public boolean isKnockbackEnabled() { return entity.getBarrierData().knockbackEnabled; }
-    public void setKnockbackEnabled(boolean enabled) { entity.getBarrierData().knockbackEnabled = enabled; }
+    public void setDefaultMultiplier(float multiplier) {
+        entity.getBarrierData().defaultMultiplier = multiplier;
+    }
 
-    public float getKnockbackStrength() { return entity.getBarrierData().knockbackStrength; }
-    public void setKnockbackStrength(float strength) { entity.getBarrierData().knockbackStrength = strength; }
+    public boolean isKnockbackEnabled() {
+        return entity.getBarrierData().knockbackEnabled;
+    }
 
-    public int getKnockbackTarget() { return entity.getBarrierData().knockbackTarget; }
-    public void setKnockbackTarget(int target) { entity.getBarrierData().knockbackTarget = target; }
+    public void setKnockbackEnabled(boolean enabled) {
+        entity.getBarrierData().knockbackEnabled = enabled;
+    }
+
+    public float getKnockbackStrength() {
+        return entity.getBarrierData().knockbackStrength;
+    }
+
+    public void setKnockbackStrength(float strength) {
+        entity.getBarrierData().knockbackStrength = strength;
+    }
+
+    public int getKnockbackTarget() {
+        return entity.getBarrierData().knockbackTarget;
+    }
+
+    public void setKnockbackTarget(int target) {
+        entity.getBarrierData().knockbackTarget = target;
+    }
 
     public int getBarrierType() {
         return entity instanceof EntityEnergyDome ? 0 : 1;

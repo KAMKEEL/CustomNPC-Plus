@@ -29,31 +29,48 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
     private boolean enabled = true;
 
-    /** Weight for NPC weighted random selection. */
+    /**
+     * Weight for NPC weighted random selection.
+     */
     private int weight = 10;
 
-    /** Whether each ability in the chain uses its own windup phase. */
+    /**
+     * Whether each ability in the chain uses its own windup phase.
+     */
     private boolean windUpAll = true;
 
-    /** Chain-level cooldown in ticks (applied after entire chain completes). */
+    /**
+     * Chain-level cooldown in ticks (applied after entire chain completes).
+     */
     private int cooldownTicks = 100;
 
-    /** Minimum range for NPC eligibility check. */
+    /**
+     * Minimum range for NPC eligibility check.
+     */
     private float minRange = 0;
 
-    /** Maximum range for NPC eligibility check. */
+    /**
+     * Maximum range for NPC eligibility check.
+     */
     private float maxRange = 20;
 
-    /** Chain-level conditions (individual ability conditions are ignored). */
+    /**
+     * Chain-level conditions (individual ability conditions are ignored).
+     */
     private List<Condition> conditions = new ArrayList<>();
 
-    /** Ordered list of ability entries to execute. */
+    /**
+     * Ordered list of ability entries to execute.
+     */
     private List<ChainedAbilityEntry> entries = new ArrayList<>();
 
-    /** Extension data for external mods (e.g., icons, DBC stats). */
+    /**
+     * Extension data for external mods (e.g., icons, DBC stats).
+     */
     private NBTTagCompound customData = new NBTTagCompound();
 
-    public ChainedAbility() {}
+    public ChainedAbility() {
+    }
 
     public ChainedAbility(String name) {
         this.name = name != null ? name : "";

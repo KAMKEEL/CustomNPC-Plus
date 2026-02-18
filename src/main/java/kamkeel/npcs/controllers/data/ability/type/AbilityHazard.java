@@ -1,19 +1,15 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-
-
 import noppes.npcs.api.ability.type.IAbilityHazard;
-
 import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,20 +102,45 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         this.affectsCaster = nbt.getBoolean("affectsCaster");
     }
 
-    public float getRadius() { return radius; }
-    public void setRadius(float radius) { this.radius = radius; }
+    public float getRadius() {
+        return radius;
+    }
 
-    public float getDamagePerSecond() { return damagePerSecond; }
-    public void setDamagePerSecond(float damagePerSecond) { this.damagePerSecond = damagePerSecond; }
+    public void setRadius(float radius) {
+        this.radius = radius;
+    }
 
-    public int getDamageInterval() { return damageInterval; }
-    public void setDamageInterval(int damageInterval) { this.damageInterval = damageInterval; }
+    public float getDamagePerSecond() {
+        return damagePerSecond;
+    }
 
-    public boolean isIgnoreInvulnFrames() { return ignoreInvulnFrames; }
-    public void setIgnoreInvulnFrames(boolean ignoreInvulnFrames) { this.ignoreInvulnFrames = ignoreInvulnFrames; }
+    public void setDamagePerSecond(float damagePerSecond) {
+        this.damagePerSecond = damagePerSecond;
+    }
 
-    public boolean isAffectsCaster() { return affectsCaster; }
-    public void setAffectsCaster(boolean affectsCaster) { this.affectsCaster = affectsCaster; }
+    public int getDamageInterval() {
+        return damageInterval;
+    }
+
+    public void setDamageInterval(int damageInterval) {
+        this.damageInterval = damageInterval;
+    }
+
+    public boolean isIgnoreInvulnFrames() {
+        return ignoreInvulnFrames;
+    }
+
+    public void setIgnoreInvulnFrames(boolean ignoreInvulnFrames) {
+        this.ignoreInvulnFrames = ignoreInvulnFrames;
+    }
+
+    public boolean isAffectsCaster() {
+        return affectsCaster;
+    }
+
+    public void setAffectsCaster(boolean affectsCaster) {
+        this.affectsCaster = affectsCaster;
+    }
 
     @SideOnly(Side.CLIENT)
     @Override

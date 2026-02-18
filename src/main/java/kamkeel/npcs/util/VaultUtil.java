@@ -178,6 +178,7 @@ public class VaultUtil {
 
     /**
      * Checks if a player has an account in the economy system.
+     *
      * @param player the player to check
      * @return true if the player has an account
      */
@@ -187,6 +188,7 @@ public class VaultUtil {
 
     /**
      * Checks if a player has an account in the economy system.
+     *
      * @param playerName the player name to check
      * @return true if the player has an account
      */
@@ -207,6 +209,7 @@ public class VaultUtil {
 
     /**
      * Gets the balance of a player.
+     *
      * @param player the player
      * @return the player's balance, or 0 if not available
      */
@@ -216,6 +219,7 @@ public class VaultUtil {
 
     /**
      * Gets the balance of a player by name.
+     *
      * @param playerName the player name
      * @return the player's balance, or 0 if not available
      */
@@ -236,6 +240,7 @@ public class VaultUtil {
 
     /**
      * Checks if a player has at least the specified amount.
+     *
      * @param player the player
      * @param amount the amount to check
      * @return true if the player has at least the specified amount
@@ -246,8 +251,9 @@ public class VaultUtil {
 
     /**
      * Checks if a player has at least the specified amount.
+     *
      * @param playerName the player name
-     * @param amount the amount to check
+     * @param amount     the amount to check
      * @return true if the player has at least the specified amount
      */
     public static boolean has(String playerName, double amount) {
@@ -267,6 +273,7 @@ public class VaultUtil {
 
     /**
      * Withdraws money from a player's account.
+     *
      * @param player the player
      * @param amount the amount to withdraw
      * @return true if the transaction was successful
@@ -277,8 +284,9 @@ public class VaultUtil {
 
     /**
      * Withdraws money from a player's account.
+     *
      * @param playerName the player name
-     * @param amount the amount to withdraw
+     * @param amount     the amount to withdraw
      * @return true if the transaction was successful
      */
     public static boolean withdrawMoney(String playerName, double amount) {
@@ -301,6 +309,7 @@ public class VaultUtil {
 
     /**
      * Adds money to a player's account (deposit).
+     *
      * @param player the player
      * @param amount the amount to add
      * @return true if the transaction was successful
@@ -311,8 +320,9 @@ public class VaultUtil {
 
     /**
      * Adds money to a player's account (deposit).
+     *
      * @param playerName the player name
-     * @param amount the amount to add
+     * @param amount     the amount to add
      * @return true if the transaction was successful
      */
     public static boolean addMoney(String playerName, double amount) {
@@ -336,6 +346,7 @@ public class VaultUtil {
     /**
      * Sets a player's balance to the specified amount.
      * This withdraws all money first, then deposits the new amount.
+     *
      * @param player the player
      * @param amount the new balance
      * @return true if the transaction was successful
@@ -347,8 +358,9 @@ public class VaultUtil {
     /**
      * Sets a player's balance to the specified amount.
      * This withdraws all money first, then deposits the new amount.
+     *
      * @param playerName the player name
-     * @param amount the new balance
+     * @param amount     the new balance
      * @return true if the transaction was successful
      */
     public static boolean setBalance(String playerName, double amount) {
@@ -368,6 +380,7 @@ public class VaultUtil {
 
     /**
      * Formats an amount according to the economy plugin's settings.
+     *
      * @param amount the amount to format
      * @return the formatted string, or the raw number as string if not available
      */
@@ -384,6 +397,7 @@ public class VaultUtil {
 
     /**
      * Gets the plural currency name (e.g., "Dollars").
+     *
      * @return the plural currency name, or "coins" if not available
      */
     public static String getCurrencyNamePlural() {
@@ -399,6 +413,7 @@ public class VaultUtil {
 
     /**
      * Gets the singular currency name (e.g., "Dollar").
+     *
      * @return the singular currency name, or "coin" if not available
      */
     public static String getCurrencyNameSingular() {
@@ -414,6 +429,7 @@ public class VaultUtil {
 
     /**
      * Creates an account for the player if one doesn't exist.
+     *
      * @param player the player
      * @return true if the account was created or already exists
      */
@@ -423,6 +439,7 @@ public class VaultUtil {
 
     /**
      * Creates an account for the player if one doesn't exist.
+     *
      * @param playerName the player name
      * @return true if the account was created or already exists
      */
@@ -459,6 +476,7 @@ public class VaultUtil {
 
     /**
      * Gets a list of all bank names.
+     *
      * @return list of bank names, or empty list if not available
      */
     @SuppressWarnings("unchecked")
@@ -475,6 +493,7 @@ public class VaultUtil {
 
     /**
      * Gets the balance of a bank.
+     *
      * @param bankName the bank name
      * @return the bank balance, or 0 if not available
      */
@@ -492,8 +511,9 @@ public class VaultUtil {
 
     /**
      * Checks if a bank has at least the specified amount.
+     *
      * @param bankName the bank name
-     * @param amount the amount to check
+     * @param amount   the amount to check
      * @return true if the bank has at least the specified amount
      */
     public static boolean bankHas(String bankName, double amount) {
@@ -510,8 +530,9 @@ public class VaultUtil {
 
     /**
      * Withdraws money from a bank.
+     *
      * @param bankName the bank name
-     * @param amount the amount to withdraw
+     * @param amount   the amount to withdraw
      * @return true if the transaction was successful
      */
     public static boolean bankWithdraw(String bankName, double amount) {
@@ -528,8 +549,9 @@ public class VaultUtil {
 
     /**
      * Deposits money into a bank.
+     *
      * @param bankName the bank name
-     * @param amount the amount to deposit
+     * @param amount   the amount to deposit
      * @return true if the transaction was successful
      */
     public static boolean bankDeposit(String bankName, double amount) {
@@ -546,8 +568,9 @@ public class VaultUtil {
 
     /**
      * Transfers money from one player to another.
-     * @param from the player to take money from
-     * @param to the player to give money to
+     *
+     * @param from   the player to take money from
+     * @param to     the player to give money to
      * @param amount the amount to transfer
      * @return true if the transfer was successful
      */
@@ -557,9 +580,10 @@ public class VaultUtil {
 
     /**
      * Transfers money from one player to another.
+     *
      * @param fromPlayerName the player name to take money from
-     * @param toPlayerName the player name to give money to
-     * @param amount the amount to transfer
+     * @param toPlayerName   the player name to give money to
+     * @param amount         the amount to transfer
      * @return true if the transfer was successful
      */
     public static boolean transfer(String fromPlayerName, String toPlayerName, double amount) {

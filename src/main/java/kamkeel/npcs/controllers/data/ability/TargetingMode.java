@@ -27,11 +27,16 @@ public enum TargetingMode {
     @Override
     public String toString() {
         switch (this) {
-            case AGGRO_TARGET: return "ability.target.aggro_target";
-            case SELF: return "ability.target.self";
-            case AOE_SELF: return "ability.target.aoe_self";
-            case AOE_TARGET: return "ability.target.aoe_target";
-            default: return name();
+            case AGGRO_TARGET:
+                return "ability.target.aggro_target";
+            case SELF:
+                return "ability.target.self";
+            case AOE_SELF:
+                return "ability.target.aoe_self";
+            case AOE_TARGET:
+                return "ability.target.aoe_target";
+            default:
+                return name();
         }
     }
 }

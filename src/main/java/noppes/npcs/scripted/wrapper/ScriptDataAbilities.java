@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.wrapper;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.DataAbilities;

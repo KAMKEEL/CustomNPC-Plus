@@ -3,10 +3,10 @@ package noppes.npcs.scripted.entity;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IEntityLivingBase;
-import noppes.npcs.EventHooks;
 import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends ScriptEnergyAbility<T> implements IEnergyProjectile {
@@ -67,74 +67,171 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
 
     // ==================== DISPLAY (PROJECTILE-SPECIFIC) ====================
 
-    public float getRotationSpeed() { return entity.getRotationSpeed(); }
-    public void setRotationSpeed(float speed) { entity.setRotationSpeed(speed); }
+    public float getRotationSpeed() {
+        return entity.getRotationSpeed();
+    }
+
+    public void setRotationSpeed(float speed) {
+        entity.setRotationSpeed(speed);
+    }
 
     // ==================== INTERPOLATION ====================
 
-    public float getInterpolatedRotationX(float partialTicks) { return entity.getInterpolatedRotationX(partialTicks); }
-    public float getInterpolatedRotationY(float partialTicks) { return entity.getInterpolatedRotationY(partialTicks); }
-    public float getInterpolatedRotationZ(float partialTicks) { return entity.getInterpolatedRotationZ(partialTicks); }
-    public float getInterpolatedSize(float partialTicks) { return entity.getInterpolatedSize(partialTicks); }
+    public float getInterpolatedRotationX(float partialTicks) {
+        return entity.getInterpolatedRotationX(partialTicks);
+    }
+
+    public float getInterpolatedRotationY(float partialTicks) {
+        return entity.getInterpolatedRotationY(partialTicks);
+    }
+
+    public float getInterpolatedRotationZ(float partialTicks) {
+        return entity.getInterpolatedRotationZ(partialTicks);
+    }
+
+    public float getInterpolatedSize(float partialTicks) {
+        return entity.getInterpolatedSize(partialTicks);
+    }
 
     // ==================== LIFESPAN ====================
 
-    public float getMaxDistance() { return entity.getMaxDistance(); }
-    public void setMaxDistance(float distance) { entity.setMaxDistance(distance); }
+    public float getMaxDistance() {
+        return entity.getMaxDistance();
+    }
 
-    public int getMaxLifetime() { return entity.getMaxLifetime(); }
-    public void setMaxLifetime(int ticks) { entity.setMaxLifetime(ticks); }
+    public void setMaxDistance(float distance) {
+        entity.setMaxDistance(distance);
+    }
+
+    public int getMaxLifetime() {
+        return entity.getMaxLifetime();
+    }
+
+    public void setMaxLifetime(int ticks) {
+        entity.setMaxLifetime(ticks);
+    }
 
     // ==================== COMBAT ====================
 
-    public float getDamage() { return entity.getDamage(); }
-    public void setDamage(float damage) { entity.setCombatDamage(damage); }
+    public float getDamage() {
+        return entity.getDamage();
+    }
 
-    public float getKnockback() { return entity.getKnockback(); }
-    public void setKnockback(float knockback) { entity.setCombatKnockback(knockback); }
+    public void setDamage(float damage) {
+        entity.setCombatDamage(damage);
+    }
 
-    public float getKnockbackUp() { return entity.getKnockbackUp(); }
-    public void setKnockbackUp(float knockbackUp) { entity.setCombatKnockbackUp(knockbackUp); }
+    public float getKnockback() {
+        return entity.getKnockback();
+    }
 
-    public boolean isExplosive() { return entity.isExplosive(); }
-    public void setExplosive(boolean explosive) { entity.setExplosive(explosive); }
+    public void setKnockback(float knockback) {
+        entity.setCombatKnockback(knockback);
+    }
 
-    public float getExplosionRadius() { return entity.getExplosionRadius(); }
-    public void setExplosionRadius(float radius) { entity.setExplosionRadius(radius); }
+    public float getKnockbackUp() {
+        return entity.getKnockbackUp();
+    }
 
-    public float getExplosionDamageFalloff() { return entity.getExplosionDamageFalloff(); }
-    public void setExplosionDamageFalloff(float falloff) { entity.setExplosionDamageFalloff(falloff); }
+    public void setKnockbackUp(float knockbackUp) {
+        entity.setCombatKnockbackUp(knockbackUp);
+    }
+
+    public boolean isExplosive() {
+        return entity.isExplosive();
+    }
+
+    public void setExplosive(boolean explosive) {
+        entity.setExplosive(explosive);
+    }
+
+    public float getExplosionRadius() {
+        return entity.getExplosionRadius();
+    }
+
+    public void setExplosionRadius(float radius) {
+        entity.setExplosionRadius(radius);
+    }
+
+    public float getExplosionDamageFalloff() {
+        return entity.getExplosionDamageFalloff();
+    }
+
+    public void setExplosionDamageFalloff(float falloff) {
+        entity.setExplosionDamageFalloff(falloff);
+    }
 
     // ==================== MOVEMENT ====================
 
-    public float getSpeed() { return entity.getSpeed(); }
-    public void setSpeed(float speed) { entity.setSpeed(speed); }
+    public float getSpeed() {
+        return entity.getSpeed();
+    }
 
-    public boolean isHoming() { return entity.isHoming(); }
-    public void setHoming(boolean homing) { entity.setHomingEnabled(homing); }
+    public void setSpeed(float speed) {
+        entity.setSpeed(speed);
+    }
 
-    public float getHomingStrength() { return entity.getHomingStrength(); }
-    public void setHomingStrength(float strength) { entity.setHomingStrength(strength); }
+    public boolean isHoming() {
+        return entity.isHoming();
+    }
 
-    public float getHomingRange() { return entity.getHomingRange(); }
-    public void setHomingRange(float range) { entity.setHomingRange(range); }
+    public void setHoming(boolean homing) {
+        entity.setHomingEnabled(homing);
+    }
+
+    public float getHomingStrength() {
+        return entity.getHomingStrength();
+    }
+
+    public void setHomingStrength(float strength) {
+        entity.setHomingStrength(strength);
+    }
+
+    public float getHomingRange() {
+        return entity.getHomingRange();
+    }
+
+    public void setHomingRange(float range) {
+        entity.setHomingRange(range);
+    }
 
     // ==================== ANCHOR ====================
 
-    public int getAnchor() { return entity.getAnchor(); }
-    public float getAnchorOffsetX() { return entity.getAnchorOffsetX(); }
-    public float getAnchorOffsetY() { return entity.getAnchorOffsetY(); }
-    public float getAnchorOffsetZ() { return entity.getAnchorOffsetZ(); }
+    public int getAnchor() {
+        return entity.getAnchor();
+    }
+
+    public float getAnchorOffsetX() {
+        return entity.getAnchorOffsetX();
+    }
+
+    public float getAnchorOffsetY() {
+        return entity.getAnchorOffsetY();
+    }
+
+    public float getAnchorOffsetZ() {
+        return entity.getAnchorOffsetZ();
+    }
 
     // ==================== POSITION ====================
 
-    public double getStartX() { return entity.getStartX(); }
-    public double getStartY() { return entity.getStartY(); }
-    public double getStartZ() { return entity.getStartZ(); }
+    public double getStartX() {
+        return entity.getStartX();
+    }
+
+    public double getStartY() {
+        return entity.getStartY();
+    }
+
+    public double getStartZ() {
+        return entity.getStartZ();
+    }
 
     // ==================== STATE ====================
 
-    public boolean hasHit() { return entity.getHasHit(); }
+    public boolean hasHit() {
+        return entity.getHasHit();
+    }
 
     // ==================== FIRE ====================
 

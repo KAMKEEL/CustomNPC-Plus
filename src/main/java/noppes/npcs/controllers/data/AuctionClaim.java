@@ -33,7 +33,9 @@ public class AuctionClaim implements IAuctionClaim {
         this.otherPlayerName = "";
     }
 
-    /** Create claim for winning an item (buyer won auction or buyout) */
+    /**
+     * Create claim for winning an item (buyer won auction or buyout)
+     */
     public static AuctionClaim createItemWonClaim(UUID playerUUID, String playerName, String listingId, ItemStack item) {
         AuctionClaim claim = new AuctionClaim();
         claim.playerUUID = playerUUID;
@@ -46,7 +48,9 @@ public class AuctionClaim implements IAuctionClaim {
         return claim;
     }
 
-    /** Create claim for returned item (seller's expired/cancelled listing) */
+    /**
+     * Create claim for returned item (seller's expired/cancelled listing)
+     */
     public static AuctionClaim createItemReturnedClaim(UUID playerUUID, String playerName, String listingId, ItemStack item) {
         AuctionClaim claim = new AuctionClaim();
         claim.playerUUID = playerUUID;
@@ -59,7 +63,9 @@ public class AuctionClaim implements IAuctionClaim {
         return claim;
     }
 
-    /** Create claim for seller's proceeds (stores item name for tooltip, not full item) */
+    /**
+     * Create claim for seller's proceeds (stores item name for tooltip, not full item)
+     */
     public static AuctionClaim createCurrencyClaim(UUID playerUUID, String playerName, String listingId, long currency, String itemName, String buyerName) {
         AuctionClaim claim = new AuctionClaim();
         claim.playerUUID = playerUUID;
@@ -74,7 +80,9 @@ public class AuctionClaim implements IAuctionClaim {
         return claim;
     }
 
-    /** Create claim for outbid refund (stores item for display and rebid option) */
+    /**
+     * Create claim for outbid refund (stores item for display and rebid option)
+     */
     public static AuctionClaim createRefundClaim(UUID playerUUID, String playerName, String listingId, long currency, String itemName, String outbidderName, ItemStack item) {
         AuctionClaim claim = new AuctionClaim();
         claim.playerUUID = playerUUID;

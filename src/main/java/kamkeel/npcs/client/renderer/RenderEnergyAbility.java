@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL12;
 /**
  * Base renderer for ability projectiles.
  * Provides common GL state setup and rendering utilities.
- *
+ * <p>
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
@@ -212,8 +212,8 @@ public abstract class RenderEnergyAbility extends Render {
      * Render a line segment as a quad billboard facing the camera.
      */
     protected void renderLineSegment(double x1, double y1, double z1,
-                                      double x2, double y2, double z2,
-                                      float width, int color, float alpha) {
+                                     double x2, double y2, double z2,
+                                     float width, int color, float alpha) {
         float[] rgb = extractRGB(color);
         float r = rgb[0], g = rgb[1], b = rgb[2];
 
@@ -270,9 +270,10 @@ public abstract class RenderEnergyAbility extends Render {
 
     /**
      * Render attached lightning arcs around an energy entity.
-     * @param entity the energy entity
+     *
+     * @param entity     the energy entity
      * @param innerScale multiplier for inner radius (e.g. 0.3f for projectiles, 0.95f for dome)
-     * @param baseSize the entity's current render size/scale
+     * @param baseSize   the entity's current render size/scale
      */
     protected void renderAttachedLightning(EntityEnergyAbility entity, float innerScale, float baseSize) {
         AttachedLightningRenderer.LightningState state = getLightningState(entity);

@@ -10,7 +10,6 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityEnergyDome;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -111,11 +110,21 @@ public class AbilityDome extends AbilityEnergyBarrier {
 
     // ==================== GETTERS & SETTERS ====================
 
-    public float getDomeRadius() { return domeRadius; }
-    public void setDomeRadius(float radius) { this.domeRadius = Math.max(1.0f, radius); }
+    public float getDomeRadius() {
+        return domeRadius;
+    }
 
-    public boolean isFollowCaster() { return followCaster; }
-    public void setFollowCaster(boolean follow) { this.followCaster = follow; }
+    public void setDomeRadius(float radius) {
+        this.domeRadius = Math.max(1.0f, radius);
+    }
+
+    public boolean isFollowCaster() {
+        return followCaster;
+    }
+
+    public void setFollowCaster(boolean follow) {
+        this.followCaster = follow;
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 
