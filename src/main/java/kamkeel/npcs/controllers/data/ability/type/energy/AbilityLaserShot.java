@@ -40,7 +40,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f),
             new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f),
             new EnergyHomingData(),
-            new EnergyLifespanData(40.0f, 100)
+            new EnergyLifespanData(150.0f, 100)
         );
         this.typeId = "ability.cnpc.laser_shot";
         this.name = "Laser Shot";

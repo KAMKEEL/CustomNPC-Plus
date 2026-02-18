@@ -37,7 +37,7 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
             new EnergyDisplayData(0xFF4444, 0xFF0000, true, 0.2f, 0.6f, 0.0f),
             new EnergyCombatData(12.0f, 0.5f, 0.0f, false, 3.0f, 0.5f),
             new EnergyHomingData(0.8f, false, 0.0f, 0.0f),
-            new EnergyLifespanData(40.0f, 100)
+            new EnergyLifespanData(150.0f, 100)
         );
         this.typeId = "ability.cnpc.slicer";
         this.name = "Slicer";

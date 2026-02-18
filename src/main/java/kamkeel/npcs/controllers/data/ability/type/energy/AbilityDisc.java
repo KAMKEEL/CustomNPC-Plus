@@ -40,7 +40,7 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
             new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
             new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f),
             new EnergyHomingData(0.6f, true, 0.12f, 18.0f),
-            new EnergyLifespanData(35.0f, 200)
+            new EnergyLifespanData(150.0f, 200)
         );
         this.typeId = "ability.cnpc.disc";
         this.name = "Disc";

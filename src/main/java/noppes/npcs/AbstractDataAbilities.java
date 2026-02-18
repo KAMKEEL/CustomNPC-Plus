@@ -861,8 +861,8 @@ public abstract class AbstractDataAbilities {
             return false;
         }
 
-        // If windUpAll=false, force windup to 0 (skip individual windups)
-        if (!currentChain.isWindUpAll()) {
+        // If windUpAll=false, only the first ability windups; subsequent abilities skip windup
+        if (!currentChain.isWindUpAll() && chainEntryIndex > 0) {
             ability.setWindUpTicks(0);
         }
 

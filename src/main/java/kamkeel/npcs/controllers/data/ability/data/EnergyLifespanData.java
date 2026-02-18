@@ -8,7 +8,7 @@ import noppes.npcs.api.ability.data.IEnergyLifespanData;
  * Used as a parameter object for entity constructors and ability configuration.
  */
 public class EnergyLifespanData implements IEnergyLifespanData {
-    public float maxDistance = 30.0f;
+    public float maxDistance = 150.0f;
     public int maxLifetime = 200;
 
     public EnergyLifespanData() {

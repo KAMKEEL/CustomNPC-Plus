@@ -38,7 +38,7 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
             new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
             new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f),
             new EnergyHomingData(0.4f, true, 0.1f, 15.0f),
-            new EnergyLifespanData(25.0f, 200)
+            new EnergyLifespanData(150.0f, 200)
         );
         this.typeId = "ability.cnpc.beam";
         this.name = "Beam";

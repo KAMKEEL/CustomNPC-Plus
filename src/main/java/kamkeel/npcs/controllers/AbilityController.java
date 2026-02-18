@@ -653,10 +653,17 @@ public class AbilityController implements IAbilityHandler {
         Ability builtIn = builtAbilities.get(key);
         if (builtIn != null) return builtIn.deepCopy();
 
-        // Built-in: case-insensitive name
+        // Built-in: case-insensitive map key
         for (Map.Entry<String, Ability> entry : builtAbilities.entrySet()) {
             if (entry.getKey().equalsIgnoreCase(key)) {
                 return entry.getValue().deepCopy();
+            }
+        }
+
+        // Built-in: by ability name (name may differ from map key, e.g. "Ki Fist" vs "ki_fist")
+        for (Ability ability : builtAbilities.values()) {
+            if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) {
+                return ability.deepCopy();
             }
         }
 
