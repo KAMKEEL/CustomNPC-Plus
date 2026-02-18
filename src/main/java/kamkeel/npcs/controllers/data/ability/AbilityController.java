@@ -2,6 +2,15 @@ package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.data.ability.type.*;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityBeam;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDisc;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDome;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityLaserShot;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityOrb;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityShield;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySlicer;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySweeper;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityWall;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
@@ -15,6 +24,7 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 public class AbilityController implements IAbilityHandler {
 
@@ -30,6 +40,11 @@ public class AbilityController implements IAbilityHandler {
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
     private final List<IAbilityExtender> extenders = new ArrayList<>();
     private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
+
+    // ── Legacy Migration ─────────────────────────────────────────────────────
+    private static final Pattern UUID_PATTERN =
+        Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+            Pattern.CASE_INSENSITIVE);
 
     // ── Derived State ────────────────────────────────────────────────────────
     private final Set<String> builtInTypeIds = new HashSet<>();
@@ -99,6 +114,11 @@ public class AbilityController implements IAbilityHandler {
 
         registerType("cnpc:hazard", AbilityHazard::new);
         registerType("cnpc:trap", AbilityTrap::new);
+
+        registerType("cnpc:dome", AbilityDome::new);
+        registerType("cnpc:wall", AbilityWall::new);
+        registerType("cnpc:shield", AbilityShield::new);
+        registerType("cnpc:slicer", AbilitySlicer::new);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -142,6 +162,7 @@ public class AbilityController implements IAbilityHandler {
 
     public void load() {
         customAbilities.clear();
+        int migrated = 0;
 
         File dir = getDir();
         File[] files = dir.exists() ? dir.listFiles() : null;
@@ -150,14 +171,39 @@ public class AbilityController implements IAbilityHandler {
                 if (!file.isFile() || !file.getName().endsWith(".json")) continue;
                 try {
                     String filename = file.getName();
-                    String uuid = filename.substring(0, filename.length() - 5);
+                    String key = filename.substring(0, filename.length() - 5);
 
                     NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
                     Ability ability = fromNBT(nbt);
-                    if (ability != null) {
-                        ability.setId(uuid);
-                        customAbilities.put(uuid, ability);
+                    if (ability == null) continue;
+
+                    // Legacy migration: UUID-named files get renamed to name-based
+                    if (UUID_PATTERN.matcher(key).matches()) {
+                        String name = ability.getName();
+                        if (name == null || name.isEmpty()) {
+                            name = key; // Fallback to UUID if no name stored
+                        }
+
+                        // Ensure unique name
+                        while (hasCustomAbilityName(name) || nameFileExists(dir, name)) {
+                            name = name + "_";
+                        }
+                        ability.setName(name);
+
+                        // Rename file from UUID.json to name.json
+                        File newFile = new File(dir, name + ".json");
+                        if (file.renameTo(newFile)) {
+                            LogWriter.info("Migrated ability file: " + key + ".json -> " + name + ".json");
+                        } else {
+                            LogWriter.error("Failed to rename ability file: " + key + ".json -> " + name + ".json");
+                        }
+
+                        key = name;
+                        migrated++;
                     }
+
+                    ability.setId(key);
+                    customAbilities.put(key, ability);
                 } catch (Exception e) {
                     LogWriter.error("Error loading custom ability: " + file.getAbsolutePath(), e);
                 }
@@ -165,21 +211,57 @@ public class AbilityController implements IAbilityHandler {
         }
 
         customAbilityRevision++;
+        if (migrated > 0) {
+            LogWriter.info("Migrated " + migrated + " UUID-named abilities to name-based files");
+        }
         LogWriter.info("Loaded " + customAbilities.size() + " custom abilities");
+    }
+
+    private boolean nameFileExists(File dir, String name) {
+        return new File(dir, name + ".json").exists();
     }
 
     public boolean saveCustomAbility(Ability ability) {
         if (ability == null) return false;
 
-        String uuid = ability.getId();
-        if (uuid == null || uuid.isEmpty()) {
-            uuid = UUID.randomUUID().toString();
-            ability.setId(uuid);
+        String name = ability.getName();
+        if (name == null || name.isEmpty()) return false;
+
+        // Ensure unique name for new abilities (no existing id)
+        String oldName = ability.getId();
+        boolean isNew = oldName == null || oldName.isEmpty();
+        if (isNew) {
+            while (hasCustomAbilityName(name)) {
+                name = name + "_";
+            }
+            ability.setName(name);
         }
 
+        // Handle rename: old id (previous name) differs from current name
+        if (!isNew && !oldName.equals(name)) {
+            // Check uniqueness of new name (excluding the entry being renamed)
+            String testName = name;
+            while (customAbilities.containsKey(testName) && !testName.equals(oldName)) {
+                testName = testName + "_";
+            }
+            if (!testName.equals(name)) {
+                name = testName;
+                ability.setName(name);
+            }
+
+            // Delete old file and remove old map entry
+            File oldFile = new File(getDir(), oldName + ".json");
+            if (oldFile.exists()) {
+                oldFile.delete();
+            }
+            customAbilities.remove(oldName);
+        }
+
+        ability.setId(name);
+
         File dir = getDir();
-        File fileNew = new File(dir, uuid + ".json_new");
-        File fileCurrent = new File(dir, uuid + ".json");
+        File fileNew = new File(dir, name + ".json_new");
+        File fileCurrent = new File(dir, name + ".json");
 
         try {
             NBTTagCompound nbt = ability.writeNBT();
@@ -193,50 +275,41 @@ public class AbilityController implements IAbilityHandler {
                 fileNew.delete();
             }
 
-            customAbilities.put(uuid, ability);
+            customAbilities.put(name, ability);
             customAbilityRevision++;
-            LogWriter.info("Saved custom ability: " + ability.getName() + " [" + uuid + "]");
+            LogWriter.info("Saved custom ability: " + name);
             SyncController.syncAllCustomAbilities();
             return true;
         } catch (Exception e) {
-            LogWriter.error("Error saving custom ability: " + uuid, e);
+            LogWriter.error("Error saving custom ability: " + name, e);
             return false;
         }
     }
 
-    public boolean deleteCustomAbility(String uuid) {
-        if (uuid == null || uuid.isEmpty()) return false;
+    public boolean deleteCustomAbility(String name) {
+        if (name == null || name.isEmpty()) return false;
 
-        Ability removed = customAbilities.remove(uuid);
+        Ability removed = customAbilities.remove(name);
         if (removed == null) return false;
 
         File dir = getDir();
-        File file = new File(dir, uuid + ".json");
+        File file = new File(dir, name + ".json");
         if (file.exists()) {
             file.delete();
         }
 
         customAbilityRevision++;
-        LogWriter.info("Deleted custom ability: " + uuid);
+        LogWriter.info("Deleted custom ability: " + name);
         SyncController.syncAllCustomAbilities();
         return true;
     }
 
-    public Ability getCustomAbility(String uuid) {
-        return customAbilities.get(uuid);
+    public Ability getCustomAbility(String name) {
+        return customAbilities.get(name);
     }
 
-    public boolean hasCustomAbility(String uuid) {
-        return customAbilities.containsKey(uuid);
-    }
-
-    public Set<String> getCustomAbilityIds() {
+    public Set<String> getCustomAbilityNames() {
         return new LinkedHashSet<>(customAbilities.keySet());
-    }
-
-    public String getCustomAbilityName(String uuid) {
-        Ability a = customAbilities.get(uuid);
-        return a != null ? a.getName() : null;
     }
 
     public Map<String, Ability> getCustomAbilities() {
@@ -286,7 +359,7 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
-        // Custom: exact UUID
+        // Custom: exact name
         Ability custom = customAbilities.get(key);
         if (custom != null) return custom.deepCopy();
 
@@ -308,7 +381,7 @@ public class AbilityController implements IAbilityHandler {
                 keys.add(id);
             }
         }
-        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        // Custom abilities keyed by name
         for (Ability ability : customAbilities.values()) {
             String name = ability.getName();
             if (name != null && !name.isEmpty()) {
@@ -328,7 +401,7 @@ public class AbilityController implements IAbilityHandler {
                 }
             }
         }
-        // Use ability names for custom abilities (instead of UUIDs) for readable tab completion
+        // Custom abilities keyed by name
         for (Ability ability : customAbilities.values()) {
             if (ability.getAllowedBy().allowsPlayer()) {
                 String name = ability.getName();
@@ -364,7 +437,7 @@ public class AbilityController implements IAbilityHandler {
             if (ability.getId() != null && ability.getId().equalsIgnoreCase(key)) return true;
         }
 
-        // Custom: exact UUID
+        // Custom: exact name
         if (customAbilities.containsKey(key)) return true;
 
         // Custom: case-insensitive name
@@ -497,6 +570,33 @@ public class AbilityController implements IAbilityHandler {
         return abilityTypes.containsKey(typeId);
     }
 
+    public boolean isAllowedByPlayer(String typeId) {
+        if (abilityTypes.containsKey(typeId)) {
+            Ability temp = abilityTypes.get(typeId).get();
+            return temp.getAllowedBy() == UserType.PLAYER_ONLY;
+        }
+
+        return false;
+    }
+
+    public boolean isAllowedByNPC(String typeId) {
+        if (abilityTypes.containsKey(typeId)) {
+            Ability temp = abilityTypes.get(typeId).get();
+            return temp.getAllowedBy() == UserType.NPC_ONLY;
+        }
+
+        return false;
+    }
+
+    public boolean isAllowedByBoth(String typeId) {
+        if (abilityTypes.containsKey(typeId)) {
+            Ability temp = abilityTypes.get(typeId).get();
+            return temp.getAllowedBy() == UserType.BOTH;
+        }
+
+        return false;
+    }
+
     @Override
     public String[] getAbilityNameArray() {
         return builtAbilities.keySet().toArray(new String[0]);
@@ -508,17 +608,17 @@ public class AbilityController implements IAbilityHandler {
     }
 
     @Override
-    public String[] getCustomAbilityIdArray() {
+    public String[] getCustomAbilityNameArray() {
         return customAbilities.keySet().toArray(new String[0]);
     }
 
     @Override
-    public boolean hasCustomAbilityId(String uuid) {
-        return customAbilities.containsKey(uuid);
+    public boolean hasCustomAbilityName(String name) {
+        return customAbilities.containsKey(name);
     }
 
     @Override
-    public boolean deleteCustomAbilityById(String uuid) {
-        return deleteCustomAbility(uuid);
+    public boolean deleteCustomAbilityByName(String name) {
+        return deleteCustomAbility(name);
     }
 }

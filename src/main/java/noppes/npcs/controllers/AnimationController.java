@@ -1,5 +1,6 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.util.Register;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -28,11 +29,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
@@ -45,14 +42,15 @@ public class AnimationController implements IAnimationHandler {
     private static final String BUILTIN_ANIMATIONS_PATH = "/assets/customnpcs/animations";
     private static final String BUILTIN_ANIMATIONS_RESOURCE = "assets/customnpcs/animations";
 
-    public static AnimationController Instance;
+    public static AnimationController Instance = new AnimationController();
     private int lastUsedID = 0;
+
+    public LinkedHashMap<String, Register.Animations> registeredAnimations = new LinkedHashMap<>();
 
     public AnimationController() {
         Instance = this;
         bootOrder = new HashMap<>();
         animations = new HashMap<>();
-        load();
     }
 
     public static AnimationController getInstance() {
@@ -65,6 +63,7 @@ public class AnimationController implements IAnimationHandler {
         builtInAnimations = new HashMap<>();
         LogWriter.info("Loading animations...");
         loadBuiltInAnimations();
+        loadRegisteredBuiltIns();
         readAnimationMap();
         loadAnimations();
         LogWriter.info("Done loading animations.");
@@ -124,6 +123,7 @@ public class AnimationController implements IAnimationHandler {
         String resourcePath = path + "/" + animName + ".json";
         try (InputStream stream = modClass.getResourceAsStream(resourcePath)) {
             if (stream == null) {
+                LogWriter.error("Animation not found: " + animName.toLowerCase());
                 return;
             }
 
@@ -144,6 +144,7 @@ public class AnimationController implements IAnimationHandler {
 
             // Store with lowercase key for case-insensitive lookup
             builtInAnimations.put(animName.toLowerCase(), animation);
+            LogWriter.info("Registered animation: " + animName.toLowerCase());
         }
     }
 
@@ -197,6 +198,16 @@ public class AnimationController implements IAnimationHandler {
         }
 
         saveAnimationMap();
+    }
+
+    public void addAnimationRegister(String namespace, Register.Animations register) {
+        registeredAnimations.put(namespace, register);
+    }
+
+    private void loadRegisteredBuiltIns() {
+        for (Register.Animations register : registeredAnimations.values()) {
+            register.register();
+        }
     }
 
     private File getDir() {

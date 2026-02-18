@@ -33,7 +33,7 @@ public class AbilitySlot {
     }
 
     /**
-     * Create a slot that references a built-in ability (by name) or custom ability (by UUID).
+     * Create a slot that references a built-in ability (by name) or custom ability (by name).
      */
     public static AbilitySlot reference(String referenceId) {
         AbilitySlot slot = new AbilitySlot();

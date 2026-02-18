@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data.ability.type;
+package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -23,7 +23,7 @@ import java.util.List;
  * Supports 1-8 projectiles with shared visuals and per-projectile anchor points.
  * Has optional boomerang behavior to return to owner.
  */
-public class AbilityDisc extends AbstractEnergyProjectileAbility<EntityAbilityDisc> implements IAbilityDisc {
+public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> implements IAbilityDisc {
 
     private float discRadius = 1.0f;
     private float discThickness = 0.2f;

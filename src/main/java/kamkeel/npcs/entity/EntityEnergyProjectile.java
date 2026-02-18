@@ -1,14 +1,10 @@
 package kamkeel.npcs.entity;
 
-import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-
 import kamkeel.npcs.controllers.data.ability.data.*;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
@@ -23,6 +19,9 @@ import net.minecraft.world.World;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.controllers.PartyController;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 
@@ -35,20 +34,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base class for all ability projectiles (Orb, Disc, Beam, Laser).
- * Provides common functionality for visuals, combat, effects, and interpolation.
+ * Base class for all ability projectiles (Orb, Disc, Beam, Laser, Slicer).
+ * Provides common functionality for combat, effects, homing, and interpolation.
+ * Extends EntityEnergyAbility for shared visual/owner/charging state.
  *
  * Design inspired by LouisXIV's energy attack system.
  */
-public abstract class EntityAbilityProjectile extends Entity implements IEntityAdditionalSpawnData {
+public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== ACTIVE PROJECTILE TRACKING ====================
-    private static final Map<Integer, List<WeakReference<EntityAbilityProjectile>>> activeProjectiles = new HashMap<>();
+    private static final Map<Integer, List<WeakReference<EntityEnergyProjectile>>> activeProjectiles = new HashMap<>();
 
-    public static void trackProjectile(EntityAbilityProjectile projectile) {
+    public static void trackProjectile(EntityEnergyProjectile projectile) {
         int ownerId = projectile.getOwnerEntityId();
         if (ownerId < 0) return;
-        List<WeakReference<EntityAbilityProjectile>> refs = activeProjectiles.get(ownerId);
+        List<WeakReference<EntityEnergyProjectile>> refs = activeProjectiles.get(ownerId);
         if (refs == null) {
             refs = new ArrayList<>();
             activeProjectiles.put(ownerId, refs);
@@ -56,13 +56,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         refs.add(new WeakReference<>(projectile));
     }
 
-    public static List<EntityAbilityProjectile> getActiveProjectiles(int ownerEntityId) {
-        List<WeakReference<EntityAbilityProjectile>> refs = activeProjectiles.get(ownerEntityId);
+    public static List<EntityEnergyProjectile> getActiveProjectiles(int ownerEntityId) {
+        List<WeakReference<EntityEnergyProjectile>> refs = activeProjectiles.get(ownerEntityId);
         if (refs == null) return Collections.emptyList();
-        List<EntityAbilityProjectile> result = new ArrayList<>();
-        Iterator<WeakReference<EntityAbilityProjectile>> it = refs.iterator();
+        List<EntityEnergyProjectile> result = new ArrayList<>();
+        Iterator<WeakReference<EntityEnergyProjectile>> it = refs.iterator();
         while (it.hasNext()) {
-            EntityAbilityProjectile p = it.next().get();
+            EntityEnergyProjectile p = it.next().get();
             if (p == null || p.isDead) {
                 it.remove();
             } else {
@@ -80,17 +80,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected EnergyCombatData combatData = new EnergyCombatData();
 
     // ==================== EFFECT PROPERTIES ====================
-    protected List<AbilityEffect> effects = new ArrayList<>();
-
-    // ==================== LIGHTNING EFFECT PROPERTIES ====================
-    protected EnergyLightningData lightningData = new EnergyLightningData();
-
-    // Client-side lightning state (not saved to NBT)
-    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
-    public transient Object lightningState; // Actually AttachedLightningRenderer.LightningState
-
-    // ==================== DISPLAY PROPERTIES ====================
-    protected EnergyDisplayData displayData = new EnergyDisplayData();
+    protected List<AbilityPotionEffect> effects = new ArrayList<>();
 
     // ==================== ANCHOR PROPERTIES ====================
     protected EnergyAnchorData anchorData = new EnergyAnchorData(AnchorPoint.FRONT);
@@ -108,23 +98,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     // ==================== TRACKING ====================
     protected double startX, startY, startZ;
-    protected int ownerEntityId = -1;
     protected int targetEntityId = -1;
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
-    protected boolean previewMode = false; // Client-side preview mode (no damage/effects)
-    protected EntityLivingBase previewOwner = null; // Direct reference for GUI preview (no world lookup)
 
-    /** The ability that spawned this projectile. Transient, not saved to NBT. */
-    protected transient Ability sourceAbility = null;
-
-    // ==================== CHARGING STATE ====================
-    protected boolean charging = false;
-    protected int chargeDuration = 40;
-    protected int chargeTick = 0;
+    // ==================== CHARGING STATE (projectile-specific) ====================
     protected float targetSize = 1.0f;
-    protected static final int DW_CHARGING = 20;
 
     // ==================== ROTATION INTERPOLATION ====================
     public float prevRotationValX, prevRotationValY, prevRotationValZ;
@@ -139,12 +119,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     protected double interpTargetMotionX, interpTargetMotionY, interpTargetMotionZ;
     protected int interpSteps;
 
-    public EntityAbilityProjectile(World world) {
+    public EntityEnergyProjectile(World world) {
         super(world);
         this.setSize(0.5f, 0.5f);
         this.noClip = false;
-        this.isImmuneToFire = true;
-        this.ignoreFrustumCheck = true;
     }
 
     /**
@@ -178,21 +156,11 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     }
 
     @Override
-    protected void entityInit() {
-        this.dataWatcher.addObject(DW_CHARGING, (byte) 0);
-    }
-
-    @Override
     @SideOnly(Side.CLIENT)
     public boolean isInRangeToRenderDist(double distance) {
         double d1 = this.boundingBox.getAverageEdgeLength() * 4.0D;
         d1 *= 128.0D;
         return distance < d1 * d1;
-    }
-
-    @Override
-    public boolean shouldRenderInPass(int pass) {
-        return pass == 1; // Translucent pass
     }
 
     @Override
@@ -242,7 +210,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             }
 
             // Set death time on first tick if not already set (handles chunk load/unload)
-            if (deathWorldTime < 0 && worldObj != null) {
+            // Skip during charging phase - lifetime starts when the entity actually fires
+            if (deathWorldTime < 0 && worldObj != null && !isCharging()) {
                 deathWorldTime = worldObj.getTotalWorldTime() + getMaxLifetime();
             }
 
@@ -267,6 +236,13 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             if (hasHit) {
                 this.setDead();
                 return;
+            }
+        }
+
+        // Check barrier collisions (server-side, non-preview, non-charging)
+        if (!previewMode && !worldObj.isRemote && !isCharging()) {
+            if (checkBarrierCollision()) {
+                return; // Projectile was absorbed by a barrier
             }
         }
 
@@ -310,6 +286,37 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      */
     protected abstract void updateProjectile();
 
+    // ==================== BARRIER COLLISION ====================
+
+    /**
+     * Check for collision with energy barrier entities.
+     * Barriers only block incoming projectiles from enemies.
+     * @return true if projectile was absorbed (caller should stop processing)
+     */
+    protected boolean checkBarrierCollision() {
+        // Search area for barriers - must cover large domes (up to 30 radius)
+        double searchRange = 32.0;
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+            posX - searchRange, posY - searchRange, posZ - searchRange,
+            posX + searchRange, posY + searchRange, posZ + searchRange
+        );
+
+        @SuppressWarnings("unchecked")
+        List<EntityEnergyBarrier> barriers = worldObj.getEntitiesWithinAABB(EntityEnergyBarrier.class, searchBox);
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier.isDead) continue;
+            if (barrier.isIncomingProjectile(this)) {
+                if (barrier.onProjectileHit(this, getDamage())) {
+                    hasHit = true;
+                    this.setDead();
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     // ==================== POSITION INTERPOLATION ====================
 
     @Override
@@ -351,23 +358,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
             this.posZ += this.motionZ;
             this.setPosition(this.posX, this.posY, this.posZ);
         }
-    }
-
-    // ==================== PREVIEW MODE ====================
-
-    /**
-     * Set preview mode for GUI display.
-     * In preview mode, no damage or world effects are applied.
-     */
-    public void setPreviewMode(boolean preview) {
-        this.previewMode = preview;
-    }
-
-    /**
-     * Check if entity is in preview mode.
-     */
-    public boolean isPreviewMode() {
-        return previewMode;
     }
 
     // ==================== DAMAGE & EFFECTS ====================
@@ -430,7 +420,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     }
 
     protected void applyEffects(EntityLivingBase target) {
-        for (AbilityEffect effect : effects) {
+        for (AbilityPotionEffect effect : effects) {
             effect.apply(target);
         }
     }
@@ -438,23 +428,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     /**
      * Set the effects list from the ability's configured effects.
      */
-    public void setEffects(List<AbilityEffect> effects) {
+    public void setEffects(List<AbilityPotionEffect> effects) {
         this.effects = effects != null ? effects : new ArrayList<>();
-    }
-
-    /**
-     * Set the source ability that spawned this projectile.
-     * Used by external damage handlers to access ability-specific data.
-     */
-    public void setSourceAbility(Ability ability) {
-        this.sourceAbility = ability;
-    }
-
-    /**
-     * Get the source ability that spawned this projectile.
-     */
-    public Ability getSourceAbility() {
-        return sourceAbility;
     }
 
     protected void doExplosion() {
@@ -513,38 +488,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         prevPosZ = newZ;
     }
 
-    // ==================== CHARGING METHODS ====================
-
-    /**
-     * Check if entity is in charging state (synced via data watcher).
-     * In preview mode, uses local field since data watcher isn't synced.
-     */
-    public boolean isCharging() {
-        if (previewMode) return this.charging;
-        return this.dataWatcher.getWatchableObjectByte(DW_CHARGING) == 1;
-    }
-
-    /**
-     * Set charging state (server only, synced to clients via data watcher).
-     */
-    protected void setCharging(boolean value) {
-        this.charging = value;
-        if (!worldObj.isRemote) {
-            this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));
-        }
-    }
-
-    public float getChargeProgress() {
-        if (chargeDuration <= 0) return 1.0f;
-        return Math.min(1.0f, (float) chargeTick / chargeDuration);
-    }
-
-    public float getInterpolatedChargeProgress(float partialTicks) {
-        if (chargeDuration <= 0) return 1.0f;
-        float prevProgress = Math.max(0, (float) (chargeTick - 1) / chargeDuration);
-        float currProgress = Math.min(1.0f, (float) chargeTick / chargeDuration);
-        return prevProgress + (currProgress - prevProgress) * partialTicks;
-    }
+    // ==================== CHARGING METHODS (projectile-specific) ====================
 
     /**
      * Setup this entity in charging mode (for windup phase).
@@ -677,35 +621,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     // ==================== ENTITY HELPERS ====================
 
-    public Entity getOwnerEntity() {
-        // In preview mode, use direct reference (no world lookup)
-        if (previewMode && previewOwner != null) {
-            return previewOwner;
-        }
-        if (ownerEntityId == -1) return null;
-        return worldObj.getEntityByID(ownerEntityId);
-    }
-
-    public int getOwnerEntityId() {
-        return ownerEntityId;
-    }
-
-    public void setOwnerEntityId(int id) {
-        this.ownerEntityId = id;
-    }
-
     public IEntity getOwner() {
         if (previewMode) return null;
         if (getOwnerEntity() == null) return null;
         return NpcAPI.Instance().getIEntity(getOwnerEntity());
-    }
-
-    /**
-     * Set the preview owner for GUI preview mode.
-     * This allows anchor point calculations without world entity lookup.
-     */
-    public void setPreviewOwner(EntityLivingBase owner) {
-        this.previewOwner = owner;
     }
 
     public int getTargetEntityId() {
@@ -728,22 +647,48 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     /**
      * Check if an entity should be ignored for collision.
-     * Ignores: the owner, same-faction NPCs, and other projectiles from the same caster.
+     * Ignores: the owner, same-faction NPCs, passive NPCs, NPCs friendly to player owner,
+     * party members (if friendly fire is off), and other projectiles from the same caster.
      */
     protected boolean shouldIgnoreEntity(Entity entity) {
         Entity owner = getOwnerEntity();
         if (entity == owner) return true;
 
-        if (owner instanceof EntityNPCInterface && entity instanceof EntityNPCInterface) {
-            EntityNPCInterface ownerNpc = (EntityNPCInterface) owner;
-            EntityNPCInterface targetNpc = (EntityNPCInterface) entity;
-            if (ownerNpc.faction.id == targetNpc.faction.id) return true;
+        // Ignore other projectiles from the same caster (e.g. multi-projectile abilities)
+        if (entity instanceof EntityEnergyProjectile) {
+            EntityEnergyProjectile other = (EntityEnergyProjectile) entity;
+            if (other.ownerEntityId == this.ownerEntityId) return true;
         }
 
-        // Ignore other projectiles from the same caster (e.g. multi-projectile abilities)
-        if (entity instanceof EntityAbilityProjectile) {
-            EntityAbilityProjectile other = (EntityAbilityProjectile) entity;
-            if (other.ownerEntityId == this.ownerEntityId) return true;
+        // NPC target checks
+        if (entity instanceof EntityNPCInterface) {
+            EntityNPCInterface targetNpc = (EntityNPCInterface) entity;
+
+            // Ignore passive NPCs
+            if (targetNpc.faction.isPassive) return true;
+
+            // NPC owner: ignore same-faction NPCs
+            if (owner instanceof EntityNPCInterface) {
+                EntityNPCInterface ownerNpc = (EntityNPCInterface) owner;
+                if (ownerNpc.faction.id == targetNpc.faction.id) return true;
+            }
+
+            // Player owner: ignore NPCs whose faction is friendly to the player
+            if (owner instanceof EntityPlayer) {
+                if (targetNpc.faction.isFriendlyToPlayer((EntityPlayer) owner)) return true;
+            }
+        }
+
+        // Party friendly fire check: player owner hitting another player
+        if (owner instanceof EntityPlayer && entity instanceof EntityPlayer) {
+            EntityPlayer ownerPlayer = (EntityPlayer) owner;
+            EntityPlayer targetPlayer = (EntityPlayer) entity;
+            PlayerData ownerData = PlayerData.get(ownerPlayer);
+            PlayerData targetData = PlayerData.get(targetPlayer);
+            if (ownerData.partyUUID != null && ownerData.partyUUID.equals(targetData.partyUUID)) {
+                Party party = PartyController.Instance().getParty(ownerData.partyUUID);
+                if (party != null && !party.friendlyFire()) return true;
+            }
         }
 
         return false;
@@ -768,24 +713,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.startZ = z;
     }
 
-    public int getInnerColor() { return displayData.getInnerColor(); }
-    public void setInnerColor(int color) { displayData.setInnerColor(color); }
-
-    public int getOuterColor() { return displayData.getOuterColor(); }
-    public void setOuterColor(int color) { displayData.setOuterColor(color); }
-
-    public boolean isOuterColorEnabled() { return displayData.isOuterColorEnabled(); }
-    public void setOuterColorEnabled(boolean enabled) { displayData.setOuterColorEnabled(enabled); }
-
-    public float getOuterColorWidth() { return displayData.getOuterColorWidth(); }
-    public void setOuterColorWidth(float width) { displayData.setOuterColorWidth(width); }
-
-    public float getOuterColorAlpha() { return displayData.getOuterColorAlpha(); }
-    public void setOuterColorAlpha(float alpha) { displayData.setOuterColorAlpha(alpha); }
-
-    public float getRotationSpeed() { return displayData.getRotationSpeed(); }
-    public void setRotationSpeed(float speed) { displayData.setRotationSpeed(speed); }
-
     // ==================== ROTATION GETTERS ====================
 
     public float getInterpolatedRotationX(float partialTicks) {
@@ -803,20 +730,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
     public float getInterpolatedSize(float partialTicks) {
         return this.prevRenderSize + (this.renderCurrentSize - this.prevRenderSize) * partialTicks;
     }
-
-    // ==================== LIGHTNING GETTERS & SETTERS ====================
-
-    public boolean hasLightningEffect() { return lightningData.isLightningEffect(); }
-    public void setLightningEffect(boolean enabled) { lightningData.setLightningEffect(enabled); }
-
-    public float getLightningDensity() { return lightningData.getLightningDensity(); }
-    public void setLightningDensity(float density) { lightningData.setLightningDensity(density); }
-
-    public float getLightningRadius() { return lightningData.getLightningRadius(); }
-    public void setLightningRadius(float radius) { lightningData.setLightningRadius(radius); }
-
-    public int getLightningFadeTime() { return lightningData.getLightningFadeTime(); }
-    public void setLightningFadeTime(int ticks) { lightningData.setLightningFadeTime(ticks); }
 
     // ==================== LIFESPAN GETTERS & SETTERS ====================
 
@@ -879,19 +792,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
     public boolean getHasHit() { return hasHit; }
 
-    // ==================== BRIGHTNESS ====================
-
-    @Override
-    public float getBrightness(float partialTicks) {
-        return 1.0f;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public int getBrightnessForRender(float partialTicks) {
-        return 0xF000F0;
-    }
-
     // ==================== NBT ====================
 
     @Override
@@ -910,6 +810,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      * Read base projectile properties from NBT.
      */
     protected void readBaseNBT(NBTTagCompound nbt) {
+        readEnergyBaseNBT(nbt);
+
         this.size = nbt.getFloat("Size");
 
         // Read effects list
@@ -917,7 +819,7 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         if (nbt.hasKey("Effects")) {
             NBTTagList effectsList = nbt.getTagList("Effects", 10); // 10 = compound tag
             for (int i = 0; i < effectsList.tagCount(); i++) {
-                effects.add(AbilityEffect.fromNBT(effectsList.getCompoundTagAt(i)));
+                effects.add(AbilityPotionEffect.fromNBT(effectsList.getCompoundTagAt(i)));
             }
         }
 
@@ -927,7 +829,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         this.startY = nbt.getDouble("StartY");
         this.startZ = nbt.getDouble("StartZ");
 
-        this.ownerEntityId = nbt.getInteger("OwnerId");
         this.targetEntityId = nbt.getInteger("TargetId");
 
         this.motionX = nbt.getDouble("MotionX");
@@ -941,10 +842,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         anchorData.readNBT(nbt);
         combatData.readNBT(nbt);
-        displayData.readNBT(nbt);
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
-        lightningData.readNBT(nbt);
         trajectoryData.readNBT(nbt);
     }
 
@@ -952,12 +851,14 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      * Write base projectile properties to NBT.
      */
     protected void writeBaseNBT(NBTTagCompound nbt) {
+        writeEnergyBaseNBT(nbt);
+
         nbt.setFloat("Size", size);
 
         // Write effects list
         if (!effects.isEmpty()) {
             NBTTagList effectsList = new NBTTagList();
-            for (AbilityEffect effect : effects) {
+            for (AbilityPotionEffect effect : effects) {
                 effectsList.appendTag(effect.writeNBT());
             }
             nbt.setTag("Effects", effectsList);
@@ -969,7 +870,6 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
         nbt.setDouble("StartY", startY);
         nbt.setDouble("StartZ", startZ);
 
-        nbt.setInteger("OwnerId", ownerEntityId);
         nbt.setInteger("TargetId", targetEntityId);
 
         nbt.setDouble("MotionX", motionX);
@@ -978,10 +878,8 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
 
         anchorData.writeNBT(nbt);
         combatData.writeNBT(nbt);
-        displayData.writeNBT(nbt);
         homingData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
         trajectoryData.writeNBT(nbt);
     }
 
@@ -995,55 +893,10 @@ public abstract class EntityAbilityProjectile extends Entity implements IEntityA
      */
     protected abstract void writeProjectileNBT(NBTTagCompound nbt);
 
-    // ==================== SPAWN DATA ====================
-
-    @Override
-    public void writeSpawnData(ByteBuf buffer) {
-        try {
-            NBTTagCompound compound = new NBTTagCompound();
-            this.writeEntityToNBT(compound);
-            cpw.mods.fml.common.network.ByteBufUtils.writeTag(buffer, compound);
-        } catch (Exception e) {
-            noppes.npcs.LogWriter.error("Error writing ability projectile spawn data", e);
-        }
-    }
-
-    @Override
-    public void readSpawnData(ByteBuf buffer) {
-        try {
-            NBTTagCompound compound = cpw.mods.fml.common.network.ByteBufUtils.readTag(buffer);
-            if (compound != null) {
-                this.readEntityFromNBT(compound);
-            }
-        } catch (Exception e) {
-            noppes.npcs.LogWriter.error("Error reading ability projectile spawn data", e);
-        }
-    }
-
     // ==================== COLLISION SETTINGS ====================
 
     @Override
     public boolean canBeCollidedWith() {
         return false;
-    }
-
-    @Override
-    public boolean canBePushed() {
-        return false;
-    }
-
-    @Override
-    protected boolean canTriggerWalking() {
-        return false;
-    }
-
-    @Override
-    public boolean isBurning() {
-        return false;
-    }
-
-    @SideOnly(Side.CLIENT)
-    public float getShadowSize() {
-        return 0.0f;
     }
 }

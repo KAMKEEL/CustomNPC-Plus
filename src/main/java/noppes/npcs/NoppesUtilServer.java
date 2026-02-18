@@ -781,8 +781,9 @@ public class NoppesUtilServer {
         if (controller != null) {
             int index = 0;
             for (String typeId : controller.getTypes()) {
-                // Exclude built-in types from the NPC type list
-                if (controller.isBuiltInType(typeId)) continue;
+                if (!controller.isAllowedByNPC(typeId) && !controller.isAllowedByBoth(typeId))
+                    continue;
+
                 map.put(typeId, index++);
             }
         }
@@ -809,13 +810,10 @@ public class NoppesUtilServer {
         kamkeel.npcs.controllers.data.ability.AbilityController controller = kamkeel.npcs.controllers.data.ability.AbilityController.Instance;
         if (controller != null) {
             int index = 0;
-            for (String uuid : controller.getCustomAbilityIds()) {
-                Ability ability = controller.getCustomAbility(uuid);
+            for (String name : controller.getCustomAbilityNames()) {
+                Ability ability = controller.getCustomAbility(name);
                 if (ability == null || !ability.getAllowedBy().allowsNpc()) continue;
-
-                String name = controller.getCustomAbilityName(uuid);
-                if (name == null || name.isEmpty()) name = uuid;
-                map.put(name + "\t" + uuid, index++);
+                map.put(name, index++);
             }
         }
         sendScrollData(player, map, EnumScrollData.CUSTOM_ABILITIES);

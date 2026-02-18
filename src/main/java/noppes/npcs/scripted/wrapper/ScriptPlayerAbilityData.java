@@ -36,7 +36,7 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
         if (!ability.getAllowedBy().allowsPlayer()) {
             return; // Ability is NPC-only
         }
-        // Use canonical key (registry key for built-in, UUID for custom)
+        // Use canonical key (registry key for built-in, name for custom)
         String canonicalKey = ability.getId() != null ? ability.getId() : key;
         data.unlockAbility(canonicalKey);
     }

@@ -2,11 +2,13 @@ package kamkeel.npcs.util;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class Register<T> {
@@ -36,6 +38,7 @@ public class Register<T> {
     }
 
     public static class Abilities extends Register<Ability> {
+        protected final Map<String, Map<String, Supplier<AbilityVariant>>> variantEntries = new LinkedHashMap<>();
         protected final Map<String, String> uniqueNames = new LinkedHashMap<>();
         protected final Set<String> typeOnly = new HashSet<>();
 
@@ -64,11 +67,36 @@ public class Register<T> {
             return factory.get();
         }
 
+        public AbilityVariant registerVariant(String typeId, String variantName, String group, Consumer<Ability> configurator) {
+            registerVariant(typeId, variantName, () -> new AbilityVariant(variantName, group, configurator));
+            return new AbilityVariant(variantName, group, configurator);
+        }
+
+        public AbilityVariant registerVariant(String typeId, String factoryName, Supplier<AbilityVariant> factory) {
+            if (!variantEntries.containsKey(typeId)) {
+                variantEntries.put(typeId, new HashMap<>());
+            }
+
+            Map<String, Supplier<AbilityVariant>> type = variantEntries.get(typeId);
+
+            String name = registryKey + "." + namespace + "." + factoryName.trim().toLowerCase().replaceAll(" ", "_");
+            type.put(name, factory);
+            return factory.get();
+        }
+
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
                 AbilityController.Instance.registerType(entry.getKey(), entry.getValue());
                 if (!typeOnly.contains(entry.getKey())) {
                     AbilityController.Instance.registerAbility(uniqueNames.get(entry.getKey()), entry.getValue().get());
+                }
+            }
+
+            for (Map.Entry<String, Map<String, Supplier<AbilityVariant>>> entry : variantEntries.entrySet()) {
+                String typeId = entry.getKey();
+                Map<String, Supplier<AbilityVariant>> map = entry.getValue();
+                for (Map.Entry<String, Supplier<AbilityVariant>> innerEntry : map.entrySet()) {
+                    AbilityController.Instance.registerVariant(typeId, innerEntry.getValue().get());
                 }
             }
         }
@@ -117,7 +145,9 @@ public class Register<T> {
             try {
                 String path = "/assets/" + namespace + "/" + animationsPath;
                 for (Map.Entry<String, Supplier<Animation>> entry : entries.entrySet()) {
-                    String name = entry.getKey().substring(entry.getKey().indexOf(namespace + ".") + 1);
+                    String prefix = registryKey + "." + namespace + ".";
+                    String key = entry.getKey();
+                    String name = key.substring(prefix.length());
                     AnimationController.Instance.loadBuiltInAnimation(modClass, path, name);
                 }
             } catch (Exception e) {

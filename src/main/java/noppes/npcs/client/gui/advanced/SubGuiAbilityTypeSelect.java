@@ -58,8 +58,6 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
         allDisplayNameToTypeId.clear();
         String[] types = AbilityController.Instance.getTypes();
         for (String typeId : types) {
-            // Exclude built-in types — they cannot be created as custom presets
-            if (AbilityController.Instance.isBuiltInType(typeId)) continue;
             String displayName = I18n.format(typeId);
             allDisplayNameToTypeId.put(displayName, typeId);
         }

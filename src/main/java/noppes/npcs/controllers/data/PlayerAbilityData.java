@@ -3,7 +3,6 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
-import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -15,6 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.AbstractDataAbilities;
 import noppes.npcs.LogWriter;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.ability.IPlayerAbilityData;
@@ -35,6 +35,7 @@ import java.util.List;
 /**
  * Manages player ability data - unlocked abilities, selection, cooldowns, and execution.
  * Players reference abilities by key (built-in keys or preset names), never customized copies.
+ * Extends AbstractDataAbilities for shared ability lifecycle logic.
  * <p>
  * Key differences from NPC DataAbilities:
  * - Universal cooldown (shared across all abilities)
@@ -42,7 +43,7 @@ import java.util.List;
  * - Conditions requiring a target are skipped
  * - Uses ability's base cooldownTicks only
  */
-public class PlayerAbilityData implements IPlayerAbilityData {
+public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerAbilityData {
 
     private final PlayerData playerData;
 
@@ -69,18 +70,8 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     private boolean playingAbilityAnimation = false;
 
     // ═══════════════════════════════════════════════════════════════════
-    // RUNTIME STATE (not saved)
+    // PLAYER-SPECIFIC RUNTIME STATE (not saved)
     // ═══════════════════════════════════════════════════════════════════
-
-    /**
-     * Universal cooldown end time (shared across all abilities).
-     */
-    private transient long cooldownEndTime = 0;
-
-    /**
-     * Currently executing ability instance (null if none).
-     */
-    private transient Ability currentAbility;
 
     /**
      * Current ability's key (for cooldown tracking after completion).
@@ -93,21 +84,6 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     private transient EntityLivingBase currentTarget;
 
     /**
-     * Rotation lock state - freezes player yaw/pitch during ability phases.
-     */
-    private transient boolean rotationLocked = false;
-    private transient float lockedYaw = 0;
-    private transient float lockedPitch = 0;
-
-    /**
-     * Position lock state - freezes player position during ability phases.
-     */
-    private transient boolean positionLocked = false;
-    private transient double lockedPosX = 0;
-    private transient double lockedPosY = 0;
-    private transient double lockedPosZ = 0;
-
-    /**
      * Last synced state flags byte for change detection (avoids spamming packets).
      */
     private transient byte lastSyncedFlags = 0;
@@ -118,6 +94,160 @@ public class PlayerAbilityData implements IPlayerAbilityData {
 
     public PlayerAbilityData(PlayerData playerData) {
         this.playerData = playerData;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ABSTRACT METHOD IMPLEMENTATIONS
+    // ═══════════════════════════════════════════════════════════════════
+
+    @Override
+    protected EntityLivingBase getEntity() {
+        return playerData.player;
+    }
+
+    @Override
+    protected EntityLivingBase getTarget() {
+        return currentTarget;
+    }
+
+    @Override
+    protected long getWorldTime() {
+        EntityPlayer player = playerData.player;
+        return player != null ? player.worldObj.getTotalWorldTime() : 0;
+    }
+
+    @Override
+    protected void fireTickEvent(Ability ability, EntityLivingBase target) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.TickEvent event = new PlayerAbilityEvent.TickEvent(
+            iPlayer, ability, target, ability.getPhase().ordinal(), ability.getCurrentTick());
+        EventHooks.onPlayerAbilityTick(handler, event);
+    }
+
+    @Override
+    protected boolean fireExecuteEvent(Ability ability, EntityLivingBase target) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return false;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return false;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.ExecuteEvent event = new PlayerAbilityEvent.ExecuteEvent(iPlayer, ability, target);
+        return EventHooks.onPlayerAbilityExecute(handler, event);
+    }
+
+    @Override
+    protected void fireCompleteEvent(Ability ability, EntityLivingBase target) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.CompleteEvent event = new PlayerAbilityEvent.CompleteEvent(iPlayer, ability, target);
+        EventHooks.onPlayerAbilityComplete(handler, event);
+    }
+
+    @Override
+    protected void fireInterruptEvent(Ability ability, EntityLivingBase target,
+                                       DamageSource source, float damage) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.InterruptEvent event = new PlayerAbilityEvent.InterruptEvent(
+            iPlayer, ability, target, source, damage);
+        EventHooks.onPlayerAbilityInterrupt(handler, event);
+    }
+
+    @Override
+    protected void spawnTelegraph(Ability ability, EntityLivingBase target) {
+        EntityPlayer player = playerData.player;
+        List<TelegraphInstance> telegraphs = ability.createTelegraphs(player, target);
+        if (!telegraphs.isEmpty()) {
+            ability.setTelegraphInstances(telegraphs);
+            if (player instanceof EntityPlayerMP) {
+                for (TelegraphInstance telegraph : telegraphs) {
+                    TelegraphSpawnPacket.sendToTracking(telegraph, player);
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void removeTelegraph(Ability ability) {
+        EntityPlayer player = playerData.player;
+        List<TelegraphInstance> telegraphs = ability.getTelegraphInstances();
+        for (TelegraphInstance telegraph : telegraphs) {
+            if (player instanceof EntityPlayerMP) {
+                TelegraphRemovePacket.sendToTracking(telegraph.getInstanceId(), player);
+            }
+        }
+        ability.setTelegraphInstances(null);
+    }
+
+    @Override
+    protected void setAnimationData(Animation animation) {
+        playerData.animationData.setEnabled(true);
+        playerData.animationData.setAnimation(animation);
+        playerData.animationData.updateClient();
+        playingAbilityAnimation = true;
+    }
+
+    @Override
+    protected void clearAnimationData() {
+        playerData.animationData.setAnimation(null);
+        playerData.animationData.updateClient();
+        playingAbilityAnimation = false;
+    }
+
+    @Override
+    protected void playAbilitySound(String sound) {
+        if (sound != null && !sound.isEmpty()) {
+            EntityPlayer player = playerData.player;
+            if (player != null) {
+                player.worldObj.playSoundAtEntity(player, sound, 1.0f, 1.0f);
+            }
+        }
+    }
+
+    @Override
+    protected void captureLockedRotation() {
+        EntityPlayer player = playerData.player;
+        lockedYaw = player.rotationYaw;
+        lockedPitch = player.rotationPitch;
+        rotationLocked = true;
+    }
+
+    @Override
+    protected void rollCooldown(Ability ability) {
+        if (!ability.isIgnoreCooldown()) {
+            cooldownEndTime = getWorldTime() + ability.getCooldownTicks();
+        }
+    }
+
+    @Override
+    protected void onAbilityComplete() {
+        currentAbility = null;
+        currentAbilityKey = null;
+        currentTarget = null;
+        syncAbilityStateClear(playerData.player);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HOOK OVERRIDES
+    // ═══════════════════════════════════════════════════════════════════
+
+    @Override
+    protected void onInterruptComplete() {
+        // Player clears state immediately (unlike NPC which ticks through DAZED)
+        currentAbility = null;
+        currentAbilityKey = null;
+        currentTarget = null;
+        syncAbilityStateClear(playerData.player);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -134,7 +264,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         }
 
         if (currentAbility != null && currentAbility.isExecuting()) {
-            tickCurrentAbility(player);
+            tickCurrentAbility();
 
             // Apply rotation and position locks after ability tick
             applyRotationControl(player);
@@ -150,160 +280,6 @@ public class PlayerAbilityData implements IPlayerAbilityData {
                 syncAbilityStateClear(player);
             }
         }
-    }
-
-    /**
-     * Tick the currently executing ability.
-     */
-    private void tickCurrentAbility(EntityPlayer player) {
-        AbilityPhase oldPhase = currentAbility.getPhase();
-
-        // Tick advances time and possibly changes phase
-        boolean phaseChanged = currentAbility.tick();
-
-        // Fire tick event for scripts
-        firePlayerTickEvent(player, currentAbility, currentTarget);
-
-        // Fire extender tick hook (e.g., per-tick resource drain)
-        if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, player, currentTarget,
-                currentAbility.getPhase(), currentAbility.getCurrentTick())) {
-            interruptCurrentAbility();
-            return;
-        }
-
-        switch (currentAbility.getPhase()) {
-            case WINDUP:
-                if (phaseChanged && oldPhase == AbilityPhase.BURST_DELAY) {
-                    // Burst replay: re-enter windup - set up locks
-                    if (currentAbility.isRotationLockedDuringWindup()) {
-                        captureLockedRotation(player);
-                    }
-                    if (currentAbility.isMovementLockedDuringWindup() && !currentAbility.hasAbilityMovement()) {
-                        captureLockedPosition(player);
-                    }
-                    spawnTelegraph(currentAbility, player, null);
-                    playAbilitySound(player, currentAbility.getWindUpSound());
-                    playAbilityAnimation(currentAbility.getWindUpAnimation());
-                }
-                currentAbility.onWindUpTick(player, currentTarget, currentAbility.getCurrentTick());
-                break;
-
-            case ACTIVE:
-                if (phaseChanged && (oldPhase == AbilityPhase.WINDUP || oldPhase == AbilityPhase.BURST_DELAY)) {
-                    // Just entered ACTIVE phase - lock all telegraph positions
-                    for (TelegraphInstance telegraph : currentAbility.getTelegraphInstances()) {
-                        telegraph.lockPosition();
-                    }
-                    // Remove telegraph unless the ability keeps it during active phase
-                    if (!currentAbility.keepTelegraphDuringActive()) {
-                        removeTelegraph(currentAbility, player);
-                    }
-
-                    // Handle rotation control transition from WINDUP to ACTIVE
-                    if (currentAbility.isRotationLockedDuringActive()) {
-                        if (!rotationLocked) {
-                            captureLockedRotation(player);
-                        }
-                    } else if (rotationLocked) {
-                        releaseRotationControl();
-                    }
-
-                    // Handle position lock transition from WINDUP to ACTIVE
-                    if (currentAbility.isMovementLockedDuringActive() && !currentAbility.hasAbilityMovement()) {
-                        if (!positionLocked) {
-                            captureLockedPosition(player);
-                        }
-                    } else if (positionLocked) {
-                        releaseLockedPosition();
-                    }
-
-                    // Play active sound and animation
-                    playAbilitySound(player, currentAbility.getActiveSound());
-                    playAbilityAnimation(currentAbility.getActiveAnimation());
-
-                    // Fire execute event (cancelable)
-                    if (firePlayerExecuteEvent(player, currentAbility, currentTarget)) {
-                        return; // Cancelled
-                    }
-
-                    // Call onExecute
-                    currentAbility.onExecute(player, currentTarget);
-
-                    if (currentAbility.getPhase() == AbilityPhase.IDLE) {
-                        handleAbilityCompletion(player);
-                        return;
-                    }
-                }
-                currentAbility.onActiveTick(player, currentTarget, currentAbility.getCurrentTick());
-
-                if (currentAbility.getPhase() == AbilityPhase.IDLE) {
-                    handleAbilityCompletion(player);
-                    return;
-                }
-
-                // Auto-complete for burst overlap mode (entities fly independently)
-                if (currentAbility.isBurstEnabled()
-                    && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
-                    && currentAbility.getPhase() == AbilityPhase.ACTIVE
-                    && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
-                    currentAbility.signalCompletion();
-                }
-
-                // Release locks during burst delay
-                if (currentAbility.getPhase() == AbilityPhase.BURST_DELAY) {
-                    if (rotationLocked) releaseRotationControl();
-                    if (positionLocked) releaseLockedPosition();
-                }
-                break;
-
-            case BURST_DELAY:
-                // Free movement and rotation during burst delay
-                if (rotationLocked) releaseRotationControl();
-                if (positionLocked) releaseLockedPosition();
-                break;
-
-            case DAZED:
-                // Player is dazed - just wait
-                break;
-
-            case IDLE:
-                handleAbilityCompletion(player);
-                break;
-        }
-    }
-
-    /**
-     * Handle ability completion.
-     */
-    private void handleAbilityCompletion(EntityPlayer player) {
-        if (currentAbility == null) return;
-
-        // Fire extender complete hook
-        AbilityController.Instance.fireOnAbilityComplete(currentAbility, player, currentTarget, false);
-
-        currentAbility.onComplete(player, currentTarget);
-
-        // Fire complete event
-        firePlayerCompleteEvent(player, currentAbility, currentTarget);
-
-        // Release all locks
-        releaseRotationControl();
-        releaseLockedPosition();
-
-        // Apply universal cooldown (using base cooldownTicks only, not min/max random)
-        if (!currentAbility.isIgnoreCooldown()) {
-            cooldownEndTime = player.worldObj.getTotalWorldTime() + currentAbility.getCooldownTicks();
-        }
-
-        // Stop animation
-        stopAbilityAnimation();
-
-        currentAbility = null;
-        currentAbilityKey = null;
-        currentTarget = null;
-
-        // Send cleared state to client
-        syncAbilityStateClear(player);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -348,7 +324,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         if (!ability.getAllowedBy().allowsPlayer()) return false;
 
         // Check universal cooldown
-        if (!ability.isIgnoreCooldown() && isOnCooldown(player)) return false;
+        if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
 
         // Check conditions (skip target-requiring ones)
         if (!ability.checkConditionsForPlayer(player)) return false;
@@ -370,51 +346,28 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         ability.start(null);
 
         if (ability.getPhase() == AbilityPhase.ACTIVE) {
-            // Windup was 0 — skip telegraph/windup and go straight to active
+            // Windup was 0 — capture locks for immediate active phase, then execute
             if (ability.isRotationLockedDuringActive()) {
-                captureLockedRotation(player);
+                captureLockedRotation();
             }
             if (ability.isMovementLockedDuringActive() && !ability.hasAbilityMovement()) {
-                captureLockedPosition(player);
+                captureLockedPosition();
             }
-            executeImmediate(ability, player);
+            executeImmediate(ability, currentTarget);
         } else {
             // Normal windup flow
             if (ability.isRotationLockedDuringWindup()) {
-                captureLockedRotation(player);
+                captureLockedRotation();
             }
             if (ability.isMovementLockedDuringWindup() && !ability.hasAbilityMovement()) {
-                captureLockedPosition(player);
+                captureLockedPosition();
             }
-            spawnTelegraph(ability, player, null);
-            playAbilitySound(player, ability.getWindUpSound());
+            spawnTelegraph(ability, null);
+            playAbilitySound(ability.getWindUpSound());
             playAbilityAnimation(ability.getWindUpAnimation());
         }
 
         return true;
-    }
-
-    /**
-     * Execute an ability immediately (no windup).
-     * Called when windUpTicks is 0.
-     */
-    private void executeImmediate(Ability ability, EntityPlayer player) {
-        // Play active sound and animation
-        playAbilitySound(player, ability.getActiveSound());
-        playAbilityAnimation(ability.getActiveAnimation());
-
-        // Fire execute event (cancelable)
-        if (firePlayerExecuteEvent(player, ability, currentTarget)) {
-            return; // Cancelled
-        }
-
-        // Call onExecute
-        ability.onExecute(player, currentTarget);
-
-        // Check if ability completed during onExecute
-        if (ability.getPhase() == AbilityPhase.IDLE) {
-            handleAbilityCompletion(player);
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -508,9 +461,12 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // COOLDOWNS
+    // COOLDOWNS (Player-specific overloads)
     // ═══════════════════════════════════════════════════════════════════
 
+    /**
+     * Check if on cooldown using player reference.
+     */
     public boolean isOnCooldown(EntityPlayer player) {
         return player.worldObj.getTotalWorldTime() < cooldownEndTime;
     }
@@ -543,6 +499,10 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         cooldownEndTime = 0;
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // IPlayerAbilityData INTERFACE
+    // ═══════════════════════════════════════════════════════════════════
+
     @Override
     public boolean activateAbility() {
         return activateAbility(playerData.player);
@@ -553,40 +513,36 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         return activateAbility(playerData.player, key);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // STATE QUERIES
-    // ═══════════════════════════════════════════════════════════════════
-
-    public boolean isExecutingAbility() {
-        return currentAbility != null && currentAbility.isExecuting();
+    @Override
+    public boolean isOnCooldown() {
+        EntityPlayer player = playerData.player;
+        if (player == null) return false;
+        return isOnCooldown(player);
     }
 
-    public Ability getCurrentAbility() {
-        return currentAbility;
+    @Override
+    public boolean isOnCooldown(String key) {
+        EntityPlayer player = playerData.player;
+        if (player == null) return false;
+        return isOnCooldown(key, player);
     }
+
+    @Override
+    public void resetCooldown() {
+        cooldownEndTime = 0;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // INTERRUPTION (convenience overload)
+    // ═══════════════════════════════════════════════════════════════════
 
     public void interruptCurrentAbility() {
         interruptCurrentAbility(null, 0);
     }
 
-    public void interruptCurrentAbility(DamageSource source, float damage) {
-        if (currentAbility != null && currentAbility.isExecuting()) {
-            // Fire extender complete hook (interrupted)
-            AbilityController.Instance.fireOnAbilityComplete(currentAbility, playerData.player, currentTarget, true);
-
-            // Fire interrupt event
-            firePlayerInterruptEvent(playerData.player, currentAbility, currentTarget, source, damage);
-
-            currentAbility.interrupt();
-            stopAbilityAnimation();
-            releaseRotationControl();
-            releaseLockedPosition();
-            currentAbility = null;
-            currentAbilityKey = null;
-            currentTarget = null;
-            syncAbilityStateClear(playerData.player);
-        }
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    // DAMAGE HANDLING
+    // ═══════════════════════════════════════════════════════════════════
 
     /**
      * Handle damage taken while an ability is executing.
@@ -635,24 +591,9 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         return amount;
     }
 
-    @Override
-    public boolean isOnCooldown() {
-        EntityPlayer player = playerData.player;
-        if (player == null) return false;
-        return isOnCooldown(player);
-    }
-
-    @Override
-    public boolean isOnCooldown(String key) {
-        EntityPlayer player = playerData.player;
-        if (player == null) return false;
-        return isOnCooldown(key, player);
-    }
-
-    @Override
-    public void resetCooldown() {
-        cooldownEndTime = 0;
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    // STATE QUERIES (Player-specific)
+    // ═══════════════════════════════════════════════════════════════════
 
     /**
      * Check if the player's movement should be locked due to an executing ability.
@@ -663,25 +604,25 @@ public class PlayerAbilityData implements IPlayerAbilityData {
             && currentAbility.isMovementLockedForCurrentPhase();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // ROTATION CONTROL
-    // ═══════════════════════════════════════════════════════════════════
-
     /**
-     * Capture current rotation values to lock player's look direction.
+     * Returns true if an ability-driven animation is currently playing.
+     * Used by PlayerData.onLogin() to detect orphaned ability animations.
      */
-    private void captureLockedRotation(EntityPlayer player) {
-        lockedYaw = player.rotationYaw;
-        lockedPitch = player.rotationPitch;
-        rotationLocked = true;
+    public boolean isPlayingAbilityAnimation() {
+        return playingAbilityAnimation;
     }
 
     /**
-     * Release rotation lock.
+     * Clears an orphaned ability animation (e.g. after relog when the ability is gone).
+     * Stops the animation and resets the tracking flag.
      */
-    private void releaseRotationControl() {
-        rotationLocked = false;
+    public void clearOrphanedAbilityAnimation() {
+        stopAbilityAnimation();
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ROTATION CONTROL (Player-specific application)
+    // ═══════════════════════════════════════════════════════════════════
 
     /**
      * Apply rotation control on the server side.
@@ -702,25 +643,8 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // POSITION LOCKING
+    // POSITION LOCKING (Player-specific application)
     // ═══════════════════════════════════════════════════════════════════
-
-    /**
-     * Capture current position to lock player in place.
-     */
-    private void captureLockedPosition(EntityPlayer player) {
-        lockedPosX = player.posX;
-        lockedPosY = player.posY;
-        lockedPosZ = player.posZ;
-        positionLocked = true;
-    }
-
-    /**
-     * Release position lock.
-     */
-    private void releaseLockedPosition() {
-        positionLocked = false;
-    }
 
     /**
      * Apply position lock on the server side.
@@ -729,12 +653,23 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     private void applyPositionLock(EntityPlayer player) {
         if (!positionLocked) return;
 
-        player.setPosition(lockedPosX, lockedPosY, lockedPosZ);
-        player.prevPosX = lockedPosX;
-        player.prevPosY = lockedPosY;
-        player.prevPosZ = lockedPosZ;
+        boolean flying = AbilityController.Instance != null
+            && AbilityController.Instance.isPlayerFlying(player);
+
+        if (flying) {
+            // Flying players: lock X/Z only, preserve Y freedom
+            player.setPosition(lockedPosX, player.posY, lockedPosZ);
+            player.prevPosX = lockedPosX;
+            player.prevPosZ = lockedPosZ;
+        } else {
+            // Grounded players: full position lock including Y
+            player.setPosition(lockedPosX, lockedPosY, lockedPosZ);
+            player.prevPosX = lockedPosX;
+            player.prevPosY = lockedPosY;
+            player.prevPosZ = lockedPosZ;
+            player.motionY = 0;
+        }
         player.motionX = 0;
-        player.motionY = 0; // Full vertical freeze for position lock
         player.motionZ = 0;
     }
 
@@ -788,89 +723,7 @@ public class PlayerAbilityData implements IPlayerAbilityData {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // TELEGRAPH
-    // ═══════════════════════════════════════════════════════════════════
-
-    private void spawnTelegraph(Ability ability, EntityPlayer player, EntityLivingBase target) {
-        List<TelegraphInstance> telegraphs = ability.createTelegraphs(player, target);
-        if (!telegraphs.isEmpty()) {
-            ability.setTelegraphInstances(telegraphs);
-            if (player instanceof EntityPlayerMP) {
-                for (TelegraphInstance telegraph : telegraphs) {
-                    TelegraphSpawnPacket.sendToTracking(telegraph, player);
-                }
-            }
-        }
-    }
-
-    private void removeTelegraph(Ability ability, EntityPlayer player) {
-        List<TelegraphInstance> telegraphs = ability.getTelegraphInstances();
-        for (TelegraphInstance telegraph : telegraphs) {
-            if (player instanceof EntityPlayerMP) {
-                TelegraphRemovePacket.sendToTracking(telegraph.getInstanceId(), player);
-            }
-        }
-        ability.setTelegraphInstances(null);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // ANIMATION
-    // ═══════════════════════════════════════════════════════════════════
-
-    public void playAbilityAnimation(Animation animation) {
-        if (animation == null || AnimationController.Instance == null) return;
-        playerData.animationData.setEnabled(true);
-        playerData.animationData.setAnimation(animation);
-        playerData.animationData.updateClient();
-        playingAbilityAnimation = true;
-    }
-
-    public void playAbilityAnimation(int animation) {
-        if (animation < 0) return;
-        if (AnimationController.Instance == null) return;
-        if (AnimationController.Instance.get(animation) == null) return;
-
-        playAbilityAnimation((Animation) AnimationController.Instance.get(animation));
-    }
-
-    public void playAbilityAnimation(String animation) {
-        if (animation.isEmpty()) return;
-        if (AnimationController.Instance == null) return;
-        if (AnimationController.Instance.get(animation, true) == null) return;
-
-        playAbilityAnimation((Animation) AnimationController.Instance.get(animation, true));
-    }
-
-    private void stopAbilityAnimation() {
-        playerData.animationData.setAnimation(null);
-        playerData.animationData.updateClient();
-        playingAbilityAnimation = false;
-    }
-
-    /**
-     * Returns true if an ability-driven animation is currently playing.
-     * Used by PlayerData.onLogin() to detect orphaned ability animations.
-     */
-    public boolean isPlayingAbilityAnimation() {
-        return playingAbilityAnimation;
-    }
-
-    /**
-     * Clears an orphaned ability animation (e.g. after relog when the ability is gone).
-     * Stops the animation and resets the tracking flag.
-     */
-    public void clearOrphanedAbilityAnimation() {
-        stopAbilityAnimation();
-    }
-
-    private void playAbilitySound(EntityPlayer player, String sound) {
-        if (sound != null && !sound.isEmpty()) {
-            player.worldObj.playSoundAtEntity(player, sound, 1.0f, 1.0f);
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // SCRIPT EVENTS
+    // SCRIPT EVENTS (Player-specific: start event only, others via abstract)
     // ═══════════════════════════════════════════════════════════════════
 
     /**
@@ -883,57 +736,6 @@ public class PlayerAbilityData implements IPlayerAbilityData {
         IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
         PlayerAbilityEvent.StartEvent event = new PlayerAbilityEvent.StartEvent(iPlayer, ability, null);
         return EventHooks.onPlayerAbilityStart(handler, event);
-    }
-
-    /**
-     * Fire the ability execute event. Returns true if cancelled.
-     */
-    private boolean firePlayerExecuteEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
-        if (ScriptController.Instance == null) return false;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return false;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.ExecuteEvent event = new PlayerAbilityEvent.ExecuteEvent(iPlayer, ability, target);
-        return EventHooks.onPlayerAbilityExecute(handler, event);
-    }
-
-    /**
-     * Fire the ability tick event.
-     */
-    private void firePlayerTickEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
-        if (ScriptController.Instance == null) return;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.TickEvent event = new PlayerAbilityEvent.TickEvent(
-            iPlayer, ability, target, ability.getPhase().ordinal(), ability.getCurrentTick());
-        EventHooks.onPlayerAbilityTick(handler, event);
-    }
-
-    /**
-     * Fire the ability interrupt event.
-     */
-    private void firePlayerInterruptEvent(EntityPlayer player, Ability ability, EntityLivingBase target,
-                                          DamageSource source, float damage) {
-        if (ScriptController.Instance == null) return;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.InterruptEvent event = new PlayerAbilityEvent.InterruptEvent(
-            iPlayer, ability, target, source, damage);
-        EventHooks.onPlayerAbilityInterrupt(handler, event);
-    }
-
-    /**
-     * Fire the ability complete event.
-     */
-    private void firePlayerCompleteEvent(EntityPlayer player, Ability ability, EntityLivingBase target) {
-        if (ScriptController.Instance == null) return;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.CompleteEvent event = new PlayerAbilityEvent.CompleteEvent(iPlayer, ability, target);
-        EventHooks.onPlayerAbilityComplete(handler, event);
     }
 
     // ═══════════════════════════════════════════════════════════════════

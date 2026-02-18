@@ -373,7 +373,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
             FieldDef.soundSubGui("ability.counterSound", this::getCounterSound, this::setCounterSound)
                 .tab("Effects").visibleWhen(this::canCounter));
 
-        FieldDef.insertAfter(defs, "ability.activeAnimation",
+        FieldDef.insertAfter(defs, "ability.dazedAnimation",
             FieldDef.animSubGui("ability.counterAnimation",
                     this::getCounterAnimationId, this::setCounterAnimationId,
                     this::getCounterAnimationName, this::setCounterAnimationName)

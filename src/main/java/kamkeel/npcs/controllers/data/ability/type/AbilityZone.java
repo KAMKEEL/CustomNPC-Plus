@@ -1,14 +1,13 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityZone.AccentStyle;
 import kamkeel.npcs.entity.EntityAbilityZone.ParticleMotion;
@@ -220,7 +219,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 1; particleGlow = true; particleDir = "mc:mobSpell";
                 colorData.innerColor = 0x44DD44; colorData.outerColor = 0x116611;
                 windUpColor = 0x6044DD44; activeColor = 0xC044FF44;
-                effects.add(new AbilityEffect(EnumPotionType.Poison, 100, 0));
+                effects.add(new AbilityPotionEffect(EnumPotionType.Poison, 100, 0));
                 break;
             case "INFERNO":
                 groundFill = true; groundAlpha = 0.35f; rings = true; ringCount = 3;
@@ -229,7 +228,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 0; particleGlow = true; particleDir = "mc:flame";
                 colorData.innerColor = 0xFF6611; colorData.outerColor = 0xCC2200;
                 windUpColor = 0x60FF6611; activeColor = 0xC0FF4400;
-                effects.add(new AbilityEffect(EnumPotionType.Fire, 60, 0));
+                effects.add(new AbilityPotionEffect(EnumPotionType.Fire, 60, 0));
                 break;
             case "ARCANE":
                 groundFill = true; groundAlpha = 0.20f; rings = true; ringCount = 1;
@@ -238,7 +237,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 1; particleGlow = true; particleDir = "mc:portal";
                 colorData.innerColor = 0xAA44FF; colorData.outerColor = 0x6622BB;
                 windUpColor = 0x60AA44FF; activeColor = 0xC0CC66FF;
-                effects.add(new AbilityEffect(EnumPotionType.Weakness, 100, 0));
+                effects.add(new AbilityPotionEffect(EnumPotionType.Weakness, 100, 0));
                 break;
             case "ELECTRIC":
                 groundFill = true; groundAlpha = 0.15f; rings = false; ringCount = 1;
@@ -247,7 +246,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 2; particleGlow = true; particleDir = "mc:enchantmenttable";
                 colorData.innerColor = 0x4488FF; colorData.outerColor = 0x2244BB;
                 windUpColor = 0x604488FF; activeColor = 0xC066AAFF;
-                effects.add(new AbilityEffect(EnumPotionType.MiningFatigue, 80, 1));
+                effects.add(new AbilityPotionEffect(EnumPotionType.MiningFatigue, 80, 1));
                 break;
             case "FROST":
                 groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;
@@ -256,7 +255,7 @@ public abstract class AbilityZone extends Ability {
                 particleMotion = 1; particleGlow = true; particleDir = "mc:snowshovel";
                 colorData.innerColor = 0x88CCFF; colorData.outerColor = 0x4488CC;
                 windUpColor = 0x6088CCFF; activeColor = 0xC0AADDFF;
-                effects.add(new AbilityEffect(EnumPotionType.Slowness, 100, 1));
+                effects.add(new AbilityPotionEffect(EnumPotionType.Slowness, 100, 1));
                 break;
             case "DEFAULT":
                 groundFill = true; groundAlpha = 0.25f; rings = true; ringCount = 3;

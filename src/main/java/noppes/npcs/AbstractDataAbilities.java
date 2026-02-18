@@ -1,0 +1,478 @@
+package noppes.npcs;
+
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.DamageSource;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
+
+import java.util.List;
+
+/**
+ * Shared base class for NPC and Player ability data management.
+ * Contains the common ability lifecycle logic: tick, phase transitions,
+ * animation/telegraph/sound management, cooldown state, and position/rotation locking.
+ * <p>
+ * Subclasses must implement abstract methods for entity-specific behavior:
+ * event firing, rotation/position application, telegraph packets, and cooldown rolling.
+ *
+ * @see DataAbilities - NPC implementation
+ * @see noppes.npcs.controllers.data.PlayerAbilityData - Player implementation
+ */
+public abstract class AbstractDataAbilities {
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SHARED RUNTIME STATE (not saved to NBT)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Currently executing ability (null if none) */
+    protected Ability currentAbility;
+
+    /** World time when cooldown ends */
+    protected long cooldownEndTime = 0;
+
+    /** Rotation lock state */
+    protected boolean rotationLocked = false;
+    protected float lockedYaw = 0;
+    protected float lockedPitch = 0;
+
+    /** Position lock state */
+    protected boolean positionLocked = false;
+    protected double lockedPosX = 0;
+    protected double lockedPosY = 0;
+    protected double lockedPosZ = 0;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ABSTRACT METHODS - Subclasses must implement
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Get the entity this ability data belongs to (NPC or Player). */
+    protected abstract EntityLivingBase getEntity();
+
+    /** Get the current target for ability execution. */
+    protected abstract EntityLivingBase getTarget();
+
+    /** Get the current world time. */
+    protected abstract long getWorldTime();
+
+    // -- Event Firing --
+
+    /** Fire tick event. Implementation differs between NPC (NpcAPI) and Player (ScriptController). */
+    protected abstract void fireTickEvent(Ability ability, EntityLivingBase target);
+
+    /** Fire execute event. Returns true if cancelled. */
+    protected abstract boolean fireExecuteEvent(Ability ability, EntityLivingBase target);
+
+    /** Fire complete event. */
+    protected abstract void fireCompleteEvent(Ability ability, EntityLivingBase target);
+
+    /** Fire interrupt event. */
+    protected abstract void fireInterruptEvent(Ability ability, EntityLivingBase target,
+                                               DamageSource source, float damage);
+
+    // -- Telegraph --
+
+    /** Spawn telegraphs for an ability. */
+    protected abstract void spawnTelegraph(Ability ability, EntityLivingBase target);
+
+    /** Remove telegraphs for an ability. */
+    protected abstract void removeTelegraph(Ability ability);
+
+    // -- Animation/Sound Data Access --
+
+    /** Set animation data on the entity. */
+    protected abstract void setAnimationData(Animation animation);
+
+    /** Clear animation data on the entity. */
+    protected abstract void clearAnimationData();
+
+    /** Play a sound at the entity's location. */
+    protected abstract void playAbilitySound(String sound);
+
+    // -- Rotation (subclass handles extra fields and application) --
+
+    /** Capture rotation values for locking. NPC captures 4 fields, Player captures 2. */
+    protected abstract void captureLockedRotation();
+
+    // -- Completion --
+
+    /**
+     * Roll cooldown after ability completes.
+     * NPC: random(min, max) + ability offset. Player: ability's base cooldownTicks.
+     */
+    protected abstract void rollCooldown(Ability ability);
+
+    /** Additional completion logic (NPC clears lastTarget, Player clears key/target and syncs). */
+    protected abstract void onAbilityComplete();
+
+
+    // -- Hooks (optional overrides) --
+
+    /** Called before onExecute in ACTIVE phase. NPC uses this for faceTarget/hitScan. */
+    protected void onPreExecute(Ability ability, EntityLivingBase target) {}
+
+    /** Called after the phase switch. NPC uses this for hit scan updates and movement control. */
+    protected void onPostPhaseTick(Ability ability, EntityLivingBase target) {}
+
+    /** Additional lock releases in BURST_DELAY. NPC releases hitScan. */
+    protected void onBurstDelayReleaseLocks() {}
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SHARED ANIMATION METHODS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Play an animation on the entity.
+     */
+    public void playAbilityAnimation(Animation animation) {
+        if (animation == null) return;
+        if (AnimationController.Instance == null) return;
+        setAnimationData(animation);
+    }
+
+    public void playAbilityAnimation(int animation) {
+        if (animation < 0) return;
+        if (AnimationController.Instance == null) return;
+        if (AnimationController.Instance.get(animation) == null) return;
+        playAbilityAnimation((Animation) AnimationController.Instance.get(animation));
+    }
+
+    public void playAbilityAnimation(String animation) {
+        if (animation.isEmpty()) return;
+        if (AnimationController.Instance == null) return;
+        if (AnimationController.Instance.get(animation, true) == null) return;
+        playAbilityAnimation((Animation) AnimationController.Instance.get(animation, true));
+    }
+
+    /**
+     * Stop any currently playing ability animation.
+     */
+    protected void stopAbilityAnimation() {
+        clearAnimationData();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STATE QUERIES
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Check if an ability is currently executing. */
+    public boolean isExecutingAbility() {
+        return currentAbility != null && currentAbility.isExecuting();
+    }
+
+    /** Get the currently executing ability. */
+    public Ability getCurrentAbility() {
+        return currentAbility;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // COOLDOWN MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Check if on cooldown. */
+    public boolean isOnCooldown() {
+        return getWorldTime() < cooldownEndTime;
+    }
+
+    /** Get remaining cooldown ticks. */
+    public long getRemainingCooldown() {
+        long remaining = cooldownEndTime - getWorldTime();
+        return remaining > 0 ? remaining : 0;
+    }
+
+    /** Reset cooldown (allow immediate ability use). */
+    public void resetCooldown() {
+        cooldownEndTime = 0;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // POSITION LOCKING
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Capture current position to lock entity in place.
+     */
+    protected void captureLockedPosition() {
+        EntityLivingBase entity = getEntity();
+        lockedPosX = entity.posX;
+        lockedPosY = entity.posY;
+        lockedPosZ = entity.posZ;
+        positionLocked = true;
+        onPositionLockChanged(true);
+    }
+
+    /**
+     * Release position lock.
+     */
+    protected void releaseLockedPosition() {
+        positionLocked = false;
+        onPositionLockChanged(false);
+    }
+
+    /** Hook for subclass to react to position lock state changes (e.g., NPC sets data watcher flag). */
+    protected void onPositionLockChanged(boolean locked) {}
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ROTATION LOCKING
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Release rotation control.
+     */
+    protected void releaseRotationControl() {
+        rotationLocked = false;
+        onRotationLockChanged(false);
+    }
+
+    /** Hook for subclass to react to rotation lock state changes (e.g., NPC sets flag, clears hitScan). */
+    protected void onRotationLockChanged(boolean locked) {}
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CORE TICK - Phase transition logic shared between NPC and Player
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Tick the currently executing ability. Handles all phase transitions,
+     * telegraph/animation/sound lifecycle, and burst management.
+     * <p>
+     * This is the core shared logic between DataAbilities and PlayerAbilityData.
+     * Subclass-specific behavior is injected via abstract methods and hooks.
+     */
+    protected void tickCurrentAbility() {
+        EntityLivingBase entity = getEntity();
+        EntityLivingBase target = getTarget();
+        AbilityPhase oldPhase = currentAbility.getPhase();
+
+        // Tick advances time and possibly changes phase
+        boolean phaseChanged = currentAbility.tick();
+
+        // Fire tick event
+        fireTickEvent(currentAbility, target);
+
+        // Fire extender tick hook (e.g., per-tick resource drain)
+        if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, entity, target,
+                currentAbility.getPhase(), currentAbility.getCurrentTick())) {
+            interruptCurrentAbility(null, 0);
+            return;
+        }
+
+        // Handle phase-specific logic
+        switch (currentAbility.getPhase()) {
+            case WINDUP:
+                if (phaseChanged && oldPhase == AbilityPhase.BURST_DELAY) {
+                    // Burst replay: re-enter windup - set up locks, telegraph, sound, animation
+                    if (currentAbility.isRotationLockedDuringWindup()) {
+                        captureLockedRotation();
+                    }
+                    if (currentAbility.isMovementLockedDuringWindup() && !currentAbility.hasAbilityMovement()) {
+                        captureLockedPosition();
+                    }
+                    spawnTelegraph(currentAbility, target);
+                    playAbilitySound(currentAbility.getWindUpSound());
+                    playAbilityAnimation(currentAbility.getWindUpAnimation());
+                }
+                currentAbility.onWindUpTick(entity, target, currentAbility.getCurrentTick());
+                break;
+
+            case ACTIVE:
+                if (phaseChanged && (oldPhase == AbilityPhase.WINDUP || oldPhase == AbilityPhase.BURST_DELAY)) {
+                    // Just entered ACTIVE phase - lock telegraph positions
+                    for (TelegraphInstance telegraph : currentAbility.getTelegraphInstances()) {
+                        telegraph.lockPosition();
+                    }
+
+                    // Remove telegraph unless the ability keeps it during active phase
+                    if (!currentAbility.keepTelegraphDuringActive()) {
+                        removeTelegraph(currentAbility);
+                    }
+
+                    // Handle rotation control transition from WINDUP to ACTIVE
+                    if (currentAbility.isRotationLockedDuringActive()) {
+                        if (!rotationLocked) {
+                            captureLockedRotation();
+                        }
+                    } else if (rotationLocked) {
+                        releaseRotationControl();
+                    }
+
+                    // Handle position lock transition from WINDUP to ACTIVE
+                    if (currentAbility.isMovementLockedDuringActive() && !currentAbility.hasAbilityMovement()) {
+                        if (!positionLocked) {
+                            captureLockedPosition();
+                        }
+                    } else if (positionLocked) {
+                        releaseLockedPosition();
+                    }
+
+                    // Play active sound and animation
+                    if (!currentAbility.keepTelegraphDuringActive()) {
+                        playAbilitySound(currentAbility.getActiveSound());
+                    }
+                    playAbilityAnimation(currentAbility.getActiveAnimation());
+
+                    // Pre-execute hook (NPC: snap to face target for hit scan)
+                    onPreExecute(currentAbility, target);
+
+                    // Fire execute event (cancelable)
+                    if (fireExecuteEvent(currentAbility, target)) {
+                        return; // Cancelled
+                    }
+
+                    // Call onExecute
+                    currentAbility.onExecute(entity, target);
+
+                    // Check if ability completed during onExecute
+                    if (currentAbility.getPhase() == AbilityPhase.IDLE) {
+                        handleAbilityCompletion(target);
+                        return;
+                    }
+                }
+
+                currentAbility.onActiveTick(entity, target, currentAbility.getCurrentTick());
+
+                // Check if ability completed during onActiveTick
+                if (currentAbility.getPhase() == AbilityPhase.IDLE) {
+                    handleAbilityCompletion(target);
+                    return;
+                }
+
+                // Auto-complete for burst overlap mode
+                if (currentAbility.isBurstEnabled()
+                    && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
+                    && currentAbility.getPhase() == AbilityPhase.ACTIVE
+                    && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
+                    currentAbility.signalCompletion();
+                }
+
+                // Check if ability entered burst delay
+                if (currentAbility.getPhase() == AbilityPhase.BURST_DELAY) {
+                    if (rotationLocked) releaseRotationControl();
+                    if (positionLocked) releaseLockedPosition();
+                    onBurstDelayReleaseLocks();
+                }
+                break;
+
+            case BURST_DELAY:
+                // Free movement and rotation during burst delay
+                if (rotationLocked) releaseRotationControl();
+                if (positionLocked) releaseLockedPosition();
+                break;
+
+            case DAZED:
+                // Dazed phase - just wait for phase transition
+                break;
+
+            case IDLE:
+                // Ability completed (reached via tick() from DAZED)
+                handleAbilityCompletion(target);
+                break;
+        }
+
+        // Post-phase hook (NPC: hit scan + movement control)
+        onPostPhaseTick(currentAbility, target);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ABILITY COMPLETION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Handle ability completion. Called when ability phase becomes IDLE.
+     */
+    protected void handleAbilityCompletion(EntityLivingBase target) {
+        if (currentAbility == null) return;
+
+        // Remove any remaining telegraphs
+        removeTelegraph(currentAbility);
+
+        // Fire extender complete hook
+        AbilityController.Instance.fireOnAbilityComplete(currentAbility, getEntity(), target, false);
+
+        // Call onComplete callback
+        currentAbility.onComplete(getEntity(), target);
+
+        // Fire complete event
+        fireCompleteEvent(currentAbility, target);
+
+        // Release locks
+        releaseRotationControl();
+        releaseLockedPosition();
+
+        // Subclass-specific completion (cooldown, cleanup, sync)
+        rollCooldown(currentAbility);
+        stopAbilityAnimation();
+        onAbilityComplete();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // EXECUTE IMMEDIATE
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Execute an ability immediately (no windup). Called when windUpTicks is 0.
+     */
+    protected void executeImmediate(Ability ability, EntityLivingBase target) {
+        // Play active sound and animation
+        playAbilitySound(ability.getActiveSound());
+        playAbilityAnimation(ability.getActiveAnimation());
+
+        // Fire execute event (cancelable)
+        if (fireExecuteEvent(ability, target)) {
+            return; // Cancelled
+        }
+
+        // Call onExecute
+        ability.onExecute(getEntity(), target);
+
+        // Check if ability completed during onExecute
+        if (ability.getPhase() == AbilityPhase.IDLE) {
+            handleAbilityCompletion(target);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // INTERRUPTION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Interrupt the currently executing ability.
+     * Shared interrupt logic: remove telegraph, play dazed animation,
+     * release locks, fire events, call ability.interrupt().
+     */
+    public void interruptCurrentAbility(DamageSource source, float damage) {
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            // Remove telegraph
+            removeTelegraph(currentAbility);
+
+            // Fire extender complete hook (interrupted)
+            AbilityController.Instance.fireOnAbilityComplete(currentAbility, getEntity(), getTarget(), true);
+
+            // Fire interrupt event
+            fireInterruptEvent(currentAbility, getTarget(), source, damage);
+
+            // Call ability callbacks
+            currentAbility.onInterrupt(getEntity(), source, damage);
+            currentAbility.interrupt();
+
+            // Play dazed animation
+            stopAbilityAnimation();
+            playAbilityAnimation(currentAbility.getDazedAnimation());
+
+            // Release locks
+            releaseRotationControl();
+            releaseLockedPosition();
+
+            // Let subclass handle cleanup
+            onInterruptComplete();
+        }
+    }
+
+    /**
+     * Hook called after interrupt completes. Subclass handles clearing state and syncing.
+     * NPC: keeps currentAbility (ticks through DAZED). Player: clears immediately.
+     */
+    protected void onInterruptComplete() {}
+}
