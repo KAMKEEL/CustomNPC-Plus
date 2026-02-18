@@ -3,6 +3,8 @@ package noppes.npcs;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
@@ -44,6 +46,14 @@ public abstract class AbstractDataAbilities {
     protected double lockedPosX = 0;
     protected double lockedPosY = 0;
     protected double lockedPosZ = 0;
+
+    /** Chained ability execution state */
+    protected ChainedAbility currentChain;
+    protected int chainEntryIndex = -1;
+    protected int chainDelayRemaining = -1;
+
+    /** Set when interrupt already rolled cooldown (prevents double cooldown on NPC dazed completion). */
+    protected boolean interruptCooldownRolled = false;
 
     // ═══════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS - Subclasses must implement
@@ -108,6 +118,12 @@ public abstract class AbstractDataAbilities {
     /** Additional completion logic (NPC clears lastTarget, Player clears key/target and syncs). */
     protected abstract void onAbilityComplete();
 
+    /**
+     * Roll cooldown after a chained ability completes.
+     * NPC: random(min, max) + chain.cooldownTicks. Player: chain.cooldownTicks only.
+     */
+    protected abstract void rollChainCooldown(ChainedAbility chain);
+
 
     // -- Hooks (optional overrides) --
 
@@ -119,6 +135,9 @@ public abstract class AbstractDataAbilities {
 
     /** Additional lock releases in BURST_DELAY. NPC releases hitScan. */
     protected void onBurstDelayReleaseLocks() {}
+
+    /** Hook for retargeting during chain execution when target dies. NPC overrides, Player returns null. */
+    protected EntityLivingBase retargetForChain() { return null; }
 
     // ═══════════════════════════════════════════════════════════════════
     // SHARED ANIMATION METHODS
@@ -166,6 +185,16 @@ public abstract class AbstractDataAbilities {
     /** Get the currently executing ability. */
     public Ability getCurrentAbility() {
         return currentAbility;
+    }
+
+    /** Check if a chained ability is currently executing. */
+    public boolean isExecutingChain() {
+        return currentChain != null;
+    }
+
+    /** Get the currently executing chained ability. */
+    public ChainedAbility getCurrentChain() {
+        return currentChain;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -242,6 +271,24 @@ public abstract class AbstractDataAbilities {
      * Subclass-specific behavior is injected via abstract methods and hooks.
      */
     protected void tickCurrentAbility() {
+        // Handle chain delay between entries
+        if (chainDelayRemaining > 0) {
+            chainDelayRemaining--;
+            if (chainDelayRemaining <= 0) {
+                EntityLivingBase chainTarget = getTarget();
+                // Check if target is dead and retarget
+                if (currentChain != null && chainTarget != null && chainTarget.isDead) {
+                    chainTarget = retargetForChain();
+                    if (chainTarget == null) {
+                        completeChain();
+                        return;
+                    }
+                }
+                startChainEntry(chainTarget);
+            }
+            return;
+        }
+
         EntityLivingBase entity = getEntity();
         EntityLivingBase target = getTarget();
         AbilityPhase oldPhase = currentAbility.getPhase();
@@ -381,6 +428,7 @@ public abstract class AbstractDataAbilities {
 
     /**
      * Handle ability completion. Called when ability phase becomes IDLE.
+     * If a chain is active, advances to the next entry instead of completing.
      */
     protected void handleAbilityCompletion(EntityLivingBase target) {
         if (currentAbility == null) return;
@@ -400,10 +448,44 @@ public abstract class AbstractDataAbilities {
         // Release locks
         releaseRotationControl();
         releaseLockedPosition();
-
-        // Subclass-specific completion (cooldown, cleanup, sync)
-        rollCooldown(currentAbility);
         stopAbilityAnimation();
+
+        // Chain mode: advance to next entry instead of completing
+        if (currentChain != null) {
+            chainEntryIndex++;
+            if (chainEntryIndex < currentChain.getEntries().size()) {
+                ChainedAbilityEntry nextEntry = currentChain.getEntries().get(chainEntryIndex);
+
+                // Check if target died and retarget
+                if (target != null && target.isDead) {
+                    target = retargetForChain();
+                    if (target == null) {
+                        completeChain();
+                        return;
+                    }
+                }
+
+                int delay = nextEntry.getDelayTicks();
+                if (delay > 0) {
+                    chainDelayRemaining = delay;
+                    currentAbility = null;
+                } else {
+                    startChainEntry(target);
+                }
+                return;
+            }
+            // All entries complete
+            completeChain();
+            return;
+        }
+
+        // Normal (non-chain) completion
+        if (interruptCooldownRolled) {
+            // Cooldown was already rolled during interrupt (e.g., chain interrupted, NPC ticked through DAZED)
+            interruptCooldownRolled = false;
+        } else {
+            rollCooldown(currentAbility);
+        }
         onAbilityComplete();
     }
 
@@ -465,6 +547,15 @@ public abstract class AbstractDataAbilities {
             releaseRotationControl();
             releaseLockedPosition();
 
+            // If chain was active, roll chain cooldown and clear chain state
+            if (currentChain != null) {
+                rollChainCooldown(currentChain);
+                interruptCooldownRolled = true;
+                currentChain = null;
+                chainEntryIndex = -1;
+                chainDelayRemaining = -1;
+            }
+
             // Let subclass handle cleanup
             onInterruptComplete();
         }
@@ -475,4 +566,112 @@ public abstract class AbstractDataAbilities {
      * NPC: keeps currentAbility (ticks through DAZED). Player: clears immediately.
      */
     protected void onInterruptComplete() {}
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CHAINED ABILITY EXECUTION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Start executing a chained ability. Sets up chain state and starts the first entry.
+     *
+     * @param chain  The chained ability to execute (should be a deep copy)
+     * @param target The initial target
+     * @return true if the chain was started
+     */
+    protected boolean startChain(ChainedAbility chain, EntityLivingBase target) {
+        if (chain == null || chain.getEntries().isEmpty()) return false;
+
+        currentChain = chain;
+        chainEntryIndex = 0;
+        chainDelayRemaining = -1;
+
+        // Check if first entry has a delay
+        ChainedAbilityEntry firstEntry = chain.getEntries().get(0);
+        int delay = firstEntry.getDelayTicks();
+        if (delay > 0) {
+            chainDelayRemaining = delay;
+            return true;
+        }
+
+        return startChainEntry(target);
+    }
+
+    /**
+     * Start the current chain entry's ability.
+     */
+    protected boolean startChainEntry(EntityLivingBase target) {
+        if (currentChain == null || chainEntryIndex < 0 || chainEntryIndex >= currentChain.getEntries().size()) {
+            completeChain();
+            return false;
+        }
+
+        ChainedAbilityEntry entry = currentChain.getEntries().get(chainEntryIndex);
+        Ability ability = AbilityController.Instance.resolveAbility(entry.getAbilityReference());
+        if (ability == null) {
+            // Broken reference - complete chain
+            completeChain();
+            return false;
+        }
+
+        // Validate the resolved ability's UserType matches the chain's allowed context.
+        // The chain's own UserType was already checked at selection time, but individual
+        // abilities may have stricter restrictions (e.g., PLAYER_ONLY in an NPC chain).
+        if (!ability.getAllowedBy().allowsNpc() && getEntity() instanceof noppes.npcs.entity.EntityNPCInterface) {
+            // Skip this entry - ability doesn't allow NPCs
+            completeChain();
+            return false;
+        }
+        if (!ability.getAllowedBy().allowsPlayer() && getEntity() instanceof net.minecraft.entity.player.EntityPlayer) {
+            // Skip this entry - ability doesn't allow players
+            completeChain();
+            return false;
+        }
+
+        // If windUpAll=false, force windup to 0 (skip individual windups)
+        if (!currentChain.isWindUpAll()) {
+            ability.setWindUpTicks(0);
+        }
+
+        // Start the ability (skip its own conditions - chain conditions were already checked)
+        currentAbility = ability;
+        ability.start(target);
+
+        if (ability.getPhase() == AbilityPhase.ACTIVE) {
+            // Windup was 0 - capture locks for immediate active phase, then execute
+            if (ability.isRotationLockedDuringActive()) {
+                captureLockedRotation();
+            }
+            if (ability.isMovementLockedDuringActive() && !ability.hasAbilityMovement()) {
+                captureLockedPosition();
+            }
+            executeImmediate(ability, target);
+        } else {
+            // Normal windup flow
+            if (ability.isRotationLockedDuringWindup()) {
+                captureLockedRotation();
+            }
+            if (ability.isMovementLockedDuringWindup() && !ability.hasAbilityMovement()) {
+                captureLockedPosition();
+            }
+            spawnTelegraph(ability, target);
+            playAbilitySound(ability.getWindUpSound());
+            playAbilityAnimation(ability.getWindUpAnimation());
+        }
+
+        return true;
+    }
+
+    /**
+     * Complete the chain execution. Rolls chain cooldown and clears all chain state.
+     */
+    protected void completeChain() {
+        if (currentChain != null) {
+            rollChainCooldown(currentChain);
+        }
+        currentChain = null;
+        chainEntryIndex = -1;
+        chainDelayRemaining = -1;
+        currentAbility = null;
+        onAbilityComplete();
+    }
 }

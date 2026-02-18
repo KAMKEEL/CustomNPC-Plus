@@ -38,7 +38,7 @@ import java.util.List;
 
 import net.minecraft.entity.Entity;
 
-public abstract class Ability implements IAbility {
+public abstract class Ability implements IAbility, IAbilityAction {
 
     // ═══════════════════════════════════════════════════════════════════
     // CONFIGURATION (saved to NBT)
@@ -1275,6 +1275,16 @@ public abstract class Ability implements IAbility {
 
     public Ability deepCopy() {
         return AbilityController.Instance.fromNBT(this.writeNBT());
+    }
+
+    @Override
+    public boolean isChain() {
+        return false;
+    }
+
+    @Override
+    public IAbilityAction deepCopyAction() {
+        return deepCopy();
     }
 
     public boolean isNpcInlineEdit() {

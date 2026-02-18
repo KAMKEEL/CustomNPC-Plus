@@ -3,6 +3,9 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.ChainedAbilityController;
+import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -230,6 +233,11 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     @Override
+    protected void rollChainCooldown(ChainedAbility chain) {
+        cooldownEndTime = getWorldTime() + chain.getCooldownTicks();
+    }
+
+    @Override
     protected void onAbilityComplete() {
         currentAbility = null;
         currentAbilityKey = null;
@@ -263,7 +271,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             return;
         }
 
-        if (currentAbility != null && currentAbility.isExecuting()) {
+        if (chainDelayRemaining > 0 || (currentAbility != null && currentAbility.isExecuting())) {
             tickCurrentAbility();
 
             // Apply rotation and position locks after ability tick
@@ -302,11 +310,28 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         return activateAbility(player, key);
     }
 
+    /** Prefix used to identify chained ability keys in the unlocked list. */
+    public static final String CHAIN_PREFIX = "chain:";
+
     /**
-     * Activate a specific ability by key.
+     * Resolve an action key to an IAbilityAction.
+     * Handles "chain:" prefix for chained abilities, otherwise resolves from AbilityController.
+     */
+    private IAbilityAction resolveActionKey(String key) {
+        if (key.startsWith(CHAIN_PREFIX)) {
+            if (ChainedAbilityController.Instance == null) return null;
+            return ChainedAbilityController.Instance.resolve(key.substring(CHAIN_PREFIX.length()));
+        }
+        if (AbilityController.Instance == null) return null;
+        return AbilityController.Instance.resolveAbility(key);
+    }
+
+    /**
+     * Activate a specific ability by key. Keys prefixed with "chain:" are
+     * treated as chained abilities and resolved from {@link ChainedAbilityController}.
      *
      * @param player The player
-     * @param key    The ability key (built-in or preset name)
+     * @param key    The ability key (built-in or preset name), or "chain:name" for chains
      * @return true if the ability was started
      */
     public boolean activateAbility(EntityPlayer player, String key) {
@@ -314,20 +339,32 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         // Can't activate if already executing
         if (currentAbility != null && currentAbility.isExecuting()) return false;
+        if (isExecutingChain()) return false;
 
-        // Resolve ability from controller
-        if (AbilityController.Instance == null) return false;
-        Ability ability = AbilityController.Instance.resolveAbility(key);
-        if (ability == null) return false;
+        // Resolve via unified resolver
+        IAbilityAction action = resolveActionKey(key);
+        if (action == null) return false;
 
         // Check user type allows player
-        if (!ability.getAllowedBy().allowsPlayer()) return false;
-
-        // Check universal cooldown
-        if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
+        if (!action.getAllowedBy().allowsPlayer()) return false;
 
         // Check conditions (skip target-requiring ones)
-        if (!ability.checkConditionsForPlayer(player)) return false;
+        if (!action.checkConditionsForPlayer(player)) return false;
+
+        // Dispatch: chain vs ability
+        if (action.isChain()) {
+            if (isOnCooldown()) return false;
+
+            currentAbilityKey = key;
+            currentTarget = null;
+            return startChain((ChainedAbility) action, null);
+        }
+
+        // Regular ability activation
+        Ability ability = (Ability) action;
+
+        // Check universal cooldown (abilities can optionally ignore it)
+        if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
 
         // Fire extender start hook (e.g., resource cost checks)
         if (!AbilityController.Instance.fireOnAbilityStart(ability, player, null)) {
@@ -777,6 +814,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     /**
      * Remove any unlocked ability keys that can no longer be resolved.
      * Called during load to clean up references to deleted abilities.
+     * Supports both regular ability keys and "chain:" prefixed chained ability keys.
      */
     private void validateUnlockedAbilities() {
         if (AbilityController.Instance == null) return;
@@ -784,7 +822,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         Iterator<String> it = unlockedAbilities.iterator();
         while (it.hasNext()) {
             String key = it.next();
-            if (!AbilityController.Instance.canResolveAbility(key)) {
+            IAbilityAction resolved = resolveActionKey(key);
+            if (resolved == null) {
                 it.remove();
                 LogWriter.info("Removed invalid ability reference from player data: " + key);
             }

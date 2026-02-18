@@ -2,6 +2,7 @@ package kamkeel.npcs.command;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.data.ability.ChainedAbilityController;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -77,7 +78,8 @@ public class AbilityCommand extends CommandKamkeelBase {
     )
     public void reload(ICommandSender sender, String[] args) {
         AbilityController.Instance.load();
-        sendResult(sender, "Abilities reloaded from disk.");
+        ChainedAbilityController.Instance.load();
+        sendResult(sender, "Abilities and chained abilities reloaded from disk.");
     }
 
     @SubCommand(

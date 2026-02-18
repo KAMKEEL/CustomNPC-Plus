@@ -3,7 +3,10 @@ package noppes.npcs;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
-import kamkeel.npcs.controllers.data.ability.AbilitySlot;
+import kamkeel.npcs.controllers.data.ability.AbilityAction;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.ChainedAbilityController;
+import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -35,9 +38,9 @@ public class DataAbilities extends AbstractDataAbilities {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * List of ability slots this NPC can use (inline or reference).
+     * Unified list of action slots (abilities and chained abilities).
      */
-    private List<AbilitySlot> abilitySlots = new ArrayList<>();
+    private List<AbilityAction> actionSlots = new ArrayList<>();
 
     /**
      * Whether the ability system is enabled for this NPC
@@ -208,6 +211,20 @@ public class DataAbilities extends AbstractDataAbilities {
     }
 
     @Override
+    protected void rollChainCooldown(ChainedAbility chain) {
+        int baseCooldown = minCooldown;
+        if (maxCooldown > minCooldown) {
+            baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
+        }
+        cooldownEndTime = npc.worldObj.getTotalWorldTime() + baseCooldown + chain.getCooldownTicks();
+    }
+
+    @Override
+    protected EntityLivingBase retargetForChain() {
+        return npc.getAttackTarget();
+    }
+
+    @Override
     protected void onAbilityComplete() {
         currentAbility = null;
         lastTarget = null;
@@ -288,17 +305,21 @@ public class DataAbilities extends AbstractDataAbilities {
                 if (rotationLocked || hitScanActive) releaseRotationControl();
                 if (positionLocked) releaseLockedPosition();
             }
+            // Clear chain state
+            currentChain = null;
+            chainEntryIndex = -1;
+            chainDelayRemaining = -1;
             return;
         }
 
         // Safety: release orphaned locks if no ability is actively executing
-        if (currentAbility == null || !currentAbility.isExecuting()) {
+        if ((currentAbility == null || !currentAbility.isExecuting()) && chainDelayRemaining <= 0) {
             if (rotationLocked || hitScanActive) releaseRotationControl();
             if (positionLocked) releaseLockedPosition();
         }
 
-        // Tick current ability if executing (shared logic from base class)
-        if (currentAbility != null && currentAbility.isExecuting()) {
+        // Tick current ability if executing, or tick chain delay between entries
+        if (chainDelayRemaining > 0 || (currentAbility != null && currentAbility.isExecuting())) {
             tickCurrentAbility();
         }
     }
@@ -329,7 +350,7 @@ public class DataAbilities extends AbstractDataAbilities {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Try to select and start an ability for the given target.
+     * Try to select and start an ability or chained ability for the given target.
      * Called by CombatHandler when NPC is in combat and ready for an ability.
      *
      * @param target The combat target
@@ -340,22 +361,59 @@ public class DataAbilities extends AbstractDataAbilities {
             return false;
         }
 
-        Ability selected = selectAbility(target);
-        if (selected == null) {
+        // Build eligible pool from unified action slots
+        List<IAbilityAction> eligible = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+        int totalWeight = 0;
+
+        for (AbilityAction slot : actionSlots) {
+            IAbilityAction action = slot.getAction();
+            if (action != null && isActionEligible(action, target)) {
+                eligible.add(action);
+                weights.add(action.getWeight());
+                totalWeight += action.getWeight();
+            }
+        }
+
+        if (eligible.isEmpty() || totalWeight <= 0) {
             return false;
         }
 
-        return startAbility(selected, target);
+        // Weighted random selection
+        int roll = random.nextInt(totalWeight);
+        int cumulative = 0;
+        IAbilityAction selected = null;
+        for (int i = 0; i < eligible.size(); i++) {
+            cumulative += weights.get(i);
+            if (roll < cumulative) {
+                selected = eligible.get(i);
+                break;
+            }
+        }
+        if (selected == null) {
+            selected = eligible.get(eligible.size() - 1);
+        }
+
+        // Dispatch
+        lastTarget = target;
+        if (selected.isChain()) {
+            return startChain((ChainedAbility) selected, target);
+        } else {
+            return startAbility((Ability) selected, target);
+        }
     }
 
     /**
      * Check if an ability can be selected right now.
      */
     public boolean canSelectAbility() {
-        if (!enabled || abilitySlots.isEmpty()) {
+        if (!enabled || actionSlots.isEmpty()) {
             return false;
         }
         if (currentAbility != null && currentAbility.isExecuting()) {
+            return false;
+        }
+        if (isExecutingChain()) {
             return false;
         }
         // Check if still on cooldown
@@ -366,65 +424,36 @@ public class DataAbilities extends AbstractDataAbilities {
     }
 
     /**
-     * Select an ability using weighted random from eligible abilities.
+     * Check if an action (ability or chain) is eligible for use.
      */
-    private Ability selectAbility(EntityLivingBase target) {
-        List<Ability> eligible = new ArrayList<>();
-        int totalWeight = 0;
-
-        for (Ability ability : getAbilities()) {
-            if (isAbilityEligible(ability, target)) {
-                eligible.add(ability);
-                totalWeight += ability.getWeight();
-            }
+    private boolean isActionEligible(IAbilityAction action, EntityLivingBase target) {
+        if (!action.getAllowedBy().allowsNpc()) {
+            return false;
         }
-
-        if (eligible.isEmpty() || totalWeight <= 0) {
-            return null;
-        }
-
-        // Weighted random selection
-        int roll = random.nextInt(totalWeight);
-        int cumulative = 0;
-        for (Ability ability : eligible) {
-            cumulative += ability.getWeight();
-            if (roll < cumulative) {
-                return ability;
-            }
-        }
-
-        return eligible.get(eligible.size() - 1);
-    }
-
-    /**
-     * Check if a specific ability is eligible for use.
-     */
-    private boolean isAbilityEligible(Ability ability, EntityLivingBase target) {
-        // Check UserType allows NPCs
-        if (!ability.getAllowedBy().allowsNpc()) {
+        if (!action.isEnabled()) {
             return false;
         }
 
-        // Check enabled
-        if (!ability.isEnabled()) {
+        // Ability-specific: check if already executing
+        if (!action.isChain() && ((Ability) action).isExecuting()) {
             return false;
         }
 
-        // Check if already executing
-        if (ability.isExecuting()) {
+        // Chain-specific: must have entries
+        if (action.isChain() && ((ChainedAbility) action).getEntries().isEmpty()) {
             return false;
         }
 
-        // Check range
+        // Range check
         if (target != null) {
             float distance = npc.getDistanceToEntity(target);
-            if (distance < ability.getMinRange() || distance > ability.getMaxRange()) {
+            if (distance < action.getMinRange() || distance > action.getMaxRange()) {
                 return false;
             }
         }
 
-        // Check conditions
-        if (!ability.checkConditions(npc, target)) {
+        // Conditions
+        if (!action.checkConditions(npc, target)) {
             return false;
         }
 
@@ -496,7 +525,9 @@ public class DataAbilities extends AbstractDataAbilities {
             return false;
         }
 
-        currentAbility.onDamageTaken(npc, (EntityLivingBase) source.getEntity(), source, amount);
+        net.minecraft.entity.Entity sourceEntity = source.getEntity();
+        EntityLivingBase attacker = sourceEntity instanceof EntityLivingBase ? (EntityLivingBase) sourceEntity : null;
+        currentAbility.onDamageTaken(npc, attacker, source, amount);
 
         if (currentAbility.canInterrupt(source)) {
             interruptCurrentAbility(source, amount);
@@ -568,6 +599,10 @@ public class DataAbilities extends AbstractDataAbilities {
             currentAbility = null;
             lastTarget = null;
         }
+        // Also clear chain state
+        currentChain = null;
+        chainEntryIndex = -1;
+        chainDelayRemaining = -1;
     }
 
     /**
@@ -687,15 +722,20 @@ public class DataAbilities extends AbstractDataAbilities {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // ABILITY LIST MANAGEMENT
+    // ACTION SLOT MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════
 
+    /** Get the unified action slot list. */
+    public List<AbilityAction> getAbilityActions() {
+        return actionSlots;
+    }
+
     /**
-     * Get resolved abilities from all slots, filtering out broken references.
+     * Get resolved abilities from all ability slots, filtering out broken references and chains.
      */
     public List<Ability> getAbilities() {
         List<Ability> resolved = new ArrayList<>();
-        for (AbilitySlot slot : abilitySlots) {
+        for (AbilityAction slot : actionSlots) {
             Ability a = slot.getAbility();
             if (a != null) {
                 resolved.add(a);
@@ -704,31 +744,46 @@ public class DataAbilities extends AbstractDataAbilities {
         return resolved;
     }
 
-    /** Get the raw slot list (for GUI access). */
-    public List<AbilitySlot> getAbilitySlots() {
-        return abilitySlots;
-    }
-
     /** Add an inline ability. */
     public void addAbility(Ability ability) {
-        abilitySlots.add(AbilitySlot.inline(ability));
+        actionSlots.add(AbilityAction.inline(ability));
     }
 
     /** Add a reference ability by key (built-in name or custom ability name). */
     public void addAbilityReference(String key) {
-        abilitySlots.add(AbilitySlot.reference(key));
+        actionSlots.add(AbilityAction.abilityReference(key));
     }
 
-    public void removeAbility(int index) {
-        if (index >= 0 && index < abilitySlots.size()) {
-            abilitySlots.remove(index);
+    /** Add a chained ability reference by name. */
+    public void addChainReference(String name) {
+        if (name != null && !name.isEmpty()) {
+            for (AbilityAction slot : actionSlots) {
+                if (slot.isChainReference() && name.equals(slot.getReferenceId())) {
+                    return; // Prevent duplicates
+                }
+            }
+            actionSlots.add(AbilityAction.chainReference(name));
         }
     }
 
+    /** Remove an action slot by index. */
+    public void removeAction(int index) {
+        if (index >= 0 && index < actionSlots.size()) {
+            actionSlots.remove(index);
+        }
+    }
+
+    public void removeAbility(int index) {
+        removeAction(index);
+    }
+
     public void removeAbility(String id) {
-        abilitySlots.removeIf(slot -> {
-            if (slot.isReference()) {
+        actionSlots.removeIf(slot -> {
+            if (slot.isAbilityReference()) {
                 return slot.getReferenceId().equals(id);
+            }
+            if (slot.isChainReference()) {
+                return false; // Don't remove chain references via removeAbility
             }
             Ability a = slot.getAbility();
             return a != null && a.getId().equals(id);
@@ -736,7 +791,7 @@ public class DataAbilities extends AbstractDataAbilities {
     }
 
     public Ability getAbility(String id) {
-        for (AbilitySlot slot : abilitySlots) {
+        for (AbilityAction slot : actionSlots) {
             Ability a = slot.getAbility();
             if (a != null && a.getId().equals(id)) {
                 return a;
@@ -747,22 +802,22 @@ public class DataAbilities extends AbstractDataAbilities {
 
     /** Check if a slot at a given index is a reference. */
     public boolean isSlotReference(int index) {
-        if (index < 0 || index >= abilitySlots.size()) return false;
-        return abilitySlots.get(index).isReference();
+        if (index < 0 || index >= actionSlots.size()) return false;
+        return actionSlots.get(index).isReference();
     }
 
-    /** Convert a reference slot to inline. Returns false if resolution fails. */
+    /** Convert a reference slot to inline. Returns false if resolution fails or is a chain. */
     public boolean convertToInline(int index) {
-        if (index < 0 || index >= abilitySlots.size()) return false;
-        return abilitySlots.get(index).convertToInline();
+        if (index < 0 || index >= actionSlots.size()) return false;
+        return actionSlots.get(index).convertToInline();
     }
 
     public void clearAbilities() {
-        abilitySlots.clear();
+        actionSlots.clear();
     }
 
     public boolean isEmpty() {
-        return abilitySlots.isEmpty();
+        return actionSlots.isEmpty();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -977,11 +1032,11 @@ public class DataAbilities extends AbstractDataAbilities {
         compound.setInteger("AbilityMinCooldown", minCooldown);
         compound.setInteger("AbilityMaxCooldown", maxCooldown);
 
-        NBTTagList abilityList = new NBTTagList();
-        for (AbilitySlot slot : abilitySlots) {
-            abilityList.appendTag(slot.writeNBT());
+        NBTTagList actionList = new NBTTagList();
+        for (AbilityAction slot : actionSlots) {
+            actionList.appendTag(slot.writeNBT());
         }
-        compound.setTag("Abilities", abilityList);
+        compound.setTag("AbilityActions", actionList);
 
         return compound;
     }
@@ -991,13 +1046,36 @@ public class DataAbilities extends AbstractDataAbilities {
         minCooldown = compound.getInteger("AbilityMinCooldown");
         maxCooldown = compound.getInteger("AbilityMaxCooldown");
 
-        abilitySlots.clear();
-        NBTTagList abilityList = compound.getTagList("Abilities", 10);
-        for (int i = 0; i < abilityList.tagCount(); i++) {
-            NBTTagCompound abilityNBT = abilityList.getCompoundTagAt(i);
-            AbilitySlot slot = AbilitySlot.fromNBT(abilityNBT);
-            if (slot != null) {
-                abilitySlots.add(slot);
+        actionSlots.clear();
+
+        if (compound.hasKey("AbilityActions")) {
+            // New unified format
+            NBTTagList actionList = compound.getTagList("AbilityActions", 10);
+            for (int i = 0; i < actionList.tagCount(); i++) {
+                AbilityAction slot = AbilityAction.fromNBT(actionList.getCompoundTagAt(i));
+                if (slot != null) {
+                    actionSlots.add(slot);
+                }
+            }
+        } else {
+            // Legacy migration: read old separate lists
+            if (compound.hasKey("Abilities")) {
+                NBTTagList abilityList = compound.getTagList("Abilities", 10);
+                for (int i = 0; i < abilityList.tagCount(); i++) {
+                    AbilityAction slot = AbilityAction.fromNBT(abilityList.getCompoundTagAt(i));
+                    if (slot != null) {
+                        actionSlots.add(slot);
+                    }
+                }
+            }
+            if (compound.hasKey("ChainedAbilities")) {
+                NBTTagList chainList = compound.getTagList("ChainedAbilities", 8);
+                for (int i = 0; i < chainList.tagCount(); i++) {
+                    String ref = chainList.getStringTagAt(i);
+                    if (ref != null && !ref.isEmpty()) {
+                        actionSlots.add(AbilityAction.chainReference(ref));
+                    }
+                }
             }
         }
     }

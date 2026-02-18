@@ -449,6 +449,36 @@ public class AbilityController implements IAbilityHandler {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // UNIFIED ACTION RESOLUTION
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Resolve any action key to an IAbilityAction.
+     * Checks abilities first, then chained abilities.
+     */
+    public IAbilityAction resolveAction(String key) {
+        if (key == null || key.isEmpty()) return null;
+
+        Ability ability = resolveAbility(key);
+        if (ability != null) return ability;
+
+        if (ChainedAbilityController.Instance != null) {
+            return ChainedAbilityController.Instance.resolve(key);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a key can be resolved as any action (ability or chain).
+     */
+    public boolean canResolveAction(String key) {
+        if (canResolveAbility(key)) return true;
+        return ChainedAbilityController.Instance != null
+            && ChainedAbilityController.Instance.canResolve(key);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // EXTENSION POINTS
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -620,5 +650,20 @@ public class AbilityController implements IAbilityHandler {
     @Override
     public boolean deleteCustomAbilityByName(String name) {
         return deleteCustomAbility(name);
+    }
+
+    @Override
+    public String[] getChainedAbilityNames() {
+        return ChainedAbilityController.Instance.getNames().toArray(new String[0]);
+    }
+
+    @Override
+    public boolean hasChainedAbilityName(String name) {
+        return ChainedAbilityController.Instance.hasName(name);
+    }
+
+    @Override
+    public boolean deleteChainedAbilityByName(String name) {
+        return ChainedAbilityController.Instance.delete(name);
     }
 }

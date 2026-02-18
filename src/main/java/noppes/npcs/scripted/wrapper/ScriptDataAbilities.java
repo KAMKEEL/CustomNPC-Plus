@@ -2,7 +2,7 @@ package noppes.npcs.scripted.wrapper;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.ability.AbilitySlot;
+import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.api.ability.IAbility;
@@ -81,12 +81,12 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public boolean isAbilityReference(String abilityId) {
-        List<AbilitySlot> slots = data.getAbilitySlots();
+        List<AbilityAction> slots = data.getAbilityActions();
         for (int i = 0; i < slots.size(); i++) {
-            kamkeel.npcs.controllers.data.ability.AbilitySlot slot = slots.get(i);
-            if (slot.isReference()) {
+            AbilityAction slot = slots.get(i);
+            if (slot.isAbilityReference()) {
                 if (slot.getReferenceId().equals(abilityId)) return true;
-            } else {
+            } else if (!slot.isReference()) {
                 Ability a = slot.getAbility();
                 if (a != null && a.getId().equals(abilityId)) return false;
             }
@@ -96,10 +96,10 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public boolean convertToInline(String abilityId) {
-        List<kamkeel.npcs.controllers.data.ability.AbilitySlot> slots = data.getAbilitySlots();
+        List<AbilityAction> slots = data.getAbilityActions();
         for (int i = 0; i < slots.size(); i++) {
-            kamkeel.npcs.controllers.data.ability.AbilitySlot slot = slots.get(i);
-            if (slot.isReference() && slot.getReferenceId().equals(abilityId)) {
+            AbilityAction slot = slots.get(i);
+            if (slot.isAbilityReference() && slot.getReferenceId().equals(abilityId)) {
                 return data.convertToInline(i);
             }
         }

@@ -2,7 +2,7 @@ package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.ability.AbilitySlot;
+import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
@@ -48,8 +48,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     // Display name to typeId mapping for the available types scroll
     private final HashMap<String, String> displayNameToTypeId = new HashMap<>();
 
-    // NPC's current ability slots
-    private final List<AbilitySlot> npcSlots = new ArrayList<>();
+    // NPC's current action slots
+    private final List<AbilityAction> npcSlots = new ArrayList<>();
 
     // Settings
     private boolean abilitiesEnabled = false;
@@ -163,9 +163,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // On/Off toggle for selected ability (under Load button)
         if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
             Ability selectedAbility = npcSlots.get(selectedAbilityIndex).getAbility();
-            GuiNpcButton toggleBtn = new GuiNpcButton(77, centerX, y + 112, 40, 20,
-                new String[]{"gui.off", "gui.on"}, selectedAbility.isEnabled() ? 1 : 0);
-            addButton(toggleBtn);
+            if (selectedAbility != null) {
+                GuiNpcButton toggleBtn = new GuiNpcButton(77, centerX, y + 112, 40, 20,
+                    new String[]{"gui.off", "gui.on"}, selectedAbility.isEnabled() ? 1 : 0);
+                addButton(toggleBtn);
+            }
         }
 
         // Check if selected ability is built-in (non-editable)
@@ -220,7 +222,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                             variants.get(0).apply(newAbility);
                         }
                         newAbility.setId(UUID.randomUUID().toString());
-                        npcSlots.add(AbilitySlot.inline(newAbility));
+                        npcSlots.add(AbilityAction.inline(newAbility));
                         selectedAbilityIndex = npcSlots.size() - 1;
                         updateNpcAbilitiesList();
                         selectAbilityByIndex(selectedAbilityIndex);
@@ -247,7 +249,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Edit ability
         if (id == 72) {
             if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
-                AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+                AbilityAction slot = npcSlots.get(selectedAbilityIndex);
                 if (slot.isReference()) {
                     // Reference slot - ask clone-and-modify vs modify-parent
                     setSubGui(new SubGuiAbilityEditMode());
@@ -265,7 +267,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Move up (carrot left = earlier in list)
         if (id == 73) {
             if (selectedAbilityIndex > 0) {
-                AbilitySlot temp = npcSlots.get(selectedAbilityIndex);
+                AbilityAction temp = npcSlots.get(selectedAbilityIndex);
                 npcSlots.set(selectedAbilityIndex, npcSlots.get(selectedAbilityIndex - 1));
                 npcSlots.set(selectedAbilityIndex - 1, temp);
                 selectedAbilityIndex--;
@@ -280,7 +282,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Move down (carrot right = later in list)
         if (id == 74) {
             if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size() - 1) {
-                AbilitySlot temp = npcSlots.get(selectedAbilityIndex);
+                AbilityAction temp = npcSlots.get(selectedAbilityIndex);
                 npcSlots.set(selectedAbilityIndex, npcSlots.get(selectedAbilityIndex + 1));
                 npcSlots.set(selectedAbilityIndex + 1, temp);
                 selectedAbilityIndex++;
@@ -317,7 +319,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Toggle selected ability on/off
         if (id == 77) {
             if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
-                AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+                AbilityAction slot = npcSlots.get(selectedAbilityIndex);
                 Ability ability = slot.getAbility();
                 if (ability != null) {
                     boolean enabled = ((GuiNpcButton) guibutton).getValue() == 1;
@@ -397,7 +399,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Only process NPC ability data, not saved ability preset data
         // SubGuiAbilityLoad also implements IGuiData and may receive responses
         // that get forwarded here - ignore those by checking for expected keys
-        if (!compound.hasKey("Abilities")) {
+        if (!compound.hasKey("AbilityActions") && !compound.hasKey("Abilities")) {
             return;
         }
 
@@ -411,10 +413,12 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         }
 
         npcSlots.clear();
-        NBTTagList abilityList = compound.getTagList("Abilities", 10);
-        for (int i = 0; i < abilityList.tagCount(); i++) {
-            NBTTagCompound abilityNBT = abilityList.getCompoundTagAt(i);
-            AbilitySlot slot = AbilitySlot.fromNBT(abilityNBT);
+        // Support both new unified format and legacy format
+        String tagName = compound.hasKey("AbilityActions") ? "AbilityActions" : "Abilities";
+        NBTTagList actionList = compound.getTagList(tagName, 10);
+        for (int i = 0; i < actionList.tagCount(); i++) {
+            NBTTagCompound slotNBT = actionList.getCompoundTagAt(i);
+            AbilityAction slot = AbilityAction.fromNBT(slotNBT);
             if (slot != null) {
                 npcSlots.add(slot);
             }
@@ -526,7 +530,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      * Broken:    "[●] 1. > [Missing: id...]" in red
      */
     private String getAbilityListEntry(int index) {
-        AbilitySlot slot = npcSlots.get(index);
+        AbilityAction slot = npcSlots.get(index);
         Ability ability = slot.getAbility();
 
         if (ability == null) {
@@ -579,11 +583,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         compound.setInteger("AbilityMinCooldown", minCooldown);
         compound.setInteger("AbilityMaxCooldown", maxCooldown);
 
-        NBTTagList abilityList = new NBTTagList();
-        for (AbilitySlot slot : npcSlots) {
-            abilityList.appendTag(slot.writeNBT());
+        NBTTagList actionList = new NBTTagList();
+        for (AbilityAction slot : npcSlots) {
+            actionList.appendTag(slot.writeNBT());
         }
-        compound.setTag("Abilities", abilityList);
+        compound.setTag("AbilityActions", actionList);
 
         PacketClient.sendClient(new AbilitiesNpcSavePacket(compound));
     }
@@ -595,7 +599,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     public void loadAbility(Ability loadedAbility) {
         if (loadedAbility != null) {
             loadedAbility.setId(UUID.randomUUID().toString());
-            npcSlots.add(AbilitySlot.inline(loadedAbility));
+            npcSlots.add(AbilityAction.inline(loadedAbility));
             selectedAbilityIndex = npcSlots.size() - 1;
             updateNpcAbilitiesList();
             selectAbilityByIndex(selectedAbilityIndex);
@@ -610,7 +614,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      */
     public void loadAbilityReference(String referenceId) {
         if (referenceId != null && !referenceId.isEmpty()) {
-            npcSlots.add(AbilitySlot.reference(referenceId));
+            npcSlots.add(AbilityAction.abilityReference(referenceId));
             selectedAbilityIndex = npcSlots.size() - 1;
             updateNpcAbilitiesList();
             selectAbilityByIndex(selectedAbilityIndex);
@@ -652,7 +656,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
         if (scroll == npcAbilitiesScroll && selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
-            AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+            AbilityAction slot = npcSlots.get(selectedAbilityIndex);
             Ability ability = slot.getAbility();
             if (ability != null && ability.isBuiltIn()) return;
             if (slot.isReference()) {
@@ -697,7 +701,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 if (newAbility != null) {
                     variantGui.getVariants().get(idx).apply(newAbility);
                     newAbility.setId(UUID.randomUUID().toString());
-                    npcSlots.add(AbilitySlot.inline(newAbility));
+                    npcSlots.add(AbilityAction.inline(newAbility));
                     selectedAbilityIndex = npcSlots.size() - 1;
                     updateNpcAbilitiesList();
                     selectAbilityByIndex(selectedAbilityIndex);
@@ -711,7 +715,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             if (mode < 0) return; // cancelled
 
             if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
-                AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+                AbilityAction slot = npcSlots.get(selectedAbilityIndex);
                 if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
                     // Convert reference to inline, then edit
                     if (slot.convertToInline()) {
@@ -743,13 +747,13 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      */
     public void onAbilitySaved(Ability ability) {
         if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
-            AbilitySlot slot = npcSlots.get(selectedAbilityIndex);
+            AbilityAction slot = npcSlots.get(selectedAbilityIndex);
             if (slot.isReference()) {
                 // For reference slots, save back to controller
                 PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
             } else {
                 // For inline slots, replace with the updated ability
-                npcSlots.set(selectedAbilityIndex, AbilitySlot.inline(ability));
+                npcSlots.set(selectedAbilityIndex, AbilityAction.inline(ability));
             }
             updateNpcAbilitiesList();
             save();
