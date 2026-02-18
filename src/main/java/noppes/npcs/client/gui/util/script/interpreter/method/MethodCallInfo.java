@@ -382,6 +382,13 @@ public class MethodCallInfo {
         // Check each argument type
         for (int i = 0; i < arguments.size(); i++) {
             Argument arg = arguments.get(i);
+            
+            // Surface argument-level errors (e.g., SAM conflict, ambiguous overload, bare method in Java)
+            if (!arg.isValid() && arg.getErrorMessage() != null) {
+                setArgTypeError(i, arg.getErrorMessage());
+                continue;  // Skip remaining checks for this argument
+            }
+            
             FieldInfo para = resolvedMethod.getParameters().get(i);
 
             TypeInfo argType = arg.getResolvedType();

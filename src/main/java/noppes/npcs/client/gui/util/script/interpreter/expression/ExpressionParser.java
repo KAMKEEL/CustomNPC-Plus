@@ -462,19 +462,10 @@ public class ExpressionParser {
                 int end = current().getEnd();
                 advance();
                 
-                // Determine if this is a static or instance method reference
-                boolean isStatic = false;
-                if (base instanceof ExpressionNode.IdentifierNode) {
-                    // Could be Class::method or obj::method
-                    // We'll determine this during type resolution
-                    String targetName = ((ExpressionNode.IdentifierNode) base).getName();
-                    // If targetName starts with uppercase, likely a class
-                    if (targetName.length() > 0) {
-                        isStatic = Character.isUpperCase(targetName.charAt(0));
-                    }
-                }
-                
-                base = new ExpressionNode.MethodReferenceNode(base, methodName, isStatic, base.getStart(), end);
+                // isStatic is determined during type resolution, not parsing
+                // We pass false as a placeholder - ExpressionTypeResolver will compute
+                // the real value based on whether target resolves to a ClassTypeInfo
+                base = new ExpressionNode.MethodReferenceNode(base, methodName, false, base.getStart(), end);
                 // Method references don't chain further (can't do obj::method.something)
                 break;
             } else if (check(ExpressionToken.TokenKind.LEFT_PAREN)) {

@@ -43,7 +43,8 @@ public final class MethodInfo {
         VOID_METHOD_RETURNS_VALUE,  // Void method returns a value
         DUPLICATE_METHOD,      // Method with same signature already defined in scope
         DUPLICATE_PARAMETER,   // Two parameters have the same name
-        PARAMETER_UNDEFINED    // Parameter type cannot be resolved
+        PARAMETER_UNDEFINED,   // Parameter type cannot be resolved
+        SAM_TYPE_INCOMPATIBLE  // Explicit param type incompatible with SAM context
     }
 
     private final String name;
@@ -548,6 +549,16 @@ public final class MethodInfo {
      */
     public void addParameterError(FieldInfo param, int index, ErrorType type, String message) {
         parameterErrors.add(new ParameterError(param, index, type, message));
+    }
+    
+    public void addSamTypeError(int paramIndex, TypeInfo expectedSamType, TypeInfo actualDeclaredType) {
+        if (paramIndex < 0 || paramIndex >= parameters.size()) {
+            return;
+        }
+        FieldInfo param = parameters.get(paramIndex);
+        String message = "Explicit type '" + actualDeclaredType.getSimpleName() + 
+                "' is incompatible with SAM parameter type '" + expectedSamType.getSimpleName() + "'";
+        parameterErrors.add(new ParameterError(param, paramIndex, ErrorType.SAM_TYPE_INCOMPATIBLE, message));
     }
 
     /**

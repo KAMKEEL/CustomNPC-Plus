@@ -121,6 +121,14 @@ public class ScriptDocument {
 
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
+    
+    // SAM context tracking for named function references
+    // Maps method name -> first SAM signature applied (for conflict detection)
+    private final Map<String, MethodInfo> scriptMethodSamContexts = new HashMap<>();
+    
+    // Thread-local to communicate SAM conflict errors from resolveIdentifier back to parseMethodArguments
+    // Set when injectSamParameterTypes detects a conflict, cleared after argument is created
+    private static final ThreadLocal<String> CURRENT_SAM_CONFLICT_ERROR = new ThreadLocal<>();
 
     // Type resolver
     private final TypeResolver typeResolver;
@@ -338,6 +346,7 @@ public class ScriptDocument {
         methodCalls.clear();
         externalFieldAssignments.clear();
         declarationErrors.clear();
+        scriptMethodSamContexts.clear();
         
         // Unified pipeline for both languages
         List<ScriptLine.Mark> marks = formatUnified();
@@ -942,7 +951,7 @@ public class ScriptDocument {
                                 int paramStart = paramOffset + paramList.indexOf(pn);
                                 
                                 // Check if JSDoc has a @param tag for this parameter
-                                TypeInfo paramType = TypeInfo.fromClass(Object.class);
+                                TypeInfo paramType = TypeInfo.unresolved("any", "any");
                                 if (jsDoc != null) {
                                     JSDocParamTag paramTag = jsDoc.getParamTag(pn);
                                     if (paramTag != null && paramTag.getTypeInfo() != null) {
@@ -2574,6 +2583,8 @@ public class ScriptDocument {
         if (!isJavaScript()) {
             markCastTypes(marks);
             markUnusedImports(marks);
+            // Mark method reference expressions (target::methodName)
+            markMethodReferences(marks);
         }
         
         // Mark lambda and method reference operators (-> and ::)
@@ -2608,9 +2619,230 @@ public class ScriptDocument {
         for (int i = 0; i < text.length() - 1; i++) {
             if (text.charAt(i) == ':' && text.charAt(i + 1) == ':') {
                 if (!isExcluded(i)) {
-                    marks.add(new ScriptLine.Mark(i, i + 2, TokenType.KEYWORD));
+                    marks.add(new ScriptLine.Mark(i, i + 2, TokenType.DEFAULT));
                 }
             }
+        }
+    }
+    
+    /**
+     * Pattern for method reference: target::methodName
+     * target can be: identifier, qualified name (a.b.c), or 'this'/'super'
+     */
+    private static final java.util.regex.Pattern METHOD_REF_PATTERN = 
+        java.util.regex.Pattern.compile("([a-zA-Z_$][a-zA-Z0-9_$]*(?:\\.[a-zA-Z_$][a-zA-Z0-9_$]*)*)\\s*::\\s*([a-zA-Z_$][a-zA-Z0-9_$]*|new)");
+    
+    /**
+     * Mark method reference expressions with appropriate token types.
+     * Target gets its resolved type's token, method name gets METHOD_CALL if valid.
+     * Validates that the method exists on the target type.
+     */
+    private void markMethodReferences(List<ScriptLine.Mark> marks) {
+        java.util.regex.Matcher m = METHOD_REF_PATTERN.matcher(text);
+        while (m.find()) {
+            int targetStart = m.start(1);
+            int targetEnd = m.end(1);
+            int methodStart = m.start(2);
+            int methodEnd = m.end(2);
+            
+            // Skip if in excluded region (string/comment)
+            if (isExcluded(targetStart) || isExcluded(methodStart)) {
+                continue;
+            }
+            
+            String target = m.group(1);
+            String methodName = m.group(2);
+            
+            // Check if there are parentheses after the method name (invalid for method references)
+            if (methodEnd < text.length() && text.charAt(methodEnd) == '(') {
+                // Mark the :: as error
+                int doubleColonPos = targetEnd;
+                while (doubleColonPos < methodStart && text.charAt(doubleColonPos) != ':') {
+                    doubleColonPos++;
+                }
+                if (doubleColonPos < methodStart) {
+                    marks.add(new ScriptLine.Mark(doubleColonPos, doubleColonPos + 2, TokenType.UNDEFINED_VAR,
+                        TokenErrorMessage.from("Method references cannot have parentheses. Use '" + target + "::" + methodName + "' instead of '" + target + "::" + methodName + "()'")));
+                }
+                // Also mark the method name as error
+                marks.add(new ScriptLine.Mark(methodStart, methodEnd, TokenType.UNDEFINED_VAR,
+                    TokenErrorMessage.from("Method references cannot have parentheses")));
+                // Mark opening paren as error too
+                marks.add(new ScriptLine.Mark(methodEnd, methodEnd + 1, TokenType.UNDEFINED_VAR,
+                    TokenErrorMessage.from("Remove parentheses from method reference")));
+                continue; // Skip normal processing for this invalid reference
+            }
+            
+            // Mark the target based on what it resolves to
+            markMethodRefTarget(marks, target, targetStart, targetEnd);
+            
+            // Resolve the target type to validate method existence
+            TypeInfo targetType = resolveMethodRefTargetType(target, targetStart);
+            
+            if (targetType != null && targetType.isResolved()) {
+                // Handle constructor references (::new)
+                if ("new".equals(methodName)) {
+                    if (targetType.hasConstructors()) {
+                        MethodInfo ctorInfo = targetType.findConstructor(0);
+                        if (ctorInfo == null) {
+                            List<MethodInfo> ctors = targetType.getConstructors();
+                            if (!ctors.isEmpty()) {
+                                ctorInfo = ctors.get(0);
+                            }
+                        }
+                        marks.add(new ScriptLine.Mark(methodStart, methodEnd, TokenType.METHOD_CALL, ctorInfo));
+                    } else {
+                        // No constructors found
+                        marks.add(new ScriptLine.Mark(methodStart, methodEnd, TokenType.UNDEFINED_VAR,
+                            TokenErrorMessage.from("No constructor found for '" + targetType.getSimpleName() + "'")));
+                    }
+                } else if (targetType.hasMethod(methodName)) {
+                    // Method exists - get the MethodInfo for metadata
+                    MethodInfo methodInfo = targetType.getMethodInfo(methodName);
+                    if (methodInfo == null) {
+                        // Try getting from overloads if single getMethodInfo fails
+                        List<MethodInfo> overloads = targetType.getAllMethodOverloads(methodName);
+                        if (!overloads.isEmpty()) {
+                            methodInfo = overloads.get(0);
+                        }
+                    }
+                    marks.add(new ScriptLine.Mark(methodStart, methodEnd, TokenType.METHOD_CALL, methodInfo));
+                } else {
+                    // Method does not exist on target type
+                    marks.add(new ScriptLine.Mark(methodStart, methodEnd, TokenType.UNDEFINED_VAR,
+                        TokenErrorMessage.from("Method '" + methodName + "' not found in '" + targetType.getSimpleName() + "'")));
+                }
+            } else {
+                // Could not resolve target type - mark method as potentially valid (no error)
+                // This allows for cases where the target type cannot be resolved but might be valid at runtime
+                marks.add(new ScriptLine.Mark(methodStart, methodEnd, TokenType.UNDEFINED_VAR));
+            }
+        }
+    }
+    
+    /**
+     * Resolve the target type for a method reference expression.
+     * @param target The target expression (e.g., "this", "String", "java.util.Arrays")
+     * @param position The position in the text for scope resolution
+     * @return The resolved TypeInfo, or null if it cannot be resolved
+     */
+    private TypeInfo resolveMethodRefTargetType(String target, int position) {
+        // Handle keywords
+        if ("this".equals(target)) {
+            // Resolve 'this' to the enclosing type
+            ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+            if (enclosingType != null) {
+                return enclosingType;
+            }
+            // For hook methods, resolve to the implied 'this' type
+            MethodInfo containingMethod = findContainingMethod(position);
+            if (containingMethod != null && containingMethod.getContainingType() != null) {
+                return containingMethod.getContainingType();
+            }
+            return null;
+        }
+        
+        if ("super".equals(target)) {
+            // Resolve 'super' to the parent type of the enclosing class
+            ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+            if (enclosingType != null && enclosingType.hasSuperClass()) {
+                return enclosingType.getSuperClass();
+            }
+            return null;
+        }
+        
+        // Handle qualified names (a.b.ClassName)
+        if (target.contains(".")) {
+            TypeInfo typeInfo = resolveType(target);
+            if (typeInfo != null && typeInfo.isResolved()) {
+                return typeInfo;
+            }
+            // Could not resolve as type - leave unresolved
+            return null;
+        }
+        
+        // Simple identifier - try as variable first (instance reference like myList::add)
+        FieldInfo varInfo = resolveVariable(target, position);
+        if (varInfo != null && varInfo.getTypeInfo() != null) {
+            return varInfo.getTypeInfo();
+        }
+        
+        // Try as type name (class reference like String::valueOf)
+        TypeInfo typeInfo = resolveType(target);
+        if (typeInfo != null && typeInfo.isResolved()) {
+            return typeInfo;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Mark the target of a method reference with the appropriate token type.
+     */
+    private void markMethodRefTarget(List<ScriptLine.Mark> marks, String target, int start, int end) {
+        // Handle keywords
+        if ("this".equals(target)) {
+            marks.add(new ScriptLine.Mark(start, end, TokenType.KEYWORD));
+            return;
+        }
+        if ("super".equals(target)) {
+            marks.add(new ScriptLine.Mark(start, end, TokenType.KEYWORD));
+            return;
+        }
+        
+        // Handle qualified names (a.b.ClassName) - mark the whole thing
+        if (target.contains(".")) {
+            // Try to resolve as a type
+            TypeInfo typeInfo = resolveType(target);
+            if (typeInfo != null && typeInfo.isResolved()) {
+                marks.add(new ScriptLine.Mark(start, end, TokenType.IMPORTED_CLASS, typeInfo));
+                return;
+            }
+            // Otherwise mark the parts separately
+            markQualifiedTargetParts(marks, target, start);
+            return;
+        }
+        
+        // Simple identifier - determine its token type
+        // Check for local variable
+        FieldInfo varInfo = resolveVariable(target, start);
+        if (varInfo != null) {
+            TokenType tokenType = varInfo.isParameter() ? TokenType.PARAMETER 
+                                : varInfo.isGlobal() ? TokenType.GLOBAL_FIELD 
+                                : TokenType.LOCAL_FIELD;
+            marks.add(new ScriptLine.Mark(start, end, tokenType, varInfo));
+            return;
+        }
+        
+        // Check for type name (imported class)
+        TypeInfo typeInfo = resolveType(target);
+        if (typeInfo != null && typeInfo.isResolved()) {
+            marks.add(new ScriptLine.Mark(start, end, TokenType.IMPORTED_CLASS, typeInfo));
+            return;
+        }
+        
+        // Unknown - leave as default
+    }
+    
+    /**
+     * Mark parts of a qualified name like java.util.Arrays::asList
+     */
+    private void markQualifiedTargetParts(List<ScriptLine.Mark> marks, String qualifiedName, int baseStart) {
+        String[] parts = qualifiedName.split("\\.");
+        int offset = baseStart;
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            int partEnd = offset + part.length();
+            
+            if (i == parts.length - 1) {
+                // Last part is typically the class name
+                marks.add(new ScriptLine.Mark(offset, partEnd, TokenType.IMPORTED_CLASS));
+            } else {
+                // Package parts
+                marks.add(new ScriptLine.Mark(offset, partEnd, TokenType.TYPE_DECL));
+            }
+            
+            offset = partEnd + 1; // +1 for the dot
         }
     }
     
@@ -3738,8 +3970,9 @@ public class ScriptDocument {
                 }
 
                 if (hasMethod) {
-          
+           
                     TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
+
                     // Get best method overload based on argument types
                     resolvedMethod = receiverType.getBestMethodOverload(methodName, argTypes);
 
@@ -3995,14 +4228,22 @@ public class ScriptDocument {
                     TypeInfo expectedParamType = null;
                     if (methodInfo != null && args.size() < methodInfo.getParameters().size()) {
                         FieldInfo parameter = methodInfo.getParameters().get(args.size());
-                        expectedParamType = parameter.getDeclaredType();
+                        expectedParamType = parameter.getTypeInfo();
                     }
 
                     TypeInfo argType = resolveArgumentType(argText, actualStart, expectedParamType);
                     
-                    args.add(new MethodCallInfo.Argument( 
-                        argText, actualStart, actualEnd, argType, true, null
-                    ));
+                    String samConflictError = CURRENT_SAM_CONFLICT_ERROR.get();
+                    if (samConflictError != null) {
+                        CURRENT_SAM_CONFLICT_ERROR.remove();
+                        args.add(new MethodCallInfo.Argument( 
+                            argText, actualStart, actualEnd, argType, false, samConflictError
+                        ));
+                    } else {
+                        args.add(new MethodCallInfo.Argument( 
+                            argText, actualStart, actualEnd, argType, true, null
+                        ));
+                    }
                 }
                 argStart = i + 1;
                 continue;
@@ -4141,9 +4382,9 @@ public class ScriptDocument {
          // Check if expression contains operators - if so, use the full expression resolver
          // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc.
          // Also route JS function expressions and arrow lambdas through the parser
-         if (containsOperators(expr) || expr.startsWith("(") || looksLikeFunctionOrLambda(expr)) {
-             return resolveExpressionWithParserAPI(expr, position);
-         }
+         if (containsOperators(expr) || expr.contains("::") || expr.contains("->") || expr.startsWith("(") || looksLikeFunctionOrLambda(expr)) {
+              return resolveExpressionWithParserAPI(expr, position);
+          }
         
         // Invalid expressions starting with brackets
         if (expr.startsWith("[") || expr.startsWith("]")) {
@@ -4270,6 +4511,17 @@ public class ScriptDocument {
             FieldInfo varInfo = resolveVariable(first.name, position);
             if (varInfo != null) {
                 currentType = varInfo.getTypeInfo();
+            } else if (isScriptMethod(first.name)) {
+                // Script method reference used as an expression.
+                // In JS, this is commonly used as a SAM callback (e.g., schedule("id", actionFunction)).
+                TypeInfo expectedType = ExpressionTypeResolver.CURRENT_EXPECTED_TYPE;
+                TypeInfo samType = resolveScriptMethodAsSam(first.name, expectedType);
+                if (samType != null) {
+                    currentType = samType;
+                } else if (isJavaScript()) {
+                    // Provide a non-null placeholder type so overload selection can prefer functional-interface params.
+                    currentType = TypeInfo.unresolved("<script_method_ref>", "__script_method_ref__");
+                }
             }
         } else {
             // First segment is a method call - check script methods
@@ -4807,9 +5059,16 @@ public class ScriptDocument {
         return new ExpressionNode.TypeResolverContext() {
             @Override
             public TypeInfo resolveIdentifier(String name) {
-                // Check for special keywords first
                 if ("this".equals(name)) {
                     return findEnclosingScriptType(position);
+                }
+                if ("super".equals(name)) {
+                    // Resolve super to parent class type
+                    ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+                    if (enclosingType != null && enclosingType.hasSuperClass()) {
+                        return enclosingType.getSuperClass();
+                    }
+                    return null;
                 }
                 if ("true".equals(name) || "false".equals(name)) {
                     return TypeInfo.fromPrimitive("boolean");
@@ -4818,18 +5077,24 @@ public class ScriptDocument {
                     return TypeInfo.unresolved("null", "<null>");
                 }
                 
-                // Try to resolve as a variable
+                // Variable shadowing: variables take precedence over script methods
                 FieldInfo varInfo = resolveVariable(name, position);
                 if (varInfo != null) {
                     return varInfo.getTypeInfo();
                 }
                 
-                // Try as a class name (for static access)
                 if (name.length() > 0) {
                     TypeInfo typeCheck = resolveType(name);
                     if (typeCheck != null && typeCheck.isResolved()) {
                         return typeCheck;
                     }
+                }
+                
+                // Named script function as SAM callback: schedule("id", actionFunction)
+                TypeInfo expectedType = ExpressionTypeResolver.CURRENT_EXPECTED_TYPE;
+                TypeInfo samType = resolveScriptMethodAsSam(name, expectedType);
+                if (samType != null) {
+                    return samType;
                 }
                 
                 return null;
@@ -5268,6 +5533,34 @@ public class ScriptDocument {
         return false;
     }
 
+    private TypeInfo resolveScriptMethodAsSam(String methodName, TypeInfo expectedType) {
+        if (methodName == null || expectedType == null || !expectedType.isFunctionalInterface() || !isScriptMethod(methodName)) {
+            return null;
+        }
+
+        // Java mode: bare method names are invalid as SAM callbacks
+        if (!isJavaScript()) {
+            CURRENT_SAM_CONFLICT_ERROR.set(
+                "Bare method name '" + methodName + "' cannot be used as callback in Java. Use this::" + methodName
+            );
+            return expectedType;
+        }
+
+        MethodInfo sam = expectedType.getSingleAbstractMethod();
+        if (sam == null) {
+            return null;
+        }
+
+        int samArity = sam.getParameters().size();
+        MethodInfo bestMatch = getScriptMethodBySamArity(methodName, samArity);
+        if (bestMatch == null) {
+            return null;
+        }
+
+        injectSamParameterTypes(bestMatch, sam);
+        return expectedType;
+    }
+
     /**
      * Get the MethodInfo for a script-defined method by name.
      */
@@ -5351,6 +5644,137 @@ public class ScriptDocument {
         
         // Phase 3: Fallback to first overload
         return candidates.get(0);
+    }
+    
+    /**
+     * Get the best matching script method for use as a SAM callback by arity.
+     * Returns null if no match found, or if multiple overloads match by arity (ambiguous).
+     * 
+     * @param methodName Name of the script method
+     * @param samArity Number of parameters in the SAM interface method
+     * @return The matching MethodInfo, or null if no unambiguous match
+     */
+    private MethodInfo getScriptMethodBySamArity(String methodName, int samArity) {
+        List<MethodInfo> matchingByArity = new ArrayList<>();
+        
+        for (MethodInfo method : methods) {
+            if (method.getName().equals(methodName)) {
+                if (method.getParameters().size() == samArity) {
+                    matchingByArity.add(method);
+                }
+            }
+        }
+        
+        if (matchingByArity.size() == 1) {
+            return matchingByArity.get(0);
+        }
+        
+        if (matchingByArity.isEmpty()) {
+            return getScriptMethodInfo(methodName);
+        }
+        
+        CURRENT_SAM_CONFLICT_ERROR.set(
+            "Ambiguous overload for '" + methodName + "' with " + samArity + " parameter(s): " +
+            matchingByArity.size() + " overloads match"
+        );
+        return null;
+    }
+    
+    private void injectSamParameterTypes(MethodInfo scriptMethod, MethodInfo sam) {
+        String methodName = scriptMethod.getName();
+        
+        MethodInfo previousSam = scriptMethodSamContexts.get(methodName);
+        if (previousSam != null) {
+            if (!areSamSignaturesCompatible(previousSam, sam)) {
+                String existingSig = formatSamSignature(previousSam);
+                String newSig = formatSamSignature(sam);
+                CURRENT_SAM_CONFLICT_ERROR.set(
+                    "Function '" + methodName + "' used in incompatible SAM contexts: " +
+                    existingSig + " vs " + newSig
+                );
+                return;
+            }
+        } else {
+            scriptMethodSamContexts.put(methodName, sam);
+        }
+        
+        List<FieldInfo> scriptParams = scriptMethod.getParameters();
+        List<FieldInfo> samParams = sam.getParameters();
+        
+        if (scriptParams.size() != samParams.size()) {
+            return;
+        }
+        
+        for (int i = 0; i < scriptParams.size(); i++) {
+            FieldInfo scriptParam = scriptParams.get(i);
+            TypeInfo samParamType = samParams.get(i).getTypeInfo();
+            
+            if (samParamType == null) {
+                continue;
+            }
+            
+            TypeInfo declaredType = scriptParam.getDeclaredType();
+            
+            boolean hasExplicitType = declaredType != null 
+                    && declaredType.isResolved() 
+                    && !"any".equals(declaredType.getFullName());
+            
+            if (hasExplicitType) {
+                if (!TypeChecker.isTypeCompatible(declaredType, samParamType)) {
+                    scriptMethod.addSamTypeError(i, samParamType, declaredType);
+                }
+            } else {
+                scriptParam.setInferredType(samParamType);
+            }
+        }
+    }
+    
+    private boolean areSamSignaturesCompatible(MethodInfo sam1, MethodInfo sam2) {
+        List<FieldInfo> params1 = sam1.getParameters();
+        List<FieldInfo> params2 = sam2.getParameters();
+        
+        if (params1.size() != params2.size()) {
+            return false;
+        }
+        
+        for (int i = 0; i < params1.size(); i++) {
+            TypeInfo type1 = params1.get(i).getTypeInfo();
+            TypeInfo type2 = params2.get(i).getTypeInfo();
+            
+            if (type1 == null || type2 == null) {
+                continue;
+            }
+            
+            if (!TypeChecker.isTypeCompatible(type1, type2) && !TypeChecker.isTypeCompatible(type2, type1)) {
+                return false;
+            }
+        }
+        
+        TypeInfo return1 = sam1.getReturnType();
+        TypeInfo return2 = sam2.getReturnType();
+        
+        if (return1 != null && return2 != null) {
+            if (!TypeChecker.isTypeCompatible(return1, return2) && !TypeChecker.isTypeCompatible(return2, return1)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private String formatSamSignature(MethodInfo sam) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("(");
+        List<FieldInfo> params = sam.getParameters();
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0) sb.append(", ");
+            TypeInfo type = params.get(i).getTypeInfo();
+            sb.append(type != null ? type.getSimpleName() : "?");
+        }
+        sb.append(") -> ");
+        TypeInfo returnType = sam.getReturnType();
+        sb.append(returnType != null ? returnType.getSimpleName() : "void");
+        return sb.toString();
     }
     
     /**
@@ -5548,6 +5972,15 @@ public class ScriptDocument {
             // Skip uppercase if not a known field - type handling will deal with it
             if (isUppercase)
                 continue;
+
+            // Check if it's a script method used as a value (e.g., in schedule("action", methodName))
+            if (isScriptMethod(name)) {
+                MethodInfo scriptMethod = getScriptMethodInfo(name);
+                if (scriptMethod != null) {
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.METHOD_CALL, scriptMethod));
+                    continue;
+                }
+            }
 
             // Unknown variable - mark as undefined
             if (containingMethod != null) {

@@ -17,6 +17,12 @@ public final class TypeChecker {
     public static boolean isTypeCompatible(TypeInfo expected, TypeInfo actual) {
         if (expected == null) return true; // void can accept anything (shouldn't happen)
         if (actual == null) return true; // Can't verify, assume compatible
+
+        // Script method reference placeholder: only compatible with functional interface params.
+        // Used to help overload selection choose SAM overloads in JavaScript.
+        if ("__script_method_ref__".equals(actual.getFullName())) {
+            return expected.isFunctionalInterface();
+        }
         
         // Handle "any" type - universally compatible (JavaScript/TypeScript)
         if ("any".equals(expected.getFullName()) || "any".equals(actual.getFullName())) {
@@ -343,4 +349,3 @@ public final class TypeChecker {
         return keywords;
     }
 }
-

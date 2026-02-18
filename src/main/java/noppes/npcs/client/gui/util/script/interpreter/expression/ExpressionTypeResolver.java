@@ -4,7 +4,12 @@ import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.ClassTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.OverloadSelector;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExpressionTypeResolver {
@@ -372,49 +377,436 @@ public class ExpressionTypeResolver {
         return null;
     }
     
+    // ==================== Method Reference Resolution ====================
+    
+    /**
+     * Resolve the type of a method reference expression (target::methodName).
+     * 
+     * Supports all Java method reference forms:
+     * - this::method       - Instance method on current object
+     * - super::method      - Instance method on superclass
+     * - variable::method   - Instance method on a variable's value
+     * - ClassName::method  - Static method OR unbound instance method
+     * - pkg.ClassName::method - Fully qualified class reference
+     * - ClassName::new     - Constructor reference
+     * - Type[]::new        - Array constructor reference
+     * 
+     * @param methodRef The method reference AST node
+     * @return The resolved type (functional interface type if valid, Object if invalid)
+     */
     private TypeInfo resolveMethodReferenceType(ExpressionNode.MethodReferenceNode methodRef) {
-        // Method reference type is determined by the expected functional interface
         TypeInfo expectedType = CURRENT_EXPECTED_TYPE;
         
-        if (expectedType == null) {
-            // No expected functional interface context
-            return TypeInfo.fromClass(Object.class); // Fallback
-        }
-        
-        // Check if expected type is a functional interface
-        if (!isFunctionalInterface(expectedType)) {
-            // Not a functional interface
+        // Must have expected functional interface context
+        if (expectedType == null || !expectedType.isFunctionalInterface()) {
             return TypeInfo.fromClass(Object.class);
         }
         
-        // For now, we'll do basic validation and return the expected type
-        // In a full implementation, we would:
-        // 1. Resolve the target type (left side of ::)
-        // 2. Find the referenced method on the target type
-        // 3. Extract SAM signature from expected type
-        // 4. Validate parameter/return type compatibility
+        MethodInfo sam = expectedType.getSingleAbstractMethod();
+        if (sam == null) {
+            return TypeInfo.fromClass(Object.class);
+        }
         
-        // Basic implementation: assume valid and return expected type
+        // Resolve target and determine if it's a class reference (static context)
+        MethodReferenceTarget resolvedTarget = resolveMethodReferenceTarget(methodRef);
+        if (resolvedTarget == null || resolvedTarget.type == null) {
+            // Unresolved target - return expected type to allow forward references
+            return expectedType;
+        }
+        
+        String methodName = methodRef.getMethodName();
+        
+        // Handle constructor references (ClassName::new or Type[]::new)
+        if ("new".equals(methodName)) {
+            return resolveConstructorReference(resolvedTarget, sam, expectedType);
+        }
+        
+        // Handle method references
+        return resolveMethodReference(resolvedTarget, methodName, sam, expectedType);
+    }
+    
+    /**
+     * Encapsulates the resolved target of a method reference.
+     */
+    private static class MethodReferenceTarget {
+        final TypeInfo type;           // The resolved type
+        final boolean isClassRef;      // True if target is a class reference (for static access)
+        
+        MethodReferenceTarget(TypeInfo type, boolean isClassRef) {
+            this.type = type;
+            this.isClassRef = isClassRef;
+        }
+    }
+    
+    /**
+     * Resolve the target (left side of ::) for a method reference.
+     * Returns both the type and whether it's a class reference.
+     */
+    private MethodReferenceTarget resolveMethodReferenceTarget(ExpressionNode.MethodReferenceNode methodRef) {
+        ExpressionNode target = methodRef.getTarget();
+        if (target == null) {
+            return null;
+        }
+        
+        // Handle simple identifiers: this, super, variable, ClassName
+        if (target instanceof ExpressionNode.IdentifierNode) {
+            String name = ((ExpressionNode.IdentifierNode) target).getName();
+            return resolveSimpleTarget(name);
+        }
+        
+        // Handle qualified names: pkg.ClassName or outer.Inner
+        if (target instanceof ExpressionNode.MemberAccessNode) {
+            return resolveQualifiedTarget((ExpressionNode.MemberAccessNode) target);
+        }
+        
+        // Handle array type targets: Type[]
+        if (target instanceof ExpressionNode.ArrayAccessNode) {
+            TypeInfo arrayType = resolveNodeType(target);
+            if (arrayType != null && arrayType.isResolved()) {
+                // Array type is always a class reference (for Type[]::new)
+                return new MethodReferenceTarget(arrayType, true);
+            }
+        }
+        
+        // Fallback: resolve as expression (e.g., (expr)::method)
+        TypeInfo exprType = resolveNodeType(target);
+        if (exprType != null && exprType.isResolved()) {
+            // Expression results are always instance references
+            return new MethodReferenceTarget(exprType, false);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Resolve a simple identifier as method reference target.
+     */
+    private MethodReferenceTarget resolveSimpleTarget(String name) {
+        // this::method - instance method on current object
+        if ("this".equals(name)) {
+            TypeInfo thisType = context.resolveIdentifier("this");
+            return thisType != null ? new MethodReferenceTarget(thisType, false) : null;
+        }
+        
+        // super::method - instance method on superclass
+        if ("super".equals(name)) {
+            TypeInfo superType = context.resolveIdentifier("super");
+            return superType != null ? new MethodReferenceTarget(superType, false) : null;
+        }
+        
+        // Try as type name first (ClassName::method)
+        TypeInfo typeInfo = context.resolveTypeName(name);
+        if (typeInfo != null && typeInfo.isResolved()) {
+            // Wrap as ClassTypeInfo to indicate class reference
+            TypeInfo classRef = new ClassTypeInfo(typeInfo);
+            return new MethodReferenceTarget(classRef, true);
+        }
+        
+        // Try as variable (instance::method)
+        TypeInfo varType = context.resolveIdentifier(name);
+        if (varType != null && varType.isResolved()) {
+            // Check if variable holds a Class reference (e.g., var File = Java.type("java.io.File"))
+            boolean isClassRef = varType.isClassReference();
+            return new MethodReferenceTarget(varType, isClassRef);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Resolve a qualified name (a.b.c) as method reference target.
+     * Handles both package-qualified class names and nested class access.
+     */
+    private MethodReferenceTarget resolveQualifiedTarget(ExpressionNode.MemberAccessNode memberAccess) {
+        // Try to build qualified name and resolve as type
+        String qualifiedName = buildQualifiedName(memberAccess);
+        if (qualifiedName != null) {
+            TypeInfo typeInfo = context.resolveTypeName(qualifiedName);
+            if (typeInfo != null && typeInfo.isResolved()) {
+                TypeInfo classRef = new ClassTypeInfo(typeInfo);
+                return new MethodReferenceTarget(classRef, true);
+            }
+        }
+        
+        // Try resolving as expression chain (object.field::method)
+        TypeInfo exprType = resolveNodeType(memberAccess);
+        if (exprType != null && exprType.isResolved()) {
+            boolean isClassRef = exprType.isClassReference();
+            return new MethodReferenceTarget(exprType, isClassRef);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Build a qualified name string from a MemberAccessNode chain.
+     * Example: a.b.c.ClassName -> "a.b.c.ClassName"
+     */
+    private String buildQualifiedName(ExpressionNode node) {
+        if (node instanceof ExpressionNode.IdentifierNode) {
+            return ((ExpressionNode.IdentifierNode) node).getName();
+        }
+        
+        if (node instanceof ExpressionNode.MemberAccessNode) {
+            ExpressionNode.MemberAccessNode ma = (ExpressionNode.MemberAccessNode) node;
+            String baseName = buildQualifiedName(ma.getTarget());
+            if (baseName != null) {
+                return baseName + "." + ma.getMemberName();
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Resolve a method reference (target::methodName).
+     */
+    private TypeInfo resolveMethodReference(MethodReferenceTarget target, String methodName, 
+                                            MethodInfo sam, TypeInfo expectedType) {
+        TypeInfo targetType = target.isClassRef && target.type instanceof ClassTypeInfo
+                ? ((ClassTypeInfo) target.type).getInstanceType()
+                : target.type;
+        
+        if (targetType == null || !targetType.hasMethod(methodName)) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        // Find best matching method using OverloadSelector
+        MethodInfo method = findBestMethodForReference(targetType, methodName, sam, target.isClassRef);
+        if (method == null) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        // Validate signature compatibility
+        String error = validateMethodSignature(method, sam, target.isClassRef, targetType);
+        if (error != null) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
         return expectedType;
     }
     
-    private boolean isFunctionalInterface(TypeInfo type) {
-        // Check if the type has exactly one abstract method (SAM type)
-        // Common functional interfaces: Runnable, Supplier, Consumer, Function, Predicate, etc.
+    /**
+     * Find the best matching method for a method reference using OverloadSelector logic.
+     */
+    private MethodInfo findBestMethodForReference(TypeInfo targetType, String methodName, 
+                                                   MethodInfo sam, boolean isClassRef) {
+        List<MethodInfo> allOverloads = targetType.getAllMethodOverloads(methodName);
+        if (allOverloads.isEmpty()) {
+            return null;
+        }
+        
+        // Extract SAM parameter types for overload matching
+        TypeInfo[] samParamTypes = extractSamParamTypes(sam, isClassRef, targetType);
+        
+        // Filter candidates by arity first, then use OverloadSelector
+        List<MethodInfo> candidates = new ArrayList<>();
+        int expectedArity = samParamTypes.length;
+        
+        for (MethodInfo method : allOverloads) {
+            int methodArity = method.getParameters().size();
+            
+            // Direct match: instance::method or ClassName::staticMethod
+            if (methodArity == expectedArity) {
+                candidates.add(method);
+            }
+            // Unbound instance method: ClassName::instanceMethod (first SAM param is receiver)
+            else if (isClassRef && methodArity == sam.getParameters().size() - 1 && !isStaticMethod(method)) {
+                candidates.add(method);
+            }
+        }
+        
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        
+        if (candidates.size() == 1) {
+            return candidates.get(0);
+        }
+        
+        // Use OverloadSelector for multi-candidate selection
+        return OverloadSelector.selectBestOverload(candidates, samParamTypes);
+    }
+    
+    /**
+     * Extract the effective parameter types from SAM for method matching.
+     * For unbound instance methods, excludes the first receiver parameter.
+     */
+    private TypeInfo[] extractSamParamTypes(MethodInfo sam, boolean isClassRef, TypeInfo targetType) {
+        List<FieldInfo> samParams = sam.getParameters();
+        
+        // For class references, we might be matching an unbound instance method
+        // where the first SAM param is the receiver - handled in findBestMethodForReference
+        TypeInfo[] types = new TypeInfo[samParams.size()];
+        for (int i = 0; i < samParams.size(); i++) {
+            types[i] = samParams.get(i).getTypeInfo();
+        }
+        return types;
+    }
+    
+    /**
+     * Check if a method is static (Java reflection).
+     */
+    private boolean isStaticMethod(MethodInfo method) {
+        java.lang.reflect.Method javaMethod = method.getJavaMethod();
+        if (javaMethod != null) {
+            return java.lang.reflect.Modifier.isStatic(javaMethod.getModifiers());
+        }
+        // For script-defined methods, assume non-static unless marked
+        return method.isStatic();
+    }
+    
+    /**
+     * Validate method signature compatibility with SAM.
+     */
+    private String validateMethodSignature(MethodInfo method, MethodInfo sam, 
+                                           boolean isClassRef, TypeInfo targetType) {
+        List<FieldInfo> methodParams = method.getParameters();
+        List<FieldInfo> samParams = sam.getParameters();
+        
+        int methodArity = methodParams.size();
+        int samArity = samParams.size();
+        
+        // Check for unbound instance method reference (ClassName::instanceMethod)
+        boolean isUnbound = isClassRef && methodArity == samArity - 1 && !isStaticMethod(method);
+        
+        // Validate parameter count
+        if (methodArity != samArity && !isUnbound) {
+            return "Parameter count mismatch";
+        }
+        
+        // Validate parameter types
+        int offset = isUnbound ? 1 : 0;
+        for (int i = 0; i < methodArity; i++) {
+            TypeInfo methodParamType = methodParams.get(i).getTypeInfo();
+            TypeInfo samParamType = samParams.get(i + offset).getTypeInfo();
+            
+            if (methodParamType != null && samParamType != null) {
+                if (!TypeChecker.isTypeCompatible(methodParamType, samParamType)) {
+                    return "Parameter type mismatch at position " + (i + 1);
+                }
+            }
+        }
+        
+        // For unbound reference, validate receiver compatibility
+        if (isUnbound && samArity > 0) {
+            TypeInfo firstSamParam = samParams.get(0).getTypeInfo();
+            if (firstSamParam != null && !TypeChecker.isTypeCompatible(targetType, firstSamParam)) {
+                return "Receiver type mismatch";
+            }
+        }
+        
+        // Validate return type (covariant)
+        TypeInfo methodReturn = method.getReturnType();
+        TypeInfo samReturn = sam.getReturnType();
+        
+        if (samReturn != null && methodReturn != null) {
+            boolean samIsVoid = "void".equals(samReturn.getFullName()) || samReturn.getJavaClass() == void.class;
+            if (!samIsVoid && !TypeChecker.isTypeCompatible(samReturn, methodReturn)) {
+                return "Return type mismatch";
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Resolve a constructor reference (ClassName::new or Type[]::new).
+     */
+    private TypeInfo resolveConstructorReference(MethodReferenceTarget target, MethodInfo sam, 
+                                                  TypeInfo expectedType) {
+        TypeInfo targetType = target.type;
+        
+        // Handle array constructor reference: Type[]::new
+        if (isArrayType(targetType)) {
+            return resolveArrayConstructorReference(targetType, sam, expectedType);
+        }
+        
+        // Get the actual class type for constructor lookup
+        TypeInfo classType = target.type instanceof ClassTypeInfo 
+                ? ((ClassTypeInfo) target.type).getInstanceType() 
+                : target.type;
+        
+        if (classType == null) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        // Cannot construct interfaces or abstract classes
+        if (classType.getKind() == TypeInfo.Kind.INTERFACE) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        // Extract SAM parameter types for constructor matching
+        List<FieldInfo> samParams = sam.getParameters();
+        TypeInfo[] paramTypes = new TypeInfo[samParams.size()];
+        for (int i = 0; i < samParams.size(); i++) {
+            paramTypes[i] = samParams.get(i).getTypeInfo();
+        }
+        
+        // Find matching constructor
+        MethodInfo constructor = classType.findConstructor(paramTypes);
+        if (constructor == null && samParams.size() > 0) {
+            // Try by arity if exact type match fails
+            constructor = classType.findConstructor(samParams.size());
+        }
+        
+        if (constructor == null) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        // Validate return type compatibility
+        TypeInfo samReturn = sam.getReturnType();
+        if (samReturn != null && !TypeChecker.isTypeCompatible(samReturn, classType)) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        return expectedType;
+    }
+    
+    /**
+     * Resolve an array constructor reference: Type[]::new
+     * Must match IntFunction<Type[]> or similar single-int-param functional interface.
+     */
+    private TypeInfo resolveArrayConstructorReference(TypeInfo arrayType, MethodInfo sam, 
+                                                       TypeInfo expectedType) {
+        List<FieldInfo> samParams = sam.getParameters();
+        
+        // Array constructor takes exactly one int parameter (the size)
+        if (samParams.size() != 1) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        TypeInfo sizeParam = samParams.get(0).getTypeInfo();
+        if (sizeParam == null || !isIntLike(sizeParam)) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        // Return type must be compatible with array type
+        TypeInfo samReturn = sam.getReturnType();
+        if (samReturn != null && !TypeChecker.isTypeCompatible(samReturn, arrayType)) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        return expectedType;
+    }
+    
+    /**
+     * Check if a type is an array type.
+     */
+    private boolean isArrayType(TypeInfo type) {
         if (type == null) return false;
-        
-        String typeName = type.getFullName();
-        if (typeName == null) return false;
-        
-        return typeName.equals("java.lang.Runnable") || 
-               typeName.contains("Supplier") || 
-               typeName.contains("Consumer") || 
-               typeName.contains("Function") ||
-               typeName.contains("Predicate") || 
-               typeName.contains("BiFunction") ||
-               typeName.contains("BiConsumer") || 
-               typeName.contains("UnaryOperator") ||
-               typeName.contains("BinaryOperator");
+        String name = type.getFullName();
+        return name != null && name.endsWith("[]");
+    }
+    
+    /**
+     * Check if a type is int-like (int, Integer, or numeric that can represent array size).
+     */
+    private boolean isIntLike(TypeInfo type) {
+        if (type == null) return false;
+        String name = type.getFullName();
+        return "int".equals(name) || "java.lang.Integer".equals(name) 
+            || "long".equals(name) || "java.lang.Long".equals(name);
     }
     
     public static ExpressionNode.TypeResolverContext createBasicContext() {
