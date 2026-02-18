@@ -3,13 +3,14 @@ package noppes.npcs;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * Shared base class for NPC and Player ability data management.
@@ -166,6 +167,140 @@ public abstract class AbstractDataAbilities {
     /** Get the currently executing ability. */
     public Ability getCurrentAbility() {
         return currentAbility;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TOGGLE STATE (active toggles, independent of currentAbility)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Currently active toggles. Key = ability key, Value = toggle entry with tick counter. */
+    protected Map<String, ToggleEntry> activeToggles = new LinkedHashMap<>();
+
+    /**
+     * Toggle an ability ON or OFF. If currently on, turns off; if off, turns on.
+     * @param key The ability key (e.g., "npcdbc:ki_fist")
+     * @return true if the toggle is now ON, false if OFF
+     */
+    public boolean toggleAbility(String key) {
+        if (activeToggles.containsKey(key)) {
+            deactivateToggle(key);
+            return false;
+        } else {
+            return activateToggle(key);
+        }
+    }
+
+    /**
+     * Set a toggle to a specific state.
+     * @param key The ability key
+     * @param on true to activate, false to deactivate
+     */
+    public void setAbilityToggled(String key, boolean on) {
+        if (on && !activeToggles.containsKey(key)) {
+            activateToggle(key);
+        } else if (!on && activeToggles.containsKey(key)) {
+            deactivateToggle(key);
+        }
+    }
+
+    /**
+     * Check if a toggle ability is currently active.
+     */
+    public boolean isAbilityToggled(String key) {
+        return activeToggles.containsKey(key);
+    }
+
+    /**
+     * Get all active toggle keys.
+     */
+    public Set<String> getActiveToggleKeys() {
+        return new LinkedHashSet<>(activeToggles.keySet());
+    }
+
+    private boolean activateToggle(String key) {
+        Ability ability = AbilityController.Instance != null
+            ? AbilityController.Instance.resolveAbility(key) : null;
+        if (ability == null || !ability.isToggleable()) return false;
+
+        ToggleEntry entry = new ToggleEntry(ability);
+        activeToggles.put(key, entry);
+        ability.onToggleOn(getEntity());
+        onToggleStateChanged(key, true);
+        return true;
+    }
+
+    private void deactivateToggle(String key) {
+        ToggleEntry entry = activeToggles.remove(key);
+        if (entry != null) {
+            entry.getAbility().onToggleOff(getEntity());
+            onToggleStateChanged(key, false);
+        }
+    }
+
+    /**
+     * Tick all active toggles. Call from tick() each game tick.
+     * Toggles with hasActiveToggle=true get their onToggleTick() called.
+     * If onToggleTick returns false, the toggle is auto-deactivated.
+     */
+    protected void tickActiveToggles() {
+        if (activeToggles.isEmpty()) return;
+
+        EntityLivingBase entity = getEntity();
+        List<String> toRemove = null;
+
+        for (Map.Entry<String, ToggleEntry> mapEntry : activeToggles.entrySet()) {
+            ToggleEntry entry = mapEntry.getValue();
+            entry.incrementTick();
+
+            if (entry.getAbility().hasActiveToggle()) {
+                if (!entry.getAbility().onToggleTick(entity, entry.getTickCount())) {
+                    if (toRemove == null) toRemove = new ArrayList<>();
+                    toRemove.add(mapEntry.getKey());
+                }
+            }
+        }
+
+        if (toRemove != null) {
+            for (String key : toRemove) {
+                ToggleEntry entry = activeToggles.remove(key);
+                if (entry != null) {
+                    entry.getAbility().onToggleOff(entity);
+                    onToggleStateChanged(key, false);
+                }
+            }
+        }
+    }
+
+    /** Hook for subclass to react to toggle state changes (sync packets, script events). */
+    protected void onToggleStateChanged(String key, boolean active) {}
+
+    /**
+     * Clear all active toggles (e.g., on death/reset).
+     * Calls onToggleOff for each active toggle.
+     */
+    protected void clearActiveToggles() {
+        if (activeToggles.isEmpty()) return;
+        EntityLivingBase entity = getEntity();
+        for (ToggleEntry entry : activeToggles.values()) {
+            entry.getAbility().onToggleOff(entity);
+        }
+        activeToggles.clear();
+    }
+
+    /**
+     * Add a toggle entry directly without calling onToggleOn.
+     * Used for client-side sync and NBT restoration.
+     */
+    public void setToggleEntryDirect(String key, boolean active) {
+        if (active) {
+            Ability ability = AbilityController.Instance != null
+                ? AbilityController.Instance.resolveAbility(key) : null;
+            if (ability != null && ability.isToggleable()) {
+                activeToggles.put(key, new ToggleEntry(ability));
+            }
+        } else {
+            activeToggles.remove(key);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -11,6 +11,7 @@ import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -296,6 +297,9 @@ public class DataAbilities extends AbstractDataAbilities {
             if (rotationLocked || hitScanActive) releaseRotationControl();
             if (positionLocked) releaseLockedPosition();
         }
+
+        // Tick active toggles (independent of currentAbility)
+        tickActiveToggles();
 
         // Tick current ability if executing (shared logic from base class)
         if (currentAbility != null && currentAbility.isExecuting()) {
@@ -664,6 +668,7 @@ public class DataAbilities extends AbstractDataAbilities {
      */
     public void reset() {
         stopCurrentAbility();
+        clearActiveToggles();
 
         // Roll cooldown so NPC doesn't immediately attack after reset
         rollCooldownOnReset();
@@ -983,6 +988,13 @@ public class DataAbilities extends AbstractDataAbilities {
         }
         compound.setTag("Abilities", abilityList);
 
+        // Active toggles
+        NBTTagList toggleList = new NBTTagList();
+        for (String key : activeToggles.keySet()) {
+            toggleList.appendTag(new NBTTagString(key));
+        }
+        compound.setTag("ActiveToggles", toggleList);
+
         return compound;
     }
 
@@ -998,6 +1010,16 @@ public class DataAbilities extends AbstractDataAbilities {
             AbilitySlot slot = AbilitySlot.fromNBT(abilityNBT);
             if (slot != null) {
                 abilitySlots.add(slot);
+            }
+        }
+
+        // Active toggles - restore state directly (no onToggleOn callback during load)
+        activeToggles.clear();
+        if (compound.hasKey("ActiveToggles")) {
+            NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 8); // 8 = TAG_STRING
+            for (int i = 0; i < toggleNbt.tagCount(); i++) {
+                String key = toggleNbt.getStringTagAt(i);
+                setToggleEntryDirect(key, true);
             }
         }
     }

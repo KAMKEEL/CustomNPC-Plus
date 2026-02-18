@@ -117,7 +117,8 @@ public class AbilityCommand extends CommandKamkeelBase {
             return;
         }
 
-        sendResult(sender, "Ability: \u00A7b" + ability.getName());
+        sendResult(sender, "Ability: \u00A7b" + ability.getDisplayName());
+        sendResult(sender, "  Name: \u00A77" + ability.getName());
         sendResult(sender, "  Type: \u00A7d" + ability.getTypeId());
         sendResult(sender, "  Cooldown: \u00A7e" + ability.getCooldownTicks() + " ticks");
         sendResult(sender, "  Wind Up: \u00A7e" + ability.getWindUpTicks() + " ticks");
@@ -188,12 +189,12 @@ public class AbilityCommand extends CommandKamkeelBase {
             return;
         }
 
-        // Use the ability's canonical ID for storage (registry key for built-in, name for custom)
+        // Use the ability's canonical ID for storage (registry key for built-in, UUID for custom)
         String canonicalKey = ability.getId();
         if (canonicalKey == null || canonicalKey.isEmpty()) {
             canonicalKey = abilityKey; // Fallback to user-provided key
         }
-        String displayName = ability.getName() != null ? ability.getName() : canonicalKey;
+        String displayName = ability.getDisplayName();
 
         // Check if ability allows players
         if (!ability.getAllowedBy().allowsPlayer()) {
@@ -232,13 +233,13 @@ public class AbilityCommand extends CommandKamkeelBase {
             return;
         }
 
-        // Resolve ability to get canonical key
+        // Resolve ability to get canonical key (registry key for built-in, UUID for custom)
         Ability ability = AbilityController.Instance.resolveAbility(abilityKey);
         String canonicalKey = abilityKey;
         String displayName = abilityKey;
         if (ability != null) {
             canonicalKey = ability.getId() != null ? ability.getId() : abilityKey;
-            displayName = ability.getName() != null ? ability.getName() : canonicalKey;
+            displayName = ability.getDisplayName();
         }
 
         // Get player data and lock
@@ -284,7 +285,7 @@ public class AbilityCommand extends CommandKamkeelBase {
         for (int i = 0; i < abilityKeys.length; i++) {
             String key = abilityKeys[i];
             Ability ability = AbilityController.Instance.resolveAbility(key);
-            String displayName = ability != null && ability.getName() != null ? ability.getName() : key;
+            String displayName = ability != null ? ability.getDisplayName() : key;
             String prefix = (i == selected) ? "\u00A7e> " : "  ";
             // Show display name and key if different
             if (!displayName.equals(key)) {
@@ -306,12 +307,17 @@ public class AbilityCommand extends CommandKamkeelBase {
 
     /**
      * Get list of player-usable ability names (for tab completion).
-     * Uses registry keys for built-in abilities and display names for custom abilities.
+     * Resolves UUIDs to names so tab completion shows human-readable names.
      * Used by CommandKamkeel for <ability> usage token.
      */
     public static List<String> getPlayerAbilityNames() {
-        List<String> keys = new ArrayList<>(AbilityController.Instance.getPlayerAbilityKeys());
-        Collections.sort(keys);
-        return keys;
+        Set<String> keys = AbilityController.Instance.getPlayerAbilityKeys();
+        List<String> names = new ArrayList<>();
+        for (String key : keys) {
+            Ability a = AbilityController.Instance.resolveAbility(key);
+            names.add(a != null ? a.getName() : key);
+        }
+        Collections.sort(names);
+        return names;
     }
 }
