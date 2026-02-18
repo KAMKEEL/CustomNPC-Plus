@@ -27,6 +27,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     private float knockback = 2.0f;
     private float hitLength = 4.0f;   // How far in front of the caster the hit reaches
     private float hitWidth = 3.0f;    // How wide to each side (total width = hitWidth * 2)
+    private int hitDelayTicks = 0;
     private int activeDisplayTicks = 10; // How long active animation plays before completing
 
     public AbilityHeavyHit() {
@@ -70,10 +71,24 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         if (caster.worldObj.isRemote && !isPreview()) {
             signalCompletion();
+        }
+    }
+
+    @Override
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (isPreview()) {
+            if (tick >= (activeDisplayTicks + hitDelayTicks))
+                signalCompletion();
+
             return;
         }
 
-        if (!isPreview()) {
+        if (tick >= (activeDisplayTicks + hitDelayTicks)) {
+            signalCompletion();
+            return;
+        }
+
+        if (tick == hitDelayTicks) {
             // Calculate forward and right vectors from caster yaw
             float yawRad = (float) Math.toRadians(caster.rotationYaw);
             double forwardX = -Math.sin(yawRad);
@@ -119,18 +134,13 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
     }
 
     @Override
-    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        if (tick >= activeDisplayTicks)
-            signalCompletion();
-    }
-
-    @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
         nbt.setFloat("hitLength", hitLength);
         nbt.setFloat("hitWidth", hitWidth);
         nbt.setInteger("activeDisplayTicks", activeDisplayTicks);
+        nbt.setInteger("hitDelayTicks", hitDelayTicks);
     }
 
     @Override
@@ -139,7 +149,8 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.knockback = nbt.getFloat("knockback");
         this.hitLength = nbt.getFloat("hitLength");
         this.hitWidth = nbt.getFloat("hitWidth");
-        this.activeDisplayTicks = nbt.hasKey("activeDisplayTicks") ? nbt.getInteger("activeDisplayTicks") : 10;
+        this.hitDelayTicks = nbt.getInteger("hitDelayTicks");
+        this.activeDisplayTicks = nbt.getInteger("activeDisplayTicks");
     }
 
     // Getters & Setters
@@ -183,6 +194,14 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.activeDisplayTicks = activeDisplayTicks;
     }
 
+    public int getHitDelayTicks() {
+        return hitDelayTicks;
+    }
+
+    public void setHitDelayTicks(int hitDelayTicks) {
+        this.hitDelayTicks = hitDelayTicks;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void getAbilityDefinitions(List<FieldDef> defs) {
@@ -196,7 +215,11 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
                 FieldDef.floatField("ability.hitLength", this::getHitLength, this::setHitLength),
                 FieldDef.floatField("ability.hitWidth", this::getHitWidth, this::setHitWidth)
             ),
-            FieldDef.intField("ability.activeDisplayTicks", this::getActiveDisplayTicks, this::setActiveDisplayTicks).range(1, 200),
+            FieldDef.section("ability.section.timing"),
+            FieldDef.row(
+                FieldDef.intField("ability.hitDelayTicks", this::getHitDelayTicks, this::setHitDelayTicks).min(0),
+                FieldDef.intField("ability.activeDisplayTicks", this::getActiveDisplayTicks, this::setActiveDisplayTicks).range(1, 200)
+            ),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
         ));
     }

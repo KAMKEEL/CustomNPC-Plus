@@ -1805,6 +1805,10 @@ ability.innerRadius=Inner Radius
 # Projectile
 ability.projectileType=Projectile Type
 
+# Heavy Hit
+ability.hitDelayTicks=Hit Delay
+ability.activeDisplayTicks=End Delay
+
 # Orb Settings
 ability.homing=Homing
 ability.explosive=Explosive
