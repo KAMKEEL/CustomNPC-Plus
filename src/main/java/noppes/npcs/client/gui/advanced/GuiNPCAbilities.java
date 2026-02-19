@@ -1005,7 +1005,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 if (chain != null && selectedEntryIndex < chain.getEntries().size()) {
                     ChainedAbilityEntry entry = chain.getEntries().get(selectedEntryIndex);
                     Ability resolved = entry.resolve();
-                    if (resolved != null) {
+                    if (resolved != null && !resolved.isBuiltIn()) {
                         editingChainEntryParent = true;
                         setSubGui(resolved.createConfigGui(this));
                     }
@@ -1025,7 +1025,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             }
         } else if (mode == SubGuiAbilityEditMode.MODE_MODIFY_PARENT) {
             Ability ability = slot.getAbility();
-            if (ability != null) {
+            if (ability != null && !ability.isBuiltIn()) {
                 setSubGui(ability.createConfigGui(this));
             }
         }

@@ -33,6 +33,11 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
     }
 
     @Override
+    public boolean isConcurrentCapable() {
+        return true;
+    }
+
+    @Override
     public float getZoneRadius() {
         return radius;
     }

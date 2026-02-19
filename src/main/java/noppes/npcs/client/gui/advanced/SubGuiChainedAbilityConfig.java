@@ -809,7 +809,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             editingEntryIndex = -1;
         } else if (mode == SubGuiAbilityEditMode.MODE_MODIFY_PARENT) {
             Ability resolved = entry.resolve();
-            if (resolved != null) {
+            if (resolved != null && !resolved.isBuiltIn()) {
                 editingParentAbility = true;
                 setSubGui(resolved.createConfigGui(this));
                 return;
