@@ -1,7 +1,13 @@
 package noppes.npcs.items;
 
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -22,7 +28,7 @@ import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.util.IProjectileCallback;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
 
@@ -33,7 +39,8 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
     public ItemStaff(int par1, EnumNpcToolMaterial material) {
         super(par1);
         this.material = material;
-        this.color = OrbColor.get(material.ordinal());;
+        this.color = OrbColor.get(material.ordinal());
+        ;
         setCreativeTab(CustomItems.tabWeapon);
     }
 

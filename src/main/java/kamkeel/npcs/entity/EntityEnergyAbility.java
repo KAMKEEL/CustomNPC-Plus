@@ -30,7 +30,9 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     protected int ownerEntityId = -1;
 
     // ==================== STATE ====================
-    /** The ability that spawned this entity. Transient, not saved to NBT. */
+    /**
+     * The ability that spawned this entity. Transient, not saved to NBT.
+     */
     protected transient Ability sourceAbility = null;
     protected boolean previewMode = false;
     protected EntityLivingBase previewOwner = null;
@@ -98,59 +100,137 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         return worldObj.getEntityByID(ownerEntityId);
     }
 
-    public int getOwnerEntityId() { return ownerEntityId; }
-    public void setOwnerEntityId(int id) { this.ownerEntityId = id; }
+    public int getOwnerEntityId() {
+        return ownerEntityId;
+    }
+
+    public void setOwnerEntityId(int id) {
+        this.ownerEntityId = id;
+    }
 
     // ==================== SOURCE ABILITY ====================
 
-    public Ability getSourceAbility() { return sourceAbility; }
-    public void setSourceAbility(Ability ability) { this.sourceAbility = ability; }
+    public Ability getSourceAbility() {
+        return sourceAbility;
+    }
+
+    public void setSourceAbility(Ability ability) {
+        this.sourceAbility = ability;
+    }
 
     // ==================== PREVIEW MODE ====================
 
-    public boolean isPreviewMode() { return previewMode; }
-    public void setPreviewMode(boolean preview) { this.previewMode = preview; }
-    public void setPreviewOwner(EntityLivingBase owner) { this.previewOwner = owner; }
+    public boolean isPreviewMode() {
+        return previewMode;
+    }
+
+    public void setPreviewMode(boolean preview) {
+        this.previewMode = preview;
+    }
+
+    public void setPreviewOwner(EntityLivingBase owner) {
+        this.previewOwner = owner;
+    }
 
     // ==================== DISPLAY GETTERS & SETTERS ====================
 
-    public EnergyDisplayData getDisplayData() { return displayData; }
-    public EnergyLightningData getLightningData() { return lightningData; }
+    public EnergyDisplayData getDisplayData() {
+        return displayData;
+    }
 
-    public int getInnerColor() { return displayData.getInnerColor(); }
-    public void setInnerColor(int color) { displayData.setInnerColor(color); }
+    public EnergyLightningData getLightningData() {
+        return lightningData;
+    }
 
-    public float getInnerAlpha() { return displayData.getInnerAlpha(); }
-    public void setInnerAlpha(float alpha) { displayData.setInnerAlpha(alpha); }
+    public int getInnerColor() {
+        return displayData.getInnerColor();
+    }
 
-    public int getOuterColor() { return displayData.getOuterColor(); }
-    public void setOuterColor(int color) { displayData.setOuterColor(color); }
+    public void setInnerColor(int color) {
+        displayData.setInnerColor(color);
+    }
 
-    public boolean isOuterColorEnabled() { return displayData.isOuterColorEnabled(); }
-    public void setOuterColorEnabled(boolean enabled) { displayData.setOuterColorEnabled(enabled); }
+    public float getInnerAlpha() {
+        return displayData.getInnerAlpha();
+    }
 
-    public float getOuterColorWidth() { return displayData.getOuterColorWidth(); }
-    public void setOuterColorWidth(float width) { displayData.setOuterColorWidth(width); }
+    public void setInnerAlpha(float alpha) {
+        displayData.setInnerAlpha(alpha);
+    }
 
-    public float getOuterColorAlpha() { return displayData.getOuterColorAlpha(); }
-    public void setOuterColorAlpha(float alpha) { displayData.setOuterColorAlpha(alpha); }
+    public int getOuterColor() {
+        return displayData.getOuterColor();
+    }
 
-    public float getRotationSpeed() { return displayData.getRotationSpeed(); }
-    public void setRotationSpeed(float speed) { displayData.setRotationSpeed(speed); }
+    public void setOuterColor(int color) {
+        displayData.setOuterColor(color);
+    }
+
+    public boolean isOuterColorEnabled() {
+        return displayData.isOuterColorEnabled();
+    }
+
+    public void setOuterColorEnabled(boolean enabled) {
+        displayData.setOuterColorEnabled(enabled);
+    }
+
+    public float getOuterColorWidth() {
+        return displayData.getOuterColorWidth();
+    }
+
+    public void setOuterColorWidth(float width) {
+        displayData.setOuterColorWidth(width);
+    }
+
+    public float getOuterColorAlpha() {
+        return displayData.getOuterColorAlpha();
+    }
+
+    public void setOuterColorAlpha(float alpha) {
+        displayData.setOuterColorAlpha(alpha);
+    }
+
+    public float getRotationSpeed() {
+        return displayData.getRotationSpeed();
+    }
+
+    public void setRotationSpeed(float speed) {
+        displayData.setRotationSpeed(speed);
+    }
 
     // ==================== LIGHTNING GETTERS & SETTERS ====================
 
-    public boolean hasLightningEffect() { return lightningData.isLightningEffect(); }
-    public void setLightningEffect(boolean enabled) { lightningData.setLightningEffect(enabled); }
+    public boolean hasLightningEffect() {
+        return lightningData.isLightningEffect();
+    }
 
-    public float getLightningDensity() { return lightningData.getLightningDensity(); }
-    public void setLightningDensity(float density) { lightningData.setLightningDensity(density); }
+    public void setLightningEffect(boolean enabled) {
+        lightningData.setLightningEffect(enabled);
+    }
 
-    public float getLightningRadius() { return lightningData.getLightningRadius(); }
-    public void setLightningRadius(float radius) { lightningData.setLightningRadius(radius); }
+    public float getLightningDensity() {
+        return lightningData.getLightningDensity();
+    }
 
-    public int getLightningFadeTime() { return lightningData.getLightningFadeTime(); }
-    public void setLightningFadeTime(int ticks) { lightningData.setLightningFadeTime(ticks); }
+    public void setLightningDensity(float density) {
+        lightningData.setLightningDensity(density);
+    }
+
+    public float getLightningRadius() {
+        return lightningData.getLightningRadius();
+    }
+
+    public void setLightningRadius(float radius) {
+        lightningData.setLightningRadius(radius);
+    }
+
+    public int getLightningFadeTime() {
+        return lightningData.getLightningFadeTime();
+    }
+
+    public void setLightningFadeTime(int ticks) {
+        lightningData.setLightningFadeTime(ticks);
+    }
 
     // ==================== BRIGHTNESS ====================
 

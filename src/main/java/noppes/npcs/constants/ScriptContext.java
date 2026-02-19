@@ -2,9 +2,11 @@ package noppes.npcs.constants;
 
 import noppes.npcs.api.event.IAbilityEvent;
 import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IAuctionEvent;
 import noppes.npcs.api.event.IBlockEvent;
 import noppes.npcs.api.event.ICustomGuiEvent;
 import noppes.npcs.api.event.IDialogEvent;
+import noppes.npcs.api.event.IEnergyBarrierEvent;
 import noppes.npcs.api.event.IEnergyProjectileEvent;
 import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.event.IForgeEvent;
@@ -57,6 +59,7 @@ public class ScriptContext {
         INpcEvent.class,
         IProjectileEvent.class,
         IEnergyProjectileEvent.class,
+        IEnergyBarrierEvent.class,
         IAbilityEvent.class,
         IAnimationEvent.class
     );
@@ -70,7 +73,9 @@ public class ScriptContext {
         IFactionEvent.class,
         ICustomGuiEvent.class,
         IEnergyProjectileEvent.class,
-        IPlayerAbilityEvent.class
+        IEnergyBarrierEvent.class,
+        IPlayerAbilityEvent.class,
+        IAuctionEvent.class
     );
 
     public static final ScriptContext BLOCK = register("BLOCK", "block",

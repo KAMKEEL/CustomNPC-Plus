@@ -12,10 +12,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.blocks.tiles.TileWaypoint;
-import noppes.npcs.constants.EnumGuiType;
 
 public class BlockWaypoint extends BlockContainer {
 

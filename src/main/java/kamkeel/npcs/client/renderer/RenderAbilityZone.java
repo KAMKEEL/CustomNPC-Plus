@@ -8,13 +8,13 @@ import kamkeel.npcs.entity.EntityAbilityZone.AccentStyle;
 import kamkeel.npcs.entity.EntityAbilityZone.ParticleMotion;
 import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;
 import kamkeel.npcs.entity.EntityAbilityZone.ZoneType;
-import noppes.npcs.client.fx.CustomFX;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.fx.ZoneParticleFX;
 import org.lwjgl.opengl.GL11;
 
@@ -373,11 +373,21 @@ public class RenderAbilityZone extends Render {
         }
     }
 
-    private float ringR(Ctx c) { return c.outerEnabled ? c.outerR : c.ir; }
-    private float ringG(Ctx c) { return c.outerEnabled ? c.outerG : c.ig; }
-    private float ringB(Ctx c) { return c.outerEnabled ? c.outerB : c.ib; }
+    private float ringR(Ctx c) {
+        return c.outerEnabled ? c.outerR : c.ir;
+    }
 
-    private static float sin(double v) { return (float) Math.sin(v); }
+    private float ringG(Ctx c) {
+        return c.outerEnabled ? c.outerG : c.ig;
+    }
+
+    private float ringB(Ctx c) {
+        return c.outerEnabled ? c.outerB : c.ib;
+    }
+
+    private static float sin(double v) {
+        return (float) Math.sin(v);
+    }
 
     private void renderSwayingAccents(Ctx c, float r, float g, float b, float a, float height) {
         if (height <= 0.1f) return;
@@ -413,10 +423,22 @@ public class RenderAbilityZone extends Render {
                 float frac = (j + 0.5f) / perSide;
                 double lx, lz;
                 switch (side) {
-                    case 0: lx = -c.radius + frac * 2 * c.radius; lz = -c.radius; break;
-                    case 1: lx = c.radius; lz = -c.radius + frac * 2 * c.radius; break;
-                    case 2: lx = c.radius - frac * 2 * c.radius; lz = c.radius; break;
-                    default: lx = -c.radius; lz = c.radius - frac * 2 * c.radius; break;
+                    case 0:
+                        lx = -c.radius + frac * 2 * c.radius;
+                        lz = -c.radius;
+                        break;
+                    case 1:
+                        lx = c.radius;
+                        lz = -c.radius + frac * 2 * c.radius;
+                        break;
+                    case 2:
+                        lx = c.radius - frac * 2 * c.radius;
+                        lz = c.radius;
+                        break;
+                    default:
+                        lx = -c.radius;
+                        lz = c.radius - frac * 2 * c.radius;
+                        break;
                 }
                 float swayX = 0.15f * sin(c.time * 0.08f + idx * 1.7f);
                 float swayZ = 0.15f * sin(c.time * 0.06f + idx * 2.3f);
@@ -467,10 +489,22 @@ public class RenderAbilityZone extends Render {
                 float frac = (j + 0.5f) / perSide;
                 double lx, lz;
                 switch (side) {
-                    case 0: lx = -c.radius + frac * 2 * c.radius; lz = -c.radius; break;
-                    case 1: lx = c.radius; lz = -c.radius + frac * 2 * c.radius; break;
-                    case 2: lx = c.radius - frac * 2 * c.radius; lz = c.radius; break;
-                    default: lx = -c.radius; lz = c.radius - frac * 2 * c.radius; break;
+                    case 0:
+                        lx = -c.radius + frac * 2 * c.radius;
+                        lz = -c.radius;
+                        break;
+                    case 1:
+                        lx = c.radius;
+                        lz = -c.radius + frac * 2 * c.radius;
+                        break;
+                    case 2:
+                        lx = c.radius - frac * 2 * c.radius;
+                        lz = c.radius;
+                        break;
+                    default:
+                        lx = -c.radius;
+                        lz = c.radius - frac * 2 * c.radius;
+                        break;
                 }
                 float flicker = 0.3f + 0.7f * Math.abs(sin(c.time * 0.7f + idx * 3.14f));
                 float lineAlpha = baseAlpha * flicker;
@@ -506,10 +540,14 @@ public class RenderAbilityZone extends Render {
             int side = RANDOM.nextInt(4);
             double frac = RANDOM.nextDouble() * 2 - 1;
             switch (side) {
-                case 0: return new double[]{frac * c.radius, -c.radius};
-                case 1: return new double[]{frac * c.radius, c.radius};
-                case 2: return new double[]{-c.radius, frac * c.radius};
-                default: return new double[]{c.radius, frac * c.radius};
+                case 0:
+                    return new double[]{frac * c.radius, -c.radius};
+                case 1:
+                    return new double[]{frac * c.radius, c.radius};
+                case 2:
+                    return new double[]{-c.radius, frac * c.radius};
+                default:
+                    return new double[]{c.radius, frac * c.radius};
             }
         } else {
             double angle = RANDOM.nextDouble() * Math.PI * 2;
@@ -519,9 +557,9 @@ public class RenderAbilityZone extends Render {
     }
 
     private void spawnParticle(EntityAbilityZone zone, double offsetX, double offsetY, double offsetZ,
-                                double mx, double my, double mz,
-                                float r, float g, float b, float alpha,
-                                float scale, int maxAge, float gravity, boolean glow) {
+                               double mx, double my, double mz,
+                               float r, float g, float b, float alpha,
+                               float scale, int maxAge, float gravity, boolean glow) {
         ZoneParticleFX particle = new ZoneParticleFX(
             zone.worldObj,
             zone.posX + offsetX, zone.posY + offsetY, zone.posZ + offsetZ,
@@ -587,7 +625,7 @@ public class RenderAbilityZone extends Render {
     }
 
     private void renderRingLine(ZoneShape shape, float radius,
-                                 float r, float g, float b, float a, float yOffset) {
+                                float r, float g, float b, float a, float yOffset) {
         switch (shape) {
             case CIRCLE:
                 renderCircleRingLine(radius, r, g, b, a, yOffset);
@@ -621,8 +659,8 @@ public class RenderAbilityZone extends Render {
     }
 
     private void renderRotatingBorder(ZoneShape shape, float radius,
-                                       float r, float g, float b, float a,
-                                       float rotationDeg, float yOffset) {
+                                      float r, float g, float b, float a,
+                                      float rotationDeg, float yOffset) {
         int dashCount = 16;
 
         if (shape == ZoneShape.SQUARE) {
@@ -688,8 +726,8 @@ public class RenderAbilityZone extends Render {
     }
 
     private void renderVerticalAccents(ZoneShape shape, float radius,
-                                        float r, float g, float b, float a,
-                                        float height, float rotationDeg) {
+                                       float r, float g, float b, float a,
+                                       float height, float rotationDeg) {
         if (height <= 0.1f) return;
 
         Tessellator tess = Tessellator.instance;
@@ -701,10 +739,22 @@ public class RenderAbilityZone extends Render {
                     float frac = (j + 0.5f) / perSide;
                     double lx, lz;
                     switch (side) {
-                        case 0: lx = -radius + frac * 2 * radius; lz = -radius; break;
-                        case 1: lx = radius; lz = -radius + frac * 2 * radius; break;
-                        case 2: lx = radius - frac * 2 * radius; lz = radius; break;
-                        default: lx = -radius; lz = radius - frac * 2 * radius; break;
+                        case 0:
+                            lx = -radius + frac * 2 * radius;
+                            lz = -radius;
+                            break;
+                        case 1:
+                            lx = radius;
+                            lz = -radius + frac * 2 * radius;
+                            break;
+                        case 2:
+                            lx = radius - frac * 2 * radius;
+                            lz = radius;
+                            break;
+                        default:
+                            lx = -radius;
+                            lz = radius - frac * 2 * radius;
+                            break;
                     }
                     tess.startDrawing(GL11.GL_LINES);
                     tess.setColorRGBA_F(r, g, b, a);

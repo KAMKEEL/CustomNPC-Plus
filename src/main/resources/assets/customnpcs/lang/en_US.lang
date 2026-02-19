@@ -122,6 +122,7 @@ gui.copy=Copy
 gui.clear=Clear
 gui.builtin=Built-in
 gui.custom=Custom
+gui.chained=Chained
 gui.builtinAnimations=Built-in Animations
 gui.customAnimations=Custom Animations
 gui.done=Done
@@ -233,7 +234,7 @@ party.partying=Partying!
 party.messageNoParty=You're not in a party! Either wait for an invite or create one.
 party.partyRequirements=Required by
 party.setQuestConfirm=Setting a Quest to a party will clear its progress!
-party.dropQuestConfirm=Are you sure you want to drop the party quest?`
+party.dropQuestConfirm=Are you sure you want to drop the party quest?
 
 settings.chatBubbles=Chat Bubbles
 settings.trackAlignment=Tracking Alignment
@@ -482,9 +483,9 @@ stock.reset.never=Never
 stock.reset.mcdaily=MC Daily
 stock.reset.mcweekly=MC Weekly
 stock.reset.mccustom=MC Custom
-stock.reset.rldaily=Real Daily
-stock.reset.rlweekly=Real Weekly
-stock.reset.rlcustom=Real Custom
+stock.reset.rldaily=RL Daily
+stock.reset.rlweekly=RL Weekly
+stock.reset.rlcustom=RL Custom
 
 stock.options.hover=Configure stock limits and reset timers
 stock.enable.hover=Enable limited stock for trade slots
@@ -533,7 +534,7 @@ stats.respawn=Respawn
 stats.deadbody=HideDeadBody
 stats.fireimmune=ImmuneToFire
 stats.candrown=Drowns
-stats.firesound:=SoundFX
+stats.firesound=SoundFX
 stats.creaturetype=CreatureType
 stats.normal=Normal
 stats.reverse=Reverse
@@ -1517,17 +1518,13 @@ ability.globalCooldown=Global Cooldown
 ability.minCooldown=Min CD
 ability.maxCooldown=Max CD
 ability.edit=Edit Ability
-ability.weight=Weight
 ability.targeting=Targeting
-ability.minRange=Min Range
-ability.maxRange=Max Range
 ability.timing=Timing (ticks)
 ability.cooldown=Cooldown
 ability.windup=Wind Up
 ability.syncOn=Sync: On
 ability.syncOff=Sync: Off
 ability.dazed=Dazed Ticks
-ability.interruptible=Interruptible
 ability.threshold=Threshold
 ability.lockMove=Lock Move
 ability.lockMove.windup=Windup
@@ -1636,15 +1633,10 @@ ability.tab.timing=Timing
 ability.tab.effects=Effects
 ability.tab.telegraph=Telegraph
 ability.tab.visual=Visual
-ability.showTelegraph=Show Telegraph
 ability.telegraphColor=Color
 ability.telegraphSizeNote=Size is based on ability parameters
 
 # Ability Effects Tab
-ability.windUpSound=Wind Up Sound
-ability.activeSound=Active Sound
-ability.windUpAnim=Wind Up Anim
-ability.activeAnim=Active Anim
 
 ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
@@ -1687,6 +1679,13 @@ ability.targetingMode=Targeting
 ability.minRange=Min Range
 ability.maxRange=Max Range
 ability.conditions=Conditions
+
+# Chained Ability
+ability.select=Select Ability
+ability.entries=Entries
+ability.delay=Delay
+ability.windUpAll=Wind Up All
+ability.allowedBy=Allowed By
 
 # Effects Tab
 ability.windUpSound=Wind Up Sound
@@ -1742,7 +1741,6 @@ gui.radius=Radius
 gui.thickness=Thickness
 gui.rotationSpeed=Rotation Speed
 gui.strength=Strength
-gui.range=Range
 gui.delay=Delay
 gui.density=Density
 gui.length=Length
@@ -2030,6 +2028,21 @@ ability.variant.large=Large
 ability.variant.static=Static
 ability.variant.launched=Launched
 
+ability.addChain=Chain
+ability.entrySource=Add Entry Source
+ability.fromNpc=From NPC
+ability.byReference=By Reference
+ability.createNew=Create New
+ability.selectSlot=Select NPC Ability
+ability.loadType=Load Type
+ability.loadAbility=Load Ability
+ability.loadChain=Load Chain
+ability.validFor=Valid For
+ability.userType.NPC_ONLY=NPCs
+ability.userType.PLAYER_ONLY=Players
+ability.userType.BOTH=Both
+ability.dieOnImpact=Die on Impact
+
 gui.both=Both
 gui.players=Players
 
@@ -2116,7 +2129,6 @@ auction.filter.search=Search
 auction.bid.minimum=Minimum Bid: %s
 auction.bid.yourBid=Your Bid:
 auction.bid.place=Place Bid
-auction.bid.placeBid=Place Bid
 auction.bid.buyout=Buyout Now
 
 # Errors
@@ -2188,7 +2200,6 @@ auction.trades.leftClickRebid=Left-click to rebid
 auction.trades.rightClickRefund=Right-click to claim refund
 auction.claim.soldItem=Item: %s
 auction.claim.buyer=Buyer: %s
-auction.claim.outbidItem=Item: %s
 auction.claim.outbidBy=Outbid by: %s
 
 # Sell Page - Buyout Toggle
@@ -2215,9 +2226,3 @@ auction.bid.yourBalance=Your Balance: %s
 # Auction Buyout SubGui
 auction.buyout.title=Buy Now
 auction.buyout.confirm=Purchase this item for:
-
-# Auction Status
-auction.ended=Ended
-
-# Role
-role.auctioneer=Auctioneer

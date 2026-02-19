@@ -34,16 +34,20 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     // ENUMS
     // ═══════════════════════════════════════════════════════════════════
 
-    public enum ZoneType { TRAP, HAZARD }
+    public enum ZoneType {TRAP, HAZARD}
+
     public enum ZoneShape {
         CIRCLE, SQUARE;
 
         @Override
         public String toString() {
             switch (this) {
-                case CIRCLE: return "ability.shape.circle";
-                case SQUARE: return "ability.shape.square";
-                default: return name();
+                case CIRCLE:
+                    return "ability.shape.circle";
+                case SQUARE:
+                    return "ability.shape.square";
+                default:
+                    return name();
             }
         }
     }
@@ -54,10 +58,14 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         @Override
         public String toString() {
             switch (this) {
-                case STATIC: return "ability.accentStyle.static";
-                case SWAYING: return "ability.accentStyle.swaying";
-                case FLICKERING: return "ability.accentStyle.flickering";
-                default: return name();
+                case STATIC:
+                    return "ability.accentStyle.static";
+                case SWAYING:
+                    return "ability.accentStyle.swaying";
+                case FLICKERING:
+                    return "ability.accentStyle.flickering";
+                default:
+                    return name();
             }
         }
     }
@@ -68,10 +76,14 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         @Override
         public String toString() {
             switch (this) {
-                case RISING: return "ability.particleMotion.rising";
-                case DRIFTING: return "ability.particleMotion.drifting";
-                case SPARKS: return "ability.particleMotion.sparks";
-                default: return name();
+                case RISING:
+                    return "ability.particleMotion.rising";
+                case DRIFTING:
+                    return "ability.particleMotion.drifting";
+                case SPARKS:
+                    return "ability.particleMotion.sparks";
+                default:
+                    return name();
             }
         }
     }
@@ -174,7 +186,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     }
 
     private EntityAbilityZone(World world, ZoneType type, EntityLivingBase owner,
-                               double x, double y, double z) {
+                              double x, double y, double z) {
         this(world);
         this.zoneType = type;
         this.ownerEntityId = owner.getEntityId();
@@ -184,17 +196,17 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     }
 
     public static EntityAbilityZone createTrap(World world, EntityLivingBase owner,
-                                                double x, double y, double z,
-                                                ZoneShape shape,
-                                                float triggerRadius, int armTime, int maxTriggers,
-                                                int triggerCooldown, float damage, float damageRadius,
-                                                float knockback, int durationTicks,
-                                                int innerColor, int outerColor, boolean outerColorEnabled,
-                                                float zoneHeight,
-                                                float particleDensity, float particleScale,
-                                                float animSpeed, float lightningDensity,
-                                                boolean visible,
-                                                List<AbilityPotionEffect> effects) {
+                                               double x, double y, double z,
+                                               ZoneShape shape,
+                                               float triggerRadius, int armTime, int maxTriggers,
+                                               int triggerCooldown, float damage, float damageRadius,
+                                               float knockback, int durationTicks,
+                                               int innerColor, int outerColor, boolean outerColorEnabled,
+                                               float zoneHeight,
+                                               float particleDensity, float particleScale,
+                                               float animSpeed, float lightningDensity,
+                                               boolean visible,
+                                               List<AbilityPotionEffect> effects) {
         EntityAbilityZone zone = new EntityAbilityZone(world, ZoneType.TRAP, owner, x, y, z);
         zone.shape = shape;
         zone.radius = triggerRadius;
@@ -226,17 +238,17 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     }
 
     public static EntityAbilityZone createHazard(World world, EntityLivingBase owner,
-                                                  double x, double y, double z,
-                                                  ZoneShape shape,
-                                                  float radius,
-                                                  float damagePerSecond, int damageInterval,
-                                                  boolean ignoreInvulnFrames, boolean affectsCaster,
-                                                  int durationTicks,
-                                                  int innerColor, int outerColor, boolean outerColorEnabled,
-                                                  float zoneHeight,
-                                                  float particleDensity, float particleScale,
-                                                  float animSpeed, float lightningDensity,
-                                                  List<AbilityPotionEffect> effects) {
+                                                 double x, double y, double z,
+                                                 ZoneShape shape,
+                                                 float radius,
+                                                 float damagePerSecond, int damageInterval,
+                                                 boolean ignoreInvulnFrames, boolean affectsCaster,
+                                                 int durationTicks,
+                                                 int innerColor, int outerColor, boolean outerColorEnabled,
+                                                 float zoneHeight,
+                                                 float particleDensity, float particleScale,
+                                                 float animSpeed, float lightningDensity,
+                                                 List<AbilityPotionEffect> effects) {
         EntityAbilityZone zone = new EntityAbilityZone(world, ZoneType.HAZARD, owner, x, y, z);
         zone.shape = shape;
         zone.radius = radius;
@@ -268,7 +280,8 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     // ═══════════════════════════════════════════════════════════════════
 
     @Override
-    protected void entityInit() {}
+    protected void entityInit() {
+    }
 
     @Override
     public void handleHealthUpdate(byte id) {
@@ -549,45 +562,133 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     // GETTERS FOR RENDERER
     // ═══════════════════════════════════════════════════════════════════
 
-    public ZoneType getZoneType() { return zoneType; }
-    public ZoneShape getShape() { return shape; }
-    public float getRadius() { return radius; }
-    public int getInnerColor() { return innerColor; }
-    public int getOuterColor() { return outerColor; }
-    public boolean isOuterColorEnabled() { return outerColorEnabled; }
-    public float getZoneHeight() { return zoneHeight; }
-    public boolean isArmed() { return armed || ticksExisted >= armTime; }
-    public boolean isVisible() { return visible; }
-    public int getTriggerFlashTick() { return triggerFlashTick; }
-    public int getDurationTicks() { return durationTicks; }
-    public int getMaxTicks() { return maxTicks; }
-    public float getParticleDensity() { return particleDensity; }
-    public float getParticleScale() { return particleScale; }
-    public float getAnimSpeed() { return animSpeed; }
-    public float getLightningDensity() { return lightningDensity; }
+    public ZoneType getZoneType() {
+        return zoneType;
+    }
 
-    public boolean isGroundFill() { return groundFill; }
-    public float getGroundAlpha() { return groundAlpha; }
-    public boolean isRings() { return rings; }
-    public int getRingCount() { return ringCount; }
-    public boolean isBorder() { return border; }
-    public float getBorderSpeed() { return borderSpeed; }
-    public boolean isAccents() { return accents; }
-    public int getAccentStyle() { return accentStyle; }
-    public boolean isLightning() { return lightning; }
-    public boolean isParticles() { return particles; }
-    public int getParticleMotion() { return particleMotion; }
-    public String getParticleDir() { return particleDir; }
-    public int getParticleSize() { return particleSize; }
-    public boolean isParticleGlow() { return particleGlow; }
+    public ZoneShape getShape() {
+        return shape;
+    }
+
+    public float getRadius() {
+        return radius;
+    }
+
+    public int getInnerColor() {
+        return innerColor;
+    }
+
+    public int getOuterColor() {
+        return outerColor;
+    }
+
+    public boolean isOuterColorEnabled() {
+        return outerColorEnabled;
+    }
+
+    public float getZoneHeight() {
+        return zoneHeight;
+    }
+
+    public boolean isArmed() {
+        return armed || ticksExisted >= armTime;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public int getTriggerFlashTick() {
+        return triggerFlashTick;
+    }
+
+    public int getDurationTicks() {
+        return durationTicks;
+    }
+
+    public int getMaxTicks() {
+        return maxTicks;
+    }
+
+    public float getParticleDensity() {
+        return particleDensity;
+    }
+
+    public float getParticleScale() {
+        return particleScale;
+    }
+
+    public float getAnimSpeed() {
+        return animSpeed;
+    }
+
+    public float getLightningDensity() {
+        return lightningDensity;
+    }
+
+    public boolean isGroundFill() {
+        return groundFill;
+    }
+
+    public float getGroundAlpha() {
+        return groundAlpha;
+    }
+
+    public boolean isRings() {
+        return rings;
+    }
+
+    public int getRingCount() {
+        return ringCount;
+    }
+
+    public boolean isBorder() {
+        return border;
+    }
+
+    public float getBorderSpeed() {
+        return borderSpeed;
+    }
+
+    public boolean isAccents() {
+        return accents;
+    }
+
+    public int getAccentStyle() {
+        return accentStyle;
+    }
+
+    public boolean isLightning() {
+        return lightning;
+    }
+
+    public boolean isParticles() {
+        return particles;
+    }
+
+    public int getParticleMotion() {
+        return particleMotion;
+    }
+
+    public String getParticleDir() {
+        return particleDir;
+    }
+
+    public int getParticleSize() {
+        return particleSize;
+    }
+
+    public boolean isParticleGlow() {
+        return particleGlow;
+    }
 
     public void applyVisual(boolean groundFill, float groundAlpha,
-                             boolean rings, int ringCount,
-                             boolean border, float borderSpeed,
-                             boolean accents, int accentStyle,
-                             boolean lightning,
-                             boolean particles, int particleMotion,
-                             String particleDir, int particleSize, boolean particleGlow) {
+                            boolean rings, int ringCount,
+                            boolean border, float borderSpeed,
+                            boolean accents, int accentStyle,
+                            boolean lightning,
+                            boolean particles, int particleMotion,
+                            String particleDir, int particleSize, boolean particleGlow) {
         this.groundFill = groundFill;
         this.groundAlpha = groundAlpha;
         this.rings = rings;

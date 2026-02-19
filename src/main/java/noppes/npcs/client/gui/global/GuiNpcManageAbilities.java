@@ -1,11 +1,15 @@
 package noppes.npcs.client.gui.global;
 
-import kamkeel.npcs.client.renderer.TelegraphRenderer;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilityRemovePacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
@@ -16,10 +20,9 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
-import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityTypeSelect;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityVariantSelect;
+import noppes.npcs.client.gui.advanced.SubGuiChainedAbilityConfig;
 import noppes.npcs.client.gui.advanced.SubGuiDuplicateNameConfirm;
 import noppes.npcs.client.gui.util.AbilityPreviewExecutor;
 import noppes.npcs.client.gui.util.GuiAbilityInterface;
@@ -29,6 +32,7 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiTexturedButton;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IChainedAbilityConfigCallback;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IScrollData;
@@ -46,7 +50,7 @@ import java.util.Vector;
 
 /**
  * Global GUI for managing saved ability presets with 3D preview.
- *
+ * <p>
  * Features:
  * - Left side: 3D preview of NPC with ability effects
  * - Right side: Ability list with search
@@ -54,8 +58,29 @@ import java.util.Vector;
  * - Toggle between Custom and Built-in ability views
  */
 public class GuiNpcManageAbilities extends GuiAbilityInterface
-        implements ICustomScrollListener, ISubGuiListener, IAbilityConfigCallback,
-                   ITextfieldListener, GuiYesNoCallback, IScrollData, IGuiData {
+    implements ICustomScrollListener, ISubGuiListener, IAbilityConfigCallback,
+    IChainedAbilityConfigCallback, ITextfieldListener, GuiYesNoCallback,
+    IScrollData, IGuiData {
+
+    // ── Button IDs ────────────────────────────────────────────────────────────
+    private static final int BTN_REMOVE = 1;
+    private static final int BTN_ADD = 2;
+    private static final int BTN_TOGGLE_VIEW = 10;
+    private static final int BTN_EDIT = 100;
+    private static final int BTN_PREVIEW_PLAY = 91;
+    private static final int BTN_PREVIEW_PAUSE = 92;
+    private static final int BTN_PREVIEW_STOP = 93;
+
+    // ── TextField / Label IDs ─────────────────────────────────────────────────
+    private static final int TF_SEARCH = 55;
+    private static final int LBL_PREVIEW_STATUS = 90;
+
+    // ── Scroll IDs ────────────────────────────────────────────────────────────
+    private static final int SCROLL_MAIN = 0;
+
+    // ── Confirm dialog IDs ────────────────────────────────────────────────────
+    private static final int CONFIRM_REMOVE_ABILITY = 1;
+    private static final int CONFIRM_REMOVE_CHAIN = 2;
 
     // ==================== DATA ====================
     private GuiCustomScroll scroll;
@@ -65,9 +90,17 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private String search = "";
     private Ability selectedAbility = null;
 
-    // ==================== BUILT-IN TOGGLE ====================
+    // ==================== VIEW MODE ====================
+    // 0 = Custom, 1 = Built-in, 2 = Chained
+    private int viewMode = 0;
     private boolean showingBuiltIn = false;
+    private boolean showingChained = false;
     private boolean currentIsBuiltIn = false;
+
+    // ==================== CHAINED DATA ====================
+    private HashMap<String, Integer> chainedData = new HashMap<>();
+    private ChainedAbility selectedChain = null;
+    private ChainedAbility pendingSaveChain = null;
 
     // ==================== PENDING SAVE ====================
     private Ability pendingSaveAbility = null;
@@ -103,45 +136,51 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     public void initGui() {
         super.initGui();
 
-        // Toggle button — added FIRST to maintain stable buttonList index
-        String toggleLabel = showingBuiltIn ? "gui.builtin" : "gui.custom";
-        addButton(new GuiNpcButton(10, guiLeft + 368, guiTop + 52, 45, 20, toggleLabel));
+        // Toggle button — cycles: Custom → Built-in → Chained
+        String toggleLabel = showingChained ? "gui.chained" : (showingBuiltIn ? "gui.builtin" : "gui.custom");
+        addButton(new GuiNpcButton(BTN_TOGGLE_VIEW, guiLeft + 368, guiTop + 52, 45, 20, toggleLabel));
 
-        if (!showingBuiltIn) {
-            // Add button — only for custom view
-            addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
-
-            // Remove button — only for custom view
-            addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
-            getButton(1).setEnabled(selected != null && !selected.isEmpty() && customData.containsKey(selected));
+        if (showingChained) {
+            // Chained view buttons
+            addButton(new GuiNpcButton(BTN_ADD, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
+            addButton(new GuiNpcButton(BTN_REMOVE, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
+            getButton(BTN_REMOVE).setEnabled(selected != null && !selected.isEmpty() && chainedData.containsKey(selected));
+            addButton(new GuiNpcButton(BTN_EDIT, guiLeft + 368, guiTop + 74, 45, 20, "gui.edit"));
+            getButton(BTN_EDIT).setEnabled(selected != null && !selected.isEmpty() && selectedChain != null);
+        } else if (!showingBuiltIn) {
+            // Custom view buttons
+            addButton(new GuiNpcButton(BTN_ADD, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
+            addButton(new GuiNpcButton(BTN_REMOVE, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
+            getButton(BTN_REMOVE).setEnabled(selected != null && !selected.isEmpty() && customData.containsKey(selected));
+            if (!currentIsBuiltIn) {
+                addButton(new GuiNpcButton(BTN_EDIT, guiLeft + 368, guiTop + 74, 45, 20, "gui.edit"));
+                getButton(BTN_EDIT).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
+            }
         }
 
-        // Edit button — hidden when viewing built-in
-        if (!showingBuiltIn && !currentIsBuiltIn) {
-            addButton(new GuiNpcButton(100, guiLeft + 368, guiTop + 74, 45, 20, "gui.edit"));
-            getButton(100).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
-        }
-
-        // Scroll list of abilities (right side)
+        // Scroll list (right side)
         if (scroll == null) {
-            scroll = new GuiCustomScroll(this, 0);
+            scroll = new GuiCustomScroll(this, SCROLL_MAIN);
             scroll.setSize(143, 185);
         }
         scroll.guiLeft = guiLeft + 220;
         scroll.guiTop = guiTop + 4;
         addScroll(scroll);
 
-        // Update scroll list
         scroll.setList(getSearchList());
         if (selected != null) {
             scroll.setSelected(selected);
         }
 
         // Search bar
-        addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 192, 143, 20, search));
+        addTextField(new GuiNpcTextField(TF_SEARCH, this, fontRendererObj, guiLeft + 220, guiTop + 192, 143, 20, search));
 
-        // Show ability info only if one is selected
-        if (selectedAbility == null || selected == null) {
+        // Check if we have something to preview
+        if (showingChained) {
+            if (selectedChain == null || selected == null || selectedChain.getEntries().isEmpty()) {
+                return;
+            }
+        } else if (selectedAbility == null || selected == null) {
             return;
         }
 
@@ -154,22 +193,20 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         boolean isActive = previewExecutor.isActive();
 
         if (!isPlaying || isPaused) {
-            // Show Play button
             String statusKey = isPaused ? "animation.paused" : "animation.stopped";
-            addLabel(new GuiNpcLabel(90, statusKey, guiLeft + playButtonOffsetX, guiTop + 198));
-            addButton(new GuiTexturedButton(91, "", guiLeft + playButtonOffsetX + 70, guiTop + 192, 11, 20, animTexture, 18, 71));
+            addLabel(new GuiNpcLabel(LBL_PREVIEW_STATUS, statusKey, guiLeft + playButtonOffsetX, guiTop + 198));
+            addButton(new GuiTexturedButton(BTN_PREVIEW_PLAY, "", guiLeft + playButtonOffsetX + 70, guiTop + 192, 11, 20, animTexture, 18, 71));
         } else {
-            // Show Pause button
-            addLabel(new GuiNpcLabel(90, "animation.playing", guiLeft + playButtonOffsetX, guiTop + 198));
-            addButton(new GuiTexturedButton(92, "", guiLeft + playButtonOffsetX + 70, guiTop + 192, 14, 20, animTexture, 0, 71));
+            addLabel(new GuiNpcLabel(LBL_PREVIEW_STATUS, "animation.playing", guiLeft + playButtonOffsetX, guiTop + 198));
+            addButton(new GuiTexturedButton(BTN_PREVIEW_PAUSE, "", guiLeft + playButtonOffsetX + 70, guiTop + 192, 14, 20, animTexture, 0, 71));
         }
         if (isActive) {
-            // Show Stop button
-            addButton(new GuiTexturedButton(93, "", guiLeft + playButtonOffsetX + 90, guiTop + 192, 14, 20, animTexture, 33, 71));
+            addButton(new GuiTexturedButton(BTN_PREVIEW_STOP, "", guiLeft + playButtonOffsetX + 90, guiTop + 192, 14, 20, animTexture, 33, 71));
         }
     }
 
     private HashMap<String, Integer> getCurrentData() {
+        if (showingChained) return chainedData;
         return showingBuiltIn ? builtInData : customData;
     }
 
@@ -240,59 +277,94 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
         int id = guibutton.id;
 
-        // Toggle between custom and built-in views
-        if (id == 10) {
-            showingBuiltIn = !showingBuiltIn;
+        // Toggle: Custom → Built-in → Chained → Custom
+        if (id == BTN_TOGGLE_VIEW) {
+            if (!showingBuiltIn && !showingChained) {
+                // Custom → Built-in
+                showingBuiltIn = true;
+                showingChained = false;
+            } else if (showingBuiltIn) {
+                // Built-in → Chained
+                showingBuiltIn = false;
+                showingChained = true;
+            } else {
+                // Chained → Custom
+                showingChained = false;
+                showingBuiltIn = false;
+            }
             selected = null;
             selectedAbility = null;
+            selectedChain = null;
             currentIsBuiltIn = false;
             search = "";
             previewExecutor.stop();
             if (scroll != null) {
                 scroll.clear();
             }
-            PacketClient.sendClient(new CustomAbilitiesGetPacket());
+            if (showingChained) {
+                PacketClient.sendClient(new ChainedAbilitiesGetPacket());
+            } else {
+                PacketClient.sendClient(new CustomAbilitiesGetPacket());
+            }
             initGui();
             return;
         }
 
-        if (id == 2 && !showingBuiltIn) {
+        // Preview controls (shared across all views)
+        if (id == BTN_PREVIEW_PLAY) {
+            if (previewExecutor.isPaused()) {
+                previewExecutor.play();
+            } else if (showingChained && selectedChain != null) {
+                previewExecutor.startChainPreview(selectedChain, npc);
+            } else if (selectedAbility != null) {
+                previewExecutor.startPreview(selectedAbility, npc);
+            }
+            initGui();
+            return;
+        } else if (id == BTN_PREVIEW_PAUSE) {
+            previewExecutor.pause();
+            initGui();
+            return;
+        } else if (id == BTN_PREVIEW_STOP) {
+            previewExecutor.stop();
+            initGui();
+            return;
+        }
+
+        if (showingChained) {
+            if (id == BTN_ADD) {
+                // New chained ability
+                ChainedAbility newChain = new ChainedAbility("New Chain");
+                setSubGui(new SubGuiChainedAbilityConfig(newChain, this));
+            } else if (id == BTN_REMOVE && selected != null) {
+                GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), CONFIRM_REMOVE_CHAIN);
+                displayGuiScreen(guiyesno);
+            } else if (id == BTN_EDIT && selectedChain != null) {
+                previewExecutor.stop();
+                setSubGui(new SubGuiChainedAbilityConfig(selectedChain, this));
+            }
+            return;
+        }
+
+        if (id == BTN_ADD && !showingBuiltIn) {
             // Add — open type selection
             setSubGui(new SubGuiAbilityTypeSelect());
-        } else if (id == 1 && !showingBuiltIn && selected != null) {
-            GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), 1);
+        } else if (id == BTN_REMOVE && !showingBuiltIn && selected != null) {
+            GuiYesNo guiyesno = new GuiYesNo(this, selected, StatCollector.translateToLocal("gui.delete"), CONFIRM_REMOVE_ABILITY);
             displayGuiScreen(guiyesno);
-        } else if (id == 100 && !showingBuiltIn && !currentIsBuiltIn && selectedAbility != null) {
+        } else if (id == BTN_EDIT && !showingBuiltIn && !currentIsBuiltIn && selectedAbility != null) {
             // Edit
             previewExecutor.stop();
             setSubGui(selectedAbility.createConfigGui(this));
-        } else if (id == 91) {
-            // Play button
-            if (selectedAbility != null) {
-                if (previewExecutor.isPaused()) {
-                    previewExecutor.play();
-                } else {
-                    previewExecutor.startPreview(selectedAbility, npc);
-                }
-                initGui();
-            }
-        } else if (id == 92) {
-            // Pause button
-            previewExecutor.pause();
-            initGui();
-        } else if (id == 93) {
-            // Stop button
-            previewExecutor.stop();
-            initGui();
         }
     }
 
     @Override
     public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
-        if (getTextField(55) != null && getTextField(55).isFocused()) {
-            if (!search.equals(getTextField(55).getText())) {
-                search = getTextField(55).getText();
+        if (getTextField(TF_SEARCH) != null && getTextField(TF_SEARCH).isFocused()) {
+            if (!search.equals(getTextField(TF_SEARCH).getText())) {
+                search = getTextField(TF_SEARCH).getText();
                 scroll.resetScroll();
                 scroll.setList(getSearchList());
             }
@@ -301,13 +373,15 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
-        if (scroll.id == 0) {
+        if (scroll.id == SCROLL_MAIN) {
             String newSelection = scroll.getSelected();
             if (newSelection != null && !newSelection.equals(selected)) {
                 previewExecutor.stop();
                 selected = newSelection;
 
-                if (showingBuiltIn) {
+                if (showingChained) {
+                    PacketClient.sendClient(new ChainedAbilityGetPacket(selected));
+                } else if (showingBuiltIn) {
                     currentIsBuiltIn = true;
                     PacketClient.sendClient(new BuiltInAbilityGetPacket(selected));
                 } else {
@@ -320,9 +394,10 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
-        if (scroll.id == 0 && selection != null && !selection.isEmpty()) {
-            // Double-click to edit — only for custom, non-built-in abilities
-            if (!showingBuiltIn && !currentIsBuiltIn && selectedAbility != null) {
+        if (scroll.id == SCROLL_MAIN && selection != null && !selection.isEmpty()) {
+            if (showingChained && selectedChain != null) {
+                setSubGui(new SubGuiChainedAbilityConfig(selectedChain, this));
+            } else if (!showingBuiltIn && !showingChained && !currentIsBuiltIn && selectedAbility != null) {
                 previewExecutor.stop();
                 setSubGui(selectedAbility.createConfigGui(this));
             }
@@ -334,7 +409,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (type == EnumScrollData.CUSTOM_ABILITIES) {
             String prevSelected = scroll != null ? scroll.getSelected() : null;
             this.customData = data;
-            if (!showingBuiltIn && scroll != null) {
+            if (!showingBuiltIn && !showingChained && scroll != null) {
                 scroll.setList(getSearchList());
                 if (prevSelected != null && customData.containsKey(prevSelected)) {
                     scroll.setSelected(prevSelected);
@@ -350,11 +425,33 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                 }
             }
             initGui();
+        } else if (type == EnumScrollData.CHAINED_ABILITIES) {
+            String prevSelected = scroll != null ? scroll.getSelected() : null;
+            this.chainedData = data;
+            if (showingChained && scroll != null) {
+                scroll.setList(getSearchList());
+                if (prevSelected != null && chainedData.containsKey(prevSelected)) {
+                    scroll.setSelected(prevSelected);
+                }
+            }
+            initGui();
         }
     }
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
+        // Detect chained ability response (has "Entries" tag)
+        if (showingChained && compound.hasKey("Entries")) {
+            selectedChain = new ChainedAbility();
+            selectedChain.readNBT(compound);
+            selected = selectedChain.getName();
+            if (scroll != null) {
+                scroll.setSelected(selected);
+            }
+            initGui();
+            return;
+        }
+
         // Check if this is a built-in ability response
         currentIsBuiltIn = compound.hasKey("BuiltIn") && compound.getBoolean("BuiltIn");
 
@@ -380,88 +477,129 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiChainedAbilityConfig) {
+            handleChainConfigClosed();
+            initGui();
+            return;
+        }
         if (subgui instanceof SubGuiAbilityVariantSelect) {
-            SubGuiAbilityVariantSelect variantGui = (SubGuiAbilityVariantSelect) subgui;
-            int idx = variantGui.getSelectedIndex();
-            if (idx >= 0 && pendingTypeId != null) {
-                Ability newAbility = AbilityController.Instance.create(pendingTypeId);
-                if (newAbility != null) {
-                    variantGui.getVariants().get(idx).apply(newAbility);
-                    if (hasDuplicateName(newAbility)) {
-                        pendingSaveAbility = newAbility;
-                        pendingNewCreation = true;
-                        pendingTypeId = null;
-                        setSubGui(new SubGuiDuplicateNameConfirm());
-                        return;
-                    }
-                    pendingTypeId = null;
-                    openConfig(newAbility);
-                    return;
-                }
-            }
-            pendingTypeId = null;
+            if (handleVariantSelectClosed((SubGuiAbilityVariantSelect) subgui)) return;
         } else if (subgui instanceof SubGuiAbilityTypeSelect) {
-            String typeId = ((SubGuiAbilityTypeSelect) subgui).getSelectedTypeId();
-            if (typeId != null) {
-                java.util.List<AbilityVariant> variants = AbilityController.Instance.getVariantsForType(typeId);
-                if (variants.size() > 1) {
-                    pendingTypeId = typeId;
-                    setSubGui(new SubGuiAbilityVariantSelect(variants));
-                    return;
-                }
-                Ability newAbility = AbilityController.Instance.create(typeId);
-                if (newAbility != null) {
-                    if (variants.size() == 1) {
-                        variants.get(0).apply(newAbility);
-                    }
-                    if (hasDuplicateName(newAbility)) {
-                        pendingSaveAbility = newAbility;
-                        pendingNewCreation = true;
-                        setSubGui(new SubGuiDuplicateNameConfirm());
-                        return;
-                    }
-                    openConfig(newAbility);
-                    return;
-                }
-            }
+            if (handleTypeSelectClosed((SubGuiAbilityTypeSelect) subgui)) return;
         } else if (subgui instanceof SubGuiDuplicateNameConfirm) {
-            SubGuiDuplicateNameConfirm confirm = (SubGuiDuplicateNameConfirm) subgui;
-            if (confirm.isConfirmed() && pendingSaveAbility != null) {
-                if (pendingNewCreation) {
-                    openConfig(pendingSaveAbility);
-                    pendingSaveAbility = null;
-                    pendingNewCreation = false;
-                    return;
-                } else {
-                    PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
-                    PacketClient.sendClient(new CustomAbilitiesGetPacket());
-                    pendingSaveAbility = null;
-                }
-            } else if (pendingSaveAbility != null) {
-                if (pendingNewCreation) {
-                    // Cancel new creation - discard
-                    pendingSaveAbility = null;
-                    pendingNewCreation = false;
-                } else {
-                    // Cancel edit save - re-open config GUI to change name
-                    Ability ability = pendingSaveAbility;
-                    pendingSaveAbility = null;
-                    setSubGui(ability.createConfigGui(this));
-                    return;
-                }
-            }
+            if (handleDuplicateNameClosed((SubGuiDuplicateNameConfirm) subgui)) return;
         } else if (pendingSaveAbility != null) {
-            // Config GUI closed with a pending save (set by onAbilitySaved)
-            if (hasDuplicateName(pendingSaveAbility)) {
-                pendingNewCreation = false;
-                setSubGui(new SubGuiDuplicateNameConfirm());
-                return;
-            }
-            PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
-            PacketClient.sendClient(new CustomAbilitiesGetPacket());
-            pendingSaveAbility = null;
+            if (handlePendingSave()) return;
         }
         initGui();
+    }
+
+    private void handleChainConfigClosed() {
+        if (pendingSaveChain != null) {
+            PacketClient.sendClient(new ChainedAbilitySavePacket(pendingSaveChain.writeNBT()));
+            PacketClient.sendClient(new ChainedAbilitiesGetPacket());
+            selected = pendingSaveChain.getName();
+            pendingSaveChain = null;
+        }
+    }
+
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
+    private boolean handleVariantSelectClosed(SubGuiAbilityVariantSelect gui) {
+        int idx = gui.getSelectedIndex();
+        if (idx >= 0 && pendingTypeId != null) {
+            Ability newAbility = AbilityController.Instance.create(pendingTypeId);
+            if (newAbility != null) {
+                gui.getVariants().get(idx).apply(newAbility);
+                if (hasDuplicateName(newAbility)) {
+                    pendingSaveAbility = newAbility;
+                    pendingNewCreation = true;
+                    pendingTypeId = null;
+                    setSubGui(new SubGuiDuplicateNameConfirm());
+                    return true;
+                }
+                pendingTypeId = null;
+                openConfig(newAbility);
+                return true;
+            }
+        }
+        pendingTypeId = null;
+        return false;
+    }
+
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
+    private boolean handleTypeSelectClosed(SubGuiAbilityTypeSelect gui) {
+        String typeId = gui.getSelectedTypeId();
+        if (typeId != null) {
+            java.util.List<AbilityVariant> variants = AbilityController.Instance.getVariantsForType(typeId);
+            if (variants.size() > 1) {
+                pendingTypeId = typeId;
+                setSubGui(new SubGuiAbilityVariantSelect(variants));
+                return true;
+            }
+            Ability newAbility = AbilityController.Instance.create(typeId);
+            if (newAbility != null) {
+                if (variants.size() == 1) {
+                    variants.get(0).apply(newAbility);
+                }
+                if (hasDuplicateName(newAbility)) {
+                    pendingSaveAbility = newAbility;
+                    pendingNewCreation = true;
+                    setSubGui(new SubGuiDuplicateNameConfirm());
+                    return true;
+                }
+                openConfig(newAbility);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
+    private boolean handleDuplicateNameClosed(SubGuiDuplicateNameConfirm gui) {
+        if (gui.isConfirmed() && pendingSaveAbility != null) {
+            if (pendingNewCreation) {
+                openConfig(pendingSaveAbility);
+                pendingSaveAbility = null;
+                pendingNewCreation = false;
+                return true;
+            } else {
+                PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+                PacketClient.sendClient(new CustomAbilitiesGetPacket());
+                pendingSaveAbility = null;
+            }
+        } else if (pendingSaveAbility != null) {
+            if (pendingNewCreation) {
+                pendingSaveAbility = null;
+                pendingNewCreation = false;
+            } else {
+                Ability ability = pendingSaveAbility;
+                pendingSaveAbility = null;
+                setSubGui(ability.createConfigGui(this));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return true if a SubGui was opened (caller should return early, skipping initGui)
+     */
+    private boolean handlePendingSave() {
+        if (hasDuplicateName(pendingSaveAbility)) {
+            pendingNewCreation = false;
+            setSubGui(new SubGuiDuplicateNameConfirm());
+            return true;
+        }
+        PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+        PacketClient.sendClient(new CustomAbilitiesGetPacket());
+        pendingSaveAbility = null;
+        return false;
     }
 
     private void openConfig(Ability ability) {
@@ -474,9 +612,12 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private boolean hasDuplicateName(Ability ability) {
         String name = ability.getName();
         if (name == null || name.isEmpty()) return false;
-        String oldName = ability.getId();
-        // A duplicate exists if the name is already in use and it's not the same ability being edited
-        return customData.containsKey(name) && !name.equals(oldName);
+        if (!customData.containsKey(name)) return false;
+        // Name exists — check if it belongs to a different ability (by UUID)
+        String uuid = ability.getId();
+        if (uuid == null || uuid.isEmpty()) return true; // New ability with conflicting name
+        Ability existing = AbilityController.Instance.getCustomAbilityByName(name);
+        return existing == null || !uuid.equals(existing.getId());
     }
 
     @Override
@@ -484,11 +625,17 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         NoppesUtil.openGUI(player, this);
         if (!result) return;
 
-        if (id == 1 && selected != null) {
+        if (id == CONFIRM_REMOVE_ABILITY && selected != null) {
             PacketClient.sendClient(new CustomAbilityRemovePacket(selected));
             scroll.clear();
             selected = null;
             selectedAbility = null;
+            initGui();
+        } else if (id == CONFIRM_REMOVE_CHAIN && selected != null) {
+            PacketClient.sendClient(new ChainedAbilityRemovePacket(selected));
+            scroll.clear();
+            selected = null;
+            selectedChain = null;
             initGui();
         }
     }
@@ -497,6 +644,11 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     public void onAbilitySaved(Ability ability) {
         // Defer save until subGuiClosed where we can check for duplicate names
         pendingSaveAbility = ability;
+    }
+
+    @Override
+    public void onChainedAbilitySaved(ChainedAbility chain) {
+        pendingSaveChain = chain;
     }
 
     @Override

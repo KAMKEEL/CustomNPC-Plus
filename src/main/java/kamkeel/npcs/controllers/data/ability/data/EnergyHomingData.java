@@ -14,7 +14,8 @@ public class EnergyHomingData implements IEnergyHomingData {
     public float homingStrength = 0.15f;
     public float homingRange = 20.0f;
 
-    public EnergyHomingData() {}
+    public EnergyHomingData() {
+    }
 
     public EnergyHomingData(float speed, boolean homing, float homingStrength, float homingRange) {
         this.speed = speed;

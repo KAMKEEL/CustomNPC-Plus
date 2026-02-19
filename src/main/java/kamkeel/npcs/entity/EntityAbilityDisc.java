@@ -1,22 +1,28 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
-import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.EventHooks;
 
 import java.util.List;
 
 /**
  * Disc projectile - flat spinning disc with optional boomerang behavior.
  * Has a wider, thinner hitbox compared to Orb.
- *
+ * <p>
  * Design inspired by LouisXIV's energy attack system.
  */
 public class EntityAbilityDisc extends EntityEnergyProjectile {
@@ -252,8 +258,8 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     protected boolean checkMaxDistance() {
         double distTraveled = Math.sqrt(
             (posX - startX) * (posX - startX) +
-            (posY - startY) * (posY - startY) +
-            (posZ - startZ) * (posZ - startZ)
+                (posY - startY) * (posY - startY) +
+                (posZ - startZ) * (posZ - startZ)
         );
 
         if (boomerang) {
@@ -270,8 +276,8 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
                 if (owner != null) {
                     double distToOwner = Math.sqrt(
                         (posX - owner.posX) * (posX - owner.posX) +
-                        (posY - owner.posY) * (posY - owner.posY) +
-                        (posZ - owner.posZ) * (posZ - owner.posZ)
+                            (posY - owner.posY) * (posY - owner.posY) +
+                            (posZ - owner.posZ) * (posZ - owner.posZ)
                     );
                     return distToOwner < 1.5;
                 }

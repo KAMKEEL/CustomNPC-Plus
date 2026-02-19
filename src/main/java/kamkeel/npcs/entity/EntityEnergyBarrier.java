@@ -1,10 +1,6 @@
 package kamkeel.npcs.entity;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -144,6 +140,7 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
      * Shared barrier tick logic for onUpdate(). Handles spawned event, owner death,
      * duration check, hit flash decay, and tick event.
      * Call this after incrementing ticksAlive in subclass onUpdate().
+     *
      * @return true if barrier died this tick (caller should return early)
      */
     protected boolean updateBarrierTick() {
@@ -223,18 +220,33 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
 
     protected boolean isKnockbackTarget(EntityLivingBase entity) {
         switch (barrierData.knockbackTarget) {
-            case 1: return entity instanceof EntityPlayer;
-            case 2: return entity instanceof EntityNPCInterface;
-            default: return entity instanceof EntityPlayer || entity instanceof EntityNPCInterface;
+            case 1:
+                return entity instanceof EntityPlayer;
+            case 2:
+                return entity instanceof EntityNPCInterface;
+            default:
+                return entity instanceof EntityPlayer || entity instanceof EntityNPCInterface;
         }
     }
 
     // ==================== GETTERS ====================
 
-    public EnergyBarrierData getBarrierData() { return barrierData; }
-    public float getCurrentHealth() { return currentHealth; }
-    public void setCurrentHealth(float health) { this.currentHealth = health; syncHealthPercent(); }
-    public int getTicksAlive() { return ticksAlive; }
+    public EnergyBarrierData getBarrierData() {
+        return barrierData;
+    }
+
+    public float getCurrentHealth() {
+        return currentHealth;
+    }
+
+    public void setCurrentHealth(float health) {
+        this.currentHealth = health;
+        syncHealthPercent();
+    }
+
+    public int getTicksAlive() {
+        return ticksAlive;
+    }
 
     // ==================== NBT HELPERS ====================
 

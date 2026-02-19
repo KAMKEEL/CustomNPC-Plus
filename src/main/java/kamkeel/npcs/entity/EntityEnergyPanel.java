@@ -343,9 +343,17 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     // ==================== GETTERS ====================
 
-    public PanelMode getMode() { return mode; }
-    public float getPanelYaw() { return panelYaw; }
-    public EnergyPanelData getPanelData() { return panelData; }
+    public PanelMode getMode() {
+        return mode;
+    }
+
+    public float getPanelYaw() {
+        return panelYaw;
+    }
+
+    public EnergyPanelData getPanelData() {
+        return panelData;
+    }
 
     // ==================== NBT ====================
 

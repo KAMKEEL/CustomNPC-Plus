@@ -15,8 +15,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.config.ConfigMain;
 import noppes.npcs.client.ScriptClientConfig;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.AuctionConfigSync;
 import noppes.npcs.controllers.ScriptConfigSync;
 

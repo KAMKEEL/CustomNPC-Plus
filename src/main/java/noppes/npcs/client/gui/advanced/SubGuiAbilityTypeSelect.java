@@ -1,6 +1,6 @@
 package noppes.npcs.client.gui.advanced;
 
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.I18n;
 import noppes.npcs.client.gui.util.GuiCustomScroll;

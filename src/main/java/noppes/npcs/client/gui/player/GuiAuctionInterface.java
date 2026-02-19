@@ -34,6 +34,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
     public static final int PAGE_SELL = 1;
     public static final int PAGE_CLAIMS = 2;
 
+    // Overlay color
+    protected static final int OVERLAY_DARK = 0xC0000000;
+
     // Navigation button IDs
     protected static final int BTN_NAV_LISTINGS = 100;
     protected static final int BTN_NAV_SELL = 101;
@@ -66,7 +69,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         initNavigationButtons();
     }
 
-    /** Initialize navigation buttons */
+    /**
+     * Initialize navigation buttons
+     */
     protected void initNavigationButtons() {
         int page = getCurrentPage();
 
@@ -86,7 +91,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         addButton(btnClaims);
     }
 
-    /** Returns current page constant - implement in subclass */
+    /**
+     * Returns current page constant - implement in subclass
+     */
     protected abstract int getCurrentPage();
 
     @Override
@@ -133,7 +140,9 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         }
     }
 
-    /** Draw navigation button tooltips */
+    /**
+     * Draw navigation button tooltips
+     */
     protected void drawNavButtonTooltips(int mouseX, int mouseY) {
         List<String> tooltip = null;
         if (btnListings != null && btnListings.isHovered()) tooltip = btnListings.getTooltipLines();
@@ -151,14 +160,18 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
 
     // ========== Slot Drawing Utilities ==========
 
-    /** Draw auction slot background (18x18) */
+    /**
+     * Draw auction slot background (18x18)
+     */
     protected void drawAuctionSlot(int x, int y) {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(AUCTION_SLOT);
         Gui.func_146110_a(x, y, 0, 0, 18, 18, 18, 18);
     }
 
-    /** Draw colored overlay on slot (ARGB format) */
+    /**
+     * Draw colored overlay on slot (ARGB format)
+     */
     protected void drawColoredOverlay(int x, int y, int color) {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -170,12 +183,16 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    /** Draw dark overlay for unavailable slots */
+    /**
+     * Draw dark overlay for unavailable slots
+     */
     protected void drawDarkenedOverlay(int x, int y) {
-        drawColoredOverlay(x, y, 0xC0000000);
+        drawColoredOverlay(x, y, OVERLAY_DARK);
     }
 
-    /** Draw icon texture on slot (16x16) */
+    /**
+     * Draw icon texture on slot (16x16)
+     */
     protected void drawIconOverlay(int x, int y, ResourceLocation icon) {
         GL11.glPushMatrix();
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
@@ -189,41 +206,10 @@ public abstract class GuiAuctionInterface extends GuiContainerNPCInterface {
         GL11.glPopMatrix();
     }
 
-    /** Subclasses implement this to draw specific content */
+    /**
+     * Subclasses implement this to draw specific content
+     */
     protected abstract void drawAuctionContent(float partialTicks, int mouseX, int mouseY);
-
-    // ========== Formatting Utilities ==========
-
-    /** Format currency with commas (e.g., 1000 -> "1,000") */
-    protected String formatCurrency(long amount) {
-        if (amount < 1000) return "" + amount;
-        StringBuilder sb = new StringBuilder();
-        String str = "" + amount;
-        int count = 0;
-        for (int i = str.length() - 1; i >= 0; i--) {
-            if (count > 0 && count % 3 == 0) sb.insert(0, ',');
-            sb.insert(0, str.charAt(i));
-            count++;
-        }
-        return sb.toString();
-    }
-
-    /** Format time remaining (e.g., "2d 5h 30m") */
-    protected String formatTimeRemaining(long ms) {
-        if (ms <= 0) return "Ended";
-
-        long seconds = (ms / 1000) % 60;
-        long minutes = (ms / 60000) % 60;
-        long hours = (ms / 3600000) % 24;
-        long days = ms / 86400000;
-
-        StringBuilder sb = new StringBuilder();
-        if (days > 0) sb.append(days).append("d ");
-        if (hours > 0 || days > 0) sb.append(hours).append("h ");
-        if (minutes > 0 || hours > 0 || days > 0) sb.append(minutes).append("m");
-        else sb.append(seconds).append("s");
-        return sb.toString();
-    }
 
     @Override
     public void save() {

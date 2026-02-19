@@ -29,14 +29,29 @@ public class ScriptEnergySlicer<T extends EntityEnergySlicer> extends ScriptEner
 
     // ==================== SLICER-SPECIFIC ====================
 
-    public float getSliceWidth() { return entity.getSliceWidth(); }
-    public void setSliceWidth(float width) { entity.setSliceWidth(width); }
+    public float getSliceWidth() {
+        return entity.getSliceWidth();
+    }
 
-    public float getSliceThickness() { return entity.getSliceThickness(); }
-    public void setSliceThickness(float thickness) { entity.setSliceThickness(thickness); }
+    public void setSliceWidth(float width) {
+        entity.setSliceWidth(width);
+    }
 
-    public boolean isPiercing() { return entity.isPiercing(); }
-    public void setPiercing(boolean piercing) { entity.setPiercing(piercing); }
+    public float getSliceThickness() {
+        return entity.getSliceThickness();
+    }
+
+    public void setSliceThickness(float thickness) {
+        entity.setSliceThickness(thickness);
+    }
+
+    public boolean isPiercing() {
+        return entity.isPiercing();
+    }
+
+    public void setPiercing(boolean piercing) {
+        entity.setPiercing(piercing);
+    }
 
     // ==================== FIRE ====================
 

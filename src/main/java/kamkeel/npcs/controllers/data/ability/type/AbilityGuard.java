@@ -1,25 +1,26 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
-import kamkeel.npcs.controllers.data.ability.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.api.ability.type.IAbilityGuard;
 import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
-
-import noppes.npcs.api.ability.type.IAbilityGuard;
-
-import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.Arrays;
@@ -77,9 +78,12 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         @Override
         public String toString() {
             switch (this) {
-                case FLAT: return "ability.counter.flat";
-                case PERCENT: return "ability.counter.percent";
-                default: return name();
+                case FLAT:
+                    return "ability.counter.flat";
+                case PERCENT:
+                    return "ability.counter.percent";
+                default:
+                    return name();
             }
         }
     }

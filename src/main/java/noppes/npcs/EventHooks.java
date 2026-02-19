@@ -20,9 +20,9 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IBlock;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
-import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IAnimatable;
 import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.IProjectile;
@@ -64,6 +64,7 @@ import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.scripted.event.PartyEvent;
 import noppes.npcs.scripted.event.ProjectileEvent;
 import noppes.npcs.scripted.event.RecipeScriptEvent;
+import noppes.npcs.scripted.event.player.AuctionEvent;
 import noppes.npcs.scripted.event.player.CustomGuiEvent;
 import noppes.npcs.scripted.event.player.DialogEvent;
 import noppes.npcs.scripted.event.player.FactionEvent;
@@ -560,7 +561,7 @@ public class EventHooks {
     // ==================== ENERGY BARRIER EVENTS ====================
 
     private static void dispatchBarrierEvent(net.minecraft.entity.Entity barrierEntity, int ownerEntityId,
-                                              noppes.npcs.scripted.event.EnergyBarrierEvent event, EnumScriptType type) {
+                                             noppes.npcs.scripted.event.EnergyBarrierEvent event, EnumScriptType type) {
         ScriptController.Instance.globalNpcScripts.callScript(type, event);
 
         net.minecraft.entity.Entity owner = barrierEntity.worldObj.getEntityByID(ownerEntityId);
@@ -878,6 +879,16 @@ public class EventHooks {
     public static boolean onPlayerAbilityHit(PlayerDataScript handler, PlayerAbilityEvent.HitEvent event) {
         handler.callScript(EnumScriptType.ABILITY_HIT, event);
         return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerAbilityToggle(PlayerDataScript handler, PlayerAbilityEvent.ToggleEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_TOGGLE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerAbilityToggleUpdate(PlayerDataScript handler, PlayerAbilityEvent.ToggleUpdateEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_TOGGLE_UPDATE, event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerChangeDim(PlayerDataScript handler, IPlayer player, int fromDim, int toDim) {
@@ -1252,5 +1263,32 @@ public class EventHooks {
             return;
         }
         postAnimationEvent(new AnimationEvent.FrameEvent.Exited(animation, frame));
+    }
+
+    // ==================== AUCTION EVENTS ====================
+
+    public static boolean onAuctionCreate(PlayerDataScript handler, AuctionEvent.CreateEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_CREATE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionBid(PlayerDataScript handler, AuctionEvent.BidEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_BID, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionBuyout(PlayerDataScript handler, AuctionEvent.BuyoutEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_BUYOUT, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionCancel(PlayerDataScript handler, AuctionEvent.CancelEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_CANCEL, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onAuctionClaim(PlayerDataScript handler, AuctionEvent.ClaimEvent event) {
+        handler.callScript(EnumScriptType.AUCTION_CLAIM, event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 }

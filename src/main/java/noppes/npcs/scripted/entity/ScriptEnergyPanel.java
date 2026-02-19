@@ -27,15 +27,31 @@ public class ScriptEnergyPanel<T extends EntityEnergyPanel> extends ScriptEnergy
 
     // ==================== PANEL-SPECIFIC ====================
 
-    public float getPanelWidth() { return entity.getPanelData().panelWidth; }
-    public void setPanelWidth(float width) { entity.getPanelData().setPanelWidth(width); }
+    public float getPanelWidth() {
+        return entity.getPanelData().panelWidth;
+    }
 
-    public float getPanelHeight() { return entity.getPanelData().panelHeight; }
-    public void setPanelHeight(float height) { entity.getPanelData().setPanelHeight(height); }
+    public void setPanelWidth(float width) {
+        entity.getPanelData().setPanelWidth(width);
+    }
 
-    public float getPanelYaw() { return entity.getPanelYaw(); }
+    public float getPanelHeight() {
+        return entity.getPanelData().panelHeight;
+    }
 
-    public int getPanelMode() { return entity.getMode().ordinal(); }
+    public void setPanelHeight(float height) {
+        entity.getPanelData().setPanelHeight(height);
+    }
 
-    public boolean isLaunched() { return entity.getMode() == EntityEnergyPanel.PanelMode.LAUNCHED; }
+    public float getPanelYaw() {
+        return entity.getPanelYaw();
+    }
+
+    public int getPanelMode() {
+        return entity.getMode().ordinal();
+    }
+
+    public boolean isLaunched() {
+        return entity.getMode() == EntityEnergyPanel.PanelMode.LAUNCHED;
+    }
 }

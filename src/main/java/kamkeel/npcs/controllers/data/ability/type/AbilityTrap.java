@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
@@ -11,9 +13,6 @@ import noppes.npcs.api.ability.type.IAbilityTrap;
 import noppes.npcs.client.gui.SubGuiTrapPresetSelector;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.constants.EnumPotionType;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,51 +114,80 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         switch (preset) {
             case "VENOM":
                 groundAlpha = 0.04f;
-                particles = true; particleDensity = 0.3f; particleScale = 0.5f;
-                particleMotion = 1; particleDir = "mc:mobSpell";
-                colorData.innerColor = 0x44DD44; colorData.outerColor = 0x116611;
-                windUpColor = 0x6044DD44; activeColor = 0xC044FF44;
+                particles = true;
+                particleDensity = 0.3f;
+                particleScale = 0.5f;
+                particleMotion = 1;
+                particleDir = "mc:mobSpell";
+                colorData.innerColor = 0x44DD44;
+                colorData.outerColor = 0x116611;
+                windUpColor = 0x6044DD44;
+                activeColor = 0xC044FF44;
                 effects.add(new AbilityPotionEffect(EnumPotionType.Poison, 100, 0));
                 break;
             case "EXPLOSIVE":
                 groundAlpha = 0.04f;
-                particles = true; particleDensity = 0.3f; particleScale = 0.6f;
-                particleMotion = 0; particleDir = "mc:smoke";
-                colorData.innerColor = 0xFF6611; colorData.outerColor = 0xCC2200;
-                windUpColor = 0x60FF6611; activeColor = 0xC0FF4400;
+                particles = true;
+                particleDensity = 0.3f;
+                particleScale = 0.6f;
+                particleMotion = 0;
+                particleDir = "mc:smoke";
+                colorData.innerColor = 0xFF6611;
+                colorData.outerColor = 0xCC2200;
+                windUpColor = 0x60FF6611;
+                activeColor = 0xC0FF4400;
                 effects.add(new AbilityPotionEffect(EnumPotionType.Fire, 60, 0));
                 break;
             case "CURSED":
                 groundAlpha = 0.04f;
-                particles = true; particleDensity = 0.3f; particleScale = 0.5f;
-                particleMotion = 1; particleDir = "mc:portal";
-                colorData.innerColor = 0xAA44FF; colorData.outerColor = 0x6622BB;
-                windUpColor = 0x60AA44FF; activeColor = 0xC0CC66FF;
+                particles = true;
+                particleDensity = 0.3f;
+                particleScale = 0.5f;
+                particleMotion = 1;
+                particleDir = "mc:portal";
+                colorData.innerColor = 0xAA44FF;
+                colorData.outerColor = 0x6622BB;
+                windUpColor = 0x60AA44FF;
+                activeColor = 0xC0CC66FF;
                 effects.add(new AbilityPotionEffect(EnumPotionType.Weakness, 100, 0));
                 break;
             case "SHOCK":
                 groundAlpha = 0.04f;
-                particles = true; particleDensity = 0.3f; particleScale = 0.4f;
-                particleMotion = 2; particleDir = "mc:enchantmenttable";
-                colorData.innerColor = 0x4488FF; colorData.outerColor = 0x2244BB;
-                windUpColor = 0x604488FF; activeColor = 0xC066AAFF;
+                particles = true;
+                particleDensity = 0.3f;
+                particleScale = 0.4f;
+                particleMotion = 2;
+                particleDir = "mc:enchantmenttable";
+                colorData.innerColor = 0x4488FF;
+                colorData.outerColor = 0x2244BB;
+                windUpColor = 0x604488FF;
+                activeColor = 0xC066AAFF;
                 effects.add(new AbilityPotionEffect(EnumPotionType.MiningFatigue, 80, 1));
                 break;
             case "SNARE":
                 groundAlpha = 0.04f;
-                particles = true; particleDensity = 0.3f; particleScale = 0.5f;
-                particleMotion = 1; particleDir = "mc:snowshovel";
-                colorData.innerColor = 0x88CCFF; colorData.outerColor = 0x4488CC;
-                windUpColor = 0x6088CCFF; activeColor = 0xC0AADDFF;
+                particles = true;
+                particleDensity = 0.3f;
+                particleScale = 0.5f;
+                particleMotion = 1;
+                particleDir = "mc:snowshovel";
+                colorData.innerColor = 0x88CCFF;
+                colorData.outerColor = 0x4488CC;
+                windUpColor = 0x6088CCFF;
+                activeColor = 0xC0AADDFF;
                 effects.add(new AbilityPotionEffect(EnumPotionType.Slowness, 100, 1));
                 break;
             case "HIDDEN":
             default:
                 groundAlpha = 0.03f;
-                particles = false; particleDensity = 0.0f; particleScale = 1.0f;
+                particles = false;
+                particleDensity = 0.0f;
+                particleScale = 1.0f;
                 particleMotion = 0;
-                colorData.innerColor = 0x888888; colorData.outerColor = 0x444444;
-                windUpColor = 0x60888888; activeColor = 0xC0AAAAAA;
+                colorData.innerColor = 0x888888;
+                colorData.outerColor = 0x444444;
+                windUpColor = 0x60888888;
+                activeColor = 0xC0AAAAAA;
                 break;
         }
     }
@@ -190,22 +218,69 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         this.visible = nbt.getBoolean("visible");
     }
 
-    public float getTriggerRadius() { return triggerRadius; }
-    public void setTriggerRadius(float triggerRadius) { this.triggerRadius = triggerRadius; }
-    public int getArmTime() { return armTime; }
-    public void setArmTime(int armTime) { this.armTime = armTime; }
-    public int getMaxTriggers() { return maxTriggers; }
-    public void setMaxTriggers(int maxTriggers) { this.maxTriggers = maxTriggers; }
-    public int getTriggerCooldown() { return triggerCooldown; }
-    public void setTriggerCooldown(int triggerCooldown) { this.triggerCooldown = triggerCooldown; }
-    public float getDamage() { return damage; }
-    public void setDamage(float damage) { this.damage = damage; }
-    public float getDamageRadius() { return damageRadius; }
-    public void setDamageRadius(float damageRadius) { this.damageRadius = damageRadius; }
-    public float getKnockback() { return knockback; }
-    public void setKnockback(float knockback) { this.knockback = knockback; }
-    public boolean isVisible() { return visible; }
-    public void setVisible(boolean visible) { this.visible = visible; }
+    public float getTriggerRadius() {
+        return triggerRadius;
+    }
+
+    public void setTriggerRadius(float triggerRadius) {
+        this.triggerRadius = triggerRadius;
+    }
+
+    public int getArmTime() {
+        return armTime;
+    }
+
+    public void setArmTime(int armTime) {
+        this.armTime = armTime;
+    }
+
+    public int getMaxTriggers() {
+        return maxTriggers;
+    }
+
+    public void setMaxTriggers(int maxTriggers) {
+        this.maxTriggers = maxTriggers;
+    }
+
+    public int getTriggerCooldown() {
+        return triggerCooldown;
+    }
+
+    public void setTriggerCooldown(int triggerCooldown) {
+        this.triggerCooldown = triggerCooldown;
+    }
+
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public float getDamageRadius() {
+        return damageRadius;
+    }
+
+    public void setDamageRadius(float damageRadius) {
+        this.damageRadius = damageRadius;
+    }
+
+    public float getKnockback() {
+        return knockback;
+    }
+
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
 
     @SideOnly(Side.CLIENT)
     @Override

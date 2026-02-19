@@ -10,6 +10,7 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.util.AuctionFormatUtil;
 
 /**
  * Sub GUI for placing a bid on an auction.
@@ -49,13 +50,13 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
 
         // Minimum bid info
         String minText = StatCollector.translateToLocal("auction.bid.minimum")
-            .replace("%s", EnumChatFormatting.DARK_RED + formatCurrency(minimumBid) + " " + currencyName);
+            .replace("%s", EnumChatFormatting.DARK_RED + AuctionFormatUtil.formatCurrency(minimumBid) + " " + currencyName);
         addLabel(new GuiNpcLabel(1, minText, guiLeft + 15, y));
         y += 14;
 
         // Your balance
         String balanceText = StatCollector.translateToLocal("auction.bid.yourBalance")
-            .replace("%s", EnumChatFormatting.DARK_GREEN + formatCurrency(playerBalance) + " " + currencyName);
+            .replace("%s", EnumChatFormatting.DARK_GREEN + AuctionFormatUtil.formatCurrency(playerBalance) + " " + currencyName);
         addLabel(new GuiNpcLabel(2, balanceText, guiLeft + 15, y));
         y += 18;
 
@@ -77,7 +78,7 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
         int totalBtnWidth = btnWidth * 2 + btnSpacing;
         int btnX = centerX - totalBtnWidth / 2;
 
-        addButton(new GuiNpcButton(btnBidId, btnX, y, btnWidth, 20, "auction.bid.placeBid"));
+        addButton(new GuiNpcButton(btnBidId, btnX, y, btnWidth, 20, "auction.bid.place"));
         addButton(new GuiNpcButton(btnCancelId, btnX + btnWidth + btnSpacing, y, btnWidth, 20, "gui.cancel"));
     }
 
@@ -117,7 +118,7 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
         // Validate
         if (bidAmount < minimumBid) {
             errorMessage = StatCollector.translateToLocal("auction.error.bidTooLow")
-                .replace("%s", formatCurrency(minimumBid));
+                .replace("%s", AuctionFormatUtil.formatCurrency(minimumBid));
             updateErrorLabel();
             return;
         }
@@ -143,18 +144,5 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
 
     public boolean wasSuccessful() {
         return successful;
-    }
-
-    private String formatCurrency(long amount) {
-        if (amount < 1000) return "" + amount;
-        StringBuilder sb = new StringBuilder();
-        String str = "" + amount;
-        int count = 0;
-        for (int i = str.length() - 1; i >= 0; i--) {
-            if (count > 0 && count % 3 == 0) sb.insert(0, ',');
-            sb.insert(0, str.charAt(i));
-            count++;
-        }
-        return sb.toString();
     }
 }

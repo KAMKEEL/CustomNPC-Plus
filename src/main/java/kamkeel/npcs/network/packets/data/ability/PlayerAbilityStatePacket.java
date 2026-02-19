@@ -16,7 +16,7 @@ import java.io.IOException;
 /**
  * Lightweight packet syncing ability lock state from server to client.
  * Sent every tick during ability execution when flags change, and once when ability ends.
- *
+ * <p>
  * Flags byte layout:
  * bit 0: movement locked (suppress WASD, zero motion)
  * bit 1: rotation locked (freeze yaw/pitch)

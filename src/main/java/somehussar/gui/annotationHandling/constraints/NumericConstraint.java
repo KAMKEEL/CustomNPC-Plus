@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface NumericConstraint {
     double min() default Double.NEGATIVE_INFINITY;
+
     double max() default Double.POSITIVE_INFINITY;
 }

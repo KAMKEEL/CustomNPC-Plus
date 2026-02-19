@@ -3,10 +3,10 @@ package noppes.npcs.client.gui.advanced;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldBuilder;
-import noppes.npcs.client.gui.builder.FieldDef;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -75,11 +75,11 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         for (FieldDef def : fieldDefs) {
             String tab = def.getTab();
             if (tab != null
-                    && !TAB_NAME_GENERAL.equals(tab)
-                    && !TAB_NAME_TYPE.equals(tab)
-                    && !TAB_NAME_TARGET.equals(tab)
-                    && !TAB_NAME_EFFECTS.equals(tab)
-                    && !customTabNames.contains(tab)) {
+                && !TAB_NAME_GENERAL.equals(tab)
+                && !TAB_NAME_TYPE.equals(tab)
+                && !TAB_NAME_TARGET.equals(tab)
+                && !TAB_NAME_EFFECTS.equals(tab)
+                && !customTabNames.contains(tab)) {
                 customTabNames.add(tab);
             }
         }
@@ -92,6 +92,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     @Override
     public void initGui() {
+        // Commit any focused text field before rebuilding
+        GuiNpcTextField.unfocus();
+
         // Save scroll position before super clears scroll windows
         GuiScrollWindow oldSw = getScrollableGui(0);
         if (oldSw != null && activeTab < tabScrollY.length) {
@@ -187,11 +190,21 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
         } else {
             switch (tabIndex) {
-                case TAB_GENERAL: tabName = TAB_NAME_GENERAL; break;
-                case TAB_TYPE:    tabName = TAB_NAME_TYPE;    break;
-                case TAB_TARGET:  tabName = TAB_NAME_TARGET;  break;
-                case TAB_EFFECTS: tabName = TAB_NAME_EFFECTS; break;
-                default:          tabName = TAB_NAME_TYPE;    break;
+                case TAB_GENERAL:
+                    tabName = TAB_NAME_GENERAL;
+                    break;
+                case TAB_TYPE:
+                    tabName = TAB_NAME_TYPE;
+                    break;
+                case TAB_TARGET:
+                    tabName = TAB_NAME_TARGET;
+                    break;
+                case TAB_EFFECTS:
+                    tabName = TAB_NAME_EFFECTS;
+                    break;
+                default:
+                    tabName = TAB_NAME_TYPE;
+                    break;
             }
         }
 
@@ -264,17 +277,36 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         int id = guibutton.id;
 
         // Tab switching — fixed tabs
-        if (id == 90) { activeTab = TAB_GENERAL; initGui(); return; }
-        if (id == 91) { activeTab = TAB_TYPE; initGui(); return; }
-        if (id == 92) { activeTab = TAB_TARGET; initGui(); return; }
-        if (id == 93) { activeTab = TAB_EFFECTS; initGui(); return; }
+        if (id == 90) {
+            activeTab = TAB_GENERAL;
+            initGui();
+            return;
+        }
+        if (id == 91) {
+            activeTab = TAB_TYPE;
+            initGui();
+            return;
+        }
+        if (id == 92) {
+            activeTab = TAB_TARGET;
+            initGui();
+            return;
+        }
+        if (id == 93) {
+            activeTab = TAB_EFFECTS;
+            initGui();
+            return;
+        }
         // Custom tabs (94+)
         if (id >= 94 && id < 94 + customTabNames.size()) {
             activeTab = 4 + (id - 94);
             initGui();
             return;
         }
-        if (id == -1000) { close(); return; }
+        if (id == -1000) {
+            close();
+            return;
+        }
 
         // Condition buttons (50-80)
         if (handleConditionButton(id)) return;

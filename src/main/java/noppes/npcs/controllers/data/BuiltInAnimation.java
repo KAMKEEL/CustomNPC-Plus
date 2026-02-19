@@ -23,6 +23,7 @@ public class BuiltInAnimation extends Animation {
 
     /**
      * Built-in animations cannot be saved.
+     *
      * @return this animation unchanged
      */
     @Override
@@ -33,6 +34,7 @@ public class BuiltInAnimation extends Animation {
 
     /**
      * Built-in animations have no valid ID.
+     *
      * @return always -1
      */
     @Override
@@ -50,6 +52,7 @@ public class BuiltInAnimation extends Animation {
 
     /**
      * Check if this is a built-in animation.
+     *
      * @return always true for BuiltInAnimation
      */
     public boolean isBuiltIn() {

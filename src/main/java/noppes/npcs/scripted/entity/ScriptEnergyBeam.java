@@ -29,16 +29,33 @@ public class ScriptEnergyBeam<T extends EntityAbilityBeam> extends ScriptEnergyP
 
     // ==================== BEAM-SPECIFIC ====================
 
-    public float getBeamWidth() { return entity.getBeamWidth(); }
-    public void setBeamWidth(float width) { entity.setBeamWidth(width); }
+    public float getBeamWidth() {
+        return entity.getBeamWidth();
+    }
 
-    public float getHeadSize() { return entity.getHeadSize(); }
-    public void setHeadSize(float size) { entity.setHeadSize(size); }
+    public void setBeamWidth(float width) {
+        entity.setBeamWidth(width);
+    }
 
-    public boolean isAttachedToOwner() { return entity.isAttachedToOwner(); }
-    public void setAttachedToOwner(boolean attached) { entity.setAttachedToOwner(attached); }
+    public float getHeadSize() {
+        return entity.getHeadSize();
+    }
 
-    public boolean shouldRenderTailOrb() { return entity.shouldRenderTailOrb(); }
+    public void setHeadSize(float size) {
+        entity.setHeadSize(size);
+    }
+
+    public boolean isAttachedToOwner() {
+        return entity.isAttachedToOwner();
+    }
+
+    public void setAttachedToOwner(boolean attached) {
+        entity.setAttachedToOwner(attached);
+    }
+
+    public boolean shouldRenderTailOrb() {
+        return entity.shouldRenderTailOrb();
+    }
 
     // ==================== FIRE ====================
 

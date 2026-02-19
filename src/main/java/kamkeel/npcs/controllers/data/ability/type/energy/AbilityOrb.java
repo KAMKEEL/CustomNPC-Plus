@@ -5,7 +5,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityOrb;
@@ -51,7 +55,7 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
 
     @Override
     protected EntityAbilityOrb createEntity(EntityLivingBase caster, EntityLivingBase target,
-                                             Vec3 spawnPos, EnergyDisplayData resolved, int index) {
+                                            Vec3 spawnPos, EnergyDisplayData resolved, int index) {
         return new EntityAbilityOrb(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
@@ -74,7 +78,7 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
 
     @Override
     protected void setupEntityPreview(EntityAbilityOrb orb, EntityLivingBase caster,
-                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
+                                      EnergyDisplayData resolved, ProjectileData projData, int index) {
         orb.setupPreview(caster, orbSize, resolved, lightningData, projData.anchor, windUpTicks);
     }
 
@@ -137,11 +141,21 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
 
-    public float getOrbSpeed() { return homingData.speed; }
-    public void setOrbSpeed(float speed) { homingData.speed = speed; }
+    public float getOrbSpeed() {
+        return homingData.speed;
+    }
 
-    public float getOrbSize() { return orbSize; }
-    public void setOrbSize(float size) { this.orbSize = size; }
+    public void setOrbSpeed(float speed) {
+        homingData.speed = speed;
+    }
+
+    public float getOrbSize() {
+        return orbSize;
+    }
+
+    public void setOrbSize(float size) {
+        this.orbSize = size;
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 

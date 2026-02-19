@@ -16,9 +16,9 @@ public class ZoneParticleFX extends EntityFX {
     private final boolean glow;
 
     public ZoneParticleFX(World world, double x, double y, double z,
-                           double motionX, double motionY, double motionZ,
-                           float r, float g, float b, float alpha,
-                           float scale, int maxAge, float gravity, boolean glow) {
+                          double motionX, double motionY, double motionZ,
+                          float r, float g, float b, float alpha,
+                          float scale, int maxAge, float gravity, boolean glow) {
         super(world, x, y, z, 0, 0, 0);
         this.motionX = motionX;
         this.motionY = motionY;

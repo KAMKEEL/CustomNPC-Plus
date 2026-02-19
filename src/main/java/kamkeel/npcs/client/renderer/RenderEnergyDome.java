@@ -95,7 +95,11 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
                 float ny = (y1 + y1 + y2 + y2) * 0.25f;
                 float nz = (z1 + z2 + z3 + z4) * 0.25f;
                 float nLen = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-                if (nLen > 0) { nx /= nLen; ny /= nLen; nz /= nLen; }
+                if (nLen > 0) {
+                    nx /= nLen;
+                    ny /= nLen;
+                    nz /= nLen;
+                }
 
                 tess.setNormal(nx, ny, nz);
                 tess.addVertex(x1, y1, z1);

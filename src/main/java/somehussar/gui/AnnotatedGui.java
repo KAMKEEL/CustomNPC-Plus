@@ -33,7 +33,7 @@ public class AnnotatedGui<T> extends SubGuiInterface {
 
         int i = 0;
         for (EditableField field : metadata.getParent().getDeclaredFields()) {
-            addLabel(new GuiNpcLabel(i++, field.getName(), guiLeft+8, guiTop+i*15+5));
+            addLabel(new GuiNpcLabel(i++, field.getName(), guiLeft + 8, guiTop + i * 15 + 5));
         }
     }
 

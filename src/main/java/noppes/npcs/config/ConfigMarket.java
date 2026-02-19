@@ -79,11 +79,12 @@ public class ConfigMarket {
             CurrencyName = config.get(CURRENCY, "Currency Name", "Coins",
                 "Display name for the currency (e.g. 'Coins', 'Gold', 'Credits')").getString();
 
-            StartingBalance = config.get(CURRENCY, "Starting Balance", 0,
-                "Starting currency balance for new players").getInt(0);
+            StartingBalance = parseLongConfig(config.get(CURRENCY, "Starting Balance", "0",
+                "Starting currency balance for new players").getString(), 0);
 
-            MaxBalance = config.get(CURRENCY, "Max Balance", Integer.MAX_VALUE,
-                "Maximum currency balance a player can have").getInt(Integer.MAX_VALUE);
+            MaxBalance = parseLongConfig(config.get(CURRENCY, "Max Balance", String.valueOf(Long.MAX_VALUE),
+                "Maximum currency balance a player can have").getString(), Long.MAX_VALUE);
+            if (MaxBalance < 0) MaxBalance = Long.MAX_VALUE;
 
             // =========================================
             // Auction Settings
@@ -95,16 +96,19 @@ public class ConfigMarket {
 
             AuctionDurationHours = config.get(AUCTION, "Auction Duration Hours", 24,
                 "Default duration for auctions in hours").getInt(24);
+            if (AuctionDurationHours < 1) AuctionDurationHours = 1;
 
-            ListingFee = config.get(AUCTION, "Listing Fee", 10,
-                "Flat fee charged when creating a listing").getInt(10);
+            ListingFee = parseLongConfig(config.get(AUCTION, "Listing Fee", "10",
+                "Flat fee charged when creating a listing").getString(), 10);
+            if (ListingFee < 0) ListingFee = 0;
 
-            MinimumListingPrice = config.get(AUCTION, "Minimum Listing Price", 1,
-                "Minimum starting price for auction listings").getInt(1);
+            MinimumListingPrice = parseLongConfig(config.get(AUCTION, "Minimum Listing Price", "1",
+                "Minimum starting price for auction listings").getString(), 1);
             if (MinimumListingPrice < 1) MinimumListingPrice = 1;
 
             SalesTaxPercent = config.get(AUCTION, "Sales Tax Percent", 0.05,
                 "Percentage of sale price taken as tax (0.05 = 5%). Tax is deleted as a currency sink.").getDouble(0.05);
+            SalesTaxPercent = Math.max(0.0, Math.min(1.0, SalesTaxPercent));
 
             int maxTrades = config.get(AUCTION, "Default Max Trades", 8,
                 "Default maximum number of trade slots per player (listings + bids + claims). Min: 1, Max: 45. Players can have more via customnpcs.auction.trades.X permissions.").getInt(8);
@@ -112,26 +116,30 @@ public class ConfigMarket {
 
             SnipeProtectionMinutes = config.get(AUCTION, "Snipe Protection Minutes", 2,
                 "When a bid is placed with less than this many minutes remaining, the auction is extended to this duration").getInt(2);
+            if (SnipeProtectionMinutes < 0) SnipeProtectionMinutes = 0;
 
             ClaimExpirationDays = config.get(AUCTION, "Claim Expiration Days", 20,
                 "Number of days before unclaimed items/currency are deleted").getInt(20);
+            if (ClaimExpirationDays < 1) ClaimExpirationDays = 1;
 
             MinBidIncrementPercent = config.get(AUCTION, "Min Bid Increment Percent", 0.05,
                 "Minimum bid increment as a percentage of current bid (0.05 = 5%)").getDouble(0.05);
+            MinBidIncrementPercent = Math.max(0.0, Math.min(1.0, MinBidIncrementPercent));
 
             CancellationPenaltyPercent = config.get(AUCTION, "Cancellation Penalty Percent", 0.10,
                 "Percentage of current bid taken as penalty when seller cancels an auction with bids (0.10 = 10%)").getDouble(0.10);
+            CancellationPenaltyPercent = Math.max(0.0, Math.min(1.0, CancellationPenaltyPercent));
 
             // =========================================
             // Auction Blacklist Settings
             // =========================================
             config.setCategoryComment(AUCTION_BLACKLIST,
                 "Item Blacklist settings for the Auction House.\n" +
-                "Prevents specific items, mods, or items with certain NBT tags from being listed.\n\n" +
-                "ITEM FORMAT: Use 'modid:itemname' format (e.g., 'minecraft:bedrock', 'customnpcs:npcWand')\n" +
-                "WILDCARDS: Use * for wildcards (e.g., 'customnpcs:npc*' blocks all items starting with 'npc')\n" +
-                "MOD FORMAT: Use just the mod ID (e.g., 'projecte' blocks all items from that mod)\n" +
-                "NBT FORMAT: Use the NBT tag key name (e.g., 'AdminOnly' blocks items with that tag)");
+                    "Prevents specific items, mods, or items with certain NBT tags from being listed.\n\n" +
+                    "ITEM FORMAT: Use 'modid:itemname' format (e.g., 'minecraft:bedrock', 'customnpcs:npcWand')\n" +
+                    "WILDCARDS: Use * for wildcards (e.g., 'customnpcs:npc*' blocks all items starting with 'npc')\n" +
+                    "MOD FORMAT: Use just the mod ID (e.g., 'projecte' blocks all items from that mod)\n" +
+                    "NBT FORMAT: Use the NBT tag key name (e.g., 'AdminOnly' blocks items with that tag)");
 
             BlacklistEnabled = config.get(AUCTION_BLACKLIST, "Enable Blacklist", true,
                 "Enable item blacklist checking when creating listings").getBoolean(true);
@@ -149,17 +157,17 @@ public class ConfigMarket {
                     "customnpcs:npcSoulstoneFilled"
                 },
                 "Items that cannot be listed on the Auction House.\n" +
-                "Format: modid:itemname (supports * wildcards)\n" +
-                "Example: 'minecraft:diamond_sword' or 'customnpcs:npc*'").getStringList();
+                    "Format: modid:itemname (supports * wildcards)\n" +
+                    "Example: 'minecraft:diamond_sword' or 'customnpcs:npc*'").getStringList();
 
             BlacklistedMods = config.get(AUCTION_BLACKLIST, "Blacklisted Mods", new String[]{},
                 "All items from these mods are blocked from the Auction House.\n" +
-                "Format: modid (e.g., 'projecte', 'thaumcraft')").getStringList();
+                    "Format: modid (e.g., 'projecte', 'thaumcraft')").getStringList();
 
             BlacklistedNBTTags = config.get(AUCTION_BLACKLIST, "Blacklisted NBT Tags", new String[]{},
                 "Items containing any of these NBT tag keys are blocked.\n" +
-                "Checks the root level of the item's NBT compound.\n" +
-                "Example: 'AdminOnly', 'CreativeMode'").getStringList();
+                    "Checks the root level of the item's NBT compound.\n" +
+                    "Example: 'AdminOnly', 'CreativeMode'").getStringList();
 
             // =========================================
             // Auction Logging Settings
@@ -235,6 +243,15 @@ public class ConfigMarket {
             if (config.hasChanged()) {
                 config.save();
             }
+        }
+    }
+
+    private static long parseLongConfig(String value, long defaultValue) {
+        if (value == null || value.trim().isEmpty()) return defaultValue;
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
         }
     }
 }

@@ -9,5 +9,6 @@ import net.minecraft.entity.Entity;
  */
 public interface PreviewEntityHandler {
     void onEntitySpawned(Entity entity);
+
     void onEntityRemoved(Entity entity);
 }

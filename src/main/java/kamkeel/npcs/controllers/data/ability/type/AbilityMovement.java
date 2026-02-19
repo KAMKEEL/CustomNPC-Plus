@@ -53,6 +53,12 @@ public abstract class AbilityMovement extends Ability {
         maxActiveTicks = 0;
     }
 
+    @Override
+    public void resetForBurst() {
+        movementDirection = null;
+        maxActiveTicks = 0;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // DIRECTION HELPERS
     // ═══════════════════════════════════════════════════════════════════

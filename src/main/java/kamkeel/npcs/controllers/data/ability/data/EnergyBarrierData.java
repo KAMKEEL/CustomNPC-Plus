@@ -22,7 +22,9 @@ public class EnergyBarrierData {
     // Knockback settings
     public boolean knockbackEnabled = false;
     public float knockbackStrength = 1.0f;
-    /** 0=Both, 1=Player only, 2=NPC only */
+    /**
+     * 0=Both, 1=Player only, 2=NPC only
+     */
     public int knockbackTarget = 0;
 
     // Melee settings
@@ -36,7 +38,8 @@ public class EnergyBarrierData {
      */
     private Map<String, Float> damageMultipliers = new HashMap<>();
 
-    public EnergyBarrierData() {}
+    public EnergyBarrierData() {
+    }
 
     public EnergyBarrierData(float maxHealth, boolean useHealth, int durationTicks, boolean useDuration) {
         this.maxHealth = maxHealth;
@@ -70,23 +73,50 @@ public class EnergyBarrierData {
 
     // ==================== GETTERS & SETTERS ====================
 
-    public float getMaxHealth() { return maxHealth; }
-    public void setMaxHealth(float maxHealth) { this.maxHealth = Math.max(0, maxHealth); }
+    public float getMaxHealth() {
+        return maxHealth;
+    }
 
-    public boolean isUseHealth() { return useHealth; }
-    public void setUseHealth(boolean useHealth) { this.useHealth = useHealth; }
+    public void setMaxHealth(float maxHealth) {
+        this.maxHealth = Math.max(0, maxHealth);
+    }
 
-    public int getDurationTicks() { return durationTicks; }
-    public void setDurationTicks(int durationTicks) { this.durationTicks = Math.max(1, durationTicks); }
+    public boolean isUseHealth() {
+        return useHealth;
+    }
 
-    public boolean isUseDuration() { return useDuration; }
-    public void setUseDuration(boolean useDuration) { this.useDuration = useDuration; }
+    public void setUseHealth(boolean useHealth) {
+        this.useHealth = useHealth;
+    }
 
-    public float getDefaultMultiplier() { return defaultMultiplier; }
-    public void setDefaultMultiplier(float defaultMultiplier) { this.defaultMultiplier = defaultMultiplier; }
+    public int getDurationTicks() {
+        return durationTicks;
+    }
+
+    public void setDurationTicks(int durationTicks) {
+        this.durationTicks = Math.max(1, durationTicks);
+    }
+
+    public boolean isUseDuration() {
+        return useDuration;
+    }
+
+    public void setUseDuration(boolean useDuration) {
+        this.useDuration = useDuration;
+    }
+
+    public float getDefaultMultiplier() {
+        return defaultMultiplier;
+    }
+
+    public void setDefaultMultiplier(float defaultMultiplier) {
+        this.defaultMultiplier = defaultMultiplier;
+    }
 
     // Knockback target key helpers
-    public static String[] getKnockbackTargetKeys() { return KNOCKBACK_TARGET_KEYS; }
+    public static String[] getKnockbackTargetKeys() {
+        return KNOCKBACK_TARGET_KEYS;
+    }
 
     public String getKnockbackTargetKey() {
         return KNOCKBACK_TARGET_KEYS[Math.max(0, Math.min(knockbackTarget, 2))];

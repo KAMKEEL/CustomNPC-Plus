@@ -11,7 +11,6 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityEnergyPanel;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -139,28 +138,65 @@ public class AbilityWall extends AbilityEnergyBarrier {
 
     // ==================== GETTERS & SETTERS ====================
 
-    public EnergyPanelData getPanelData() { return panelData; }
+    public EnergyPanelData getPanelData() {
+        return panelData;
+    }
 
-    public float getPanelWidth() { return panelData.panelWidth; }
-    public void setPanelWidth(float width) { panelData.setPanelWidth(width); }
+    public float getPanelWidth() {
+        return panelData.panelWidth;
+    }
 
-    public float getPanelHeight() { return panelData.panelHeight; }
-    public void setPanelHeight(float height) { panelData.setPanelHeight(height); }
+    public void setPanelWidth(float width) {
+        panelData.setPanelWidth(width);
+    }
 
-    public float getHeightOffset() { return panelData.heightOffset; }
-    public void setHeightOffset(float offset) { panelData.heightOffset = offset; }
+    public float getPanelHeight() {
+        return panelData.panelHeight;
+    }
 
-    public boolean isLaunching() { return panelData.launching; }
-    public void setLaunching(boolean launching) { panelData.launching = launching; }
+    public void setPanelHeight(float height) {
+        panelData.setPanelHeight(height);
+    }
 
-    public float getLaunchSpeed() { return panelData.launchSpeed; }
-    public void setLaunchSpeed(float speed) { panelData.setLaunchSpeed(speed); }
+    public float getHeightOffset() {
+        return panelData.heightOffset;
+    }
 
-    public float getLaunchDamage() { return panelData.launchDamage; }
-    public void setLaunchDamage(float damage) { panelData.setLaunchDamage(damage); }
+    public void setHeightOffset(float offset) {
+        panelData.heightOffset = offset;
+    }
 
-    public float getLaunchKnockback() { return panelData.launchKnockback; }
-    public void setLaunchKnockback(float kb) { panelData.setLaunchKnockback(kb); }
+    public boolean isLaunching() {
+        return panelData.launching;
+    }
+
+    public void setLaunching(boolean launching) {
+        panelData.launching = launching;
+    }
+
+    public float getLaunchSpeed() {
+        return panelData.launchSpeed;
+    }
+
+    public void setLaunchSpeed(float speed) {
+        panelData.setLaunchSpeed(speed);
+    }
+
+    public float getLaunchDamage() {
+        return panelData.launchDamage;
+    }
+
+    public void setLaunchDamage(float damage) {
+        panelData.setLaunchDamage(damage);
+    }
+
+    public float getLaunchKnockback() {
+        return panelData.launchKnockback;
+    }
+
+    public void setLaunchKnockback(float kb) {
+        panelData.setLaunchKnockback(kb);
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 

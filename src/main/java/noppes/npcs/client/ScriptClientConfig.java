@@ -7,7 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 /**
  * Client-side cache for script configuration synced from server.
  * Prevents client from using local ConfigScript which may differ from server settings.
- *
+ * <p>
  * IMPORTANT: This class is CLIENT-ONLY. Server-side NBT writing is done in
  * ScriptConfigSync to avoid @SideOnly crashes on dedicated servers.
  */
@@ -46,16 +46,44 @@ public class ScriptClientConfig {
     }
 
     // Setters for individual packet updates
-    public static void setScriptingEnabled(boolean value) { scriptingEnabled = value; }
-    public static void setRunLoadedScriptsFirst(boolean value) { runLoadedScriptsFirst = value; }
-    public static void setGlobalPlayerScripts(boolean value) { globalPlayerScripts = value; }
-    public static void setGlobalForgeScripts(boolean value) { globalForgeScripts = value; }
-    public static void setGlobalNPCScripts(boolean value) { globalNPCScripts = value; }
+    public static void setScriptingEnabled(boolean value) {
+        scriptingEnabled = value;
+    }
+
+    public static void setRunLoadedScriptsFirst(boolean value) {
+        runLoadedScriptsFirst = value;
+    }
+
+    public static void setGlobalPlayerScripts(boolean value) {
+        globalPlayerScripts = value;
+    }
+
+    public static void setGlobalForgeScripts(boolean value) {
+        globalForgeScripts = value;
+    }
+
+    public static void setGlobalNPCScripts(boolean value) {
+        globalNPCScripts = value;
+    }
 
     // Getters
-    public static boolean isScriptingEnabled() { return scriptingEnabled; }
-    public static boolean isRunLoadedScriptsFirst() { return runLoadedScriptsFirst; }
-    public static boolean isGlobalPlayerScripts() { return globalPlayerScripts; }
-    public static boolean isGlobalForgeScripts() { return globalForgeScripts; }
-    public static boolean isGlobalNPCScripts() { return globalNPCScripts; }
+    public static boolean isScriptingEnabled() {
+        return scriptingEnabled;
+    }
+
+    public static boolean isRunLoadedScriptsFirst() {
+        return runLoadedScriptsFirst;
+    }
+
+    public static boolean isGlobalPlayerScripts() {
+        return globalPlayerScripts;
+    }
+
+    public static boolean isGlobalForgeScripts() {
+        return globalForgeScripts;
+    }
+
+    public static boolean isGlobalNPCScripts() {
+        return globalNPCScripts;
+    }
 }

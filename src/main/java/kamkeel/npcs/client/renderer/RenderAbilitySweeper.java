@@ -104,8 +104,8 @@ public class RenderAbilitySweeper extends Render {
      * Uses the same approach as RenderAbilityBeam.renderBeamRectangle.
      */
     private void renderBeamSegment(double x1, double y1, double z1,
-                                    double x2, double y2, double z2,
-                                    float width, float r, float g, float b, float a) {
+                                   double x2, double y2, double z2,
+                                   float width, float r, float g, float b, float a) {
         // Calculate direction
         double dx = x2 - x1;
         double dy = y2 - y1;
@@ -121,7 +121,9 @@ public class RenderAbilitySweeper extends Render {
         // Calculate perpendicular vectors
         double upX = 0, upY = 1, upZ = 0;
         if (Math.abs(dy) > 0.9) {
-            upX = 1; upY = 0; upZ = 0;
+            upX = 1;
+            upY = 0;
+            upZ = 0;
         }
 
         // Cross product for horizontal perpendicular

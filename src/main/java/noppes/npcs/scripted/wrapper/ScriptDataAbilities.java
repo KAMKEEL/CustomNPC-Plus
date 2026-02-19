@@ -1,8 +1,8 @@
 package noppes.npcs.scripted.wrapper;
 
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
-import kamkeel.npcs.controllers.data.ability.AbilitySlot;
+import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.api.ability.IAbility;
@@ -61,7 +61,9 @@ public class ScriptDataAbilities implements IDataAbilities {
         if (!ability.getAllowedBy().allowsNpc()) {
             return; // Ability is PLAYER_ONLY
         }
-        data.addAbilityReference(key);
+        // Store by UUID/registry key for stable reference
+        String canonicalKey = ability.getId() != null ? ability.getId() : key;
+        data.addAbilityReference(canonicalKey);
     }
 
     @Override
@@ -81,14 +83,14 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public boolean isAbilityReference(String abilityId) {
-        List<AbilitySlot> slots = data.getAbilitySlots();
+        List<AbilityAction> slots = data.getAbilityActions();
         for (int i = 0; i < slots.size(); i++) {
-            kamkeel.npcs.controllers.data.ability.AbilitySlot slot = slots.get(i);
-            if (slot.isReference()) {
+            AbilityAction slot = slots.get(i);
+            if (slot.isAbilityReference()) {
                 if (slot.getReferenceId().equals(abilityId)) return true;
-            } else {
+            } else if (!slot.isReference()) {
                 Ability a = slot.getAbility();
-                if (a != null && a.getId().equals(abilityId)) return false;
+                if (a != null && abilityId.equals(a.getId())) return false;
             }
         }
         return false;
@@ -96,10 +98,10 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public boolean convertToInline(String abilityId) {
-        List<kamkeel.npcs.controllers.data.ability.AbilitySlot> slots = data.getAbilitySlots();
+        List<AbilityAction> slots = data.getAbilityActions();
         for (int i = 0; i < slots.size(); i++) {
-            kamkeel.npcs.controllers.data.ability.AbilitySlot slot = slots.get(i);
-            if (slot.isReference() && slot.getReferenceId().equals(abilityId)) {
+            AbilityAction slot = slots.get(i);
+            if (slot.isAbilityReference() && slot.getReferenceId().equals(abilityId)) {
                 return data.convertToInline(i);
             }
         }
@@ -133,10 +135,11 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public void setGlobalCooldown(int ticks) {
-        // Set the cooldown by manipulating the internal cooldown end time
-        // Not directly exposed, but we can reset and let it tick down
-        data.resetCooldown();
-        // This is a best-effort implementation
+        if (ticks <= 0) {
+            data.resetCooldown();
+        } else {
+            data.setCooldownEndTime(npc.worldObj.getTotalWorldTime() + ticks);
+        }
     }
 
     @Override

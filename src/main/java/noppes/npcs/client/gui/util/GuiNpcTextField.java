@@ -1,17 +1,17 @@
 package noppes.npcs.client.gui.util;
 
+import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.util.StatCollector;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import net.minecraft.client.renderer.RenderHelper;
-import kamkeel.npcs.util.TextSplitter;
+
 import java.util.List;
-import java.util.Iterator;
 
 public class GuiNpcTextField extends GuiTextField {
     public boolean enabled = true;
@@ -224,7 +224,7 @@ public class GuiNpcTextField extends GuiTextField {
 
     public boolean isMouseOver(int mouseX, int mouseY) {
         return mouseX >= xPosition && mouseX < xPosition + width &&
-               mouseY >= yPosition && mouseY < yPosition + height;
+            mouseY >= yPosition && mouseY < yPosition + height;
     }
 
     public void drawHover(int mouseX, int mouseY, boolean hasSubGui) {
@@ -334,14 +334,14 @@ public class GuiNpcTextField extends GuiTextField {
     }
 
     protected void drawGradientRect(int left, int top, int right, int bottom, int startColor, int endColor, int zLevel) {
-        float f = (float)(startColor >> 24 & 255) / 255.0F;
-        float f1 = (float)(startColor >> 16 & 255) / 255.0F;
-        float f2 = (float)(startColor >> 8 & 255) / 255.0F;
-        float f3 = (float)(startColor & 255) / 255.0F;
-        float f4 = (float)(endColor >> 24 & 255) / 255.0F;
-        float f5 = (float)(endColor >> 16 & 255) / 255.0F;
-        float f6 = (float)(endColor >> 8 & 255) / 255.0F;
-        float f7 = (float)(endColor & 255) / 255.0F;
+        float f = (float) (startColor >> 24 & 255) / 255.0F;
+        float f1 = (float) (startColor >> 16 & 255) / 255.0F;
+        float f2 = (float) (startColor >> 8 & 255) / 255.0F;
+        float f3 = (float) (startColor & 255) / 255.0F;
+        float f4 = (float) (endColor >> 24 & 255) / 255.0F;
+        float f5 = (float) (endColor >> 16 & 255) / 255.0F;
+        float f6 = (float) (endColor >> 8 & 255) / 255.0F;
+        float f7 = (float) (endColor & 255) / 255.0F;
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -350,11 +350,11 @@ public class GuiNpcTextField extends GuiTextField {
         net.minecraft.client.renderer.Tessellator tessellator = net.minecraft.client.renderer.Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.setColorRGBA_F(f1, f2, f3, f);
-        tessellator.addVertex((double)right, (double)top, (double)zLevel);
-        tessellator.addVertex((double)left, (double)top, (double)zLevel);
+        tessellator.addVertex((double) right, (double) top, (double) zLevel);
+        tessellator.addVertex((double) left, (double) top, (double) zLevel);
         tessellator.setColorRGBA_F(f5, f6, f7, f4);
-        tessellator.addVertex((double)left, (double)bottom, (double)zLevel);
-        tessellator.addVertex((double)right, (double)bottom, (double)zLevel);
+        tessellator.addVertex((double) left, (double) bottom, (double) zLevel);
+        tessellator.addVertex((double) right, (double) bottom, (double) zLevel);
         tessellator.draw();
         GL11.glShadeModel(GL11.GL_FLAT);
         GL11.glDisable(GL11.GL_BLEND);

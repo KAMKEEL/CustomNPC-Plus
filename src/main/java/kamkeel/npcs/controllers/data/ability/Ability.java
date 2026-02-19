@@ -2,51 +2,53 @@ package kamkeel.npcs.controllers.data.ability;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.data.Animation;
-import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
-
-import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.entity.Entity;
-
-public abstract class Ability implements IAbility {
+public abstract class Ability implements IAbility, IAbilityAction {
 
     // ═══════════════════════════════════════════════════════════════════
     // CONFIGURATION (saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
-    protected String id;
-    protected String name;
-    protected String typeId;                // e.g., "ability.cnpc.slam" (also used as lang key)
+    protected String id = "";              // UUID for custom, registry key for built-in
+    protected String name = "";             // Unique file key / identifier
+    protected String displayName = "";      // Cosmetic name (falls back to name when empty)
+    protected String typeId = "";           // e.g., "ability.cnpc.slam" (also used as lang key)
 
     // Selection
     protected int weight = 10;
@@ -101,6 +103,35 @@ public abstract class Ability implements IAbility {
 
     // Cooldown override
     protected boolean ignoreCooldown = false;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BUILT-IN (set in constructor via configureAsBuiltIn, NOT persisted)
+    // ═══════════════════════════════════════════════════════════════════
+
+    protected transient boolean builtIn = false;
+    protected transient String registryKey;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TOGGLE CONFIGURATION (saved to NBT for custom abilities)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Number of toggle states. 0 = not toggleable, 1 = binary on/off, 2+ = multi-state cycling.
+     * Cycling order: Off(0) -> State 1 -> State 2 -> ... -> State N -> Off(0)
+     */
+    protected int toggleStates = 0;
+
+    /**
+     * Whether the toggled-ON state ticks each game tick (e.g., Kaioken drains ki per tick)
+     */
+    protected boolean hasActiveToggle = false;
+
+    /**
+     * Optional display labels for each toggle state (1-indexed).
+     * Used in ability wheel/hotbar to show current state name.
+     * Null means no labels. Array length should match toggleStates.
+     */
+    protected String[] toggleStateLabels;
 
     // Configurable potion effects
     protected List<AbilityPotionEffect> effects = new ArrayList<>();
@@ -205,9 +236,50 @@ public abstract class Ability implements IAbility {
         return false;
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // TOGGLE CALLBACKS (optional overrides for toggleable abilities)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Called when this toggle ability is first activated (state goes from 0 to any active state).
+     * Override to apply effects (e.g., set a DBC flag, apply a buff).
+     */
+    public void onToggleOn(EntityLivingBase caster) {
+    }
+
+    /**
+     * Called when this toggle ability is fully deactivated (state goes to 0).
+     * Override to remove effects (e.g., clear a DBC flag, remove a buff).
+     */
+    public void onToggleOff(EntityLivingBase caster) {
+    }
+
+    /**
+     * Called whenever the toggle state changes (including on/off transitions and mid-cycling).
+     * For multi-state toggles, this fires on every state transition.
+     *
+     * @param caster   The entity
+     * @param oldState Previous state (0 = was off)
+     * @param newState New state (0 = now off, 1+ = active state)
+     */
+    public void onToggleStateChanged(EntityLivingBase caster, int oldState, int newState) {
+    }
+
+    /**
+     * Called every tick while this toggle is active (only if hasActiveToggle is true).
+     * Override for per-tick effects (e.g., ki drain for Kaioken).
+     *
+     * @param state Current toggle state (1-based)
+     * @return true to keep the toggle active, false to auto-deactivate
+     */
+    public boolean onToggleTick(EntityLivingBase caster, int tickCount, int state) {
+        return true;
+    }
+
     /**
      * Whether this ability is ready for auto-completion during burst overlap mode.
      * Override to delay auto-completion until all staggered projectiles have been fired.
+     *
      * @param activeTick the current tick within the ACTIVE phase
      */
     public boolean isReadyForBurstCompletion(int activeTick) {
@@ -229,6 +301,17 @@ public abstract class Ability implements IAbility {
     }
 
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    /**
+     * Called when the ability enters BURST_DELAY between burst iterations.
+     * Override in subclasses to reset transient state that should not carry
+     * across burst repetitions (e.g., movement direction, hit entity lists).
+     * <p>
+     * Unlike {@link #cleanup()}, this does NOT kill spawned entities (they may
+     * still be in flight for overlap mode).
+     */
+    public void resetForBurst() {
     }
 
     public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
@@ -483,6 +566,12 @@ public abstract class Ability implements IAbility {
         // ── General tab ──────────────────────────────────────────────
         defs.add(FieldDef.stringField("gui.name", this::getName, this::setName)
             .tab("General"));
+        defs.add(FieldDef.stringField("gui.displayName", this::getRawDisplayName, this::setDisplayName)
+            .tab("General"));
+        defs.add(FieldDef.labelField("ability.validFor", () ->
+            StatCollector.translateToLocal("ability.validFor") + ": \u00A7e"
+                + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
+            .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
             FieldDef.boolField("gui.enabled", this::isEnabled, this::setEnabled)
@@ -508,27 +597,36 @@ public abstract class Ability implements IAbility {
                 () -> this.getLockMovement().getDisplayKey(),
                 v -> {
                     for (LockMovementType t : LockMovementType.values()) {
-                        if (t.getDisplayKey().equals(v)) { this.setLockMovement(t); break; }
+                        if (t.getDisplayKey().equals(v)) {
+                            this.setLockMovement(t);
+                            break;
+                        }
                     }
                 })
-                .hover("ability.hover.lockMovement")
-                .tab("General"));
+            .hover("ability.hover.lockMovement")
+            .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.stringEnumField("ability.rotationMode", RotationMode.getDisplayKeys(),
-                () -> this.getRotationMode().getDisplayKey(),
-                v -> {
-                    for (RotationMode m : RotationMode.values()) {
-                        if (m.getDisplayKey().equals(v)) { this.setRotationMode(m); break; }
-                    }
-                })
+                    () -> this.getRotationMode().getDisplayKey(),
+                    v -> {
+                        for (RotationMode m : RotationMode.values()) {
+                            if (m.getDisplayKey().equals(v)) {
+                                this.setRotationMode(m);
+                                break;
+                            }
+                        }
+                    })
                 .hover("ability.hover.rotationMode"),
             FieldDef.stringEnumField("ability.rotationPhase", getRotationPhaseKeys(),
-                () -> this.getRotationPhase().getDisplayKey(),
-                v -> {
-                    for (LockMovementType t : LockMovementType.values()) {
-                        if (t.getDisplayKey().equals(v)) { this.setRotationPhase(t); break; }
-                    }
-                })
+                    () -> this.getRotationPhase().getDisplayKey(),
+                    v -> {
+                        for (LockMovementType t : LockMovementType.values()) {
+                            if (t.getDisplayKey().equals(v)) {
+                                this.setRotationPhase(t);
+                                break;
+                            }
+                        }
+                    })
                 .hover("ability.hover.rotationPhase")
                 .visibleWhen(() -> this.rotationMode != RotationMode.FREE)
         ).tab("General"));
@@ -571,15 +669,17 @@ public abstract class Ability implements IAbility {
                     allowedKeys[i] = allowed[i].name();
                 }
                 defs.add(FieldDef.stringEnumField("ability.targetingMode", allowedKeys,
-                    () -> this.getTargetingMode().name(),
-                    v -> {
-                        try { this.setTargetingMode(TargetingMode.valueOf(v)); }
-                        catch (Exception ignored) {}
-                    })
+                        () -> this.getTargetingMode().name(),
+                        v -> {
+                            try {
+                                this.setTargetingMode(TargetingMode.valueOf(v));
+                            } catch (Exception ignored) {
+                            }
+                        })
                     .tab("Target").hover("ability.hover.targeting"));
             } else {
                 defs.add(FieldDef.enumField("ability.targetingMode", TargetingMode.class,
-                    this::getTargetingMode, this::setTargetingMode)
+                        this::getTargetingMode, this::setTargetingMode)
                     .tab("Target").hover("ability.hover.targeting"));
             }
         }
@@ -592,12 +692,12 @@ public abstract class Ability implements IAbility {
             .tab("Effects"));
         defs.add(FieldDef.section("ability.section.animations").tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.windUpAnimation",
-            this::getWindUpAnimationId, this::setWindUpAnimationId,
-            this::getWindUpAnimationName, this::setWindUpAnimationName)
+                this::getWindUpAnimationId, this::setWindUpAnimationId,
+                this::getWindUpAnimationName, this::setWindUpAnimationName)
             .tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.activeAnimation",
-            this::getActiveAnimationId, this::setActiveAnimationId,
-            this::getActiveAnimationName, this::setActiveAnimationName)
+                this::getActiveAnimationId, this::setActiveAnimationId,
+                this::getActiveAnimationName, this::setActiveAnimationName)
             .tab("Effects"));
         defs.add(FieldDef.animSubGui("ability.dazedAnimation",
                 this::getDazedAnimationId, this::setDazedAnimationId,
@@ -653,7 +753,7 @@ public abstract class Ability implements IAbility {
      * Create a telegraph instance for this ability.
      * Override for custom telegraph shapes.
      *
-     * @param caster    The caster
+     * @param caster The caster
      * @param target The target (for position calculation)
      * @return The telegraph instance, or null if no telegraph
      */
@@ -916,9 +1016,9 @@ public abstract class Ability implements IAbility {
         if (phase == AbilityPhase.ACTIVE) {
             // Check if more burst iterations remain
             if (burstEnabled && burstAmount > 0 && burstIndex < burstAmount) {
-                // Don't cleanup here - entities may still be in flight
-                // For non-overlap: cleaned up when next burst starts (in onExecute)
-                // For overlap: entities continue flying indefinitely
+                // Reset transient state for next burst iteration (e.g., movement direction, hit lists)
+                // Does NOT kill entities - they may still be in flight (overlap mode)
+                resetForBurst();
                 burstIndex++;
                 phase = AbilityPhase.BURST_DELAY;
                 currentTick = 0;
@@ -1119,6 +1219,7 @@ public abstract class Ability implements IAbility {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("id", id);
         nbt.setString("name", name);
+        nbt.setString("displayName", displayName);
         nbt.setString("typeId", typeId);
         nbt.setInteger("weight", weight);
         nbt.setBoolean("enabled", enabled);
@@ -1150,6 +1251,17 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
+        // Toggle
+        nbt.setInteger("toggleStates", toggleStates);
+        nbt.setBoolean("hasActiveToggle", hasActiveToggle);
+        if (toggleStateLabels != null && toggleStateLabels.length > 0) {
+            NBTTagList labelList = new NBTTagList();
+            for (String label : toggleStateLabels) {
+                labelList.appendTag(new NBTTagString(label != null ? label : ""));
+            }
+            nbt.setTag("toggleStateLabels", labelList);
+        }
+
         // Burst
         nbt.setBoolean("burstEnabled", burstEnabled);
         nbt.setInteger("burstAmount", burstAmount);
@@ -1180,17 +1292,22 @@ public abstract class Ability implements IAbility {
     public void readNBT(NBTTagCompound nbt) {
         id = nbt.getString("id");
         name = nbt.getString("name");
+        displayName = nbt.getString("displayName");
         typeId = nbt.getString("typeId");
-        weight = nbt.getInteger("weight");
-        enabled = nbt.getBoolean("enabled");
-        targetingMode = TargetingMode.valueOf(nbt.getString("targetingMode"));
+        weight = nbt.hasKey("weight") ? nbt.getInteger("weight") : 10;
+        enabled = nbt.hasKey("enabled") ? nbt.getBoolean("enabled") : true;
+        try {
+            targetingMode = TargetingMode.valueOf(nbt.getString("targetingMode"));
+        } catch (Exception e) {
+            targetingMode = TargetingMode.AGGRO_TARGET;
+        }
         minRange = nbt.getFloat("minRange");
         maxRange = nbt.getFloat("maxRange");
         cooldownTicks = nbt.getInteger("cooldown");
         windUpTicks = nbt.getInteger("windUp");
-        syncWindupWithAnimation = nbt.getBoolean("syncWindup");
-        dazedTicks = nbt.getInteger("recovery");
-        interruptible = nbt.getBoolean("interruptible");
+        syncWindupWithAnimation = nbt.hasKey("syncWindup") ? nbt.getBoolean("syncWindup") : true;
+        dazedTicks = nbt.hasKey("recovery") ? nbt.getInteger("recovery") : 80;
+        interruptible = nbt.hasKey("interruptible") ? nbt.getBoolean("interruptible") : true;
         lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
@@ -1204,7 +1321,7 @@ public abstract class Ability implements IAbility {
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
         dazedAnimationName = nbt.getString("dazedAnimationName");
-        showTelegraph = nbt.getBoolean("showTelegraph");
+        showTelegraph = nbt.hasKey("showTelegraph") ? nbt.getBoolean("showTelegraph") : true;
         try {
             telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
         } catch (Exception e) {
@@ -1214,6 +1331,20 @@ public abstract class Ability implements IAbility {
         customData = nbt.getCompoundTag("customData");
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
+
+        // Toggle
+        toggleStates = nbt.getInteger("toggleStates");
+        hasActiveToggle = nbt.getBoolean("hasActiveToggle");
+        if (nbt.hasKey("toggleStateLabels")) {
+            NBTTagList labelList = nbt.getTagList("toggleStateLabels", 8);
+            toggleStateLabels = new String[labelList.tagCount()];
+            for (int i = 0; i < labelList.tagCount(); i++) {
+                String label = labelList.getStringTagAt(i);
+                toggleStateLabels[i] = (label != null && !label.isEmpty()) ? label : null;
+            }
+        } else {
+            toggleStateLabels = null;
+        }
 
         // Burst
         burstEnabled = nbt.getBoolean("burstEnabled");
@@ -1242,7 +1373,10 @@ public abstract class Ability implements IAbility {
             }
         }
 
-        readTypeNBT(nbt.getCompoundTag("typeData"));
+        // Type-specific
+        if (nbt.hasKey("typeData")) {
+            readTypeNBT(nbt.getCompoundTag("typeData"));
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1265,16 +1399,68 @@ public abstract class Ability implements IAbility {
         this.name = name;
     }
 
+    /**
+     * Get the display name for this ability.
+     * Returns displayName if set, otherwise falls back to name.
+     * Converts &amp; color codes to § for rendering.
+     */
+    public String getDisplayName() {
+        String result = (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        return result != null ? result.replaceAll("&([0-9a-fk-or])", "\u00A7$1") : "";
+    }
+
+    /**
+     * Get the raw display name (may be empty).
+     */
+    public String getRawDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName != null ? displayName : "";
+    }
+
     public String getTypeId() {
         return typeId;
     }
 
     public boolean isBuiltIn() {
-        return false;
+        return builtIn;
+    }
+
+    /**
+     * Get the registry key for built-in abilities.
+     * Returns null for custom abilities.
+     */
+    public String getRegistryKey() {
+        return registryKey;
+    }
+
+    /**
+     * Configure this ability as a built-in ability with fixed config.
+     * Sets builtIn flag, assigns registry key, id, name, and derives typeId.
+     * Call this in the constructor of any ability that should be non-customizable.
+     */
+    protected void configureAsBuiltIn(String registryKey) {
+        this.builtIn = true;
+        this.registryKey = registryKey;
+        this.id = registryKey;
+        this.name = registryKey;
+        this.typeId = "ability." + registryKey.replace(':', '.');
     }
 
     public Ability deepCopy() {
         return AbilityController.Instance.fromNBT(this.writeNBT());
+    }
+
+    @Override
+    public boolean isChain() {
+        return false;
+    }
+
+    @Override
+    public IAbilityAction deepCopyAction() {
+        return deepCopy();
     }
 
     public boolean isNpcInlineEdit() {
@@ -1399,6 +1585,7 @@ public abstract class Ability implements IAbility {
 
     /**
      * API method: Get lock movement type as integer.
+     *
      * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override
@@ -1408,6 +1595,7 @@ public abstract class Ability implements IAbility {
 
     /**
      * API method: Set lock movement type from integer.
+     *
      * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override
@@ -1417,6 +1605,7 @@ public abstract class Ability implements IAbility {
 
     /**
      * API method: Get rotation mode as integer.
+     *
      * @return 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
@@ -1426,6 +1615,7 @@ public abstract class Ability implements IAbility {
 
     /**
      * API method: Set rotation mode from integer.
+     *
      * @param type 0=FREE, 1=LOCKED, 2=TRACK
      */
     @Override
@@ -1435,6 +1625,7 @@ public abstract class Ability implements IAbility {
 
     /**
      * API method: Get rotation phase as integer.
+     *
      * @return 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override
@@ -1444,6 +1635,7 @@ public abstract class Ability implements IAbility {
 
     /**
      * API method: Set rotation phase from integer.
+     *
      * @param type 0=NO, 1=WINDUP, 2=ACTIVE, 3=WINDUP_AND_ACTIVE
      */
     @Override
@@ -1725,6 +1917,46 @@ public abstract class Ability implements IAbility {
 
     public void setIgnoreCooldown(boolean ignoreCooldown) {
         this.ignoreCooldown = ignoreCooldown;
+    }
+
+    public boolean isToggleable() {
+        return toggleStates > 0;
+    }
+
+    public int getToggleStates() {
+        return toggleStates;
+    }
+
+    public void setToggleStates(int toggleStates) {
+        this.toggleStates = Math.max(0, toggleStates);
+    }
+
+    public boolean hasActiveToggle() {
+        return hasActiveToggle;
+    }
+
+    public void setHasActiveToggle(boolean hasActiveToggle) {
+        this.hasActiveToggle = hasActiveToggle;
+    }
+
+    /**
+     * Get the display label for a specific toggle state.
+     * @param state 1-based state index
+     * @return the label, or null if none set
+     */
+    public String getToggleStateLabel(int state) {
+        if (toggleStateLabels != null && state >= 1 && state <= toggleStateLabels.length) {
+            return toggleStateLabels[state - 1];
+        }
+        return null;
+    }
+
+    /**
+     * Set display labels for toggle states (1-indexed).
+     * @param labels one label per state, null entries allowed
+     */
+    public void setToggleStateLabels(String... labels) {
+        this.toggleStateLabels = (labels != null && labels.length > 0) ? labels : null;
     }
 
     public List<AbilityPotionEffect> getEffects() {

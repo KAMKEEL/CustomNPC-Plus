@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
@@ -29,7 +30,6 @@ import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.EnumStandingType;
-import kamkeel.npcs.entity.EntityEnergyProjectile;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.Line;

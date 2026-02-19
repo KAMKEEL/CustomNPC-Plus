@@ -199,5 +199,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
         return super.handleTextFieldEvent(textFieldId, field);
     }
 
-    public Map<Integer, int[]> getEffectWidgetMeta() { return effectWidgetMeta; }
+    public Map<Integer, int[]> getEffectWidgetMeta() {
+        return effectWidgetMeta;
+    }
 }

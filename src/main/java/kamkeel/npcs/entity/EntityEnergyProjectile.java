@@ -2,10 +2,16 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -37,7 +43,7 @@ import java.util.Map;
  * Base class for all ability projectiles (Orb, Disc, Beam, Laser, Slicer).
  * Provides common functionality for combat, effects, homing, and interpolation.
  * Extends EntityEnergyAbility for shared visual/owner/charging state.
- *
+ * <p>
  * Design inspired by LouisXIV's energy attack system.
  */
 public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
@@ -54,6 +60,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             activeProjectiles.put(ownerId, refs);
         }
         refs.add(new WeakReference<>(projectile));
+    }
+
+    public static void clearAllProjectiles() {
+        activeProjectiles.clear();
     }
 
     public static List<EntityEnergyProjectile> getActiveProjectiles(int ownerEntityId) {
@@ -270,13 +280,14 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     /**
      * Check if projectile has exceeded max distance.
+     *
      * @return true if should die
      */
     protected boolean checkMaxDistance() {
         double distTraveled = Math.sqrt(
             (posX - startX) * (posX - startX) +
-            (posY - startY) * (posY - startY) +
-            (posZ - startZ) * (posZ - startZ)
+                (posY - startY) * (posY - startY) +
+                (posZ - startZ) * (posZ - startZ)
         );
         return distTraveled >= getMaxDistance();
     }
@@ -291,6 +302,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     /**
      * Check for collision with energy barrier entities.
      * Barriers only block incoming projectiles from enemies.
+     *
      * @return true if projectile was absorbed (caller should stop processing)
      */
     protected boolean checkBarrierCollision() {
@@ -451,12 +463,13 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
             double dist = Math.sqrt(
                 Math.pow(target.posX - posX, 2) +
-                Math.pow(target.posY - posY, 2) +
-                Math.pow(target.posZ - posZ, 2)
+                    Math.pow(target.posY - posY, 2) +
+                    Math.pow(target.posZ - posZ, 2)
             );
 
-            if (dist <= getExplosionRadius()) {
-                float falloff = 1.0f - (float) (dist / getExplosionRadius()) * getExplosionDamageFalloff();
+            float radius = getExplosionRadius();
+            if (radius > 0 && dist <= radius) {
+                float falloff = 1.0f - (float) (dist / radius) * getExplosionDamageFalloff();
                 applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
             }
         }
@@ -513,7 +526,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * Update during charging state - grow size and follow anchor.
      * Default implementation grows {@code size} from 0 to {@code targetSize}.
      * Override in subclasses for type-specific charging (Disc, Beam).
-     *
+     * <p>
      * Note: Owner death checks are handled by onUpdate() before this is called.
      */
     protected void updateCharging() {
@@ -575,7 +588,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * Call from subclass constructors after initProjectile().
      */
     protected void calculateInitialVelocity(EntityLivingBase owner, EntityLivingBase target,
-                                             double x, double y, double z) {
+                                            double x, double y, double z) {
         if (target != null) {
             double dx = target.posX - x;
             double dy = (target.posY + target.getEyeHeight()) - y;
@@ -696,7 +709,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== VISUAL GETTERS & SETTERS ====================
 
-    public float getSize() { return size; }
+    public float getSize() {
+        return size;
+    }
+
     public void setProjectileSize(float size) {
         this.size = size;
         this.renderCurrentSize = size;
@@ -733,64 +749,147 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== LIFESPAN GETTERS & SETTERS ====================
 
-    public float getMaxDistance() { return lifespanData.getMaxDistance(); }
-    public void setMaxDistance(float distance) { lifespanData.setMaxDistance(distance); }
+    public float getMaxDistance() {
+        return lifespanData.getMaxDistance();
+    }
 
-    public int getMaxLifetime() { return lifespanData.getMaxLifetime(); }
-    public void setMaxLifetime(int ticks) { lifespanData.setMaxLifetime(ticks); }
+    public void setMaxDistance(float distance) {
+        lifespanData.setMaxDistance(distance);
+    }
+
+    public int getMaxLifetime() {
+        return lifespanData.getMaxLifetime();
+    }
+
+    public void setMaxLifetime(int ticks) {
+        lifespanData.setMaxLifetime(ticks);
+    }
 
     // ==================== COMBAT GETTERS & SETTERS ====================
 
-    public float getDamage() { return combatData.getDamage(); }
-    public void setCombatDamage(float damage) { combatData.setDamage(damage); }
+    public float getDamage() {
+        return combatData.getDamage();
+    }
 
-    public float getKnockback() { return combatData.knockback; }
-    public void setCombatKnockback(float knockback) { combatData.setKnockback(knockback); }
+    public void setCombatDamage(float damage) {
+        combatData.setDamage(damage);
+    }
 
-    public float getKnockbackUp() { return combatData.knockbackUp; }
-    public void setCombatKnockbackUp(float knockbackUp) { combatData.setKnockbackUp(knockbackUp); }
+    public float getKnockback() {
+        return combatData.knockback;
+    }
 
-    public boolean isExplosive() { return combatData.isExplosive(); }
-    public void setExplosive(boolean explosive) { combatData.setExplosive(explosive); }
+    public void setCombatKnockback(float knockback) {
+        combatData.setKnockback(knockback);
+    }
 
-    public float getExplosionRadius() { return combatData.explosionRadius; }
-    public void setExplosionRadius(float radius) { combatData.setExplosionRadius(radius); }
+    public float getKnockbackUp() {
+        return combatData.knockbackUp;
+    }
 
-    public float getExplosionDamageFalloff() { return combatData.explosionDamageFalloff; }
-    public void setExplosionDamageFalloff(float falloff) { combatData.setExplosionDamageFalloff(falloff); }
+    public void setCombatKnockbackUp(float knockbackUp) {
+        combatData.setKnockbackUp(knockbackUp);
+    }
+
+    public boolean isExplosive() {
+        return combatData.isExplosive();
+    }
+
+    public void setExplosive(boolean explosive) {
+        combatData.setExplosive(explosive);
+    }
+
+    public float getExplosionRadius() {
+        return combatData.explosionRadius;
+    }
+
+    public void setExplosionRadius(float radius) {
+        combatData.setExplosionRadius(radius);
+    }
+
+    public float getExplosionDamageFalloff() {
+        return combatData.explosionDamageFalloff;
+    }
+
+    public void setExplosionDamageFalloff(float falloff) {
+        combatData.setExplosionDamageFalloff(falloff);
+    }
 
     // ==================== HOMING GETTERS & SETTERS ====================
 
-    public boolean isHoming() { return homingData.isHoming(); }
-    public void setHomingEnabled(boolean homing) { homingData.setHoming(homing); }
+    public boolean isHoming() {
+        return homingData.isHoming();
+    }
 
-    public float getHomingStrength() { return homingData.getHomingStrength(); }
-    public void setHomingStrength(float strength) { homingData.setHomingStrength(strength); }
+    public void setHomingEnabled(boolean homing) {
+        homingData.setHoming(homing);
+    }
 
-    public float getHomingRange() { return homingData.getHomingRange(); }
-    public void setHomingRange(float range) { homingData.setHomingRange(range); }
+    public float getHomingStrength() {
+        return homingData.getHomingStrength();
+    }
+
+    public void setHomingStrength(float strength) {
+        homingData.setHomingStrength(strength);
+    }
+
+    public float getHomingRange() {
+        return homingData.getHomingRange();
+    }
+
+    public void setHomingRange(float range) {
+        homingData.setHomingRange(range);
+    }
 
     // ==================== SPEED & ANCHOR GETTERS & SETTERS ====================
 
-    public float getSpeed() { return homingData.getSpeed(); }
-    public void setSpeed(float speed) { homingData.setSpeed(speed); }
+    public float getSpeed() {
+        return homingData.getSpeed();
+    }
 
-    public AnchorPoint getAnchorPoint() { return anchorData.getAnchorPoint(); }
+    public void setSpeed(float speed) {
+        homingData.setSpeed(speed);
+    }
 
-    public int getAnchor() { return anchorData.getAnchor(); }
-    public float getAnchorOffsetX() { return anchorData.getAnchorOffsetX(); }
-    public float getAnchorOffsetY() { return anchorData.getAnchorOffsetY(); }
-    public float getAnchorOffsetZ() { return anchorData.getAnchorOffsetZ(); }
+    public AnchorPoint getAnchorPoint() {
+        return anchorData.getAnchorPoint();
+    }
+
+    public int getAnchor() {
+        return anchorData.getAnchor();
+    }
+
+    public float getAnchorOffsetX() {
+        return anchorData.getAnchorOffsetX();
+    }
+
+    public float getAnchorOffsetY() {
+        return anchorData.getAnchorOffsetY();
+    }
+
+    public float getAnchorOffsetZ() {
+        return anchorData.getAnchorOffsetZ();
+    }
 
     // ==================== MOVEMENT GETTERS ====================
 
-    public double getStartX() { return startX; }
-    public double getStartY() { return startY; }
-    public double getStartZ() { return startZ; }
+    public double getStartX() {
+        return startX;
+    }
+
+    public double getStartY() {
+        return startY;
+    }
+
+    public double getStartZ() {
+        return startZ;
+    }
 
     // ==================== STATE GETTERS ====================
 
-    public boolean getHasHit() { return hasHit; }
+    public boolean getHasHit() {
+        return hasHit;
+    }
 
     // ==================== NBT ====================
 

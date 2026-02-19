@@ -74,10 +74,10 @@ public class GuiNpcMobSpawnerFullscreen extends GuiDirectory implements IGuiData
         this.posZ = posZ;
 
         // Configure GuiDirectory layout percentages
-        leftPanelPercent  = 0.15f;
+        leftPanelPercent = 0.15f;
         rightPanelPercent = 0.08f;
-        minLeftPanelW     = 120;
-        minRightPanelW    = 62;
+        minLeftPanelW = 120;
+        minRightPanelW = 62;
 
         PacketClient.sendClient(new CloneAllTagsPacket());
         if (GuiNpcMobSpawner.showingClones == 2) {

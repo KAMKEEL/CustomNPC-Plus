@@ -64,14 +64,14 @@ public class GuiAuctionNavButton extends GuiNpcButton {
     /**
      * Create a fully customizable button.
      *
-     * @param id Button ID
-     * @param x X position
-     * @param y Y position
-     * @param buttonSize Size of the button background texture (e.g., 18 for 18x18, 10 for 10x10)
-     * @param iconSize Size of the icon texture (e.g., 16 for 16x16, 8 for 8x8)
-     * @param tooltipKey Lang key for tooltip
-     * @param iconTexture Icon texture to draw inside the button
-     * @param textureNormal Background texture for normal state
+     * @param id             Button ID
+     * @param x              X position
+     * @param y              Y position
+     * @param buttonSize     Size of the button background texture (e.g., 18 for 18x18, 10 for 10x10)
+     * @param iconSize       Size of the icon texture (e.g., 16 for 16x16, 8 for 8x8)
+     * @param tooltipKey     Lang key for tooltip
+     * @param iconTexture    Icon texture to draw inside the button
+     * @param textureNormal  Background texture for normal state
      * @param texturePressed Background texture for pressed/hover state
      */
     public GuiAuctionNavButton(int id, int x, int y, int buttonSize, int iconSize, String tooltipKey,
