@@ -5,6 +5,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
@@ -30,6 +31,7 @@ import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages player ability data - unlocked abilities, selection, cooldowns, and execution.
@@ -422,8 +424,31 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     @Override
-    protected void onToggleStateChanged(String key, boolean active) {
+    protected void onToggleStateChanged(String key, boolean active, int state) {
         syncToClient();
+    }
+
+    @Override
+    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return false;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return false;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.ToggleEvent event = new PlayerAbilityEvent.ToggleEvent(iPlayer, ability, oldState, newState);
+        return EventHooks.onPlayerAbilityToggle(handler, event);
+    }
+
+    @Override
+    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return true;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return true;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.ToggleUpdateEvent event = new PlayerAbilityEvent.ToggleUpdateEvent(iPlayer, ability, tick, state);
+        EventHooks.onPlayerAbilityToggleUpdate(handler, event);
+        return event.isEnabled();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -837,10 +862,13 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         compound.setInteger("PlayerAbilitySelected", selectedIndex);
         compound.setBoolean("AbilityAnimating", playingAbilityAnimation);
 
-        // Active toggles
+        // Active toggles (compound format with state)
         NBTTagList toggleList = new NBTTagList();
-        for (String key : activeToggles.keySet()) {
-            toggleList.appendTag(new NBTTagString(key));
+        for (Map.Entry<String, ToggleEntry> entry : activeToggles.entrySet()) {
+            NBTTagCompound toggleNbt = new NBTTagCompound();
+            toggleNbt.setString("Key", entry.getKey());
+            toggleNbt.setInteger("State", entry.getValue().getState());
+            toggleList.appendTag(toggleNbt);
         }
         compound.setTag("ActiveToggles", toggleList);
     }
@@ -869,10 +897,12 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         // Active toggles - restore state directly (no onToggleOn callback during load)
         activeToggles.clear();
         if (compound.hasKey("ActiveToggles")) {
-            NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 8); // 8 = TAG_STRING
+            NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 10); // 10 = TAG_COMPOUND
             for (int i = 0; i < toggleNbt.tagCount(); i++) {
-                String key = toggleNbt.getStringTagAt(i);
-                setToggleEntryDirect(key, true);
+                NBTTagCompound entry = toggleNbt.getCompoundTagAt(i);
+                String key = entry.getString("Key");
+                int state = entry.hasKey("State") ? entry.getInteger("State") : 1;
+                setToggleEntryDirect(key, state);
             }
         }
     }

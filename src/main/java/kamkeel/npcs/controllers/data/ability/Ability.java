@@ -12,6 +12,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.StatCollector;
@@ -115,14 +116,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Whether this ability is a toggle (ON/OFF) rather than a phased execution
+     * Number of toggle states. 0 = not toggleable, 1 = binary on/off, 2+ = multi-state cycling.
+     * Cycling order: Off(0) -> State 1 -> State 2 -> ... -> State N -> Off(0)
      */
-    protected boolean toggleable = false;
+    protected int toggleStates = 0;
 
     /**
      * Whether the toggled-ON state ticks each game tick (e.g., Kaioken drains ki per tick)
      */
     protected boolean hasActiveToggle = false;
+
+    /**
+     * Optional display labels for each toggle state (1-indexed).
+     * Used in ability wheel/hotbar to show current state name.
+     * Null means no labels. Array length should match toggleStates.
+     */
+    protected String[] toggleStateLabels;
 
     // Configurable potion effects
     protected List<AbilityPotionEffect> effects = new ArrayList<>();
@@ -232,26 +241,38 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Called when this toggle ability is turned ON for an entity.
+     * Called when this toggle ability is first activated (state goes from 0 to any active state).
      * Override to apply effects (e.g., set a DBC flag, apply a buff).
      */
     public void onToggleOn(EntityLivingBase caster) {
     }
 
     /**
-     * Called when this toggle ability is turned OFF for an entity.
+     * Called when this toggle ability is fully deactivated (state goes to 0).
      * Override to remove effects (e.g., clear a DBC flag, remove a buff).
      */
     public void onToggleOff(EntityLivingBase caster) {
     }
 
     /**
+     * Called whenever the toggle state changes (including on/off transitions and mid-cycling).
+     * For multi-state toggles, this fires on every state transition.
+     *
+     * @param caster   The entity
+     * @param oldState Previous state (0 = was off)
+     * @param newState New state (0 = now off, 1+ = active state)
+     */
+    public void onToggleStateChanged(EntityLivingBase caster, int oldState, int newState) {
+    }
+
+    /**
      * Called every tick while this toggle is active (only if hasActiveToggle is true).
      * Override for per-tick effects (e.g., ki drain for Kaioken).
      *
+     * @param state Current toggle state (1-based)
      * @return true to keep the toggle active, false to auto-deactivate
      */
-    public boolean onToggleTick(EntityLivingBase caster, int tickCount) {
+    public boolean onToggleTick(EntityLivingBase caster, int tickCount, int state) {
         return true;
     }
 
@@ -1231,8 +1252,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
 
         // Toggle
-        nbt.setBoolean("toggleable", toggleable);
+        nbt.setInteger("toggleStates", toggleStates);
         nbt.setBoolean("hasActiveToggle", hasActiveToggle);
+        if (toggleStateLabels != null && toggleStateLabels.length > 0) {
+            NBTTagList labelList = new NBTTagList();
+            for (String label : toggleStateLabels) {
+                labelList.appendTag(new NBTTagString(label != null ? label : ""));
+            }
+            nbt.setTag("toggleStateLabels", labelList);
+        }
 
         // Burst
         nbt.setBoolean("burstEnabled", burstEnabled);
@@ -1305,8 +1333,18 @@ public abstract class Ability implements IAbility, IAbilityAction {
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
 
         // Toggle
-        toggleable = nbt.getBoolean("toggleable");
+        toggleStates = nbt.getInteger("toggleStates");
         hasActiveToggle = nbt.getBoolean("hasActiveToggle");
+        if (nbt.hasKey("toggleStateLabels")) {
+            NBTTagList labelList = nbt.getTagList("toggleStateLabels", 8);
+            toggleStateLabels = new String[labelList.tagCount()];
+            for (int i = 0; i < labelList.tagCount(); i++) {
+                String label = labelList.getStringTagAt(i);
+                toggleStateLabels[i] = (label != null && !label.isEmpty()) ? label : null;
+            }
+        } else {
+            toggleStateLabels = null;
+        }
 
         // Burst
         burstEnabled = nbt.getBoolean("burstEnabled");
@@ -1882,11 +1920,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     public boolean isToggleable() {
-        return toggleable;
+        return toggleStates > 0;
     }
 
-    public void setToggleable(boolean toggleable) {
-        this.toggleable = toggleable;
+    public int getToggleStates() {
+        return toggleStates;
+    }
+
+    public void setToggleStates(int toggleStates) {
+        this.toggleStates = Math.max(0, toggleStates);
     }
 
     public boolean hasActiveToggle() {
@@ -1895,6 +1937,26 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public void setHasActiveToggle(boolean hasActiveToggle) {
         this.hasActiveToggle = hasActiveToggle;
+    }
+
+    /**
+     * Get the display label for a specific toggle state.
+     * @param state 1-based state index
+     * @return the label, or null if none set
+     */
+    public String getToggleStateLabel(int state) {
+        if (toggleStateLabels != null && state >= 1 && state <= toggleStateLabels.length) {
+            return toggleStateLabels[state - 1];
+        }
+        return null;
+    }
+
+    /**
+     * Set display labels for toggle states (1-indexed).
+     * @param labels one label per state, null entries allowed
+     */
+    public void setToggleStateLabels(String... labels) {
+        this.toggleStateLabels = (labels != null && labels.length > 0) ? labels : null;
     }
 
     public List<AbilityPotionEffect> getEffects() {

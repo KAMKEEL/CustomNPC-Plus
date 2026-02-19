@@ -269,41 +269,65 @@ public abstract class AbstractDataAbilities {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Currently active toggles. Key = ability key, Value = toggle entry with tick counter.
+     * Currently active toggles. Key = ability key, Value = toggle entry with state and tick counter.
      */
     protected Map<String, ToggleEntry> activeToggles = new LinkedHashMap<>();
 
     /**
-     * Toggle an ability ON or OFF. If currently on, turns off; if off, turns on.
+     * Cycle a toggle ability to its next state.
+     * Off(0) -> State 1 -> State 2 -> ... -> State N -> Off(0)
      *
      * @param key The ability key (e.g., "npcdbc:ki_fist")
-     * @return true if the toggle is now ON, false if OFF
+     * @return The new state (0 = off, 1+ = active state number)
      */
-    public boolean toggleAbility(String key) {
-        if (activeToggles.containsKey(key)) {
-            deactivateToggle(key);
-            return false;
+    public int toggleAbility(String key) {
+        ToggleEntry existing = activeToggles.get(key);
+        if (existing != null) {
+            int currentState = existing.getState();
+            int maxStates = existing.getAbility().getToggleStates();
+            if (currentState < maxStates) {
+                return cycleToggleState(key, existing, currentState, currentState + 1);
+            } else {
+                deactivateToggle(key);
+                return 0;
+            }
         } else {
-            return activateToggle(key);
+            return activateToggle(key, 1) ? 1 : 0;
         }
     }
 
     /**
-     * Set a toggle to a specific state.
-     *
-     * @param key The ability key
-     * @param on  true to activate, false to deactivate
+     * Get the current toggle state for an ability.
+     * @return 0 if not active, 1+ for active state
      */
-    public void setAbilityToggled(String key, boolean on) {
-        if (on && !activeToggles.containsKey(key)) {
-            activateToggle(key);
-        } else if (!on && activeToggles.containsKey(key)) {
-            deactivateToggle(key);
+    public int getToggleState(String key) {
+        ToggleEntry entry = activeToggles.get(key);
+        return entry != null ? entry.getState() : 0;
+    }
+
+    /**
+     * Set a toggle to a specific state. 0 = deactivate, 1+ = specific state.
+     */
+    public void setToggleState(String key, int state) {
+        if (state <= 0) {
+            if (activeToggles.containsKey(key)) {
+                deactivateToggle(key);
+            }
+            return;
+        }
+        ToggleEntry existing = activeToggles.get(key);
+        if (existing != null) {
+            int currentState = existing.getState();
+            if (currentState != state) {
+                cycleToggleState(key, existing, currentState, state);
+            }
+        } else {
+            activateToggle(key, state);
         }
     }
 
     /**
-     * Check if a toggle ability is currently active.
+     * Check if a toggle ability is currently active (any state > 0).
      */
     public boolean isAbilityToggled(String key) {
         return activeToggles.containsKey(key);
@@ -316,30 +340,52 @@ public abstract class AbstractDataAbilities {
         return new LinkedHashSet<>(activeToggles.keySet());
     }
 
-    private boolean activateToggle(String key) {
+    private boolean activateToggle(String key, int state) {
         Ability ability = AbilityController.Instance != null
             ? AbilityController.Instance.resolveAbility(key) : null;
         if (ability == null || !ability.isToggleable()) return false;
+        if (state < 1 || state > ability.getToggleStates()) state = 1;
 
-        ToggleEntry entry = new ToggleEntry(ability);
+        if (fireToggleEvent(ability, 0, state)) return false;
+
+        ToggleEntry entry = new ToggleEntry(ability, state);
         activeToggles.put(key, entry);
         ability.onToggleOn(getEntity());
-        onToggleStateChanged(key, true);
+        ability.onToggleStateChanged(getEntity(), 0, state);
+        onToggleStateChanged(key, true, state);
         return true;
     }
 
+    private int cycleToggleState(String key, ToggleEntry entry, int oldState, int newState) {
+        Ability ability = entry.getAbility();
+        if (newState < 1 || newState > ability.getToggleStates()) return oldState;
+
+        if (fireToggleEvent(ability, oldState, newState)) return oldState;
+
+        entry.setState(newState);
+        ability.onToggleStateChanged(getEntity(), oldState, newState);
+        onToggleStateChanged(key, true, newState);
+        return newState;
+    }
+
     private void deactivateToggle(String key) {
-        ToggleEntry entry = activeToggles.remove(key);
-        if (entry != null) {
-            entry.getAbility().onToggleOff(getEntity());
-            onToggleStateChanged(key, false);
-        }
+        ToggleEntry entry = activeToggles.get(key);
+        if (entry == null) return;
+        int oldState = entry.getState();
+
+        if (fireToggleEvent(entry.getAbility(), oldState, 0)) return;
+
+        activeToggles.remove(key);
+        entry.getAbility().onToggleOff(getEntity());
+        entry.getAbility().onToggleStateChanged(getEntity(), oldState, 0);
+        onToggleStateChanged(key, false, 0);
     }
 
     /**
      * Tick all active toggles. Call from tick() each game tick.
      * Toggles with hasActiveToggle=true get their onToggleTick() called.
      * If onToggleTick returns false, the toggle is auto-deactivated.
+     * Every 10 ticks, fires a toggle update event for ALL active toggles.
      */
     protected void tickActiveToggles() {
         if (activeToggles.isEmpty()) return;
@@ -352,7 +398,16 @@ public abstract class AbstractDataAbilities {
             entry.incrementTick();
 
             if (entry.getAbility().hasActiveToggle()) {
-                if (!entry.getAbility().onToggleTick(entity, entry.getTickCount())) {
+                if (!entry.getAbility().onToggleTick(entity, entry.getTickCount(), entry.getState())) {
+                    if (toRemove == null) toRemove = new ArrayList<>();
+                    toRemove.add(mapEntry.getKey());
+                    continue;
+                }
+            }
+
+            if (entry.getTickCount() % 10 == 0) {
+                boolean enabled = fireToggleUpdateEvent(entry.getAbility(), entry.getTickCount(), entry.getState());
+                if (!enabled) {
                     if (toRemove == null) toRemove = new ArrayList<>();
                     toRemove.add(mapEntry.getKey());
                 }
@@ -363,8 +418,10 @@ public abstract class AbstractDataAbilities {
             for (String key : toRemove) {
                 ToggleEntry entry = activeToggles.remove(key);
                 if (entry != null) {
+                    int oldState = entry.getState();
                     entry.getAbility().onToggleOff(entity);
-                    onToggleStateChanged(key, false);
+                    entry.getAbility().onToggleStateChanged(entity, oldState, 0);
+                    onToggleStateChanged(key, false, 0);
                 }
             }
         }
@@ -373,18 +430,38 @@ public abstract class AbstractDataAbilities {
     /**
      * Hook for subclass to react to toggle state changes (sync packets, script events).
      */
-    protected void onToggleStateChanged(String key, boolean active) {
+    protected void onToggleStateChanged(String key, boolean active, int state) {
+    }
+
+    /**
+     * Fire a toggle event before state change.
+     * @param oldState Previous state (0 = off)
+     * @param newState Target state (0 = off)
+     * @return true if the event was canceled
+     */
+    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
+        return false;
+    }
+
+    /**
+     * Fire a toggle update event every 10 ticks.
+     * @return true if the toggle should remain active, false to force-deactivate
+     */
+    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
+        return true;
     }
 
     /**
      * Clear all active toggles (e.g., on death/reset).
-     * Calls onToggleOff for each active toggle.
+     * Calls onToggleOff and onToggleStateChanged for each active toggle.
      */
     protected void clearActiveToggles() {
         if (activeToggles.isEmpty()) return;
         EntityLivingBase entity = getEntity();
-        for (ToggleEntry entry : activeToggles.values()) {
+        for (Map.Entry<String, ToggleEntry> mapEntry : activeToggles.entrySet()) {
+            ToggleEntry entry = mapEntry.getValue();
             entry.getAbility().onToggleOff(entity);
+            entry.getAbility().onToggleStateChanged(entity, entry.getState(), 0);
         }
         activeToggles.clear();
     }
@@ -392,13 +469,15 @@ public abstract class AbstractDataAbilities {
     /**
      * Add a toggle entry directly without calling onToggleOn.
      * Used for client-side sync and NBT restoration.
+     * @param key   The ability key
+     * @param state The toggle state (0 = remove, 1+ = set at state)
      */
-    public void setToggleEntryDirect(String key, boolean active) {
-        if (active) {
+    public void setToggleEntryDirect(String key, int state) {
+        if (state > 0) {
             Ability ability = AbilityController.Instance != null
                 ? AbilityController.Instance.resolveAbility(key) : null;
             if (ability != null && ability.isToggleable()) {
-                activeToggles.put(key, new ToggleEntry(ability));
+                activeToggles.put(key, new ToggleEntry(ability, state));
             }
         } else {
             activeToggles.remove(key);

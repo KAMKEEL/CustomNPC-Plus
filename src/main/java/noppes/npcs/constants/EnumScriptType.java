@@ -126,6 +126,8 @@ public enum EnumScriptType {
     ABILITY_COMPLETE("abilityComplete"),
     ABILITY_HIT("abilityHit"),
     ABILITY_TICK("abilityTick"),
+    ABILITY_TOGGLE("abilityToggle"),
+    ABILITY_TOGGLE_UPDATE("abilityToggleUpdate"),
 
     ENERGY_PROJECTILE_FIRED("energyProjectileFired"),
     ENERGY_PROJECTILE_TICK("energyProjectileTick"),

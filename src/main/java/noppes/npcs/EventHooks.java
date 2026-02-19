@@ -881,6 +881,16 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onPlayerAbilityToggle(PlayerDataScript handler, PlayerAbilityEvent.ToggleEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_TOGGLE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerAbilityToggleUpdate(PlayerDataScript handler, PlayerAbilityEvent.ToggleUpdateEvent event) {
+        handler.callScript(EnumScriptType.ABILITY_TOGGLE_UPDATE, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onPlayerChangeDim(PlayerDataScript handler, IPlayer player, int fromDim, int toDim) {
         PlayerEvent.ChangedDimension event = new PlayerEvent.ChangedDimension(player, fromDim, toDim);
         handler.callScript(EnumScriptType.CHANGED_DIM, event);

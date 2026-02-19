@@ -134,6 +134,28 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
         return data.activateAbility(player, key);
     }
 
+    // Toggle system
+
+    @Override
+    public int toggleAbility(String key) {
+        return data.toggleAbility(key);
+    }
+
+    @Override
+    public int getToggleState(String key) {
+        return data.getToggleState(key);
+    }
+
+    @Override
+    public void setToggleState(String key, int state) {
+        data.setToggleState(key, state);
+    }
+
+    @Override
+    public boolean isAbilityToggled(String key) {
+        return data.isAbilityToggled(key);
+    }
+
     /**
      * Resolve a user-provided key to the canonical storage key.
      * Uses the same resolution as unlockAbility: registry key for built-in, UUID for custom.

@@ -6,6 +6,7 @@ import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -22,6 +23,7 @@ import noppes.npcs.scripted.event.AbilityEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -151,6 +153,21 @@ public class DataAbilities extends AbstractDataAbilities {
         AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(
             npc.wrappedNPC, ability, target, source, damage);
         NpcAPI.EVENT_BUS.post(interruptEvent);
+    }
+
+    @Override
+    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
+        AbilityEvent.ToggleEvent event = new AbilityEvent.ToggleEvent(
+            npc.wrappedNPC, ability, oldState, newState);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    @Override
+    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
+        AbilityEvent.ToggleUpdateEvent event = new AbilityEvent.ToggleUpdateEvent(
+            npc.wrappedNPC, ability, tick, state);
+        NpcAPI.EVENT_BUS.post(event);
+        return event.isEnabled();
     }
 
     @Override
@@ -1060,10 +1077,13 @@ public class DataAbilities extends AbstractDataAbilities {
         }
         compound.setTag("AbilityActions", actionList);
 
-        // Active toggles
+        // Active toggles (compound format with state)
         NBTTagList toggleList = new NBTTagList();
-        for (String key : activeToggles.keySet()) {
-            toggleList.appendTag(new NBTTagString(key));
+        for (Map.Entry<String, ToggleEntry> entry : activeToggles.entrySet()) {
+            NBTTagCompound toggleNbt = new NBTTagCompound();
+            toggleNbt.setString("Key", entry.getKey());
+            toggleNbt.setInteger("State", entry.getValue().getState());
+            toggleList.appendTag(toggleNbt);
         }
         compound.setTag("ActiveToggles", toggleList);
 
@@ -1111,10 +1131,12 @@ public class DataAbilities extends AbstractDataAbilities {
         // Active toggles - restore state directly (no onToggleOn callback during load)
         activeToggles.clear();
         if (compound.hasKey("ActiveToggles")) {
-            NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 8); // 8 = TAG_STRING
+            NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 10); // 10 = TAG_COMPOUND
             for (int i = 0; i < toggleNbt.tagCount(); i++) {
-                String key = toggleNbt.getStringTagAt(i);
-                setToggleEntryDirect(key, true);
+                NBTTagCompound entry = toggleNbt.getCompoundTagAt(i);
+                String key = entry.getString("Key");
+                int state = entry.hasKey("State") ? entry.getInteger("State") : 1;
+                setToggleEntryDirect(key, state);
             }
         }
     }
