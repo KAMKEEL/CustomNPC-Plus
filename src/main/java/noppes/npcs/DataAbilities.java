@@ -326,10 +326,11 @@ public class DataAbilities extends AbstractDataAbilities {
                 if (rotationLocked || hitScanActive) releaseRotationControl();
                 if (positionLocked) releaseLockedPosition();
             }
-            // Clear chain state
+            // Clear chain and concurrent state
             currentChain = null;
             chainEntryIndex = -1;
             chainDelayRemaining = -1;
+            interruptConcurrentSlots();
             return;
         }
 
@@ -724,6 +725,7 @@ public class DataAbilities extends AbstractDataAbilities {
     public void reset() {
         stopCurrentAbility();
         clearActiveToggles();
+        interruptConcurrentSlots();
 
         // Roll cooldown so NPC doesn't immediately attack after reset
         rollCooldownOnReset();

@@ -34,6 +34,7 @@ import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -187,7 +188,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         }
         availableTypesScroll.guiLeft = guiLeft + 5;
         availableTypesScroll.guiTop = y + 12;
-        availableTypesScroll.setList(getFilteredTypeList());
+        availableTypesScroll.setUnsortedList(getFilteredTypeList());
         addScroll(availableTypesScroll);
 
         // Search bar for types
@@ -541,7 +542,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
             filteredAbilityTypes.putAll(getFilteredData(allAbilityTypes));
             if (availableTypesScroll != null) {
-                availableTypesScroll.setList(getFilteredTypeList());
+                availableTypesScroll.setUnsortedList(getFilteredTypeList());
             }
         } else if (type == EnumScrollData.CUSTOM_ABILITIES) {
             existingPresetNames.clear();
@@ -605,7 +606,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             if (search.equals(getTextField(TF_SEARCH).getText()))
                 return;
             search = getTextField(TF_SEARCH).getText().toLowerCase();
-            availableTypesScroll.setList(getFilteredTypeList());
+            availableTypesScroll.setUnsortedList(getFilteredTypeList());
             availableTypesScroll.resetScroll();
         }
     }
@@ -640,16 +641,21 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         displayNameToTypeId.clear();
         for (String typeId : filteredAbilityTypes.keySet()) {
             String displayName = I18n.format(typeId);
-            // Search matches either the display name or the typeId
-            if (search.isEmpty() || displayName.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
-                // Gray out built-in types to distinguish them from configurable types
-                if (AbilityController.Instance.isBuiltInType(typeId)) {
+            // Search matches either the display name or the typeId (strip color codes for matching)
+            String stripped = displayName.replaceAll("\u00A7.", "");
+            if (search.isEmpty() || stripped.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
+                // Yellow for concurrent-capable types, gray for other built-in types
+                if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
+                    displayName = "\u00A7e" + displayName;
+                } else if (AbilityController.Instance.isBuiltInType(typeId)) {
                     displayName = "\u00A77" + displayName;
                 }
                 list.add(displayName);
                 displayNameToTypeId.put(displayName, typeId);
             }
         }
+        Collections.sort(list, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
+            a.replaceAll("\u00A7.", ""), b.replaceAll("\u00A7.", "")));
         return list;
     }
 

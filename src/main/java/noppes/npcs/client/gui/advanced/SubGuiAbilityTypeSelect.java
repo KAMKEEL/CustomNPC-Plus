@@ -11,6 +11,7 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
         addScroll(scroll);
 
         buildAllTypes();
-        scroll.setList(getFilteredTypeList());
+        scroll.setUnsortedList(getFilteredTypeList());
 
         addButton(new GuiNpcButton(0, guiLeft + 5, guiTop + 188, 90, 20, "gui.add"));
         getButton(0).setEnabled(scroll.hasSelected());
@@ -59,6 +60,9 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
         String[] types = AbilityController.Instance.getTypes();
         for (String typeId : types) {
             String displayName = I18n.format(typeId);
+            if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
+                displayName = "\u00A7e" + displayName;
+            }
             allDisplayNameToTypeId.put(displayName, typeId);
         }
     }
@@ -68,11 +72,14 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
         displayNameToTypeId.clear();
         for (Map.Entry<String, String> entry : allDisplayNameToTypeId.entrySet()) {
             String displayName = entry.getKey();
-            if (search.isEmpty() || displayName.toLowerCase().contains(search) || entry.getValue().toLowerCase().contains(search)) {
+            String stripped = displayName.replaceAll("\u00A7.", "");
+            if (search.isEmpty() || stripped.toLowerCase().contains(search) || entry.getValue().toLowerCase().contains(search)) {
                 list.add(displayName);
                 displayNameToTypeId.put(displayName, entry.getValue());
             }
         }
+        Collections.sort(list, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
+            a.replaceAll("\u00A7.", ""), b.replaceAll("\u00A7.", "")));
         return list;
     }
 

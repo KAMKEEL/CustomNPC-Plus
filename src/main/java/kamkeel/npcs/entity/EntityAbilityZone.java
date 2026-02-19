@@ -7,6 +7,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.TargetFilter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -357,6 +359,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
             if (owner != null && entity == owner) continue;
             if (entity.isDead) continue;
             if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+            if (owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
 
             double dx = entity.posX - posX;
             double dz = entity.posZ - posZ;
@@ -391,6 +394,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
             for (EntityLivingBase entity : entities) {
                 if (owner != null && entity == owner) continue;
+                if (owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
                 double dx = entity.posX - posX;
                 double dz = entity.posZ - posZ;
                 if (shape == ZoneShape.SQUARE) {
@@ -464,6 +468,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         for (EntityLivingBase entity : entities) {
             if (owner != null && entity == owner && !affectsCaster) continue;
             if (damagedThisTick.contains(entity.getEntityId())) continue;
+            if (entity != owner && owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
             if (!isInZone(entity)) continue;
 
             if (damagePerSecond > 0) {

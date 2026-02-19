@@ -635,10 +635,11 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             releaseLockedPosition();
         }
 
-        // Clear chain state
+        // Clear chain and concurrent state
         currentChain = null;
         chainEntryIndex = -1;
         chainDelayRemaining = -1;
+        interruptConcurrentSlots();
 
         // Clear all transient state
         currentAbility = null;

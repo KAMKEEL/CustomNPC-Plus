@@ -144,9 +144,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         int y = 5;
         int labelCounter = LABEL_ID_START;
 
-        // General tab: type label at top — need to reserve space before building
+        // General tab: type label + optional concurrent label at top — reserve space
         if (activeTab == TAB_GENERAL) {
             y += ROW_H;
+            if (ability.isConcurrentCapable()) {
+                y += 15;
+            }
         }
 
         // Build declarative fields into an auto-created scroll window
@@ -157,10 +160,15 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         GuiScrollWindow sw = builder.buildScrollWindow(tabFields, swX, swY, swW, swH);
 
-        // General tab: add type label at top of scroll window
+        // General tab: add type label + optional concurrent label at top of scroll window
         if (activeTab == TAB_GENERAL) {
-            sw.addLabel(new GuiNpcLabel(builder.getNextLabelId(), "gui.type", 5, 5 + 5, 0xFFFFFF));
-            sw.addLabel(new GuiNpcLabel(builder.getNextLabelId() + 1, ability.getTypeId(), 55, 5 + 5, 0xFFFFFF));
+            int baseId = builder.getNextLabelId();
+            sw.addLabel(new GuiNpcLabel(baseId, "gui.type", 5, 10, 0xFFFFFF));
+            sw.addLabel(new GuiNpcLabel(baseId + 1, ability.getTypeId(), 55, 10, 0xFFFFFF));
+            if (ability.isConcurrentCapable()) {
+                sw.addLabel(new GuiNpcLabel(baseId + 2,
+                    StatCollector.translateToLocal("ability.concurrentInfo"), 5, 25, 0x55FF55));
+            }
         }
 
         // Conditions on target tab — appended after field defs

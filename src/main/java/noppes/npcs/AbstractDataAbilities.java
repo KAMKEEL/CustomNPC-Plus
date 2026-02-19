@@ -5,6 +5,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
+import kamkeel.npcs.controllers.data.ability.ConcurrentSlot;
 import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import net.minecraft.entity.EntityLivingBase;
@@ -13,6 +14,7 @@ import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -73,6 +75,12 @@ public abstract class AbstractDataAbilities {
      * Set when interrupt already rolled cooldown (prevents double cooldown on NPC dazed completion).
      */
     protected boolean interruptCooldownRolled = false;
+
+    /**
+     * Concurrent ability execution slots. Ticked independently alongside the primary ability.
+     * Concurrent abilities skip animations, sounds, and movement/rotation locks.
+     */
+    protected List<ConcurrentSlot> concurrentSlots = new ArrayList<>();
 
     // ═══════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS - Subclasses must implement
@@ -606,8 +614,12 @@ public abstract class AbstractDataAbilities {
                         return;
                     }
                 }
-                startChainEntry(chainTarget);
+                if (startChainEntry(chainTarget)) {
+                    launchConsecutiveConcurrentEntries(chainTarget);
+                }
             }
+            // Tick concurrent slots even during chain delay
+            tickConcurrentSlots();
             return;
         }
 
@@ -747,6 +759,9 @@ public abstract class AbstractDataAbilities {
 
         // Post-phase hook (NPC: hit scan + movement control)
         onPostPhaseTick(currentAbility, target);
+
+        // Tick concurrent slots independently
+        tickConcurrentSlots();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -784,6 +799,10 @@ public abstract class AbstractDataAbilities {
             int delay = completedEntry.getDelayTicks();
 
             chainEntryIndex++;
+
+            // Skip any consecutive concurrent entries — launch them to concurrent slots
+            launchConsecutiveConcurrentEntries(target);
+
             if (chainEntryIndex < currentChain.getEntries().size()) {
                 // Check if target died and retarget
                 if (target != null && target.isDead) {
@@ -884,6 +903,9 @@ public abstract class AbstractDataAbilities {
                 chainDelayRemaining = -1;
             }
 
+            // Interrupt all concurrent slots
+            interruptConcurrentSlots();
+
             // Let subclass handle cleanup
             onInterruptComplete();
         }
@@ -915,7 +937,11 @@ public abstract class AbstractDataAbilities {
         chainDelayRemaining = -1;
 
         // AFTER semantics: no delay before first entry (delay applies after each entry completes)
-        return startChainEntry(target);
+        boolean started = startChainEntry(target);
+        if (started) {
+            launchConsecutiveConcurrentEntries(target);
+        }
+        return started;
     }
 
     /**
@@ -983,8 +1009,74 @@ public abstract class AbstractDataAbilities {
         return true;
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // CONCURRENT SLOT MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Tick all active concurrent slots. Remove completed ones.
+     * Called from tickCurrentAbility() and during chain delay countdown.
+     */
+    protected void tickConcurrentSlots() {
+        if (concurrentSlots.isEmpty()) return;
+
+        EntityLivingBase entity = getEntity();
+        EntityLivingBase target = getTarget();
+
+        Iterator<ConcurrentSlot> it = concurrentSlots.iterator();
+        while (it.hasNext()) {
+            ConcurrentSlot slot = it.next();
+            slot.tick(entity, target);
+            if (slot.isCompleted()) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
+     * After starting a primary chain entry, scan forward and launch any consecutive
+     * concurrent entries (with delay=0) to concurrent slots immediately.
+     * This enables simultaneous execution of Effect abilities alongside the primary.
+     */
+    protected void launchConsecutiveConcurrentEntries(EntityLivingBase target) {
+        if (currentChain == null) return;
+
+        List<ChainedAbilityEntry> entries = currentChain.getEntries();
+        while (chainEntryIndex + 1 < entries.size()) {
+            ChainedAbilityEntry nextEntry = entries.get(chainEntryIndex + 1);
+            Ability resolved = nextEntry.resolve();
+            if (resolved == null || !resolved.isConcurrentCapable()
+                || !nextEntry.isConcurrentEnabled()) break;
+
+            // Only auto-launch concurrent entries with 0 delay
+            if (nextEntry.getDelayTicks() > 0) break;
+
+            // Advance past this entry in the chain (it runs concurrently, not sequentially)
+            chainEntryIndex++;
+
+            // Deep copy the ability so it has its own state
+            Ability concurrentCopy = AbilityController.Instance.fromNBT(resolved.writeNBT());
+            if (concurrentCopy == null) continue;
+
+            ConcurrentSlot slot = new ConcurrentSlot(concurrentCopy);
+            concurrentSlots.add(slot);
+            slot.start(getEntity(), target);
+        }
+    }
+
+    /**
+     * Interrupt all active concurrent slots. Called on ability interrupt or combat reset.
+     */
+    protected void interruptConcurrentSlots() {
+        for (ConcurrentSlot slot : concurrentSlots) {
+            slot.interrupt();
+        }
+        concurrentSlots.clear();
+    }
+
     /**
      * Complete the chain execution. Rolls chain cooldown and clears all chain state.
+     * NOTE: Does NOT clear concurrent slots — they outlive the chain and tick independently.
      */
     protected void completeChain() {
         if (currentChain != null) {

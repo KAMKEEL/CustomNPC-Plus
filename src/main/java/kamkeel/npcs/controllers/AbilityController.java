@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.IAbilityExtender;
 import kamkeel.npcs.controllers.data.ability.IAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.IEffectAction;
 import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
@@ -14,7 +15,7 @@ import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
-import kamkeel.npcs.controllers.data.ability.type.AbilityHeal;
+import kamkeel.npcs.controllers.data.ability.type.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
 import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
 import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
@@ -78,6 +79,9 @@ public class AbilityController implements IAbilityHandler {
     private final Map<String, ChainedAbility> chainedAbilities = new LinkedHashMap<>();      // name → ChainedAbility
     private final Map<String, ChainedAbility> chainedAbilitiesById = new LinkedHashMap<>();  // UUID → ChainedAbility
     private int chainedAbilityRevision = 0;
+
+    // ── Effect Action Registry ──────────────────────────────────────────────
+    private final Map<String, IEffectAction> effectActions = new LinkedHashMap<>();
 
     // ── Derived State ────────────────────────────────────────────────────────
     private final Set<String> builtInTypeIds = new HashSet<>();
@@ -143,7 +147,7 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:shockwave", AbilityShockwave::new);
 
         registerType("cnpc:guard", AbilityGuard::new);
-        registerType("cnpc:heal", AbilityHeal::new);
+        registerType("cnpc:effect", AbilityEffect::new);
 
         registerType("cnpc:hazard", AbilityHazard::new);
         registerType("cnpc:trap", AbilityTrap::new);
@@ -924,6 +928,37 @@ public class AbilityController implements IAbilityHandler {
 
     public boolean isBuiltInType(String typeId) {
         return builtInTypeIds.contains(typeId);
+    }
+
+    public boolean isConcurrentCapableType(String typeId) {
+        Supplier<Ability> factory = abilityTypes.get(typeId);
+        if (factory == null) return false;
+        return factory.get().isConcurrentCapable();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EFFECT ACTION REGISTRY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public void registerEffectAction(IEffectAction action) {
+        if (action == null || action.getId() == null) return;
+        effectActions.put(action.getId(), action);
+    }
+
+    public IEffectAction getEffectAction(String id) {
+        return effectActions.get(id);
+    }
+
+    public String[] getEffectActionIds() {
+        return effectActions.keySet().toArray(new String[0]);
+    }
+
+    public java.util.Collection<IEffectAction> getEffectActions() {
+        return effectActions.values();
+    }
+
+    public boolean hasEffectActions() {
+        return !effectActions.isEmpty();
     }
 
     @Override

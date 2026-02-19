@@ -144,7 +144,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         // Computed "Valid For" label (derived from child abilities)
         fieldDefs.add(FieldDef.labelField("ability.validFor", () -> {
             UserType ut = computeAllowedBy();
-            return StatCollector.translateToLocal("ability.validFor") + ": \u00A7e" + StatCollector.translateToLocal("ability.userType." + ut.name());
+            return "\u00A7e" + StatCollector.translateToLocal("ability.userType." + ut.name());
         }).tab("General"));
         fieldDefs.add(FieldDef.boolField("gui.enabled", chain::isEnabled, chain::setEnabled).tab("General"));
         fieldDefs.add(FieldDef.intField("ability.weight", chain::getWeight, chain::setWeight).range(1, 100).tab("General"));
@@ -325,12 +325,22 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             sw.addButton(entryBtn);
 
             if (!readOnlyEntries) {
+                // Check if this entry is concurrent-active (delay disabled)
+                Ability resolvedAbility = entry.resolve();
+                boolean isConcurrentActive = resolvedAbility != null
+                    && resolvedAbility.isConcurrentCapable()
+                    && entry.isConcurrentEnabled();
+
                 // Delay label + field
-                sw.addLabel(new GuiNpcLabel(labelCounter++, "ability.delay", L_LABEL_X + 160, y + 5, 0xAAAAAA));
+                sw.addLabel(new GuiNpcLabel(labelCounter++, "ability.delay", L_LABEL_X + 160, y + 5,
+                    isConcurrentActive ? 0x555555 : 0xAAAAAA));
                 GuiNpcTextField delayField = new GuiNpcTextField(ENTRY_BASE + i * ENTRY_STRIDE + 1, this, fontRendererObj,
                     L_LABEL_X + 195, y, 40, 20, String.valueOf(entry.getDelayTicks()));
                 delayField.setIntegersOnly();
                 delayField.setMinMaxDefault(0, 6000, 0);
+                if (isConcurrentActive) {
+                    delayField.setEnabled(false);
+                }
                 sw.addTextField(delayField);
 
                 // Up button
@@ -343,8 +353,16 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 3, L_LABEL_X + 263, y, 20, 20, "\u2193"));
                 }
 
+                // Concurrent toggle (only shown if resolved ability is concurrent-capable, never for first entry)
+                if (i > 0 && resolvedAbility != null && resolvedAbility.isConcurrentCapable()) {
+                    String cLabel = entry.isConcurrentEnabled() ? "\u00A7aC" : "\u00A77C";
+                    GuiNpcButton cBtn = new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 5, L_LABEL_X + 288, y, 20, 20, cLabel);
+                    cBtn.setHoverText("ability.hover.concurrent");
+                    sw.addButton(cBtn);
+                }
+
                 // Delete button
-                sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 4, L_LABEL_X + 288, y, 20, 20, "X"));
+                sw.addButton(new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 4, L_LABEL_X + 313, y, 20, 20, "X"));
             } else {
                 // Read-only: show delay as label only
                 int delay = entry.getDelayTicks();
@@ -549,6 +567,10 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     if (entryIndex > 0) {
                         ChainedAbilityEntry entry = entries.remove(entryIndex);
                         entries.add(entryIndex - 1, entry);
+                        // Can't be concurrent at position 0
+                        if (entryIndex - 1 == 0) {
+                            entry.setConcurrentEnabled(false);
+                        }
                         initGui();
                     }
                     return true;
@@ -561,6 +583,15 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     return true;
                 case 4: // Delete
                     entries.remove(entryIndex);
+                    initGui();
+                    return true;
+                case 5: // Concurrent toggle
+                    ChainedAbilityEntry toggleEntry = entries.get(entryIndex);
+                    boolean newState = !toggleEntry.isConcurrentEnabled();
+                    toggleEntry.setConcurrentEnabled(newState);
+                    if (newState) {
+                        toggleEntry.setDelayTicks(0);
+                    }
                     initGui();
                     return true;
             }

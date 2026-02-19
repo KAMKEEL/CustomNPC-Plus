@@ -3,7 +3,9 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.TargetFilter;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -91,6 +93,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
                 for (EntityLivingBase entity : entities) {
                     if (entity == caster) continue;
                     if (entity.isDead) continue;
+                    if (!AbilityTargetHelper.shouldAffect(caster, entity, TargetFilter.ENEMIES, false)) continue;
 
                     double dist = caster.getDistanceToEntity(entity);
                     if (dist <= pullRadius) {

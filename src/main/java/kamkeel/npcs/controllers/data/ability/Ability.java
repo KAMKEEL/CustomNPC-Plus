@@ -236,6 +236,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return false;
     }
 
+    /**
+     * Whether this ability can run concurrently alongside the primary ability in a chain.
+     * Override to return true for passive/effect abilities that don't need exclusive animations.
+     * Concurrent abilities skip animations entirely and run their tick/execute logic independently.
+     */
+    public boolean isConcurrentCapable() {
+        return false;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // TOGGLE CALLBACKS (optional overrides for toggleable abilities)
     // ═══════════════════════════════════════════════════════════════════
@@ -569,8 +578,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         defs.add(FieldDef.stringField("gui.displayName", this::getRawDisplayName, this::setDisplayName)
             .tab("General"));
         defs.add(FieldDef.labelField("ability.validFor", () ->
-            StatCollector.translateToLocal("ability.validFor") + ": \u00A7e"
-                + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
+            "\u00A7e" + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
             .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
