@@ -497,7 +497,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private void handleChainConfigClosed() {
         if (pendingSaveChain != null) {
             PacketClient.sendClient(new ChainedAbilitySavePacket(pendingSaveChain.writeNBT()));
-            PacketClient.sendClient(new ChainedAbilitiesGetPacket());
             selected = pendingSaveChain.getName();
             pendingSaveChain = null;
         }
@@ -570,7 +569,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                 return true;
             } else {
                 PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
-                PacketClient.sendClient(new CustomAbilitiesGetPacket());
                 pendingSaveAbility = null;
             }
         } else if (pendingSaveAbility != null) {
@@ -597,12 +595,12 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             return true;
         }
         PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
-        PacketClient.sendClient(new CustomAbilitiesGetPacket());
         pendingSaveAbility = null;
         return false;
     }
 
     private void openConfig(Ability ability) {
+        if (ability.isBuiltIn()) return; // Built-in abilities are immutable
         selectedAbility = ability;
         selected = ability.getName();
         previewExecutor.stop();

@@ -34,6 +34,7 @@ import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -187,7 +188,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         }
         availableTypesScroll.guiLeft = guiLeft + 5;
         availableTypesScroll.guiTop = y + 12;
-        availableTypesScroll.setList(getFilteredTypeList());
+        availableTypesScroll.setUnsortedList(getFilteredTypeList());
         addScroll(availableTypesScroll);
 
         // Search bar for types
@@ -218,14 +219,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // On/Off toggle for selected slot (under Load button) — chains and abilities
         if (selectedSlotIndex >= 0 && selectedSlotIndex < npcSlots.size() && selectedEntryIndex == -1) {
             AbilityAction selectedSlot = npcSlots.get(selectedSlotIndex);
-            boolean isEnabled = false;
-            if (selectedSlot.isChain()) {
-                ChainedAbility chain = selectedSlot.isInlineChain() ? selectedSlot.getInlineChain() : selectedSlot.getChainedAbility();
-                isEnabled = chain != null && chain.isEnabled();
-            } else {
-                Ability ability = selectedSlot.getAbility();
-                isEnabled = ability != null && ability.isEnabled();
-            }
+            boolean isEnabled = selectedSlot.isSlotEnabled();
             GuiNpcButton toggleBtn = new GuiNpcButton(BTN_TOGGLE_SLOT, centerX, y + 112, 40, 20,
                 new String[]{"gui.off", "gui.on"}, isEnabled ? 1 : 0);
             addButton(toggleBtn);
@@ -240,6 +234,14 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             if (!selectedIsChainEntry && !sel.isChain()) {
                 Ability a = sel.getAbility();
                 if (a != null && a.isBuiltIn()) selectedIsBuiltIn = true;
+            }
+            // Chain entries referencing built-in abilities are not editable
+            if (selectedIsChainEntry && sel.isChain()) {
+                ChainedAbility biChain = sel.isInlineChain() ? sel.getInlineChain() : sel.getChainedAbility();
+                if (biChain != null && selectedEntryIndex < biChain.getEntries().size()) {
+                    Ability resolved = biChain.getEntries().get(selectedEntryIndex).resolve();
+                    if (resolved != null && resolved.isBuiltIn()) selectedIsBuiltIn = true;
+                }
             }
             // Sub-entries of reference chains are not directly editable from the NPC list
             if (selectedIsChainEntry && sel.isChainReference()) {
@@ -369,6 +371,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     ChainedAbility chain = slot.isInlineChain() ? slot.getInlineChain() : slot.getChainedAbility();
                     if (chain != null && selectedEntryIndex < chain.getEntries().size()) {
                         ChainedAbilityEntry entry = chain.getEntries().get(selectedEntryIndex);
+                        // Built-in abilities are always references — no editing allowed
+                        Ability resolvedEntry = entry.resolve();
+                        if (resolvedEntry != null && resolvedEntry.isBuiltIn()) return;
+
                         if (entry.isInline() && slot.isInlineChain()) {
                             // Inline entry in inline chain — edit directly
                             Ability a = entry.getInlineAbility();
@@ -460,7 +466,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     pendingSaveEntryIdx = -1;
                 }
 
-                if (abilityToSave != null) {
+                if (abilityToSave != null && !abilityToSave.isBuiltIn()) {
                     if (abilityToSave.getName() == null || abilityToSave.getName().isEmpty()) {
                         abilityToSave.setNpcInlineEdit(true);
                         setSubGui(abilityToSave.createConfigGui(this));
@@ -541,7 +547,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
             filteredAbilityTypes.putAll(getFilteredData(allAbilityTypes));
             if (availableTypesScroll != null) {
-                availableTypesScroll.setList(getFilteredTypeList());
+                availableTypesScroll.setUnsortedList(getFilteredTypeList());
             }
         } else if (type == EnumScrollData.CUSTOM_ABILITIES) {
             existingPresetNames.clear();
@@ -605,7 +611,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             if (search.equals(getTextField(TF_SEARCH).getText()))
                 return;
             search = getTextField(TF_SEARCH).getText().toLowerCase();
-            availableTypesScroll.setList(getFilteredTypeList());
+            availableTypesScroll.setUnsortedList(getFilteredTypeList());
             availableTypesScroll.resetScroll();
         }
     }
@@ -640,16 +646,21 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         displayNameToTypeId.clear();
         for (String typeId : filteredAbilityTypes.keySet()) {
             String displayName = I18n.format(typeId);
-            // Search matches either the display name or the typeId
-            if (search.isEmpty() || displayName.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
-                // Gray out built-in types to distinguish them from configurable types
-                if (AbilityController.Instance.isBuiltInType(typeId)) {
+            // Search matches either the display name or the typeId (strip color codes for matching)
+            String stripped = displayName.replaceAll("\u00A7.", "");
+            if (search.isEmpty() || stripped.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
+                // Yellow for concurrent-capable types, gray for other built-in types
+                if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
+                    displayName = "\u00A7e" + displayName;
+                } else if (AbilityController.Instance.isBuiltInType(typeId)) {
                     displayName = "\u00A77" + displayName;
                 }
                 list.add(displayName);
                 displayNameToTypeId.put(displayName, typeId);
             }
         }
+        Collections.sort(list, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
+            a.replaceAll("\u00A7.", ""), b.replaceAll("\u00A7.", "")));
         return list;
     }
 
@@ -707,7 +718,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         String typeName = getDisplayName(ability.getTypeId());
         String customName = ability.getName();
-        String colorPrefix = ability.isEnabled() ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
+        String colorPrefix = slot.isSlotEnabled() ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
 
         String nameDisplay;
         if (customName != null && !customName.isEmpty() && !customName.equals(typeName)) {
@@ -728,8 +739,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     private String getChainHeaderEntry(int index, AbilityAction slot) {
         ChainedAbility chain = slot.isInlineChain() ? slot.getInlineChain() : slot.getChainedAbility();
         String chainName = chain != null ? chain.getDisplayName() : "???";
-        boolean enabled = chain != null && chain.isEnabled();
-        String colorPrefix = enabled ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
+        String colorPrefix = slot.isSlotEnabled() ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
         if (slot.isChainReference()) {
             return colorPrefix + (index + 1) + ". \u00A7e> [Chain] " + chainName + "\u00A7r";
         }
@@ -974,6 +984,13 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             }
         } else if (slot.isChain() && selectedEntryIndex >= 0) {
             // Chain entry reference
+            // Block all editing for built-in abilities
+            ChainedAbility resolveChain = slot.isInlineChain() ? slot.getInlineChain() : slot.getChainedAbility();
+            if (resolveChain != null && selectedEntryIndex < resolveChain.getEntries().size()) {
+                Ability entryResolved = resolveChain.getEntries().get(selectedEntryIndex).resolve();
+                if (entryResolved != null && entryResolved.isBuiltIn()) return;
+            }
+
             if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
                 if (slot.isChainReference()) {
                     slot.convertToInline();
@@ -983,7 +1000,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     ChainedAbilityEntry entry = chain.getEntries().get(selectedEntryIndex);
                     if (entry.convertToInline()) {
                         Ability a = entry.getInlineAbility();
-                        if (a != null) {
+                        if (a != null && !a.isBuiltIn()) {
                             editingChainEntry = true;
                             editChainSlotIdx = selectedSlotIndex;
                             editChainEntryIdx = selectedEntryIndex;
@@ -999,7 +1016,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 if (chain != null && selectedEntryIndex < chain.getEntries().size()) {
                     ChainedAbilityEntry entry = chain.getEntries().get(selectedEntryIndex);
                     Ability resolved = entry.resolve();
-                    if (resolved != null) {
+                    if (resolved != null && !resolved.isBuiltIn()) {
                         editingChainEntryParent = true;
                         setSubGui(resolved.createConfigGui(this));
                     }
@@ -1007,9 +1024,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             }
         } else if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
             // Standalone ability reference → convert to inline
+            Ability preCheck = slot.getAbility();
+            if (preCheck != null && preCheck.isBuiltIn()) return;
             if (slot.convertToInline()) {
                 Ability ability = slot.getAbility();
-                if (ability != null) {
+                if (ability != null && !ability.isBuiltIn()) {
                     ability.setId(UUID.randomUUID().toString());
                     ability.setNpcInlineEdit(true);
                     setSubGui(ability.createConfigGui(this));
@@ -1019,7 +1038,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             }
         } else if (mode == SubGuiAbilityEditMode.MODE_MODIFY_PARENT) {
             Ability ability = slot.getAbility();
-            if (ability != null) {
+            if (ability != null && !ability.isBuiltIn()) {
                 setSubGui(ability.createConfigGui(this));
             }
         }
@@ -1084,39 +1103,29 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      * Called from SubGuiAbilityConfig when ability is saved.
      */
     public void onAbilitySaved(Ability ability) {
-        // Check if we were editing a global parent ability via "Modify Parent" on a chain entry
+        // Editing a global parent ability via "Modify Parent" on a chain entry
         if (editingChainEntryParent) {
             PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
-            editingChainEntryParent = false;
             return;
         }
 
-        // Check if we were editing an ability inside a chain entry
-        if (editingChainEntry && editChainSlotIdx >= 0 && editChainSlotIdx < npcSlots.size()) {
-            AbilityAction slot = npcSlots.get(editChainSlotIdx);
-            ChainedAbility chain = slot.isInlineChain() ? slot.getInlineChain() : null;
-            if (chain != null && editChainEntryIdx >= 0 && editChainEntryIdx < chain.getEntries().size()) {
-                // Update the inline ability on the entry — it's already the same object reference,
-                // but refresh the list and save to persist
-            }
-            editingChainEntry = false;
-            editChainSlotIdx = -1;
-            editChainEntryIdx = -1;
-            updateNpcAbilitiesList();
-            save();
+        // Editing an ability inside a chain entry — already same object reference.
+        // handleAbilityConfigClosed() will call updateNpcAbilitiesList() + save().
+        if (editingChainEntry) {
             return;
         }
 
         if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
             AbilityAction slot = npcSlots.get(selectedAbilityIndex);
             if (slot.isReference()) {
+                // Modify Parent on standalone reference — save to global preset
                 PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
             } else {
+                // Inline ability — update slot data
                 npcSlots.set(selectedAbilityIndex, AbilityAction.inline(ability));
             }
-            updateNpcAbilitiesList();
-            save();
         }
+        // updateNpcAbilitiesList() + save() deferred to handleAbilityConfigClosed()
     }
 
     @Override

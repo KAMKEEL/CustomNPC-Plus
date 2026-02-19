@@ -218,14 +218,14 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         ));
         defs.add(FieldDef.section("ability.section.beam"));
         defs.add(FieldDef.row(
-            FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth),
-            FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed)
+            FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth).range(0.1f, 100.0f),
+            FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed).range(0.1f, 50.0f)
         ));
         defs.add(FieldDef.row(
-            FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks),
-            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks).range(1, 200),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200)
         ));
-        defs.add(FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance));
+        defs.add(FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).range(1.0f, 500.0f));
         defs.add(FieldDef.boolField("ability.dieOnImpact", this::isDieOnImpact, this::setDieOnImpact));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));

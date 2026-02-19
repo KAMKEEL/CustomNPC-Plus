@@ -22,15 +22,15 @@ public class GuiNpcTextField extends GuiTextField {
     private ITextfieldListener listener;
     public int id;
     public int min = 0, max = Integer.MAX_VALUE, def = 0;
-    public double minDouble = Double.NEGATIVE_INFINITY, maxDouble = Double.POSITIVE_INFINITY, defDouble = 0;
-    public float minFloat = Float.NEGATIVE_INFINITY, maxFloat = Float.POSITIVE_INFINITY, defFloat = 0;
+    public double minDouble = 0, maxDouble = Double.MAX_VALUE, defDouble = 0;
+    public float minFloat = 0, maxFloat = Float.MAX_VALUE, defFloat = 0;
     protected static GuiNpcTextField activeTextfield = null;
     public boolean canEdit = true;
     public String hoverableText = "";
     private boolean wasHovered = false;
     private int hoverCount = 0;
 
-    private final int[] allowedSpecialChars = {14, 211, 203, 205};
+    private final int[] allowedSpecialChars = {14, 211, 203, 205, 199, 207};
 
     public GuiNpcTextField(int id, GuiScreen parent, FontRenderer fontRenderer, int i, int j, int k, int l, String s) {
         super(fontRenderer, i, j, k, l);
@@ -69,9 +69,33 @@ public class GuiNpcTextField extends GuiTextField {
 
     @Override
     public boolean textboxKeyTyped(char c, int i) {
-        if (!charAllowed(c, i) || !canEdit)
+        if (!canEdit || !isFocused())
+            return false;
+        // Allow Ctrl shortcuts (select all, copy, paste, cut) to bypass char filter
+        if (GuiScreen.isCtrlKeyDown()) {
+            // For Ctrl+V (paste) on numeric fields, filter clipboard to valid chars
+            if (i == 47 && isNumericField()) {
+                String clipboard = GuiScreen.getClipboardString();
+                if (clipboard != null) {
+                    StringBuilder filtered = new StringBuilder();
+                    for (char ch : clipboard.toCharArray()) {
+                        if (Character.isDigit(ch) || ch == '-' || ((doublesOnly || floatsOnly) && ch == '.'))
+                            filtered.append(ch);
+                    }
+                    if (filtered.length() > 0)
+                        writeText(filtered.toString());
+                }
+                return true;
+            }
+            return super.textboxKeyTyped(c, i);
+        }
+        if (!charAllowed(c, i))
             return false;
         return super.textboxKeyTyped(c, i);
+    }
+
+    private boolean isNumericField() {
+        return integersOnly || doublesOnly || floatsOnly;
     }
 
     public boolean isEmpty() {

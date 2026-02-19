@@ -694,8 +694,8 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
-        this.beamWidth = nbt.hasKey("BeamWidth") ? nbt.getFloat("BeamWidth") : 0.3f;
-        this.headSize = nbt.hasKey("HeadSize") ? nbt.getFloat("HeadSize") : 0.5f;
+        this.beamWidth = sanitize(nbt.hasKey("BeamWidth") ? nbt.getFloat("BeamWidth") : 0.3f, 0.3f, MAX_ENTITY_SIZE);
+        this.headSize = sanitize(nbt.hasKey("HeadSize") ? nbt.getFloat("HeadSize") : 0.5f, 0.5f, MAX_ENTITY_SIZE);
         this.headOffsetX = nbt.hasKey("HeadOffsetX") ? nbt.getDouble("HeadOffsetX") : 0;
         this.headOffsetY = nbt.hasKey("HeadOffsetY") ? nbt.getDouble("HeadOffsetY") : 0;
         this.headOffsetZ = nbt.hasKey("HeadOffsetZ") ? nbt.getDouble("HeadOffsetZ") : 0;

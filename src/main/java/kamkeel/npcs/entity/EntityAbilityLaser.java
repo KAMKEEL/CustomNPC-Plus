@@ -473,7 +473,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
-        this.laserWidth = nbt.hasKey("LaserWidth") ? nbt.getFloat("LaserWidth") : 0.2f;
+        this.laserWidth = sanitize(nbt.hasKey("LaserWidth") ? nbt.getFloat("LaserWidth") : 0.2f, 0.2f, MAX_ENTITY_SIZE);
         this.expansionSpeed = nbt.hasKey("ExpansionSpeed") ? nbt.getFloat("ExpansionSpeed") : 2.0f;
         this.lingerTicks = nbt.hasKey("LingerTicks") ? nbt.getInteger("LingerTicks") : 10;
         this.dieOnImpact = nbt.getBoolean("DieOnImpact");

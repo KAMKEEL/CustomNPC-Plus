@@ -328,8 +328,8 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
         readChargingNBT(nbt);
-        this.sliceWidth = nbt.hasKey("SliceWidth") ? nbt.getFloat("SliceWidth") : 3.0f;
-        this.sliceThickness = nbt.hasKey("SliceThickness") ? nbt.getFloat("SliceThickness") : 0.15f;
+        this.sliceWidth = sanitize(nbt.hasKey("SliceWidth") ? nbt.getFloat("SliceWidth") : 3.0f, 3.0f, MAX_ENTITY_SIZE);
+        this.sliceThickness = sanitize(nbt.hasKey("SliceThickness") ? nbt.getFloat("SliceThickness") : 0.15f, 0.15f, MAX_ENTITY_SIZE);
         this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
         this.targetSliceWidth = nbt.hasKey("TargetSliceWidth") ? nbt.getFloat("TargetSliceWidth") : sliceWidth;
         this.targetSliceThickness = nbt.hasKey("TargetSliceThickness") ? nbt.getFloat("TargetSliceThickness") : sliceThickness;

@@ -219,6 +219,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                 }
             }
 
+            // Charging timeout - if charge phase exceeded with grace period, force kill
+            if (isCharging() && chargeTick > chargeDuration + CHARGE_TIMEOUT_GRACE) {
+                this.setDead();
+                return;
+            }
+
+            // Absolute hard lifetime cap (safety net for any stuck state)
+            if (ticksExisted > HARD_LIFETIME_CAP) {
+                this.setDead();
+                return;
+            }
+
             // Set death time on first tick if not already set (handles chunk load/unload)
             // Skip during charging phase - lifetime starts when the entity actually fires
             if (deathWorldTime < 0 && worldObj != null && !isCharging()) {
@@ -911,7 +923,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected void readBaseNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
 
-        this.size = nbt.getFloat("Size");
+        this.size = sanitize(nbt.getFloat("Size"), 1.0f, MAX_ENTITY_SIZE);
 
         // Read effects list
         this.effects.clear();

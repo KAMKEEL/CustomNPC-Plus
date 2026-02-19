@@ -3,6 +3,7 @@ package kamkeel.npcs.util;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
+import kamkeel.npcs.controllers.data.ability.IEffectAction;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
@@ -171,6 +172,39 @@ public class Register<T> {
             REGISTERED_NAMESPACES.get("animation").add(namespace);
 
             return new Register.Animations(modClass, animationsPath, namespace);
+        }
+    }
+
+    public static class EffectActions extends Register<IEffectAction> {
+
+        private EffectActions(String namespace) {
+            super("effect_action", namespace);
+        }
+
+        public IEffectAction register(String name, IEffectAction action) {
+            String key = namespace + ":" + name.trim().toLowerCase().replaceAll(" ", "_");
+            entries.put(key, () -> action);
+            return action;
+        }
+
+        public void register() {
+            for (Map.Entry<String, Supplier<IEffectAction>> entry : entries.entrySet()) {
+                AbilityController.Instance.registerEffectAction(entry.getValue().get());
+            }
+        }
+
+        public static Register.EffectActions create(String namespace, String displayName) {
+            if (!REGISTERED_NAMESPACES.containsKey("effect_action"))
+                REGISTERED_NAMESPACES.put("effect_action", new ArrayList<>());
+
+            if (REGISTERED_NAMESPACES.get("effect_action").contains(namespace)) {
+                LogWriter.error("REGISTER EFFECT ACTIONS: Namespace " + namespace + " already registered!");
+            }
+
+            REGISTERED_NAMESPACES.get("effect_action").add(namespace);
+            NAMESPACE_DISPLAY_NAMES.put(namespace, displayName);
+
+            return new Register.EffectActions(namespace);
         }
     }
 }

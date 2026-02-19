@@ -81,8 +81,6 @@ public class ClientTickHandler {
                 // Only suppress when no GUI screen is open (screens already capture input).
                 if (mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput()) {
                     // Unpress movement keybinds at the source BEFORE updatePlayerMoveState() reads them.
-                    // This is more robust than just zeroing movementInput fields, because
-                    // updatePlayerMoveState() reads directly from keybind pressed state.
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false);
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false);
@@ -91,7 +89,6 @@ public class ClientTickHandler {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
 
-                    // Also zero the movementInput values directly as a safety net
                     mc.thePlayer.movementInput.moveForward = 0;
                     mc.thePlayer.movementInput.moveStrafe = 0;
                     mc.thePlayer.movementInput.jump = false;
@@ -128,17 +125,20 @@ public class ClientTickHandler {
                     mc.thePlayer.movementInput.jump = false;
                     mc.thePlayer.movementInput.sneak = false;
 
-                    // Zero horizontal motion (unless ability provides its own movement)
+                    // Zero all motion — position lock holds the player in place (server is authoritative)
                     if (!ClientAbilityState.hasAbilityMovement) {
                         mc.thePlayer.motionX = 0;
                         mc.thePlayer.motionZ = 0;
                     }
 
-                    // Prevent jumping when locked (allow gravity only if not flying)
+                    // Zero vertical motion: grounded players can't jump, flying players are frozen in air
                     if ((ClientAbilityState.movementLocked || ClientAbilityState.positionLocked)
-                        && !ClientAbilityState.hasAbilityMovement
-                        && !AbilityController.Instance.isPlayerFlying(mc.thePlayer)) {
-                        mc.thePlayer.motionY = Math.min(mc.thePlayer.motionY, 0);
+                        && !ClientAbilityState.hasAbilityMovement) {
+                        if (ClientAbilityState.wasFlyingAtLock) {
+                            mc.thePlayer.motionY = 0;
+                        } else {
+                            mc.thePlayer.motionY = Math.min(mc.thePlayer.motionY, 0);
+                        }
                     }
                 }
 

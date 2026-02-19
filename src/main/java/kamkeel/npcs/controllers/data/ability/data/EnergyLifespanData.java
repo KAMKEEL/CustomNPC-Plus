@@ -47,6 +47,10 @@ public class EnergyLifespanData implements IEnergyLifespanData {
     public void readNBT(NBTTagCompound nbt) {
         maxDistance = nbt.getFloat("maxDistance");
         maxLifetime = nbt.getInteger("maxLifetime");
+
+        // Sanitize: ensure minimum values so entities don't die instantly or live forever
+        if (Float.isNaN(maxDistance) || Float.isInfinite(maxDistance) || maxDistance <= 0) maxDistance = 150.0f;
+        if (maxLifetime <= 0) maxLifetime = 200;
     }
 
     public EnergyLifespanData copy() {

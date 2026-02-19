@@ -3,7 +3,9 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.TargetFilter;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
@@ -360,13 +362,17 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         for (Entity entity : entities) {
             if (entity instanceof EntityLivingBase && entity != caster) {
                 EntityLivingBase livingTarget = (EntityLivingBase) entity;
+                if (!AbilityTargetHelper.shouldAffect(caster, livingTarget, TargetFilter.ENEMIES, false)) continue;
 
                 // Check if actually within radius (bounding box is a cube, we want a circle)
                 double dx = livingTarget.posX - caster.posX;
                 double dz = livingTarget.posZ - caster.posZ;
                 if (dx * dx + dz * dz <= radius * radius) {
                     // Apply damage with scripted event support
-                    applyAbilityDamage(caster, livingTarget, damage, knockbackStrength);
+                    boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockbackStrength);
+                    if (wasHit) {
+                        applyEffects(livingTarget);
+                    }
                 }
             }
         }

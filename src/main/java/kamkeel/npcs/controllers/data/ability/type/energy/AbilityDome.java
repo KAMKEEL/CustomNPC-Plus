@@ -132,7 +132,7 @@ public class AbilityDome extends AbilityEnergyBarrier {
     @Override
     protected void addBarrierTypeDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.floatField("ability.domeRadius", this::getDomeRadius, this::setDomeRadius)
-            .range(1.0f, 30.0f));
+            .range(1.0f, 50.0f));
         defs.add(FieldDef.boolField("ability.followCaster", this::isFollowCaster, this::setFollowCaster)
             .hover("ability.hover.followCaster"));
     }
