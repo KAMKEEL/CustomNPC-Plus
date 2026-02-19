@@ -3,17 +3,14 @@ package noppes.npcs.client.gui.advanced;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.SubGuiInterface;
 
 /**
  * Dialog asking the user whether to clone-and-modify (convert to inline) or modify the parent ability.
  */
-public class SubGuiAbilityEditMode extends SubGuiInterface {
+public class SubGuiAbilityEditMode extends SubGuiSimpleChoice {
 
     public static final int MODE_CLONE_MODIFY = 0;
     public static final int MODE_MODIFY_PARENT = 1;
-
-    private int result = -1;
 
     public SubGuiAbilityEditMode() {
         setBackground("menubg.png");
@@ -39,18 +36,13 @@ public class SubGuiAbilityEditMode extends SubGuiInterface {
     @Override
     public void buttonEvent(GuiButton guibutton) {
         if (guibutton.id == 0) {
-            result = MODE_CLONE_MODIFY;
+            setResult(MODE_CLONE_MODIFY);
             close();
         } else if (guibutton.id == 1) {
-            result = MODE_MODIFY_PARENT;
+            setResult(MODE_MODIFY_PARENT);
             close();
         } else if (guibutton.id == 2) {
-            result = -1;
             close();
         }
-    }
-
-    public int getResult() {
-        return result;
     }
 }

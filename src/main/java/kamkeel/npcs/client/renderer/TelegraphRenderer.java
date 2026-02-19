@@ -299,8 +299,8 @@ public class TelegraphRenderer {
      * @param partialTicks Partial ticks for interpolation
      */
     public void renderTelegraphInGUI(TelegraphInstance instance,
-                                      double centerX, double centerY, double centerZ,
-                                      float scale, float partialTicks) {
+                                     double centerX, double centerY, double centerZ,
+                                     float scale, float partialTicks) {
         if (instance == null) return;
 
         Telegraph telegraph = instance.getTelegraph();

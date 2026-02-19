@@ -3,17 +3,14 @@ package noppes.npcs.client.gui.advanced;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.SubGuiInterface;
 
 /**
  * Dialog asking the user whether to Clone (inline copy) or Reference the loaded ability.
  */
-public class SubGuiAbilityLoadMode extends SubGuiInterface {
+public class SubGuiAbilityLoadMode extends SubGuiSimpleChoice {
 
     public static final int MODE_CLONE = 0;
     public static final int MODE_REFERENCE = 1;
-
-    private int result = -1;
 
     public SubGuiAbilityLoadMode() {
         setBackground("menubg.png");
@@ -39,18 +36,13 @@ public class SubGuiAbilityLoadMode extends SubGuiInterface {
     @Override
     public void buttonEvent(GuiButton guibutton) {
         if (guibutton.id == 0) {
-            result = MODE_CLONE;
+            setResult(MODE_CLONE);
             close();
         } else if (guibutton.id == 1) {
-            result = MODE_REFERENCE;
+            setResult(MODE_REFERENCE);
             close();
         } else if (guibutton.id == 2) {
-            result = -1;
             close();
         }
-    }
-
-    public int getResult() {
-        return result;
     }
 }

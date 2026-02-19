@@ -15,7 +15,8 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     public int currentPath = 0;
     private final List<Path> trajectory = new ArrayList<>();
 
-    public EnergyTrajectoryData() {}
+    public EnergyTrajectoryData() {
+    }
 
     public EnergyTrajectoryData(int startingPath, Path... paths) {
         trajectory.addAll(Arrays.asList(paths));
@@ -85,6 +86,7 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         IPath p = getPath(path);
         return p == null ? 0 : p.getZ();
     }
+
     @Override
     public void setX(int path, double x) {
         IPath p = getPath(path);
@@ -126,8 +128,8 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
     @Override
     public void setPath(int path, double x, double y, double z, int delay) {
         Path newPath = new Path(
-                NpcAPI.Instance().getIPos(x, y, z),
-                delay
+            NpcAPI.Instance().getIPos(x, y, z),
+            delay
         );
 
         while (trajectory.size() <= path) {
@@ -196,7 +198,7 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
         }
     }
 
-    public static class Path implements IEnergyTrajectoryData.IPath{
+    public static class Path implements IEnergyTrajectoryData.IPath {
         public IPos pos;
         public int delayTicks;
         public boolean concluded;

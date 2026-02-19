@@ -6,7 +6,7 @@ import java.util.function.Consumer;
  * Represents a variant/template for an ability type.
  * When a user creates an ability that has registered variants,
  * they are presented with a selection dialog before the ability is created.
- *
+ * <p>
  * Each variant has a display name (lang key) and a configurator that
  * applies preset values to the newly created ability.
  */

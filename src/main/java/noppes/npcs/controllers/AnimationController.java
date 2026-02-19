@@ -22,14 +22,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
@@ -364,6 +367,7 @@ public class AnimationController implements IAnimationHandler {
 
     /**
      * Get a built-in animation by name.
+     *
      * @param name The animation name (case-insensitive)
      * @return The built-in animation, or null if not found
      */
@@ -395,6 +399,7 @@ public class AnimationController implements IAnimationHandler {
 
     /**
      * Check if an animation name is a built-in animation.
+     *
      * @param name The animation name to check
      * @return true if this is a built-in animation
      */

@@ -60,12 +60,13 @@ public class GuiNpcLabel extends Gui {
 
     /**
      * Draws hover tooltip if the mouse is over this label.
-     * @param localMouseX Mouse X in scroll-local coordinates (for hit testing)
-     * @param localMouseY Mouse Y in scroll-local coordinates (for hit testing)
+     *
+     * @param localMouseX  Mouse X in scroll-local coordinates (for hit testing)
+     * @param localMouseY  Mouse Y in scroll-local coordinates (for hit testing)
      * @param screenMouseX Mouse X in screen coordinates (for tooltip positioning)
      * @param screenMouseY Mouse Y in screen coordinates (for tooltip positioning)
-     * @param hasSubGui Whether a sub-gui is open
-     * @param fr FontRenderer for measuring label width
+     * @param hasSubGui    Whether a sub-gui is open
+     * @param fr           FontRenderer for measuring label width
      */
     public void drawHover(int localMouseX, int localMouseY, int screenMouseX, int screenMouseY, boolean hasSubGui, FontRenderer fr) {
         if (hasSubGui || hoverableText.isEmpty()) return;

@@ -1,10 +1,15 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,22 +20,18 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.AbstractDataAbilities;
-import noppes.npcs.LogWriter;
 import noppes.npcs.EventHooks;
+import noppes.npcs.LogWriter;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
-
-import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
-import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages player ability data - unlocked abilities, selection, cooldowns, and execution.
@@ -152,7 +153,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     @Override
     protected void fireInterruptEvent(Ability ability, EntityLivingBase target,
-                                       DamageSource source, float damage) {
+                                      DamageSource source, float damage) {
         EntityPlayer player = playerData.player;
         if (ScriptController.Instance == null || player == null) return;
         PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
@@ -230,6 +231,11 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     @Override
+    protected void rollChainCooldown(ChainedAbility chain) {
+        cooldownEndTime = getWorldTime() + chain.getCooldownTicks();
+    }
+
+    @Override
     protected void onAbilityComplete() {
         currentAbility = null;
         currentAbilityKey = null;
@@ -263,7 +269,10 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             return;
         }
 
-        if (currentAbility != null && currentAbility.isExecuting()) {
+        // Tick active toggles (independent of currentAbility)
+        tickActiveToggles();
+
+        if (chainDelayRemaining > 0 || (currentAbility != null && currentAbility.isExecuting())) {
             tickCurrentAbility();
 
             // Apply rotation and position locks after ability tick
@@ -303,10 +312,27 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     /**
-     * Activate a specific ability by key.
+     * Prefix used to identify chained ability keys in the unlocked list.
+     */
+    public static final String CHAIN_PREFIX = "chain:";
+
+    /**
+     * Resolve an action key to an IAbilityAction.
+     * Handles "chain:" prefix for chained abilities, otherwise resolves from AbilityController.
+     */
+    private IAbilityAction resolveActionKey(String key) {
+        if (key.startsWith(CHAIN_PREFIX)) {
+            return AbilityController.Instance.resolveChainedAbility(key.substring(CHAIN_PREFIX.length()));
+        }
+        return AbilityController.Instance.resolveAbility(key);
+    }
+
+    /**
+     * Activate a specific ability by key. Keys prefixed with "chain:" are
+     * treated as chained abilities and resolved from {@link AbilityController}.
      *
      * @param player The player
-     * @param key    The ability key (built-in or preset name)
+     * @param key    The ability key (built-in or preset name), or "chain:name" for chains
      * @return true if the ability was started
      */
     public boolean activateAbility(EntityPlayer player, String key) {
@@ -314,20 +340,32 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         // Can't activate if already executing
         if (currentAbility != null && currentAbility.isExecuting()) return false;
+        if (isExecutingChain()) return false;
 
-        // Resolve ability from controller
-        if (AbilityController.Instance == null) return false;
-        Ability ability = AbilityController.Instance.resolveAbility(key);
-        if (ability == null) return false;
+        // Resolve via unified resolver
+        IAbilityAction action = resolveActionKey(key);
+        if (action == null) return false;
 
         // Check user type allows player
-        if (!ability.getAllowedBy().allowsPlayer()) return false;
-
-        // Check universal cooldown
-        if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
+        if (!action.getAllowedBy().allowsPlayer()) return false;
 
         // Check conditions (skip target-requiring ones)
-        if (!ability.checkConditionsForPlayer(player)) return false;
+        if (!action.checkConditionsForPlayer(player)) return false;
+
+        // Dispatch: chain vs ability
+        if (action.isChain()) {
+            if (isOnCooldown()) return false;
+
+            currentAbilityKey = key;
+            currentTarget = null;
+            return startChain((ChainedAbility) action, null);
+        }
+
+        // Regular ability activation
+        Ability ability = (Ability) action;
+
+        // Check universal cooldown (abilities can optionally ignore it)
+        if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
 
         // Fire extender start hook (e.g., resource cost checks)
         if (!AbilityController.Instance.fireOnAbilityStart(ability, player, null)) {
@@ -383,6 +421,34 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (player instanceof EntityPlayerMP) {
             PlayerAbilitySyncPacket.sendToPlayer((EntityPlayerMP) player);
         }
+    }
+
+    @Override
+    protected void onToggleStateChanged(String key, boolean active, int state) {
+        syncToClient();
+    }
+
+    @Override
+    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return false;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return false;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.ToggleEvent event = new PlayerAbilityEvent.ToggleEvent(iPlayer, ability, oldState, newState);
+        return EventHooks.onPlayerAbilityToggle(handler, event);
+    }
+
+    @Override
+    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
+        EntityPlayer player = playerData.player;
+        if (ScriptController.Instance == null || player == null) return true;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        if (handler == null) return true;
+        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
+        PlayerAbilityEvent.ToggleUpdateEvent event = new PlayerAbilityEvent.ToggleUpdateEvent(iPlayer, ability, tick, state);
+        EventHooks.onPlayerAbilityToggleUpdate(handler, event);
+        return event.isEnabled();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -538,6 +604,51 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     public void interruptCurrentAbility() {
         interruptCurrentAbility(null, 0);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DIMENSION CHANGE RESET
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Fully reset ability state when changing dimensions.
+     * Unlike interruptCurrentAbility(), this does NOT roll any cooldowns
+     * and ensures the player can immediately use abilities in the new dimension.
+     * Also re-syncs to client since the entity may be re-created.
+     */
+    public void resetOnDimensionChange() {
+        // Clean up any executing ability without rolling cooldowns
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            removeTelegraph(currentAbility);
+            currentAbility.cleanup();
+            currentAbility.interrupt();
+            stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
+        }
+
+        // Clear chain state
+        currentChain = null;
+        chainEntryIndex = -1;
+        chainDelayRemaining = -1;
+
+        // Clear all transient state
+        currentAbility = null;
+        currentAbilityKey = null;
+        currentTarget = null;
+
+        // Reset cooldowns completely
+        cooldownEndTime = 0;
+        interruptCooldownRolled = false;
+
+        // Sync cleared state to client
+        EntityPlayer player = playerData.player;
+        if (player != null) {
+            syncAbilityStateClear(player);
+        }
+
+        // Re-sync ability data (unlocked list, selection) to client
+        syncToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -750,6 +861,16 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         compound.setTag("PlayerAbilities", list);
         compound.setInteger("PlayerAbilitySelected", selectedIndex);
         compound.setBoolean("AbilityAnimating", playingAbilityAnimation);
+
+        // Active toggles (compound format with state)
+        NBTTagList toggleList = new NBTTagList();
+        for (Map.Entry<String, ToggleEntry> entry : activeToggles.entrySet()) {
+            NBTTagCompound toggleNbt = new NBTTagCompound();
+            toggleNbt.setString("Key", entry.getKey());
+            toggleNbt.setInteger("State", entry.getValue().getState());
+            toggleList.appendTag(toggleNbt);
+        }
+        compound.setTag("ActiveToggles", toggleList);
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -772,11 +893,24 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
         playingAbilityAnimation = compound.getBoolean("AbilityAnimating");
+
+        // Active toggles - restore state directly (no onToggleOn callback during load)
+        activeToggles.clear();
+        if (compound.hasKey("ActiveToggles")) {
+            NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 10); // 10 = TAG_COMPOUND
+            for (int i = 0; i < toggleNbt.tagCount(); i++) {
+                NBTTagCompound entry = toggleNbt.getCompoundTagAt(i);
+                String key = entry.getString("Key");
+                int state = entry.hasKey("State") ? entry.getInteger("State") : 1;
+                setToggleEntryDirect(key, state);
+            }
+        }
     }
 
     /**
      * Remove any unlocked ability keys that can no longer be resolved.
      * Called during load to clean up references to deleted abilities.
+     * Supports both regular ability keys and "chain:" prefixed chained ability keys.
      */
     private void validateUnlockedAbilities() {
         if (AbilityController.Instance == null) return;
@@ -784,7 +918,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         Iterator<String> it = unlockedAbilities.iterator();
         while (it.hasNext()) {
             String key = it.next();
-            if (!AbilityController.Instance.canResolveAbility(key)) {
+            IAbilityAction resolved = resolveActionKey(key);
+            if (resolved == null) {
                 it.remove();
                 LogWriter.info("Removed invalid ability reference from player data: " + key);
             }

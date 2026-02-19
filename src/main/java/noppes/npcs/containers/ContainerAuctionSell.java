@@ -13,10 +13,10 @@ import noppes.npcs.entity.EntityNPCInterface;
  * Items are cloned from inventory, not moved. Validation happens on submit.
  */
 public class ContainerAuctionSell extends ContainerAuction {
-    private int sellSlotX = 59;
-    private int sellSlotY = 101;
-    private int sellSlotIndex = PLAYER_INV_SLOT_COUNT;
-    private int maxStack = 64;
+    private static final int SELL_SLOT_X = 59;
+    private static final int SELL_SLOT_Y = 101;
+    private static final int SELL_SLOT_INDEX = PLAYER_INV_SLOT_COUNT;
+    private static final int MAX_STACK = 64;
 
     private final IInventory sellInventory;
 
@@ -25,11 +25,16 @@ public class ContainerAuctionSell extends ContainerAuction {
         sellInventory = new InventoryBasic("Sell", false, 1);
 
         // Sell slot blocks direct interaction
-        addSlotToContainer(new Slot(sellInventory, 0, sellSlotX, sellSlotY) {
+        addSlotToContainer(new Slot(sellInventory, 0, SELL_SLOT_X, SELL_SLOT_Y) {
             @Override
-            public boolean isItemValid(ItemStack stack) { return false; }
+            public boolean isItemValid(ItemStack stack) {
+                return false;
+            }
+
             @Override
-            public boolean canTakeStack(EntityPlayer player) { return false; }
+            public boolean canTakeStack(EntityPlayer player) {
+                return false;
+            }
         });
     }
 
@@ -44,8 +49,9 @@ public class ContainerAuctionSell extends ContainerAuction {
     /**
      * Add items from inventory to sell slot.
      * Not limited by inventory - just stages items for sale. Validation on submit.
+     *
      * @param sourceSlot Inventory slot index
-     * @param fullStack True=full stack, False=1 item
+     * @param fullStack  True=full stack, False=1 item
      */
     public void addToSellSlot(int sourceSlot, boolean fullStack) {
         if (!isPlayerInventorySlot(sourceSlot)) return;
@@ -59,11 +65,11 @@ public class ContainerAuctionSell extends ContainerAuction {
         if (sellStack == null) {
             // Empty slot - create new stack
             ItemStack newStack = source.copy();
-            newStack.stackSize = Math.min(toAdd, maxStack);
+            newStack.stackSize = Math.min(toAdd, MAX_STACK);
             sellInventory.setInventorySlotContents(0, newStack);
         } else if (itemsMatch(sellStack, source)) {
             // Same item - add to existing (capped at 64)
-            int space = maxStack - sellStack.stackSize;
+            int space = MAX_STACK - sellStack.stackSize;
             int add = Math.min(toAdd, space);
             if (add > 0) {
                 sellStack.stackSize += add;
@@ -71,13 +77,14 @@ public class ContainerAuctionSell extends ContainerAuction {
         } else {
             // Different item - replace
             ItemStack newStack = source.copy();
-            newStack.stackSize = Math.min(toAdd, maxStack);
+            newStack.stackSize = Math.min(toAdd, MAX_STACK);
             sellInventory.setInventorySlotContents(0, newStack);
         }
     }
 
     /**
      * Remove items from sell slot.
+     *
      * @param removeAll True=clear slot, False=remove 1 item
      */
     public void removeFromSellSlot(boolean removeAll) {
@@ -91,12 +98,16 @@ public class ContainerAuctionSell extends ContainerAuction {
         }
     }
 
-    /** Check if sell slot is this container slot index */
+    /**
+     * Check if sell slot is this container slot index
+     */
     public boolean isSellSlot(int slotIndex) {
-        return slotIndex == sellSlotIndex;
+        return slotIndex == SELL_SLOT_INDEX;
     }
 
-    /** Check if two stacks match using NoppesUtilPlayer.compareItems (same item, damage, and NBT) */
+    /**
+     * Check if two stacks match using NoppesUtilPlayer.compareItems (same item, damage, and NBT)
+     */
     private boolean itemsMatch(ItemStack a, ItemStack b) {
         return NoppesUtilPlayer.compareItems(a, b, false, false);
     }

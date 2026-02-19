@@ -1,15 +1,23 @@
 package noppes.npcs;
 
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
+import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Shared base class for NPC and Player ability data management.
@@ -28,73 +36,119 @@ public abstract class AbstractDataAbilities {
     // SHARED RUNTIME STATE (not saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Currently executing ability (null if none) */
+    /**
+     * Currently executing ability (null if none)
+     */
     protected Ability currentAbility;
 
-    /** World time when cooldown ends */
+    /**
+     * World time when cooldown ends
+     */
     protected long cooldownEndTime = 0;
 
-    /** Rotation lock state */
+    /**
+     * Rotation lock state
+     */
     protected boolean rotationLocked = false;
     protected float lockedYaw = 0;
     protected float lockedPitch = 0;
 
-    /** Position lock state */
+    /**
+     * Position lock state
+     */
     protected boolean positionLocked = false;
     protected double lockedPosX = 0;
     protected double lockedPosY = 0;
     protected double lockedPosZ = 0;
 
+    /**
+     * Chained ability execution state
+     */
+    protected ChainedAbility currentChain;
+    protected int chainEntryIndex = -1;
+    protected int chainDelayRemaining = -1;
+
+    /**
+     * Set when interrupt already rolled cooldown (prevents double cooldown on NPC dazed completion).
+     */
+    protected boolean interruptCooldownRolled = false;
+
     // ═══════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS - Subclasses must implement
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Get the entity this ability data belongs to (NPC or Player). */
+    /**
+     * Get the entity this ability data belongs to (NPC or Player).
+     */
     protected abstract EntityLivingBase getEntity();
 
-    /** Get the current target for ability execution. */
+    /**
+     * Get the current target for ability execution.
+     */
     protected abstract EntityLivingBase getTarget();
 
-    /** Get the current world time. */
+    /**
+     * Get the current world time.
+     */
     protected abstract long getWorldTime();
 
     // -- Event Firing --
 
-    /** Fire tick event. Implementation differs between NPC (NpcAPI) and Player (ScriptController). */
+    /**
+     * Fire tick event. Implementation differs between NPC (NpcAPI) and Player (ScriptController).
+     */
     protected abstract void fireTickEvent(Ability ability, EntityLivingBase target);
 
-    /** Fire execute event. Returns true if cancelled. */
+    /**
+     * Fire execute event. Returns true if cancelled.
+     */
     protected abstract boolean fireExecuteEvent(Ability ability, EntityLivingBase target);
 
-    /** Fire complete event. */
+    /**
+     * Fire complete event.
+     */
     protected abstract void fireCompleteEvent(Ability ability, EntityLivingBase target);
 
-    /** Fire interrupt event. */
+    /**
+     * Fire interrupt event.
+     */
     protected abstract void fireInterruptEvent(Ability ability, EntityLivingBase target,
                                                DamageSource source, float damage);
 
     // -- Telegraph --
 
-    /** Spawn telegraphs for an ability. */
+    /**
+     * Spawn telegraphs for an ability.
+     */
     protected abstract void spawnTelegraph(Ability ability, EntityLivingBase target);
 
-    /** Remove telegraphs for an ability. */
+    /**
+     * Remove telegraphs for an ability.
+     */
     protected abstract void removeTelegraph(Ability ability);
 
     // -- Animation/Sound Data Access --
 
-    /** Set animation data on the entity. */
+    /**
+     * Set animation data on the entity.
+     */
     protected abstract void setAnimationData(Animation animation);
 
-    /** Clear animation data on the entity. */
+    /**
+     * Clear animation data on the entity.
+     */
     protected abstract void clearAnimationData();
 
-    /** Play a sound at the entity's location. */
+    /**
+     * Play a sound at the entity's location.
+     */
     protected abstract void playAbilitySound(String sound);
 
     // -- Rotation (subclass handles extra fields and application) --
 
-    /** Capture rotation values for locking. NPC captures 4 fields, Player captures 2. */
+    /**
+     * Capture rotation values for locking. NPC captures 4 fields, Player captures 2.
+     */
     protected abstract void captureLockedRotation();
 
     // -- Completion --
@@ -105,20 +159,44 @@ public abstract class AbstractDataAbilities {
      */
     protected abstract void rollCooldown(Ability ability);
 
-    /** Additional completion logic (NPC clears lastTarget, Player clears key/target and syncs). */
+    /**
+     * Additional completion logic (NPC clears lastTarget, Player clears key/target and syncs).
+     */
     protected abstract void onAbilityComplete();
+
+    /**
+     * Roll cooldown after a chained ability completes.
+     * NPC: random(min, max) + chain.cooldownTicks. Player: chain.cooldownTicks only.
+     */
+    protected abstract void rollChainCooldown(ChainedAbility chain);
 
 
     // -- Hooks (optional overrides) --
 
-    /** Called before onExecute in ACTIVE phase. NPC uses this for faceTarget/hitScan. */
-    protected void onPreExecute(Ability ability, EntityLivingBase target) {}
+    /**
+     * Called before onExecute in ACTIVE phase. NPC uses this for faceTarget/hitScan.
+     */
+    protected void onPreExecute(Ability ability, EntityLivingBase target) {
+    }
 
-    /** Called after the phase switch. NPC uses this for hit scan updates and movement control. */
-    protected void onPostPhaseTick(Ability ability, EntityLivingBase target) {}
+    /**
+     * Called after the phase switch. NPC uses this for hit scan updates and movement control.
+     */
+    protected void onPostPhaseTick(Ability ability, EntityLivingBase target) {
+    }
 
-    /** Additional lock releases in BURST_DELAY. NPC releases hitScan. */
-    protected void onBurstDelayReleaseLocks() {}
+    /**
+     * Additional lock releases in BURST_DELAY. NPC releases hitScan.
+     */
+    protected void onBurstDelayReleaseLocks() {
+    }
+
+    /**
+     * Hook for retargeting during chain execution when target dies. NPC overrides, Player returns null.
+     */
+    protected EntityLivingBase retargetForChain() {
+        return null;
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // SHARED ANIMATION METHODS
@@ -158,34 +236,285 @@ public abstract class AbstractDataAbilities {
     // STATE QUERIES
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Check if an ability is currently executing. */
+    /**
+     * Check if an ability is currently executing.
+     */
     public boolean isExecutingAbility() {
         return currentAbility != null && currentAbility.isExecuting();
     }
 
-    /** Get the currently executing ability. */
+    /**
+     * Get the currently executing ability.
+     */
     public Ability getCurrentAbility() {
         return currentAbility;
+    }
+
+    /**
+     * Check if a chained ability is currently executing.
+     */
+    public boolean isExecutingChain() {
+        return currentChain != null;
+    }
+
+    /**
+     * Get the currently executing chained ability.
+     */
+    public ChainedAbility getCurrentChain() {
+        return currentChain;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TOGGLE STATE (active toggles, independent of currentAbility)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Currently active toggles. Key = ability key, Value = toggle entry with state and tick counter.
+     */
+    protected Map<String, ToggleEntry> activeToggles = new LinkedHashMap<>();
+
+    /**
+     * Cycle a toggle ability to its next state.
+     * Off(0) -> State 1 -> State 2 -> ... -> State N -> Off(0)
+     *
+     * @param key The ability key (e.g., "npcdbc:ki_fist")
+     * @return The new state (0 = off, 1+ = active state number)
+     */
+    public int toggleAbility(String key) {
+        ToggleEntry existing = activeToggles.get(key);
+        if (existing != null) {
+            int currentState = existing.getState();
+            int maxStates = existing.getAbility().getToggleStates();
+            if (currentState < maxStates) {
+                return cycleToggleState(key, existing, currentState, currentState + 1);
+            } else {
+                deactivateToggle(key);
+                return 0;
+            }
+        } else {
+            return activateToggle(key, 1) ? 1 : 0;
+        }
+    }
+
+    /**
+     * Get the current toggle state for an ability.
+     * @return 0 if not active, 1+ for active state
+     */
+    public int getToggleState(String key) {
+        ToggleEntry entry = activeToggles.get(key);
+        return entry != null ? entry.getState() : 0;
+    }
+
+    /**
+     * Set a toggle to a specific state. 0 = deactivate, 1+ = specific state.
+     */
+    public void setToggleState(String key, int state) {
+        if (state <= 0) {
+            if (activeToggles.containsKey(key)) {
+                deactivateToggle(key);
+            }
+            return;
+        }
+        ToggleEntry existing = activeToggles.get(key);
+        if (existing != null) {
+            int currentState = existing.getState();
+            if (currentState != state) {
+                cycleToggleState(key, existing, currentState, state);
+            }
+        } else {
+            activateToggle(key, state);
+        }
+    }
+
+    /**
+     * Check if a toggle ability is currently active (any state > 0).
+     */
+    public boolean isAbilityToggled(String key) {
+        return activeToggles.containsKey(key);
+    }
+
+    /**
+     * Get all active toggle keys.
+     */
+    public Set<String> getActiveToggleKeys() {
+        return new LinkedHashSet<>(activeToggles.keySet());
+    }
+
+    private boolean activateToggle(String key, int state) {
+        Ability ability = AbilityController.Instance != null
+            ? AbilityController.Instance.resolveAbility(key) : null;
+        if (ability == null || !ability.isToggleable()) return false;
+        if (state < 1 || state > ability.getToggleStates()) state = 1;
+
+        if (fireToggleEvent(ability, 0, state)) return false;
+
+        ToggleEntry entry = new ToggleEntry(ability, state);
+        activeToggles.put(key, entry);
+        ability.onToggleOn(getEntity());
+        ability.onToggleStateChanged(getEntity(), 0, state);
+        onToggleStateChanged(key, true, state);
+        return true;
+    }
+
+    private int cycleToggleState(String key, ToggleEntry entry, int oldState, int newState) {
+        Ability ability = entry.getAbility();
+        if (newState < 1 || newState > ability.getToggleStates()) return oldState;
+
+        if (fireToggleEvent(ability, oldState, newState)) return oldState;
+
+        entry.setState(newState);
+        ability.onToggleStateChanged(getEntity(), oldState, newState);
+        onToggleStateChanged(key, true, newState);
+        return newState;
+    }
+
+    private void deactivateToggle(String key) {
+        ToggleEntry entry = activeToggles.get(key);
+        if (entry == null) return;
+        int oldState = entry.getState();
+
+        if (fireToggleEvent(entry.getAbility(), oldState, 0)) return;
+
+        activeToggles.remove(key);
+        entry.getAbility().onToggleOff(getEntity());
+        entry.getAbility().onToggleStateChanged(getEntity(), oldState, 0);
+        onToggleStateChanged(key, false, 0);
+    }
+
+    /**
+     * Tick all active toggles. Call from tick() each game tick.
+     * Toggles with hasActiveToggle=true get their onToggleTick() called.
+     * If onToggleTick returns false, the toggle is auto-deactivated.
+     * Every 10 ticks, fires a toggle update event for ALL active toggles.
+     */
+    protected void tickActiveToggles() {
+        if (activeToggles.isEmpty()) return;
+
+        EntityLivingBase entity = getEntity();
+        List<String> toRemove = null;
+
+        for (Map.Entry<String, ToggleEntry> mapEntry : activeToggles.entrySet()) {
+            ToggleEntry entry = mapEntry.getValue();
+            entry.incrementTick();
+
+            if (entry.getAbility().hasActiveToggle()) {
+                if (!entry.getAbility().onToggleTick(entity, entry.getTickCount(), entry.getState())) {
+                    if (toRemove == null) toRemove = new ArrayList<>();
+                    toRemove.add(mapEntry.getKey());
+                    continue;
+                }
+            }
+
+            if (entry.getTickCount() % 10 == 0) {
+                boolean enabled = fireToggleUpdateEvent(entry.getAbility(), entry.getTickCount(), entry.getState());
+                if (!enabled) {
+                    if (toRemove == null) toRemove = new ArrayList<>();
+                    toRemove.add(mapEntry.getKey());
+                }
+            }
+        }
+
+        if (toRemove != null) {
+            for (String key : toRemove) {
+                ToggleEntry entry = activeToggles.remove(key);
+                if (entry != null) {
+                    int oldState = entry.getState();
+                    entry.getAbility().onToggleOff(entity);
+                    entry.getAbility().onToggleStateChanged(entity, oldState, 0);
+                    onToggleStateChanged(key, false, 0);
+                }
+            }
+        }
+    }
+
+    /**
+     * Hook for subclass to react to toggle state changes (sync packets, script events).
+     */
+    protected void onToggleStateChanged(String key, boolean active, int state) {
+    }
+
+    /**
+     * Fire a toggle event before state change.
+     * @param oldState Previous state (0 = off)
+     * @param newState Target state (0 = off)
+     * @return true if the event was canceled
+     */
+    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
+        return false;
+    }
+
+    /**
+     * Fire a toggle update event every 10 ticks.
+     * @return true if the toggle should remain active, false to force-deactivate
+     */
+    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
+        return true;
+    }
+
+    /**
+     * Clear all active toggles (e.g., on death/reset).
+     * Calls onToggleOff and onToggleStateChanged for each active toggle.
+     */
+    protected void clearActiveToggles() {
+        if (activeToggles.isEmpty()) return;
+        EntityLivingBase entity = getEntity();
+        for (Map.Entry<String, ToggleEntry> mapEntry : activeToggles.entrySet()) {
+            ToggleEntry entry = mapEntry.getValue();
+            entry.getAbility().onToggleOff(entity);
+            entry.getAbility().onToggleStateChanged(entity, entry.getState(), 0);
+        }
+        activeToggles.clear();
+    }
+
+    /**
+     * Add a toggle entry directly without calling onToggleOn.
+     * Used for client-side sync and NBT restoration.
+     * @param key   The ability key
+     * @param state The toggle state (0 = remove, 1+ = set at state)
+     */
+    public void setToggleEntryDirect(String key, int state) {
+        if (state > 0) {
+            Ability ability = AbilityController.Instance != null
+                ? AbilityController.Instance.resolveAbility(key) : null;
+            if (ability != null && ability.isToggleable()) {
+                activeToggles.put(key, new ToggleEntry(ability, state));
+            }
+        } else {
+            activeToggles.remove(key);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
     // COOLDOWN MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Check if on cooldown. */
+    /**
+     * Check if on cooldown.
+     */
     public boolean isOnCooldown() {
         return getWorldTime() < cooldownEndTime;
     }
 
-    /** Get remaining cooldown ticks. */
+    /**
+     * Get remaining cooldown ticks.
+     */
     public long getRemainingCooldown() {
         long remaining = cooldownEndTime - getWorldTime();
         return remaining > 0 ? remaining : 0;
     }
 
-    /** Reset cooldown (allow immediate ability use). */
+    /**
+     * Reset cooldown (allow immediate ability use).
+     */
     public void resetCooldown() {
         cooldownEndTime = 0;
+    }
+
+    /**
+     * Set the cooldown end time directly.
+     */
+    public void setCooldownEndTime(long endTime) {
+        cooldownEndTime = endTime;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -212,8 +541,11 @@ public abstract class AbstractDataAbilities {
         onPositionLockChanged(false);
     }
 
-    /** Hook for subclass to react to position lock state changes (e.g., NPC sets data watcher flag). */
-    protected void onPositionLockChanged(boolean locked) {}
+    /**
+     * Hook for subclass to react to position lock state changes (e.g., NPC sets data watcher flag).
+     */
+    protected void onPositionLockChanged(boolean locked) {
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // ROTATION LOCKING
@@ -227,8 +559,11 @@ public abstract class AbstractDataAbilities {
         onRotationLockChanged(false);
     }
 
-    /** Hook for subclass to react to rotation lock state changes (e.g., NPC sets flag, clears hitScan). */
-    protected void onRotationLockChanged(boolean locked) {}
+    /**
+     * Hook for subclass to react to rotation lock state changes (e.g., NPC sets flag, clears hitScan).
+     */
+    protected void onRotationLockChanged(boolean locked) {
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // CORE TICK - Phase transition logic shared between NPC and Player
@@ -242,6 +577,24 @@ public abstract class AbstractDataAbilities {
      * Subclass-specific behavior is injected via abstract methods and hooks.
      */
     protected void tickCurrentAbility() {
+        // Handle chain delay between entries
+        if (chainDelayRemaining > 0) {
+            chainDelayRemaining--;
+            if (chainDelayRemaining <= 0) {
+                EntityLivingBase chainTarget = getTarget();
+                // Check if target is dead and retarget
+                if (currentChain != null && chainTarget != null && chainTarget.isDead) {
+                    chainTarget = retargetForChain();
+                    if (chainTarget == null) {
+                        completeChain();
+                        return;
+                    }
+                }
+                startChainEntry(chainTarget);
+            }
+            return;
+        }
+
         EntityLivingBase entity = getEntity();
         EntityLivingBase target = getTarget();
         AbilityPhase oldPhase = currentAbility.getPhase();
@@ -254,7 +607,7 @@ public abstract class AbstractDataAbilities {
 
         // Fire extender tick hook (e.g., per-tick resource drain)
         if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, entity, target,
-                currentAbility.getPhase(), currentAbility.getCurrentTick())) {
+            currentAbility.getPhase(), currentAbility.getCurrentTick())) {
             interruptCurrentAbility(null, 0);
             return;
         }
@@ -318,7 +671,10 @@ public abstract class AbstractDataAbilities {
 
                     // Fire execute event (cancelable)
                     if (fireExecuteEvent(currentAbility, target)) {
-                        return; // Cancelled
+                        // Script cancelled — abort cleanly instead of leaving stuck in ACTIVE
+                        currentAbility.interrupt();
+                        handleAbilityCompletion(target);
+                        return;
                     }
 
                     // Call onExecute
@@ -339,8 +695,10 @@ public abstract class AbstractDataAbilities {
                     return;
                 }
 
-                // Auto-complete for burst overlap mode
+                // Auto-complete for burst overlap mode only.
+                // Non-overlap waits for all entities to die naturally (via allDead check in onActiveTick).
                 if (currentAbility.isBurstEnabled()
+                    && currentAbility.isBurstOverlap()
                     && currentAbility.getBurstIndex() < currentAbility.getBurstAmount()
                     && currentAbility.getPhase() == AbilityPhase.ACTIVE
                     && currentAbility.isReadyForBurstCompletion(currentAbility.getCurrentTick())) {
@@ -381,6 +739,7 @@ public abstract class AbstractDataAbilities {
 
     /**
      * Handle ability completion. Called when ability phase becomes IDLE.
+     * If a chain is active, advances to the next entry instead of completing.
      */
     protected void handleAbilityCompletion(EntityLivingBase target) {
         if (currentAbility == null) return;
@@ -400,10 +759,42 @@ public abstract class AbstractDataAbilities {
         // Release locks
         releaseRotationControl();
         releaseLockedPosition();
-
-        // Subclass-specific completion (cooldown, cleanup, sync)
-        rollCooldown(currentAbility);
         stopAbilityAnimation();
+
+        // Chain mode: advance to next entry instead of completing
+        if (currentChain != null) {
+            // AFTER semantics: delay from the CURRENT (just-completed) entry
+            ChainedAbilityEntry completedEntry = currentChain.getEntries().get(chainEntryIndex);
+            int delay = completedEntry.getDelayTicks();
+
+            chainEntryIndex++;
+            if (chainEntryIndex < currentChain.getEntries().size()) {
+                // Check if target died and retarget
+                if (target != null && target.isDead) {
+                    target = retargetForChain();
+                    if (target == null) {
+                        completeChain();
+                        return;
+                    }
+                }
+
+                // Enforce minimum 1-tick delay between chain entries
+                chainDelayRemaining = Math.max(1, delay);
+                currentAbility = null;
+                return;
+            }
+            // All entries complete
+            completeChain();
+            return;
+        }
+
+        // Normal (non-chain) completion
+        if (interruptCooldownRolled) {
+            // Cooldown was already rolled during interrupt (e.g., chain interrupted, NPC ticked through DAZED)
+            interruptCooldownRolled = false;
+        } else {
+            rollCooldown(currentAbility);
+        }
         onAbilityComplete();
     }
 
@@ -421,7 +812,10 @@ public abstract class AbstractDataAbilities {
 
         // Fire execute event (cancelable)
         if (fireExecuteEvent(ability, target)) {
-            return; // Cancelled
+            // Script cancelled — abort cleanly instead of leaving stuck in ACTIVE
+            ability.interrupt();
+            handleAbilityCompletion(target);
+            return;
         }
 
         // Call onExecute
@@ -465,6 +859,15 @@ public abstract class AbstractDataAbilities {
             releaseRotationControl();
             releaseLockedPosition();
 
+            // If chain was active, roll chain cooldown and clear chain state
+            if (currentChain != null) {
+                rollChainCooldown(currentChain);
+                interruptCooldownRolled = true;
+                currentChain = null;
+                chainEntryIndex = -1;
+                chainDelayRemaining = -1;
+            }
+
             // Let subclass handle cleanup
             onInterruptComplete();
         }
@@ -474,5 +877,107 @@ public abstract class AbstractDataAbilities {
      * Hook called after interrupt completes. Subclass handles clearing state and syncing.
      * NPC: keeps currentAbility (ticks through DAZED). Player: clears immediately.
      */
-    protected void onInterruptComplete() {}
+    protected void onInterruptComplete() {
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CHAINED ABILITY EXECUTION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Start executing a chained ability. Sets up chain state and starts the first entry.
+     *
+     * @param chain  The chained ability to execute (should be a deep copy)
+     * @param target The initial target
+     * @return true if the chain was started
+     */
+    protected boolean startChain(ChainedAbility chain, EntityLivingBase target) {
+        if (chain == null || chain.getEntries().isEmpty()) return false;
+
+        currentChain = chain;
+        chainEntryIndex = 0;
+        chainDelayRemaining = -1;
+
+        // AFTER semantics: no delay before first entry (delay applies after each entry completes)
+        return startChainEntry(target);
+    }
+
+    /**
+     * Start the current chain entry's ability.
+     */
+    protected boolean startChainEntry(EntityLivingBase target) {
+        if (currentChain == null || chainEntryIndex < 0 || chainEntryIndex >= currentChain.getEntries().size()) {
+            completeChain();
+            return false;
+        }
+
+        ChainedAbilityEntry entry = currentChain.getEntries().get(chainEntryIndex);
+        Ability ability = entry.resolve();
+        if (ability == null) {
+            // Broken reference - complete chain
+            completeChain();
+            return false;
+        }
+
+        // Validate the resolved ability's UserType matches the chain's allowed context.
+        // The chain's own UserType was already checked at selection time, but individual
+        // abilities may have stricter restrictions (e.g., PLAYER_ONLY in an NPC chain).
+        if (!ability.getAllowedBy().allowsNpc() && getEntity() instanceof noppes.npcs.entity.EntityNPCInterface) {
+            // Skip this entry - ability doesn't allow NPCs
+            completeChain();
+            return false;
+        }
+        if (!ability.getAllowedBy().allowsPlayer() && getEntity() instanceof net.minecraft.entity.player.EntityPlayer) {
+            // Skip this entry - ability doesn't allow players
+            completeChain();
+            return false;
+        }
+
+        // If windUpAll=false, only the first ability windups; subsequent abilities skip windup
+        if (!currentChain.isWindUpAll() && chainEntryIndex > 0) {
+            ability.setWindUpTicks(0);
+        }
+
+        // Start the ability (skip its own conditions - chain conditions were already checked)
+        currentAbility = ability;
+        ability.start(target);
+
+        if (ability.getPhase() == AbilityPhase.ACTIVE) {
+            // Windup was 0 - capture locks for immediate active phase, then execute
+            if (ability.isRotationLockedDuringActive()) {
+                captureLockedRotation();
+            }
+            if (ability.isMovementLockedDuringActive() && !ability.hasAbilityMovement()) {
+                captureLockedPosition();
+            }
+            executeImmediate(ability, target);
+        } else {
+            // Normal windup flow
+            if (ability.isRotationLockedDuringWindup()) {
+                captureLockedRotation();
+            }
+            if (ability.isMovementLockedDuringWindup() && !ability.hasAbilityMovement()) {
+                captureLockedPosition();
+            }
+            spawnTelegraph(ability, target);
+            playAbilitySound(ability.getWindUpSound());
+            playAbilityAnimation(ability.getWindUpAnimation());
+        }
+
+        return true;
+    }
+
+    /**
+     * Complete the chain execution. Rolls chain cooldown and clears all chain state.
+     */
+    protected void completeChain() {
+        if (currentChain != null) {
+            rollChainCooldown(currentChain);
+        }
+        currentChain = null;
+        chainEntryIndex = -1;
+        chainDelayRemaining = -1;
+        currentAbility = null;
+        onAbilityComplete();
+    }
 }

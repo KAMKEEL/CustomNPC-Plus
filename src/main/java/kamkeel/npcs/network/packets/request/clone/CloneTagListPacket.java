@@ -10,10 +10,10 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import kamkeel.npcs.util.ByteBufUtils;
 import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.data.TagMap;
 

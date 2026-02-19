@@ -1,9 +1,14 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
-import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -11,6 +16,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 
 import java.util.ArrayList;
@@ -19,10 +25,10 @@ import java.util.List;
 /**
  * Beam projectile - head with trailing path that curves with homing.
  * Stays attached to origin point, trail shows path of head.
- *
+ * <p>
  * IMPORTANT: Trail points are stored RELATIVE to startX/Y/Z (origin).
  * This ensures rendering is stable regardless of entity position interpolation.
- *
+ * <p>
  * Design inspired by LouisXIV's energy attack system.
  */
 public class EntityAbilityBeam extends EntityEnergyProjectile {
@@ -63,6 +69,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     /**
      * Full constructor with all parameters using data classes.
+     *
      * @param anchoredMode If true, origin follows owner and tail orb is rendered.
      *                     If false, beam is free-moving with trailing length (no tail orb).
      */
@@ -214,7 +221,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     /**
      * Start the beam firing (exit charging mode).
      * Called by ability when windup ends.
-     *
+     * <p>
      * For anchored beams: origin follows owner, head starts at charged position
      * For non-anchored beams: origin fixed at charged position, head starts there
      */
@@ -281,8 +288,8 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         // Check distance using head offset (distance from origin)
         double distFromOrigin = Math.sqrt(
             headOffsetX * headOffsetX +
-            headOffsetY * headOffsetY +
-            headOffsetZ * headOffsetZ
+                headOffsetY * headOffsetY +
+                headOffsetZ * headOffsetZ
         );
         boolean exceeded = distFromOrigin >= getMaxDistance();
         if (exceeded && !worldObj.isRemote && DEBUG_LOGGING) {
@@ -440,8 +447,8 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         Vec3 lastPoint = trailPoints.get(trailPoints.size() - 1);
         double dist = Math.sqrt(
             (headOffsetX - lastPoint.xCoord) * (headOffsetX - lastPoint.xCoord) +
-            (headOffsetY - lastPoint.yCoord) * (headOffsetY - lastPoint.yCoord) +
-            (headOffsetZ - lastPoint.zCoord) * (headOffsetZ - lastPoint.zCoord)
+                (headOffsetY - lastPoint.yCoord) * (headOffsetY - lastPoint.yCoord) +
+                (headOffsetZ - lastPoint.zCoord) * (headOffsetZ - lastPoint.zCoord)
         );
 
         if (dist >= MIN_POINT_DISTANCE) {

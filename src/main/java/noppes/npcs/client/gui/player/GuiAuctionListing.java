@@ -58,8 +58,6 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
     private AuctionFilter filter;
     private int currentPage = 0;
     private int totalPages = 1;
-    private int totalListings = 0;
-    private boolean dataLoaded = false;
 
     // Buttons defined on this page
     private GuiAuctionNavButton btnFilter;
@@ -100,12 +98,16 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
         return PAGE_LISTINGS;
     }
 
-    /** Request listings from server */
+    /**
+     * Request listings from server
+     */
     private void requestListings() {
         AuctionActionPacket.requestListings(filter, currentPage);
     }
 
-    /** Update pagination button visibility based on current page state */
+    /**
+     * Update pagination button visibility based on current page state
+     */
     private void updatePaginationVisibility() {
         if (btnPageUp != null) {
             btnPageUp.setVisible(currentPage > 0);
@@ -195,7 +197,8 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
     }
 
     @Override
-    public void subGuiClosed(SubGuiInterface subgui) {}
+    public void subGuiClosed(SubGuiInterface subgui) {
+    }
 
     // ========== Data Handling ==========
 
@@ -204,7 +207,6 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
         if (compound.hasKey("ListingsData")) {
             currentPage = compound.getInteger("Page");
             totalPages = compound.getInteger("TotalPages");
-            totalListings = compound.getInteger("TotalListings");
 
             // Load listings
             listingContainer.displayInventory.clear();
@@ -213,7 +215,7 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
                 AuctionListing listing = AuctionListing.fromNBT(list.getCompoundTagAt(i));
                 listingContainer.displayInventory.setListing(i, listing);
             }
-            dataLoaded = true;
+            updatePaginationVisibility();
         } else if (compound.hasKey("ListingsRefresh")) {
             requestListings();
         }
@@ -297,6 +299,11 @@ public class GuiAuctionListing extends GuiAuctionInterface implements ISubGuiLis
         // Block other slot interactions
     }
 
-    public AuctionFilter getFilter() { return filter; }
-    public ContainerAuctionListing getListingContainer() { return listingContainer; }
+    public AuctionFilter getFilter() {
+        return filter;
+    }
+
+    public ContainerAuctionListing getListingContainer() {
+        return listingContainer;
+    }
 }

@@ -8,9 +8,8 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
-
-import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.api.ability.type.IAbilityDash;
+import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +31,12 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         @Override
         public String toString() {
             switch (this) {
-                case AGGRESSIVE: return "ability.dash.aggressive";
-                case DEFENSIVE: return "ability.dash.defensive";
-                default: return name();
+                case AGGRESSIVE:
+                    return "ability.dash.aggressive";
+                case DEFENSIVE:
+                    return "ability.dash.defensive";
+                default:
+                    return name();
             }
         }
     }
@@ -191,6 +193,12 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
     @Override
     public void cleanup() {
         super.cleanup();
+        chosenDirection = null;
+    }
+
+    @Override
+    public void resetForBurst() {
+        super.resetForBurst();
         chosenDirection = null;
     }
 

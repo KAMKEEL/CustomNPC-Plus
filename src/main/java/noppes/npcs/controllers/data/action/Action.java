@@ -345,10 +345,10 @@ public class Action implements IAction {
         try {
             onStart.accept(this);
         } catch (Throwable t) {
-            String err = "IAction"  + getName() + "  onStart threw an exception:";
+            String err = "IAction" + getName() + "  onStart threw an exception:";
             if (reportTo != null)
                 reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
-            
+
             manager.LOGGER.error("onStart Task of " + this + " threw an exception:", t);
         }
 
@@ -384,7 +384,7 @@ public class Action implements IAction {
         try {
             onDone.accept(this);
         } catch (Throwable t) {
-            String err = "IAction"  + getName() + "  onDone threw an exception:";
+            String err = "IAction" + getName() + "  onDone threw an exception:";
             if (reportTo != null)
                 reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
 

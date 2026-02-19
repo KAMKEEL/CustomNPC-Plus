@@ -27,6 +27,7 @@ public @interface GuiEditable {
     @Retention(RetentionPolicy.RUNTIME)
     @interface Size {
         int labelWidth() default 60;
+
         int fieldWidth() default 50;
 
         GuiEditable.Size DEFAULT_SIZE = new GuiEditable.Size() {
@@ -39,7 +40,11 @@ public @interface GuiEditable {
             public int fieldWidth() {
                 return 50;
             }
-            @Override public Class<? extends Annotation> annotationType() { return GuiEditable.Size.class; }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return GuiEditable.Size.class;
+            }
         };
 
     }

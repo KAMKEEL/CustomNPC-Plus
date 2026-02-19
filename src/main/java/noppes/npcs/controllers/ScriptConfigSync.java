@@ -5,7 +5,7 @@ import noppes.npcs.config.ConfigScript;
 
 /**
  * Server-side utility for syncing script configuration to clients.
- *
+ * <p>
  * This class is SERVER-SIDE ONLY. Client reads via ScriptClientConfig.
  */
 public class ScriptConfigSync {

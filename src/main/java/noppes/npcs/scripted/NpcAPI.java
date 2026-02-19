@@ -3,10 +3,10 @@ package noppes.npcs.scripted;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.TelegraphController;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityAbilityLaser;
@@ -58,9 +58,9 @@ import noppes.npcs.api.IContainer;
 import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
-import noppes.npcs.api.ITelegraph;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.api.ITelegraph;
 import noppes.npcs.api.ITileEntity;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
@@ -70,8 +70,8 @@ import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.IAnimationHandler;
-import noppes.npcs.api.handler.IAuctionHandler;
 import noppes.npcs.api.handler.IAttributeHandler;
+import noppes.npcs.api.handler.IAuctionHandler;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.api.handler.ICustomEffectHandler;
 import noppes.npcs.api.handler.IDialogHandler;
@@ -480,6 +480,8 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergyDome<>((kamkeel.npcs.entity.EntityEnergyDome) entity));
                 else if (entity instanceof kamkeel.npcs.entity.EntityEnergyPanel)
                     data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergyPanel<>((kamkeel.npcs.entity.EntityEnergyPanel) entity));
+                else if (entity instanceof kamkeel.npcs.entity.EntityAbilitySweeper)
+                    data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergySweeper<>((kamkeel.npcs.entity.EntityAbilitySweeper) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);

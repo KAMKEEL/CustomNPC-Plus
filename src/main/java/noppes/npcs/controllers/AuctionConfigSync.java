@@ -7,7 +7,7 @@ import noppes.npcs.config.ConfigMarket;
 /**
  * Server-side utility for syncing auction configuration to clients.
  * Handles Vault integration for currency name resolution.
- *
+ * <p>
  * This class is SERVER-SIDE ONLY. Client reads via AuctionClientConfig.
  */
 public class AuctionConfigSync {
@@ -15,7 +15,7 @@ public class AuctionConfigSync {
     /**
      * Write auction config to NBT for sending to client.
      * Called on server side when building login packet.
-     *
+     * <p>
      * Currency name is resolved from Vault if enabled and available,
      * otherwise falls back to ConfigMarket.CurrencyName.
      */
@@ -40,7 +40,7 @@ public class AuctionConfigSync {
     public static String getEffectiveCurrencyName() {
         if (ConfigMarket.UseVault && VaultUtil.isEnabled()) {
             String vaultName = VaultUtil.getCurrencyNamePlural();
-            if (vaultName != null && !vaultName.isEmpty() && !vaultName.equals("coins")) {
+            if (vaultName != null && !vaultName.isEmpty()) {
                 return vaultName;
             }
         }

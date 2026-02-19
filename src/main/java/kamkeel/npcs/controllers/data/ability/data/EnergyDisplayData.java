@@ -20,7 +20,8 @@ public class EnergyDisplayData implements IEnergyDisplayData {
     // public boolean skyboxEnabled = false;
     // public String skyboxTexture = "";
 
-    public EnergyDisplayData() {}
+    public EnergyDisplayData() {
+    }
 
     public EnergyDisplayData(int innerColor, int outerColor) {
         this.innerColor = innerColor;

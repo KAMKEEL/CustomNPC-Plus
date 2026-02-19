@@ -195,10 +195,21 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
     // ==================== GETTERS ====================
 
-    public float getDomeRadius() { return domeRadius; }
-    public void setDomeRadius(float radius) { this.domeRadius = Math.max(0.1f, radius); }
-    public boolean isFollowCaster() { return followCaster; }
-    public void setFollowCaster(boolean follow) { this.followCaster = follow; }
+    public float getDomeRadius() {
+        return domeRadius;
+    }
+
+    public void setDomeRadius(float radius) {
+        this.domeRadius = Math.max(0.1f, radius);
+    }
+
+    public boolean isFollowCaster() {
+        return followCaster;
+    }
+
+    public void setFollowCaster(boolean follow) {
+        this.followCaster = follow;
+    }
 
     // ==================== NBT ====================
 

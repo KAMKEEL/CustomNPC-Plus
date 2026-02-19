@@ -5,7 +5,6 @@ import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IScrollData;

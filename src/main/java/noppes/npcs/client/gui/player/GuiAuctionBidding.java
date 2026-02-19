@@ -15,6 +15,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.containers.ContainerAuctionBidding;
 import noppes.npcs.controllers.data.AuctionListing;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.util.AuctionFormatUtil;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
     private int btnBidY = 110;
     private int btnBuyoutX = 82;
     private int btnBuyoutY = 110;
-    private int infoX = 110;
+    private int infoX = 105;
     private int infoY = 50;
 
     // Button IDs
@@ -81,7 +82,9 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         return -1;
     }
 
-    /** Update button visibility based on listing state */
+    /**
+     * Update button visibility based on listing state
+     */
     private void updateButtonState() {
         if (listing == null) {
             if (btnBid != null) btnBid.setVisible(false);
@@ -184,9 +187,11 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         drawAuctionInfo();
     }
 
-    /** Draw auction listing information on the right side */
+    /**
+     * Draw auction listing information on the right side
+     */
     private void drawAuctionInfo() {
-        int x = guiLeft + 105;
+        int x = guiLeft + infoX;
         int y = guiTop + infoY;
         int xRight = guiLeft + 215;
 
@@ -206,7 +211,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
             String bidLabel = StatCollector.translateToLocal("auction.info.currentBid") + ":";
             fontRendererObj.drawString(EnumChatFormatting.YELLOW + bidLabel, x, y, 0xFFFFFF);
 
-            label = formatCurrency(listing.currentBid);
+            label = AuctionFormatUtil.formatCurrency(listing.currentBid);
             length = fontRendererObj.getStringWidth(label);
             fontRendererObj.drawString(EnumChatFormatting.GOLD + label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
@@ -223,9 +228,9 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
             String startLabel = StatCollector.translateToLocal("auction.info.startingPrice");
             fontRendererObj.drawString(EnumChatFormatting.YELLOW + startLabel, x, y, 0xFFFFFF);
 
-            label = formatCurrency(listing.startingPrice);
+            label = AuctionFormatUtil.formatCurrency(listing.startingPrice);
             length = fontRendererObj.getStringWidth(label);
-            fontRendererObj.drawString(EnumChatFormatting.GOLD +  label, xRight - length, y, 0xFFFFFF);
+            fontRendererObj.drawString(EnumChatFormatting.GOLD + label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
         }
 
@@ -234,9 +239,9 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
             String buyoutLabel = StatCollector.translateToLocal("auction.info.buyoutPrice");
             fontRendererObj.drawString(EnumChatFormatting.GREEN + buyoutLabel, x, y, 0xFFFFFF);
 
-            label = formatCurrency(listing.buyoutPrice);
+            label = AuctionFormatUtil.formatCurrency(listing.buyoutPrice);
             length = fontRendererObj.getStringWidth(label);
-            fontRendererObj.drawString(EnumChatFormatting.GREEN +  label, xRight - length, y, 0xFFFFFF);
+            fontRendererObj.drawString(EnumChatFormatting.GREEN + label, xRight - length, y, 0xFFFFFF);
             y += lineHeight + 4;
         }
 
@@ -244,9 +249,9 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         String timeLabel = StatCollector.translateToLocal("auction.info.timeLeft");
         fontRendererObj.drawString(EnumChatFormatting.GRAY + timeLabel, x, y, 0xFFFFFF);
         long timeRemaining = listing.getTimeRemaining();
-        EnumChatFormatting timeColor = timeRemaining < 3600000 ? EnumChatFormatting.RED : EnumChatFormatting.WHITE;
+        EnumChatFormatting timeColor = AuctionFormatUtil.isTimeUrgent(timeRemaining) ? EnumChatFormatting.RED : EnumChatFormatting.WHITE;
 
-        label = timeColor + formatTimeRemaining(timeRemaining);
+        label = timeColor + AuctionFormatUtil.formatTimeRemaining(timeRemaining);
         length = fontRendererObj.getStringWidth(label);
         fontRendererObj.drawString(label, xRight - length, y, 0xFFFFFF);
         y += lineHeight + 4;
@@ -278,14 +283,14 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
             if (listing != null) {
                 long minBid = listing.getMinimumBid(AuctionClientConfig.getMinBidIncrement());
                 tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.bid.minimum")
-                    .replace("%s", EnumChatFormatting.WHITE + formatCurrency(minBid) + " " + AuctionClientConfig.getCurrencyName()));
+                    .replace("%s", EnumChatFormatting.WHITE + AuctionFormatUtil.formatCurrency(minBid) + " " + AuctionClientConfig.getCurrencyName()));
             }
         } else if (btnBuyout != null && btnBuyout.visible && btnBuyout.isHovered()) {
             tooltip = new ArrayList<>();
             tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.bid.buyout"));
             if (listing != null && listing.hasBuyout()) {
                 tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.info.buyoutPrice") + ":");
-                tooltip.add(EnumChatFormatting.GREEN + formatCurrency(listing.buyoutPrice) + " " + AuctionClientConfig.getCurrencyName());
+                tooltip.add(EnumChatFormatting.GREEN + AuctionFormatUtil.formatCurrency(listing.buyoutPrice) + " " + AuctionClientConfig.getCurrencyName());
             }
         }
 
@@ -305,5 +310,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
         // Block all slot interactions - view only
     }
 
-    public AuctionListing getListing() { return listing; }
+    public AuctionListing getListing() {
+        return listing;
+    }
 }

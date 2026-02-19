@@ -21,6 +21,7 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface implements ISubGui
     private final Ability ability;
     private final IAbilityConfigCallback callback;
     private final Set<String> existingNames;
+    private boolean saved = false;
 
     public SubGuiAbilitySaveConfirm(Ability ability) {
         this(ability, null, null);
@@ -68,11 +69,16 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface implements ISubGui
     }
 
     private void doSave() {
+        saved = true;
         PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
         if (callback != null) {
             callback.onAbilitySaved(ability);
         }
         close();
+    }
+
+    public boolean wasSaved() {
+        return saved;
     }
 
     @Override

@@ -6,7 +6,11 @@ import kamkeel.npcs.controllers.data.ability.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.RotationMode;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -30,13 +34,14 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     private float laserWidth = 0.3f;
     private float expansionSpeed = 3.0f;
     private int lingerTicks = 8;
+    private boolean dieOnImpact = false;
 
     public AbilityLaserShot() {
         super(
             new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f),
             new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f),
             new EnergyHomingData(),
-            new EnergyLifespanData(40.0f, 100)
+            new EnergyLifespanData(150.0f, 100)
         );
         this.typeId = "ability.cnpc.laser_shot";
         this.name = "Laser Shot";
@@ -111,13 +116,15 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     @Override
     protected EntityAbilityLaser createEntity(EntityLivingBase caster, EntityLivingBase target,
-                                               Vec3 spawnPos, EnergyDisplayData resolved, int index) {
-        return new EntityAbilityLaser(
+                                              Vec3 spawnPos, EnergyDisplayData resolved, int index) {
+        EntityAbilityLaser laser = new EntityAbilityLaser(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             laserWidth,
             resolved, combatData, lightningData, lifespanData, trajectoryData,
             expansionSpeed, lingerTicks);
+        laser.setDieOnImpact(dieOnImpact);
+        return laser;
     }
 
     @Override
@@ -133,7 +140,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     @Override
     protected void setupEntityPreview(EntityAbilityLaser laser, EntityLivingBase caster,
-                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
+                                      EnergyDisplayData resolved, ProjectileData projData, int index) {
         laser.setupPreview(caster, laserWidth, resolved, lightningData, expansionSpeed, lifespanData.maxDistance);
     }
 
@@ -154,6 +161,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         nbt.setFloat("laserWidth", laserWidth);
         nbt.setFloat("expansionSpeed", expansionSpeed);
         nbt.setInteger("lingerTicks", lingerTicks);
+        nbt.setBoolean("dieOnImpact", dieOnImpact);
     }
 
     @Override
@@ -161,18 +169,42 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         this.laserWidth = nbt.getFloat("laserWidth");
         this.expansionSpeed = nbt.getFloat("expansionSpeed");
         this.lingerTicks = nbt.getInteger("lingerTicks");
+        this.dieOnImpact = nbt.getBoolean("dieOnImpact");
     }
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
 
-    public float getLaserWidth() { return laserWidth; }
-    public void setLaserWidth(float laserWidth) { this.laserWidth = laserWidth; }
+    public float getLaserWidth() {
+        return laserWidth;
+    }
 
-    public float getExpansionSpeed() { return expansionSpeed; }
-    public void setExpansionSpeed(float expansionSpeed) { this.expansionSpeed = expansionSpeed; }
+    public void setLaserWidth(float laserWidth) {
+        this.laserWidth = laserWidth;
+    }
 
-    public int getLingerTicks() { return lingerTicks; }
-    public void setLingerTicks(int lingerTicks) { this.lingerTicks = lingerTicks; }
+    public float getExpansionSpeed() {
+        return expansionSpeed;
+    }
+
+    public void setExpansionSpeed(float expansionSpeed) {
+        this.expansionSpeed = expansionSpeed;
+    }
+
+    public int getLingerTicks() {
+        return lingerTicks;
+    }
+
+    public void setLingerTicks(int lingerTicks) {
+        this.lingerTicks = lingerTicks;
+    }
+
+    public boolean isDieOnImpact() {
+        return dieOnImpact;
+    }
+
+    public void setDieOnImpact(boolean dieOnImpact) {
+        this.dieOnImpact = dieOnImpact;
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 
@@ -194,6 +226,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
         ));
         defs.add(FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance));
+        defs.add(FieldDef.boolField("ability.dieOnImpact", this::isDieOnImpact, this::setDieOnImpact));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
         defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));

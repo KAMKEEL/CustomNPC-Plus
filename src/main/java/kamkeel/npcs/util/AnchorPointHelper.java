@@ -411,6 +411,7 @@ public class AnchorPointHelper {
     /**
      * Rotate an offset vector by the entity's body yaw so offsets are entity-relative.
      * +X = entity's right, +Y = up, +Z = entity's forward.
+     *
      * @param bodyYawRad body yaw in radians
      */
     private static Vec3 rotateOffsetByYaw(double offsetX, double offsetY, double offsetZ, float bodyYawRad) {
@@ -444,19 +445,19 @@ public class AnchorPointHelper {
      * Apply FULL_MODEL rotation to a world-space offset from entity position.
      * Converts the offset to model space, applies FULL_MODEL rotation and pivots,
      * then converts back to world space.
-     *
+     * <p>
      * The rendering pipeline is: entity_pos * body_yaw * scale(-1,-1,1) * FULL_MODEL * parts
      * Combined body_yaw + scale maps model space to world space:
-     *   worldX = mx*cos(yaw) + mz*sin(yaw)
-     *   worldY = -my  (model Y-down → world Y-up)
-     *   worldZ = mx*sin(yaw) - mz*cos(yaw)
+     * worldX = mx*cos(yaw) + mz*sin(yaw)
+     * worldY = -my  (model Y-down → world Y-up)
+     * worldZ = mx*sin(yaw) - mz*cos(yaw)
      * This transform is its own inverse for X,Z.
-     *
+     * <p>
      * FULL_MODEL rotation order matches renderer: vertex sees Z, then Y, then X.
      */
     private static Vec3 applyFullModelToWorldOffset(FramePart fullModel, EntityLivingBase entity,
-                                                     double worldDX, double worldDY, double worldDZ,
-                                                     float bodyYaw, float scale) {
+                                                    double worldDX, double worldDY, double worldDZ,
+                                                    float bodyYaw, float scale) {
         float[] rotations = getRotations(fullModel, entity);
         float[] pivots = getPivots(fullModel, entity);
 

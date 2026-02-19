@@ -26,7 +26,8 @@ public final class GuiFieldHandler {
     }
 
 
-    private GuiFieldHandler() {}
+    private GuiFieldHandler() {
+    }
 
     public static ClassMetadata getMetadata(Class<?> type) {
         return CACHE.computeIfAbsent(type, GuiFieldHandler::scanClass);
@@ -69,7 +70,8 @@ public final class GuiFieldHandler {
             if (Modifier.isFinal(field.getModifiers())) return null;
 
             GuiEditable.Size size = field.getAnnotation(GuiEditable.Size.class);
-            if (size == null) size = GuiEditable.Size.DEFAULT_SIZE;;
+            if (size == null) size = GuiEditable.Size.DEFAULT_SIZE;
+            ;
 
             field.setAccessible(true);
             EditableField.Builder builder = new EditableField.Builder()

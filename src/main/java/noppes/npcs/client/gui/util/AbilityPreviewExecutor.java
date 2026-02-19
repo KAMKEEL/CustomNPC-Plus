@@ -2,8 +2,11 @@ package noppes.npcs.client.gui.util;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.PreviewEntityHandler;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import net.minecraft.entity.Entity;
@@ -19,10 +22,10 @@ import java.util.List;
 
 /**
  * Client-side executor for previewing abilities in the GUI.
- *
+ * <p>
  * Uses unified execution: calls the REAL ability methods (onWindUpTick, onExecute, onActiveTick)
  * with previewMode=true. Abilities skip damage/effects/sounds when isPreview() returns true.
- *
+ * <p>
  * Lifecycle:
  * 1. WINDUP phase - real onWindUpTick() called, telegraph shown, entities may spawn
  * 2. ACTIVE phase - real onExecute() then onActiveTick() called, physics simulated
@@ -36,8 +39,11 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
     private Ability previewAbility;
     private EntityNPCInterface previewNpc;
 
-    /** Executor's own phase tracking (separate from ability.getPhase()) */
-    private enum ExecutorPhase { IDLE, WINDUP, ACTIVE, EXTENDED }
+    /**
+     * Executor's own phase tracking (separate from ability.getPhase())
+     */
+    private enum ExecutorPhase {IDLE, WINDUP, ACTIVE, EXTENDED, CHAIN_DELAY}
+
     private ExecutorPhase executorPhase = ExecutorPhase.IDLE;
 
     private int currentTick = 0;
@@ -59,6 +65,14 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
     private TelegraphInstance previewTelegraph;
     private List<Entity> previewEntities = new ArrayList<>();
 
+    // ==================== CHAIN PREVIEW ====================
+    private ChainedAbility previewChain;
+    private List<Ability> chainAbilities;
+    private List<Integer> chainDelays;
+    private int chainIndex = -1;
+    private int chainDelayRemaining = 0;
+    private boolean chainWindUpAll = true;
+
     // ==================== CALLBACKS ====================
     private GuiAbilityInterface parentGui;
 
@@ -70,27 +84,20 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
     }
 
     /**
-     * Start previewing an ability using unified execution.
+     * Start previewing a single ability using unified execution.
      * Sets previewMode=true on the ability, then calls its real methods.
      */
     public void startPreview(Ability ability, EntityNPCInterface npc) {
         stop();
 
-        this.previewAbility = ability;
         this.previewNpc = npc;
-        this.currentTick = 0;
         this.playing = true;
         this.paused = false;
-        this.maxPreviewDuration = ability.getMaxPreviewDuration();
 
         // Save NPC start position for restoring later
         this.npcStartX = npc.posX;
         this.npcStartY = npc.posY;
         this.npcStartZ = npc.posZ;
-
-        // Enable preview mode on the ability
-        ability.setPreviewMode(true);
-        ability.setPreviewEntityHandler(this);
 
         // Create invisible fake target NPC for targeting
         createFakeTarget(npc);
@@ -100,10 +107,86 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
             parentGui.startTrackingMovement();
         }
 
+        beginAbilityPreview(ability);
+    }
+
+    /**
+     * Start previewing a chained ability — plays all entries in sequence with delays.
+     * Each entry is resolved and deep-copied to avoid modifying originals.
+     */
+    public void startChainPreview(ChainedAbility chain, EntityNPCInterface npc) {
+        stop();
+
+        this.previewNpc = npc;
+        this.playing = true;
+        this.paused = false;
+        this.previewChain = chain;
+        this.chainWindUpAll = chain.isWindUpAll();
+
+        // Save NPC start position for restoring later
+        this.npcStartX = npc.posX;
+        this.npcStartY = npc.posY;
+        this.npcStartZ = npc.posZ;
+
+        // Resolve all entries to deep-copied abilities
+        chainAbilities = new ArrayList<>();
+        chainDelays = new ArrayList<>();
+        for (ChainedAbilityEntry entry : chain.getEntries()) {
+            Ability resolved = entry.resolve();
+            if (resolved != null && AbilityController.Instance != null) {
+                Ability copy = AbilityController.Instance.fromNBT(resolved.writeNBT());
+                if (copy != null) {
+                    chainAbilities.add(copy);
+                    chainDelays.add(entry.getDelayTicks());
+                }
+            }
+        }
+
+        if (chainAbilities.isEmpty()) {
+            playing = false;
+            return;
+        }
+
+        // Create invisible fake target NPC for targeting
+        createFakeTarget(npc);
+
+        // Start tracking NPC movement
+        if (parentGui != null) {
+            parentGui.startTrackingMovement();
+        }
+
+        chainIndex = 0;
+        beginAbilityPreview(chainAbilities.get(0));
+    }
+
+    /**
+     * Begin previewing a single ability (shared by single and chain preview).
+     * Cleans up the previous ability if any (for chain advancement).
+     */
+    private void beginAbilityPreview(Ability ability) {
+        // Clean up previous ability if any (for chain advancement)
+        if (previewAbility != null) {
+            previewAbility.cleanup();
+            previewAbility.setPreviewMode(false);
+            previewAbility.setPreviewEntityHandler(null);
+            previewAbility.reset();
+        }
+
+        this.previewAbility = ability;
+        this.currentTick = 0;
+        this.maxPreviewDuration = ability.getMaxPreviewDuration();
+
+        // Enable preview mode on the ability
+        ability.setPreviewMode(true);
+        ability.setPreviewEntityHandler(this);
+
         // Use the ability's real start() method with the fake target
         ability.start(fakeTarget);
 
-        if (ability.getWindUpTicks() <= 0) {
+        // Skip windup for non-first chain entries when windUpAll is false
+        boolean skipWindup = previewChain != null && !chainWindUpAll && chainIndex > 0;
+
+        if (ability.getWindUpTicks() <= 0 || skipWindup) {
             // No windup — go straight to active
             this.executorPhase = ExecutorPhase.ACTIVE;
             transitionToActive();
@@ -112,12 +195,12 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
             this.executorPhase = ExecutorPhase.WINDUP;
 
             // Create telegraph for preview
-            previewTelegraph = ability.createTelegraph(npc, fakeTarget);
+            previewTelegraph = ability.createTelegraph(previewNpc, fakeTarget);
 
             // Start windup animation
             Animation windUpAnim = ability.getWindUpAnimation();
             if (windUpAnim != null) {
-                AnimationData data = npc.display.animationData;
+                AnimationData data = previewNpc.display.animationData;
                 data.setEnabled(true);
                 data.setAnimation(windUpAnim);
                 data.animation.paused = false;
@@ -213,6 +296,13 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
         executorPhase = ExecutorPhase.IDLE;
         currentTick = 0;
 
+        // Clear chain state
+        previewChain = null;
+        chainAbilities = null;
+        chainDelays = null;
+        chainIndex = -1;
+        chainDelayRemaining = 0;
+
         previewTelegraph = null;
 
         if (parentGui != null) {
@@ -283,6 +373,9 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
             case EXTENDED:
                 tickExtended();
                 break;
+            case CHAIN_DELAY:
+                tickChainDelay();
+                break;
             default:
                 break;
         }
@@ -306,13 +399,21 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
 
         // Check if the ability signaled completion (phase went to IDLE)
         if (previewAbility.getPhase() == AbilityPhase.IDLE) {
-            transitionToExtended();
+            if (hasNextChainEntry()) {
+                transitionToChainDelay();
+            } else {
+                transitionToExtended();
+            }
             return;
         }
 
         // Safety timeout
         if (currentTick >= maxPreviewDuration) {
-            transitionToExtended();
+            if (hasNextChainEntry()) {
+                transitionToChainDelay();
+            } else {
+                transitionToExtended();
+            }
         }
     }
 
@@ -321,6 +422,44 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
         if (currentTick >= EXTENDED_DURATION) {
             playing = false;
         }
+    }
+
+    // ==================== CHAIN ADVANCEMENT ====================
+
+    private boolean hasNextChainEntry() {
+        return previewChain != null && chainAbilities != null && chainIndex < chainAbilities.size() - 1;
+    }
+
+    private void transitionToChainDelay() {
+        executorPhase = ExecutorPhase.CHAIN_DELAY;
+        currentTick = 0;
+
+        // Use the NEXT entry's delay
+        int nextIndex = chainIndex + 1;
+        chainDelayRemaining = (nextIndex < chainDelays.size()) ? chainDelays.get(nextIndex) : 0;
+
+        // Clear current animation
+        if (previewNpc != null) {
+            AnimationData data = previewNpc.display.animationData;
+            data.setAnimation(new Animation());
+        }
+    }
+
+    private void tickChainDelay() {
+        if (chainDelayRemaining > 0) {
+            chainDelayRemaining--;
+            return;
+        }
+        advanceChainEntry();
+    }
+
+    private void advanceChainEntry() {
+        chainIndex++;
+        if (chainIndex >= chainAbilities.size()) {
+            transitionToExtended();
+            return;
+        }
+        beginAbilityPreview(chainAbilities.get(chainIndex));
     }
 
     private void transitionToActive() {
@@ -424,33 +563,73 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
 
     // ==================== GETTERS ====================
 
-    public boolean isPlaying() { return playing; }
-    public boolean isPaused() { return paused; }
-    public boolean isActive() { return playing || paused; }
+    public boolean isPlaying() {
+        return playing;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public boolean isActive() {
+        return playing || paused;
+    }
+
+    public boolean isChainPreview() {
+        return previewChain != null;
+    }
+
     public AbilityPhase getPhase() {
         switch (executorPhase) {
-            case WINDUP: return AbilityPhase.WINDUP;
-            case ACTIVE: return AbilityPhase.ACTIVE;
-            default: return AbilityPhase.IDLE;
+            case WINDUP:
+                return AbilityPhase.WINDUP;
+            case ACTIVE:
+                return AbilityPhase.ACTIVE;
+            default:
+                return AbilityPhase.IDLE;
         }
     }
-    public int getCurrentTick() { return currentTick; }
-    public TelegraphInstance getTelegraph() { return previewTelegraph; }
-    public List<Entity> getPreviewEntities() { return previewEntities; }
-    public Ability getPreviewAbility() { return previewAbility; }
-    public EntityNPCInterface getPreviewNpc() { return previewNpc; }
+
+    public int getCurrentTick() {
+        return currentTick;
+    }
+
+    public TelegraphInstance getTelegraph() {
+        return previewTelegraph;
+    }
+
+    public List<Entity> getPreviewEntities() {
+        return previewEntities;
+    }
+
+    public Ability getPreviewAbility() {
+        return previewAbility;
+    }
+
+    public EntityNPCInterface getPreviewNpc() {
+        return previewNpc;
+    }
 
     public String getStatusString() {
         if (!playing && !paused) {
             return "Stopped";
-        } else if (paused) {
-            return "Paused";
+        }
+
+        String chainPrefix = "";
+        if (previewChain != null && chainAbilities != null) {
+            chainPrefix = "Chain " + (chainIndex + 1) + "/" + chainAbilities.size() + " - ";
+        }
+
+        if (paused) {
+            return chainPrefix + "Paused";
         } else if (executorPhase == ExecutorPhase.WINDUP) {
-            return "Windup: " + currentTick + "/" + (previewAbility != null ? previewAbility.getWindUpTicks() : 0);
+            return chainPrefix + "Windup: " + currentTick + "/" + (previewAbility != null ? previewAbility.getWindUpTicks() : 0);
         } else if (executorPhase == ExecutorPhase.ACTIVE) {
-            return "Active: " + currentTick + "/" + maxPreviewDuration;
+            return chainPrefix + "Active: " + currentTick + "/" + maxPreviewDuration;
         } else if (executorPhase == ExecutorPhase.EXTENDED) {
-            return "Extended: " + currentTick + "/" + EXTENDED_DURATION;
+            return chainPrefix + "Extended: " + currentTick + "/" + EXTENDED_DURATION;
+        } else if (executorPhase == ExecutorPhase.CHAIN_DELAY) {
+            return chainPrefix + "Delay: " + chainDelayRemaining;
         }
         return "";
     }

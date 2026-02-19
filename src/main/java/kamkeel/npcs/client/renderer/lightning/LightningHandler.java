@@ -5,7 +5,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.client.renderer.lightning.LightningBolt.Segment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
@@ -19,7 +18,7 @@ import java.awt.Color;
 /**
  * Handles rendering of lightning bolts in the world.
  * Adapted from Botania's LightningHandler by Vazkii/ChickenBones.
- *
+ * <p>
  * Register this handler with: MinecraftForge.EVENT_BUS.register(new LightningHandler());
  */
 @SideOnly(Side.CLIENT)
@@ -168,13 +167,13 @@ public class LightningHandler {
     /**
      * Spawn a lightning bolt between two points.
      *
-     * @param world        The world
-     * @param start        Start position
-     * @param end          End position
+     * @param world         The world
+     * @param start         Start position
+     * @param end           End position
      * @param ticksPerMeter Speed of bolt expansion
-     * @param seed         Random seed for consistent appearance
-     * @param colorOuter   Outer glow color (ARGB)
-     * @param colorInner   Inner core color (ARGB)
+     * @param seed          Random seed for consistent appearance
+     * @param colorOuter    Outer glow color (ARGB)
+     * @param colorInner    Inner core color (ARGB)
      */
     public static void spawnLightningBolt(World world, Vec3d start, Vec3d end, float ticksPerMeter, long seed, int colorOuter, int colorInner) {
         LightningBolt bolt = new LightningBolt(world, start, end, ticksPerMeter, seed, colorOuter, colorInner);

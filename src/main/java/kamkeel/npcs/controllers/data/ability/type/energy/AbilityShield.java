@@ -12,7 +12,6 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityEnergyPanel;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -124,11 +123,21 @@ public class AbilityShield extends AbilityEnergyBarrier {
 
     // ==================== GETTERS & SETTERS ====================
 
-    public float getShieldWidth() { return shieldWidth; }
-    public void setShieldWidth(float width) { this.shieldWidth = Math.max(0.5f, width); }
+    public float getShieldWidth() {
+        return shieldWidth;
+    }
 
-    public float getShieldHeight() { return shieldHeight; }
-    public void setShieldHeight(float height) { this.shieldHeight = Math.max(0.5f, height); }
+    public void setShieldWidth(float width) {
+        this.shieldWidth = Math.max(0.5f, width);
+    }
+
+    public float getShieldHeight() {
+        return shieldHeight;
+    }
+
+    public void setShieldHeight(float height) {
+        this.shieldHeight = Math.max(0.5f, height);
+    }
 
     // ==================== TYPE-SPECIFIC GUI ====================
 

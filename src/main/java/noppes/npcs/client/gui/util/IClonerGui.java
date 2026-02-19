@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface IClonerGui {
     int getShowingClones();
+
     HashMap<UUID, Tag> getTags();
+
     TagMap getTagMap();
 }

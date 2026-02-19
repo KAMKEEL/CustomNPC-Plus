@@ -1,5 +1,6 @@
 package kamkeel.npcs.controllers.data.ability;
 
+import kamkeel.npcs.controllers.AbilityController;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**
@@ -8,19 +9,25 @@ import net.minecraft.nbt.NBTTagCompound;
  * <p>
  * References are lazy-resolved via {@link AbilityController#resolveAbility(String)}
  * and cached until the controller version changes.
+ *
+ * @deprecated Use {@link AbilityAction} instead, which supports abilities and chained abilities.
  */
+@Deprecated
 public class AbilitySlot {
 
     private Ability inlineAbility;
     private String referenceId;
 
-    /** Per-slot enabled override for reference slots (null = use master's default). */
+    /**
+     * Per-slot enabled override for reference slots (null = use master's default).
+     */
     private Boolean enabledOverride;
 
     private transient Ability cachedAbility;
     private transient int cachedVersion = -1;
 
-    private AbilitySlot() {}
+    private AbilitySlot() {
+    }
 
     /**
      * Create a slot with an inline (embedded) ability.

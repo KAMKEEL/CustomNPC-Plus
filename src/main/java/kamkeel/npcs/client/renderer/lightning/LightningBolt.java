@@ -243,7 +243,7 @@ public class LightningBolt {
 
         public Segment(Vec3d start, Vec3d end) {
             this(new BoltPoint(start, new Vec3d(0, 0, 0)),
-                 new BoltPoint(end, new Vec3d(0, 0, 0)), 1, 0, 0);
+                new BoltPoint(end, new Vec3d(0, 0, 0)), 1, 0, 0);
         }
 
         public void calcDiff() {

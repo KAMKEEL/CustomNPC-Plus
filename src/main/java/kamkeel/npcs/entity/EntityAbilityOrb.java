@@ -1,22 +1,28 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.*;
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
-import noppes.npcs.EventHooks;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.EventHooks;
 
 import java.util.List;
 
 /**
  * Orb projectile - spherical homing energy ball.
  * Extends EntityEnergyAbility for shared functionality.
- *
+ * <p>
  * Design inspired by LouisXIV's energy attack system.
  */
 public class EntityAbilityOrb extends EntityEnergyProjectile {

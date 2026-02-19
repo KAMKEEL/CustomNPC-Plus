@@ -13,7 +13,8 @@ public class EnergyLightningData implements IEnergyLightningData {
     public float lightningRadius = 0.5f;
     public int lightningFadeTime = 6;
 
-    public EnergyLightningData() {}
+    public EnergyLightningData() {
+    }
 
     public EnergyLightningData(boolean lightningEffect, float lightningDensity,
                                float lightningRadius, int lightningFadeTime) {

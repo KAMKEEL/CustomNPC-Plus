@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import static kamkeel.npcs.command.AbilityCommand.getPlayerAbilityNames;
+import static kamkeel.npcs.command.AbilityCommand.getPlayerChainNames;
 import static kamkeel.npcs.command.EffectCommand.getSortedEffectNames;
 
 public class CommandKamkeel extends CommandBase {
@@ -138,6 +139,9 @@ public class CommandKamkeel extends CommandBase {
                     return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
                 } else if (usage.equals("<ability>")) {
                     List<String> keys = getPlayerAbilityNames();
+                    return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
+                } else if (usage.equals("<chain>")) {
+                    List<String> keys = getPlayerChainNames();
                     return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
                 }
             }

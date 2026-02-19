@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL11;
 /**
  * Renders the AbilityDisc entity as a flat spinning square.
  * Rotates only on Y axis (flat spin like a saw blade).
- *
+ * <p>
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)

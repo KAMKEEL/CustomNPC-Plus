@@ -6,10 +6,10 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -332,10 +332,10 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
-            // Cancel any executing ability on dimension change
+            // Fully reset ability state on dimension change (no cooldown rollover)
             PlayerData playerData = PlayerData.get(event.player);
             if (playerData != null) {
-                playerData.abilityData.interruptCurrentAbility();
+                playerData.abilityData.resetOnDimensionChange();
             }
 
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);

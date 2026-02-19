@@ -15,7 +15,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.BuiltInAnimation;
 
 import java.io.IOException;

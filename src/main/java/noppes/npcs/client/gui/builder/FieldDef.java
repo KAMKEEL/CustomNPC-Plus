@@ -2,12 +2,12 @@ package noppes.npcs.client.gui.builder;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.data.Animation;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -175,8 +175,8 @@ public class FieldDef {
     }
 
     public static FieldDef animSubGui(String label,
-            Supplier<Integer> idGetter, Consumer<Integer> idSetter,
-            Supplier<String> nameGetter, Consumer<String> nameSetter) {
+                                      Supplier<Integer> idGetter, Consumer<Integer> idSetter,
+                                      Supplier<String> nameGetter, Consumer<String> nameSetter) {
         return subGuiField(label,
             () -> new GuiAnimationSelection(idGetter.get(), nameGetter.get()),
             gui -> {
@@ -202,7 +202,10 @@ public class FieldDef {
                 }
                 return "gui.none";
             })
-            .clearable(() -> { idSetter.accept(-1); nameSetter.accept(""); });
+            .clearable(() -> {
+                idSetter.accept(-1);
+                nameSetter.accept("");
+            });
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -264,21 +267,65 @@ public class FieldDef {
     // GETTERS
     // ═══════════════════════════════════════════════════════════════════
 
-    public String getLabel() { return label; }
-    public FieldType getType() { return type; }
-    public String getTab() { return tab; }
-    public boolean isVisible() { return visibleWhen.getAsBoolean(); }
-    public boolean isEnabled() { return enabledWhen.getAsBoolean(); }
-    public String getHoverText() { return hoverText; }
-    public float getMin() { return min; }
-    public float getMax() { return max; }
-    public boolean hasRange() { return min != Float.NEGATIVE_INFINITY || max != Float.POSITIVE_INFINITY; }
-    public Class<? extends Enum<?>> getEnumClass() { return enumClass; }
-    public String[] getStringEnumValues() { return stringEnumValues; }
-    public Supplier<SubGuiInterface> getSubGuiFactory() { return subGuiFactory; }
-    public Consumer<SubGuiInterface> getSubGuiResultHandler() { return subGuiResultHandler; }
-    public boolean hasClearAction() { return clearAction != null; }
-    public Runnable getClearAction() { return clearAction; }
+    public String getLabel() {
+        return label;
+    }
+
+    public FieldType getType() {
+        return type;
+    }
+
+    public String getTab() {
+        return tab;
+    }
+
+    public boolean isVisible() {
+        return visibleWhen.getAsBoolean();
+    }
+
+    public boolean isEnabled() {
+        return enabledWhen.getAsBoolean();
+    }
+
+    public String getHoverText() {
+        return hoverText;
+    }
+
+    public float getMin() {
+        return min;
+    }
+
+    public float getMax() {
+        return max;
+    }
+
+    public boolean hasRange() {
+        return min != Float.NEGATIVE_INFINITY || max != Float.POSITIVE_INFINITY;
+    }
+
+    public Class<? extends Enum<?>> getEnumClass() {
+        return enumClass;
+    }
+
+    public String[] getStringEnumValues() {
+        return stringEnumValues;
+    }
+
+    public Supplier<SubGuiInterface> getSubGuiFactory() {
+        return subGuiFactory;
+    }
+
+    public Consumer<SubGuiInterface> getSubGuiResultHandler() {
+        return subGuiResultHandler;
+    }
+
+    public boolean hasClearAction() {
+        return clearAction != null;
+    }
+
+    public Runnable getClearAction() {
+        return clearAction;
+    }
 
     public Object getValue() {
         return getter != null ? getter.get() : null;
@@ -305,8 +352,13 @@ public class FieldDef {
         return buttonTextColorSupplier != null ? buttonTextColorSupplier.get() : null;
     }
 
-    public FieldDef getLeftChild() { return leftChild; }
-    public FieldDef getRightChild() { return rightChild; }
+    public FieldDef getLeftChild() {
+        return leftChild;
+    }
+
+    public FieldDef getRightChild() {
+        return rightChild;
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // LIST MANIPULATION (for mod injection)
@@ -356,7 +408,7 @@ public class FieldDef {
      *
      * @param fields      The field list to modify
      * @param targetLabel The label of the field to modify
-     * @param condition    The condition to replace
+     * @param condition   The condition to replace
      * @return true if the target was found and the condition was modified
      */
     public static boolean modifyVisibility(List<FieldDef> fields, String targetLabel, BooleanSupplier condition) {

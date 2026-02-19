@@ -203,4 +203,81 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
             return EnumScriptType.ABILITY_TICK.function;
         }
     }
+
+    /**
+     * Fired when a toggle ability changes state.
+     * Canceling prevents the toggle from changing state.
+     */
+    @Cancelable
+    public static class ToggleEvent extends AbilityEvent implements IAbilityEvent.ToggleEvent {
+        private final int oldState;
+        private final int newState;
+
+        public ToggleEvent(ICustomNpc npc, Ability ability, int oldState, int newState) {
+            super(npc, ability, null);
+            this.oldState = oldState;
+            this.newState = newState;
+        }
+
+        @Override
+        public boolean isTogglingOn() {
+            return newState > 0;
+        }
+
+        @Override
+        public int getOldState() {
+            return oldState;
+        }
+
+        @Override
+        public int getNewState() {
+            return newState;
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.ABILITY_TOGGLE.function;
+        }
+    }
+
+    /**
+     * Fired every 10 ticks for each active toggle ability.
+     * Scripts can set enabled to false to force-deactivate.
+     */
+    public static class ToggleUpdateEvent extends AbilityEvent implements IAbilityEvent.ToggleUpdateEvent {
+        private final int tick;
+        private final int state;
+        private boolean enabled = true;
+
+        public ToggleUpdateEvent(ICustomNpc npc, Ability ability, int tick, int state) {
+            super(npc, ability, null);
+            this.tick = tick;
+            this.state = state;
+        }
+
+        @Override
+        public int getTick() {
+            return tick;
+        }
+
+        @Override
+        public int getState() {
+            return state;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.ABILITY_TOGGLE_UPDATE.function;
+        }
+    }
 }

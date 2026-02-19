@@ -18,13 +18,13 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.IPlayerBankData;
-import noppes.npcs.api.handler.IPlayerTradeData;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.IPlayerDialogData;
 import noppes.npcs.api.handler.IPlayerFactionData;
 import noppes.npcs.api.handler.IPlayerItemGiverData;
 import noppes.npcs.api.handler.IPlayerMailData;
 import noppes.npcs.api.handler.IPlayerQuestData;
+import noppes.npcs.api.handler.IPlayerTradeData;
 import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
@@ -46,8 +46,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.UUID;
-
-import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public PlayerDialogData dialogData = new PlayerDialogData(this);

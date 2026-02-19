@@ -20,12 +20,12 @@ import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import noppes.npcs.client.gui.player.AuctionTooltipHandler;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.QuestTrackingComponent;
+import noppes.npcs.client.gui.player.AuctionTooltipHandler;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -91,9 +91,9 @@ public class ClientEventHandler {
         // Block mouse movement during ability rotation lock.
         // Allow clicks (button >= 0) and scroll (dwheel != 0) to pass through.
         if (mc.theWorld != null && mc.thePlayer != null
-                && ClientAbilityState.shouldLockRotation()
-                && (event.dx != 0 || event.dy != 0)
-                && event.button == -1 && event.dwheel == 0) {
+            && ClientAbilityState.shouldLockRotation()
+            && (event.dx != 0 || event.dy != 0)
+            && event.button == -1 && event.dwheel == 0) {
             event.setCanceled(true);
             return;
         }

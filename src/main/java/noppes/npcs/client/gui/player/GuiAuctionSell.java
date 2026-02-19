@@ -7,15 +7,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiAuctionNavButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.AuctionClientConfig;
 import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.util.AuctionFormatUtil;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +105,9 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         return PAGE_SELL;
     }
 
-    /** Update visibility of buyout price field based on toggle state */
+    /**
+     * Update visibility of buyout price field based on toggle state
+     */
     private void updateBuyoutVisibility() {
         if (lblBuyout != null) {
             lblBuyout.enabled = allowBuyout;
@@ -117,7 +121,9 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         }
     }
 
-    /** Update the buyout toggle button tooltip */
+    /**
+     * Update the buyout toggle button tooltip
+     */
     private void updateBuyoutTooltip() {
         if (btnAllowBuyout == null) return;
 
@@ -239,7 +245,7 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
 
         // Draw listing fee info (uses cached config from server)
         String feeText = StatCollector.translateToLocal("auction.sell.fee")
-            .replace("%s", formatCurrency(AuctionClientConfig.getListingFee()) + " " + AuctionClientConfig.getCurrencyName());
+            .replace("%s", AuctionFormatUtil.formatCurrency(AuctionClientConfig.getListingFee()) + " " + AuctionClientConfig.getCurrencyName());
         fontRendererObj.drawString(EnumChatFormatting.GRAY + feeText, guiLeft + contentX, guiTop + contentY + 77, 0xFFFFFF);
 
         // Draw error message if any
@@ -250,7 +256,9 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         drawSellSlotIndicator(slotX, slotY);
     }
 
-    /** Draw indicator showing staged vs available items */
+    /**
+     * Draw indicator showing staged vs available items
+     */
     private void drawSellSlotIndicator(int slotX, int slotY) {
         ItemStack sellItem = sellContainer.getItemToSell();
         if (sellItem != null) {
@@ -308,7 +316,9 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         drawSellPageTooltips(mouseX, mouseY);
     }
 
-    /** Draw tooltips for sell page buttons */
+    /**
+     * Draw tooltips for sell page buttons
+     */
     private void drawSellPageTooltips(int mouseX, int mouseY) {
         List<String> tooltip = null;
 
@@ -326,7 +336,11 @@ public class GuiAuctionSell extends GuiAuctionInterface implements ITextfieldLis
         }
 
         if (tooltip != null && !tooltip.isEmpty()) {
+            GL11.glPushMatrix();
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
             drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj);
+            GL11.glPopAttrib();
+            GL11.glPopMatrix();
         }
     }
 }

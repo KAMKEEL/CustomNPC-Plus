@@ -5,18 +5,15 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityNPCInterface;
-
 import noppes.npcs.api.ability.type.IAbilityProjectile;
-
 import noppes.npcs.client.gui.builder.FieldDef;
-import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 
 import java.util.Arrays;
 import java.util.List;
@@ -94,7 +91,11 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
         double dy = (target.posY + target.height / 2) - (caster.posY + caster.getEyeHeight());
         double dz = target.posZ - caster.posZ;
         double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (len > 0) { dx /= len; dy /= len; dz /= len; }
+        if (len > 0) {
+            dx /= len;
+            dy /= len;
+            dz /= len;
+        }
 
         applyAbilityDamageWithDirection(caster, target, damage, knockback, dx, dz);
         world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
@@ -167,7 +168,7 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
      * Apply explosion splash damage around a point.
      */
     private void applyExplosionDamage(EntityLivingBase caster, EntityLivingBase primaryTarget, World world,
-                                       double x, double y, double z) {
+                                      double x, double y, double z) {
         @SuppressWarnings("unchecked")
         List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(primaryTarget,
             primaryTarget.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));

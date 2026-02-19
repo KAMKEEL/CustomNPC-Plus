@@ -27,6 +27,11 @@ public class ScriptEnergyDome<T extends EntityEnergyDome> extends ScriptEnergyBa
 
     // ==================== DOME-SPECIFIC ====================
 
-    public float getDomeRadius() { return entity.getDomeRadius(); }
-    public void setDomeRadius(float radius) { entity.setDomeRadius(radius); }
+    public float getDomeRadius() {
+        return entity.getDomeRadius();
+    }
+
+    public void setDomeRadius(float radius) {
+        entity.setDomeRadius(radius);
+    }
 }

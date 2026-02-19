@@ -26,40 +26,95 @@ public abstract class AbilityEnergy extends Ability {
 
     // ==================== DISPLAY DATA ====================
 
-    public int getInnerColor() { return displayData.innerColor; }
-    public void setInnerColor(int color) { displayData.innerColor = color; }
+    public int getInnerColor() {
+        return displayData.innerColor;
+    }
 
-    public float getInnerAlpha() { return displayData.innerAlpha; }
-    public void setInnerAlpha(float alpha) { displayData.innerAlpha = alpha; }
+    public void setInnerColor(int color) {
+        displayData.innerColor = color;
+    }
 
-    public int getOuterColor() { return displayData.outerColor; }
-    public void setOuterColor(int color) { displayData.outerColor = color; }
+    public float getInnerAlpha() {
+        return displayData.innerAlpha;
+    }
 
-    public boolean isOuterColorEnabled() { return displayData.outerColorEnabled; }
-    public void setOuterColorEnabled(boolean enabled) { displayData.outerColorEnabled = enabled; }
+    public void setInnerAlpha(float alpha) {
+        displayData.innerAlpha = alpha;
+    }
 
-    public float getOuterColorWidth() { return displayData.outerColorWidth; }
-    public void setOuterColorWidth(float width) { displayData.outerColorWidth = width; }
+    public int getOuterColor() {
+        return displayData.outerColor;
+    }
 
-    public float getOuterColorAlpha() { return displayData.outerColorAlpha; }
-    public void setOuterColorAlpha(float alpha) { displayData.outerColorAlpha = alpha; }
+    public void setOuterColor(int color) {
+        displayData.outerColor = color;
+    }
 
-    public float getRotationSpeed() { return displayData.rotationSpeed; }
-    public void setRotationSpeed(float speed) { displayData.rotationSpeed = speed; }
+    public boolean isOuterColorEnabled() {
+        return displayData.outerColorEnabled;
+    }
+
+    public void setOuterColorEnabled(boolean enabled) {
+        displayData.outerColorEnabled = enabled;
+    }
+
+    public float getOuterColorWidth() {
+        return displayData.outerColorWidth;
+    }
+
+    public void setOuterColorWidth(float width) {
+        displayData.outerColorWidth = width;
+    }
+
+    public float getOuterColorAlpha() {
+        return displayData.outerColorAlpha;
+    }
+
+    public void setOuterColorAlpha(float alpha) {
+        displayData.outerColorAlpha = alpha;
+    }
+
+    public float getRotationSpeed() {
+        return displayData.rotationSpeed;
+    }
+
+    public void setRotationSpeed(float speed) {
+        displayData.rotationSpeed = speed;
+    }
 
     // ==================== LIGHTNING DATA ====================
 
-    public boolean hasLightningEffect() { return lightningData.lightningEffect; }
-    public void setLightningEffect(boolean enabled) { lightningData.lightningEffect = enabled; }
+    public boolean hasLightningEffect() {
+        return lightningData.lightningEffect;
+    }
 
-    public float getLightningDensity() { return lightningData.lightningDensity; }
-    public void setLightningDensity(float density) { lightningData.lightningDensity = density; }
+    public void setLightningEffect(boolean enabled) {
+        lightningData.lightningEffect = enabled;
+    }
 
-    public float getLightningRadius() { return lightningData.lightningRadius; }
-    public void setLightningRadius(float radius) { lightningData.lightningRadius = radius; }
+    public float getLightningDensity() {
+        return lightningData.lightningDensity;
+    }
 
-    public int getLightningFadeTime() { return lightningData.lightningFadeTime; }
-    public void setLightningFadeTime(int fadeTime) { lightningData.lightningFadeTime = fadeTime; }
+    public void setLightningDensity(float density) {
+        lightningData.lightningDensity = density;
+    }
+
+    public float getLightningRadius() {
+        return lightningData.lightningRadius;
+    }
+
+    public void setLightningRadius(float radius) {
+        lightningData.lightningRadius = radius;
+    }
+
+    public int getLightningFadeTime() {
+        return lightningData.lightningFadeTime;
+    }
+
+    public void setLightningFadeTime(int fadeTime) {
+        lightningData.lightningFadeTime = fadeTime;
+    }
 
     // ==================== NBT HELPERS ====================
 

@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * Renders the AbilityLaser entity as a rectangular beam with clear inner/outer colors.
- *
+ * <p>
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
@@ -69,7 +69,9 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
         // Calculate perpendicular vectors (one horizontal, one vertical relative to beam)
         double upX = 0, upY = 1, upZ = 0;
         if (Math.abs(dy) > 0.9) {
-            upX = 1; upY = 0; upZ = 0;
+            upX = 1;
+            upY = 0;
+            upZ = 0;
         }
 
         // Cross product for horizontal perpendicular
@@ -98,29 +100,29 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
             float outerWidth = innerWidth + laser.getOuterColorWidth() * width;
             GL11.glDepthMask(false);
             renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
-                                renderEndX, renderEndY, renderEndZ,
-                                horzX, horzY, horzZ, vertX, vertY, vertZ,
-                                outerWidth, laser.getOuterColor(), alpha * 0.4f);
+                renderEndX, renderEndY, renderEndZ,
+                horzX, horzY, horzZ, vertX, vertY, vertZ,
+                outerWidth, laser.getOuterColor(), alpha * 0.4f);
 
             // Render middle layer (halfway between inner and outer)
             float midWidth = innerWidth + (outerWidth - innerWidth) * 0.5f;
             renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
-                                renderEndX, renderEndY, renderEndZ,
-                                horzX, horzY, horzZ, vertX, vertY, vertZ,
-                                midWidth, laser.getOuterColor(), alpha * 0.7f);
+                renderEndX, renderEndY, renderEndZ,
+                horzX, horzY, horzZ, vertX, vertY, vertZ,
+                midWidth, laser.getOuterColor(), alpha * 0.7f);
             GL11.glDepthMask(true);
         }
 
         // Render inner core (solid)
         renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
-                            renderEndX, renderEndY, renderEndZ,
-                            horzX, horzY, horzZ, vertX, vertY, vertZ,
-                            innerWidth, laser.getInnerColor(), alpha);
+            renderEndX, renderEndY, renderEndZ,
+            horzX, horzY, horzZ, vertX, vertY, vertZ,
+            innerWidth, laser.getInnerColor(), alpha);
 
         // Render lightning along the laser beam
         if (laser.hasLightningEffect() && laser.getCurrentLength() > 0.1f) {
             renderLaserLightning(laser, renderStartX, renderStartY, renderStartZ,
-                                 renderEndX, renderEndY, renderEndZ, width);
+                renderEndX, renderEndY, renderEndZ, width);
         }
 
         restoreRenderState();
@@ -179,8 +181,8 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
      * Render lightning effects along the laser beam at multiple points.
      */
     private void renderLaserLightning(EntityAbilityLaser laser,
-                                       double startX, double startY, double startZ,
-                                       double endX, double endY, double endZ, float width) {
+                                      double startX, double startY, double startZ,
+                                      double endX, double endY, double endZ, float width) {
         AttachedLightningRenderer.LightningState state = getLightningState(laser);
 
         float density = laser.getLightningDensity();
@@ -229,10 +231,10 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
      * Render a beam as a 3D rectangular prism (box along a line).
      */
     private void renderBeamRectangle(double x1, double y1, double z1,
-                                      double x2, double y2, double z2,
-                                      double horzX, double horzY, double horzZ,
-                                      double vertX, double vertY, double vertZ,
-                                      float width, int color, float alpha) {
+                                     double x2, double y2, double z2,
+                                     double horzX, double horzY, double horzZ,
+                                     double vertX, double vertY, double vertZ,
+                                     float width, int color, float alpha) {
         float[] rgb = extractRGB(color);
         float r = rgb[0], g = rgb[1], b = rgb[2];
 
