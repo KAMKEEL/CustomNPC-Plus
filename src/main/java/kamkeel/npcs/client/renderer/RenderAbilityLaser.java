@@ -117,7 +117,7 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
         renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
             renderEndX, renderEndY, renderEndZ,
             horzX, horzY, horzZ, vertX, vertY, vertZ,
-            innerWidth, laser.getInnerColor(), alpha);
+            innerWidth, laser.getInnerColor(), alpha * laser.getInnerAlpha());
 
         // Render lightning along the laser beam
         if (laser.hasLightningEffect() && laser.getCurrentLength() > 0.1f) {

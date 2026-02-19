@@ -67,7 +67,7 @@ public class RenderAbilityDisc extends RenderEnergyAbility {
         }
 
         // Render inner square (solid)
-        renderFlatSquare(disc.getInnerColor(), 1.0f, radius * innerScale, thickness * 1.2f);
+        renderFlatSquare(disc.getInnerColor(), disc.getInnerAlpha(), radius * innerScale, thickness * 1.2f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();
