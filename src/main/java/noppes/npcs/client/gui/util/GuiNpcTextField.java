@@ -30,7 +30,7 @@ public class GuiNpcTextField extends GuiTextField {
     private boolean wasHovered = false;
     private int hoverCount = 0;
 
-    private final int[] allowedSpecialChars = {14, 211, 203, 205};
+    private final int[] allowedSpecialChars = {14, 211, 203, 205, 199, 207};
 
     public GuiNpcTextField(int id, GuiScreen parent, FontRenderer fontRenderer, int i, int j, int k, int l, String s) {
         super(fontRenderer, i, j, k, l);
@@ -69,9 +69,33 @@ public class GuiNpcTextField extends GuiTextField {
 
     @Override
     public boolean textboxKeyTyped(char c, int i) {
-        if (!charAllowed(c, i) || !canEdit)
+        if (!canEdit)
+            return false;
+        // Allow Ctrl shortcuts (select all, copy, paste, cut) to bypass char filter
+        if (GuiScreen.isCtrlKeyDown()) {
+            // For Ctrl+V (paste) on numeric fields, filter clipboard to valid chars
+            if (i == 47 && isNumericField()) {
+                String clipboard = GuiScreen.getClipboardString();
+                if (clipboard != null) {
+                    StringBuilder filtered = new StringBuilder();
+                    for (char ch : clipboard.toCharArray()) {
+                        if (Character.isDigit(ch) || ch == '-' || ((doublesOnly || floatsOnly) && ch == '.'))
+                            filtered.append(ch);
+                    }
+                    if (filtered.length() > 0)
+                        writeText(filtered.toString());
+                }
+                return true;
+            }
+            return super.textboxKeyTyped(c, i);
+        }
+        if (!charAllowed(c, i))
             return false;
         return super.textboxKeyTyped(c, i);
+    }
+
+    private boolean isNumericField() {
+        return integersOnly || doublesOnly || floatsOnly;
     }
 
     public boolean isEmpty() {
