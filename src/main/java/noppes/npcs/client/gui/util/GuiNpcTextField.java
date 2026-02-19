@@ -69,7 +69,7 @@ public class GuiNpcTextField extends GuiTextField {
 
     @Override
     public boolean textboxKeyTyped(char c, int i) {
-        if (!canEdit)
+        if (!canEdit || !isFocused())
             return false;
         // Allow Ctrl shortcuts (select all, copy, paste, cut) to bypass char filter
         if (GuiScreen.isCtrlKeyDown()) {
