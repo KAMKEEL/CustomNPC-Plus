@@ -38,6 +38,9 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     // Disc shape properties
     private float discRadius = 1.0f; // Width of disc
     private float discThickness = 0.2f; // Height of disc
+
+    // Boomerang owner-gone tracking
+    private int returnOwnerNullTicks = 0;
     private boolean vertical = false; // false = horizontal (flat), true = vertical (thin edge forward)
 
     // Charging state (disc-specific target sizes)
@@ -274,6 +277,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
             if (returning) {
                 Entity owner = getOwnerEntity();
                 if (owner != null) {
+                    returnOwnerNullTicks = 0;
                     double distToOwner = Math.sqrt(
                         (posX - owner.posX) * (posX - owner.posX) +
                             (posY - owner.posY) * (posY - owner.posY) +
@@ -281,8 +285,9 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
                     );
                     return distToOwner < 1.5;
                 }
-                // Owner gone but returning - keep going toward last known position
-                return false;
+                // Owner gone while returning - grace period then die
+                returnOwnerNullTicks++;
+                return returnOwnerNullTicks > 100;
             }
 
             // Not returning yet - don't die from distance (we'll trigger return above)
@@ -487,8 +492,8 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     protected void readProjectileNBT(NBTTagCompound nbt) {
         this.boomerang = nbt.hasKey("Boomerang") && nbt.getBoolean("Boomerang");
         this.boomerangDelay = nbt.hasKey("BoomerangDelay") ? nbt.getInteger("BoomerangDelay") : 40;
-        this.discRadius = nbt.hasKey("DiscRadius") ? nbt.getFloat("DiscRadius") : 1.0f;
-        this.discThickness = nbt.hasKey("DiscThickness") ? nbt.getFloat("DiscThickness") : 0.2f;
+        this.discRadius = sanitize(nbt.hasKey("DiscRadius") ? nbt.getFloat("DiscRadius") : 1.0f, 1.0f, MAX_ENTITY_SIZE);
+        this.discThickness = sanitize(nbt.hasKey("DiscThickness") ? nbt.getFloat("DiscThickness") : 0.2f, 0.2f, MAX_ENTITY_SIZE);
         this.vertical = nbt.hasKey("Vertical") ? nbt.getBoolean("Vertical") : false;
         this.returning = nbt.hasKey("Returning") && nbt.getBoolean("Returning");
         // Charging state (common fields handled by base)

@@ -365,8 +365,10 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         this.mode = (modeOrdinal >= 0 && modeOrdinal < PanelMode.values().length)
             ? PanelMode.values()[modeOrdinal] : PanelMode.PLACED;
         panelData.readNBT(nbt);
-        this.targetPanelWidth = nbt.hasKey("TargetPanelWidth") ? nbt.getFloat("TargetPanelWidth") : panelData.panelWidth;
-        this.targetPanelHeight = nbt.hasKey("TargetPanelHeight") ? nbt.getFloat("TargetPanelHeight") : panelData.panelHeight;
+        panelData.panelWidth = Math.min(panelData.panelWidth, MAX_ENTITY_SIZE);
+        panelData.panelHeight = Math.min(panelData.panelHeight, MAX_ENTITY_SIZE);
+        this.targetPanelWidth = sanitize(nbt.hasKey("TargetPanelWidth") ? nbt.getFloat("TargetPanelWidth") : panelData.panelWidth, 3.0f, MAX_ENTITY_SIZE);
+        this.targetPanelHeight = sanitize(nbt.hasKey("TargetPanelHeight") ? nbt.getFloat("TargetPanelHeight") : panelData.panelHeight, 3.0f, MAX_ENTITY_SIZE);
     }
 
     @Override

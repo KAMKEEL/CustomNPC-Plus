@@ -129,6 +129,12 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
             return;
         }
 
+        // Absolute hard lifetime cap (safety net)
+        if (ticksExisted > HARD_LIFETIME_CAP) {
+            this.setDead();
+            return;
+        }
+
         Entity owner = getOwnerEntity();
         if (owner != null && owner.isDead) {
             this.setDead();
@@ -330,9 +336,9 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
-        this.beamLength = nbt.getFloat("BeamLength");
-        this.beamWidth = nbt.getFloat("BeamWidth");
-        this.beamHeight = nbt.getFloat("BeamHeight");
+        this.beamLength = sanitize(nbt.getFloat("BeamLength"), 10.0f, MAX_ENTITY_SIZE);
+        this.beamWidth = sanitize(nbt.getFloat("BeamWidth"), 0.3f, MAX_ENTITY_SIZE);
+        this.beamHeight = sanitize(nbt.getFloat("BeamHeight"), 0.8f, MAX_ENTITY_SIZE);
         this.sweepSpeed = nbt.getFloat("SweepSpeed");
         this.numberOfRotations = nbt.getInteger("NumRotations");
         this.completedRotations = nbt.getInteger("CompletedRotations");

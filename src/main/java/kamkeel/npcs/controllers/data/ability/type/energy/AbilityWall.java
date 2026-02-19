@@ -205,8 +205,8 @@ public class AbilityWall extends AbilityEnergyBarrier {
     protected void addBarrierTypeDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.section("ability.section.panel"));
         defs.add(FieldDef.row(
-            FieldDef.floatField("gui.width", this::getPanelWidth, this::setPanelWidth).range(0.5f, 20.0f),
-            FieldDef.floatField("gui.height", this::getPanelHeight, this::setPanelHeight).range(0.5f, 20.0f)
+            FieldDef.floatField("gui.width", this::getPanelWidth, this::setPanelWidth).range(0.5f, 100.0f),
+            FieldDef.floatField("gui.height", this::getPanelHeight, this::setPanelHeight).range(0.5f, 100.0f)
         ));
         defs.add(FieldDef.floatField("ability.heightOffset", this::getHeightOffset, this::setHeightOffset)
             .min(Float.NEGATIVE_INFINITY));

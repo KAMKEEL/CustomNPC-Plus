@@ -183,14 +183,14 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
         defs.add(FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback));
         defs.add(FieldDef.section("ability.section.slicer"));
         defs.add(FieldDef.row(
-            FieldDef.floatField("gui.width", this::getSliceWidth, this::setSliceWidth).range(0.5f, 20.0f),
-            FieldDef.floatField("gui.thickness", this::getSliceThickness, this::setSliceThickness).range(0.05f, 2.0f)
+            FieldDef.floatField("gui.width", this::getSliceWidth, this::setSliceWidth).range(0.5f, 100.0f),
+            FieldDef.floatField("gui.thickness", this::getSliceThickness, this::setSliceThickness).range(0.05f, 100.0f)
         ));
         defs.add(FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
             .hover("ability.hover.piercing"));
         defs.add(FieldDef.row(
-            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
-            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).range(1.0f, 500.0f),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200)
         ));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));

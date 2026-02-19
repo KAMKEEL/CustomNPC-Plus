@@ -260,14 +260,14 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
             ),
             FieldDef.section("ability.section.beam"),
             FieldDef.row(
-                FieldDef.floatField("gui.length", this::getBeamLength, this::setBeamLength),
-                FieldDef.floatField("gui.width", this::getBeamWidth, this::setBeamWidth)
+                FieldDef.floatField("gui.length", this::getBeamLength, this::setBeamLength).range(0.5f, 100.0f),
+                FieldDef.floatField("gui.width", this::getBeamWidth, this::setBeamWidth).range(0.1f, 100.0f)
             ),
             FieldDef.row(
-                FieldDef.floatField("gui.height", this::getBeamHeight, this::setBeamHeight),
-                FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed)
+                FieldDef.floatField("gui.height", this::getBeamHeight, this::setBeamHeight).range(0.1f, 100.0f),
+                FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed).range(0.1f, 30.0f)
             ),
-            FieldDef.intField("ability.rotations", this::getNumberOfRotations, this::setNumberOfRotations),
+            FieldDef.intField("ability.rotations", this::getNumberOfRotations, this::setNumberOfRotations).range(1, 20),
             FieldDef.row(
                 FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
                     .hover("ability.hover.piercing"),

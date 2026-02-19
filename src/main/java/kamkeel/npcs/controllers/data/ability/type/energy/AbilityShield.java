@@ -145,8 +145,8 @@ public class AbilityShield extends AbilityEnergyBarrier {
     @Override
     protected void addBarrierTypeDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.row(
-            FieldDef.floatField("gui.width", this::getShieldWidth, this::setShieldWidth).range(0.5f, 10.0f),
-            FieldDef.floatField("gui.height", this::getShieldHeight, this::setShieldHeight).range(0.5f, 10.0f)
+            FieldDef.floatField("gui.width", this::getShieldWidth, this::setShieldWidth).range(0.5f, 100.0f),
+            FieldDef.floatField("gui.height", this::getShieldHeight, this::setShieldHeight).range(0.5f, 100.0f)
         ));
     }
 }

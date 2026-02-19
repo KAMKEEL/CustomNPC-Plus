@@ -18,6 +18,13 @@ import net.minecraft.world.World;
  */
 public abstract class EntityEnergyAbility extends Entity implements IEntityAdditionalSpawnData {
 
+    // ==================== SAFETY CONSTANTS ====================
+    protected static final int CHARGE_TIMEOUT_GRACE = 60;          // Ticks of grace after charge should have ended
+    protected static final int HARD_LIFETIME_CAP = 1200;           // 60 seconds absolute max for projectiles/sweepers
+    protected static final int BARRIER_HARD_LIFETIME_CAP = 12000;  // 10 minutes absolute max for barriers
+    protected static final float MAX_ENTITY_SIZE = 100.0f;         // Max size/width/length for any energy entity
+    protected static final float MAX_ENTITY_RADIUS = 50.0f;        // Max radius for dome barriers
+
     // ==================== VISUAL PROPERTIES ====================
     protected EnergyDisplayData displayData = new EnergyDisplayData();
     protected EnergyLightningData lightningData = new EnergyLightningData();
@@ -270,6 +277,17 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     @SideOnly(Side.CLIENT)
     public float getShadowSize() {
         return 0.0f;
+    }
+
+    // ==================== SAFETY HELPERS ====================
+
+    /**
+     * Sanitize a float value loaded from NBT or external sources.
+     * Guards against NaN, Infinity, negative values, and values exceeding a max.
+     */
+    protected static float sanitize(float value, float fallback, float max) {
+        if (Float.isNaN(value) || Float.isInfinite(value) || value < 0) return fallback;
+        return Math.min(value, max);
     }
 
     // ==================== NBT HELPERS ====================

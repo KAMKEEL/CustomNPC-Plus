@@ -174,6 +174,13 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
                 return true;
             }
 
+            // Absolute hard lifetime cap (safety net for barriers with no duration)
+            if (ticksAlive > BARRIER_HARD_LIFETIME_CAP) {
+                onBarrierDestroyed();
+                this.setDead();
+                return true;
+            }
+
             // Reset hit flash
             if (getHitFlash() > 0) {
                 setHitFlash((byte) (getHitFlash() - 1));
