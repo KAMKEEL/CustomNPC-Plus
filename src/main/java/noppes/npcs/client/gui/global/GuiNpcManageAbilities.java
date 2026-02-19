@@ -600,6 +600,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     }
 
     private void openConfig(Ability ability) {
+        if (ability.isBuiltIn()) return; // Built-in abilities are immutable
         selectedAbility = ability;
         selected = ability.getName();
         previewExecutor.stop();

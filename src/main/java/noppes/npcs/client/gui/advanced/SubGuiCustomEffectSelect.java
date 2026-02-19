@@ -20,6 +20,7 @@ import java.util.Map;
 
 /**
  * SubGui for selecting a custom effect from CustomEffectController.
+ * Supports switching between effect maps (index 0 = custom, addon indices via toggle button).
  */
 @SideOnly(Side.CLIENT)
 public class SubGuiCustomEffectSelect extends SubGuiInterface implements ICustomScrollListener, ITextfieldListener {
@@ -28,11 +29,25 @@ public class SubGuiCustomEffectSelect extends SubGuiInterface implements ICustom
     private final HashMap<String, Integer> displayNameToId = new HashMap<>();
     private final HashMap<String, Integer> allDisplayNameToId = new HashMap<>();
     private int selectedEffectId = -1;
+    private int selectedIndex = 0;
     private String search = "";
     private final int preselectedId;
+    private final int preselectedIndex;
+
+    /** The effect map index currently being viewed */
+    private int viewIndex = 0;
+
+    /** Ordered list of available indices for toggling */
+    private List<Integer> availableIndices;
 
     public SubGuiCustomEffectSelect(int preselectedId) {
+        this(preselectedId, 0);
+    }
+
+    public SubGuiCustomEffectSelect(int preselectedId, int preselectedIndex) {
         this.preselectedId = preselectedId;
+        this.preselectedIndex = preselectedIndex;
+        this.viewIndex = preselectedIndex;
         setBackground("menubg.png");
         xSize = 200;
         ySize = 216;
@@ -42,22 +57,33 @@ public class SubGuiCustomEffectSelect extends SubGuiInterface implements ICustom
     public void initGui() {
         super.initGui();
 
+        buildAvailableIndices();
+
         addTextField(new GuiNpcTextField(10, this, fontRendererObj, guiLeft + 5, guiTop + 5, 190, 18, search));
+
+        // Toggle button for switching between effect lists (only if addon indices exist)
+        if (availableIndices.size() > 1) {
+            String label = getViewLabel();
+            addButton(new GuiNpcButton(2, guiLeft + 5, guiTop + 26, 190, 20, label));
+        }
+
+        int scrollTop = availableIndices.size() > 1 ? guiTop + 49 : guiTop + 26;
+        int scrollHeight = availableIndices.size() > 1 ? 122 : 145;
 
         if (scroll == null) {
             scroll = new GuiCustomScroll(this, 0);
-            scroll.setSize(190, 145);
         }
+        scroll.setSize(190, scrollHeight);
         scroll.guiLeft = guiLeft + 5;
-        scroll.guiTop = guiTop + 26;
+        scroll.guiTop = scrollTop;
         addScroll(scroll);
 
         buildAllEffects();
         List<String> filtered = getFilteredList();
         scroll.setUnsortedList(filtered);
 
-        // Pre-select current effect
-        if (preselectedId >= 0 && !scroll.hasSelected()) {
+        // Pre-select current effect (only if viewing the same index)
+        if (preselectedId >= 0 && viewIndex == preselectedIndex && !scroll.hasSelected()) {
             for (String name : filtered) {
                 Integer id = displayNameToId.get(name);
                 if (id != null && id == preselectedId) {
@@ -72,9 +98,40 @@ public class SubGuiCustomEffectSelect extends SubGuiInterface implements ICustom
         addButton(new GuiNpcButton(1, guiLeft + 105, guiTop + 188, 90, 20, "gui.cancel"));
     }
 
+    private void buildAvailableIndices() {
+        availableIndices = new ArrayList<>();
+        CustomEffectController controller = CustomEffectController.getInstance();
+
+        // Always include index 0
+        availableIndices.add(0);
+
+        // Add any addon indices that have registered labels
+        HashMap<Integer, String> labels = controller.getIndexLabels();
+        for (int idx : labels.keySet()) {
+            if (idx != 0 && controller.getEffectMap(idx) != null) {
+                availableIndices.add(idx);
+            }
+        }
+        Collections.sort(availableIndices);
+
+        // Ensure viewIndex is valid
+        if (!availableIndices.contains(viewIndex)) {
+            viewIndex = 0;
+        }
+    }
+
+    private String getViewLabel() {
+        if (viewIndex == 0) {
+            return "Custom Effects";
+        }
+        HashMap<Integer, String> labels = CustomEffectController.getInstance().getIndexLabels();
+        String label = labels.get(viewIndex);
+        return label != null ? label : "Index " + viewIndex;
+    }
+
     private void buildAllEffects() {
         allDisplayNameToId.clear();
-        HashMap<Integer, CustomEffect> effects = CustomEffectController.getInstance().getCustomEffects();
+        HashMap<Integer, CustomEffect> effects = CustomEffectController.getInstance().getEffectMap(viewIndex);
         if (effects == null) return;
         for (CustomEffect ce : effects.values()) {
             if (ce.getName() != null && !ce.getName().isEmpty()) {
@@ -103,10 +160,19 @@ public class SubGuiCustomEffectSelect extends SubGuiInterface implements ICustom
             String name = scroll.getSelected();
             Integer id = displayNameToId.get(name);
             selectedEffectId = id != null ? id : -1;
+            selectedIndex = viewIndex;
             close();
         } else if (guibutton.id == 1) {
             selectedEffectId = -1;
             close();
+        } else if (guibutton.id == 2) {
+            // Toggle to next available index
+            int currentPos = availableIndices.indexOf(viewIndex);
+            int nextPos = (currentPos + 1) % availableIndices.size();
+            viewIndex = availableIndices.get(nextPos);
+            search = "";
+            scroll = null;
+            initGui();
         }
     }
 
@@ -122,6 +188,7 @@ public class SubGuiCustomEffectSelect extends SubGuiInterface implements ICustom
         if (guiCustomScroll.id == 0 && selection != null) {
             Integer id = displayNameToId.get(selection);
             selectedEffectId = id != null ? id : -1;
+            selectedIndex = viewIndex;
             close();
         }
     }
@@ -145,5 +212,9 @@ public class SubGuiCustomEffectSelect extends SubGuiInterface implements ICustom
 
     public int getSelectedEffectId() {
         return selectedEffectId;
+    }
+
+    public int getSelectedIndex() {
+        return selectedIndex;
     }
 }

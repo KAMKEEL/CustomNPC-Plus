@@ -182,15 +182,26 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
         }
     }
 
-    private String getCustomEffectName(int effectId) {
-        HashMap<Integer, CustomEffect> allEffects = CustomEffectController.getInstance().getCustomEffects();
+    private String getCustomEffectName(int effectId, int index) {
+        HashMap<Integer, CustomEffect> allEffects = CustomEffectController.getInstance().getEffectMap(index);
         if (allEffects != null) {
             CustomEffect ce = allEffects.get(effectId);
             if (ce != null && ce.getName() != null && !ce.getName().isEmpty()) {
                 return ce.getName();
             }
         }
+        // Fallback: check index 0
+        if (index != 0) {
+            return getCustomEffectName(effectId, 0);
+        }
         return "?";
+    }
+
+    private boolean hasAnyEffects() {
+        for (HashMap<Integer, CustomEffect> map : CustomEffectController.getInstance().indexMapper.values()) {
+            if (map != null && !map.isEmpty()) return true;
+        }
+        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -201,7 +212,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
         sw.addLabel(new GuiNpcLabel(labelId++, def.getLabel(), colLLabel, y + 2, 0xFFFF55));
         y += 15;
 
-        if (sortedCustomEffectNames.length == 0) {
+        if (!hasAnyEffects()) {
             sw.addLabel(new GuiNpcLabel(labelId++, "ability.noCustomEffects", colLLabel, y + 5, 0x888888));
             y += rowHeight;
             return y;
@@ -216,7 +227,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
             AbilityCustomEffect effect = effects.get(e);
 
             // Effect name button — opens SubGui picker
-            String effectName = getCustomEffectName(effect.getEffectId());
+            String effectName = getCustomEffectName(effect.getEffectId(), effect.getIndex());
             GuiNpcButton nameBtn = new GuiNpcButton(widgetId, colLLabel, y, 100, 20, effectName);
             sw.addButton(nameBtn);
             buttonFieldMap.put(widgetId, def);
@@ -381,10 +392,13 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
                     case 0: // Open effect picker SubGui
                         if (idx < effects.size()) {
                             int currentId = effects.get(idx).getEffectId();
-                            parent.setSubGuiWithResult(new SubGuiCustomEffectSelect(currentId), sub -> {
-                                int selectedId = ((SubGuiCustomEffectSelect) sub).getSelectedEffectId();
+                            int currentIndex = effects.get(idx).getIndex();
+                            parent.setSubGuiWithResult(new SubGuiCustomEffectSelect(currentId, currentIndex), sub -> {
+                                SubGuiCustomEffectSelect select = (SubGuiCustomEffectSelect) sub;
+                                int selectedId = select.getSelectedEffectId();
                                 if (selectedId >= 0 && idx < effects.size()) {
                                     effects.get(idx).setEffectId(selectedId);
+                                    effects.get(idx).setIndex(select.getSelectedIndex());
                                 }
                             });
                         }
@@ -397,11 +411,12 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
                         if (idx < effects.size()) effects.remove(idx);
                         return true;
                     case 4: // Add
-                        if (effects.size() < 5 && sortedCustomEffectIds.length > 0) {
+                        if (effects.size() < 5) {
                             parent.setSubGuiWithResult(new SubGuiCustomEffectSelect(-1), sub -> {
-                                int selectedId = ((SubGuiCustomEffectSelect) sub).getSelectedEffectId();
+                                SubGuiCustomEffectSelect select = (SubGuiCustomEffectSelect) sub;
+                                int selectedId = select.getSelectedEffectId();
                                 if (selectedId >= 0 && effects.size() < 5) {
-                                    effects.add(new AbilityCustomEffect(selectedId, 60, (byte) 0));
+                                    effects.add(new AbilityCustomEffect(selectedId, 60, (byte) 0, select.getSelectedIndex()));
                                 }
                             });
                         }

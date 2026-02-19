@@ -59,6 +59,7 @@ public class AbilityCustomEffect {
         nbt.setInteger("effectId", effectId);
         nbt.setInteger("duration", durationTicks);
         nbt.setByte("level", level);
+        nbt.setInteger("index", index);
         return nbt;
     }
 
@@ -66,6 +67,7 @@ public class AbilityCustomEffect {
         this.effectId = nbt.getInteger("effectId");
         this.durationTicks = nbt.getInteger("duration");
         this.level = nbt.getByte("level");
+        this.index = nbt.getInteger("index");
     }
 
     public static AbilityCustomEffect fromNBT(NBTTagCompound nbt) {
@@ -105,6 +107,6 @@ public class AbilityCustomEffect {
     }
 
     public void setIndex(int index) {
-        this.index = ValueUtil.clamp(index, 0, 1);
+        this.index = Math.max(0, index);
     }
 }

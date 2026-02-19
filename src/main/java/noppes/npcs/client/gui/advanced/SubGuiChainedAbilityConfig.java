@@ -556,11 +556,16 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                 case 0: // Entry name button — reference: clone/modify dialog; inline: edit config
                     ChainedAbilityEntry clickedEntry = entries.get(entryIndex);
                     if (clickedEntry.isReference()) {
+                        // Built-in abilities are always references — no editing allowed
+                        Ability refResolved = clickedEntry.resolve();
+                        if (refResolved != null && refResolved.isBuiltIn()) return true;
                         editingEntryIndex = entryIndex;
                         setSubGui(new SubGuiAbilityEditMode());
                     } else if (clickedEntry.isInline() && clickedEntry.getInlineAbility() != null) {
+                        Ability inlineAbility = clickedEntry.getInlineAbility();
+                        if (inlineAbility.isBuiltIn()) return true;
                         editingEntryIndex = entryIndex;
-                        setSubGui(new SubGuiAbilityConfig(clickedEntry.getInlineAbility(), this));
+                        setSubGui(new SubGuiAbilityConfig(inlineAbility, this));
                     }
                     return true;
                 case 2: // Up
@@ -726,9 +731,11 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         if (source == SubGuiChainedEntrySource.SOURCE_NPC_SLOTS) {
             setSubGui(new SubGuiNpcSlotPicker(npcSlots));
         } else if (source == SubGuiChainedEntrySource.SOURCE_LOAD_PRESET) {
-            setSubGui(new SubGuiAbilitySelect());
+            setSubGui(new SubGuiAbilitySelect(SubGuiAbilitySelect.FILTER_CUSTOM_ONLY));
         } else if (source == SubGuiChainedEntrySource.SOURCE_CREATE_NEW) {
             setSubGui(new SubGuiAbilityTypeSelect());
+        } else if (source == SubGuiChainedEntrySource.SOURCE_BUILT_IN) {
+            setSubGui(new SubGuiAbilitySelect(SubGuiAbilitySelect.FILTER_BUILTIN_ONLY));
         }
         // Don't initGui — we're opening another SubGui
     }
@@ -759,7 +766,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                 return;
             }
             Ability newAbility = AbilityController.Instance.create(typeId);
-            if (newAbility != null) {
+            if (newAbility != null && !newAbility.isBuiltIn()) {
                 if (variants.size() == 1) {
                     variants.get(0).apply(newAbility);
                 }
@@ -775,7 +782,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         int idx = gui.getSelectedIndex();
         if (idx >= 0 && pendingTypeId != null) {
             Ability newAbility = AbilityController.Instance.create(pendingTypeId);
-            if (newAbility != null) {
+            if (newAbility != null && !newAbility.isBuiltIn()) {
                 gui.getVariants().get(idx).apply(newAbility);
                 newAbility.setId(java.util.UUID.randomUUID().toString());
                 entries.add(ChainedAbilityEntry.inline(newAbility, 0));
@@ -797,10 +804,17 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         ChainedAbilityEntry entry = entries.get(editingEntryIndex);
 
+        // Block all editing for built-in abilities
+        Ability preCheck = entry.resolve();
+        if (preCheck != null && preCheck.isBuiltIn()) {
+            editingEntryIndex = -1;
+            return;
+        }
+
         if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
             if (entry.convertToInline()) {
                 Ability a = entry.getInlineAbility();
-                if (a != null) {
+                if (a != null && !a.isBuiltIn()) {
                     a.setId(java.util.UUID.randomUUID().toString());
                     setSubGui(new SubGuiAbilityConfig(a, this));
                     return;

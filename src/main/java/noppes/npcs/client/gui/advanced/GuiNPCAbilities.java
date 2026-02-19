@@ -235,6 +235,14 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 Ability a = sel.getAbility();
                 if (a != null && a.isBuiltIn()) selectedIsBuiltIn = true;
             }
+            // Chain entries referencing built-in abilities are not editable
+            if (selectedIsChainEntry && sel.isChain()) {
+                ChainedAbility biChain = sel.isInlineChain() ? sel.getInlineChain() : sel.getChainedAbility();
+                if (biChain != null && selectedEntryIndex < biChain.getEntries().size()) {
+                    Ability resolved = biChain.getEntries().get(selectedEntryIndex).resolve();
+                    if (resolved != null && resolved.isBuiltIn()) selectedIsBuiltIn = true;
+                }
+            }
             // Sub-entries of reference chains are not directly editable from the NPC list
             if (selectedIsChainEntry && sel.isChainReference()) {
                 selectedIsRefChainEntry = true;
@@ -363,6 +371,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     ChainedAbility chain = slot.isInlineChain() ? slot.getInlineChain() : slot.getChainedAbility();
                     if (chain != null && selectedEntryIndex < chain.getEntries().size()) {
                         ChainedAbilityEntry entry = chain.getEntries().get(selectedEntryIndex);
+                        // Built-in abilities are always references — no editing allowed
+                        Ability resolvedEntry = entry.resolve();
+                        if (resolvedEntry != null && resolvedEntry.isBuiltIn()) return;
+
                         if (entry.isInline() && slot.isInlineChain()) {
                             // Inline entry in inline chain — edit directly
                             Ability a = entry.getInlineAbility();
@@ -454,7 +466,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     pendingSaveEntryIdx = -1;
                 }
 
-                if (abilityToSave != null) {
+                if (abilityToSave != null && !abilityToSave.isBuiltIn()) {
                     if (abilityToSave.getName() == null || abilityToSave.getName().isEmpty()) {
                         abilityToSave.setNpcInlineEdit(true);
                         setSubGui(abilityToSave.createConfigGui(this));
@@ -972,6 +984,13 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             }
         } else if (slot.isChain() && selectedEntryIndex >= 0) {
             // Chain entry reference
+            // Block all editing for built-in abilities
+            ChainedAbility resolveChain = slot.isInlineChain() ? slot.getInlineChain() : slot.getChainedAbility();
+            if (resolveChain != null && selectedEntryIndex < resolveChain.getEntries().size()) {
+                Ability entryResolved = resolveChain.getEntries().get(selectedEntryIndex).resolve();
+                if (entryResolved != null && entryResolved.isBuiltIn()) return;
+            }
+
             if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
                 if (slot.isChainReference()) {
                     slot.convertToInline();
@@ -981,7 +1000,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                     ChainedAbilityEntry entry = chain.getEntries().get(selectedEntryIndex);
                     if (entry.convertToInline()) {
                         Ability a = entry.getInlineAbility();
-                        if (a != null) {
+                        if (a != null && !a.isBuiltIn()) {
                             editingChainEntry = true;
                             editChainSlotIdx = selectedSlotIndex;
                             editChainEntryIdx = selectedEntryIndex;
@@ -1005,9 +1024,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             }
         } else if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
             // Standalone ability reference → convert to inline
+            Ability preCheck = slot.getAbility();
+            if (preCheck != null && preCheck.isBuiltIn()) return;
             if (slot.convertToInline()) {
                 Ability ability = slot.getAbility();
-                if (ability != null) {
+                if (ability != null && !ability.isBuiltIn()) {
                     ability.setId(UUID.randomUUID().toString());
                     ability.setNpcInlineEdit(true);
                     setSubGui(ability.createConfigGui(this));
