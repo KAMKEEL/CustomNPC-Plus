@@ -650,10 +650,12 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
-            // Cancel any executing ability on respawn
+            // Reset ability state for reconstructed entity and re-sync to client.
+            // The death handler already interrupted the ability (with events/cooldowns),
+            // so this just cleans up transient state and syncs the new entity.
             PlayerData playerData = PlayerData.get(event.player);
             if (playerData != null) {
-                playerData.abilityData.interruptCurrentAbility();
+                playerData.abilityData.resetOnRespawn();
             }
 
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);
