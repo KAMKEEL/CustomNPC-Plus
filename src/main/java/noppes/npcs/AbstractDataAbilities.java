@@ -57,6 +57,7 @@ public abstract class AbstractDataAbilities {
      * Position lock state
      */
     protected boolean positionLocked = false;
+    protected boolean wasFlyingAtLock = false;
     protected double lockedPosX = 0;
     protected double lockedPosY = 0;
     protected double lockedPosZ = 0;
@@ -530,6 +531,13 @@ public abstract class AbstractDataAbilities {
         lockedPosY = entity.posY;
         lockedPosZ = entity.posZ;
         positionLocked = true;
+
+        // Record flight state at lock time so airborne players stay at their height
+        // even if their flight system deactivates during input suppression
+        wasFlyingAtLock = entity instanceof net.minecraft.entity.player.EntityPlayer
+            && AbilityController.Instance != null
+            && AbilityController.Instance.isPlayerFlying((net.minecraft.entity.player.EntityPlayer) entity);
+
         onPositionLockChanged(true);
     }
 
@@ -538,7 +546,15 @@ public abstract class AbstractDataAbilities {
      */
     protected void releaseLockedPosition() {
         positionLocked = false;
+        wasFlyingAtLock = false;
         onPositionLockChanged(false);
+    }
+
+    /**
+     * Whether the entity was flying when the position lock was captured.
+     */
+    public boolean wasFlyingAtLock() {
+        return wasFlyingAtLock;
     }
 
     /**

@@ -106,9 +106,14 @@ public class ScriptPlayerEventHandler {
                 if (playerData.abilityData.isMovementLocked()) {
                     Ability current = playerData.abilityData.getCurrentAbility();
                     if (current == null || !current.hasAbilityMovement()) {
+                        boolean sFlying = playerData.abilityData.wasFlyingAtLock()
+                            || AbilityController.Instance.isPlayerFlying(player);
+
                         player.motionX = 0;
-                        if (!AbilityController.Instance.isPlayerFlying(player)) {
+                        if (!sFlying) {
                             player.motionY = Math.min(player.motionY, 0);
+                        } else {
+                            player.motionY = 0;
                         }
                         player.motionZ = 0;
                         player.velocityChanged = true;

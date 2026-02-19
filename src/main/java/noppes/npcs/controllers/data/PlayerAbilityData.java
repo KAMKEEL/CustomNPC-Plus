@@ -798,23 +798,12 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     private void applyPositionLock(EntityPlayer player) {
         if (!positionLocked) return;
 
-        boolean flying = AbilityController.Instance != null
-            && AbilityController.Instance.isPlayerFlying(player);
-
-        if (flying) {
-            // Flying players: lock X/Z only, preserve Y freedom
-            player.setPosition(lockedPosX, player.posY, lockedPosZ);
-            player.prevPosX = lockedPosX;
-            player.prevPosZ = lockedPosZ;
-        } else {
-            // Grounded players: full position lock including Y
-            player.setPosition(lockedPosX, lockedPosY, lockedPosZ);
-            player.prevPosX = lockedPosX;
-            player.prevPosY = lockedPosY;
-            player.prevPosZ = lockedPosZ;
-            player.motionY = 0;
-        }
+        player.setPosition(lockedPosX, lockedPosY, lockedPosZ);
+        player.prevPosX = lockedPosX;
+        player.prevPosY = lockedPosY;
+        player.prevPosZ = lockedPosZ;
         player.motionX = 0;
+        player.motionY = 0;
         player.motionZ = 0;
     }
 
@@ -840,6 +829,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
         if (positionLocked) {
             flags |= PlayerAbilityStatePacket.FLAG_POSITION_LOCKED;
+        }
+        if (wasFlyingAtLock) {
+            flags |= PlayerAbilityStatePacket.FLAG_WAS_FLYING_AT_LOCK;
         }
         return flags;
     }
