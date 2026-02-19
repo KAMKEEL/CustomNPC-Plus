@@ -219,14 +219,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // On/Off toggle for selected slot (under Load button) — chains and abilities
         if (selectedSlotIndex >= 0 && selectedSlotIndex < npcSlots.size() && selectedEntryIndex == -1) {
             AbilityAction selectedSlot = npcSlots.get(selectedSlotIndex);
-            boolean isEnabled = false;
-            if (selectedSlot.isChain()) {
-                ChainedAbility chain = selectedSlot.isInlineChain() ? selectedSlot.getInlineChain() : selectedSlot.getChainedAbility();
-                isEnabled = chain != null && chain.isEnabled();
-            } else {
-                Ability ability = selectedSlot.getAbility();
-                isEnabled = ability != null && ability.isEnabled();
-            }
+            boolean isEnabled = selectedSlot.isSlotEnabled();
             GuiNpcButton toggleBtn = new GuiNpcButton(BTN_TOGGLE_SLOT, centerX, y + 112, 40, 20,
                 new String[]{"gui.off", "gui.on"}, isEnabled ? 1 : 0);
             addButton(toggleBtn);
@@ -713,7 +706,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         String typeName = getDisplayName(ability.getTypeId());
         String customName = ability.getName();
-        String colorPrefix = ability.isEnabled() ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
+        String colorPrefix = slot.isSlotEnabled() ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
 
         String nameDisplay;
         if (customName != null && !customName.isEmpty() && !customName.equals(typeName)) {
@@ -734,8 +727,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     private String getChainHeaderEntry(int index, AbilityAction slot) {
         ChainedAbility chain = slot.isInlineChain() ? slot.getInlineChain() : slot.getChainedAbility();
         String chainName = chain != null ? chain.getDisplayName() : "???";
-        boolean enabled = chain != null && chain.isEnabled();
-        String colorPrefix = enabled ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
+        String colorPrefix = slot.isSlotEnabled() ? "\u00A7a\u25CF\u00A7r " : "\u00A7c\u25CF\u00A7r ";
         if (slot.isChainReference()) {
             return colorPrefix + (index + 1) + ". \u00A7e> [Chain] " + chainName + "\u00A7r";
         }
@@ -1090,39 +1082,29 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      * Called from SubGuiAbilityConfig when ability is saved.
      */
     public void onAbilitySaved(Ability ability) {
-        // Check if we were editing a global parent ability via "Modify Parent" on a chain entry
+        // Editing a global parent ability via "Modify Parent" on a chain entry
         if (editingChainEntryParent) {
             PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
-            editingChainEntryParent = false;
             return;
         }
 
-        // Check if we were editing an ability inside a chain entry
-        if (editingChainEntry && editChainSlotIdx >= 0 && editChainSlotIdx < npcSlots.size()) {
-            AbilityAction slot = npcSlots.get(editChainSlotIdx);
-            ChainedAbility chain = slot.isInlineChain() ? slot.getInlineChain() : null;
-            if (chain != null && editChainEntryIdx >= 0 && editChainEntryIdx < chain.getEntries().size()) {
-                // Update the inline ability on the entry — it's already the same object reference,
-                // but refresh the list and save to persist
-            }
-            editingChainEntry = false;
-            editChainSlotIdx = -1;
-            editChainEntryIdx = -1;
-            updateNpcAbilitiesList();
-            save();
+        // Editing an ability inside a chain entry — already same object reference.
+        // handleAbilityConfigClosed() will call updateNpcAbilitiesList() + save().
+        if (editingChainEntry) {
             return;
         }
 
         if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcSlots.size()) {
             AbilityAction slot = npcSlots.get(selectedAbilityIndex);
             if (slot.isReference()) {
+                // Modify Parent on standalone reference — save to global preset
                 PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
             } else {
+                // Inline ability — update slot data
                 npcSlots.set(selectedAbilityIndex, AbilityAction.inline(ability));
             }
-            updateNpcAbilitiesList();
-            save();
         }
+        // updateNpcAbilitiesList() + save() deferred to handleAbilityConfigClosed()
     }
 
     @Override

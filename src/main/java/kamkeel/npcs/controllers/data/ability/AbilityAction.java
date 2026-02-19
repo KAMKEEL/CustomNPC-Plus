@@ -124,9 +124,6 @@ public class AbilityAction {
                     return cachedAction;
                 }
                 Ability resolved = ctrl.resolveAbility(referenceId);
-                if (resolved != null && enabledOverride != null) {
-                    resolved.setEnabled(enabledOverride);
-                }
                 cachedAction = resolved;
                 cachedRevision = rev;
                 return cachedAction;
@@ -140,9 +137,6 @@ public class AbilityAction {
                     return cachedAction;
                 }
                 ChainedAbility resolved = ctrl.resolveChainedAbility(referenceId);
-                if (resolved != null && enabledOverride != null) {
-                    resolved.setEnabled(enabledOverride);
-                }
                 cachedAction = resolved;
                 cachedRevision = rev;
                 return cachedAction;
@@ -184,10 +178,20 @@ public class AbilityAction {
             }
         } else {
             this.enabledOverride = enabled;
-            if (cachedAction != null) {
-                cachedAction.setEnabled(enabled);
-            }
         }
+    }
+
+    /**
+     * Check if this slot is enabled. For inline slots, delegates to the action directly.
+     * For reference slots, uses enabledOverride if set, otherwise the resolved action's own state.
+     * This avoids mutating the shared controller instance.
+     */
+    public boolean isSlotEnabled() {
+        if (enabledOverride != null) {
+            return enabledOverride;
+        }
+        IAbilityAction action = getAction();
+        return action != null && action.isEnabled();
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -38,6 +38,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAbilityHandler;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
@@ -376,6 +378,23 @@ public class AbilityController implements IAbilityHandler {
             file.delete();
         }
 
+        // Clean up online players' unlocked ability lists
+        if (PlayerDataController.Instance != null) {
+            for (PlayerData pData : PlayerDataController.Instance.getAllPlayerData()) {
+                if (pData.abilityData != null) {
+                    boolean changed = false;
+                    if (uuid != null && !uuid.isEmpty() && pData.abilityData.hasUnlockedAbility(uuid)) {
+                        pData.abilityData.lockAbility(uuid);
+                        changed = true;
+                    }
+                    if (pData.abilityData.hasUnlockedAbility(name)) {
+                        pData.abilityData.lockAbility(name);
+                        changed = true;
+                    }
+                }
+            }
+        }
+
         customAbilityRevision++;
         LogWriter.info("Deleted custom ability: " + name);
         SyncController.syncAllCustomAbilities();
@@ -540,6 +559,22 @@ public class AbilityController implements IAbilityHandler {
         File file = new File(dir, name + ".json");
         if (file.exists()) {
             file.delete();
+        }
+
+        // Clean up online players' unlocked ability lists (chain keys use "chain:" prefix)
+        if (PlayerDataController.Instance != null) {
+            for (PlayerData pData : PlayerDataController.Instance.getAllPlayerData()) {
+                if (pData.abilityData != null) {
+                    String chainKey = "chain:" + (uuid != null && !uuid.isEmpty() ? uuid : name);
+                    if (pData.abilityData.hasUnlockedAbility(chainKey)) {
+                        pData.abilityData.lockAbility(chainKey);
+                    }
+                    String chainNameKey = "chain:" + name;
+                    if (!chainNameKey.equals(chainKey) && pData.abilityData.hasUnlockedAbility(chainNameKey)) {
+                        pData.abilityData.lockAbility(chainNameKey);
+                    }
+                }
+            }
         }
 
         chainedAbilityRevision++;

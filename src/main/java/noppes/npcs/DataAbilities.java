@@ -393,7 +393,7 @@ public class DataAbilities extends AbstractDataAbilities {
 
         for (AbilityAction slot : actionSlots) {
             IAbilityAction action = slot.getAction();
-            if (action != null && isActionEligible(action, target)) {
+            if (action != null && isActionEligible(slot, action, target)) {
                 eligible.add(action);
                 weights.add(action.getWeight());
                 totalWeight += action.getWeight();
@@ -451,11 +451,11 @@ public class DataAbilities extends AbstractDataAbilities {
     /**
      * Check if an action (ability or chain) is eligible for use.
      */
-    private boolean isActionEligible(IAbilityAction action, EntityLivingBase target) {
+    private boolean isActionEligible(AbilityAction slot, IAbilityAction action, EntityLivingBase target) {
         if (!action.getAllowedBy().allowsNpc()) {
             return false;
         }
-        if (!action.isEnabled()) {
+        if (!slot.isSlotEnabled()) {
             return false;
         }
 
