@@ -53,8 +53,8 @@ public class RenderEnergySlicer extends RenderEnergyAbility {
             GL11.glDepthMask(true);
         }
 
-        // Render inner blade (solid core, alpha 1.0 like Orb pattern)
-        renderBlade(slicer.getInnerColor(), 1.0f,
+        // Render inner blade (solid core)
+        renderBlade(slicer.getInnerColor(), slicer.getInnerAlpha(),
             width * 0.5f * innerScale, thickness, 0.03f);
 
         GL11.glPopMatrix();

@@ -519,6 +519,30 @@ public abstract class AbilityZone extends Ability {
         colorData.outerColorEnabled = enabled;
     }
 
+    public float getInnerAlpha() {
+        return colorData.innerAlpha;
+    }
+
+    public void setInnerAlpha(float alpha) {
+        colorData.innerAlpha = alpha;
+    }
+
+    public float getOuterColorWidth() {
+        return colorData.outerColorWidth;
+    }
+
+    public void setOuterColorWidth(float width) {
+        colorData.outerColorWidth = width;
+    }
+
+    public float getOuterColorAlpha() {
+        return colorData.outerColorAlpha;
+    }
+
+    public void setOuterColorAlpha(float alpha) {
+        colorData.outerColorAlpha = alpha;
+    }
+
     public boolean isGroundFill() {
         return groundFill;
     }
@@ -711,12 +735,20 @@ public abstract class AbilityZone extends Ability {
                 .tab("ability.tab.visual"),
 
             FieldDef.section("ability.section.colors").tab("ability.tab.visual"),
-            FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor)
-                .tab("ability.tab.visual"),
+            FieldDef.row(
+                FieldDef.colorSubGui("ability.innerColor", this::getInnerColor, this::setInnerColor),
+                FieldDef.floatField("ability.innerAlpha", this::getInnerAlpha, this::setInnerAlpha).range(0, 1)
+            ).tab("ability.tab.visual"),
             FieldDef.boolField("ability.outerEnabled", this::isOuterColorEnabled, this::setOuterColorEnabled)
                 .tab("ability.tab.visual"),
             FieldDef.colorSubGui("ability.outerColor", this::getOuterColor, this::setOuterColor)
-                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled)
+                .tab("ability.tab.visual").visibleWhen(this::isOuterColorEnabled),
+            FieldDef.row(
+                FieldDef.floatField("ability.outerWidth", this::getOuterColorWidth, this::setOuterColorWidth)
+                    .visibleWhen(this::isOuterColorEnabled),
+                FieldDef.floatField("ability.outerAlpha", this::getOuterColorAlpha, this::setOuterColorAlpha)
+                    .range(0, 1).visibleWhen(this::isOuterColorEnabled)
+            ).tab("ability.tab.visual")
         ));
     }
 
