@@ -278,16 +278,21 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     }
 
     @Override
+    public void resetForBurst() {
+        // Non-overlap: kill old entities before next burst creates new ones
+        if (!burstOverlap) {
+            cleanup();
+        }
+        // Clear reference so the next iteration creates fresh entities.
+        // For overlap mode, old entities stay alive (tracked in burstEntities).
+        entities = null;
+    }
+
+    @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
-        // Create fresh entities if needed:
-        // - entities == null: windup was skipped (burst without replay animations)
-        // - isBurstRefire(): previous burst entities may still be alive,
-        //   so we must create new ones for each burst iteration
-        if (entities == null || isBurstRefire()) {
-            // Non-overlap burst refire: kill old entities before creating new ones
-            if (isBurstRefire() && !burstOverlap && entities != null) {
-                cleanup();
-            }
+        // Create entities if they don't exist yet.
+        // They'll already exist if onWindUpTick ran (windup replay), otherwise we create here.
+        if (entities == null) {
             entities = createAllEntities(caster, target);
 
             // If there's a fire delay, put unfired entities in charging state
