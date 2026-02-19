@@ -74,6 +74,10 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
         allDisplayNameToTypeId.clear();
         String[] types = AbilityController.Instance.getTypes();
         for (String typeId : types) {
+            // Never show built-in types — they are immutable and cannot be created
+            if (AbilityController.Instance.isBuiltInType(typeId))
+                continue;
+
             // Apply scroll type filter
             if (!matchesScrollType(typeId))
                 continue;
