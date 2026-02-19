@@ -4,6 +4,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.CustomEffectController;
+import noppes.npcs.util.ValueUtil;
 
 /**
  * Represents a custom effect reference that can be applied by abilities.
@@ -14,6 +15,7 @@ public class AbilityCustomEffect {
     private int effectId = -1;
     private int durationTicks = 60;
     private byte level = 0;
+    private int index = 0;
 
     public AbilityCustomEffect() {
     }
@@ -22,10 +24,16 @@ public class AbilityCustomEffect {
         this.effectId = effectId;
         this.durationTicks = Math.max(1, durationTicks);
         this.level = (byte) Math.max(0, Math.min(10, level));
+        this.index = 0;
+    }
+
+    public AbilityCustomEffect(int effectId, int durationTicks, byte level, int index) {
+        this(effectId, durationTicks, level);
+        this.index = index;
     }
 
     public AbilityCustomEffect copy() {
-        return new AbilityCustomEffect(effectId, durationTicks, level);
+        return new AbilityCustomEffect(effectId, durationTicks, level, index);
     }
 
     /**
@@ -36,7 +44,7 @@ public class AbilityCustomEffect {
         if (entity == null || effectId <= 0) return;
         if (entity instanceof EntityPlayer) {
             CustomEffectController.getInstance().applyEffect(
-                (EntityPlayer) entity, effectId, durationTicks, level);
+                (EntityPlayer) entity, effectId, durationTicks, level, index);
         }
     }
 
@@ -89,6 +97,14 @@ public class AbilityCustomEffect {
     }
 
     public void setLevel(byte level) {
-        this.level = (byte) Math.max(0, Math.min(10, level));
+        this.level = (byte) ValueUtil.clamp(level, 0, 10);
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = ValueUtil.clamp(index, 0, 1);
     }
 }
