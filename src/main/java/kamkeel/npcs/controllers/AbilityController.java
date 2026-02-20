@@ -959,6 +959,17 @@ public class AbilityController implements IAbilityHandler {
         return false;
     }
 
+    /**
+     * Fire modifyProjectileDamage on all extenders. Cumulative — each extender's output feeds the next.
+     */
+    public float fireModifyProjectileDamage(Ability ability, EntityLivingBase caster, float baseDamage) {
+        float damage = baseDamage;
+        for (IAbilityExtender ext : extenders) {
+            damage = ext.modifyProjectileDamage(ability, caster, damage);
+        }
+        return damage;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // IAbilityHandler
     // ═══════════════════════════════════════════════════════════════════════════
