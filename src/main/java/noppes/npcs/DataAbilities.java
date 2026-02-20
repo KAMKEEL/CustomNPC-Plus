@@ -326,10 +326,11 @@ public class DataAbilities extends AbstractDataAbilities {
                 if (rotationLocked || hitScanActive) releaseRotationControl();
                 if (positionLocked) releaseLockedPosition();
             }
-            // Clear chain state
+            // Clear chain and concurrent state
             currentChain = null;
             chainEntryIndex = -1;
             chainDelayRemaining = -1;
+            interruptConcurrentSlots();
             return;
         }
 
@@ -392,7 +393,7 @@ public class DataAbilities extends AbstractDataAbilities {
 
         for (AbilityAction slot : actionSlots) {
             IAbilityAction action = slot.getAction();
-            if (action != null && isActionEligible(action, target)) {
+            if (action != null && isActionEligible(slot, action, target)) {
                 eligible.add(action);
                 weights.add(action.getWeight());
                 totalWeight += action.getWeight();
@@ -450,11 +451,11 @@ public class DataAbilities extends AbstractDataAbilities {
     /**
      * Check if an action (ability or chain) is eligible for use.
      */
-    private boolean isActionEligible(IAbilityAction action, EntityLivingBase target) {
+    private boolean isActionEligible(AbilityAction slot, IAbilityAction action, EntityLivingBase target) {
         if (!action.getAllowedBy().allowsNpc()) {
             return false;
         }
-        if (!action.isEnabled()) {
+        if (!slot.isSlotEnabled()) {
             return false;
         }
 
@@ -724,6 +725,7 @@ public class DataAbilities extends AbstractDataAbilities {
     public void reset() {
         stopCurrentAbility();
         clearActiveToggles();
+        interruptConcurrentSlots();
 
         // Roll cooldown so NPC doesn't immediately attack after reset
         rollCooldownOnReset();

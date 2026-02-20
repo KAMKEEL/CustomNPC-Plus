@@ -18,18 +18,32 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * Simple ability name picker. Shows all abilities (custom + built-in) in a
- * single scroll list with search. Returns the selected ability name.
+ * Simple ability name picker with optional filter mode.
+ * Shows custom, built-in, or all abilities in a scroll list with search.
+ * Returns the selected ability name.
  */
 public class SubGuiAbilitySelect extends SubGuiInterface implements ICustomScrollListener, IScrollData {
+
+    /** Show all abilities (custom + built-in). */
+    public static final int FILTER_ALL = 0;
+    /** Show only custom abilities. */
+    public static final int FILTER_CUSTOM_ONLY = 1;
+    /** Show only built-in abilities. */
+    public static final int FILTER_BUILTIN_ONLY = 2;
 
     private GuiCustomScroll scroll;
     private HashMap<String, Integer> customData = new HashMap<>();
     private HashMap<String, Integer> builtInData = new HashMap<>();
     private String selectedName = null;
     private String search = "";
+    private final int filterMode;
 
     public SubGuiAbilitySelect() {
+        this(FILTER_ALL);
+    }
+
+    public SubGuiAbilitySelect(int filterMode) {
+        this.filterMode = filterMode;
         setBackground("menubg.png");
         xSize = 220;
         ySize = 216;
@@ -72,8 +86,12 @@ public class SubGuiAbilitySelect extends SubGuiInterface implements ICustomScrol
 
     private List<String> getFilteredList() {
         HashMap<String, Integer> merged = new HashMap<>();
-        merged.putAll(customData);
-        merged.putAll(builtInData);
+        if (filterMode != FILTER_BUILTIN_ONLY) {
+            merged.putAll(customData);
+        }
+        if (filterMode != FILTER_CUSTOM_ONLY) {
+            merged.putAll(builtInData);
+        }
 
         if (search.isEmpty()) {
             return new ArrayList<>(merged.keySet());

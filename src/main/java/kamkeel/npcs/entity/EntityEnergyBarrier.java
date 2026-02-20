@@ -174,6 +174,13 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
                 return true;
             }
 
+            // Absolute hard lifetime cap (safety net for barriers with no duration)
+            if (ticksAlive > BARRIER_HARD_LIFETIME_CAP) {
+                onBarrierDestroyed();
+                this.setDead();
+                return true;
+            }
+
             // Reset hit flash
             if (getHitFlash() > 0) {
                 setHitFlash((byte) (getHitFlash() - 1));
@@ -272,6 +279,7 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         readEnergyBaseNBT(nbt);
         this.ticksAlive = nbt.getInteger("TicksAlive");
         this.currentHealth = nbt.getFloat("CurrentHealth");
+        if (Float.isNaN(currentHealth) || Float.isInfinite(currentHealth) || currentHealth < 0) currentHealth = barrierData.maxHealth;
         this.charging = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
         this.chargeTick = nbt.getInteger("ChargeTick");
         this.chargeDuration = nbt.getInteger("ChargeDuration");

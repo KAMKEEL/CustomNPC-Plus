@@ -39,6 +39,11 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     }
 
     @Override
+    public boolean isConcurrentCapable() {
+        return true;
+    }
+
+    @Override
     public float getZoneRadius() {
         return triggerRadius;
     }

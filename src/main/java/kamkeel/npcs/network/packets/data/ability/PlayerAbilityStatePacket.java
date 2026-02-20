@@ -30,6 +30,7 @@ public final class PlayerAbilityStatePacket extends AbstractPacket {
     public static final byte FLAG_ROTATION_LOCKED = 2;
     public static final byte FLAG_HAS_ABILITY_MOVEMENT = 4;
     public static final byte FLAG_POSITION_LOCKED = 8;
+    public static final byte FLAG_WAS_FLYING_AT_LOCK = 16;
 
     private byte flags;
     private float lockedYaw;

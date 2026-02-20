@@ -2,7 +2,9 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.TargetFilter;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
@@ -137,6 +139,7 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
                 if (!(entity instanceof EntityLivingBase)) continue;
                 if (entity == caster) continue;
                 if (hitEntities.contains(entity.getEntityId())) continue;
+                if (!AbilityTargetHelper.shouldAffect(caster, entity, TargetFilter.ENEMIES, false)) continue;
 
                 EntityLivingBase livingEntity = (EntityLivingBase) entity;
 

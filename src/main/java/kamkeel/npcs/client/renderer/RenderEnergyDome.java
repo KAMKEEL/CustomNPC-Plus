@@ -42,7 +42,6 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
             float outerAlpha = dome.getOuterColorAlpha() * healthPercent;
             GL11.glDepthMask(false);
             renderSphere(dome.getOuterColor(), outerAlpha + flashAlpha, radius * outerScale, 8);
-            GL11.glDepthMask(true);
         }
 
         // TODO: Skybox Feature
@@ -50,9 +49,9 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
         //     renderSkyboxSphere(dome.getSkyboxTexture(), radius, radius * 0.94f, 32, x, y, z);
         // }
 
-        // Render inner dome
+        GL11.glDepthMask(true);
+        // Render inner dome (depth write enabled so inner sphere properly occludes)
         renderSphere(dome.getInnerColor(), dome.getInnerAlpha(), radius * innerScale, 8);
-
         GL11.glPopMatrix();
 
         restoreRenderState();

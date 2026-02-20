@@ -247,7 +247,7 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
             .visibleWhen(this::isUseHealth));
         defs.add(FieldDef.boolField("ability.useDuration", this::isUseDuration, this::setUseDuration));
         defs.add(FieldDef.intField("ability.duration", this::getBarrierDuration, this::setBarrierDuration)
-            .range(1, 6000).visibleWhen(this::isUseDuration));
+            .range(1, 12000).visibleWhen(this::isUseDuration));
         defs.add(FieldDef.floatField("ability.defaultMultiplier", this::getDefaultMultiplier, this::setDefaultMultiplier));
 
         // Knockback section

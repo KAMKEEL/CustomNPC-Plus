@@ -70,6 +70,7 @@ public class RenderAbilitySweeper extends Render {
     /**
      * Render beam using the same style as the Beam entity trail.
      * Three layers: outer glow, middle, inner core.
+     * outerColorWidth is an additive offset from inner width (consistent with other renderers).
      */
     private void renderBeam(float length, float width, int innerColor, int outerColor,
                             boolean outerColorEnabled, float outerColorWidth) {
@@ -82,21 +83,28 @@ public class RenderAbilitySweeper extends Render {
         float innerG = ((innerColor >> 8) & 0xFF) / 255.0f;
         float innerB = (innerColor & 0xFF) / 255.0f;
 
+        // Inner scale defines the core width (consistent with other renderers)
+        float innerScale = 0.6f;
+        float innerWidth = width * innerScale;
+
         // Render from origin (0,0,0) to (0,0,length) in local coords
         // After rotation this extends in the correct world direction
 
-        // Outer glow (wider, translucent) - like beam trail - only if enabled
+        // Outer glow (wider, translucent) - only if enabled
+        // outerColorWidth is additive offset from inner width
         if (outerColorEnabled) {
+            float outerWidth = innerWidth + outerColorWidth * width;
             GL11.glDepthMask(false);
-            renderBeamSegment(0, 0, 0, 0, 0, length, width * outerColorWidth, outerR, outerG, outerB, 0.3f);
+            renderBeamSegment(0, 0, 0, 0, 0, length, outerWidth, outerR, outerG, outerB, 0.3f);
             GL11.glDepthMask(true);
 
-            // Middle layer
-            renderBeamSegment(0, 0, 0, 0, 0, length, width * 1.3f, outerR, outerG, outerB, 0.6f);
+            // Middle layer (halfway between inner and outer)
+            float midWidth = innerWidth + (outerWidth - innerWidth) * 0.5f;
+            renderBeamSegment(0, 0, 0, 0, 0, length, midWidth, outerR, outerG, outerB, 0.6f);
         }
 
-        // Inner core (solid) - like beam trail inner
-        renderBeamSegment(0, 0, 0, 0, 0, length, width * 0.6f, innerR, innerG, innerB, 1.0f);
+        // Inner core (solid)
+        renderBeamSegment(0, 0, 0, 0, 0, length, innerWidth, innerR, innerG, innerB, 1.0f);
     }
 
     /**

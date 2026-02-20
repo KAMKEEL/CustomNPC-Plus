@@ -26,7 +26,7 @@ public class EnergyLifespanData implements IEnergyLifespanData {
 
     @Override
     public void setMaxDistance(float maxDistance) {
-        this.maxDistance = maxDistance;
+        this.maxDistance = Float.isNaN(maxDistance) || maxDistance <= 0 ? 150.0f : maxDistance;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class EnergyLifespanData implements IEnergyLifespanData {
 
     @Override
     public void setMaxLifetime(int maxLifetime) {
-        this.maxLifetime = maxLifetime;
+        this.maxLifetime = maxLifetime <= 0 ? 200 : maxLifetime;
     }
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -47,6 +47,10 @@ public class EnergyLifespanData implements IEnergyLifespanData {
     public void readNBT(NBTTagCompound nbt) {
         maxDistance = nbt.getFloat("maxDistance");
         maxLifetime = nbt.getInteger("maxLifetime");
+
+        // Sanitize: ensure minimum values so entities don't die instantly or live forever
+        if (Float.isNaN(maxDistance) || Float.isInfinite(maxDistance) || maxDistance <= 0) maxDistance = 150.0f;
+        if (maxLifetime <= 0) maxLifetime = 200;
     }
 
     public EnergyLifespanData copy() {

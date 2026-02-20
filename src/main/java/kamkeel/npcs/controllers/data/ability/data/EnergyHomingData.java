@@ -31,7 +31,7 @@ public class EnergyHomingData implements IEnergyHomingData {
 
     @Override
     public void setSpeed(float speed) {
-        this.speed = speed;
+        this.speed = Math.max(0.01f, speed);
     }
 
     @Override
@@ -72,10 +72,13 @@ public class EnergyHomingData implements IEnergyHomingData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        speed = nbt.getFloat("speed");
-        homing = nbt.getBoolean("homing");
-        homingStrength = nbt.getFloat("homingStrength");
-        homingRange = nbt.getFloat("homingRange");
+        speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 0.5f;
+        homing = !nbt.hasKey("homing") || nbt.getBoolean("homing");
+        homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.15f;
+        homingRange = nbt.hasKey("homingRange") ? nbt.getFloat("homingRange") : 20.0f;
+
+        // Sanitize speed to prevent stuck projectiles
+        if (Float.isNaN(speed) || Float.isInfinite(speed) || speed <= 0) speed = 0.5f;
     }
 
     public EnergyHomingData copy() {

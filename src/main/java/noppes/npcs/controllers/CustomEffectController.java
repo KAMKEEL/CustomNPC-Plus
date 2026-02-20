@@ -37,6 +37,7 @@ public class CustomEffectController implements ICustomEffectHandler {
 
     public static CustomEffectController Instance = new CustomEffectController();
     public HashMap<Integer, HashMap<Integer, CustomEffect>> indexMapper = new HashMap<>();
+    private HashMap<Integer, String> indexLabels = new HashMap<>();
 
     public HashMap<Integer, CustomEffect> customEffectsSync = new HashMap<>();
 
@@ -57,6 +58,14 @@ public class CustomEffectController implements ICustomEffectHandler {
 
     public <T extends CustomEffect> void registerEffectMap(int index, HashMap<Integer, T> effectHashMap) {
         indexMapper.put(index, (HashMap<Integer, CustomEffect>) effectHashMap);
+    }
+
+    public void registerEffectMapLabel(int index, String label) {
+        indexLabels.put(index, label);
+    }
+
+    public HashMap<Integer, String> getIndexLabels() {
+        return indexLabels;
     }
 
     public HashMap<Integer, CustomEffect> getCustomEffects() {
@@ -354,10 +363,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     }
 
     public HashMap<Integer, CustomEffect> getEffectMap(int index) {
-        if (indexMapper.containsKey(index)) {
-            return getEffectMap(index);
-        }
-        return null;
+        return indexMapper.get(index);
     }
 
     private File getDir() {

@@ -172,12 +172,12 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
             FieldDef.floatField("stats.speed", this::getOrbSpeed, this::setOrbSpeed)
         ));
         defs.add(FieldDef.row(
-            FieldDef.floatField("stats.size", this::getOrbSize, this::setOrbSize),
+            FieldDef.floatField("stats.size", this::getOrbSize, this::setOrbSize).range(0.1f, 100.0f),
             FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback)
         ));
         defs.add(FieldDef.row(
-            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance),
-            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime)
+            FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).range(1.0f, 500.0f),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200)
         ));
         defs.add(FieldDef.section("ability.section.homing"));
         defs.add(FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"));

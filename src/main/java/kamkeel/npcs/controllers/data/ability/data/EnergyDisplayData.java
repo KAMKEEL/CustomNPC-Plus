@@ -128,13 +128,13 @@ public class EnergyDisplayData implements IEnergyDisplayData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        innerColor = nbt.getInteger("innerColor");
-        outerColor = nbt.getInteger("outerColor");
-        outerColorEnabled = nbt.getBoolean("outerColorEnabled");
-        outerColorWidth = nbt.getFloat("outerColorWidth");
-        outerColorAlpha = nbt.getFloat("outerColorAlpha");
+        innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
+        outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
+        outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
+        outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         innerAlpha = nbt.hasKey("innerAlpha") ? nbt.getFloat("innerAlpha") : 1.0f;
-        rotationSpeed = nbt.getFloat("rotationSpeed");
+        rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
         // TODO: Skybox Feature
         // skyboxEnabled = nbt.hasKey("skyboxEnabled") && nbt.getBoolean("skyboxEnabled");
         // skyboxTexture = nbt.hasKey("skyboxTexture") ? nbt.getString("skyboxTexture") : "";

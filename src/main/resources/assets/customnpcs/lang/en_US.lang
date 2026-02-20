@@ -1650,7 +1650,7 @@ ability.cnpc.teleport=Teleport
 ability.cnpc.vortex=Vortex
 ability.cnpc.shockwave=Shockwave
 ability.cnpc.guard=Guard
-ability.cnpc.heal=Heal
+ability.cnpc.effect=Effect
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
 ability.cnpc.disc=Disc
@@ -1843,13 +1843,25 @@ ability.pushStrength=Push Strength
 ability.damageReduction=Damage Reduction
 ability.counterWindow=Counter Ticks
 
-# Heal
-ability.instantHeal=Instant Heal
+# Effect
+ability.instantHeal=Instant
 ability.healAmount=Heal Amount
 ability.healPercent=Heal Percent
-ability.healRadius=Heal Radius
-ability.healSelf=Heal Self
-ability.healAllies=Heal Allies
+ability.targetFilter=Target Filter
+ability.targetFilter.allies=Allies
+ability.targetFilter.enemies=Enemies
+ability.targetFilter.all=All
+ability.includeSelf=Include Self
+ability.section.targeting=Targeting
+ability.concurrent=Concurrent
+ability.concurrentInfo=This ability allows Concurrency in Chains
+ability.hover.concurrent=When enabled, this ability fires at the same time as the ability above it in the chain
+ability.customEffects=Custom Effects
+ability.effectActions=Effect Actions
+ability.noCustomEffects=No custom effects defined
+ability.variant.selfHeal=Self Heal
+ability.variant.healingAura=Healing Aura
+ability.variant.poisonDebuff=Poison Debuff
 
 # Hazard
 ability.shape=Shape

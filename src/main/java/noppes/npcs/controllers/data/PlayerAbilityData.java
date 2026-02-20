@@ -607,17 +607,25 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // DIMENSION CHANGE RESET
+    // ENTITY RECONSTRUCTION RESET
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Fully reset ability state when changing dimensions.
-     * Unlike interruptCurrentAbility(), this does NOT roll any cooldowns
-     * and ensures the player can immediately use abilities in the new dimension.
-     * Also re-syncs to client since the entity may be re-created.
+     * Handle entity reconstruction events (dimension change, death/respawn, etc.).
+     * Cleans up any executing ability state without firing script events (those were
+     * already fired on the original entity), clears transient runtime state, and
+     * re-syncs ability data to the client on the new entity.
+     * <p>
+     * This should be called whenever the player's entity object is recreated by Forge,
+     * since the client-side entity loses all synced ability state.
+     *
+     * @param clearCooldowns true to fully reset cooldowns (dimension change),
+     *                       false to preserve cooldowns (death/respawn — interrupt already rolled them)
+     * @param clearToggles   true to clear active toggles (death/respawn),
+     *                       false to keep them (dimension change)
      */
-    public void resetOnDimensionChange() {
-        // Clean up any executing ability without rolling cooldowns
+    public void onEntityReconstructed(boolean clearCooldowns, boolean clearToggles) {
+        // Clean up any executing ability silently (no script events — already fired on old entity)
         if (currentAbility != null && currentAbility.isExecuting()) {
             removeTelegraph(currentAbility);
             currentAbility.cleanup();
@@ -627,28 +635,55 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             releaseLockedPosition();
         }
 
-        // Clear chain state
+        // Clear chain and concurrent state
         currentChain = null;
         chainEntryIndex = -1;
         chainDelayRemaining = -1;
+        interruptConcurrentSlots();
 
         // Clear all transient state
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
 
-        // Reset cooldowns completely
-        cooldownEndTime = 0;
+        if (clearCooldowns) {
+            cooldownEndTime = 0;
+        }
         interruptCooldownRolled = false;
 
-        // Sync cleared state to client
-        EntityPlayer player = playerData.player;
-        if (player != null) {
-            syncAbilityStateClear(player);
+        if (clearToggles) {
+            clearActiveToggles();
         }
 
-        // Re-sync ability data (unlocked list, selection) to client
+        // Force-send cleared lock state to client. We must always send this
+        // (not gated by lastSyncedFlags != 0) because the NEW entity's client
+        // may have stale lock state from before the reconstruction.
+        lastSyncedFlags = 0;
+        EntityPlayer player = playerData.player;
+        if (player instanceof EntityPlayerMP) {
+            PlayerAbilityStatePacket.sendToPlayer((EntityPlayerMP) player, (byte) 0, 0, 0);
+        }
+
+        // Re-sync full ability data (unlocked list, selection, toggles) to client
         syncToClient();
+    }
+
+    /**
+     * Fully reset ability state when changing dimensions.
+     * Clears cooldowns so the player can immediately use abilities in the new dimension.
+     * Keeps active toggles (dimension change shouldn't reset ongoing effects).
+     */
+    public void resetOnDimensionChange() {
+        onEntityReconstructed(true, false);
+    }
+
+    /**
+     * Reset ability state after death/respawn.
+     * Preserves cooldowns (interrupt on death already rolled them) but clears
+     * active toggles (death should end ongoing effects).
+     */
+    public void resetOnRespawn() {
+        onEntityReconstructed(false, true);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -764,23 +799,12 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     private void applyPositionLock(EntityPlayer player) {
         if (!positionLocked) return;
 
-        boolean flying = AbilityController.Instance != null
-            && AbilityController.Instance.isPlayerFlying(player);
-
-        if (flying) {
-            // Flying players: lock X/Z only, preserve Y freedom
-            player.setPosition(lockedPosX, player.posY, lockedPosZ);
-            player.prevPosX = lockedPosX;
-            player.prevPosZ = lockedPosZ;
-        } else {
-            // Grounded players: full position lock including Y
-            player.setPosition(lockedPosX, lockedPosY, lockedPosZ);
-            player.prevPosX = lockedPosX;
-            player.prevPosY = lockedPosY;
-            player.prevPosZ = lockedPosZ;
-            player.motionY = 0;
-        }
+        player.setPosition(lockedPosX, lockedPosY, lockedPosZ);
+        player.prevPosX = lockedPosX;
+        player.prevPosY = lockedPosY;
+        player.prevPosZ = lockedPosZ;
         player.motionX = 0;
+        player.motionY = 0;
         player.motionZ = 0;
     }
 
@@ -806,6 +830,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
         if (positionLocked) {
             flags |= PlayerAbilityStatePacket.FLAG_POSITION_LOCKED;
+        }
+        if (wasFlyingAtLock) {
+            flags |= PlayerAbilityStatePacket.FLAG_WAS_FLYING_AT_LOCK;
         }
         return flags;
     }

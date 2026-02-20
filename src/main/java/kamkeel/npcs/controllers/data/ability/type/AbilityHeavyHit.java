@@ -3,7 +3,9 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.LockMovementType;
+import kamkeel.npcs.controllers.data.ability.TargetFilter;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -106,6 +108,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
             for (Entity entity : entities) {
                 if (!(entity instanceof EntityLivingBase) || entity == caster) continue;
                 EntityLivingBase livingTarget = (EntityLivingBase) entity;
+                if (!AbilityTargetHelper.shouldAffect(caster, livingTarget, TargetFilter.ENEMIES, false)) continue;
 
                 double dx = livingTarget.posX - caster.posX;
                 double dz = livingTarget.posZ - caster.posZ;

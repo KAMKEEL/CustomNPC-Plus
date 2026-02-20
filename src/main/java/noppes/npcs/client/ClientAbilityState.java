@@ -15,6 +15,7 @@ public class ClientAbilityState {
     public static boolean rotationLocked = false;
     public static boolean hasAbilityMovement = false;
     public static boolean positionLocked = false;
+    public static boolean wasFlyingAtLock = false;
     public static float lockedYaw = 0;
     public static float lockedPitch = 0;
 
@@ -26,6 +27,7 @@ public class ClientAbilityState {
         rotationLocked = (flags & PlayerAbilityStatePacket.FLAG_ROTATION_LOCKED) != 0;
         hasAbilityMovement = (flags & PlayerAbilityStatePacket.FLAG_HAS_ABILITY_MOVEMENT) != 0;
         positionLocked = (flags & PlayerAbilityStatePacket.FLAG_POSITION_LOCKED) != 0;
+        wasFlyingAtLock = (flags & PlayerAbilityStatePacket.FLAG_WAS_FLYING_AT_LOCK) != 0;
         lockedYaw = yaw;
         lockedPitch = pitch;
     }
@@ -53,6 +55,7 @@ public class ClientAbilityState {
         rotationLocked = false;
         hasAbilityMovement = false;
         positionLocked = false;
+        wasFlyingAtLock = false;
         lockedYaw = 0;
         lockedPitch = 0;
     }

@@ -7,6 +7,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.TargetFilter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -357,6 +359,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
             if (owner != null && entity == owner) continue;
             if (entity.isDead) continue;
             if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+            if (owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
 
             double dx = entity.posX - posX;
             double dz = entity.posZ - posZ;
@@ -391,6 +394,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
             for (EntityLivingBase entity : entities) {
                 if (owner != null && entity == owner) continue;
+                if (owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
                 double dx = entity.posX - posX;
                 double dz = entity.posZ - posZ;
                 if (shape == ZoneShape.SQUARE) {
@@ -464,6 +468,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         for (EntityLivingBase entity : entities) {
             if (owner != null && entity == owner && !affectsCaster) continue;
             if (damagedThisTick.contains(entity.getEntityId())) continue;
+            if (entity != owner && owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
             if (!isInZone(entity)) continue;
 
             if (damagePerSecond > 0) {
@@ -711,7 +716,8 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
-        this.zoneType = ZoneType.values()[nbt.getInteger("ZoneType")];
+        int zoneTypeOrd = nbt.getInteger("ZoneType");
+        this.zoneType = (zoneTypeOrd >= 0 && zoneTypeOrd < ZoneType.values().length) ? ZoneType.values()[zoneTypeOrd] : ZoneType.TRAP;
         try {
             this.shape = ZoneShape.valueOf(nbt.getString("ShapeName"));
         } catch (Exception e) {
@@ -719,17 +725,17 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         }
 
         this.ownerEntityId = nbt.getInteger("OwnerId");
-        this.radius = nbt.getFloat("Radius");
-        this.durationTicks = nbt.getInteger("Duration");
-        this.maxTicks = nbt.getInteger("MaxTicks");
-        this.innerColor = nbt.getInteger("InnerColor");
-        this.outerColor = nbt.getInteger("OuterColor");
-        this.outerColorEnabled = nbt.getBoolean("OuterColorEnabled");
-        this.zoneHeight = nbt.getFloat("ZoneHeight");
-        this.particleDensity = nbt.getFloat("ParticleDensity");
-        this.particleScale = nbt.getFloat("ParticleScale");
-        this.animSpeed = nbt.getFloat("AnimSpeed");
-        this.lightningDensity = nbt.getFloat("LightningDensity");
+        this.radius = nbt.hasKey("Radius") ? nbt.getFloat("Radius") : 4.0f;
+        this.durationTicks = nbt.hasKey("Duration") ? nbt.getInteger("Duration") : 200;
+        this.maxTicks = nbt.hasKey("MaxTicks") ? nbt.getInteger("MaxTicks") : 200;
+        this.innerColor = nbt.hasKey("InnerColor") ? nbt.getInteger("InnerColor") : 0xFF6600;
+        this.outerColor = nbt.hasKey("OuterColor") ? nbt.getInteger("OuterColor") : 0xFF0000;
+        this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
+        this.zoneHeight = nbt.hasKey("ZoneHeight") ? nbt.getFloat("ZoneHeight") : 2.0f;
+        this.particleDensity = nbt.hasKey("ParticleDensity") ? nbt.getFloat("ParticleDensity") : 1.0f;
+        this.particleScale = nbt.hasKey("ParticleScale") ? nbt.getFloat("ParticleScale") : 1.0f;
+        this.animSpeed = nbt.hasKey("AnimSpeed") ? nbt.getFloat("AnimSpeed") : 1.0f;
+        this.lightningDensity = nbt.hasKey("LightningDensity") ? nbt.getFloat("LightningDensity") : 1.0f;
         this.deathWorldTime = nbt.getLong("DeathWorldTime");
 
         // Visual layer fields
@@ -759,8 +765,9 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.visible = nbt.getBoolean("Visible");
 
         // Hazard
-        this.damagePerSecond = nbt.getFloat("DamagePerSecond");
-        this.damageInterval = nbt.getInteger("DamageInterval");
+        this.damagePerSecond = nbt.hasKey("DamagePerSecond") ? nbt.getFloat("DamagePerSecond") : 1.0f;
+        this.damageInterval = nbt.hasKey("DamageInterval") ? nbt.getInteger("DamageInterval") : 20;
+        if (damageInterval <= 0) damageInterval = 1;
         this.ignoreInvulnFrames = nbt.getBoolean("IgnoreInvuln");
         this.affectsCaster = nbt.getBoolean("AffectsCaster");
 
@@ -888,7 +895,8 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
     @Override
     public void readSpawnData(ByteBuf buffer) {
-        this.zoneType = ZoneType.values()[buffer.readInt()];
+        int zoneTypeOrd = buffer.readInt();
+        this.zoneType = (zoneTypeOrd >= 0 && zoneTypeOrd < ZoneType.values().length) ? ZoneType.values()[zoneTypeOrd] : ZoneType.TRAP;
         String shapeName = ByteBufUtils.readUTF8String(buffer);
         try {
             this.shape = ZoneShape.valueOf(shapeName);

@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -28,20 +29,20 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
     public EntityEnergyDome(World world) {
         super(world);
-        this.setSize(1.0f, 1.0f); // Hitbox doesn't really matter, we use radius checks
+        this.setSize(1.0f, 1.0f);
     }
 
     public EntityEnergyDome(World world, EntityLivingBase owner, double x, double y, double z,
                             float domeRadius, EnergyDisplayData display, EnergyLightningData lightning,
                             EnergyBarrierData barrier) {
         this(world);
-        this.setPosition(x, y, z);
         this.ownerEntityId = owner.getEntityId();
         this.domeRadius = domeRadius;
         this.displayData = display;
         this.lightningData = lightning;
         this.barrierData = barrier;
         this.currentHealth = barrier.maxHealth;
+        this.setPosition(x, y, z);
     }
 
     @Override
@@ -103,14 +104,25 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         double dx = projectile.posX - this.posX;
         double dy = projectile.posY - this.posY;
         double dz = projectile.posZ - this.posZ;
-        double distSq = dx * dx + dy * dy + dz * dz;
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        // Check if projectile is within dome radius
-        if (distSq > domeRadius * domeRadius) return false;
+        // Check if projectile is outside dome radius
+        if (dist > domeRadius) return false;
 
-        // Check if projectile is moving inward (dot product of velocity and position relative to center)
+        // Approximate the projectile's position before last tick's movement.
+        // checkBarrierCollision runs BEFORE updateProjectile, so posX is post-last-movement.
+        // posX - motionX gives the pre-movement position (works for moveEntity and setPosition).
+        double prevDx = (projectile.posX - projectile.motionX) - this.posX;
+        double prevDy = (projectile.posY - projectile.motionY) - this.posY;
+        double prevDz = (projectile.posZ - projectile.motionZ) - this.posZ;
+        double prevDist = Math.sqrt(prevDx * prevDx + prevDy * prevDy + prevDz * prevDz);
+
+        // Only block projectiles that crossed the dome boundary from outside.
+        // Projectiles spawned inside (prevDist < radius) pass through freely.
+        if (prevDist < domeRadius) return false;
+
+        // Projectile entered from outside — check it's still moving inward
         double dot = dx * projectile.motionX + dy * projectile.motionY + dz * projectile.motionZ;
-        // Negative dot = moving toward center = incoming
         return dot < 0;
     }
 
@@ -172,17 +184,37 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         }
     }
 
+    // ==================== MELEE (spherical check) ====================
+
+    /**
+     * Reject melee hits that land on the cubic bounding box but are outside the actual sphere.
+     */
+    @Override
+    public boolean attackEntityFrom(DamageSource source, float amount) {
+        if (source.getEntity() != null) {
+            Entity attacker = source.getEntity();
+            double dx = attacker.posX - this.posX;
+            double dy = (attacker.posY + attacker.height * 0.5) - this.posY;
+            double dz = attacker.posZ - this.posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+            // Allow hit only if attacker is within sphere + melee reach margin
+            double maxDist = domeRadius + 5.0;
+            if (distSq > maxDist * maxDist) return false;
+        }
+        return super.attackEntityFrom(source, amount);
+    }
+
     // ==================== BOUNDING BOX ====================
 
+    /**
+     * Expands the ray-trace targeting area so players can melee-hit the dome
+     * from anywhere near its surface, not just the tiny 1x1 center.
+     * This is used by EntityRenderer.getMouseOver() to expand the entity BB
+     * for crosshair targeting without modifying the actual bounding box.
+     */
     @Override
-    public AxisAlignedBB getBoundingBox() {
-        if (barrierData.meleeEnabled) {
-            return AxisAlignedBB.getBoundingBox(
-                posX - domeRadius, posY - domeRadius, posZ - domeRadius,
-                posX + domeRadius, posY + domeRadius, posZ + domeRadius
-            );
-        }
-        return null;
+    public float getCollisionBorderSize() {
+        return domeRadius;
     }
 
     @Override
@@ -191,6 +223,27 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         double d = domeRadius * 8.0D;
         d *= 64.0D;
         return distance < d * d;
+    }
+
+    // ==================== DISTANCE (for render sorting) ====================
+
+    /**
+     * Returns squared distance from the given point to the nearest point on the dome sphere surface.
+     * Uses absolute distance to surface: |centerDist - radius|.
+     * <p>
+     * Inside: nearest surface is (radius - centerDist) away.
+     * Outside: nearest surface is (centerDist - radius) away.
+     * This ensures entities inside the dome sort correctly relative to the dome shell.
+     */
+    @Override
+    public double getDistanceSq(double x, double y, double z) {
+        double dx = this.posX - x;
+        double dy = this.posY - y;
+        double dz = this.posZ - z;
+        double centerDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        double surfaceDist = Math.abs(centerDist - domeRadius);
+        return surfaceDist * surfaceDist;
     }
 
     // ==================== GETTERS ====================
@@ -216,8 +269,8 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
         readBarrierBaseNBT(nbt);
-        this.domeRadius = nbt.getFloat("DomeRadius");
-        this.targetDomeRadius = nbt.hasKey("TargetDomeRadius") ? nbt.getFloat("TargetDomeRadius") : domeRadius;
+        this.domeRadius = sanitize(nbt.getFloat("DomeRadius"), 5.0f, MAX_ENTITY_RADIUS);
+        this.targetDomeRadius = sanitize(nbt.hasKey("TargetDomeRadius") ? nbt.getFloat("TargetDomeRadius") : domeRadius, 5.0f, MAX_ENTITY_RADIUS);
         this.followCaster = nbt.hasKey("FollowCaster") && nbt.getBoolean("FollowCaster");
     }
 

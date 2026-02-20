@@ -219,6 +219,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                 }
             }
 
+            // Charging timeout - if charge phase exceeded with grace period, force kill
+            if (isCharging() && chargeTick > chargeDuration + CHARGE_TIMEOUT_GRACE) {
+                this.setDead();
+                return;
+            }
+
+            // Absolute hard lifetime cap (safety net for any stuck state)
+            if (ticksExisted > HARD_LIFETIME_CAP) {
+                this.setDead();
+                return;
+            }
+
             // Set death time on first tick if not already set (handles chunk load/unload)
             // Skip during charging phase - lifetime starts when the entity actually fires
             if (deathWorldTime < 0 && worldObj != null && !isCharging()) {
@@ -306,8 +318,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * @return true if projectile was absorbed (caller should stop processing)
      */
     protected boolean checkBarrierCollision() {
-        // Search area for barriers - must cover large domes (up to 30 radius)
-        double searchRange = 32.0;
+        // Search range must cover the largest possible barrier (dome radius up to MAX_ENTITY_RADIUS)
+        double searchRange = MAX_ENTITY_RADIUS + 5;
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
             posX - searchRange, posY - searchRange, posZ - searchRange,
             posX + searchRange, posY + searchRange, posZ + searchRange
@@ -446,13 +458,15 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     protected void doExplosion() {
         if (previewMode) return; // Skip explosion in preview mode
+        float explosionRad = getExplosionRadius();
+        if (Float.isNaN(explosionRad) || explosionRad <= 0) return;
         worldObj.playSoundEffect(posX, posY, posZ, "random.explode", 1.0f, 1.0f);
 
         Entity owner = getOwnerEntity();
 
         AxisAlignedBB explosionBox = AxisAlignedBB.getBoundingBox(
-            posX - getExplosionRadius(), posY - getExplosionRadius(), posZ - getExplosionRadius(),
-            posX + getExplosionRadius(), posY + getExplosionRadius(), posZ + getExplosionRadius()
+            posX - explosionRad, posY - explosionRad, posZ - explosionRad,
+            posX + explosionRad, posY + explosionRad, posZ + explosionRad
         );
 
         @SuppressWarnings("unchecked")
@@ -467,9 +481,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                     Math.pow(target.posZ - posZ, 2)
             );
 
-            float radius = getExplosionRadius();
-            if (radius > 0 && dist <= radius) {
-                float falloff = 1.0f - (float) (dist / radius) * getExplosionDamageFalloff();
+            if (dist <= explosionRad) {
+                float falloff = 1.0f - (float) (dist / explosionRad) * getExplosionDamageFalloff();
                 applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
             }
         }
@@ -911,7 +924,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected void readBaseNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
 
-        this.size = nbt.getFloat("Size");
+        this.size = sanitize(nbt.getFloat("Size"), 1.0f, MAX_ENTITY_SIZE);
 
         // Read effects list
         this.effects.clear();
@@ -954,14 +967,12 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         nbt.setFloat("Size", size);
 
-        // Write effects list
-        if (!effects.isEmpty()) {
-            NBTTagList effectsList = new NBTTagList();
-            for (AbilityPotionEffect effect : effects) {
-                effectsList.appendTag(effect.writeNBT());
-            }
-            nbt.setTag("Effects", effectsList);
+        // Write effects list (always write, even if empty, so readBaseNBT finds the key)
+        NBTTagList effectsList = new NBTTagList();
+        for (AbilityPotionEffect effect : effects) {
+            effectsList.appendTag(effect.writeNBT());
         }
+        nbt.setTag("Effects", effectsList);
 
         nbt.setLong("DeathWorldTime", deathWorldTime);
 

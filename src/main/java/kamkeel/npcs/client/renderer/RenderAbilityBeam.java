@@ -74,18 +74,20 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
         // Render tail orb at origin (0,0,0) - only in anchored mode
         // Don't render if head is too close to origin (would cause overlap/extra orb appearance)
         if (beam.shouldRenderTailOrb() && headDistFromOrigin > headSize * 0.5) {
-            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), outerAlpha);
+            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), outerAlpha, beam.getInnerAlpha());
         }
+
+        float innerAlpha = beam.getInnerAlpha();
 
         // Render trail segments with smooth connections (with fading for non-anchored)
         if (beam.hasFadingTrail()) {
-            renderFadingTrail(beam, trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
+            renderFadingTrail(beam, trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), innerAlpha);
         } else {
-            renderSmoothTrail(trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth());
+            renderSmoothTrail(trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), innerAlpha);
         }
 
         // Render head at interpolated offset position
-        renderHead(beam, headOffsetX, headOffsetY, headOffsetZ, headSize, innerColor, outerColor, outerAlpha, partialTicks);
+        renderHead(beam, headOffsetX, headOffsetY, headOffsetZ, headSize, innerColor, outerColor, outerAlpha, innerAlpha, partialTicks);
 
         GL11.glPopMatrix();
 
@@ -139,7 +141,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
 
         // Render inner core
         GL11.glScalef(innerScale, innerScale, innerScale);
-        renderCube(innerColor, 1.0f, 0.5f);
+        renderCube(innerColor, beam.getInnerAlpha(), 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();
@@ -149,7 +151,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Render the tail orb at the origin (where the beam emanates from).
      * This orb does not rotate - it's a stable anchor point.
      */
-    private void renderTailOrb(float size, int innerColor, int outerColor, boolean outerColorEnabled, float outerColorWidth, float outerAlpha) {
+    private void renderTailOrb(float size, int innerColor, int outerColor, boolean outerColorEnabled, float outerColorWidth, float outerAlpha, float innerAlpha) {
         GL11.glPushMatrix();
         // Already at origin (0,0,0)
 
@@ -171,7 +173,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
         // Render inner core (solid)
         GL11.glPushMatrix();
         GL11.glScalef(size * innerScale, size * innerScale, size * innerScale);
-        renderCube(innerColor, 1.0f, 0.5f);
+        renderCube(innerColor, innerAlpha, 0.5f);
         GL11.glPopMatrix();
 
         GL11.glPopMatrix();
@@ -182,7 +184,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Uses averaged perpendicular vectors at connection points to prevent gaps.
      */
     private void renderSmoothTrail(List<Vec3> trail, float width, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth) {
+                                   boolean outerColorEnabled, float outerColorWidth, float innerAlpha) {
         if (trail.size() < 2) return;
 
         int trailSize = trail.size();
@@ -205,7 +207,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
         }
 
         // Render inner core trail
-        renderTrailTube(trail, perpFrames, innerWidth, innerColor, 0.9f, false);
+        renderTrailTube(trail, perpFrames, innerWidth, innerColor, innerAlpha, false);
     }
 
     /**
@@ -213,7 +215,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Older trail points fade out based on their age.
      */
     private void renderFadingTrail(EntityAbilityBeam beam, List<Vec3> trail, float width, int innerColor, int outerColor,
-                                   boolean outerColorEnabled, float outerColorWidth) {
+                                   boolean outerColorEnabled, float outerColorWidth, float innerAlpha) {
         if (trail.size() < 2) return;
 
         List<Integer> ages = beam.getTrailPointAges();
@@ -235,7 +237,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
         }
 
         // Render inner core trail with fading
-        renderFadingTrailTube(trail, perpFrames, ages, fadeTime, innerWidth, innerColor, 0.9f);
+        renderFadingTrailTube(trail, perpFrames, ages, fadeTime, innerWidth, innerColor, innerAlpha);
     }
 
     /**
@@ -260,8 +262,8 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
             // Calculate alpha based on age (older = more faded)
             float age1 = i < ages.size() ? ages.get(i) : 0;
             float age2 = (i + 1) < ages.size() ? ages.get(i + 1) : 0;
-            float fade1 = 1.0f - Math.min(1.0f, age1 / fadeTime);
-            float fade2 = 1.0f - Math.min(1.0f, age2 / fadeTime);
+            float fade1 = fadeTime > 0 ? (1.0f - Math.min(1.0f, age1 / fadeTime)) : 0.0f;
+            float fade2 = fadeTime > 0 ? (1.0f - Math.min(1.0f, age2 / fadeTime)) : 0.0f;
             float alpha1 = baseAlpha * fade1;
             float alpha2 = baseAlpha * fade2;
 
@@ -541,7 +543,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
      * Coordinates are relative to origin.
      */
     private void renderHead(EntityAbilityBeam beam, double x, double y, double z,
-                            float size, int innerColor, int outerColor, float outerAlpha, float partialTicks) {
+                            float size, int innerColor, int outerColor, float outerAlpha, float innerAlpha, float partialTicks) {
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, z);
 
@@ -580,7 +582,7 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
 
         // Render inner core
         GL11.glScalef(innerScale, innerScale, innerScale);
-        renderCube(innerColor, 1.0f, 0.5f);
+        renderCube(innerColor, innerAlpha, 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();

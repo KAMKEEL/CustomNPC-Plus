@@ -31,6 +31,12 @@ public class ChainedAbilityEntry {
      */
     private int delayTicks = 0;
 
+    /**
+     * Whether this entry should execute concurrently (alongside the previous ability)
+     * rather than sequentially. Only takes effect if the resolved ability isConcurrentCapable().
+     */
+    private boolean concurrentEnabled = true;
+
     public ChainedAbilityEntry() {
     }
 
@@ -104,6 +110,14 @@ public class ChainedAbilityEntry {
         this.delayTicks = Math.max(0, delayTicks);
     }
 
+    public boolean isConcurrentEnabled() {
+        return concurrentEnabled;
+    }
+
+    public void setConcurrentEnabled(boolean concurrentEnabled) {
+        this.concurrentEnabled = concurrentEnabled;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // RESOLUTION
     // ═══════════════════════════════════════════════════════════════════
@@ -157,6 +171,7 @@ public class ChainedAbilityEntry {
         copy.entryType = this.entryType;
         copy.abilityReference = this.abilityReference;
         copy.delayTicks = this.delayTicks;
+        copy.concurrentEnabled = this.concurrentEnabled;
         if (this.inlineAbility != null) {
             copy.inlineAbility = AbilityController.Instance.fromNBT(this.inlineAbility.writeNBT());
         }
@@ -170,6 +185,7 @@ public class ChainedAbilityEntry {
     public NBTTagCompound writeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setInteger("Delay", delayTicks);
+        nbt.setBoolean("Concurrent", concurrentEnabled);
 
         if (entryType == EntryType.INLINE && inlineAbility != null) {
             nbt.setTag("InlineAbility", inlineAbility.writeNBT());
@@ -184,6 +200,7 @@ public class ChainedAbilityEntry {
 
         ChainedAbilityEntry entry = new ChainedAbilityEntry();
         entry.delayTicks = Math.max(0, nbt.getInteger("Delay"));
+        entry.concurrentEnabled = nbt.hasKey("Concurrent") ? nbt.getBoolean("Concurrent") : true;
 
         // Inline entry (new format)
         if (nbt.hasKey("InlineAbility")) {
