@@ -23,6 +23,7 @@ public enum EnumDataPacket {
     DELETE_NPC,
     CLONE_NPC,
     WEAPON_NPC,
+    REQUEST_SPAWN_DATA,
 
     // Data
     SCROLL_LIST,

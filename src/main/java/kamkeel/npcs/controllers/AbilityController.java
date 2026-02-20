@@ -1,6 +1,9 @@
 package kamkeel.npcs.controllers;
 
 import kamkeel.npcs.controllers.data.ability.*;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionHPThreshold;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionHitCount;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
@@ -54,7 +57,7 @@ public class AbilityController implements IAbilityHandler {
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
     private final List<IChainedAbilityFieldProvider> chainedFieldProviders = new ArrayList<>();
     private final List<IAbilityExtender> extenders = new ArrayList<>();
-    private final Map<String, Supplier<IAbilityCondition>> conditionTypes = new HashMap<>();
+    private final Map<String, Supplier<AbilityCondition>> conditionTypes = new HashMap<>();
     private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
 
     // ── Legacy Migration ─────────────────────────────────────────────────────
@@ -147,7 +150,8 @@ public class AbilityController implements IAbilityHandler {
     }
 
     private void registerBuiltinConditionTypes() {
-        registerCondition(IAbilityCondition.ConditionHPAbove::new);
+        registerCondition(ConditionHPThreshold::new);
+        registerCondition(ConditionHitCount::new);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -880,8 +884,8 @@ public class AbilityController implements IAbilityHandler {
         return extenders;
     }
 
-    public void registerCondition(Supplier<IAbilityCondition> conditionFactory) {
-        IAbilityCondition temp = conditionFactory.get();
+    public void registerCondition(Supplier<AbilityCondition> conditionFactory) {
+        AbilityCondition temp = conditionFactory.get();
         String typeId = temp.getTypeId();
         if (conditionTypes.containsKey(typeId)) {
             LogWriter.info("AbilityController: Overwriting Condition type: " + typeId);
@@ -889,7 +893,7 @@ public class AbilityController implements IAbilityHandler {
         conditionTypes.put(typeId, conditionFactory);
     }
 
-    public Supplier<IAbilityCondition> getConditionType(String key) {
+    public Supplier<AbilityCondition> getConditionType(String key) {
         return conditionTypes.get(key);
     }
 
