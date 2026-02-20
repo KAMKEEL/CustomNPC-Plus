@@ -154,6 +154,16 @@ public class ClientTickHandler {
                     renderCNPCPlayer.itemRenderer.updateEquippedItem();
                 }
             }
+
+            // Tick telegraph manager AFTER entity updates so telegraph positions
+            // match entity interpolation (Phase.END runs after world tick)
+            if (TelegraphManager.ClientInstance != null) {
+                TelegraphManager.ClientInstance.tick(mc.theWorld);
+            }
+
+            // Update lightning bolts for ability effects
+            LightningBolt.updateAll();
+
             return;
         }
         if (mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer) {
@@ -179,13 +189,6 @@ public class ClientTickHandler {
         MusicController.Instance.onUpdate();
         ScriptSoundController.Instance.onUpdate();
 
-        // Tick telegraph manager for ability warnings
-        if (TelegraphManager.ClientInstance != null) {
-            TelegraphManager.ClientInstance.tick(mc.theWorld);
-        }
-
-        // Update lightning bolts for ability effects
-        LightningBolt.updateAll();
         if (Minecraft.getMinecraft().thePlayer != null && (prevWidth != mc.displayWidth || prevHeight != mc.displayHeight)) {
             prevWidth = mc.displayWidth;
             prevHeight = mc.displayHeight;
