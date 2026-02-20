@@ -58,6 +58,10 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
             Entity owner = ownerEntityId >= 0 ? worldObj.getEntityByID(ownerEntityId) : null;
             if (owner != null) {
                 this.setPosition(owner.posX, owner.posY, owner.posZ);
+                // Sync prevPos with owner's prevPos for smooth interpolation
+                this.prevPosX = owner.prevPosX;
+                this.prevPosY = owner.prevPosY;
+                this.prevPosZ = owner.prevPosZ;
             }
         }
 
@@ -162,6 +166,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         for (EntityLivingBase ent : entities) {
             if (ent.getEntityId() == ownerEntityId) continue;
             if (!isKnockbackTarget(ent)) continue;
+            if (isAllyOfOwner(ent)) continue;
 
             double dx = ent.posX - posX;
             double dy = (ent.posY + ent.height * 0.5) - posY;

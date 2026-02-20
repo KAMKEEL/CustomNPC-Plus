@@ -130,6 +130,12 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         double newZ = owner.posZ + (Math.cos(yawRad) * frontDist);
 
         this.setPosition(newX, newY, newZ);
+
+        // Sync prevPos with owner's prevPos for smooth interpolation
+        float prevYawRad = (float) Math.toRadians(owner.prevRotationYaw);
+        this.prevPosX = owner.prevPosX + (-Math.sin(prevYawRad) * frontDist);
+        this.prevPosY = owner.prevPosY + panelData.heightOffset + (owner.height * 0.5f);
+        this.prevPosZ = owner.prevPosZ + (Math.cos(prevYawRad) * frontDist);
     }
 
     private void updateLaunched() {
@@ -296,6 +302,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         for (EntityLivingBase ent : entities) {
             if (ent.getEntityId() == ownerEntityId) continue;
             if (!isKnockbackTarget(ent)) continue;
+            if (isAllyOfOwner(ent)) continue;
 
             // Transform entity position to panel-local space
             double dx = ent.posX - posX;

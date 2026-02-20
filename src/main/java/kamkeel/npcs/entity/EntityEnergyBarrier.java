@@ -1,5 +1,6 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -234,6 +235,16 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
             default:
                 return entity instanceof EntityPlayer || entity instanceof EntityNPCInterface;
         }
+    }
+
+    /**
+     * Check if an entity is an ally of this barrier's owner.
+     * Allies should not be knocked back by barriers.
+     */
+    protected boolean isAllyOfOwner(EntityLivingBase entity) {
+        Entity owner = getOwnerEntity();
+        if (owner == null || !(owner instanceof EntityLivingBase)) return false;
+        return AbilityTargetHelper.isAlly((EntityLivingBase) owner, entity);
     }
 
     // ==================== GETTERS ====================
