@@ -330,7 +330,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         for (EntityEnergyBarrier barrier : barriers) {
             if (barrier.isDead) continue;
             if (barrier.isIncomingProjectile(this)) {
-                if (barrier.onProjectileHit(this, getDamage())) {
+                float damage = getModifiedDamage();
+                if (barrier.onProjectileHit(this, damage)) {
                     hasHit = true;
                     this.setDead();
                     return true;
@@ -339,6 +340,22 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         }
 
         return false;
+    }
+
+    /**
+     * Get the projectile damage modified by extenders (e.g. DBC damage scaling).
+     * Falls back to base getDamage() when no sourceAbility or no extenders modify it.
+     */
+    protected float getModifiedDamage() {
+        float damage = getDamage();
+        if (sourceAbility != null) {
+            Entity owner = getOwnerEntity();
+            if (owner instanceof EntityLivingBase) {
+                damage = AbilityController.Instance.fireModifyProjectileDamage(
+                    sourceAbility, (EntityLivingBase) owner, damage);
+            }
+        }
+        return damage;
     }
 
     // ==================== POSITION INTERPOLATION ====================
