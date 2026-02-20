@@ -250,6 +250,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     @Override
     protected void onInterruptComplete() {
         // Player clears state immediately (unlike NPC which ticks through DAZED)
+        // Stop the dazed animation that was started in interruptCurrentAbility()
+        stopAbilityAnimation();
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
