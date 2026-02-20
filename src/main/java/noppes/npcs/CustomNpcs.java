@@ -335,6 +335,14 @@ public class CustomNpcs {
     @EventHandler
     public void loadComplete(FMLLoadCompleteEvent ev) {
         proxy.buildPackageIndex();
+
+        // Load built-in animations on the client so they're available for ability preview.
+        // On dedicated servers, AnimationController.load() only runs on the server JVM,
+        // leaving the client without built-in animation data. In singleplayer, load()
+        // runs later during server start and reloads everything, so this is harmless.
+        if (FMLCommonHandler.instance().getSide().isClient()) {
+            AnimationController.Instance.loadClientBuiltIns();
+        }
     }
 
     @EventHandler

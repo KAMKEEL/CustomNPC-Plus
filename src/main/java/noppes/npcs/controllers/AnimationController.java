@@ -213,6 +213,18 @@ public class AnimationController implements IAnimationHandler {
         }
     }
 
+    /**
+     * Loads built-in animations for client-side usage.
+     * On dedicated servers, AnimationController.load() never runs on the client JVM,
+     * so built-in animations would be missing for client-only systems like ability preview.
+     * This method loads just the built-in animations (from assets and registered addons)
+     * without touching user animations or world save data.
+     */
+    public void loadClientBuiltIns() {
+        loadBuiltInAnimations();
+        loadRegisteredBuiltIns();
+    }
+
     private File getDir() {
         return new File(CustomNpcs.getWorldSaveDirectory(), "animations");
     }
