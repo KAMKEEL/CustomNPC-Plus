@@ -69,6 +69,30 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         }
     }
 
+    // ==================== POSITION / BOUNDING BOX ====================
+
+    /**
+     * Override setPosition to maintain panel-sized bounding box.
+     * MC's default setPosition() resets BB based on width/height fields.
+     * Network sync calls setPosition(), which would shrink the BB.
+     * This ensures melee targeting always works against the full panel surface.
+     */
+    @Override
+    public void setPosition(double x, double y, double z) {
+        this.posX = x;
+        this.posY = y;
+        this.posZ = z;
+        if (panelData != null) {
+            float halfW = panelData.panelWidth * 0.5f;
+            float halfH = panelData.panelHeight * 0.5f;
+            float extent = Math.max(halfW, 0.5f);
+            this.boundingBox.setBounds(x - extent, y - halfH, z - extent, x + extent, y + halfH, z + extent);
+        } else {
+            float f = this.width / 2.0F;
+            this.boundingBox.setBounds(x - f, y, z - f, x + f, y + this.height, z + f);
+        }
+    }
+
     @Override
     public void onUpdate() {
         this.prevPosX = this.posX;
@@ -95,7 +119,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
         if (updateBarrierTick()) return;
 
-        // Knockback (not during launched mode)
+        // Knockback velocity push every tick (not during launched mode)
         if (!worldObj.isRemote && barrierData.knockbackEnabled && mode != PanelMode.LAUNCHED) {
             knockbackEntities();
         }
@@ -205,16 +229,89 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
     // ==================== INCOMING CHECK ====================
 
     /**
-     * Check if a projectile hits this panel surface.
-     * Only blocks incoming projectiles (not from the panel's owner).
+     * Swept ray-plane intersection test for the panel.
+     * Tests if the line segment from prevPos to currPos crosses the panel plane
+     * within its width/height bounds. Handles fast projectiles that skip through
+     * the thin panel in a single tick.
+     *
+     * @return true if the segment crosses the panel from either side
      */
+    private boolean isIncomingRay(
+        double currX, double currY, double currZ,
+        double prevX, double prevY, double prevZ,
+        int projOwnerEntityId)
+    {
+        if (isCharging()) return false;
+        if (projOwnerEntityId == this.ownerEntityId) return false;
+
+        float halfW = panelData.panelWidth * 0.5f;
+        float halfH = panelData.panelHeight * 0.5f;
+        float panelThickness = 0.5f;
+
+        float yawRad = (float) Math.toRadians(panelYaw);
+        double normalX = -Math.sin(yawRad);
+        double normalZ = Math.cos(yawRad);
+        double cos = Math.cos(yawRad);
+        double sin = Math.sin(yawRad);
+
+        // Signed distance from prevPos and currPos to panel plane
+        double relPrevX = prevX - this.posX;
+        double relPrevY = prevY - this.posY;
+        double relPrevZ = prevZ - this.posZ;
+        double prevDist = relPrevX * normalX + relPrevZ * normalZ;
+
+        double relCurrX = currX - this.posX;
+        double relCurrY = currY - this.posY;
+        double relCurrZ = currZ - this.posZ;
+        double currDist = relCurrX * normalX + relCurrZ * normalZ;
+
+        // Check if segment crosses the plane (sign change)
+        if (prevDist * currDist > 0) {
+            // Both on same side — check if within thickness (slow projectile fallback)
+            if (Math.abs(currDist) <= panelThickness) {
+                double localRight = relCurrX * cos + relCurrZ * sin;
+                if (Math.abs(localRight) > halfW) return false;
+                if (Math.abs(relCurrY) > halfH) return false;
+                // Check incoming direction
+                double motX = currX - prevX;
+                double motZ = currZ - prevZ;
+                double dot = motX * normalX + motZ * normalZ;
+                if (currDist > 0 && dot >= 0) return false;
+                if (currDist < 0 && dot <= 0) return false;
+                return true;
+            }
+            return false;
+        }
+
+        // Segment crosses plane — compute intersection parameter t
+        double rayDirX = currX - prevX;
+        double rayDirZ = currZ - prevZ;
+        double denom = rayDirX * normalX + rayDirZ * normalZ;
+        if (Math.abs(denom) < 1e-10) return false; // Parallel to plane
+
+        double t = -prevDist / denom;
+        if (t < 0.0 || t > 1.0) return false;
+
+        // Compute intersection point
+        double hitX = prevX + (currX - prevX) * t;
+        double hitY = prevY + (currY - prevY) * t;
+        double hitZ = prevZ + (currZ - prevZ) * t;
+
+        // Transform hit point to panel-local space and check bounds
+        double relHitX = hitX - this.posX;
+        double relHitY = hitY - this.posY;
+        double relHitZ = hitZ - this.posZ;
+
+        double localRight = relHitX * cos + relHitZ * sin;
+        if (Math.abs(localRight) > halfW) return false;
+        if (Math.abs(relHitY) > halfH) return false;
+
+        return true;
+    }
+
     @Override
     public boolean isIncomingProjectile(EntityEnergyProjectile projectile) {
-        // Don't block during charging phase
-        if (isCharging()) return false;
-        if (projectile.getOwnerEntityId() == this.ownerEntityId) return false;
-
-        // Faction check
+        // Faction check: don't block same-faction NPC projectiles
         Entity owner = getOwnerEntity();
         Entity projOwner = projectile.getOwnerEntity();
         if (owner instanceof EntityNPCInterface && projOwner instanceof EntityNPCInterface) {
@@ -223,38 +320,29 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
             }
         }
 
-        // Check if projectile is within panel bounds
-        float halfW = panelData.panelWidth * 0.5f;
-        float halfH = panelData.panelHeight * 0.5f;
-        float panelThickness = 0.5f; // Collision thickness
+        double prevX = projectile.posX - projectile.motionX;
+        double prevY = projectile.posY - projectile.motionY;
+        double prevZ = projectile.posZ - projectile.motionZ;
 
-        // Transform projectile position to panel-local space
-        float yawRad = (float) Math.toRadians(panelYaw);
-        double relX = projectile.posX - this.posX;
-        double relY = projectile.posY - this.posY;
-        double relZ = projectile.posZ - this.posZ;
+        return isIncomingRay(
+            projectile.posX, projectile.posY, projectile.posZ,
+            prevX, prevY, prevZ,
+            projectile.getOwnerEntityId());
+    }
 
-        // Rotate into panel space (panel faces along -sin(yaw), cos(yaw))
-        double cos = Math.cos(yawRad);
-        double sin = Math.sin(yawRad);
-        double localForward = relX * (-sin) + relZ * cos;  // Distance along panel normal
-        double localRight = relX * cos + relZ * sin;        // Distance along panel width
+    @Override
+    public boolean isIncomingGenericProjectile(
+        double posX, double posY, double posZ,
+        double motionX, double motionY, double motionZ,
+        double prevPosX, double prevPosY, double prevPosZ,
+        int ownerEntityId)
+    {
+        return isIncomingRay(posX, posY, posZ, prevPosX, prevPosY, prevPosZ, ownerEntityId);
+    }
 
-        // Check bounds
-        if (Math.abs(localForward) > panelThickness) return false;
-        if (Math.abs(localRight) > halfW) return false;
-        if (Math.abs(relY) > halfH) return false;
-
-        // Check incoming direction via dot product with panel normal
-        double normalX = -Math.sin(yawRad);
-        double normalZ = Math.cos(yawRad);
-        double dot = projectile.motionX * normalX + projectile.motionZ * normalZ;
-
-        // Determine which side of the panel the projectile is on
-        if (localForward > 0 && dot >= 0) return false; // Moving away from front side
-        if (localForward < 0 && dot <= 0) return false; // Moving away from back side
-
-        return true;
+    @Override
+    public float getMaxExtent() {
+        return Math.max(panelData.panelWidth, panelData.panelHeight) * 0.5f + 1.0f;
     }
 
     // ==================== CHARGING ====================
@@ -277,21 +365,26 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         setCharging(false);
     }
 
-    // ==================== KNOCKBACK ====================
+    // ==================== KNOCKBACK (DBO-style motion prediction) ====================
 
     /**
-     * Push entities away from the panel surface.
+     * DBO-inspired planar knockback:
+     * - Predict future position from current motion
+     * - Detect crossing or proximity to panel surface
+     * - Apply counter-force via full motion replacement
+     * - No separate phases — single unified algorithm
      */
     @Override
     @SuppressWarnings("unchecked")
     protected void knockbackEntities() {
         float halfW = panelData.panelWidth * 0.5f;
         float halfH = panelData.panelHeight * 0.5f;
-        float margin = 1.0f;
+        float searchExtension = 5.0f;
+        float strength = barrierData.knockbackStrength;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-            posX - halfW - margin, posY - halfH - margin, posZ - halfW - margin,
-            posX + halfW + margin, posY + halfH + margin, posZ + halfW + margin
+            posX - halfW - searchExtension, posY - halfH - searchExtension, posZ - halfW - searchExtension,
+            posX + halfW + searchExtension, posY + halfH + searchExtension, posZ + halfW + searchExtension
         );
 
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
@@ -304,44 +397,60 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
             if (!isKnockbackTarget(ent)) continue;
             if (isAllyOfOwner(ent)) continue;
 
-            // Transform entity position to panel-local space
+            // Current position relative to panel center
             double dx = ent.posX - posX;
             double dy = (ent.posY + ent.height * 0.5) - posY;
             double dz = ent.posZ - posZ;
 
-            // Check proximity to panel surface
+            // Panel-local coordinates
             float localForward = (float) (dx * normalX + dz * normalZ);
             float localRight = (float) (dx * (-normalZ) + dz * normalX);
 
-            if (Math.abs(localForward) < margin && Math.abs(localRight) < halfW + margin && Math.abs(dy) < halfH + margin) {
-                // Push entity away from the panel face
-                float pushDir = localForward >= 0 ? 1.0f : -1.0f;
-                double pushStrength = barrierData.knockbackStrength * 0.5;
-                ent.addVelocity(
-                    normalX * pushDir * pushStrength,
-                    0.1,
-                    normalZ * pushDir * pushStrength
-                );
+            // Skip if outside panel bounds (with margin)
+            if (Math.abs(localRight) > halfW + searchExtension) continue;
+            if (Math.abs(dy) > halfH + searchExtension) continue;
+            if (Math.abs(localForward) > searchExtension) continue;
+
+            // Skip if outside panel width/height bounds (no wall to push against)
+            if (Math.abs(localRight) > halfW + 1.0f) continue;
+            if (Math.abs(dy) > halfH + 1.0f) continue;
+
+            // Predicted future position
+            double futDx = (ent.posX + ent.motionX) - posX;
+            double futDz = (ent.posZ + ent.motionZ) - posZ;
+            float futLocalForward = (float) (futDx * normalX + futDz * normalZ);
+
+            // Normal velocity component (positive = moving in normal direction)
+            double normalVel = ent.motionX * normalX + ent.motionZ * normalZ;
+
+            // Determine which side the entity is on
+            float side = localForward >= 0 ? 1.0f : -1.0f;
+            boolean movingTowardPanel = (localForward >= 0 && normalVel < 0) || (localForward < 0 && normalVel > 0);
+
+            // Check if predicted position would cross the plane (sign change)
+            boolean wouldCross = (localForward > 0 && futLocalForward <= 0) || (localForward < 0 && futLocalForward >= 0);
+
+            if (wouldCross && Math.abs(localRight) <= halfW && Math.abs(dy) <= halfH) {
+                // Hard block: full motion replacement to prevent crossing
+                // Push back along normal, proportional to how far past the surface they'd go
+                double overshoot = Math.abs(futLocalForward);
+                double pushForce = (overshoot + 0.05) * strength * 0.1;
+                ent.motionX = normalX * side * pushForce;
+                ent.motionZ = normalZ * side * pushForce;
+                ent.velocityChanged = true;
+            } else if (Math.abs(localForward) < 1.0 && movingTowardPanel
+                       && Math.abs(localRight) <= halfW && Math.abs(dy) <= halfH) {
+                // Soft push: entity is close and approaching, apply proportional force
+                double proximity = 1.0 - Math.abs(localForward);
+                double pushForce = proximity * strength * 0.1;
+                ent.motionX = normalX * side * pushForce;
+                ent.motionZ = normalZ * side * pushForce;
                 ent.velocityChanged = true;
             }
         }
     }
 
-    // ==================== BOUNDING BOX ====================
-
-    @Override
-    public AxisAlignedBB getBoundingBox() {
-        if (barrierData.meleeEnabled) {
-            float halfW = panelData.panelWidth * 0.5f;
-            float halfH = panelData.panelHeight * 0.5f;
-            float extent = Math.max(halfW, 0.5f);
-            return AxisAlignedBB.getBoundingBox(
-                posX - extent, posY - halfH, posZ - extent,
-                posX + extent, posY + halfH, posZ + extent
-            );
-        }
-        return null;
-    }
+    // ==================== RENDER ====================
 
     @Override
     @SideOnly(Side.CLIENT)

@@ -30,6 +30,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -147,6 +148,52 @@ public class ServerEventsHandler {
                 if (merchantrecipelist != null) {
                     PacketHandler.Instance.sendToPlayer(new VillagerListPacket(merchantrecipelist), player);
                 }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void barrierDamageProtection(LivingAttackEvent event) {
+        if (event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving.worldObj.isRemote)
+            return;
+
+        EntityEnergyBarrier barrier = EntityEnergyBarrier.getProtectingBarrier(event.entityLiving);
+        if (barrier != null && barrier.isDamageFromOutside(event.source)) {
+            // Redirect the damage to the barrier instead of preventing it
+            barrier.absorbDamage(event.ammount);
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void domeItemBlacklist(PlayerInteractEvent event) {
+        if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) return;
+        EntityPlayer player = event.entityPlayer;
+        if (player == null || player.worldObj == null || player.worldObj.isRemote) return;
+
+        ItemStack held = player.getHeldItem();
+        if (held == null) return;
+
+        String itemId = net.minecraft.item.Item.itemRegistry.getNameForObject(held.getItem());
+        if (itemId == null) return;
+
+        String[] blacklist = noppes.npcs.config.ConfigEnergy.DomeItemBlacklist;
+        if (blacklist == null) return;
+
+        boolean blacklisted = false;
+        for (String banned : blacklist) {
+            if (banned.equals(itemId)) {
+                blacklisted = true;
+                break;
+            }
+        }
+        if (!blacklisted) return;
+
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(player.worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier instanceof kamkeel.npcs.entity.EntityEnergyDome && barrier.isEntityInside(player)) {
+                event.setCanceled(true);
+                return;
             }
         }
     }

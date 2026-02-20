@@ -232,6 +232,31 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
         barrierData.meleeDamageMultiplier = mult;
     }
 
+    // Jail data
+    public boolean isJailEnabled() {
+        return barrierData.jailEnabled;
+    }
+
+    public void setJailEnabled(boolean enabled) {
+        barrierData.jailEnabled = enabled;
+    }
+
+    public boolean isDamageProtection() {
+        return barrierData.damageProtection;
+    }
+
+    public void setDamageProtection(boolean enabled) {
+        barrierData.damageProtection = enabled;
+    }
+
+    public float getJailThreshold() {
+        return barrierData.jailThreshold;
+    }
+
+    public void setJailThreshold(float threshold) {
+        barrierData.jailThreshold = Math.max(0.1f, Math.min(1.0f, threshold));
+    }
+
     // ==================== GUI ====================
 
     @SideOnly(Side.CLIENT)

@@ -45,6 +45,27 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         this.setPosition(x, y, z);
     }
 
+    protected void setSize(float width, float height){
+        super.setSize(width, height);
+
+        this.ySize = 0.0F;
+        this.yOffset = this.height * 0.5F;
+    }
+
+
+    // ==================== POSITION / BOUNDING BOX ====================
+
+    /**
+     * Override setPosition to maintain dome-sized bounding box.
+     * MC's default setPosition() resets BB based on width/height fields.
+     * Network sync calls setPosition(), which would shrink the BB.
+     * This ensures melee targeting always works against the full dome sphere.
+     */
+    @Override
+    public void setPosition(double x, double y, double z) {
+        super.setPosition(x, y, z);
+    }
+
     @Override
     public void onUpdate() {
         this.prevPosX = this.posX;
@@ -70,6 +91,8 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
             chargeTick++;
             float progress = getChargeProgress();
             this.domeRadius = targetDomeRadius * progress;
+            // Refresh BB for current charge radius
+            this.setPosition(posX, posY, posZ);
             return; // Don't tick duration/death during charging
         }
 
@@ -77,7 +100,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
         if (updateBarrierTick()) return;
 
-        // Knockback entities inside the dome
+        // Knockback velocity push every tick
         if (!worldObj.isRemote && barrierData.knockbackEnabled) {
             knockbackEntities();
         }
@@ -86,17 +109,55 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     // ==================== INCOMING CHECK ====================
 
     /**
-     * Check if a projectile at the given position is entering this dome from outside.
-     * Only blocks incoming projectiles (dot product check).
+     * Swept ray-sphere intersection test.
+     * Tests if the line segment from prevPos to currPos crosses the dome sphere boundary
+     * from outside. Handles fast projectiles that skip through in a single tick.
+     *
+     * @return true if the segment enters the sphere from outside
      */
+    private boolean isIncomingRay(
+        double currX, double currY, double currZ,
+        double prevX, double prevY, double prevZ,
+        int projOwnerEntityId)
+    {
+        if (isCharging()) return false;
+        if (projOwnerEntityId == this.ownerEntityId) return false;
+
+        // Ray: P(t) = prev + t * (curr - prev), t in [0, 1]
+        double rayDirX = currX - prevX;
+        double rayDirY = currY - prevY;
+        double rayDirZ = currZ - prevZ;
+
+        // Vector from dome center to ray origin (prevPos)
+        double ocX = prevX - this.posX;
+        double ocY = prevY - this.posY;
+        double ocZ = prevZ - this.posZ;
+
+        double r = domeRadius;
+
+        // Quadratic: a*t^2 + b*t + c = 0
+        double a = rayDirX * rayDirX + rayDirY * rayDirY + rayDirZ * rayDirZ;
+        double b = 2.0 * (ocX * rayDirX + ocY * rayDirY + ocZ * rayDirZ);
+        double c = (ocX * ocX + ocY * ocY + ocZ * ocZ) - r * r;
+
+        // c > 0: prevPos is outside sphere; c <= 0: inside (don't block)
+        if (c <= 0) return false;
+
+        if (a < 1e-10) return false; // No movement
+
+        double discriminant = b * b - 4.0 * a * c;
+        if (discriminant < 0) return false; // Ray misses sphere entirely
+
+        double sqrtDisc = Math.sqrt(discriminant);
+        double t1 = (-b - sqrtDisc) / (2.0 * a); // Entry point (first intersection)
+
+        // Entry must be within this tick's movement segment [0, 1]
+        return t1 >= 0.0 && t1 <= 1.0;
+    }
+
     @Override
     public boolean isIncomingProjectile(EntityEnergyProjectile projectile) {
-        // Don't block during charging phase
-        if (isCharging()) return false;
-        // Don't block projectiles from the dome's owner
-        if (projectile.getOwnerEntityId() == this.ownerEntityId) return false;
-
-        // Don't block projectiles from same-faction NPCs
+        // Faction check: don't block same-faction NPC projectiles
         Entity owner = getOwnerEntity();
         Entity projOwner = projectile.getOwnerEntity();
         if (owner instanceof noppes.npcs.entity.EntityNPCInterface && projOwner instanceof noppes.npcs.entity.EntityNPCInterface) {
@@ -105,29 +166,29 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
             }
         }
 
-        double dx = projectile.posX - this.posX;
-        double dy = projectile.posY - this.posY;
-        double dz = projectile.posZ - this.posZ;
-        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        double prevX = projectile.posX - projectile.motionX;
+        double prevY = projectile.posY - projectile.motionY;
+        double prevZ = projectile.posZ - projectile.motionZ;
 
-        // Check if projectile is outside dome radius
-        if (dist > domeRadius) return false;
+        return isIncomingRay(
+            projectile.posX, projectile.posY, projectile.posZ,
+            prevX, prevY, prevZ,
+            projectile.getOwnerEntityId());
+    }
 
-        // Approximate the projectile's position before last tick's movement.
-        // checkBarrierCollision runs BEFORE updateProjectile, so posX is post-last-movement.
-        // posX - motionX gives the pre-movement position (works for moveEntity and setPosition).
-        double prevDx = (projectile.posX - projectile.motionX) - this.posX;
-        double prevDy = (projectile.posY - projectile.motionY) - this.posY;
-        double prevDz = (projectile.posZ - projectile.motionZ) - this.posZ;
-        double prevDist = Math.sqrt(prevDx * prevDx + prevDy * prevDy + prevDz * prevDz);
+    @Override
+    public boolean isIncomingGenericProjectile(
+        double posX, double posY, double posZ,
+        double motionX, double motionY, double motionZ,
+        double prevPosX, double prevPosY, double prevPosZ,
+        int ownerEntityId)
+    {
+        return isIncomingRay(posX, posY, posZ, prevPosX, prevPosY, prevPosZ, ownerEntityId);
+    }
 
-        // Only block projectiles that crossed the dome boundary from outside.
-        // Projectiles spawned inside (prevDist < radius) pass through freely.
-        if (prevDist < domeRadius) return false;
-
-        // Projectile entered from outside — check it's still moving inward
-        double dot = dx * projectile.motionX + dy * projectile.motionY + dz * projectile.motionZ;
-        return dot < 0;
+    @Override
+    public float getMaxExtent() {
+        return domeRadius;
     }
 
     // ==================== CHARGING ====================
@@ -147,19 +208,41 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         setCharging(false);
     }
 
-    // ==================== KNOCKBACK ====================
+    // ==================== KNOCKBACK (DBO-style motion prediction) ====================
 
     /**
-     * Push entities away from the dome surface.
-     * Entities outside are pushed outward, entities inside are pushed inward (containment).
+     * DBO Ki Shield style knockback — unified algorithm with geometric jail:
+     * <p>
+     * When jailEnabled = false (default):
+     * - OUTSIDE entities: predict future position, if it would cross into dome push outward.
+     *   If close and approaching, apply soft outward push. Full motion replacement.
+     * - INSIDE entities: NOT affected (free movement). Dome only blocks entry.
+     * <p>
+     * When jailEnabled = true:
+     * - OUTSIDE entities: pushed outward (same as above, prevents entry).
+     * - INSIDE entities: pushed inward when near edge (geometric containment).
+     *   Any entity inside stays inside, any entity outside stays outside.
+     * <p>
+     * For moving domes (followCaster), dome velocity is accounted for by using
+     * relative velocity (entity motion minus dome motion) for predictions.
      */
     @Override
     @SuppressWarnings("unchecked")
     protected void knockbackEntities() {
-        float margin = 1.0f;
+        float margin = 2.0f;
+        float r = domeRadius;
+        float strength = barrierData.knockbackStrength;
+        boolean jail = barrierData.jailEnabled;
+        float jailThresh = barrierData.jailThreshold;
+
+        // Dome velocity for moving domes (followCaster)
+        double domeVelX = posX - prevPosX;
+        double domeVelY = posY - prevPosY;
+        double domeVelZ = posZ - prevPosZ;
+
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-            posX - domeRadius - margin, posY - domeRadius - margin, posZ - domeRadius - margin,
-            posX + domeRadius + margin, posY + domeRadius + margin, posZ + domeRadius + margin
+            posX - r - margin, posY - r - margin, posZ - r - margin,
+            posX + r + margin, posY + r + margin, posZ + r + margin
         );
 
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
@@ -168,31 +251,102 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
             if (!isKnockbackTarget(ent)) continue;
             if (isAllyOfOwner(ent)) continue;
 
+            // Current position relative to dome center
             double dx = ent.posX - posX;
             double dy = (ent.posY + ent.height * 0.5) - posY;
             double dz = ent.posZ - posZ;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
             if (dist < 0.01) continue;
 
-            // Only affect entities near the dome surface
-            if (dist < domeRadius + margin && dist > domeRadius - margin) {
-                double pushStrength = barrierData.knockbackStrength * 0.5;
-                double pushDir = dist >= domeRadius ? 1.0 : -1.0; // Outside = outward, Inside = inward
-                ent.addVelocity(
-                    (dx / dist) * pushStrength * pushDir,
-                    0.05 * pushDir,
-                    (dz / dist) * pushStrength * pushDir
-                );
-                ent.velocityChanged = true;
+            // Normalized direction from dome center toward entity (outward)
+            double nx = dx / dist;
+            double ny = dy / dist;
+            double nz = dz / dist;
+
+            // Entity velocity relative to dome (accounts for moving domes)
+            double relVelX = ent.motionX - domeVelX;
+            double relVelY = ent.motionY - domeVelY;
+            double relVelZ = ent.motionZ - domeVelZ;
+
+            boolean isInside = dist < r;
+
+            if (isInside && jail) {
+                // --- INSIDE + JAIL ENABLED: push toward center when near dome edge ---
+                if (dist > r * jailThresh) {
+                    double overshoot = dist - r * jailThresh;
+                    double force = (overshoot + 0.1) * strength * 0.2;
+                    // Set motion to dome velocity + inward push (keeps entity moving with dome)
+                    ent.motionX = domeVelX - nx * force;
+                    ent.motionY = domeVelY - ny * force;
+                    ent.motionZ = domeVelZ - nz * force;
+                    ent.velocityChanged = true;
+                } else {
+                    // Predict if entity would escape next tick (relative to dome)
+                    double futDx = dx + relVelX;
+                    double futDy = dy + relVelY;
+                    double futDz = dz + relVelZ;
+                    double futDist = Math.sqrt(futDx * futDx + futDy * futDy + futDz * futDz);
+                    if (futDist >= r) {
+                        // Would escape: cancel outward motion, match dome velocity
+                        double radialVel = relVelX * nx + relVelY * ny + relVelZ * nz;
+                        if (radialVel > 0) {
+                            ent.motionX -= radialVel * nx;
+                            ent.motionY -= radialVel * ny;
+                            ent.motionZ -= radialVel * nz;
+                            ent.velocityChanged = true;
+                        }
+                    }
+                }
+            } else if (!isInside) {
+                // --- OUTSIDE: push outward (prevent entry) ---
+
+                // Predicted future distance from center (relative to dome movement)
+                double futDx = dx + relVelX;
+                double futDy = dy + relVelY;
+                double futDz = dz + relVelZ;
+                double futDist = Math.sqrt(futDx * futDx + futDy * futDy + futDz * futDz);
+
+                // Radial velocity relative to dome (positive = moving away)
+                double radialVel = relVelX * nx + relVelY * ny + relVelZ * nz;
+
+                if (futDist < r) {
+                    // Would cross INTO dome: hard push outward proportional to overshoot
+                    double overshoot = r - futDist;
+                    double force = (overshoot * 2.0 + 0.05) * strength * 0.1;
+                    ent.motionX = domeVelX + nx * force;
+                    ent.motionY = domeVelY + ny * force * 0.5;
+                    ent.motionZ = domeVelZ + nz * force;
+                    ent.velocityChanged = true;
+                } else if (radialVel < 0 && dist < r + margin) {
+                    // Close and approaching: soft push outward proportional to proximity
+                    double proximity = 1.0 - ((dist - r) / margin);
+                    double force = proximity * strength * 0.1;
+                    ent.motionX = domeVelX + nx * force;
+                    ent.motionY = domeVelY + ny * force * 0.5;
+                    ent.motionZ = domeVelZ + nz * force;
+                    ent.velocityChanged = true;
+                }
             }
+            // else: INSIDE + no jail → do nothing (free movement)
         }
+    }
+
+    // ==================== CONTAINMENT CHECK ====================
+
+    @Override
+    public boolean isEntityInside(Entity entity) {
+        if (entity == null) return false;
+        double dx = entity.posX - posX;
+        double dy = (entity.posY + entity.height * 0.5) - posY;
+        double dz = entity.posZ - posZ;
+        return dx * dx + dy * dy + dz * dz < domeRadius * domeRadius;
     }
 
     // ==================== MELEE (spherical check) ====================
 
     /**
      * Reject melee hits that land on the cubic bounding box but are outside the actual sphere.
+     * Uses distance from the sphere surface (not center) for accurate spherical rejection.
      */
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
@@ -201,10 +355,10 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
             double dx = attacker.posX - this.posX;
             double dy = (attacker.posY + attacker.height * 0.5) - this.posY;
             double dz = attacker.posZ - this.posZ;
-            double distSq = dx * dx + dy * dy + dz * dz;
-            // Allow hit only if attacker is within sphere + melee reach margin
-            double maxDist = domeRadius + 5.0;
-            if (distSq > maxDist * maxDist) return false;
+            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            double surfaceDist = Math.abs(dist - domeRadius);
+            // Allow hit only if attacker is within melee reach of the sphere surface
+            if (surfaceDist > 5.0) return false;
         }
         return super.attackEntityFrom(source, amount);
     }
@@ -212,14 +366,13 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     // ==================== BOUNDING BOX ====================
 
     /**
-     * Expands the ray-trace targeting area so players can melee-hit the dome
-     * from anywhere near its surface, not just the tiny 1x1 center.
-     * This is used by EntityRenderer.getMouseOver() to expand the entity BB
-     * for crosshair targeting without modifying the actual bounding box.
+     * Small expansion on top of the dome-sized bounding box for comfortable
+     * melee targeting. The actual BB is already dome-sized (set in onUpdate),
+     * so this only adds a small reach margin for crosshair ray-testing.
      */
     @Override
     public float getCollisionBorderSize() {
-        return domeRadius;
+        return 1.0f;
     }
 
     @Override

@@ -430,6 +430,7 @@ public class CustomNpcs {
         }
 
         kamkeel.npcs.entity.EntityEnergyProjectile.clearAllProjectiles();
+        kamkeel.npcs.entity.EntityEnergyBarrier.clearAllBarriers();
 
         if (FMLCommonHandler.instance().getSide().isClient())
             clientJaninoCompiler = null;

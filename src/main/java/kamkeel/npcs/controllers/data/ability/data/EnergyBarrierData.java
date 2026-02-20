@@ -31,6 +31,11 @@ public class EnergyBarrierData {
     public boolean meleeEnabled = false;
     public float meleeDamageMultiplier = 1.0f;
 
+    // Jail settings (dome only - captures entities inside at spawn)
+    public boolean jailEnabled = false;
+    public boolean damageProtection = false;
+    public float jailThreshold = 0.9f;
+
     /**
      * Per-projectile-type damage multipliers.
      * Key is the ability typeId (e.g., "ability.cnpc.orb", "ability.cnpc.beam").
@@ -144,6 +149,9 @@ public class EnergyBarrierData {
         nbt.setInteger("barrierKnockbackTarget", knockbackTarget);
         nbt.setBoolean("barrierMelee", meleeEnabled);
         nbt.setFloat("barrierMeleeMult", meleeDamageMultiplier);
+        nbt.setBoolean("barrierJail", jailEnabled);
+        nbt.setBoolean("barrierDmgProtect", damageProtection);
+        nbt.setFloat("barrierJailThreshold", jailThreshold);
 
         NBTTagCompound multNbt = new NBTTagCompound();
         for (Map.Entry<String, Float> entry : damageMultipliers.entrySet()) {
@@ -163,6 +171,9 @@ public class EnergyBarrierData {
         knockbackTarget = nbt.hasKey("barrierKnockbackTarget") ? nbt.getInteger("barrierKnockbackTarget") : 0;
         meleeEnabled = nbt.hasKey("barrierMelee") && nbt.getBoolean("barrierMelee");
         meleeDamageMultiplier = nbt.hasKey("barrierMeleeMult") ? nbt.getFloat("barrierMeleeMult") : 1.0f;
+        jailEnabled = nbt.hasKey("barrierJail") && nbt.getBoolean("barrierJail");
+        damageProtection = nbt.hasKey("barrierDmgProtect") && nbt.getBoolean("barrierDmgProtect");
+        jailThreshold = nbt.hasKey("barrierJailThreshold") ? nbt.getFloat("barrierJailThreshold") : 0.9f;
 
         damageMultipliers.clear();
         if (nbt.hasKey("barrierMultipliers")) {
@@ -183,6 +194,9 @@ public class EnergyBarrierData {
         copy.knockbackTarget = knockbackTarget;
         copy.meleeEnabled = meleeEnabled;
         copy.meleeDamageMultiplier = meleeDamageMultiplier;
+        copy.jailEnabled = jailEnabled;
+        copy.damageProtection = damageProtection;
+        copy.jailThreshold = jailThreshold;
         copy.damageMultipliers = new HashMap<>(damageMultipliers);
         return copy;
     }

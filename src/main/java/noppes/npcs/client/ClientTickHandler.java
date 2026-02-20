@@ -5,6 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.client.renderer.lightning.LightningBolt;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
@@ -200,6 +201,40 @@ public class ClientTickHandler {
 
         if (mc.theWorld.getTotalWorldTime() % 20 == 0) { // Update every second
             updateCompassMarks();
+        }
+    }
+
+    /**
+     * Enforce ability lock motion constraints right before entity update.
+     * The Phase.END zeroing in onClientTick can be overwritten by other mods'
+     * ClientTickEvent Phase.START handlers (e.g. flight mods re-applying gravity).
+     * PlayerTickEvent fires after all ClientTickEvent handlers but before
+     * player.onUpdate(), making this the definitive point to enforce motion locks.
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != Phase.START || event.side != Side.CLIENT)
+            return;
+
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null || mc.currentScreen != null)
+            return;
+
+        if (!ClientAbilityState.shouldSuppressMovementInput())
+            return;
+
+        if (!ClientAbilityState.hasAbilityMovement) {
+            mc.thePlayer.motionX = 0;
+            mc.thePlayer.motionZ = 0;
+        }
+
+        if ((ClientAbilityState.movementLocked || ClientAbilityState.positionLocked)
+            && !ClientAbilityState.hasAbilityMovement) {
+            if (ClientAbilityState.wasFlyingAtLock) {
+                mc.thePlayer.motionY = 0;
+            } else {
+                mc.thePlayer.motionY = Math.min(mc.thePlayer.motionY, 0);
+            }
         }
     }
 

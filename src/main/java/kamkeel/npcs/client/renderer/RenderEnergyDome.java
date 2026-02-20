@@ -34,7 +34,7 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
         // Hit flash effect
         float flashAlpha = computeFlashAlpha(dome);
 
-        float innerScale = 0.95f;
+        float innerScale = 1.0f;
 
         // Render outer dome (translucent glow)
         if (dome.isOuterColorEnabled()) {

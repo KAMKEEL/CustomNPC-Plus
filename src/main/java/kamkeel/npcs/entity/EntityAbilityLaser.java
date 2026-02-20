@@ -382,17 +382,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     protected boolean checkBarrierCollision() {
         if (currentLength <= 0 || fullyExtended) return false;
 
-        // Search box covers the full laser line plus barrier search range
-        double searchRange = MAX_ENTITY_RADIUS + 5;
-        double minX = Math.min(startX, endX) - searchRange;
-        double minY = Math.min(startY, endY) - searchRange;
-        double minZ = Math.min(startZ, endZ) - searchRange;
-        double maxX = Math.max(startX, endX) + searchRange;
-        double maxY = Math.max(startY, endY) + searchRange;
-        double maxZ = Math.max(startZ, endZ) + searchRange;
-        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
-
-        List<EntityEnergyBarrier> barriers = worldObj.getEntitiesWithinAABB(EntityEnergyBarrier.class, searchBox);
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
         for (EntityEnergyBarrier barrier : barriers) {
             if (barrier.isDead || barrier.isCharging()) continue;
             if (barrier.getOwnerEntityId() == this.ownerEntityId) continue;

@@ -318,17 +318,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * @return true if projectile was absorbed (caller should stop processing)
      */
     protected boolean checkBarrierCollision() {
-        // Search range must cover the largest possible barrier (dome radius up to MAX_ENTITY_RADIUS)
-        double searchRange = MAX_ENTITY_RADIUS + 5;
-        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-            posX - searchRange, posY - searchRange, posZ - searchRange,
-            posX + searchRange, posY + searchRange, posZ + searchRange
-        );
-
-        @SuppressWarnings("unchecked")
-        List<EntityEnergyBarrier> barriers = worldObj.getEntitiesWithinAABB(EntityEnergyBarrier.class, searchBox);
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
         for (EntityEnergyBarrier barrier : barriers) {
             if (barrier.isDead) continue;
+
+            // Quick distance pre-filter
+            double dx = barrier.posX - this.posX;
+            double dy = barrier.posY - this.posY;
+            double dz = barrier.posZ - this.posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+            double maxRange = barrier.getMaxExtent() + 5.0;
+            if (distSq > maxRange * maxRange) continue;
+
             if (barrier.isIncomingProjectile(this)) {
                 float damage = getModifiedDamage();
                 if (barrier.onProjectileHit(this, damage)) {
