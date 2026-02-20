@@ -73,4 +73,18 @@ public interface IAbilityExtender {
                                     double knockbackDirX, double knockbackDirZ) {
         return false;
     }
+
+    /**
+     * Called to modify outgoing projectile damage before it hits a barrier or is used in other contexts.
+     * Unlike onAbilityDamage (chain of responsibility), this is cumulative — all extenders apply their
+     * modifications in sequence, each receiving the previous extender's output.
+     *
+     * @param ability    The source ability of the projectile
+     * @param caster     The entity that fired the projectile
+     * @param baseDamage The base damage from the ability configuration
+     * @return The modified damage value
+     */
+    default float modifyProjectileDamage(Ability ability, EntityLivingBase caster, float baseDamage) {
+        return baseDamage;
+    }
 }
