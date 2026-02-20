@@ -364,6 +364,12 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         // Regular ability activation
         Ability ability = (Ability) action;
 
+        // Toggle abilities cycle state instead of executing
+        if (ability.isToggleable()) {
+            toggleAbility(key);
+            return true;
+        }
+
         // Check universal cooldown (abilities can optionally ignore it)
         if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
 
@@ -460,7 +466,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     public void setSelectedIndex(int index) {
-        if (index >= 0 && index < unlockedAbilities.size()) {
+        if (index == -1 || (index >= 0 && index < unlockedAbilities.size())) {
             this.selectedIndex = index;
             syncToClient();
         }
@@ -935,8 +941,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     /**
-     * Remove any unlocked ability keys that can no longer be resolved.
-     * Called during load to clean up references to deleted abilities.
+     * Remove any unlocked ability keys that can no longer be resolved or
+     * are no longer allowed for players (e.g. NPC-only abilities).
+     * Called during load to clean up references to deleted/restricted abilities.
      * Supports both regular ability keys and "chain:" prefixed chained ability keys.
      */
     private void validateUnlockedAbilities() {
@@ -949,6 +956,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             if (resolved == null) {
                 it.remove();
                 LogWriter.info("Removed invalid ability reference from player data: " + key);
+            } else if (!resolved.getAllowedBy().allowsPlayer()) {
+                it.remove();
+                LogWriter.info("Removed non-player ability from player data: " + key);
             }
         }
     }

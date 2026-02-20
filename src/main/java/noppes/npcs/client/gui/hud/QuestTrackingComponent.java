@@ -113,10 +113,10 @@ public class QuestTrackingComponent extends HudComponent {
     @Override
     public void save() {
         ConfigClient.QuestOverlayX = posX;
-        ConfigClient.QuestOverlayXProperty.set(ConfigClient.QuestOverlayX);
+        ConfigClient.QuestOverlayXProperty.set((double) ConfigClient.QuestOverlayX);
 
         ConfigClient.QuestOverlayY = posY;
-        ConfigClient.QuestOverlayYProperty.set(ConfigClient.QuestOverlayY);
+        ConfigClient.QuestOverlayYProperty.set((double) ConfigClient.QuestOverlayY);
 
         ConfigClient.QuestOverlayScale = scale;
         ConfigClient.QuestOverlayScaleProperty.set(ConfigClient.QuestOverlayScale);
@@ -218,8 +218,8 @@ public class QuestTrackingComponent extends HudComponent {
             int compHeight = (int) (overlayHeight * effectiveScale);
             int centerX = (res.getScaledWidth() - compWidth) / 2;
             int centerY = (res.getScaledHeight() - compHeight) / 2;
-            posX = (int) (100F * centerX / res.getScaledWidth());
-            posY = (int) (100F * centerY / res.getScaledHeight());
+            posX = 100F * centerX / res.getScaledWidth();
+            posY = 100F * centerY / res.getScaledHeight();
         } else {
             super.onEditorButtonPressed(button);
         }

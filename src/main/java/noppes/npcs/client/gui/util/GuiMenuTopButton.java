@@ -24,8 +24,19 @@ public class GuiMenuTopButton extends GuiNpcButton {
         height = 20;
     }
 
+    /**
+     * Place to the RIGHT of the given button.
+     */
     public GuiMenuTopButton(int i, GuiButton parent, String s) {
         this(i, parent.xPosition + parent.width, parent.yPosition, s);
+    }
+
+    /**
+     * Place to the LEFT of the given button.
+     */
+    public GuiMenuTopButton(int i, String s, GuiButton rightNeighbor) {
+        this(i, rightNeighbor.xPosition - (Minecraft.getMinecraft().fontRenderer.getStringWidth(StatCollector.translateToLocal(s)) + 12),
+            rightNeighbor.yPosition, s);
     }
 
     public GuiMenuTopButton(int i, GuiButton parent, String s,

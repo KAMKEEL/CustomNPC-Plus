@@ -64,6 +64,7 @@ public enum EnumDataPacket {
     TELEGRAPH_REMOVE,
     PLAYER_ABILITY_SYNC,
     PLAYER_ABILITY_STATE,
+    ABILITY_HOTBAR_SYNC,
 
     // Auction System
     AUCTION_DATA,

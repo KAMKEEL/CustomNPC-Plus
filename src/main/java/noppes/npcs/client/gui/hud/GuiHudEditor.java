@@ -173,7 +173,8 @@ public class GuiHudEditor extends GuiScreen {
             int absHeight = (int) (hud.overlayHeight * effectiveScale);
             if (mouseX >= actualX && mouseX <= actualX + absWidth &&
                 mouseY >= actualY && mouseY <= actualY + absHeight) {
-                if (mouseX >= actualX + absWidth - HANDLE_SIZE && mouseY >= actualY + absHeight - HANDLE_SIZE) {
+                int scaledHandle = Math.max(8, (int) (HANDLE_SIZE * effectiveScale));
+                if (mouseX >= actualX + absWidth - scaledHandle && mouseY >= actualY + absHeight - scaledHandle) {
                     resizing = true;
                     selectedComponent = hud;
                     initialScale = hud.scale;
@@ -214,12 +215,14 @@ public class GuiHudEditor extends GuiScreen {
                 int newY = scaledHeight - (Mouse.getY() * scaledHeight / mc.displayHeight) - dragOffsetY;
                 if (newX < 0) newX = 0;
                 if (newY < 0) newY = 0;
-                if (newX + (int) (selectedComponent.overlayWidth * effectiveScale) > scaledWidth)
-                    newX = scaledWidth - (int) (selectedComponent.overlayWidth * effectiveScale);
-                if (newY + (int) (selectedComponent.overlayHeight * effectiveScale) > scaledHeight)
-                    newY = scaledHeight - (int) (selectedComponent.overlayHeight * effectiveScale);
-                selectedComponent.posX = (int) (100F * newX / scaledWidth);
-                selectedComponent.posY = (int) (100F * newY / scaledHeight);
+                int compW = (int) Math.ceil(selectedComponent.overlayWidth * effectiveScale);
+                int compH = (int) Math.ceil(selectedComponent.overlayHeight * effectiveScale);
+                if (newX + compW > scaledWidth)
+                    newX = scaledWidth - compW;
+                if (newY + compH > scaledHeight)
+                    newY = scaledHeight - compH;
+                selectedComponent.posX = 100F * newX / scaledWidth;
+                selectedComponent.posY = 100F * newY / scaledHeight;
             }
             if (resizing) {
                 int currentMouseX = Mouse.getX() * width / mc.displayWidth;
@@ -260,8 +263,8 @@ public class GuiHudEditor extends GuiScreen {
                 }
                 int centerX = (res.getScaledWidth() - compWidth) / 2;
                 int centerY = (res.getScaledHeight() - compHeight) / 2;
-                selectedComponent.posX = (int) (100F * centerX / res.getScaledWidth());
-                selectedComponent.posY = (int) (100F * centerY / res.getScaledHeight());
+                selectedComponent.posX = 100F * centerX / res.getScaledWidth();
+                selectedComponent.posY = 100F * centerY / res.getScaledHeight();
                 updateCustomButtons();
             }
         } else if (button.id == CYCLE_LEFT_ID) {

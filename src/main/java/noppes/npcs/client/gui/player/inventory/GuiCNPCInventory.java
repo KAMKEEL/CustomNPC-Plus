@@ -74,6 +74,14 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         }
 
         y += 21;
+        GuiMenuSideButton abilitiesButton = new GuiMenuSideButton(-105, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
+        abilitiesButton.rightSided = true;
+        abilitiesButton.active = activeTab == -105;
+        abilitiesButton.renderIconPosX = 80;
+        abilitiesButton.renderResource = specialIcons;
+        addSideButton(abilitiesButton);
+
+        y += 21;
         GuiMenuSideButton clientButton = new GuiMenuSideButton(-103, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
         clientButton.rightSided = true;
         clientButton.active = activeTab == -103;
@@ -153,6 +161,10 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             if (guibutton.id == -104 && activeTab != -104) {
                 activeTab = -104;
                 mc.displayGuiScreen(new GuiProfiles());
+            }
+            if (guibutton.id == -105 && activeTab != -105) {
+                activeTab = -105;
+                mc.displayGuiScreen(new GuiAbilities());
             }
         }
     }

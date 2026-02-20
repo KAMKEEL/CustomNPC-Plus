@@ -734,6 +734,25 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
+        // ── Icon tab (native) ─────────────────────────────────────
+        if (!isNpcInlineEdit()) {
+            AbilityIconData icon = AbilityIconData.fromAbility(this);
+            defs.add(FieldDef.stringField("gui.texture", icon::getTexture, icon::setTexture)
+                .tab("Icon"));
+            defs.add(FieldDef.section("ability.icon.section.uv").tab("Icon"));
+            defs.add(FieldDef.intField("ability.icon.x", icon::getIconX, icon::setIconX)
+                .tab("Icon").range(0, 4096));
+            defs.add(FieldDef.intField("ability.icon.y", icon::getIconY, icon::setIconY)
+                .tab("Icon").range(0, 4096));
+            defs.add(FieldDef.section("gui.size").tab("Icon"));
+            defs.add(FieldDef.intField("gui.width", icon::getWidth, icon::setWidth)
+                .tab("Icon").range(1, 256));
+            defs.add(FieldDef.intField("gui.height", icon::getHeight, icon::setHeight)
+                .tab("Icon").range(1, 256));
+            defs.add(FieldDef.floatField("gui.scale", icon::getScale, icon::setScale)
+                .tab("Icon").range(0.1f, 10.0f));
+        }
+
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)
         for (IAbilityFieldProvider provider : AbilityController.Instance.getFieldProviders()) {
             provider.addFieldDefinitions(this, defs);

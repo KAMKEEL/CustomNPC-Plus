@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.Condition;
+import kamkeel.npcs.controllers.data.ability.AbilityIconData;
 import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import kamkeel.npcs.network.PacketClient;
@@ -157,7 +158,18 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             FieldDef.floatField("ability.maxRange", chain::getMaxRange, chain::setMaxRange).range(0, 64)
         ).tab("Target"));
 
-        // External field providers (e.g., DBC Addon injecting an "Icon" tab)
+        // ── Icon tab ──────────────────────────────────────────────
+        AbilityIconData chainIcon = AbilityIconData.fromChainedAbility(chain);
+        fieldDefs.add(FieldDef.stringField("gui.texture", chainIcon::getTexture, chainIcon::setTexture).tab("Icon"));
+        fieldDefs.add(FieldDef.section("ability.icon.section.uv").tab("Icon"));
+        fieldDefs.add(FieldDef.intField("ability.icon.x", chainIcon::getIconX, chainIcon::setIconX).tab("Icon").range(0, 4096));
+        fieldDefs.add(FieldDef.intField("ability.icon.y", chainIcon::getIconY, chainIcon::setIconY).tab("Icon").range(0, 4096));
+        fieldDefs.add(FieldDef.section("gui.size").tab("Icon"));
+        fieldDefs.add(FieldDef.intField("gui.width", chainIcon::getWidth, chainIcon::setWidth).tab("Icon").range(1, 256));
+        fieldDefs.add(FieldDef.intField("gui.height", chainIcon::getHeight, chainIcon::setHeight).tab("Icon").range(1, 256));
+        fieldDefs.add(FieldDef.floatField("gui.scale", chainIcon::getScale, chainIcon::setScale).tab("Icon").range(0.1f, 10.0f));
+
+        // External field providers (e.g., DBC Addon injecting a "DBC" tab)
         if (AbilityController.Instance != null) {
             for (IChainedAbilityFieldProvider provider : AbilityController.Instance.getChainedFieldProviders()) {
                 provider.addFieldDefinitions(chain, fieldDefs);

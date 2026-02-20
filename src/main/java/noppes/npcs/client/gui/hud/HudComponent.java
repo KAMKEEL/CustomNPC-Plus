@@ -8,7 +8,8 @@ import java.util.List;
 
 public abstract class HudComponent {
     // Stored as percentages (0-100) of the current screen resolution.
-    protected int posX = 50, posY = 50, scale = 100, textAlign = 0;
+    public float posX = 50, posY = 50;
+    protected int scale = 100, textAlign = 0;
 
     public boolean enabled = true;
     public boolean hasData = false;

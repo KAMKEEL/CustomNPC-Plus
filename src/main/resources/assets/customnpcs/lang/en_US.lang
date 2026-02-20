@@ -2,6 +2,7 @@ customnpcs.defaultTextColor=404040
 
 key.categories.customnpc=CustomNPC+
 key.customnpcs.special=Special Key
+key.customnpcs.abilityHudKey=Ability HUD Key
 key.npcInventory=NPC Inventory
 
 entity.CustomNpc.name=Custom Npc
@@ -167,6 +168,12 @@ gui.apply=Apply
 gui.cancel=Cancel
 gui.continue=Continue
 gui.yes=Yes
+gui.abilities=Abilities
+gui.toggles=Toggles
+gui.toggle=Toggle
+gui.toggle.active=Active
+gui.toggle.inactive=Inactive
+gui.abilityHotbar=Ability Hotbar
 
 gui.lineColor1=Upper line color
 gui.lineColor2=Middle line color
@@ -2054,6 +2061,10 @@ ability.userType.NPC_ONLY=NPCs
 ability.userType.PLAYER_ONLY=Players
 ability.userType.BOTH=Both
 ability.dieOnImpact=Die on Impact
+
+ability.icon.section.uv=UV Coordinates
+ability.icon.x=Icon X
+ability.icon.y=Icon Y
 
 gui.both=Both
 gui.players=Players

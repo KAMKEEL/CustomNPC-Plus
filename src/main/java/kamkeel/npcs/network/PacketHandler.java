@@ -26,6 +26,7 @@ import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.SwingPlayerArmPacket;
 import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
@@ -54,6 +55,9 @@ import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import kamkeel.npcs.network.packets.player.AuctionActionPacket;
+import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSavePacket;
+import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSelectPacket;
+import kamkeel.npcs.network.packets.player.ability.AbilityTogglePacket;
 import kamkeel.npcs.network.packets.player.BankActionPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.CompanionActionPacket;
@@ -598,6 +602,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new TelegraphRemovePacket());
         DATA_PACKET.registerPacket(new PlayerAbilitySyncPacket());
         DATA_PACKET.registerPacket(new PlayerAbilityStatePacket());
+        DATA_PACKET.registerPacket(new AbilityHotbarSyncPacket());
     }
 
     public void registerPlayerPackets() {
@@ -663,6 +668,11 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new PartyAcceptInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyIgnoreInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyLogToServerPacket());
+
+        // Ability Hotbar Packets
+        PLAYER_PACKET.registerPacket(new AbilityHotbarSavePacket());
+        PLAYER_PACKET.registerPacket(new AbilityHotbarSelectPacket());
+        PLAYER_PACKET.registerPacket(new AbilityTogglePacket());
     }
 
     public void registerChannels() {
