@@ -11,6 +11,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.packets.data.ChatBubblePacket;
 import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
+import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
 import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.npc.UpdateNpcPacket;
 import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
