@@ -121,6 +121,10 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
                 double sideDist = dx * rightX + dz * rightZ;
                 if (Math.abs(sideDist) > hitWidth) continue;
 
+                // Line-of-sight check: skip targets behind solid blocks or enemy barriers
+                if (!hasLineOfSight(caster.worldObj, caster, livingTarget)) continue;
+                if (isBlockedByBarrier(caster.worldObj, caster, livingTarget)) continue;
+
                 // Entity is within the rectangle - apply damage
                 boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockback);
                 if (wasHit) {

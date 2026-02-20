@@ -15,8 +15,13 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityEnergyPanel;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
@@ -1344,7 +1349,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         activeSound = nbt.getString("activeSound");
         windUpAnimationId = nbt.getInteger("windUpAnimationId");
         activeAnimationId = nbt.getInteger("activeAnimationId");
-        dazedAnimationId = nbt.getInteger("dazedAnimationId");
+        dazedAnimationId = nbt.hasKey("dazedAnimationId") ? nbt.getInteger("dazedAnimationId") : -1;
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
         dazedAnimationName = nbt.getString("dazedAnimationName");
@@ -2142,6 +2147,134 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
         return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LINE-OF-SIGHT UTILITIES
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Check if there is a clear line of sight (no solid blocks) between caster and target.
+     * Raycasts from caster's eye position to target's body center.
+     *
+     * @return true if there IS line of sight (no blocks in the way)
+     */
+    public static boolean hasLineOfSight(World world, EntityLivingBase caster, EntityLivingBase target) {
+        Vec3 start = Vec3.createVectorHelper(caster.posX, caster.posY + caster.getEyeHeight(), caster.posZ);
+        Vec3 end = Vec3.createVectorHelper(target.posX, target.posY + target.height * 0.5, target.posZ);
+        MovingObjectPosition result = world.rayTraceBlocks(start, end);
+        return result == null;
+    }
+
+    /**
+     * Check if an enemy barrier (dome or panel) blocks the line between caster and target.
+     * Barriers owned by the caster or allies of the caster are not considered blocking.
+     *
+     * @return true if an enemy barrier blocks the attack
+     */
+    @SuppressWarnings("unchecked")
+    public static boolean isBlockedByBarrier(World world, EntityLivingBase caster, EntityLivingBase target) {
+        // Barrier entities have tiny Minecraft bounding boxes (1x1 for domes, 0.5x0.5 for panels)
+        // but their actual collision geometry extends up to MAX_ENTITY_RADIUS (50) blocks.
+        // Must expand search to match EntityEnergyProjectile.checkBarrierCollision() pattern.
+        double searchRange = 55.0; // MAX_ENTITY_RADIUS(50) + 5
+        double minX = Math.min(caster.posX, target.posX) - searchRange;
+        double minY = Math.min(caster.posY, target.posY) - searchRange;
+        double minZ = Math.min(caster.posZ, target.posZ) - searchRange;
+        double maxX = Math.max(caster.posX, target.posX) + searchRange;
+        double maxY = Math.max(caster.posY, target.posY) + searchRange;
+        double maxZ = Math.max(caster.posZ, target.posZ) + searchRange;
+
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
+        List<EntityEnergyBarrier> barriers = world.getEntitiesWithinAABB(EntityEnergyBarrier.class, searchBox);
+
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier.isDead) continue;
+            if (barrier.isCharging()) continue;
+
+            // Skip barriers owned by caster or allies
+            if (barrier.getOwnerEntityId() == caster.getEntityId()) continue;
+            Entity barrierOwner = barrier.getOwnerEntity();
+            if (barrierOwner instanceof EntityLivingBase) {
+                if (AbilityTargetHelper.isAlly(caster, (EntityLivingBase) barrierOwner)) continue;
+            }
+
+            if (barrier instanceof EntityEnergyDome) {
+                if (isDomeBlocking((EntityEnergyDome) barrier, caster, target)) return true;
+            } else if (barrier instanceof EntityEnergyPanel) {
+                if (isPanelBlocking((EntityEnergyPanel) barrier, caster, target)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a dome blocks an attack from caster to target.
+     * Blocks when caster is outside and target is inside the dome.
+     */
+    private static boolean isDomeBlocking(EntityEnergyDome dome, EntityLivingBase caster, EntityLivingBase target) {
+        float radius = dome.getDomeRadius();
+
+        double cdx = caster.posX - dome.posX;
+        double cdy = (caster.posY + caster.getEyeHeight()) - dome.posY;
+        double cdz = caster.posZ - dome.posZ;
+        double casterDist = Math.sqrt(cdx * cdx + cdy * cdy + cdz * cdz);
+
+        double tdx = target.posX - dome.posX;
+        double tdy = (target.posY + target.height * 0.5) - dome.posY;
+        double tdz = target.posZ - dome.posZ;
+        double targetDist = Math.sqrt(tdx * tdx + tdy * tdy + tdz * tdz);
+
+        // Block when caster is outside and target is inside
+        return casterDist > radius && targetDist < radius;
+    }
+
+    /**
+     * Check if a panel blocks an attack from caster to target.
+     * Checks if the line from caster to target crosses through the panel bounds.
+     */
+    private static boolean isPanelBlocking(EntityEnergyPanel panel, EntityLivingBase caster, EntityLivingBase target) {
+        float halfW = panel.getPanelData().panelWidth * 0.5f;
+        float halfH = panel.getPanelData().panelHeight * 0.5f;
+
+        // Panel normal direction
+        float yawRad = (float) Math.toRadians(panel.getPanelYaw());
+        double normalX = -Math.sin(yawRad);
+        double normalZ = Math.cos(yawRad);
+
+        // Line from caster to target
+        double startX = caster.posX;
+        double startY = caster.posY + caster.getEyeHeight();
+        double startZ = caster.posZ;
+        double dx = target.posX - startX;
+        double dy = (target.posY + target.height * 0.5) - startY;
+        double dz = target.posZ - startZ;
+
+        // Dot product of line direction with panel normal
+        double denom = dx * normalX + dz * normalZ;
+        if (Math.abs(denom) < 0.0001) return false; // Line parallel to panel
+
+        // Parameter t where line crosses panel plane
+        double relX = panel.posX - startX;
+        double relZ = panel.posZ - startZ;
+        double t = (relX * normalX + relZ * normalZ) / denom;
+
+        if (t < 0 || t > 1) return false; // Intersection outside the line segment
+
+        // Calculate intersection point
+        double hitX = startX + dx * t;
+        double hitY = startY + dy * t;
+        double hitZ = startZ + dz * t;
+
+        // Transform to panel local space (right axis)
+        double cos = Math.cos(yawRad);
+        double sin = Math.sin(yawRad);
+        double localRight = (hitX - panel.posX) * cos + (hitZ - panel.posZ) * sin;
+        double localUp = hitY - panel.posY;
+
+        // Check bounds
+        return Math.abs(localRight) <= halfW && Math.abs(localUp) <= halfH;
     }
 
     // ═══════════════════════════════════════════════════════════════════

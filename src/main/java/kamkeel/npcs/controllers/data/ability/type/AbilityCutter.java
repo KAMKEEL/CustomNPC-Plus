@@ -134,6 +134,10 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
         if (target != null && !isRotationLockedDuringWindup()) {
             instance.setTargetEntityId(target.getEntityId());
+        } else {
+            // No target to track yaw from — track the caster's rotation instead
+            // so the telegraph follows where the player/NPC is facing
+            instance.setTrackFollowedEntityYaw(true);
         }
 
         return instance;
@@ -160,9 +164,12 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         currentRotation = -arcAngle / 2.0f;
         activeSoundPlayed = false;
 
-        // Lock sweep direction toward target at execute time to prevent
-        // AI look-at jitter from misdirecting the sweep at close range
-        if (target != null) {
+        // Use the telegraph's locked yaw if available, so the sweep direction
+        // matches the telegraph the player/NPC was seeing during windup.
+        // The telegraph yaw is locked when entering ACTIVE phase via lockPosition().
+        if (!telegraphInstances.isEmpty()) {
+            sweepBaseYaw = telegraphInstances.get(0).getYaw();
+        } else if (target != null) {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             if (dx * dx + dz * dz > 0.0001) {
@@ -259,6 +266,10 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
 
             if (dist < minDist || dist > maxDist) continue;
             if (!isInSweepRange(dx, dz, sweepBaseYaw, minAngle, maxAngle)) continue;
+
+            // Line-of-sight check: skip targets behind solid blocks or enemy barriers
+            if (!hasLineOfSight(world, caster, entity)) continue;
+            if (isBlockedByBarrier(world, caster, entity)) continue;
 
             hitEntities.add(entity.getEntityId());
 
