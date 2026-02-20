@@ -2,7 +2,7 @@ customnpcs.defaultTextColor=404040
 
 key.categories.customnpc=CustomNPC+
 key.customnpcs.special=Special Key
-key.customnpcs.abilityHudKey=Ability HUD Key
+key.customnpcs.abilityHudKey=HUD Key
 key.npcInventory=NPC Inventory
 
 entity.CustomNpc.name=Custom Npc
@@ -1672,6 +1672,7 @@ ability.cnpc.sweeper=Sweeper
 ability.weight=Weight
 ability.windUpTicks=Wind Up
 ability.cooldownTicks=Cooldown
+ability.perAbilityCooldown=Per-Ability
 ability.lockMovement=Lock Movement
 ability.rotationMode=Rotation
 ability.rotationPhase=Phase

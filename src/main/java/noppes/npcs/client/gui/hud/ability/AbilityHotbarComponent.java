@@ -56,7 +56,8 @@ public class AbilityHotbarComponent extends HudComponent {
 
     // Fade: when ShowAlways=false, fade in/out when HUD key is held
     private float fadeAlpha = 0f;
-    private static final float FADE_SPEED = 8f; // per second — ~125ms full transition
+    private long lastFadeTime = 0;
+    private static final float FADE_SPEED = 3f; // per second — ~333ms full transition
 
     private Minecraft mc;
 
@@ -124,6 +125,7 @@ public class AbilityHotbarComponent extends HudComponent {
         ConfigClient.AbilityHotbarTextPositionProperty.set(ConfigClient.AbilityHotbarTextPosition);
         ConfigClient.AbilityHotbarVisibleSlotsProperty.set(ConfigClient.AbilityHotbarVisibleSlots);
         ConfigClient.AbilityHotbarShowAlwaysProperty.set(ConfigClient.AbilityHotbarShowAlways);
+        ConfigClient.AbilityHotbarTextVisibilityProperty.set(ConfigClient.AbilityHotbarTextVisibility);
 
         if (ConfigClient.config.hasChanged()) {
             ConfigClient.config.save();
@@ -138,9 +140,12 @@ public class AbilityHotbarComponent extends HudComponent {
 
         // Fade logic: when ShowAlways=false, only show while HUD key is held
         boolean showAlways = ConfigClient.AbilityHotbarShowAlways;
+        long now = Minecraft.getSystemTime();
         if (!showAlways) {
             boolean hudKeyHeld = isHudKeyHeld();
-            float dt = partialTicks > 0 ? 1f / 20f : 0.05f; // approximate frame time
+            float dt = lastFadeTime > 0 ? (now - lastFadeTime) / 1000f : 0f;
+            dt = Math.min(dt, 0.1f); // cap to avoid jumps after pauses
+            lastFadeTime = now;
             if (hudKeyHeld || pendingSelectKey != null || scrollOffset != 0f) {
                 fadeAlpha = Math.min(1f, fadeAlpha + FADE_SPEED * dt);
             } else {
@@ -149,6 +154,7 @@ public class AbilityHotbarComponent extends HudComponent {
             if (fadeAlpha <= 0f) return;
         } else {
             fadeAlpha = 1f;
+            lastFadeTime = now;
         }
 
         long currentTime = Minecraft.getSystemTime();
@@ -184,12 +190,15 @@ public class AbilityHotbarComponent extends HudComponent {
         int centerX = overlayWidth / 2;
         int centerY = overlayHeight / 2;
 
-        float cooldownProgress = 0;
-        PlayerData playerData = ClientCacheHandler.playerData;
-        if (playerData != null && playerData.abilityData != null) {
-            if (playerData.abilityData.isOnCooldown()) {
-                cooldownProgress = 0.5f;
-            }
+        // Compute text visibility: 0=Shown, 1=Hidden, 2=Held
+        boolean showText;
+        int textVis = ConfigClient.AbilityHotbarTextVisibility;
+        if (textVis == 1) {
+            showText = false;
+        } else if (textVis == 2) {
+            showText = isHudKeyHeld();
+        } else {
+            showText = true;
         }
 
         for (int i = 0; i < TOTAL_SLOTS; i++) {
@@ -228,13 +237,18 @@ public class AbilityHotbarComponent extends HudComponent {
             float edgeAlpha = absDist > half - 0.5f ? 1f - (absDist - (half - 0.5f)) : 1f;
             float slotAlpha = edgeAlpha * fadeAlpha;
             boolean isCenter = (offset == 0 && scrollOffset == 0f);
-            float slotCooldown = isCenter ? cooldownProgress : 0;
+
+            // Compute per-slot cooldown progress (all slots, not just center)
+            float slotCooldown = 0f;
+            if (rawSlotIndex >= 0 && slots[rawSlotIndex].abilityKey != null) {
+                slotCooldown = getCooldownProgressForSlot(rawSlotIndex);
+            }
 
             if (rawSlotIndex == -1) {
                 // Deselect slot — draw empty marker
                 drawDeselectSlot(cx, cy, scaledSize, isCenter, slotAlpha);
             } else {
-                slots[rawSlotIndex].drawCarousel(mc, sr, slotCooldown, cx, cy, scaledSize, isCenter, slotAlpha);
+                slots[rawSlotIndex].drawCarousel(mc, sr, slotCooldown, cx, cy, scaledSize, isCenter, slotAlpha, showText);
             }
         }
 
@@ -441,6 +455,7 @@ public class AbilityHotbarComponent extends HudComponent {
         buttonList.add(new GuiButton(3, 0, 0, 120, 20, getTextPositionLabel()));
         buttonList.add(new GuiButton(4, 0, 0, 120, 20, "Slots: " + ConfigClient.AbilityHotbarVisibleSlots));
         buttonList.add(new GuiButton(5, 0, 0, 120, 20, ConfigClient.AbilityHotbarShowAlways ? "Show: Always" : "Show: Hold Key"));
+        buttonList.add(new GuiButton(6, 0, 0, 120, 20, getTextVisibilityLabel()));
     }
 
     @Override
@@ -453,7 +468,8 @@ public class AbilityHotbarComponent extends HudComponent {
             ConfigClient.AbilityHotbarAltTexture = !ConfigClient.AbilityHotbarAltTexture;
             button.displayString = ConfigClient.AbilityHotbarAltTexture ? "Square" : "Circle";
         } else if (button.id == 3) {
-            ConfigClient.AbilityHotbarTextPosition = (ConfigClient.AbilityHotbarTextPosition + 1) % 3;
+            // Toggle between 1 (Above/Left) and 2 (Below/Right)
+            ConfigClient.AbilityHotbarTextPosition = ConfigClient.AbilityHotbarTextPosition == 1 ? 2 : 1;
             button.displayString = getTextPositionLabel();
         } else if (button.id == 4) {
             int current = ConfigClient.AbilityHotbarVisibleSlots;
@@ -465,6 +481,9 @@ public class AbilityHotbarComponent extends HudComponent {
         } else if (button.id == 5) {
             ConfigClient.AbilityHotbarShowAlways = !ConfigClient.AbilityHotbarShowAlways;
             button.displayString = ConfigClient.AbilityHotbarShowAlways ? "Show: Always" : "Show: Hold Key";
+        } else if (button.id == 6) {
+            ConfigClient.AbilityHotbarTextVisibility = (ConfigClient.AbilityHotbarTextVisibility + 1) % 3;
+            button.displayString = getTextVisibilityLabel();
         } else {
             super.onEditorButtonPressed(button);
         }
@@ -473,10 +492,18 @@ public class AbilityHotbarComponent extends HudComponent {
     private String getTextPositionLabel() {
         boolean h = ConfigClient.AbilityHotbarHorizontal;
         switch (ConfigClient.AbilityHotbarTextPosition) {
-            case 0: return "Text: Hide";
             case 1: return h ? "Text: Above" : "Text: Left";
             case 2: return h ? "Text: Below" : "Text: Right";
-            default: return "Text: Hide";
+            default: return h ? "Text: Below" : "Text: Right";
+        }
+    }
+
+    private String getTextVisibilityLabel() {
+        switch (ConfigClient.AbilityHotbarTextVisibility) {
+            case 0: return "Text: Shown";
+            case 1: return "Text: Hidden";
+            case 2: return "Text: Held";
+            default: return "Text: Shown";
         }
     }
 
@@ -576,6 +603,25 @@ public class AbilityHotbarComponent extends HudComponent {
         PlayerData playerData = ClientCacheHandler.playerData;
         if (playerData == null || playerData.hotbarData == null) return false;
         return playerData.hotbarData.hasAnyAbilities();
+    }
+
+    /**
+     * Get cooldown progress for a hotbar slot.
+     * Per-ability cooldown abilities use their own cooldown; others use global.
+     * @return 1.0 = fully on cooldown, 0.0 = ready
+     */
+    private float getCooldownProgressForSlot(int slotIndex) {
+        PlayerData playerData = ClientCacheHandler.playerData;
+        if (playerData == null || playerData.abilityData == null) return 0f;
+
+        String key = slots[slotIndex].abilityKey;
+        Ability ability = slots[slotIndex].ability;
+
+        if (ability != null && ability.isPerAbilityCooldown()) {
+            return playerData.abilityData.getPerAbilityCooldownProgress(key);
+        } else {
+            return playerData.abilityData.getGlobalCooldownProgress();
+        }
     }
 
     public void onCycleNext() {

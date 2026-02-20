@@ -65,6 +65,7 @@ public enum EnumDataPacket {
     PLAYER_ABILITY_SYNC,
     PLAYER_ABILITY_STATE,
     ABILITY_HOTBAR_SYNC,
+    ABILITY_COOLDOWN_SYNC,
 
     // Auction System
     AUCTION_DATA,

@@ -47,7 +47,8 @@ public class AbilityHotbarSlotRenderer extends Gui {
     }
 
     public void drawCarousel(Minecraft mc, ScaledResolution sr, float cooldownProgress,
-                             int cx, int cy, int size, boolean isCenter, float slotAlpha) {
+                             int cx, int cy, int size, boolean isCenter, float slotAlpha,
+                             boolean showText) {
         float nameAlpha = this.nameAlpha;
         boolean isHorizontal = ConfigClient.AbilityHotbarHorizontal;
         if (size <= 0 || slotAlpha <= 0) return;
@@ -91,16 +92,16 @@ public class AbilityHotbarSlotRenderer extends Gui {
             GL11.glPopMatrix();
         }
 
-        // Cooldown arc
+        // Cooldown overlay (all slots)
         if (cooldownProgress > 0 && abilityKey != null) {
-            drawCooldownArc(radius, cooldownProgress);
+            drawCooldownOverlay(radius, cooldownProgress, altTexture, slotAlpha);
         }
 
         GL11.glPopMatrix();
 
-        // Ability name on center slot (respects text position config)
+        // Ability name on center slot (respects text position and visibility config)
         int textPos = ConfigClient.AbilityHotbarTextPosition;
-        if (textPos != 0 && isCenter && action != null && nameAlpha > 0) {
+        if (showText && isCenter && action != null && nameAlpha > 0) {
             FontRenderer fr = mc.fontRenderer;
             String name = getAbilityName();
             if (name != null && !name.isEmpty()) {
@@ -185,26 +186,65 @@ public class AbilityHotbarSlotRenderer extends Gui {
         GL11.glColor4f(1, 1, 1, 1);
     }
 
-    private void drawCooldownArc(float radius, float progress) {
-        progress = Math.min(1, Math.max(0, progress));
-        if (progress <= 0) return;
+    /**
+     * Draw a cooldown overlay on the slot.
+     * progress: 1.0 = fully on cooldown (just started), 0.0 = ready
+     * Renders a filled shape covering the entire slot that transitions from red to green.
+     */
+    private void drawCooldownOverlay(float radius, float progress, boolean altTexture, float slotAlpha) {
+        progress = Math.min(1f, Math.max(0f, progress));
+        if (progress <= 0f) return;
+
+        // Color: red (progress=1.0) → orange → yellow-green → green (progress→0.0)
+        float cr, cg, cb;
+        if (progress > 0.5f) {
+            float t = (progress - 0.5f) * 2f; // 1.0 at progress=1.0, 0.0 at progress=0.5
+            cr = 0.8f;
+            cg = 0.15f + 0.25f * (1f - t); // 0.15 → 0.4
+            cb = 0.1f;
+        } else if (progress > 0.2f) {
+            float t = (progress - 0.2f) / 0.3f; // 1.0 at 0.5, 0.0 at 0.2
+            cr = 0.8f * t + 0.3f * (1f - t); // 0.8 → 0.3
+            cg = 0.4f * t + 0.7f * (1f - t); // 0.4 → 0.7
+            cb = 0.1f;
+        } else {
+            float t = progress / 0.2f; // 1.0 at 0.2, 0.0 at 0.0
+            cr = 0.3f * t + 0.1f * (1f - t); // 0.3 → 0.1
+            cg = 0.7f * t + 0.7f * (1f - t); // 0.7
+            cb = 0.1f + 0.1f * (1f - t); // 0.1 → 0.2
+        }
+
+        // Semi-transparent so icon is visible underneath; fade out near end
+        float overlayAlpha = 0.5f * slotAlpha * Math.min(1f, progress * 3f);
 
         GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(0.1f, 0.1f, 0.1f, 0.7f);
+        GL11.glColor4f(cr, cg, cb, overlayAlpha);
 
-        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
-        GL11.glVertex2f(0, 0);
-        int steps = (int) (CIRCLE_SEGMENTS * progress) + 1;
-        for (int i = 0; i <= steps; i++) {
-            double angle = -Math.PI / 2 + 2 * Math.PI * i * progress / steps;
-            GL11.glVertex2f((float) (Math.cos(angle) * radius), (float) (Math.sin(angle) * radius));
+        if (altTexture) {
+            // Square slot: full filled rectangle
+            GL11.glBegin(GL11.GL_QUADS);
+            GL11.glVertex2f(-radius, -radius);
+            GL11.glVertex2f(radius, -radius);
+            GL11.glVertex2f(radius, radius);
+            GL11.glVertex2f(-radius, radius);
+            GL11.glEnd();
+        } else {
+            // Circle slot: full filled circle
+            GL11.glBegin(GL11.GL_TRIANGLE_FAN);
+            GL11.glVertex2f(0, 0);
+            for (int i = 0; i <= CIRCLE_SEGMENTS; i++) {
+                double angle = 2 * Math.PI * i / CIRCLE_SEGMENTS;
+                GL11.glVertex2f((float) (Math.cos(angle) * radius), (float) (Math.sin(angle) * radius));
+            }
+            GL11.glEnd();
         }
-        GL11.glEnd();
 
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glColor4f(1, 1, 1, 1);
     }
 

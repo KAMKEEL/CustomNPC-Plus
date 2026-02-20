@@ -8,6 +8,7 @@ import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -225,14 +226,30 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     @Override
     protected void rollCooldown(Ability ability) {
-        if (!ability.isIgnoreCooldown()) {
-            cooldownEndTime = getWorldTime() + ability.getCooldownTicks();
+        if (ability.isIgnoreCooldown()) return;
+
+        int duration = ability.getCooldownTicks();
+        long endTime = getWorldTime() + duration;
+
+        if (ability.isPerAbilityCooldown()) {
+            // Per-ability: only this ability goes on cooldown
+            if (currentAbilityKey != null) {
+                setPerAbilityCooldown(currentAbilityKey, endTime, duration);
+            }
+        } else {
+            // Global: all global-cooldown abilities share this cooldown
+            cooldownEndTime = endTime;
+            globalCooldownDuration = duration;
         }
+        syncCooldownToClient();
     }
 
     @Override
     protected void rollChainCooldown(ChainedAbility chain) {
-        cooldownEndTime = getWorldTime() + chain.getCooldownTicks();
+        int duration = chain.getCooldownTicks();
+        cooldownEndTime = getWorldTime() + duration;
+        globalCooldownDuration = duration;
+        syncCooldownToClient();
     }
 
     @Override
@@ -372,8 +389,14 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             return true;
         }
 
-        // Check universal cooldown (abilities can optionally ignore it)
-        if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
+        // Check cooldown (per-ability cooldowns are independent from global)
+        if (!ability.isIgnoreCooldown()) {
+            if (ability.isPerAbilityCooldown()) {
+                if (isOnPerAbilityCooldown(key)) return false;
+            } else {
+                if (isOnCooldown()) return false;
+            }
+        }
 
         // Fire extender start hook (e.g., resource cost checks)
         if (!AbilityController.Instance.fireOnAbilityStart(ability, player, null)) {
@@ -428,6 +451,18 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         EntityPlayer player = playerData.player;
         if (player instanceof EntityPlayerMP) {
             PlayerAbilitySyncPacket.sendToPlayer((EntityPlayerMP) player);
+            syncCooldownToClient();
+        }
+    }
+
+    /**
+     * Sync cooldown state (global + per-ability) to the client.
+     * Sent as a lightweight packet separate from full ability sync.
+     */
+    public void syncCooldownToClient() {
+        EntityPlayer player = playerData.player;
+        if (player instanceof EntityPlayerMP) {
+            AbilityCooldownSyncPacket.sendToPlayer((EntityPlayerMP) player);
         }
     }
 
@@ -547,9 +582,15 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     /**
      * Check if a specific ability key is on cooldown.
-     * Currently uses universal cooldown (same for all abilities).
+     * Respects per-ability cooldown if the ability has it enabled.
      */
     public boolean isOnCooldown(String key, EntityPlayer player) {
+        if (AbilityController.Instance != null) {
+            Ability ability = AbilityController.Instance.resolveAbility(key);
+            if (ability != null && ability.isPerAbilityCooldown()) {
+                return isOnPerAbilityCooldown(key);
+            }
+        }
         return isOnCooldown(player);
     }
 
@@ -560,17 +601,21 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     /**
      * Reset cooldown for a specific ability key.
-     * Currently resets the universal cooldown.
+     * Resets per-ability cooldown if applicable, and global cooldown.
      */
     public void resetCooldown(String key) {
+        resetPerAbilityCooldown(key);
         cooldownEndTime = 0;
+        syncCooldownToClient();
     }
 
     /**
-     * Reset all cooldowns.
+     * Reset all cooldowns (global + all per-ability).
      */
     public void resetAllCooldowns() {
         cooldownEndTime = 0;
+        resetAllPerAbilityCooldowns();
+        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -604,6 +649,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     @Override
     public void resetCooldown() {
         cooldownEndTime = 0;
+        resetAllPerAbilityCooldowns();
+        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -656,6 +703,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         if (clearCooldowns) {
             cooldownEndTime = 0;
+            resetAllPerAbilityCooldowns();
         }
         interruptCooldownRolled = false;
 

@@ -14,6 +14,7 @@ import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -44,9 +45,24 @@ public abstract class AbstractDataAbilities {
     protected Ability currentAbility;
 
     /**
-     * World time when cooldown ends
+     * World time when global cooldown ends
      */
     protected long cooldownEndTime = 0;
+
+    /**
+     * Duration of the current global cooldown in ticks (for progress calculation)
+     */
+    protected int globalCooldownDuration = 0;
+
+    /**
+     * Per-ability cooldown end times. Key = ability key, Value = world time when cooldown ends.
+     */
+    protected HashMap<String, Long> perAbilityCooldownEndTimes = new HashMap<>();
+
+    /**
+     * Per-ability cooldown durations in ticks (for progress calculation).
+     */
+    protected HashMap<String, Integer> perAbilityCooldownDurations = new HashMap<>();
 
     /**
      * Rotation lock state
@@ -524,6 +540,106 @@ public abstract class AbstractDataAbilities {
      */
     public void setCooldownEndTime(long endTime) {
         cooldownEndTime = endTime;
+    }
+
+    /**
+     * Get the global cooldown end time.
+     */
+    public long getCooldownEndTime() {
+        return cooldownEndTime;
+    }
+
+    /**
+     * Get the global cooldown duration value.
+     */
+    public int getGlobalCooldownDurationValue() {
+        return globalCooldownDuration;
+    }
+
+    /**
+     * Get the per-ability cooldown end times map.
+     */
+    public HashMap<String, Long> getPerAbilityCooldownEndTimes() {
+        return perAbilityCooldownEndTimes;
+    }
+
+    /**
+     * Get the per-ability cooldown durations map.
+     */
+    public HashMap<String, Integer> getPerAbilityCooldownDurations() {
+        return perAbilityCooldownDurations;
+    }
+
+    /**
+     * Apply cooldown sync data from server. Called on client side.
+     */
+    public void applyCooldownSync(long globalEndTime, int globalDuration,
+                                  HashMap<String, Long> perEndTimes,
+                                  HashMap<String, Integer> perDurations) {
+        this.cooldownEndTime = globalEndTime;
+        this.globalCooldownDuration = globalDuration;
+        this.perAbilityCooldownEndTimes = perEndTimes;
+        this.perAbilityCooldownDurations = perDurations;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PER-ABILITY COOLDOWN MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Check if a specific ability is on its per-ability cooldown.
+     */
+    public boolean isOnPerAbilityCooldown(String key) {
+        Long endTime = perAbilityCooldownEndTimes.get(key);
+        return endTime != null && getWorldTime() < endTime;
+    }
+
+    /**
+     * Set a per-ability cooldown.
+     */
+    public void setPerAbilityCooldown(String key, long endTime, int duration) {
+        perAbilityCooldownEndTimes.put(key, endTime);
+        perAbilityCooldownDurations.put(key, duration);
+    }
+
+    /**
+     * Reset a specific per-ability cooldown.
+     */
+    public void resetPerAbilityCooldown(String key) {
+        perAbilityCooldownEndTimes.remove(key);
+        perAbilityCooldownDurations.remove(key);
+    }
+
+    /**
+     * Reset all per-ability cooldowns.
+     */
+    public void resetAllPerAbilityCooldowns() {
+        perAbilityCooldownEndTimes.clear();
+        perAbilityCooldownDurations.clear();
+    }
+
+    /**
+     * Get global cooldown progress for HUD rendering.
+     * @return 1.0 when cooldown just started (fully covered), 0.0 when done
+     */
+    public float getGlobalCooldownProgress() {
+        if (globalCooldownDuration <= 0) return 0f;
+        long remaining = cooldownEndTime - getWorldTime();
+        if (remaining <= 0) return 0f;
+        return Math.min(1f, (float) remaining / globalCooldownDuration);
+    }
+
+    /**
+     * Get per-ability cooldown progress for HUD rendering.
+     * @return 1.0 when cooldown just started (fully covered), 0.0 when done
+     */
+    public float getPerAbilityCooldownProgress(String key) {
+        Long endTime = perAbilityCooldownEndTimes.get(key);
+        Integer duration = perAbilityCooldownDurations.get(key);
+        if (endTime == null || duration == null || duration <= 0) return 0f;
+        long remaining = endTime - getWorldTime();
+        if (remaining <= 0) return 0f;
+        return Math.min(1f, (float) remaining / duration);
     }
 
     // ═══════════════════════════════════════════════════════════════════

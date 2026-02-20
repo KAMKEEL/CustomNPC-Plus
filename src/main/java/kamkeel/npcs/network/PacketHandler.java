@@ -26,6 +26,7 @@ import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.SwingPlayerArmPacket;
 import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
@@ -603,6 +604,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new PlayerAbilitySyncPacket());
         DATA_PACKET.registerPacket(new PlayerAbilityStatePacket());
         DATA_PACKET.registerPacket(new AbilityHotbarSyncPacket());
+        DATA_PACKET.registerPacket(new AbilityCooldownSyncPacket());
     }
 
     public void registerPlayerPackets() {

@@ -525,6 +525,22 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
                 }
                 int textW = fr.getStringWidth(stateText);
                 fr.drawStringWithShadow(prefix + stateText, panelInnerLeft + (panelInnerWidth - textW) / 2, y, toggleState > 0 ? 0x55FF55 : 0x888888);
+                y += fr.FONT_HEIGHT + 3;
+            }
+
+            // Cooldown info
+            if (ability.getCooldownTicks() > 0) {
+                float seconds = ability.getCooldownTicks() / 20.0f;
+                String cdText = StatCollector.translateToLocal("ability.cooldown") + ": " + String.format("%.1f", seconds) + "s";
+                int textW2 = fr.getStringWidth(cdText);
+                fr.drawStringWithShadow("\u00A77" + cdText, panelInnerLeft + (panelInnerWidth - textW2) / 2, y, 0xAAAAAA);
+                y += fr.FONT_HEIGHT + 3;
+
+                if (ability.isPerAbilityCooldown()) {
+                    String perText = "[" + StatCollector.translateToLocal("ability.perAbilityCooldown") + "]";
+                    int ptW = fr.getStringWidth(perText);
+                    fr.drawStringWithShadow("\u00A7e" + perText, panelInnerLeft + (panelInnerWidth - ptW) / 2, y, 0xFFFF55);
+                }
             }
         }
     }
@@ -662,6 +678,10 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
                 }
                 if (ability.isToggleable()) {
                     lines.add("\u00A7a[" + StatCollector.translateToLocal("gui.toggle") + "]");
+                }
+                if (ability.getCooldownTicks() > 0) {
+                    float seconds = ability.getCooldownTicks() / 20.0f;
+                    lines.add("\u00A77" + StatCollector.translateToLocal("ability.cooldown") + ": " + String.format("%.1f", seconds) + "s");
                 }
             }
 

@@ -114,7 +114,7 @@ public class ConfigClient {
     public static Property AbilityHotbarAltTextureProperty;
     public static boolean AbilityHotbarAltTexture = false;
 
-    // 0=Hide, 1=Above(H)/Left(V), 2=Below(H)/Right(V)
+    // 1=Above(H)/Left(V), 2=Below(H)/Right(V)
     public static Property AbilityHotbarTextPositionProperty;
     public static int AbilityHotbarTextPosition = 2;
 
@@ -125,6 +125,10 @@ public class ConfigClient {
     // Show Always: true = always visible, false = only visible while HUD key held
     public static Property AbilityHotbarShowAlwaysProperty;
     public static boolean AbilityHotbarShowAlways = true;
+
+    // Text Visibility: 0=Shown, 1=Hidden, 2=Held (only while HUD key held)
+    public static Property AbilityHotbarTextVisibilityProperty;
+    public static int AbilityHotbarTextVisibility = 0;
 
     /**
      * Texture Properties
@@ -232,7 +236,7 @@ public class ConfigClient {
             AbilityHotbarAltTextureProperty = config.get(HUD, "Ability Hotbar Alt Texture", false, "Use rounded square instead of circle slots");
             AbilityHotbarAltTexture = AbilityHotbarAltTextureProperty.getBoolean();
 
-            AbilityHotbarTextPositionProperty = config.get(HUD, "Ability Hotbar Text Position", 2, "Text label position (0=Hide, 1=Above/Left, 2=Below/Right)");
+            AbilityHotbarTextPositionProperty = config.get(HUD, "Ability Hotbar Text Position", 2, "Text label position (1=Above/Left, 2=Below/Right)");
             AbilityHotbarTextPosition = AbilityHotbarTextPositionProperty.getInt(2);
 
             AbilityHotbarVisibleSlotsProperty = config.get(HUD, "Ability Hotbar Visible Slots", 5, "Max visible slots in hotbar (3, 5, or 7)");
@@ -240,6 +244,9 @@ public class ConfigClient {
 
             AbilityHotbarShowAlwaysProperty = config.get(HUD, "Ability Hotbar Show Always", true, "Always show hotbar (false = only while HUD key is held)");
             AbilityHotbarShowAlways = AbilityHotbarShowAlwaysProperty.getBoolean(true);
+
+            AbilityHotbarTextVisibilityProperty = config.get(HUD, "Ability Hotbar Text Visibility", 0, "Text visibility (0=Shown, 1=Hidden, 2=Held)");
+            AbilityHotbarTextVisibility = AbilityHotbarTextVisibilityProperty.getInt(0);
 
             // General
             AllowClientScriptsProperty = config.get(GENERAL, "Allow Client Scripts", true, "Allow the server to run scripts on the client. If disabled, no server scripts will execute client-side.");

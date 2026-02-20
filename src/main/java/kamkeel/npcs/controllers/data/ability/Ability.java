@@ -109,6 +109,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Cooldown override
     protected boolean ignoreCooldown = false;
 
+    // Per-ability cooldown: if true, this ability has its own independent cooldown
+    // instead of sharing the global cooldown with other abilities
+    protected boolean perAbilityCooldown = false;
+
     // ═══════════════════════════════════════════════════════════════════
     // BUILT-IN (set in constructor via configureAsBuiltIn, NOT persisted)
     // ═══════════════════════════════════════════════════════════════════
@@ -603,8 +607,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
             FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
                 .hover("ability.hover.sync")
         ).tab("General").visibleWhen(() -> hasWindUpAnimation() && isSyncWindupWithAnimation()));
-        defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
-            .tab("General").range(0, 10000));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks).range(0, 10000),
+            FieldDef.boolField("ability.perAbilityCooldown", this::isPerAbilityCooldown, this::setPerAbilityCooldown)
+        ).tab("General"));
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
         defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
                 () -> this.getLockMovement().getDisplayKey(),
@@ -1282,6 +1288,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setTag("customData", (NBTTagCompound) customData.copy());
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
+        nbt.setBoolean("perAbilityCooldown", perAbilityCooldown);
 
         // Toggle
         nbt.setInteger("toggleStates", toggleStates);
@@ -1363,6 +1370,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         customData = nbt.getCompoundTag("customData");
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
+        perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");
 
         // Toggle
         toggleStates = nbt.getInteger("toggleStates");
@@ -1949,6 +1957,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public void setIgnoreCooldown(boolean ignoreCooldown) {
         this.ignoreCooldown = ignoreCooldown;
+    }
+
+    public boolean isPerAbilityCooldown() {
+        return perAbilityCooldown;
+    }
+
+    public void setPerAbilityCooldown(boolean perAbilityCooldown) {
+        this.perAbilityCooldown = perAbilityCooldown;
     }
 
     public boolean isToggleable() {
