@@ -127,10 +127,11 @@ public abstract class ConditionField<T> {
         public void readNBT(NBTTagCompound nbt) {
             if (!nbt.hasKey(key)) return;
             T v;
-            if (type == Integer.class) v = (T) (Integer) nbt.getInteger(key);
-            else if (type == Float.class) v = (T) (Float) nbt.getFloat(key);
-            else if (type == Double.class) v = (T) (Double) nbt.getDouble(key);
-            else if (type == Long.class) v = (T) (Long) nbt.getLong(key);
+            Class<?> t = type;
+            if (t == Integer.class) v = (T) (Integer) nbt.getInteger(key);
+            else if (t == Float.class) v = (T) (Float) nbt.getFloat(key);
+            else if (t == Double.class) v = (T) (Double) nbt.getDouble(key);
+            else if (t == Long.class) v = (T) (Long) nbt.getLong(key);
             else return;
             setValue(v);
         }
