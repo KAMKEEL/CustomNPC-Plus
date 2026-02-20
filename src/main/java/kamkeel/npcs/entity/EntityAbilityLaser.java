@@ -466,7 +466,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
      */
     public float getLingerAlpha() {
         if (!fullyExtended) return 1.0f;
-        return 1.0f - ((float) ticksSinceFullExtension / lingerTicks);
+        if (lingerTicks <= 0) return 0.0f;
+        return Math.max(0.0f, 1.0f - ((float) ticksSinceFullExtension / lingerTicks));
     }
 
     // ==================== NBT ====================
@@ -475,8 +476,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     protected void readProjectileNBT(NBTTagCompound nbt) {
         this.laserWidth = sanitize(nbt.hasKey("LaserWidth") ? nbt.getFloat("LaserWidth") : 0.2f, 0.2f, MAX_ENTITY_SIZE);
         this.expansionSpeed = nbt.hasKey("ExpansionSpeed") ? nbt.getFloat("ExpansionSpeed") : 2.0f;
+        if (Float.isNaN(expansionSpeed) || Float.isInfinite(expansionSpeed) || expansionSpeed <= 0) expansionSpeed = 2.0f;
         this.lingerTicks = nbt.hasKey("LingerTicks") ? nbt.getInteger("LingerTicks") : 10;
+        if (lingerTicks <= 0) lingerTicks = 1;
         this.dieOnImpact = nbt.getBoolean("DieOnImpact");
+        this.lockVerticalDirection = nbt.getBoolean("LockVerticalDir");
+        this.ticksSinceFullExtension = nbt.getInteger("TicksSinceExtended");
         this.dirX = nbt.getDouble("DirX");
         this.dirY = nbt.getDouble("DirY");
         this.dirZ = nbt.getDouble("DirZ");
@@ -495,6 +500,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         nbt.setFloat("ExpansionSpeed", expansionSpeed);
         nbt.setInteger("LingerTicks", lingerTicks);
         nbt.setBoolean("DieOnImpact", dieOnImpact);
+        nbt.setBoolean("LockVerticalDir", lockVerticalDirection);
+        nbt.setInteger("TicksSinceExtended", ticksSinceFullExtension);
         nbt.setDouble("DirX", dirX);
         nbt.setDouble("DirY", dirY);
         nbt.setDouble("DirZ", dirZ);

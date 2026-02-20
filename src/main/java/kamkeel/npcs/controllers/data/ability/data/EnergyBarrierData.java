@@ -78,7 +78,7 @@ public class EnergyBarrierData {
     }
 
     public void setMaxHealth(float maxHealth) {
-        this.maxHealth = Math.max(0, maxHealth);
+        this.maxHealth = Math.max(1.0f, maxHealth);
     }
 
     public boolean isUseHealth() {

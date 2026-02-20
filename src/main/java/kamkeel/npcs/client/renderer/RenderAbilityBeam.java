@@ -262,8 +262,8 @@ public class RenderAbilityBeam extends RenderEnergyAbility {
             // Calculate alpha based on age (older = more faded)
             float age1 = i < ages.size() ? ages.get(i) : 0;
             float age2 = (i + 1) < ages.size() ? ages.get(i + 1) : 0;
-            float fade1 = 1.0f - Math.min(1.0f, age1 / fadeTime);
-            float fade2 = 1.0f - Math.min(1.0f, age2 / fadeTime);
+            float fade1 = fadeTime > 0 ? (1.0f - Math.min(1.0f, age1 / fadeTime)) : 0.0f;
+            float fade2 = fadeTime > 0 ? (1.0f - Math.min(1.0f, age2 / fadeTime)) : 0.0f;
             float alpha1 = baseAlpha * fade1;
             float alpha2 = baseAlpha * fade2;
 

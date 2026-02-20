@@ -167,6 +167,8 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                         target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), panelData.launchDamage);
                     } else if (owner instanceof EntityPlayer) {
                         target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), panelData.launchDamage);
+                    } else {
+                        target.attackEntityFrom(DamageSource.generic, panelData.launchDamage);
                     }
                 }
 
@@ -188,6 +190,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
             // Max lifetime check
             if (ticksAlive > 200) {
+                onBarrierDestroyed();
                 this.setDead();
             }
         }
@@ -341,6 +344,47 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         return distance < d * d;
     }
 
+    // ==================== DISTANCE (for render sorting) ====================
+
+    /**
+     * Returns squared distance from the given point to the closest point on the panel surface.
+     * Accounts for panel rotation (panelYaw), width, height, and thickness.
+     * This ensures correct transparency render ordering when the camera is near or behind the panel.
+     */
+    @Override
+    public double getDistanceSq(double x, double y, double z) {
+        double dx = x - this.posX;
+        double dy = y - this.posY;
+        double dz = z - this.posZ;
+
+        float yawRad = (float) Math.toRadians(panelYaw);
+        double cos = Math.cos(yawRad);
+        double sin = Math.sin(yawRad);
+
+        // Transform to panel-local space
+        // Panel normal (forward): (-sin, 0, cos)
+        // Panel right (width axis): (cos, 0, sin)
+        double localForward = dx * (-sin) + dz * cos;
+        double localRight = dx * cos + dz * sin;
+        double localUp = dy;
+
+        float halfW = panelData.panelWidth * 0.5f;
+        float halfH = panelData.panelHeight * 0.5f;
+        float halfThickness = 0.25f;
+
+        // Clamp to panel bounds to find closest point on the panel volume
+        double clampedForward = Math.max(-halfThickness, Math.min(halfThickness, localForward));
+        double clampedRight = Math.max(-halfW, Math.min(halfW, localRight));
+        double clampedUp = Math.max(-halfH, Math.min(halfH, localUp));
+
+        // Distance from point to closest point on panel
+        double df = localForward - clampedForward;
+        double dr = localRight - clampedRight;
+        double du = localUp - clampedUp;
+
+        return df * df + dr * dr + du * du;
+    }
+
     // ==================== GETTERS ====================
 
     public PanelMode getMode() {
@@ -365,8 +409,8 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         this.mode = (modeOrdinal >= 0 && modeOrdinal < PanelMode.values().length)
             ? PanelMode.values()[modeOrdinal] : PanelMode.PLACED;
         panelData.readNBT(nbt);
-        panelData.panelWidth = Math.min(panelData.panelWidth, MAX_ENTITY_SIZE);
-        panelData.panelHeight = Math.min(panelData.panelHeight, MAX_ENTITY_SIZE);
+        panelData.panelWidth = sanitize(panelData.panelWidth, 3.0f, MAX_ENTITY_SIZE);
+        panelData.panelHeight = sanitize(panelData.panelHeight, 3.0f, MAX_ENTITY_SIZE);
         this.targetPanelWidth = sanitize(nbt.hasKey("TargetPanelWidth") ? nbt.getFloat("TargetPanelWidth") : panelData.panelWidth, 3.0f, MAX_ENTITY_SIZE);
         this.targetPanelHeight = sanitize(nbt.hasKey("TargetPanelHeight") ? nbt.getFloat("TargetPanelHeight") : panelData.panelHeight, 3.0f, MAX_ENTITY_SIZE);
     }

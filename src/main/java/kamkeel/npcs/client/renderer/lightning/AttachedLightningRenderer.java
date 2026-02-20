@@ -3,7 +3,6 @@ package kamkeel.npcs.client.renderer.lightning;
 import net.minecraft.client.renderer.Tessellator;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +36,7 @@ public class AttachedLightningRenderer {
 
         public float getAlphaMultiplier() {
             // Fade out over lifetime
+            if (maxAge <= 0) return 0.0f;
             return 1.0f - ((float) age / (float) maxAge);
         }
 
@@ -208,10 +208,9 @@ public class AttachedLightningRenderer {
     private static void renderBoltPath(Tessellator tess, List<double[]> points, int color, float width, float alpha) {
         if (alpha <= 0.01f) return;
 
-        Color c = new Color(color);
-        int r = c.getRed();
-        int g = c.getGreen();
-        int b = c.getBlue();
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
         int a = Math.min(255, Math.max(0, (int) (alpha * 255)));
 
         for (int i = 0; i < points.size() - 1; i++) {

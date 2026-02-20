@@ -12,6 +12,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NpcDamageSource;
+import noppes.npcs.controllers.PartyController;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -160,9 +163,7 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         if (currentAngle >= 360) {
             currentAngle -= 360;
             completedRotations++;
-            if (!worldObj.isRemote) {
-                LogWriter.info("[Sweeper] Completed rotation " + completedRotations + "/" + numberOfRotations);
-            }
+            // Rotation completed
         }
 
         // Server handles damage
@@ -216,6 +217,7 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
                 if (!(entity instanceof EntityLivingBase)) continue;
                 if (entity == owner) continue;
                 if (hitThisTick.contains(entity.getEntityId())) continue;
+                if (shouldIgnoreEntity((EntityLivingBase) entity, owner)) continue;
 
                 EntityLivingBase livingEntity = (EntityLivingBase) entity;
 
@@ -262,6 +264,32 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         double beamTopY = startY + 0.5;
 
         return entityFeetY < beamTopY;
+    }
+
+    /**
+     * Check if an entity should be ignored for sweep damage.
+     * Same logic as EntityEnergyProjectile.shouldIgnoreEntity but adapted for sweeper.
+     */
+    private boolean shouldIgnoreEntity(EntityLivingBase entity, Entity owner) {
+        if (entity instanceof EntityNPCInterface) {
+            EntityNPCInterface targetNpc = (EntityNPCInterface) entity;
+            if (targetNpc.faction.isPassive) return true;
+            if (owner instanceof EntityNPCInterface) {
+                if (((EntityNPCInterface) owner).faction.id == targetNpc.faction.id) return true;
+            }
+            if (owner instanceof EntityPlayer) {
+                if (targetNpc.faction.isFriendlyToPlayer((EntityPlayer) owner)) return true;
+            }
+        }
+        if (owner instanceof EntityPlayer && entity instanceof EntityPlayer) {
+            PlayerData ownerData = PlayerData.get((EntityPlayer) owner);
+            PlayerData targetData = PlayerData.get((EntityPlayer) entity);
+            if (ownerData.partyUUID != null && ownerData.partyUUID.equals(targetData.partyUUID)) {
+                Party party = PartyController.Instance().getParty(ownerData.partyUUID);
+                if (party != null && !party.friendlyFire()) return true;
+            }
+        }
+        return false;
     }
 
     private void applyDamage(EntityLivingBase target, Entity owner) {
@@ -339,17 +367,23 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         this.beamLength = sanitize(nbt.getFloat("BeamLength"), 10.0f, MAX_ENTITY_SIZE);
         this.beamWidth = sanitize(nbt.getFloat("BeamWidth"), 0.3f, MAX_ENTITY_SIZE);
         this.beamHeight = sanitize(nbt.getFloat("BeamHeight"), 0.8f, MAX_ENTITY_SIZE);
-        this.sweepSpeed = nbt.getFloat("SweepSpeed");
-        this.numberOfRotations = nbt.getInteger("NumRotations");
+        this.sweepSpeed = nbt.hasKey("SweepSpeed") ? nbt.getFloat("SweepSpeed") : 3.0f;
+        if (Float.isNaN(sweepSpeed) || Float.isInfinite(sweepSpeed) || sweepSpeed <= 0) sweepSpeed = 3.0f;
+        this.numberOfRotations = nbt.hasKey("NumRotations") ? nbt.getInteger("NumRotations") : 2;
+        if (numberOfRotations <= 0) numberOfRotations = 1;
         this.completedRotations = nbt.getInteger("CompletedRotations");
-        this.maxTicks = nbt.getInteger("MaxTicks");
+        this.maxTicks = nbt.hasKey("MaxTicks") ? nbt.getInteger("MaxTicks") : 400;
+        if (maxTicks <= 0) maxTicks = 400;
         this.targetEntityId = nbt.getInteger("TargetId");
         this.currentAngle = nbt.getFloat("CurrentAngle");
+        this.prevAngle = currentAngle;
         this.baseYaw = nbt.getFloat("BaseYaw");
         this.deathWorldTime = nbt.getLong("DeathWorldTime");
-        this.damage = nbt.getFloat("Damage");
-        this.damageInterval = nbt.getInteger("DamageInterval");
-        this.piercing = nbt.getBoolean("Piercing");
+        this.damage = nbt.hasKey("Damage") ? nbt.getFloat("Damage") : 5.0f;
+        if (Float.isNaN(damage) || Float.isInfinite(damage)) damage = 5.0f;
+        this.damageInterval = nbt.hasKey("DamageInterval") ? nbt.getInteger("DamageInterval") : 5;
+        if (damageInterval <= 0) damageInterval = 1;
+        this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
         this.lockOnTarget = nbt.getBoolean("LockOnTarget");
     }
 

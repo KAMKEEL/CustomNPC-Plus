@@ -279,6 +279,7 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         readEnergyBaseNBT(nbt);
         this.ticksAlive = nbt.getInteger("TicksAlive");
         this.currentHealth = nbt.getFloat("CurrentHealth");
+        if (Float.isNaN(currentHealth) || Float.isInfinite(currentHealth) || currentHealth < 0) currentHealth = barrierData.maxHealth;
         this.charging = nbt.hasKey("Charging") && nbt.getBoolean("Charging");
         this.chargeTick = nbt.getInteger("ChargeTick");
         this.chargeDuration = nbt.getInteger("ChargeDuration");

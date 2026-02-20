@@ -56,7 +56,7 @@ public class LightningBolt {
 
         this.numSegments0 = 1;
         this.length = end.copy().subtract(start).mag();
-        this.particleMaxAge = FADE_TIME + rand.nextInt(FADE_TIME) - FADE_TIME / 2;
+        this.particleMaxAge = Math.max(1, FADE_TIME + rand.nextInt(FADE_TIME) - FADE_TIME / 2);
         this.particleAge = -(int) (length * speed);
 
         segments.add(new Segment(start, end));
