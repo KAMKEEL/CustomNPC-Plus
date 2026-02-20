@@ -67,7 +67,7 @@ public abstract class AbilityZone extends Ability {
         this.maxRange = 20.0f;
         this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
-        this.allowedBy = UserType.NPC_ONLY;
+        this.allowedBy = UserType.BOTH;
     }
 
     @Override

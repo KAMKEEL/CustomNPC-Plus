@@ -31,7 +31,7 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
     // Type-specific parameters
     private float beamLength = 10.0f;
     private float beamWidth = 0.3f;  // Thin like beam trail
-    private float beamHeight = 0.5f;  // Height above ground (low enough to jump over)
+    private float beamHeight = 1.0f;  // Beam vertical size in blocks (1 block tall, jumpable)
     private float damage = 5.0f;
     private int damageInterval = 5;
     private boolean piercing = true;
