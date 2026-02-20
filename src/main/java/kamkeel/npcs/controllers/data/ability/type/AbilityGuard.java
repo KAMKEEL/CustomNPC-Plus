@@ -67,6 +67,11 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     @Override
+    public boolean hasDamage() {
+        return canCounter;
+    }
+
+    @Override
     public boolean allowBurst() {
         return false;
     }
