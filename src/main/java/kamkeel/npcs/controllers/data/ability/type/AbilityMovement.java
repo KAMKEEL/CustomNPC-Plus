@@ -25,7 +25,7 @@ public abstract class AbilityMovement extends Ability {
      * Until the round trip completes, the server sees the old (stationary) position,
      * which would falsely trigger stall detection.
      */
-    private static final int PLAYER_STALL_GRACE_TICKS = 5;
+    private static final int PLAYER_STALL_GRACE_TICKS = 8;
     private static final int NPC_STALL_GRACE_TICKS = 2;
 
     // ═══════════════════════════════════════════════════════════════════

@@ -227,6 +227,11 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         // Telegraph follows caster during windup - allows caster to reposition
         instance.setEntityIdToFollow(caster.getEntityId());
 
+        // For player casters, track their rotation so telegraph follows look direction
+        if (isPlayerCaster(caster)) {
+            instance.setTrackFollowedEntityYaw(true);
+        }
+
         return instance;
     }
 

@@ -41,10 +41,24 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     private float leapSpeed = 1.0f;
     private float leapHeight = 4.0f;
 
+    /**
+     * Grace period (in active ticks) before landing detection activates.
+     * Players need more time because:
+     * - Server sets motionY and sends S12 velocity packet to client
+     * - Client receives S12 and starts moving upward
+     * - Client sends C03 position packet back to server with onGround=false
+     * Until the round trip completes, the server's player.onGround (from stale C03)
+     * remains true, which would falsely trigger landing detection.
+     */
+    private static final int PLAYER_LANDING_GRACE_TICKS = 10;
+    private static final int NPC_LANDING_GRACE_TICKS = 3;
+
     // Runtime state
     private transient double targetX, targetY, targetZ;
+    private transient double startY;       // Y position at launch for rise detection
     private transient boolean hasLaunched = false;
     private transient boolean hasLanded = false;
+    private transient boolean hasRisen = false; // Whether entity has risen above launch position
     private transient int airTicks = 0;
     private transient int maxAirTicks = 60; // Timeout to prevent stuck in air
 
@@ -118,7 +132,9 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         hasLaunched = false;
         hasLanded = false;
+        hasRisen = false;
         airTicks = 0;
+        startY = caster.posY;
         caster.fallDistance = 0;
 
         if (isPlayerCaster(caster)) {
@@ -297,9 +313,33 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             caster.fallDistance = 0;
         }
 
-        // Check for landing: hit the ground or hit a wall mid-flight
-        if (airTicks > 3) {
-            if (caster.onGround || caster.isCollidedHorizontally) {
+        // Prevent NPC navigator from interfering with ballistic arc.
+        // lockMovement=WINDUP means applyMovementControl() doesn't clear
+        // the navigator during ACTIVE, so AI pathfinding could add motion.
+        if (!isPreview() && caster instanceof EntityNPCInterface) {
+            ((EntityNPCInterface) caster).getNavigator().clearPathEntity();
+        }
+
+        // Track if entity has risen above launch position.
+        // This prevents premature landing detection for players, where
+        // server-side caster.onGround remains true from stale C03 packets
+        // until the velocity S12 round-trip completes (can take 4-8+ ticks).
+        if (!hasRisen && caster.posY > startY + 0.5) {
+            hasRisen = true;
+        }
+
+        // Landing detection uses different grace periods for NPC vs Player.
+        // NPCs: server physics is authoritative, onGround is accurate after 3 ticks.
+        // Players: onGround depends on C03 packets, needs longer grace + rise confirmation.
+        int graceTicks = isPlayerCaster(caster) ? PLAYER_LANDING_GRACE_TICKS : NPC_LANDING_GRACE_TICKS;
+        if (airTicks > graceTicks) {
+            if (hasRisen && (caster.onGround || caster.isCollidedHorizontally)) {
+                onLanding(caster, caster.worldObj);
+                return;
+            }
+            // Safety: if entity hasn't risen after triple the grace period,
+            // the launch may have failed (blocked by ceiling, etc.) - force landing
+            if (!hasRisen && airTicks > graceTicks * 3) {
                 onLanding(caster, caster.worldObj);
                 return;
             }
@@ -424,6 +464,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         }
         hasLaunched = false;
         hasLanded = false;
+        hasRisen = false;
         airTicks = 0;
     }
 
@@ -434,6 +475,15 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         }
         hasLaunched = false;
         hasLanded = false;
+        hasRisen = false;
+        airTicks = 0;
+    }
+
+    @Override
+    public void cleanup() {
+        hasLaunched = false;
+        hasLanded = false;
+        hasRisen = false;
         airTicks = 0;
     }
 
@@ -442,6 +492,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         super.reset();
         hasLaunched = false;
         hasLanded = false;
+        hasRisen = false;
         airTicks = 0;
     }
 
