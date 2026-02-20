@@ -10,6 +10,7 @@ import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.AbilityIconData;
 import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import net.minecraft.client.gui.GuiButton;
@@ -22,17 +23,21 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityAction;
+import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import noppes.npcs.client.gui.util.*;
+
+import java.util.ArrayList;
 import noppes.npcs.client.gui.util.IChainedAbilityConfigCallback;
-import noppes.npcs.client.gui.util.ISubGuiListener;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 
 /**
  * SubGui for editing a {@link ChainedAbility}.
@@ -89,7 +94,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
     private List<FieldDef> fieldDefs;
     private List<ChainedAbilityEntry> entries;
-    private List<Condition> conditions;
+//    private List<AbilityCondition> conditions;
 
     // Dynamic tabs injected by field providers (e.g., "Icon")
     private List<String> extraTabs = new ArrayList<>();
@@ -128,7 +133,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         this.readOnlyEntries = readOnlyEntries;
         this.npcSlots = npcSlots;
         this.entries = new ArrayList<>(chain.getEntries());
-        this.conditions = new ArrayList<>(chain.getConditions());
+//        this.conditions = new ArrayList<>(chain.getConditions());
 
         buildFieldDefs();
 
@@ -424,23 +429,23 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     }
 
     private int renderConditions(GuiScrollWindow sw, int y, int labelCounter) {
-        y += 3;
-        sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
-        y += 15;
-
-        for (int i = 0; i < conditions.size() && i < 3; i++) {
-            Condition cond = conditions.get(i);
-            String condName = getConditionDisplayName(cond);
-            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName));
-            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 1, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
-            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 2, L_LABEL_X + 190, y, 20, 20, "X"));
-            y += 22;
-        }
-
-        if (conditions.size() < 3) {
-            sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));
-            y += ROW_H;
-        }
+//        y += 3;
+//        sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
+//        y += 15;
+//
+//        for (int i = 0; i < conditions.size() && i < 3; i++) {
+//            Condition cond = conditions.get(i);
+//            String condName = getConditionDisplayName(cond);
+//            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName));
+//            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 1, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
+//            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 2, L_LABEL_X + 190, y, 20, 20, "X"));
+//            y += 22;
+//        }
+//
+//        if (conditions.size() < 3) {
+//            sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));
+//            y += ROW_H;
+//        }
 
         return y;
     }
@@ -618,29 +623,29 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     }
 
     private boolean handleConditionButton(int id) {
-        if (id >= COND_BASE && id < COND_END) {
-            int condIndex = (id - COND_BASE) / COND_STRIDE;
-            int action = (id - COND_BASE) % COND_STRIDE;
-            if (action == 0 || action == 1) {
-                if (condIndex < conditions.size()) {
-                    editingConditionIndex = condIndex;
-                    setSubGui(new SubGuiConditionEdit(conditions.get(condIndex)));
-                }
-            } else if (action == 2) {
-                if (condIndex < conditions.size()) {
-                    conditions.remove(condIndex);
-                    initGui();
-                }
-            }
-            return true;
-        }
-        if (id == BTN_ADD_COND) {
-            if (conditions.size() < 3) {
-                editingConditionIndex = conditions.size();
-                setSubGui(new SubGuiConditionEdit(null));
-            }
-            return true;
-        }
+//        if (id >= COND_BASE && id < COND_END) {
+//            int condIndex = (id - COND_BASE) / COND_STRIDE;
+//            int action = (id - COND_BASE) % COND_STRIDE;
+//            if (action == 0 || action == 1) {
+//                if (condIndex < conditions.size()) {
+//                    editingConditionIndex = condIndex;
+//                    setSubGui(new SubGuiConditionEdit(conditions.get(condIndex)));
+//                }
+//            } else if (action == 2) {
+//                if (condIndex < conditions.size()) {
+//                    conditions.remove(condIndex);
+//                    initGui();
+//                }
+//            }
+//            return true;
+//        }
+//        if (id == BTN_ADD_COND) {
+//            if (conditions.size() < 3) {
+//                editingConditionIndex = conditions.size();
+//                setSubGui(new SubGuiConditionEdit(null));
+//            }
+//            return true;
+//        }
         return false;
     }
 
@@ -845,14 +850,14 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     }
 
     private void handleConditionEditClosed(SubGuiConditionEdit gui) {
-        Condition result = gui.getResult();
-        if (result != null && editingConditionIndex >= 0) {
-            if (editingConditionIndex < conditions.size()) {
-                conditions.set(editingConditionIndex, result);
-            } else {
-                conditions.add(result);
-            }
-        }
+//        Condition result = gui.getResult();
+//        if (result != null && editingConditionIndex >= 0) {
+//            if (editingConditionIndex < conditions.size()) {
+//                conditions.set(editingConditionIndex, result);
+//            } else {
+//                conditions.add(result);
+//            }
+//        }
         editingConditionIndex = -1;
     }
 
@@ -890,10 +895,10 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         }
 
         // Conditions
-        chain.getConditions().clear();
-        for (Condition c : conditions) {
-            chain.getConditions().add(c);
-        }
+//        chain.getConditions().clear();
+//        for (Condition c : conditions) {
+//            chain.getConditions().add(c);
+//        }
 
         // Remove consumed NPC slots (descending order to preserve indices)
         if (npcSlots != null && !consumedSlotIndices.isEmpty()) {

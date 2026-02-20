@@ -60,7 +60,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     public SubGuiAbilityConfig(Ability ability, IAbilityConfigCallback callback) {
         this.ability = ability;
         this.callback = callback;
-        this.conditions = new ArrayList<>(ability.getConditions());
+//        this.conditions = new ArrayList<>(ability.getConditions());
 
         this.fieldDefs = ability.getAllDefinitions();
         discoverCustomTabs();
@@ -230,51 +230,51 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     // ═══════════════════════════════════════════════════════════════════════════
 
     private int renderConditions(GuiScrollWindow sw, int y, int labelCounter) {
-        y += 3;
-        sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
-        y += 15;
-
-        for (int i = 0; i < conditions.size() && i < 3; i++) {
-            Condition cond = conditions.get(i);
-            String condName = getConditionDisplayName(cond);
-            sw.addButton(new GuiNpcButton(50 + i * 10, L_LABEL_X, y, 140, 20, condName));
-            sw.addButton(new GuiNpcButton(51 + i * 10, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
-            sw.addButton(new GuiNpcButton(52 + i * 10, L_LABEL_X + 190, y, 20, 20, "X"));
-            y += 22;
-        }
-
-        if (conditions.size() < 3) {
-            sw.addButton(new GuiNpcButton(80, L_LABEL_X, y, 50, 20, "gui.add"));
-            y += ROW_H;
-        }
-
+//        y += 3;
+//        sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
+//        y += 15;
+//
+//        for (int i = 0; i < conditions.size() && i < 3; i++) {
+//            Condition cond = conditions.get(i);
+//            String condName = getConditionDisplayName(cond);
+//            sw.addButton(new GuiNpcButton(50 + i * 10, L_LABEL_X, y, 140, 20, condName));
+//            sw.addButton(new GuiNpcButton(51 + i * 10, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
+//            sw.addButton(new GuiNpcButton(52 + i * 10, L_LABEL_X + 190, y, 20, 20, "X"));
+//            y += 22;
+//        }
+//
+//        if (conditions.size() < 3) {
+//            sw.addButton(new GuiNpcButton(80, L_LABEL_X, y, 50, 20, "gui.add"));
+//            y += ROW_H;
+//        }
+//
         return y;
     }
 
-    private String getConditionDisplayName(Condition cond) {
-        if (cond == null) return "None";
-        String typeId = cond.getTypeId();
-        switch (typeId) {
-            case "hp_above":
-                return StatCollector.translateToLocal("condition.hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "hp_below":
-                return StatCollector.translateToLocal("condition.hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "target_hp_above":
-                return StatCollector.translateToLocal("condition.target_hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "target_hp_below":
-                return StatCollector.translateToLocal("condition.target_hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "hit_count":
-                Condition.ConditionHitCount hc = (Condition.ConditionHitCount) cond;
-                return StatCollector.translateToLocal("condition.hit_count") + ": " + hc.getRequiredHits() + "/" + hc.getWithinTicks() + "t";
-            default:
-                return typeId;
-        }
-    }
+//    private String getConditionDisplayName(Condition cond) {
+//        if (cond == null) return "None";
+//        String typeId = cond.getTypeId();
+//        switch (typeId) {
+//            case "hp_above":
+//                return StatCollector.translateToLocal("condition.hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
+//            case "hp_below":
+//                return StatCollector.translateToLocal("condition.hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
+//            case "target_hp_above":
+//                return StatCollector.translateToLocal("condition.target_hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
+//            case "target_hp_below":
+//                return StatCollector.translateToLocal("condition.target_hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
+//            case "hit_count":
+//                Condition.ConditionHitCount hc = (Condition.ConditionHitCount) cond;
+//                return StatCollector.translateToLocal("condition.hit_count") + ": " + hc.getRequiredHits() + "/" + hc.getWithinTicks() + "t";
+//            default:
+//                return typeId;
+//        }
+//    }
 
-    private float getConditionThreshold(Condition cond) {
-        NBTTagCompound nbt = cond.writeNBT();
-        return nbt.hasKey("threshold") ? nbt.getFloat("threshold") : 0.5f;
-    }
+//    private float getConditionThreshold(Condition cond) {
+//        NBTTagCompound nbt = cond.writeNBT();
+//        return nbt.hasKey("threshold") ? nbt.getFloat("threshold") : 0.5f;
+//    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // BUTTON EVENTS
@@ -408,8 +408,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     }
 
     protected void applyToAbility() {
-        ability.getConditions().clear();
-        for (Condition c : conditions) ability.addCondition(c);
+//        ability.getConditions().clear();
+//        for (Condition c : conditions) ability.addCondition(c);
     }
 
     public void loadAbility(Ability loadedAbility) {
@@ -418,7 +418,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         nbt.setString("typeId", ability.getTypeId());
         ability.readNBT(nbt);
 
-        this.conditions = new ArrayList<>(ability.getConditions());
+//        this.conditions = new ArrayList<>(ability.getConditions());
         this.fieldDefs = ability.getAllDefinitions();
         discoverCustomTabs();
         initGui();

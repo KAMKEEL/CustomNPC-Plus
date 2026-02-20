@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -58,7 +59,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Selection
     protected int weight = 10;
     protected boolean enabled = true;
-    protected List<Condition> conditions = new ArrayList<>();
+    protected List<AbilityCondition> conditions = new ArrayList<>();
 
     // Targeting
     protected TargetingMode targetingMode = TargetingMode.AGGRO_TARGET;
@@ -1231,7 +1232,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // ═══════════════════════════════════════════════════════════════════
 
     public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
             if (!c.check(caster, target)) return false;
         }
         return true;
@@ -1241,7 +1242,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Check conditions for a player caster, skipping target-requiring conditions.
      */
     public boolean checkConditionsForPlayer(EntityLivingBase caster) {
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
             if (c.requiresTarget()) continue;
             if (!c.check(caster, null)) return false;
         }
@@ -1310,7 +1311,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
         // Conditions
         NBTTagList condList = new NBTTagList();
-        for (Condition c : conditions) condList.appendTag(c.writeNBT());
+        for (AbilityCondition c : conditions) condList.appendTag(c.writeNBT());
         nbt.setTag("conditions", condList);
 
         // Effects
@@ -1397,7 +1398,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         conditions.clear();
         NBTTagList condList = nbt.getTagList("conditions", 10);
         for (int i = 0; i < condList.tagCount(); i++) {
-            Condition c = Condition.fromNBT(condList.getCompoundTagAt(i));
+            AbilityCondition c = AbilityCondition.fromNBT(condList.getCompoundTagAt(i));
             if (c != null) conditions.add(c);
         }
 
@@ -1935,11 +1936,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return customData;
     }
 
-    public List<Condition> getConditions() {
+    public List<AbilityCondition> getConditions() {
         return conditions;
     }
 
-    public void addCondition(Condition c) {
+    public void addCondition(AbilityCondition c) {
         conditions.add(c);
     }
 
