@@ -187,6 +187,7 @@ public class EnergyTrajectoryData implements IEnergyTrajectoryData {
 
     public void readNBT(NBTTagCompound nbt) {
         this.currentPath = nbt.getInteger("currentPath");
+        trajectory.clear();
 
         int i = 0;
         while (nbt.hasKey("Path_" + i, Constants.NBT.TAG_COMPOUND)) {

@@ -118,6 +118,8 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         this.discRadius = 0.01f;
         this.discThickness = 0.01f;
         this.size = 0.01f;
+        this.renderCurrentSize = 0.01f;
+        this.prevRenderSize = 0.01f;
 
         // Initial position at anchor point
         Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);

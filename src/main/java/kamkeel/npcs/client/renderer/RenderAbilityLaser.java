@@ -8,6 +8,9 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Renders the AbilityLaser entity as a rectangular beam with clear inner/outer colors.
  * <p>
@@ -15,6 +18,8 @@ import org.lwjgl.opengl.GL11;
  */
 @SideOnly(Side.CLIENT)
 public class RenderAbilityLaser extends RenderEnergyAbility {
+
+    private final Map<Integer, AttachedLightningRenderer.LightningState> tipLightningStates = new HashMap<>();
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
@@ -218,13 +223,16 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
 
     /**
      * Get or create the tip lightning state for the laser.
-     * Stored as a secondary object in lightningState2.
+     * Persisted per entity ID so arcs accumulate and fade properly across frames.
      */
     private AttachedLightningRenderer.LightningState getTipLightningState(EntityAbilityLaser laser) {
-        // Use a simple approach - store in a transient field
-        // Since lightningState is already used, we'll create a new state each time
-        // This works because we're updating and rendering immediately
-        return new AttachedLightningRenderer.LightningState();
+        int id = laser.getEntityId();
+        AttachedLightningRenderer.LightningState state = tipLightningStates.get(id);
+        if (state == null) {
+            state = new AttachedLightningRenderer.LightningState();
+            tipLightningStates.put(id, state);
+        }
+        return state;
     }
 
     /**
