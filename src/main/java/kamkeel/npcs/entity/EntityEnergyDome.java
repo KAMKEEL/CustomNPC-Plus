@@ -599,17 +599,11 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
-        readBarrierBaseNBT(nbt);
-        this.setDomeRadius(sanitize(nbt.getFloat("DomeRadius"), 5.0f, MAX_ENTITY_RADIUS));
-        this.targetDomeRadius = sanitize(nbt.hasKey("TargetDomeRadius") ? nbt.getFloat("TargetDomeRadius") : domeRadius, 5.0f, MAX_ENTITY_RADIUS);
-        this.followCaster = nbt.hasKey("FollowCaster") && nbt.getBoolean("FollowCaster");
+        // Intentionally empty — ability entities are transient (not saved to world)
     }
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound nbt) {
-        writeBarrierBaseNBT(nbt);
-        nbt.setFloat("DomeRadius", domeRadius);
-        nbt.setFloat("TargetDomeRadius", targetDomeRadius);
-        nbt.setBoolean("FollowCaster", followCaster);
+        // Intentionally empty — ability entities are transient (not saved to world)
     }
 }
