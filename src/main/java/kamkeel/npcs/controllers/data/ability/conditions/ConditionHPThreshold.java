@@ -6,7 +6,7 @@ import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.List;
 
-public class ConditionHPThreshold extends AbilityCondition{
+public class ConditionHPThreshold extends AbilityCondition {
     private float threshold = 0.5f; // 50%
     private boolean percent = true;
     private ThresholdType thresholdType = ThresholdType.ABOVE;
@@ -62,26 +62,9 @@ public class ConditionHPThreshold extends AbilityCondition{
     }
 
     @Override
-    public boolean check(EntityLivingBase caster, EntityLivingBase target) {
-        float casterHP = isPercent() ? caster.getHealth() / caster.getMaxHealth() : caster.getHealth();
-        float targetHP = isPercent() ? target.getHealth() / target.getMaxHealth() : target.getHealth();
-
-
-        return compare(casterHP, targetHP);
-    }
-
-    public boolean compare(float casterHp, float targetHp) {
-        boolean casterCheck = thresholdType.test(casterHp, threshold);
-        boolean targetCheck = thresholdType.test(targetHp, threshold);
-
-        switch (getFilter()) {
-            case BOTH:
-                return casterCheck && targetCheck;
-            case CASTER:
-                return casterCheck;
-            default:
-                return targetCheck;
-        }
+    protected boolean checkEntity(EntityLivingBase entity) {
+        float entityHP = isPercent() ? entity.getHealth() / entity.getMaxHealth() : entity.getHealth();
+        return thresholdType.test(entityHP, getThreshold());
     }
 
     @Override

@@ -46,20 +46,7 @@ public class ConditionItem extends AbilityCondition {
     }
 
     @Override
-    public boolean check(EntityLivingBase caster, EntityLivingBase target) {
-        switch (getFilter()) {
-            case CASTER:
-                return checkEntity(caster);
-            case TARGET:
-                return target != null && checkEntity(target);
-            case BOTH:
-                return checkEntity(caster) && (target != null && checkEntity(target));
-            default:
-                return checkEntity(caster);
-        }
-    }
-
-    private boolean checkEntity(EntityLivingBase entity) {
+    protected boolean checkEntity(EntityLivingBase entity) {
         switch (usageType) {
             case HOLDING:
                 return checkHolding(entity);

@@ -21,14 +21,20 @@ public abstract class AbilityCondition {
     protected UserType userType = UserType.BOTH;
     protected ConditionFilter conditionFilter = ConditionFilter.CASTER;
 
-    /**
-     * Check if this condition is met.
-     *
-     * @param caster The entity that would use the ability (NPC or Player)
-     * @param target The current target (may be null for self-targeting abilities or players)
-     * @return true if the condition is satisfied
-     */
-    public abstract boolean check(EntityLivingBase caster, EntityLivingBase target);
+    public boolean check(EntityLivingBase caster, EntityLivingBase target) {
+        switch (getFilter()) {
+            case CASTER:
+                return checkEntity(caster);
+            case TARGET:
+                return target != null && checkEntity(target);
+            case BOTH:
+                return checkEntity(caster) && (target != null && checkEntity(target));
+            default:
+                return checkEntity(caster);
+        }
+    }
+
+    protected abstract boolean checkEntity(EntityLivingBase entity);
 
     public boolean requiresTarget() {
         return false;
