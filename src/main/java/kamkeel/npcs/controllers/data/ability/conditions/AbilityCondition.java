@@ -6,6 +6,7 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.LogWriter;
 import noppes.npcs.client.gui.builder.FieldDef;
 
@@ -40,6 +41,14 @@ public abstract class AbilityCondition {
         return false;
     }
 
+    /**
+     * Returns true if all required fields are filled in.
+     * Used to disable the Done button in SubGuiConditionEdit when incomplete.
+     */
+    public boolean isConfigured() {
+        return true;
+    }
+
     public UserType getUserType() {
         return userType;
     }
@@ -63,10 +72,19 @@ public abstract class AbilityCondition {
     @SideOnly(Side.CLIENT)
     public abstract void getConditionDefinitions(List<FieldDef> defs);
 
+    /**
+     * Returns a human-readable summary of this condition's configuration.
+     * Used for tooltips when hovering over condition buttons.
+     */
+    @SideOnly(Side.CLIENT)
+    public abstract String getConditionSummary();
+
     @SideOnly(Side.CLIENT)
     public final List<FieldDef> getAllDefinitions() {
         List<FieldDef> defs = new ArrayList<>();
 
+        defs.add(FieldDef.labelField("ability.validFor", () ->
+            "\u00A7e" + StatCollector.translateToLocal("ability.userType." + getUserType().name())));
         defs.add(FieldDef.enumField("condition.filter", ConditionFilter.class, this::getFilter, this::setFilter));
         getConditionDefinitions(defs);
         return defs;

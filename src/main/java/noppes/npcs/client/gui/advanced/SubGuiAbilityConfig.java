@@ -245,7 +245,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         for (int i = 0; i < conditions.size() && i < MAX_CONDITIONS; i++) {
             AbilityCondition cond = conditions.get(i);
             String condName = getConditionDisplayName(cond);
-            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName));
+            GuiNpcButton condBtn = new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName);
+            condBtn.hoverableText = cond.getConditionSummary();
+            sw.addButton(condBtn);
             sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 1, L_LABEL_X + 145, y,  40, 20, "gui.edit"));
             sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 2, L_LABEL_X + 190, y,  20, 20, "X"));
             y += 22;
