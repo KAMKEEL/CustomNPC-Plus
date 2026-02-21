@@ -67,12 +67,23 @@ public abstract class AbilityZone extends Ability {
         this.maxRange = 20.0f;
         this.lockMovement = LockMovementType.WINDUP;
         this.cooldownTicks = 0;
-        this.allowedBy = UserType.NPC_ONLY;
+        this.allowedBy = UserType.BOTH;
     }
 
     @Override
     public boolean allowBurst() {
         return false;
+    }
+
+    @Override
+    public boolean allowFreeOnCast() {
+        return true;
+    }
+
+    @Override
+    public void detach() {
+        activeEntities.clear();
+        preCalculatedPositions.clear();
     }
 
     @Override
@@ -130,6 +141,12 @@ public abstract class AbilityZone extends Ability {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        // Free on Cast: complete immediately — zones live independently
+        if (isFreeOnCast()) {
+            signalCompletion();
+            return;
+        }
+
         Iterator<EntityAbilityZone> it = activeEntities.iterator();
         while (it.hasNext()) {
             EntityAbilityZone entity = it.next();

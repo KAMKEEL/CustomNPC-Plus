@@ -12,8 +12,8 @@ import kamkeel.npcs.client.renderer.RenderAbilityLaser;
 import kamkeel.npcs.client.renderer.RenderAbilityOrb;
 import kamkeel.npcs.client.renderer.RenderAbilitySweeper;
 import kamkeel.npcs.client.renderer.RenderAbilityZone;
-import kamkeel.npcs.client.renderer.RenderEnergyDome;
-import kamkeel.npcs.client.renderer.RenderEnergyPanel;
+import kamkeel.npcs.client.renderer.RenderAbilityDome;
+import kamkeel.npcs.client.renderer.RenderAbilityPanel;
 import kamkeel.npcs.client.renderer.RenderEnergySlicer;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
 import kamkeel.npcs.client.renderer.lightning.LightningHandler;
@@ -24,8 +24,8 @@ import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
-import kamkeel.npcs.entity.EntityEnergyDome;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -259,6 +259,7 @@ import java.util.Random;
 public class ClientProxy extends CommonProxy {
     public static KeyBinding NPCButton;
     public static KeyBinding SpecialKey;
+    public static KeyBinding AbilityHudKey;
     public static final Random RAND = new Random();
     public static FontContainer Font;
 
@@ -279,8 +280,8 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityBeam.class, new RenderAbilityBeam());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilitySweeper.class, new RenderAbilitySweeper());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityZone.class, new RenderAbilityZone());
-        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyDome.class, new RenderEnergyDome());
-        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyPanel.class, new RenderEnergyPanel());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityDome.class, new RenderAbilityDome());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityPanel.class, new RenderAbilityPanel());
         RenderingRegistry.registerEntityRenderingHandler(EntityEnergySlicer.class, new RenderEnergySlicer());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
@@ -334,10 +335,13 @@ public class ClientProxy extends CommonProxy {
         Minecraft mc = Minecraft.getMinecraft();
 
         NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_N, "key.categories.customnpc");
-        SpecialKey = new KeyBinding("key.customnpcs.special", Keyboard.KEY_B, "key.categories.customnpc");
+        SpecialKey = new KeyBinding("key.customnpcs.special", Keyboard.KEY_GRAVE, "key.categories.customnpc");
 
         ClientRegistry.registerKeyBinding(NPCButton);
         ClientRegistry.registerKeyBinding(SpecialKey);
+
+        AbilityHudKey = new KeyBinding("key.customnpcs.abilityHudKey", Keyboard.KEY_LMENU, "key.categories.customnpc");
+        ClientRegistry.registerKeyBinding(AbilityHudKey);
 
         new PresetController(CustomNpcs.Dir);
 

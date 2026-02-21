@@ -2,7 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -13,11 +13,11 @@ import org.lwjgl.opengl.GL11;
  * Optional skybox texture rendered on the interior surface.
  */
 @SideOnly(Side.CLIENT)
-public class RenderEnergyDome extends RenderEnergyBarrier {
+public class RenderAbilityDome extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
-        EntityEnergyDome dome = (EntityEnergyDome) entity;
+        EntityAbilityDome dome = (EntityAbilityDome) entity;
         float radius = dome.getDomeRadius();
         float healthPercent = dome.getHealthPercent();
 
@@ -34,7 +34,7 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
         // Hit flash effect
         float flashAlpha = computeFlashAlpha(dome);
 
-        float innerScale = 0.95f;
+        float innerScale = 1.0f;
 
         // Render outer dome (translucent glow)
         if (dome.isOuterColorEnabled()) {
@@ -51,7 +51,7 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
 
         GL11.glDepthMask(true);
         // Render inner dome (depth write enabled so inner sphere properly occludes)
-        renderSphere(dome.getInnerColor(), dome.getInnerAlpha(), radius * innerScale, 8);
+        renderSphere(dome.getInnerColor(), dome.getInnerAlpha() * healthPercent, radius * innerScale, 8);
         GL11.glPopMatrix();
 
         restoreRenderState();

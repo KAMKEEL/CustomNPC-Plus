@@ -1,6 +1,6 @@
 package kamkeel.npcs.entity;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
+import kamkeel.npcs.util.ByteBufUtils;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -716,130 +716,12 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
-        int zoneTypeOrd = nbt.getInteger("ZoneType");
-        this.zoneType = (zoneTypeOrd >= 0 && zoneTypeOrd < ZoneType.values().length) ? ZoneType.values()[zoneTypeOrd] : ZoneType.TRAP;
-        try {
-            this.shape = ZoneShape.valueOf(nbt.getString("ShapeName"));
-        } catch (Exception e) {
-            this.shape = ZoneShape.CIRCLE;
-        }
-
-        this.ownerEntityId = nbt.getInteger("OwnerId");
-        this.radius = nbt.hasKey("Radius") ? nbt.getFloat("Radius") : 4.0f;
-        this.durationTicks = nbt.hasKey("Duration") ? nbt.getInteger("Duration") : 200;
-        this.maxTicks = nbt.hasKey("MaxTicks") ? nbt.getInteger("MaxTicks") : 200;
-        this.innerColor = nbt.hasKey("InnerColor") ? nbt.getInteger("InnerColor") : 0xFF6600;
-        this.outerColor = nbt.hasKey("OuterColor") ? nbt.getInteger("OuterColor") : 0xFF0000;
-        this.outerColorEnabled = !nbt.hasKey("OuterColorEnabled") || nbt.getBoolean("OuterColorEnabled");
-        this.zoneHeight = nbt.hasKey("ZoneHeight") ? nbt.getFloat("ZoneHeight") : 2.0f;
-        this.particleDensity = nbt.hasKey("ParticleDensity") ? nbt.getFloat("ParticleDensity") : 1.0f;
-        this.particleScale = nbt.hasKey("ParticleScale") ? nbt.getFloat("ParticleScale") : 1.0f;
-        this.animSpeed = nbt.hasKey("AnimSpeed") ? nbt.getFloat("AnimSpeed") : 1.0f;
-        this.lightningDensity = nbt.hasKey("LightningDensity") ? nbt.getFloat("LightningDensity") : 1.0f;
-        this.deathWorldTime = nbt.getLong("DeathWorldTime");
-
-        // Visual layer fields
-        this.groundFill = nbt.getBoolean("GroundFill");
-        this.groundAlpha = nbt.getFloat("GroundAlpha");
-        this.rings = nbt.getBoolean("Rings");
-        this.ringCount = nbt.getInteger("RingCount");
-        this.border = nbt.getBoolean("Border");
-        this.borderSpeed = nbt.getFloat("BorderSpeed");
-        this.accents = nbt.getBoolean("Accents");
-        this.accentStyle = nbt.getInteger("AccentStyle");
-        this.lightning = nbt.getBoolean("Lightning");
-        this.particles = nbt.getBoolean("Particles");
-        this.particleMotion = nbt.getInteger("ParticleMotion");
-        this.particleDir = nbt.getString("ParticleDir");
-        this.particleSize = nbt.getInteger("ParticleSize");
-        this.particleGlow = nbt.getBoolean("ParticleGlow");
-
-        // Trap
-        this.armTime = nbt.getInteger("ArmTime");
-        this.triggerRadius = nbt.getFloat("TriggerRadius");
-        this.maxTriggers = nbt.getInteger("MaxTriggers");
-        this.triggerCooldown = nbt.getInteger("TriggerCooldown");
-        this.damage = nbt.getFloat("Damage");
-        this.damageRadius = nbt.getFloat("DamageRadius");
-        this.knockback = nbt.getFloat("Knockback");
-        this.visible = nbt.getBoolean("Visible");
-
-        // Hazard
-        this.damagePerSecond = nbt.hasKey("DamagePerSecond") ? nbt.getFloat("DamagePerSecond") : 1.0f;
-        this.damageInterval = nbt.hasKey("DamageInterval") ? nbt.getInteger("DamageInterval") : 20;
-        if (damageInterval <= 0) damageInterval = 1;
-        this.ignoreInvulnFrames = nbt.getBoolean("IgnoreInvuln");
-        this.affectsCaster = nbt.getBoolean("AffectsCaster");
-
-        // Effects
-        effects.clear();
-        if (nbt.hasKey("Effects")) {
-            NBTTagList effectList = nbt.getTagList("Effects", 10);
-            for (int i = 0; i < effectList.tagCount(); i++) {
-                AbilityPotionEffect effect = AbilityPotionEffect.fromNBT(effectList.getCompoundTagAt(i));
-                if (effect != null && effect.isValid()) {
-                    effects.add(effect);
-                }
-            }
-        }
+        // Intentionally empty — ability entities are transient (not saved to world)
     }
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound nbt) {
-        nbt.setInteger("ZoneType", zoneType.ordinal());
-        nbt.setString("ShapeName", shape.name());
-        nbt.setInteger("OwnerId", ownerEntityId);
-        nbt.setFloat("Radius", radius);
-        nbt.setInteger("Duration", durationTicks);
-        nbt.setInteger("MaxTicks", maxTicks);
-        nbt.setInteger("InnerColor", innerColor);
-        nbt.setInteger("OuterColor", outerColor);
-        nbt.setBoolean("OuterColorEnabled", outerColorEnabled);
-        nbt.setFloat("ZoneHeight", zoneHeight);
-        nbt.setFloat("ParticleDensity", particleDensity);
-        nbt.setFloat("ParticleScale", particleScale);
-        nbt.setFloat("AnimSpeed", animSpeed);
-        nbt.setFloat("LightningDensity", lightningDensity);
-        nbt.setLong("DeathWorldTime", deathWorldTime);
-
-        // Visual layer fields
-        nbt.setBoolean("GroundFill", groundFill);
-        nbt.setFloat("GroundAlpha", groundAlpha);
-        nbt.setBoolean("Rings", rings);
-        nbt.setInteger("RingCount", ringCount);
-        nbt.setBoolean("Border", border);
-        nbt.setFloat("BorderSpeed", borderSpeed);
-        nbt.setBoolean("Accents", accents);
-        nbt.setInteger("AccentStyle", accentStyle);
-        nbt.setBoolean("Lightning", lightning);
-        nbt.setBoolean("Particles", particles);
-        nbt.setInteger("ParticleMotion", particleMotion);
-        nbt.setString("ParticleDir", particleDir);
-        nbt.setInteger("ParticleSize", particleSize);
-        nbt.setBoolean("ParticleGlow", particleGlow);
-
-        // Trap
-        nbt.setInteger("ArmTime", armTime);
-        nbt.setFloat("TriggerRadius", triggerRadius);
-        nbt.setInteger("MaxTriggers", maxTriggers);
-        nbt.setInteger("TriggerCooldown", triggerCooldown);
-        nbt.setFloat("Damage", damage);
-        nbt.setFloat("DamageRadius", damageRadius);
-        nbt.setFloat("Knockback", knockback);
-        nbt.setBoolean("Visible", visible);
-
-        // Hazard
-        nbt.setFloat("DamagePerSecond", damagePerSecond);
-        nbt.setInteger("DamageInterval", damageInterval);
-        nbt.setBoolean("IgnoreInvuln", ignoreInvulnFrames);
-        nbt.setBoolean("AffectsCaster", affectsCaster);
-
-        // Effects
-        NBTTagList effectList = new NBTTagList();
-        for (AbilityPotionEffect effect : effects) {
-            effectList.appendTag(effect.writeNBT());
-        }
-        nbt.setTag("Effects", effectList);
+        // Intentionally empty — ability entities are transient (not saved to world)
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -849,7 +731,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     @Override
     public void writeSpawnData(ByteBuf buffer) {
         buffer.writeInt(zoneType.ordinal());
-        ByteBufUtils.writeUTF8String(buffer, shape.name());
+        ByteBufUtils.writeString(buffer, shape.name());
         buffer.writeInt(ownerEntityId);
         buffer.writeFloat(radius);
         buffer.writeInt(durationTicks);
@@ -875,7 +757,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         buffer.writeBoolean(lightning);
         buffer.writeBoolean(particles);
         buffer.writeInt(particleMotion);
-        ByteBufUtils.writeUTF8String(buffer, particleDir);
+        ByteBufUtils.writeString(buffer, particleDir);
         buffer.writeInt(particleSize);
         buffer.writeBoolean(particleGlow);
 
@@ -890,14 +772,18 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
             effectList.appendTag(effect.writeNBT());
         }
         effectsNbt.setTag("Effects", effectList);
-        ByteBufUtils.writeTag(buffer, effectsNbt);
+        try {
+            ByteBufUtils.writeNBT(buffer, effectsNbt);
+        } catch (java.io.IOException e) {
+            noppes.npcs.LogWriter.error("Error writing zone effects spawn data", e);
+        }
     }
 
     @Override
     public void readSpawnData(ByteBuf buffer) {
         int zoneTypeOrd = buffer.readInt();
         this.zoneType = (zoneTypeOrd >= 0 && zoneTypeOrd < ZoneType.values().length) ? ZoneType.values()[zoneTypeOrd] : ZoneType.TRAP;
-        String shapeName = ByteBufUtils.readUTF8String(buffer);
+        String shapeName = ByteBufUtils.readString(buffer);
         try {
             this.shape = ZoneShape.valueOf(shapeName);
         } catch (Exception e) {
@@ -928,7 +814,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.lightning = buffer.readBoolean();
         this.particles = buffer.readBoolean();
         this.particleMotion = buffer.readInt();
-        this.particleDir = ByteBufUtils.readUTF8String(buffer);
+        this.particleDir = ByteBufUtils.readString(buffer);
         this.particleSize = buffer.readInt();
         this.particleGlow = buffer.readBoolean();
 
@@ -936,7 +822,12 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.visible = buffer.readBoolean();
 
         // Effects
-        NBTTagCompound effectsNbt = ByteBufUtils.readTag(buffer);
+        NBTTagCompound effectsNbt = null;
+        try {
+            effectsNbt = ByteBufUtils.readNBT(buffer);
+        } catch (java.io.IOException e) {
+            noppes.npcs.LogWriter.error("Error reading zone effects spawn data", e);
+        }
         effects.clear();
         if (effectsNbt != null && effectsNbt.hasKey("Effects")) {
             NBTTagList effectList = effectsNbt.getTagList("Effects", 10);

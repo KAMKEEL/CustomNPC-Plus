@@ -52,7 +52,7 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         this.windUpSound = "mob.zombie.wood";
         this.activeSound = "mob.zombie.attack";
         this.windUpAnimationName = "Ability_Charge_Windup";
-        this.activeAnimationName = "Ability_Active_Windup";
+        this.activeAnimationName = "Ability_Charge_Active";
     }
 
     @Override
@@ -66,25 +66,24 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
     }
 
     /**
-     * Called on the first tick of windup - lock direction here so it matches telegraph.
+     * During windup, NPCs face toward their target for animation purposes.
+     * Players aim freely — the telegraph follows their look direction on the client,
+     * and direction is locked at the end of windup in onExecute().
      */
     @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        if (tick == 1) {
-            lockDirection(caster, target);
+        if (!isPlayerCaster(caster) && target != null) {
+            lockDirectionToTarget(caster, target);
+            enforceLockedRotation(caster);
         }
-        enforceLockedRotation(caster);
     }
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        // Lock final direction at end of windup so it matches the telegraph
+        lockDirection(caster, target);
         initMovement(caster, maxRange, chargeSpeed);
         hitEntities.clear();
-
-        // If direction wasn't set during windup (shouldn't happen), set it now
-        if (movementDirection == null) {
-            lockDirection(caster, target);
-        }
 
         enforceLockedRotation(caster);
     }
@@ -226,6 +225,11 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         instance.setCasterEntityId(caster.getEntityId());
         // Telegraph follows caster during windup - allows caster to reposition
         instance.setEntityIdToFollow(caster.getEntityId());
+
+        // For player casters, track their rotation so telegraph follows look direction
+        if (isPlayerCaster(caster)) {
+            instance.setTrackFollowedEntityYaw(true);
+        }
 
         return instance;
     }

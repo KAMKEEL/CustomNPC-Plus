@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.QuestTrackingComponent;
+import noppes.npcs.client.gui.hud.ability.AbilityHotbarComponent;
 import noppes.npcs.client.gui.player.AuctionTooltipHandler;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
@@ -98,6 +99,24 @@ public class ClientEventHandler {
             return;
         }
 
+        // Ability Hotbar: Hold HUD key + scroll wheel to cycle
+        if (event.dwheel != 0 && ClientProxy.AbilityHudKey != null) {
+            int hudKeyCode = ClientProxy.AbilityHudKey.getKeyCode();
+            if (hudKeyCode != 0 && org.lwjgl.input.Keyboard.isKeyDown(hudKeyCode)) {
+                AbilityHotbarComponent comp = (AbilityHotbarComponent) ClientHudManager.getInstance()
+                    .getHudComponents().get(EnumHudComponent.AbilityHotbar);
+                if (comp != null && comp.hasAnyAbilities()) {
+                    if (event.dwheel > 0) {
+                        comp.onCyclePrev();
+                    } else {
+                        comp.onCycleNext();
+                    }
+                    event.setCanceled(true);
+                    return;
+                }
+            }
+        }
+
         ArrayList<Integer> removeList = new ArrayList<>();
         for (Map.Entry<Integer, Long> entry : disabledButtonTimes.entrySet()) {
             if (entry.getValue() > 0) {
@@ -125,6 +144,7 @@ public class ClientEventHandler {
             if (ClientHudManager.getInstance().getHudComponents().isEmpty()) {
                 ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestTracker, new QuestTrackingComponent(Minecraft.getMinecraft()));
                 ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestCompass, new CompassHudComponent(Minecraft.getMinecraft()));
+                ClientHudManager.getInstance().registerHud(EnumHudComponent.AbilityHotbar, new AbilityHotbarComponent(Minecraft.getMinecraft()));
             }
 
             ClientHudManager.getInstance().renderAllHUDs(event.partialTicks);

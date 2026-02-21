@@ -3,9 +3,13 @@ package kamkeel.npcs.controllers.data.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,7 +19,9 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
@@ -53,7 +59,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Selection
     protected int weight = 10;
     protected boolean enabled = true;
-    protected List<Condition> conditions = new ArrayList<>();
+    protected List<AbilityCondition> conditions = new ArrayList<>();
 
     // Targeting
     protected TargetingMode targetingMode = TargetingMode.AGGRO_TARGET;
@@ -103,6 +109,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     // Cooldown override
     protected boolean ignoreCooldown = false;
+
+    // Per-ability cooldown: if true, this ability has its own independent cooldown
+    // instead of sharing the global cooldown with other abilities
+    protected boolean perAbilityCooldown = false;
+
+    // Free on Cast: if true, ability enters cooldown immediately after entities are spawned,
+    // allowing the caster to use other abilities while summoned entities remain active
+    protected boolean freeOnCast = false;
 
     // ═══════════════════════════════════════════════════════════════════
     // BUILT-IN (set in constructor via configureAsBuiltIn, NOT persisted)
@@ -243,6 +257,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     public boolean isConcurrentCapable() {
         return false;
+    }
+
+    /**
+     * Whether this ability type supports the Free on Cast option.
+     * Override to return true for abilities that spawn persistent entities (projectiles, barriers, zones, sweeper).
+     */
+    public boolean allowFreeOnCast() {
+        return false;
+    }
+
+    /**
+     * Detach all spawned entities (let them live independently) without killing them.
+     * Called during signalCompletion() when freeOnCast is enabled.
+     * Override in subclasses to null entity references without calling setDead().
+     */
+    public void detach() {
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -598,8 +628,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
             FieldDef.boolField("ability.syncWindup", this::isSyncWindupWithAnimation, this::setSyncWindupWithAnimation)
                 .hover("ability.hover.sync")
         ).tab("General").visibleWhen(() -> hasWindUpAnimation() && isSyncWindupWithAnimation()));
-        defs.add(FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks)
-            .tab("General").range(0, 10000));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks).range(0, 10000),
+            FieldDef.boolField("ability.perAbilityCooldown", this::isPerAbilityCooldown, this::setPerAbilityCooldown)
+        ).tab("General"));
+        if (allowFreeOnCast()) {
+            defs.add(FieldDef.boolField("ability.freeOnCast", this::isFreeOnCast, this::setFreeOnCast)
+                .tab("General").hover("ability.hover.freeOnCast"));
+        }
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
         defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
                 () -> this.getLockMovement().getDisplayKey(),
@@ -734,6 +770,25 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
+        // ── Icon tab (native) ─────────────────────────────────────
+        if (!isNpcInlineEdit()) {
+            AbilityIconData icon = AbilityIconData.fromAbility(this);
+            defs.add(FieldDef.stringField("gui.texture", icon::getTexture, icon::setTexture)
+                .tab("Icon"));
+            defs.add(FieldDef.section("ability.icon.section.uv").tab("Icon"));
+            defs.add(FieldDef.intField("ability.icon.x", icon::getIconX, icon::setIconX)
+                .tab("Icon").range(0, 4096));
+            defs.add(FieldDef.intField("ability.icon.y", icon::getIconY, icon::setIconY)
+                .tab("Icon").range(0, 4096));
+            defs.add(FieldDef.section("gui.size").tab("Icon"));
+            defs.add(FieldDef.intField("gui.width", icon::getWidth, icon::setWidth)
+                .tab("Icon").range(1, 256));
+            defs.add(FieldDef.intField("gui.height", icon::getHeight, icon::setHeight)
+                .tab("Icon").range(1, 256));
+            defs.add(FieldDef.floatField("gui.scale", icon::getScale, icon::setScale)
+                .tab("Icon").range(0.1f, 10.0f));
+        }
+
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)
         for (IAbilityFieldProvider provider : AbilityController.Instance.getFieldProviders()) {
             provider.addFieldDefinitions(this, defs);
@@ -832,11 +887,17 @@ public abstract class Ability implements IAbility, IAbilityAction {
             // AOE_SELF abilities: telegraph follows caster during windup
             instance.setEntityIdToFollow(caster.getEntityId());
 
-            // For LINE/CONE telegraphs: track target direction during windup
+            // For LINE/CONE telegraphs: track direction during windup
             // Only track if rotation is NOT locked during windup (NPC can still turn)
-            if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
+            if (telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) {
                 if (!isRotationLockedDuringWindup()) {
-                    instance.setTargetEntityId(target.getEntityId());
+                    if (target != null) {
+                        // Face the target entity
+                        instance.setTargetEntityId(target.getEntityId());
+                    } else {
+                        // No target (AOE_SELF etc.): track caster's own rotationYaw
+                        instance.setTrackFollowedEntityYaw(true);
+                    }
                 }
                 // If rotation is locked, yaw stays fixed at creation time
             }
@@ -1035,7 +1096,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
             // Final completion - let burst entities die naturally (don't force-kill)
             burstEntities.clear();
-            cleanup();
+            if (freeOnCast) {
+                // Free on Cast: detach entities (let them live independently) instead of killing
+                detach();
+            } else {
+                cleanup();
+            }
             phase = AbilityPhase.IDLE;
             currentTick = 0;
             return true;
@@ -1059,6 +1125,20 @@ public abstract class Ability implements IAbility, IAbilityAction {
             phase = AbilityPhase.IDLE;
             currentTick = 0;
         }
+        burstIndex = 0;
+        currentTarget = null;
+        telegraphInstances.clear();
+    }
+
+    /**
+     * Cancel this ability (voluntary player action). Goes directly to IDLE, skipping DAZED.
+     * Entities are killed via cleanup(). Unlike interrupt(), this never enters DAZED phase.
+     */
+    public void cancel() {
+        cleanupBurstEntities();
+        cleanup();
+        phase = AbilityPhase.IDLE;
+        currentTick = 0;
         burstIndex = 0;
         currentTarget = null;
         telegraphInstances.clear();
@@ -1201,7 +1281,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // ═══════════════════════════════════════════════════════════════════
 
     public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
+            if (!c.getUserType().allowsNpc()) continue;
             if (!c.check(caster, target)) return false;
         }
         return true;
@@ -1211,7 +1292,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Check conditions for a player caster, skipping target-requiring conditions.
      */
     public boolean checkConditionsForPlayer(EntityLivingBase caster) {
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
+            if (!c.getUserType().allowsPlayer()) continue;
             if (c.requiresTarget()) continue;
             if (!c.check(caster, null)) return false;
         }
@@ -1258,6 +1340,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setTag("customData", (NBTTagCompound) customData.copy());
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
+        nbt.setBoolean("perAbilityCooldown", perAbilityCooldown);
+        nbt.setBoolean("freeOnCast", freeOnCast);
 
         // Toggle
         nbt.setInteger("toggleStates", toggleStates);
@@ -1279,7 +1363,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
         // Conditions
         NBTTagList condList = new NBTTagList();
-        for (Condition c : conditions) condList.appendTag(c.writeNBT());
+        for (AbilityCondition c : conditions) condList.appendTag(c.writeNBT());
         nbt.setTag("conditions", condList);
 
         // Effects
@@ -1325,7 +1409,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         activeSound = nbt.getString("activeSound");
         windUpAnimationId = nbt.getInteger("windUpAnimationId");
         activeAnimationId = nbt.getInteger("activeAnimationId");
-        dazedAnimationId = nbt.getInteger("dazedAnimationId");
+        dazedAnimationId = nbt.hasKey("dazedAnimationId") ? nbt.getInteger("dazedAnimationId") : -1;
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
         dazedAnimationName = nbt.getString("dazedAnimationName");
@@ -1339,6 +1423,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
         customData = nbt.getCompoundTag("customData");
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
+        perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");
+        freeOnCast = nbt.getBoolean("freeOnCast");
 
         // Toggle
         toggleStates = nbt.getInteger("toggleStates");
@@ -1365,7 +1451,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         conditions.clear();
         NBTTagList condList = nbt.getTagList("conditions", 10);
         for (int i = 0; i < condList.tagCount(); i++) {
-            Condition c = Condition.fromNBT(condList.getCompoundTagAt(i));
+            AbilityCondition c = AbilityCondition.fromNBT(condList.getCompoundTagAt(i));
             if (c != null) conditions.add(c);
         }
 
@@ -1903,11 +1989,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return customData;
     }
 
-    public List<Condition> getConditions() {
+    public List<AbilityCondition> getConditions() {
         return conditions;
     }
 
-    public void addCondition(Condition c) {
+    public void addCondition(AbilityCondition c) {
         conditions.add(c);
     }
 
@@ -1925,6 +2011,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public void setIgnoreCooldown(boolean ignoreCooldown) {
         this.ignoreCooldown = ignoreCooldown;
+    }
+
+    public boolean isPerAbilityCooldown() {
+        return perAbilityCooldown;
+    }
+
+    public void setPerAbilityCooldown(boolean perAbilityCooldown) {
+        this.perAbilityCooldown = perAbilityCooldown;
+    }
+
+    public boolean isFreeOnCast() {
+        return freeOnCast;
+    }
+
+    public void setFreeOnCast(boolean freeOnCast) {
+        this.freeOnCast = freeOnCast;
     }
 
     public boolean isToggleable() {
@@ -2123,6 +2225,134 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
         return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LINE-OF-SIGHT UTILITIES
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Check if there is a clear line of sight (no solid blocks) between caster and target.
+     * Raycasts from caster's eye position to target's body center.
+     *
+     * @return true if there IS line of sight (no blocks in the way)
+     */
+    public static boolean hasLineOfSight(World world, EntityLivingBase caster, EntityLivingBase target) {
+        Vec3 start = Vec3.createVectorHelper(caster.posX, caster.posY + caster.getEyeHeight(), caster.posZ);
+        Vec3 end = Vec3.createVectorHelper(target.posX, target.posY + target.height * 0.5, target.posZ);
+        MovingObjectPosition result = world.rayTraceBlocks(start, end);
+        return result == null;
+    }
+
+    /**
+     * Check if an enemy barrier (dome or panel) blocks the line between caster and target.
+     * Barriers owned by the caster or allies of the caster are not considered blocking.
+     *
+     * @return true if an enemy barrier blocks the attack
+     */
+    @SuppressWarnings("unchecked")
+    public static boolean isBlockedByBarrier(World world, EntityLivingBase caster, EntityLivingBase target) {
+        // Barrier entities have tiny Minecraft bounding boxes (1x1 for domes, 0.5x0.5 for panels)
+        // but their actual collision geometry extends up to MAX_ENTITY_RADIUS (50) blocks.
+        // Must expand search to match EntityEnergyProjectile.checkBarrierCollision() pattern.
+        double searchRange = 55.0; // MAX_ENTITY_RADIUS(50) + 5
+        double minX = Math.min(caster.posX, target.posX) - searchRange;
+        double minY = Math.min(caster.posY, target.posY) - searchRange;
+        double minZ = Math.min(caster.posZ, target.posZ) - searchRange;
+        double maxX = Math.max(caster.posX, target.posX) + searchRange;
+        double maxY = Math.max(caster.posY, target.posY) + searchRange;
+        double maxZ = Math.max(caster.posZ, target.posZ) + searchRange;
+
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
+        List<EntityAbilityBarrier> barriers = world.getEntitiesWithinAABB(EntityAbilityBarrier.class, searchBox);
+
+        for (EntityAbilityBarrier barrier : barriers) {
+            if (barrier.isDead) continue;
+            if (barrier.isCharging()) continue;
+
+            // Skip barriers owned by caster or allies
+            if (barrier.getOwnerEntityId() == caster.getEntityId()) continue;
+            Entity barrierOwner = barrier.getOwnerEntity();
+            if (barrierOwner instanceof EntityLivingBase) {
+                if (AbilityTargetHelper.isAlly(caster, (EntityLivingBase) barrierOwner)) continue;
+            }
+
+            if (barrier instanceof EntityAbilityDome) {
+                if (isDomeBlocking((EntityAbilityDome) barrier, caster, target)) return true;
+            } else if (barrier instanceof EntityAbilityPanel) {
+                if (isPanelBlocking((EntityAbilityPanel) barrier, caster, target)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a dome blocks an attack from caster to target.
+     * Blocks when caster is outside and target is inside the dome.
+     */
+    private static boolean isDomeBlocking(EntityAbilityDome dome, EntityLivingBase caster, EntityLivingBase target) {
+        float radius = dome.getDomeRadius();
+
+        double cdx = caster.posX - dome.posX;
+        double cdy = (caster.posY + caster.getEyeHeight()) - dome.posY;
+        double cdz = caster.posZ - dome.posZ;
+        double casterDist = Math.sqrt(cdx * cdx + cdy * cdy + cdz * cdz);
+
+        double tdx = target.posX - dome.posX;
+        double tdy = (target.posY + target.height * 0.5) - dome.posY;
+        double tdz = target.posZ - dome.posZ;
+        double targetDist = Math.sqrt(tdx * tdx + tdy * tdy + tdz * tdz);
+
+        // Block when caster is outside and target is inside
+        return casterDist > radius && targetDist < radius;
+    }
+
+    /**
+     * Check if a panel blocks an attack from caster to target.
+     * Checks if the line from caster to target crosses through the panel bounds.
+     */
+    private static boolean isPanelBlocking(EntityAbilityPanel panel, EntityLivingBase caster, EntityLivingBase target) {
+        float halfW = panel.getPanelData().panelWidth * 0.5f;
+        float halfH = panel.getPanelData().panelHeight * 0.5f;
+
+        // Panel normal direction
+        float yawRad = (float) Math.toRadians(panel.getPanelYaw());
+        double normalX = -Math.sin(yawRad);
+        double normalZ = Math.cos(yawRad);
+
+        // Line from caster to target
+        double startX = caster.posX;
+        double startY = caster.posY + caster.getEyeHeight();
+        double startZ = caster.posZ;
+        double dx = target.posX - startX;
+        double dy = (target.posY + target.height * 0.5) - startY;
+        double dz = target.posZ - startZ;
+
+        // Dot product of line direction with panel normal
+        double denom = dx * normalX + dz * normalZ;
+        if (Math.abs(denom) < 0.0001) return false; // Line parallel to panel
+
+        // Parameter t where line crosses panel plane
+        double relX = panel.posX - startX;
+        double relZ = panel.posZ - startZ;
+        double t = (relX * normalX + relZ * normalZ) / denom;
+
+        if (t < 0 || t > 1) return false; // Intersection outside the line segment
+
+        // Calculate intersection point
+        double hitX = startX + dx * t;
+        double hitY = startY + dy * t;
+        double hitZ = startZ + dz * t;
+
+        // Transform to panel local space (right axis)
+        double cos = Math.cos(yawRad);
+        double sin = Math.sin(yawRad);
+        double localRight = (hitX - panel.posX) * cos + (hitZ - panel.posZ) * sin;
+        double localUp = hitY - panel.posY;
+
+        // Check bounds
+        return Math.abs(localRight) <= halfW && Math.abs(localUp) <= halfH;
     }
 
     // ═══════════════════════════════════════════════════════════════════

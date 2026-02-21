@@ -9,9 +9,13 @@ import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
+import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -126,9 +130,13 @@ import noppes.npcs.scripted.entity.ScriptArrow;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
 import noppes.npcs.scripted.entity.ScriptEnergyBeam;
 import noppes.npcs.scripted.entity.ScriptEnergyDisc;
+import noppes.npcs.scripted.entity.ScriptEnergyDome;
 import noppes.npcs.scripted.entity.ScriptEnergyLaser;
 import noppes.npcs.scripted.entity.ScriptEnergyOrb;
+import noppes.npcs.scripted.entity.ScriptEnergyPanel;
 import noppes.npcs.scripted.entity.ScriptEnergyProjectile;
+import noppes.npcs.scripted.entity.ScriptEnergySlicer;
+import noppes.npcs.scripted.entity.ScriptEnergySweeper;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptEntityItem;
 import noppes.npcs.scripted.entity.ScriptFishHook;
@@ -472,16 +480,16 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptEnergyDisc<>((EntityAbilityDisc) entity));
                 else if (entity instanceof EntityAbilityLaser)
                     data = new ScriptEntityData(new ScriptEnergyLaser<>((EntityAbilityLaser) entity));
-                else if (entity instanceof kamkeel.npcs.entity.EntityEnergySlicer)
-                    data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergySlicer<>((kamkeel.npcs.entity.EntityEnergySlicer) entity));
+                else if (entity instanceof EntityEnergySlicer)
+                    data = new ScriptEntityData(new ScriptEnergySlicer<>((EntityEnergySlicer) entity));
                 else if (entity instanceof EntityEnergyProjectile)
                     data = new ScriptEntityData(new ScriptEnergyProjectile((EntityEnergyProjectile) entity));
-                else if (entity instanceof kamkeel.npcs.entity.EntityEnergyDome)
-                    data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergyDome<>((kamkeel.npcs.entity.EntityEnergyDome) entity));
-                else if (entity instanceof kamkeel.npcs.entity.EntityEnergyPanel)
-                    data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergyPanel<>((kamkeel.npcs.entity.EntityEnergyPanel) entity));
-                else if (entity instanceof kamkeel.npcs.entity.EntityAbilitySweeper)
-                    data = new ScriptEntityData(new noppes.npcs.scripted.entity.ScriptEnergySweeper<>((kamkeel.npcs.entity.EntityAbilitySweeper) entity));
+                else if (entity instanceof EntityAbilityDome)
+                    data = new ScriptEntityData(new ScriptEnergyDome<>((EntityAbilityDome) entity));
+                else if (entity instanceof EntityAbilityPanel)
+                    data = new ScriptEntityData(new ScriptEnergyPanel<>((EntityAbilityPanel) entity));
+                else if (entity instanceof EntityAbilitySweeper)
+                    data = new ScriptEntityData(new ScriptEnergySweeper<>((EntityAbilitySweeper) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);

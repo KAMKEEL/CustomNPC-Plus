@@ -23,6 +23,7 @@ public enum EnumDataPacket {
     DELETE_NPC,
     CLONE_NPC,
     WEAPON_NPC,
+    REQUEST_SPAWN_DATA,
 
     // Data
     SCROLL_LIST,
@@ -64,6 +65,8 @@ public enum EnumDataPacket {
     TELEGRAPH_REMOVE,
     PLAYER_ABILITY_SYNC,
     PLAYER_ABILITY_STATE,
+    ABILITY_HOTBAR_SYNC,
+    ABILITY_COOLDOWN_SYNC,
 
     // Auction System
     AUCTION_DATA,

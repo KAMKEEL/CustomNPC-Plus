@@ -8,8 +8,8 @@ import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -22,7 +22,7 @@ import java.util.List;
  * Blocks incoming energy projectiles with configurable damage multipliers.
  * Duration and/or HP based.
  */
-public class AbilityDome extends AbilityEnergyBarrier {
+public class AbilityDome extends AbilityBarrier {
 
     private float domeRadius = 5.0f;
     private boolean followCaster = false;
@@ -47,8 +47,8 @@ public class AbilityDome extends AbilityEnergyBarrier {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
-        EntityEnergyDome dome = new EntityEnergyDome(
+    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+        EntityAbilityDome dome = new EntityAbilityDome(
             caster.worldObj, caster,
             caster.posX, caster.posY, caster.posZ,
             domeRadius, displayData.copy(), lightningData.copy(), barrierData.copy()

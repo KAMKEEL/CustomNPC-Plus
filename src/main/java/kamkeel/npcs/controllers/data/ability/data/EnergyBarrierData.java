@@ -8,10 +8,14 @@ import java.util.Map;
 /**
  * Groups barrier properties shared by energy barrier abilities (Dome, Wall, Shield).
  * Handles health/durability, duration, and per-projectile-type damage multipliers.
+ *
+ * Properties:
+ * - Solid: Hard wall — entities cannot pass through the barrier boundary (either direction)
+ * - Knockback: Repulsion field — entities near the surface get pushed away
+ * - Absorbing: Caster's incoming damage is redirected to the barrier
+ * - Allows Melee: Barrier can be hit by melee attacks (punching)
  */
 public class EnergyBarrierData {
-    // Knockback target display keys
-    private static final String[] KNOCKBACK_TARGET_KEYS = {"gui.both", "gui.players", "gui.npcs"};
 
     public float maxHealth = 100.0f;
     public boolean useHealth = true;
@@ -19,15 +23,17 @@ public class EnergyBarrierData {
     public boolean useDuration = true;
     public float defaultMultiplier = 1.0f;
 
-    // Knockback settings
+    // Solid: entities cannot pass through the barrier boundary
+    public boolean solid = false;
+
+    // Knockback: repulsion field pushing entities away from surface
     public boolean knockbackEnabled = false;
     public float knockbackStrength = 1.0f;
-    /**
-     * 0=Both, 1=Player only, 2=NPC only
-     */
-    public int knockbackTarget = 0;
 
-    // Melee settings
+    // Absorbing: caster's damage is redirected to the barrier
+    public boolean absorbing = false;
+
+    // Melee: barrier can be hit by melee attacks
     public boolean meleeEnabled = false;
     public float meleeDamageMultiplier = 1.0f;
 
@@ -113,24 +119,6 @@ public class EnergyBarrierData {
         this.defaultMultiplier = defaultMultiplier;
     }
 
-    // Knockback target key helpers
-    public static String[] getKnockbackTargetKeys() {
-        return KNOCKBACK_TARGET_KEYS;
-    }
-
-    public String getKnockbackTargetKey() {
-        return KNOCKBACK_TARGET_KEYS[Math.max(0, Math.min(knockbackTarget, 2))];
-    }
-
-    public void setKnockbackTargetFromKey(String key) {
-        for (int i = 0; i < KNOCKBACK_TARGET_KEYS.length; i++) {
-            if (KNOCKBACK_TARGET_KEYS[i].equals(key)) {
-                knockbackTarget = i;
-                return;
-            }
-        }
-    }
-
     // ==================== NBT ====================
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -139,9 +127,10 @@ public class EnergyBarrierData {
         nbt.setInteger("barrierDuration", durationTicks);
         nbt.setBoolean("barrierUseDuration", useDuration);
         nbt.setFloat("barrierDefaultMult", defaultMultiplier);
+        nbt.setBoolean("barrierSolid", solid);
         nbt.setBoolean("barrierKnockback", knockbackEnabled);
         nbt.setFloat("barrierKnockbackStr", knockbackStrength);
-        nbt.setInteger("barrierKnockbackTarget", knockbackTarget);
+        nbt.setBoolean("barrierAbsorbing", absorbing);
         nbt.setBoolean("barrierMelee", meleeEnabled);
         nbt.setFloat("barrierMeleeMult", meleeDamageMultiplier);
 
@@ -158,9 +147,10 @@ public class EnergyBarrierData {
         durationTicks = nbt.hasKey("barrierDuration") ? nbt.getInteger("barrierDuration") : 200;
         useDuration = !nbt.hasKey("barrierUseDuration") || nbt.getBoolean("barrierUseDuration");
         defaultMultiplier = nbt.hasKey("barrierDefaultMult") ? nbt.getFloat("barrierDefaultMult") : 1.0f;
+        solid = nbt.hasKey("barrierSolid") && nbt.getBoolean("barrierSolid");
         knockbackEnabled = nbt.hasKey("barrierKnockback") && nbt.getBoolean("barrierKnockback");
         knockbackStrength = nbt.hasKey("barrierKnockbackStr") ? nbt.getFloat("barrierKnockbackStr") : 1.0f;
-        knockbackTarget = nbt.hasKey("barrierKnockbackTarget") ? nbt.getInteger("barrierKnockbackTarget") : 0;
+        absorbing = nbt.hasKey("barrierAbsorbing") && nbt.getBoolean("barrierAbsorbing");
         meleeEnabled = nbt.hasKey("barrierMelee") && nbt.getBoolean("barrierMelee");
         meleeDamageMultiplier = nbt.hasKey("barrierMeleeMult") ? nbt.getFloat("barrierMeleeMult") : 1.0f;
 
@@ -178,9 +168,10 @@ public class EnergyBarrierData {
     public EnergyBarrierData copy() {
         EnergyBarrierData copy = new EnergyBarrierData(maxHealth, useHealth, durationTicks, useDuration);
         copy.defaultMultiplier = defaultMultiplier;
+        copy.solid = solid;
         copy.knockbackEnabled = knockbackEnabled;
         copy.knockbackStrength = knockbackStrength;
-        copy.knockbackTarget = knockbackTarget;
+        copy.absorbing = absorbing;
         copy.meleeEnabled = meleeEnabled;
         copy.meleeDamageMultiplier = meleeDamageMultiplier;
         copy.damageMultipliers = new HashMap<>(damageMultipliers);

@@ -26,7 +26,8 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
      */
     public enum DashMode {
         AGGRESSIVE,
-        DEFENSIVE;
+        DEFENSIVE,
+        DIRECTIONAL;
 
         @Override
         public String toString() {
@@ -35,6 +36,8 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
                     return "ability.dash.aggressive";
                 case DEFENSIVE:
                     return "ability.dash.defensive";
+                case DIRECTIONAL:
+                    return "ability.dash.directional";
                 default:
                     return name();
             }
@@ -124,16 +127,22 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         initMovement(caster, dashDistance, dashSpeed);
 
-        // Choose random direction based on mode
-        DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
-            ? AGGRESSIVE_DIRECTIONS
-            : DEFENSIVE_DIRECTIONS;
-        chosenDirection = directions[RANDOM.nextInt(directions.length)];
+        if (dashMode == DashMode.DIRECTIONAL) {
+            // Dash straight in the caster's look direction
+            chosenDirection = DashDirection.FORWARD;
+            setDirectionFromYaw(caster.rotationYaw);
+        } else {
+            // Choose random direction based on mode
+            DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
+                ? AGGRESSIVE_DIRECTIONS
+                : DEFENSIVE_DIRECTIONS;
+            chosenDirection = directions[RANDOM.nextInt(directions.length)];
 
-        // Calculate direction: base yaw (toward target or look dir) + direction offset
-        float baseYaw = getBaseYaw(caster, target);
-        float dashYaw = baseYaw + chosenDirection.getAngleOffset();
-        setDirectionFromYaw(dashYaw);
+            // Calculate direction: base yaw (toward target or look dir) + direction offset
+            float baseYaw = getBaseYaw(caster, target);
+            float dashYaw = baseYaw + chosenDirection.getAngleOffset();
+            setDirectionFromYaw(dashYaw);
+        }
 
         // Small upward impulse for a skip/hop arc (gravity handles the descent)
         caster.motionY = 0.2;

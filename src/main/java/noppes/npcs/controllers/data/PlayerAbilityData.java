@@ -8,6 +8,7 @@ import kamkeel.npcs.controllers.data.ability.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.ToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -22,6 +23,7 @@ import net.minecraft.util.DamageSource;
 import noppes.npcs.AbstractDataAbilities;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.ScriptController;
@@ -88,6 +90,16 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      * Last synced state flags byte for change detection (avoids spamming packets).
      */
     private transient byte lastSyncedFlags = 0;
+
+    /**
+     * World time when the last ability was activated (for double-press cancel detection).
+     */
+    private transient long lastAbilityActivationTime = -1;
+
+    /**
+     * Ticks after activation during which a second key press will cancel the ability.
+     */
+    private static final int CANCEL_WINDOW_TICKS = 10;
 
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
@@ -225,14 +237,30 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     @Override
     protected void rollCooldown(Ability ability) {
-        if (!ability.isIgnoreCooldown()) {
-            cooldownEndTime = getWorldTime() + ability.getCooldownTicks();
+        if (ability.isIgnoreCooldown()) return;
+
+        int duration = ability.getCooldownTicks();
+        long endTime = getWorldTime() + duration;
+
+        if (ability.isPerAbilityCooldown()) {
+            // Per-ability: only this ability goes on cooldown
+            if (currentAbilityKey != null) {
+                setPerAbilityCooldown(currentAbilityKey, endTime, duration);
+            }
+        } else {
+            // Global: all global-cooldown abilities share this cooldown
+            cooldownEndTime = endTime;
+            globalCooldownDuration = duration;
         }
+        syncCooldownToClient();
     }
 
     @Override
     protected void rollChainCooldown(ChainedAbility chain) {
-        cooldownEndTime = getWorldTime() + chain.getCooldownTicks();
+        int duration = chain.getCooldownTicks();
+        cooldownEndTime = getWorldTime() + duration;
+        globalCooldownDuration = duration;
+        syncCooldownToClient();
     }
 
     @Override
@@ -240,6 +268,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
         syncAbilityStateClear(playerData.player);
     }
 
@@ -250,9 +279,12 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     @Override
     protected void onInterruptComplete() {
         // Player clears state immediately (unlike NPC which ticks through DAZED)
+        // Stop the dazed animation that was started in interruptCurrentAbility()
+        stopAbilityAnimation();
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
         syncAbilityStateClear(playerData.player);
     }
 
@@ -358,14 +390,27 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
             currentAbilityKey = key;
             currentTarget = null;
+            lastAbilityActivationTime = getWorldTime();
             return startChain((ChainedAbility) action, null);
         }
 
         // Regular ability activation
         Ability ability = (Ability) action;
 
-        // Check universal cooldown (abilities can optionally ignore it)
-        if (!ability.isIgnoreCooldown() && isOnCooldown()) return false;
+        // Toggle abilities cycle state instead of executing
+        if (ability.isToggleable()) {
+            toggleAbility(key);
+            return true;
+        }
+
+        // Check cooldown (per-ability cooldowns are independent from global)
+        if (!ability.isIgnoreCooldown()) {
+            if (ability.isPerAbilityCooldown()) {
+                if (isOnPerAbilityCooldown(key)) return false;
+            } else {
+                if (isOnCooldown()) return false;
+            }
+        }
 
         // Fire extender start hook (e.g., resource cost checks)
         if (!AbilityController.Instance.fireOnAbilityStart(ability, player, null)) {
@@ -381,6 +426,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = ability;
         currentAbilityKey = key;
         currentTarget = null; // Players don't have auto-targets
+        lastAbilityActivationTime = getWorldTime();
         ability.start(null);
 
         if (ability.getPhase() == AbilityPhase.ACTIVE) {
@@ -420,6 +466,18 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         EntityPlayer player = playerData.player;
         if (player instanceof EntityPlayerMP) {
             PlayerAbilitySyncPacket.sendToPlayer((EntityPlayerMP) player);
+            syncCooldownToClient();
+        }
+    }
+
+    /**
+     * Sync cooldown state (global + per-ability) to the client.
+     * Sent as a lightweight packet separate from full ability sync.
+     */
+    public void syncCooldownToClient() {
+        EntityPlayer player = playerData.player;
+        if (player instanceof EntityPlayerMP) {
+            AbilityCooldownSyncPacket.sendToPlayer((EntityPlayerMP) player);
         }
     }
 
@@ -460,7 +518,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     public void setSelectedIndex(int index) {
-        if (index >= 0 && index < unlockedAbilities.size()) {
+        if (index == -1 || (index >= 0 && index < unlockedAbilities.size())) {
             this.selectedIndex = index;
             syncToClient();
         }
@@ -539,9 +597,15 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     /**
      * Check if a specific ability key is on cooldown.
-     * Currently uses universal cooldown (same for all abilities).
+     * Respects per-ability cooldown if the ability has it enabled.
      */
     public boolean isOnCooldown(String key, EntityPlayer player) {
+        if (AbilityController.Instance != null) {
+            Ability ability = AbilityController.Instance.resolveAbility(key);
+            if (ability != null && ability.isPerAbilityCooldown()) {
+                return isOnPerAbilityCooldown(key);
+            }
+        }
         return isOnCooldown(player);
     }
 
@@ -552,17 +616,21 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     /**
      * Reset cooldown for a specific ability key.
-     * Currently resets the universal cooldown.
+     * Resets per-ability cooldown if applicable, and global cooldown.
      */
     public void resetCooldown(String key) {
+        resetPerAbilityCooldown(key);
         cooldownEndTime = 0;
+        syncCooldownToClient();
     }
 
     /**
-     * Reset all cooldowns.
+     * Reset all cooldowns (global + all per-ability).
      */
     public void resetAllCooldowns() {
         cooldownEndTime = 0;
+        resetAllPerAbilityCooldowns();
+        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -596,6 +664,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     @Override
     public void resetCooldown() {
         cooldownEndTime = 0;
+        resetAllPerAbilityCooldowns();
+        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -604,6 +674,38 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     public void interruptCurrentAbility() {
         interruptCurrentAbility(null, 0);
+    }
+
+    /**
+     * Try to cancel the current ability via double-press.
+     * Only succeeds if within the cancel window and not in DAZED phase.
+     * Also handles cancellation during chain delay (between chain entries).
+     *
+     * @return true if the ability was cancelled
+     */
+    public boolean tryCancelAbility() {
+        boolean hasExecutingAbility = currentAbility != null && currentAbility.isExecuting();
+        boolean isInChainDelay = currentChain != null && chainDelayRemaining > 0;
+
+        if (!hasExecutingAbility && !isInChainDelay) return false;
+
+        // Don't allow cancel during DAZED
+        if (hasExecutingAbility) {
+            AbilityPhase phase = currentAbility.getPhase();
+            if (phase == AbilityPhase.DAZED) return false;
+            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
+                && phase != AbilityPhase.BURST_DELAY) return false;
+        }
+
+        long worldTime = getWorldTime();
+        if (lastAbilityActivationTime < 0 || (worldTime - lastAbilityActivationTime) > CANCEL_WINDOW_TICKS) {
+            // Outside cancel window — update time so a quick follow-up press can cancel
+            lastAbilityActivationTime = worldTime;
+            return false;
+        }
+
+        cancelCurrentAbility();
+        return true;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -645,9 +747,11 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
 
         if (clearCooldowns) {
             cooldownEndTime = 0;
+            resetAllPerAbilityCooldowns();
         }
         interruptCooldownRolled = false;
 
@@ -935,8 +1039,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     /**
-     * Remove any unlocked ability keys that can no longer be resolved.
-     * Called during load to clean up references to deleted abilities.
+     * Remove any unlocked ability keys that can no longer be resolved or
+     * are no longer allowed for players (e.g. NPC-only abilities).
+     * Called during load to clean up references to deleted/restricted abilities.
      * Supports both regular ability keys and "chain:" prefixed chained ability keys.
      */
     private void validateUnlockedAbilities() {
@@ -949,6 +1054,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             if (resolved == null) {
                 it.remove();
                 LogWriter.info("Removed invalid ability reference from player data: " + key);
+            } else if (!resolved.getAllowedBy().allowsPlayer()) {
+                it.remove();
+                LogWriter.info("Removed non-player ability from player data: " + key);
             }
         }
     }

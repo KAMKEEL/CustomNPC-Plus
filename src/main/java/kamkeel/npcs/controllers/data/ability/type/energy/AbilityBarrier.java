@@ -2,9 +2,10 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -16,14 +17,14 @@ import java.util.List;
  * Abstract base for energy barrier abilities (Dome, Wall, Shield).
  * Handles shared visual data, barrier configuration, and lifecycle management.
  */
-public abstract class AbilityEnergyBarrier extends AbilityEnergy {
+public abstract class AbilityBarrier extends AbilityEnergy {
 
     protected final EnergyBarrierData barrierData;
 
     // Runtime entity tracking
-    protected transient EntityEnergyBarrier barrierEntity;
+    protected transient EntityAbilityBarrier barrierEntity;
 
-    protected AbilityEnergyBarrier(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
+    protected AbilityBarrier(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
         super(displayData);
         this.barrierData = barrierData;
     }
@@ -33,7 +34,7 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
     /**
      * Create and spawn the barrier entity during execution.
      */
-    protected abstract EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
+    protected abstract EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
 
     /**
      * Add type-specific GUI field definitions.
@@ -64,12 +65,23 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
     }
 
     @Override
+    public boolean allowFreeOnCast() {
+        return true;
+    }
+
+    @Override
+    public void detach() {
+        barrierEntity = null;
+    }
+
+    @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (caster.worldObj.isRemote) return;
 
         if (tick == 1) {
             barrierEntity = createBarrierEntity(caster, target);
             if (barrierEntity != null) {
+                applyBarrierHealthModifiers(caster);
                 barrierEntity.setupCharging(getWindUpTicks());
                 spawnAbilityEntity(barrierEntity);
             }
@@ -85,6 +97,7 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
             // No windup or entity died — create fresh
             barrierEntity = createBarrierEntity(caster, target);
             if (barrierEntity != null) {
+                applyBarrierHealthModifiers(caster);
                 spawnAbilityEntity(barrierEntity);
             }
         }
@@ -93,6 +106,12 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (barrierEntity == null || barrierEntity.isDead) {
+            signalCompletion();
+            return;
+        }
+
+        // Free on Cast: complete immediately after barrier becomes active
+        if (isFreeOnCast()) {
             signalCompletion();
             return;
         }
@@ -106,6 +125,16 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    /**
+     * Allow extenders to modify the barrier's max health at spawn time.
+     */
+    private void applyBarrierHealthModifiers(EntityLivingBase caster) {
+        float modHealth = AbilityController.Instance.fireModifyBarrierHealth(this, caster, barrierData.maxHealth);
+        if (modHealth != barrierData.maxHealth) {
+            barrierEntity.setBarrierMaxHealth(modHealth);
+        }
     }
 
     @Override
@@ -190,6 +219,15 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
         return barrierData.getMultiplier(typeId);
     }
 
+    // Solid data
+    public boolean isSolid() {
+        return barrierData.solid;
+    }
+
+    public void setSolid(boolean solid) {
+        barrierData.solid = solid;
+    }
+
     // Knockback data
     public boolean isKnockbackEnabled() {
         return barrierData.knockbackEnabled;
@@ -207,12 +245,13 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
         barrierData.knockbackStrength = strength;
     }
 
-    public String getKnockbackTargetKey() {
-        return barrierData.getKnockbackTargetKey();
+    // Absorbing data
+    public boolean isAbsorbing() {
+        return barrierData.absorbing;
     }
 
-    public void setKnockbackTargetKey(String key) {
-        barrierData.setKnockbackTargetFromKey(key);
+    public void setAbsorbing(boolean absorbing) {
+        barrierData.absorbing = absorbing;
     }
 
     // Melee data
@@ -250,19 +289,13 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
             .range(1, 12000).visibleWhen(this::isUseDuration));
         defs.add(FieldDef.floatField("ability.defaultMultiplier", this::getDefaultMultiplier, this::setDefaultMultiplier));
 
-        // Knockback section
-        defs.add(FieldDef.section("ability.section.knockback"));
+        // Properties section
+        defs.add(FieldDef.section("ability.section.properties"));
+        defs.add(FieldDef.boolField("ability.solid", this::isSolid, this::setSolid));
         defs.add(FieldDef.boolField("ability.knockbackEnabled", this::isKnockbackEnabled, this::setKnockbackEnabled));
-        defs.add(FieldDef.row(
-            FieldDef.floatField("ability.knockbackStrength", this::getKnockbackStrength, this::setKnockbackStrength)
-                .range(0, 10).visibleWhen(this::isKnockbackEnabled),
-            FieldDef.stringEnumField("ability.knockbackTarget", EnergyBarrierData.getKnockbackTargetKeys(),
-                    this::getKnockbackTargetKey, this::setKnockbackTargetKey)
-                .visibleWhen(this::isKnockbackEnabled)
-        ));
-
-        // Melee section
-        defs.add(FieldDef.section("ability.section.melee"));
+        defs.add(FieldDef.floatField("ability.knockbackStrength", this::getKnockbackStrength, this::setKnockbackStrength)
+            .range(0, 10).visibleWhen(this::isKnockbackEnabled));
+        defs.add(FieldDef.boolField("ability.absorbing", this::isAbsorbing, this::setAbsorbing));
         defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled));
         defs.add(FieldDef.floatField("ability.meleeDamageMultiplier", this::getMeleeDamageMultiplier, this::setMeleeDamageMultiplier)
             .range(0, 10).visibleWhen(this::isMeleeEnabled));

@@ -4,6 +4,8 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
@@ -147,6 +149,52 @@ public class ServerEventsHandler {
                 if (merchantrecipelist != null) {
                     PacketHandler.Instance.sendToPlayer(new VillagerListPacket(merchantrecipelist), player);
                 }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void barrierAbsorbDamage(LivingAttackEvent event) {
+        if (event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving.worldObj.isRemote)
+            return;
+
+        EntityAbilityBarrier barrier = EntityAbilityBarrier.getAbsorbingBarrier(event.entityLiving);
+        if (barrier != null) {
+            // Redirect the caster's damage to their barrier
+            barrier.absorbDamage(event.ammount);
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void domeItemBlacklist(PlayerInteractEvent event) {
+        if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) return;
+        EntityPlayer player = event.entityPlayer;
+        if (player == null || player.worldObj == null || player.worldObj.isRemote) return;
+
+        ItemStack held = player.getHeldItem();
+        if (held == null) return;
+
+        String itemId = net.minecraft.item.Item.itemRegistry.getNameForObject(held.getItem());
+        if (itemId == null) return;
+
+        String[] blacklist = noppes.npcs.config.ConfigEnergy.DomeItemBlacklist;
+        if (blacklist == null) return;
+
+        boolean blacklisted = false;
+        for (String banned : blacklist) {
+            if (banned.equals(itemId)) {
+                blacklisted = true;
+                break;
+            }
+        }
+        if (!blacklisted) return;
+
+        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(player.worldObj);
+        for (EntityAbilityBarrier barrier : barriers) {
+            if (barrier instanceof EntityAbilityDome && barrier.isEntityInside(player)) {
+                event.setCanceled(true);
+                return;
             }
         }
     }

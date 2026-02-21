@@ -65,6 +65,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public PlayerTradeData tradeData = new PlayerTradeData(this);
 
     public PlayerAbilityData abilityData = new PlayerAbilityData(this);
+    public PlayerAbilityHotbarData hotbarData = new PlayerAbilityHotbarData();
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
@@ -119,6 +120,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
         // Sync player ability data to client
         abilityData.syncToClient();
+
+        // Sync hotbar data to client
+        hotbarData.syncToClient(player);
     }
 
     public void onLogout() {
@@ -151,6 +155,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         magicData.readToNBT(data);
         tradeData.readFromNBT(data);
         abilityData.readFromNBT(data);
+        hotbarData.readFromNBT(data);
 
         if (player != null) {
             playername = player.getCommandSenderName();
@@ -195,6 +200,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         magicData.writeToNBT(compound);
         tradeData.writeToNBT(compound);
         abilityData.writeToNBT(compound);
+        hotbarData.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);

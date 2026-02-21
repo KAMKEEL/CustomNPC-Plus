@@ -25,6 +25,7 @@ public class RenderAbilitySweeper extends Render {
 
         float beamLength = sweeper.getBeamLength();
         float beamWidth = sweeper.getBeamWidth();
+        float beamHeight = sweeper.getBeamHeight();
         int innerColor = sweeper.getInnerColor();
         int outerColor = sweeper.getOuterColor();
         boolean outerColorEnabled = sweeper.isOuterColorEnabled();
@@ -38,7 +39,7 @@ public class RenderAbilitySweeper extends Render {
         GL11.glRotatef(-angle, 0, 1, 0);  // Negative for correct direction
 
         // Render the beam extending in the +Z direction (like beam trail segments)
-        renderBeam(beamLength, beamWidth, innerColor, outerColor, outerColorEnabled, outerColorWidth);
+        renderBeam(beamLength, beamWidth, beamHeight, innerColor, outerColor, outerColorEnabled, outerColorWidth);
 
         GL11.glPopMatrix();
 
@@ -71,8 +72,9 @@ public class RenderAbilitySweeper extends Render {
      * Render beam using the same style as the Beam entity trail.
      * Three layers: outer glow, middle, inner core.
      * outerColorWidth is an additive offset from inner width (consistent with other renderers).
+     * Width and height control the rectangular cross-section independently.
      */
-    private void renderBeam(float length, float width, int innerColor, int outerColor,
+    private void renderBeam(float length, float width, float height, int innerColor, int outerColor,
                             boolean outerColorEnabled, float outerColorWidth) {
         // Extract colors
         float outerR = ((outerColor >> 16) & 0xFF) / 255.0f;
@@ -83,37 +85,40 @@ public class RenderAbilitySweeper extends Render {
         float innerG = ((innerColor >> 8) & 0xFF) / 255.0f;
         float innerB = (innerColor & 0xFF) / 255.0f;
 
-        // Inner scale defines the core width (consistent with other renderers)
+        // Inner scale defines the core size (consistent with other renderers)
         float innerScale = 0.6f;
         float innerWidth = width * innerScale;
+        float innerHeight = height * innerScale;
 
         // Render from origin (0,0,0) to (0,0,length) in local coords
         // After rotation this extends in the correct world direction
 
         // Outer glow (wider, translucent) - only if enabled
-        // outerColorWidth is additive offset from inner width
+        // outerColorWidth is additive offset from inner size
         if (outerColorEnabled) {
             float outerWidth = innerWidth + outerColorWidth * width;
+            float outerHeight = innerHeight + outerColorWidth * height;
             GL11.glDepthMask(false);
-            renderBeamSegment(0, 0, 0, 0, 0, length, outerWidth, outerR, outerG, outerB, 0.3f);
+            renderBeamSegment(0, 0, 0, 0, 0, length, outerWidth, outerHeight, outerR, outerG, outerB, 0.3f);
             GL11.glDepthMask(true);
 
             // Middle layer (halfway between inner and outer)
             float midWidth = innerWidth + (outerWidth - innerWidth) * 0.5f;
-            renderBeamSegment(0, 0, 0, 0, 0, length, midWidth, outerR, outerG, outerB, 0.6f);
+            float midHeight = innerHeight + (outerHeight - innerHeight) * 0.5f;
+            renderBeamSegment(0, 0, 0, 0, 0, length, midWidth, midHeight, outerR, outerG, outerB, 0.6f);
         }
 
         // Inner core (solid)
-        renderBeamSegment(0, 0, 0, 0, 0, length, innerWidth, innerR, innerG, innerB, 1.0f);
+        renderBeamSegment(0, 0, 0, 0, 0, length, innerWidth, innerHeight, innerR, innerG, innerB, 1.0f);
     }
 
     /**
-     * Render a beam segment as a 3D rectangular prism.
+     * Render a beam segment as a 3D rectangular prism with independent width and height.
      * Uses the same approach as RenderAbilityBeam.renderBeamRectangle.
      */
     private void renderBeamSegment(double x1, double y1, double z1,
                                    double x2, double y2, double z2,
-                                   float width, float r, float g, float b, float a) {
+                                   float width, float height, float r, float g, float b, float a) {
         // Calculate direction
         double dx = x2 - x1;
         double dy = y2 - y1;
@@ -151,39 +156,40 @@ public class RenderAbilitySweeper extends Render {
         double vertZ = dx * horzY - dy * horzX;
 
         float halfWidth = width * 0.5f;
+        float halfHeight = height * 0.5f;
 
-        // Calculate 8 corners of the box
-        double s1x = x1 - horzX * halfWidth - vertX * halfWidth;
-        double s1y = y1 - horzY * halfWidth - vertY * halfWidth;
-        double s1z = z1 - horzZ * halfWidth - vertZ * halfWidth;
+        // Calculate 8 corners of the box (horz scaled by halfWidth, vert scaled by halfHeight)
+        double s1x = x1 - horzX * halfWidth - vertX * halfHeight;
+        double s1y = y1 - horzY * halfWidth - vertY * halfHeight;
+        double s1z = z1 - horzZ * halfWidth - vertZ * halfHeight;
 
-        double s2x = x1 + horzX * halfWidth - vertX * halfWidth;
-        double s2y = y1 + horzY * halfWidth - vertY * halfWidth;
-        double s2z = z1 + horzZ * halfWidth - vertZ * halfWidth;
+        double s2x = x1 + horzX * halfWidth - vertX * halfHeight;
+        double s2y = y1 + horzY * halfWidth - vertY * halfHeight;
+        double s2z = z1 + horzZ * halfWidth - vertZ * halfHeight;
 
-        double s3x = x1 + horzX * halfWidth + vertX * halfWidth;
-        double s3y = y1 + horzY * halfWidth + vertY * halfWidth;
-        double s3z = z1 + horzZ * halfWidth + vertZ * halfWidth;
+        double s3x = x1 + horzX * halfWidth + vertX * halfHeight;
+        double s3y = y1 + horzY * halfWidth + vertY * halfHeight;
+        double s3z = z1 + horzZ * halfWidth + vertZ * halfHeight;
 
-        double s4x = x1 - horzX * halfWidth + vertX * halfWidth;
-        double s4y = y1 - horzY * halfWidth + vertY * halfWidth;
-        double s4z = z1 - horzZ * halfWidth + vertZ * halfWidth;
+        double s4x = x1 - horzX * halfWidth + vertX * halfHeight;
+        double s4y = y1 - horzY * halfWidth + vertY * halfHeight;
+        double s4z = z1 - horzZ * halfWidth + vertZ * halfHeight;
 
-        double e1x = x2 - horzX * halfWidth - vertX * halfWidth;
-        double e1y = y2 - horzY * halfWidth - vertY * halfWidth;
-        double e1z = z2 - horzZ * halfWidth - vertZ * halfWidth;
+        double e1x = x2 - horzX * halfWidth - vertX * halfHeight;
+        double e1y = y2 - horzY * halfWidth - vertY * halfHeight;
+        double e1z = z2 - horzZ * halfWidth - vertZ * halfHeight;
 
-        double e2x = x2 + horzX * halfWidth - vertX * halfWidth;
-        double e2y = y2 + horzY * halfWidth - vertY * halfWidth;
-        double e2z = z2 + horzZ * halfWidth - vertZ * halfWidth;
+        double e2x = x2 + horzX * halfWidth - vertX * halfHeight;
+        double e2y = y2 + horzY * halfWidth - vertY * halfHeight;
+        double e2z = z2 + horzZ * halfWidth - vertZ * halfHeight;
 
-        double e3x = x2 + horzX * halfWidth + vertX * halfWidth;
-        double e3y = y2 + horzY * halfWidth + vertY * halfWidth;
-        double e3z = z2 + horzZ * halfWidth + vertZ * halfWidth;
+        double e3x = x2 + horzX * halfWidth + vertX * halfHeight;
+        double e3y = y2 + horzY * halfWidth + vertY * halfHeight;
+        double e3z = z2 + horzZ * halfWidth + vertZ * halfHeight;
 
-        double e4x = x2 - horzX * halfWidth + vertX * halfWidth;
-        double e4y = y2 - horzY * halfWidth + vertY * halfWidth;
-        double e4z = z2 - horzZ * halfWidth + vertZ * halfWidth;
+        double e4x = x2 - horzX * halfWidth + vertX * halfHeight;
+        double e4y = y2 - horzY * halfWidth + vertY * halfHeight;
+        double e4z = z2 - horzZ * halfWidth + vertZ * halfHeight;
 
         Tessellator tess = Tessellator.instance;
         tess.startDrawingQuads();

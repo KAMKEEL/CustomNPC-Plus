@@ -1,7 +1,7 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.Condition;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldBuilder;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,6 +19,8 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition.MAX_CONDITIONS;
 
 public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldListener, ISubGuiListener {
 
@@ -42,6 +44,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private static final int L_LABEL_X = 5;
     private static final int ROW_H = 24;
 
+    // Condition buttons
+    private static final int COND_BASE = 50;
+    private static final int COND_STRIDE = 10;
+    private static final int COND_END = COND_BASE + MAX_CONDITIONS * COND_STRIDE; // 50 + N*10
+    private static final int BTN_ADD_COND = COND_END;
+
     private final Ability ability;
     private final IAbilityConfigCallback callback;
     private int activeTab = TAB_GENERAL;
@@ -49,7 +57,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private List<FieldDef> fieldDefs;
     private List<String> customTabNames;
 
-    private List<Condition> conditions;
+    private List<AbilityCondition> conditions;
     private int editingConditionIndex = -1;
 
     private AbilityFieldBuilder builder;
@@ -234,46 +242,29 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
         y += 15;
 
-        for (int i = 0; i < conditions.size() && i < 3; i++) {
-            Condition cond = conditions.get(i);
+        for (int i = 0; i < conditions.size() && i < MAX_CONDITIONS; i++) {
+            AbilityCondition cond = conditions.get(i);
             String condName = getConditionDisplayName(cond);
-            sw.addButton(new GuiNpcButton(50 + i * 10, L_LABEL_X, y, 140, 20, condName));
-            sw.addButton(new GuiNpcButton(51 + i * 10, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
-            sw.addButton(new GuiNpcButton(52 + i * 10, L_LABEL_X + 190, y, 20, 20, "X"));
+            GuiNpcButton condBtn = new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName);
+            condBtn.hoverableText = cond.getConditionSummary();
+            sw.addButton(condBtn);
+            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 1, L_LABEL_X + 145, y,  40, 20, "gui.edit"));
+            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 2, L_LABEL_X + 190, y,  20, 20, "X"));
             y += 22;
         }
 
-        if (conditions.size() < 3) {
-            sw.addButton(new GuiNpcButton(80, L_LABEL_X, y, 50, 20, "gui.add"));
+        if (conditions.size() < MAX_CONDITIONS) {
+            sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));;
             y += ROW_H;
         }
 
         return y;
     }
 
-    private String getConditionDisplayName(Condition cond) {
+    private String getConditionDisplayName(AbilityCondition cond) {
         if (cond == null) return "None";
-        String typeId = cond.getTypeId();
-        switch (typeId) {
-            case "hp_above":
-                return StatCollector.translateToLocal("condition.hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "hp_below":
-                return StatCollector.translateToLocal("condition.hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "target_hp_above":
-                return StatCollector.translateToLocal("condition.target_hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "target_hp_below":
-                return StatCollector.translateToLocal("condition.target_hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "hit_count":
-                Condition.ConditionHitCount hc = (Condition.ConditionHitCount) cond;
-                return StatCollector.translateToLocal("condition.hit_count") + ": " + hc.getRequiredHits() + "/" + hc.getWithinTicks() + "t";
-            default:
-                return typeId;
-        }
-    }
-
-    private float getConditionThreshold(Condition cond) {
-        NBTTagCompound nbt = cond.writeNBT();
-        return nbt.hasKey("threshold") ? nbt.getFloat("threshold") : 0.5f;
+        String name = cond.getName();
+        return StatCollector.translateToLocal(name);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -331,9 +322,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     }
 
     private boolean handleConditionButton(int id) {
-        if (id >= 50 && id < 80) {
-            int condIndex = (id - 50) / 10;
-            int action = (id - 50) % 10;
+        if (id >= COND_BASE && id < COND_END) {
+            int condIndex = (id - COND_BASE) / COND_STRIDE;
+            int action    = (id - COND_BASE) % COND_STRIDE;
             if (action == 0 || action == 1) {
                 if (condIndex < conditions.size()) {
                     editingConditionIndex = condIndex;
@@ -347,8 +338,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
             return true;
         }
-        if (id == 80) {
-            if (conditions.size() < 3) {
+        if (id == BTN_ADD_COND) {
+            if (conditions.size() < MAX_CONDITIONS) {
                 editingConditionIndex = conditions.size();
                 setSubGui(new SubGuiConditionEdit(null));
             }
@@ -382,7 +373,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         if (subgui instanceof SubGuiConditionEdit) {
             SubGuiConditionEdit condEdit = (SubGuiConditionEdit) subgui;
-            Condition result = condEdit.getResult();
+            AbilityCondition result = condEdit.getResult();
             if (result != null && editingConditionIndex >= 0) {
                 if (editingConditionIndex < conditions.size()) {
                     conditions.set(editingConditionIndex, result);
@@ -409,7 +400,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     protected void applyToAbility() {
         ability.getConditions().clear();
-        for (Condition c : conditions) ability.addCondition(c);
+        for (AbilityCondition c : conditions) ability.addCondition(c);
     }
 
     public void loadAbility(Ability loadedAbility) {

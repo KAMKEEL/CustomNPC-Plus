@@ -2,6 +2,7 @@ customnpcs.defaultTextColor=404040
 
 key.categories.customnpc=CustomNPC+
 key.customnpcs.special=Special Key
+key.customnpcs.abilityHudKey=HUD Key
 key.npcInventory=NPC Inventory
 
 entity.CustomNpc.name=Custom Npc
@@ -167,6 +168,12 @@ gui.apply=Apply
 gui.cancel=Cancel
 gui.continue=Continue
 gui.yes=Yes
+gui.abilities=Abilities
+gui.toggles=Toggles
+gui.toggle=Toggle
+gui.toggle.active=Active
+gui.toggle.inactive=Inactive
+gui.abilityHotbar=Ability Hotbar
 
 gui.lineColor1=Upper line color
 gui.lineColor2=Middle line color
@@ -1555,6 +1562,7 @@ ability.sweep.spin=Spin
 # Dash Mode
 ability.dash.aggressive=Aggressive
 ability.dash.defensive=Defensive
+ability.dash.directional=Directional
 
 # Counter Type
 ability.counter.flat=Flat
@@ -1665,6 +1673,9 @@ ability.cnpc.sweeper=Sweeper
 ability.weight=Weight
 ability.windUpTicks=Wind Up
 ability.cooldownTicks=Cooldown
+ability.perAbilityCooldown=Per-Ability
+ability.freeOnCast=Free on Cast
+ability.hover.freeOnCast=Ability enters cooldown immediately after entities are spawned, allowing the caster to use other abilities while summoned entities remain active
 ability.lockMovement=Lock Movement
 ability.rotationMode=Rotation
 ability.rotationPhase=Phase
@@ -1987,7 +1998,7 @@ ability.hover.speed=Movement speed of projectile
 ability.hover.lifetime=Maximum ticks before despawning
 ability.hover.knockback=Push force applied to targets
 ability.hover.boomerang=Projectile returns to caster after reaching max distance
-ability.hover.dashMode=Aggressive dashes toward target, Defensive dashes away
+ability.hover.dashMode=Aggressive dashes toward target, Defensive dashes away, Directional dashes in looking direction
 ability.hover.aoe=Affects all valid targets in range instead of just one
 ability.hover.dmgOnPull=Deal damage continuously while pulling targets
 ability.hover.lineOfSight=Requires clear line of sight to the target
@@ -2011,7 +2022,7 @@ ability.cnpc.shield=Shield
 ability.cnpc.slicer=Slicer
 
 ability.section.barrier=Barrier
-ability.section.knockback=Knockback
+ability.section.properties=Properties
 ability.section.panel=Panel
 ability.section.launch=Launch
 ability.section.slicer=Slicer
@@ -2024,16 +2035,16 @@ ability.defaultMultiplier=Default Multiplier
 ability.innerAlpha=Inner Alpha
 ability.heightOffset=Height Offset
 
+ability.solid=Solid
 ability.knockbackEnabled=Knockback
 ability.knockbackStrength=Knockback Strength
-ability.knockbackTarget=Target
-
-ability.section.melee=Melee
-ability.meleeEnabled=Melee Attackable
+ability.absorbing=Absorbing
+ability.meleeEnabled=Allows Melee
 ability.meleeDamageMultiplier=Melee Multiplier
 
 ability.followCaster=Follow Caster
 ability.hover.followCaster=Dome stays centered on the caster as they move
+
 
 ability.variant.small=Small
 ability.variant.large=Large
@@ -2055,19 +2066,56 @@ ability.userType.PLAYER_ONLY=Players
 ability.userType.BOTH=Both
 ability.dieOnImpact=Die on Impact
 
+ability.icon.section.uv=UV Coordinates
+ability.icon.x=Icon X
+ability.icon.y=Icon Y
+
 gui.both=Both
 gui.players=Players
 
 # Conditions
 condition.edit=Edit Condition
-condition.hp_above=NPC HP Above
-condition.hp_below=NPC HP Below
-condition.target_hp_above=Target HP Above
-condition.target_hp_below=Target HP Below
+condition.filter=Filter Type
+condition.filter.target=Target
+condition.filter.caster=Caster
+condition.filter.both=Both
+
+# Condition HP Threshold
+condition.hp_threshold=HP Threshold
+condition.hp_above=HP Above
+condition.hp_below=HP Below
+condition.hp_equal=HP Equal
+condition.threshold=Threshold
+condition.percent=Use Percent
+condition.threshold_type=Threshold Type
+
+# Condition Hit Count
 condition.hit_count=Hit Count
-condition.percent=Threshold
-condition.hits=Required Hits
-condition.within=Within (ticks)
+condition.required_hits=Required Hits
+condition.within_ticks=Within (ticks)
+
+# Condition Item
+condition.item=Has Item
+condition.usage_type=Usage Type
+condition.armor_slot=Armor Slot
+condition.full_armor=Full Armor
+condition.item_count=Item Count
+condition.item_name=Item Name
+
+# Condition Threshold
+condition.above=Above
+condition.below=Below
+condition.equal=Equal
+condition.threshold_flat=Threshold
+condition.threshold_percent=Threshold %
+
+# Condition Quest Completed
+condition.quest_completed=Quest Completed
+condition.select_quest=Select Quest
+
+# Condition Has Effect
+condition.has_effect=Has Effect
+condition.select_effect=Select Effect
 
 # Condition Hover Tooltips
 condition.hover.type=Condition type that must be met for ability to activate

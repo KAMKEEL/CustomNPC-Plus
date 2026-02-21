@@ -88,10 +88,16 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
         AuctionListing listing = tradesContainer.getListingAt(slot);
         AuctionClaim claim = tradesContainer.getClaimAt(slot);
 
-        if (listing != null && tradesContainer.isSellingAt(slot) && mouseButton == 1) {
-            // Right-click on own listing = show cancel
-            setPending(slot, PendingOp.CANCEL);
-            NoppesUtil.clickSound();
+        if (listing != null && tradesContainer.isSellingAt(slot)) {
+            if (mouseButton == 0) {
+                // Left-click on own listing = view details
+                AuctionActionPacket.openBidding(listing.id);
+                NoppesUtil.clickSound();
+            } else if (mouseButton == 1) {
+                // Right-click on own listing = show cancel
+                setPending(slot, PendingOp.CANCEL);
+                NoppesUtil.clickSound();
+            }
         } else if (listing != null && tradesContainer.isBiddingAt(slot) && mouseButton == 0) {
             // Left-click on active bid = open bidding GUI to increase bid
             AuctionActionPacket.openBidding(listing.id);
@@ -315,16 +321,13 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
             AuctionListing listing = tradesContainer.getListingAt(slot);
             AuctionClaim claim = tradesContainer.getClaimAt(slot);
 
-            if (listing != null) {
-                if (tradesContainer.isSellingAt(slot)) {
-                    tooltip.add(EnumChatFormatting.GOLD + StatCollector.translateToLocal("auction.trades.activeListing"));
-                    tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.rightClickToCancel"));
-                } else if (tradesContainer.isBiddingAt(slot)) {
-                    tooltip.add(EnumChatFormatting.AQUA + StatCollector.translateToLocal("auction.trades.activeBid"));
-                    tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.winningBid"));
-                    tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.leftClickToIncrease"));
-                }
-            } else if (claim != null) {
+            // Slots with items have tooltips handled by AuctionTooltipHandler via ItemTooltipEvent
+            if (listing != null) return;
+            if (claim != null && (claim.type == EnumClaimType.ITEM ||
+                (claim.type == EnumClaimType.REFUND && claim.item != null))) return;
+
+            // Non-item slots (currency claims, refund without item, unavailable)
+            if (claim != null) {
                 switch (claim.type) {
                     case CURRENCY:
                         tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.soldClaim"));
@@ -342,20 +345,6 @@ public class GuiAuctionTrades extends GuiAuctionInterface implements IGuiData {
                             tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.trades.outbidBy") + ": " + EnumChatFormatting.AQUA + claim.otherPlayerName);
                         }
                         tooltip.add(EnumChatFormatting.GOLD + String.format("%,d", claim.currency) + " " + AuctionClientConfig.getCurrencyName());
-                        // Show rebid option if item is present (active listing)
-                        if (claim.item != null) {
-                            tooltip.add("");
-                            tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.leftClickRebid"));
-                            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.rightClickRefund"));
-                            return; // Skip the generic claim message
-                        }
-                        break;
-                    case ITEM:
-                        if (claim.isReturned) {
-                            tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocal("auction.trades.expiredClaim"));
-                        } else {
-                            tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.trades.wonClaim"));
-                        }
                         break;
                 }
                 tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.trades.leftClickToClaim"));

@@ -2,7 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -13,16 +13,24 @@ import org.lwjgl.opengl.GL11;
  * Voxel-blocky style with inner/outer layers.
  */
 @SideOnly(Side.CLIENT)
-public class RenderEnergyPanel extends RenderEnergyBarrier {
+public class RenderAbilityPanel extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
-        EntityEnergyPanel panel = (EntityEnergyPanel) entity;
+        EntityAbilityPanel panel = (EntityAbilityPanel) entity;
 
         float width = panel.getPanelData().panelWidth;
         float height = panel.getPanelData().panelHeight;
-        float panelYaw = panel.getPanelYaw();
         float healthPercent = panel.getHealthPercent();
+
+        // Interpolate panel yaw for smooth rotation between ticks
+        float prevYaw = panel.getPrevPanelYaw();
+        float currentYaw = panel.getPanelYaw();
+        float yawDelta = currentYaw - prevYaw;
+        // Wrap angle delta to -180..180 for shortest rotation path
+        while (yawDelta > 180.0f) yawDelta -= 360.0f;
+        while (yawDelta < -180.0f) yawDelta += 360.0f;
+        float renderYaw = prevYaw + yawDelta * partialTicks;
 
         setupRenderState();
 
@@ -34,8 +42,8 @@ public class RenderEnergyPanel extends RenderEnergyBarrier {
             renderAttachedLightning(panel, 0.9f, Math.max(width, height) * 0.5f);
         }
 
-        // Rotate panel to face the correct direction
-        GL11.glRotatef(-panelYaw, 0.0f, 1.0f, 0.0f);
+        // Rotate panel to face the correct direction (interpolated)
+        GL11.glRotatef(-renderYaw, 0.0f, 1.0f, 0.0f);
 
         // Hit flash
         float flashAlpha = computeFlashAlpha(panel);
@@ -48,7 +56,7 @@ public class RenderEnergyPanel extends RenderEnergyBarrier {
         GL11.glPushMatrix();
         GL11.glScalef(scale, scale, scale);
 
-        float innerScale = 0.9f;
+        float innerScale = 1.0f;
         float panelThickness = 0.1f;
 
         // Render outer panel (translucent glow)

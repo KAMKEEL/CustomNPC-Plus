@@ -6,13 +6,13 @@ import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
-import kamkeel.npcs.controllers.data.ability.Condition;
+import kamkeel.npcs.controllers.data.ability.AbilityIconData;
 import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.builder.GuiFieldBuilder;
@@ -21,17 +21,18 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
-import noppes.npcs.client.gui.util.IAbilityConfigCallback;
-import noppes.npcs.client.gui.util.IChainedAbilityConfigCallback;
-import noppes.npcs.client.gui.util.ISubGuiListener;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.client.gui.util.*;
 
 import java.util.ArrayList;
+import noppes.npcs.client.gui.util.IChainedAbilityConfigCallback;
+
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition.MAX_CONDITIONS;
 
 /**
  * SubGui for editing a {@link ChainedAbility}.
@@ -70,9 +71,9 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     // Actual ID = COND_BASE + i * COND_STRIDE + offset
     // offset 0 = name/click, 1 = edit, 2 = delete
     private static final int COND_BASE = 50;
-    private static final int COND_END = 80;
     private static final int COND_STRIDE = 10;
-    private static final int BTN_ADD_COND = 80;
+    private static final int COND_END = COND_BASE + MAX_CONDITIONS * COND_STRIDE; // 50 + N*10
+    private static final int BTN_ADD_COND = COND_END;
 
     // ── Layout constants ──────────────────────────────────────────────────────
     private static final int L_LABEL_X = 5;
@@ -88,7 +89,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
     private List<FieldDef> fieldDefs;
     private List<ChainedAbilityEntry> entries;
-    private List<Condition> conditions;
+    private List<AbilityCondition> conditions;
 
     // Dynamic tabs injected by field providers (e.g., "Icon")
     private List<String> extraTabs = new ArrayList<>();
@@ -157,7 +158,18 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             FieldDef.floatField("ability.maxRange", chain::getMaxRange, chain::setMaxRange).range(0, 64)
         ).tab("Target"));
 
-        // External field providers (e.g., DBC Addon injecting an "Icon" tab)
+        // ── Icon tab ──────────────────────────────────────────────
+        AbilityIconData chainIcon = AbilityIconData.fromChainedAbility(chain);
+        fieldDefs.add(FieldDef.stringField("gui.texture", chainIcon::getTexture, chainIcon::setTexture).tab("Icon"));
+        fieldDefs.add(FieldDef.section("ability.icon.section.uv").tab("Icon"));
+        fieldDefs.add(FieldDef.intField("ability.icon.x", chainIcon::getIconX, chainIcon::setIconX).tab("Icon").range(0, 4096));
+        fieldDefs.add(FieldDef.intField("ability.icon.y", chainIcon::getIconY, chainIcon::setIconY).tab("Icon").range(0, 4096));
+        fieldDefs.add(FieldDef.section("gui.size").tab("Icon"));
+        fieldDefs.add(FieldDef.intField("gui.width", chainIcon::getWidth, chainIcon::setWidth).tab("Icon").range(1, 256));
+        fieldDefs.add(FieldDef.intField("gui.height", chainIcon::getHeight, chainIcon::setHeight).tab("Icon").range(1, 256));
+        fieldDefs.add(FieldDef.floatField("gui.scale", chainIcon::getScale, chainIcon::setScale).tab("Icon").range(0.1f, 10.0f));
+
+        // External field providers (e.g., DBC Addon injecting a "DBC" tab)
         if (AbilityController.Instance != null) {
             for (IChainedAbilityFieldProvider provider : AbilityController.Instance.getChainedFieldProviders()) {
                 provider.addFieldDefinitions(chain, fieldDefs);
@@ -416,8 +428,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
         y += 15;
 
-        for (int i = 0; i < conditions.size() && i < 3; i++) {
-            Condition cond = conditions.get(i);
+        for (int i = 0; i < conditions.size() && i < MAX_CONDITIONS; i++) {
+            AbilityCondition cond = conditions.get(i);
             String condName = getConditionDisplayName(cond);
             sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName));
             sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 1, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
@@ -425,7 +437,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             y += 22;
         }
 
-        if (conditions.size() < 3) {
+        if (conditions.size() < MAX_CONDITIONS) {
             sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));
             y += ROW_H;
         }
@@ -433,29 +445,10 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         return y;
     }
 
-    private String getConditionDisplayName(Condition cond) {
+    private String getConditionDisplayName(AbilityCondition cond) {
         if (cond == null) return "None";
-        String typeId = cond.getTypeId();
-        switch (typeId) {
-            case "hp_above":
-                return StatCollector.translateToLocal("condition.hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "hp_below":
-                return StatCollector.translateToLocal("condition.hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "target_hp_above":
-                return StatCollector.translateToLocal("condition.target_hp_above") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "target_hp_below":
-                return StatCollector.translateToLocal("condition.target_hp_below") + " " + (int) (getConditionThreshold(cond) * 100) + "%";
-            case "hit_count":
-                Condition.ConditionHitCount hc = (Condition.ConditionHitCount) cond;
-                return StatCollector.translateToLocal("condition.hit_count") + ": " + hc.getRequiredHits() + "/" + hc.getWithinTicks() + "t";
-            default:
-                return typeId;
-        }
-    }
-
-    private float getConditionThreshold(Condition cond) {
-        NBTTagCompound nbt = cond.writeNBT();
-        return nbt.hasKey("threshold") ? nbt.getFloat("threshold") : 0.5f;
+        String name = cond.getName();
+        return StatCollector.translateToLocal(name);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -623,7 +616,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             return true;
         }
         if (id == BTN_ADD_COND) {
-            if (conditions.size() < 3) {
+            if (conditions.size() < MAX_CONDITIONS) {
                 editingConditionIndex = conditions.size();
                 setSubGui(new SubGuiConditionEdit(null));
             }
@@ -833,7 +826,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     }
 
     private void handleConditionEditClosed(SubGuiConditionEdit gui) {
-        Condition result = gui.getResult();
+        AbilityCondition result = gui.getResult();
         if (result != null && editingConditionIndex >= 0) {
             if (editingConditionIndex < conditions.size()) {
                 conditions.set(editingConditionIndex, result);
@@ -879,7 +872,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         // Conditions
         chain.getConditions().clear();
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
             chain.getConditions().add(c);
         }
 

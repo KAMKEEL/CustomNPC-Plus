@@ -34,7 +34,7 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
     // Beam properties
     private float beamLength = 10.0f;
     private float beamWidth = 0.3f;  // Thin like beam trail
-    private float beamHeight = 0.8f;
+    private float beamHeight = 1.0f;
 
     // Combat properties
     private float damage = 5.0f;
@@ -100,8 +100,8 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
             this.baseYaw = owner.rotationYaw;
         }
 
-        // Position at owner
-        this.setPosition(owner.posX, owner.posY + beamHeight, owner.posZ);
+        // Position at beam center (bottom at feet, top at feet + beamHeight)
+        this.setPosition(owner.posX, owner.posY + beamHeight / 2.0, owner.posZ);
 
         // Ready to deal damage immediately
         this.ticksSinceDamage = damageInterval;
@@ -149,7 +149,7 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         }
 
         if (owner != null) {
-            this.setPosition(owner.posX, owner.posY + beamHeight, owner.posZ);
+            this.setPosition(owner.posX, owner.posY + beamHeight / 2.0, owner.posZ);
         }
 
         // Check if sweep is done
@@ -204,10 +204,10 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
             double checkY = startY;
             double checkZ = startZ + dirZ * beamLength * progress;
 
-            // Narrow hitbox for thin beam
+            // Hitbox: beam center ± half-height vertically, generous width for thin beams
             AxisAlignedBB checkBox = AxisAlignedBB.getBoundingBox(
-                checkX - beamWidth * 2, checkY - 0.5, checkZ - beamWidth * 2,
-                checkX + beamWidth * 2, checkY + 1.0, checkZ + beamWidth * 2
+                checkX - beamWidth * 2, checkY - beamHeight / 2.0, checkZ - beamWidth * 2,
+                checkX + beamWidth * 2, checkY + beamHeight / 2.0, checkZ + beamWidth * 2
             );
 
             @SuppressWarnings("unchecked")
@@ -259,11 +259,14 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
             return false;
         }
 
-        // Height check - entity's feet must be below beam top (allows jumping over)
+        // Height check - entity must overlap beam vertically
+        double beamTopY = startY + beamHeight / 2.0;
+        double beamBottomY = startY - beamHeight / 2.0;
         double entityFeetY = entity.posY;
-        double beamTopY = startY + 0.5;
+        double entityTopY = entity.posY + entity.height;
 
-        return entityFeetY < beamTopY;
+        // Entity feet must be below beam top AND entity top must be above beam bottom
+        return entityFeetY < beamTopY && entityTopY > beamBottomY;
     }
 
     /**
@@ -363,10 +366,40 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
+        // Intentionally empty — ability entities are transient (not saved to world)
+    }
+
+    @Override
+    protected void writeEntityToNBT(NBTTagCompound nbt) {
+        // Intentionally empty — ability entities are transient (not saved to world)
+    }
+
+    @Override
+    protected void writeSpawnNBT(NBTTagCompound nbt) {
+        writeEnergyBaseNBT(nbt);
+        nbt.setFloat("BeamLength", beamLength);
+        nbt.setFloat("BeamWidth", beamWidth);
+        nbt.setFloat("BeamHeight", beamHeight);
+        nbt.setFloat("SweepSpeed", sweepSpeed);
+        nbt.setInteger("NumRotations", numberOfRotations);
+        nbt.setInteger("CompletedRotations", completedRotations);
+        nbt.setInteger("MaxTicks", maxTicks);
+        nbt.setInteger("TargetId", targetEntityId);
+        nbt.setFloat("CurrentAngle", currentAngle);
+        nbt.setFloat("BaseYaw", baseYaw);
+        nbt.setLong("DeathWorldTime", deathWorldTime);
+        nbt.setFloat("Damage", damage);
+        nbt.setInteger("DamageInterval", damageInterval);
+        nbt.setBoolean("Piercing", piercing);
+        nbt.setBoolean("LockOnTarget", lockOnTarget);
+    }
+
+    @Override
+    protected void readSpawnNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
         this.beamLength = sanitize(nbt.getFloat("BeamLength"), 10.0f, MAX_ENTITY_SIZE);
         this.beamWidth = sanitize(nbt.getFloat("BeamWidth"), 0.3f, MAX_ENTITY_SIZE);
-        this.beamHeight = sanitize(nbt.getFloat("BeamHeight"), 0.8f, MAX_ENTITY_SIZE);
+        this.beamHeight = sanitize(nbt.getFloat("BeamHeight"), 1.0f, MAX_ENTITY_SIZE);
         this.sweepSpeed = nbt.hasKey("SweepSpeed") ? nbt.getFloat("SweepSpeed") : 3.0f;
         if (Float.isNaN(sweepSpeed) || Float.isInfinite(sweepSpeed) || sweepSpeed <= 0) sweepSpeed = 3.0f;
         this.numberOfRotations = nbt.hasKey("NumRotations") ? nbt.getInteger("NumRotations") : 2;
@@ -385,25 +418,5 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         if (damageInterval <= 0) damageInterval = 1;
         this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
         this.lockOnTarget = nbt.getBoolean("LockOnTarget");
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        writeEnergyBaseNBT(nbt);
-        nbt.setFloat("BeamLength", beamLength);
-        nbt.setFloat("BeamWidth", beamWidth);
-        nbt.setFloat("BeamHeight", beamHeight);
-        nbt.setFloat("SweepSpeed", sweepSpeed);
-        nbt.setInteger("NumRotations", numberOfRotations);
-        nbt.setInteger("CompletedRotations", completedRotations);
-        nbt.setInteger("MaxTicks", maxTicks);
-        nbt.setInteger("TargetId", targetEntityId);
-        nbt.setFloat("CurrentAngle", currentAngle);
-        nbt.setFloat("BaseYaw", baseYaw);
-        nbt.setLong("DeathWorldTime", deathWorldTime);
-        nbt.setFloat("Damage", damage);
-        nbt.setInteger("DamageInterval", damageInterval);
-        nbt.setBoolean("Piercing", piercing);
-        nbt.setBoolean("LockOnTarget", lockOnTarget);
     }
 }

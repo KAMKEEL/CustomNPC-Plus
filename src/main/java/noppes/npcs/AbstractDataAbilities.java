@@ -14,6 +14,7 @@ import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -44,9 +45,24 @@ public abstract class AbstractDataAbilities {
     protected Ability currentAbility;
 
     /**
-     * World time when cooldown ends
+     * World time when global cooldown ends
      */
     protected long cooldownEndTime = 0;
+
+    /**
+     * Duration of the current global cooldown in ticks (for progress calculation)
+     */
+    protected int globalCooldownDuration = 0;
+
+    /**
+     * Per-ability cooldown end times. Key = ability key, Value = world time when cooldown ends.
+     */
+    protected HashMap<String, Long> perAbilityCooldownEndTimes = new HashMap<>();
+
+    /**
+     * Per-ability cooldown durations in ticks (for progress calculation).
+     */
+    protected HashMap<String, Integer> perAbilityCooldownDurations = new HashMap<>();
 
     /**
      * Rotation lock state
@@ -526,6 +542,106 @@ public abstract class AbstractDataAbilities {
         cooldownEndTime = endTime;
     }
 
+    /**
+     * Get the global cooldown end time.
+     */
+    public long getCooldownEndTime() {
+        return cooldownEndTime;
+    }
+
+    /**
+     * Get the global cooldown duration value.
+     */
+    public int getGlobalCooldownDurationValue() {
+        return globalCooldownDuration;
+    }
+
+    /**
+     * Get the per-ability cooldown end times map.
+     */
+    public HashMap<String, Long> getPerAbilityCooldownEndTimes() {
+        return perAbilityCooldownEndTimes;
+    }
+
+    /**
+     * Get the per-ability cooldown durations map.
+     */
+    public HashMap<String, Integer> getPerAbilityCooldownDurations() {
+        return perAbilityCooldownDurations;
+    }
+
+    /**
+     * Apply cooldown sync data from server. Called on client side.
+     */
+    public void applyCooldownSync(long globalEndTime, int globalDuration,
+                                  HashMap<String, Long> perEndTimes,
+                                  HashMap<String, Integer> perDurations) {
+        this.cooldownEndTime = globalEndTime;
+        this.globalCooldownDuration = globalDuration;
+        this.perAbilityCooldownEndTimes = perEndTimes;
+        this.perAbilityCooldownDurations = perDurations;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PER-ABILITY COOLDOWN MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Check if a specific ability is on its per-ability cooldown.
+     */
+    public boolean isOnPerAbilityCooldown(String key) {
+        Long endTime = perAbilityCooldownEndTimes.get(key);
+        return endTime != null && getWorldTime() < endTime;
+    }
+
+    /**
+     * Set a per-ability cooldown.
+     */
+    public void setPerAbilityCooldown(String key, long endTime, int duration) {
+        perAbilityCooldownEndTimes.put(key, endTime);
+        perAbilityCooldownDurations.put(key, duration);
+    }
+
+    /**
+     * Reset a specific per-ability cooldown.
+     */
+    public void resetPerAbilityCooldown(String key) {
+        perAbilityCooldownEndTimes.remove(key);
+        perAbilityCooldownDurations.remove(key);
+    }
+
+    /**
+     * Reset all per-ability cooldowns.
+     */
+    public void resetAllPerAbilityCooldowns() {
+        perAbilityCooldownEndTimes.clear();
+        perAbilityCooldownDurations.clear();
+    }
+
+    /**
+     * Get global cooldown progress for HUD rendering.
+     * @return 1.0 when cooldown just started (fully covered), 0.0 when done
+     */
+    public float getGlobalCooldownProgress() {
+        if (globalCooldownDuration <= 0) return 0f;
+        long remaining = cooldownEndTime - getWorldTime();
+        if (remaining <= 0) return 0f;
+        return Math.min(1f, (float) remaining / globalCooldownDuration);
+    }
+
+    /**
+     * Get per-ability cooldown progress for HUD rendering.
+     * @return 1.0 when cooldown just started (fully covered), 0.0 when done
+     */
+    public float getPerAbilityCooldownProgress(String key) {
+        Long endTime = perAbilityCooldownEndTimes.get(key);
+        Integer duration = perAbilityCooldownDurations.get(key);
+        if (endTime == null || duration == null || duration <= 0) return 0f;
+        long remaining = endTime - getWorldTime();
+        if (remaining <= 0) return 0f;
+        return Math.min(1f, (float) remaining / duration);
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // POSITION LOCKING
     // ═══════════════════════════════════════════════════════════════════
@@ -916,6 +1032,62 @@ public abstract class AbstractDataAbilities {
      * NPC: keeps currentAbility (ticks through DAZED). Player: clears immediately.
      */
     protected void onInterruptComplete() {
+    }
+
+    /**
+     * Cancel the currently executing ability (voluntary player action).
+     * Unlike interrupt, this always goes directly to IDLE (never DAZED),
+     * immediately rolls cooldown, and clears state.
+     * Also handles cancellation during chain delay (between chain entries).
+     */
+    public void cancelCurrentAbility() {
+        boolean hasExecutingAbility = currentAbility != null && currentAbility.isExecuting();
+        boolean isInChainDelay = currentChain != null && chainDelayRemaining > 0;
+
+        if (!hasExecutingAbility && !isInChainDelay) return;
+
+        if (hasExecutingAbility) {
+            AbilityPhase phase = currentAbility.getPhase();
+            // Cannot cancel during DAZED (already interrupted)
+            if (phase == AbilityPhase.DAZED) return;
+            // Only allow cancel during active phases
+            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
+                && phase != AbilityPhase.BURST_DELAY) return;
+
+            // Remove telegraph
+            removeTelegraph(currentAbility);
+
+            // Fire extender complete hook (cancelled = interrupted)
+            AbilityController.Instance.fireOnAbilityComplete(currentAbility, getEntity(), getTarget(), true);
+
+            // Fire interrupt event (source=null, damage=0 for voluntary cancel)
+            fireInterruptEvent(currentAbility, getTarget(), null, 0);
+
+            // Cancel the ability (cleanup + go directly to IDLE, no DAZED)
+            currentAbility.onInterrupt(getEntity(), null, 0);
+            currentAbility.cancel();
+
+            // Release locks and stop animation
+            stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
+        }
+
+        // Roll cooldown
+        if (currentChain != null) {
+            rollChainCooldown(currentChain);
+            currentChain = null;
+            chainEntryIndex = -1;
+            chainDelayRemaining = -1;
+        } else if (currentAbility != null) {
+            rollCooldown(currentAbility);
+        }
+
+        // Interrupt all concurrent slots
+        interruptConcurrentSlots();
+
+        // Clear state via the normal completion path
+        onAbilityComplete();
     }
 
     // ═══════════════════════════════════════════════════════════════════

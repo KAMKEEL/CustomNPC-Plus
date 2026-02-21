@@ -222,13 +222,18 @@ public class DataAbilities extends AbstractDataAbilities {
 
     @Override
     protected void rollCooldown(Ability ability) {
+        // Always roll NPC global cooldown (pacing timer)
         int baseCooldown = minCooldown;
         if (maxCooldown > minCooldown) {
             baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
         }
-        cooldownEndTime = npc.worldObj.getTotalWorldTime() + baseCooldown;
-        // Add ability-specific cooldown offset
-        cooldownEndTime += ability.getCooldownTicks();
+        cooldownEndTime = npc.worldObj.getTotalWorldTime() + baseCooldown + ability.getCooldownTicks();
+
+        // Additionally set per-ability cooldown if enabled
+        if (ability.isPerAbilityCooldown() && ability.getCooldownTicks() > 0) {
+            long endTime = npc.worldObj.getTotalWorldTime() + ability.getCooldownTicks();
+            setPerAbilityCooldown(ability.getName(), endTime, ability.getCooldownTicks());
+        }
     }
 
     @Override
@@ -482,6 +487,14 @@ public class DataAbilities extends AbstractDataAbilities {
             return false;
         }
 
+        // Per-ability cooldown filter: ability may have its own independent cooldown
+        if (!action.isChain()) {
+            Ability ab = (Ability) action;
+            if (ab.isPerAbilityCooldown() && isOnPerAbilityCooldown(ab.getName())) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -726,6 +739,7 @@ public class DataAbilities extends AbstractDataAbilities {
         stopCurrentAbility();
         clearActiveToggles();
         interruptConcurrentSlots();
+        resetAllPerAbilityCooldowns();
 
         // Roll cooldown so NPC doesn't immediately attack after reset
         rollCooldownOnReset();

@@ -31,7 +31,7 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
     // Type-specific parameters
     private float beamLength = 10.0f;
     private float beamWidth = 0.3f;  // Thin like beam trail
-    private float beamHeight = 0.5f;  // Height above ground (low enough to jump over)
+    private float beamHeight = 1.0f;  // Beam vertical size in blocks (1 block tall, jumpable)
     private float damage = 5.0f;
     private int damageInterval = 5;
     private boolean piercing = true;
@@ -60,6 +60,21 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
     @Override
     public boolean allowBurst() {
         return false;
+    }
+
+    @Override
+    public boolean isConcurrentCapable() {
+        return true;
+    }
+
+    @Override
+    public boolean allowFreeOnCast() {
+        return true;
+    }
+
+    @Override
+    public void detach() {
+        activeEntity = null;
     }
 
     @Override
@@ -96,6 +111,12 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
         // Signal completion when entity dies
         if (activeEntity == null || activeEntity.isDead) {
             activeEntity = null;
+            signalCompletion();
+            return;
+        }
+
+        // Free on Cast: complete immediately — sweeper lives independently
+        if (isFreeOnCast()) {
             signalCompletion();
         }
     }
