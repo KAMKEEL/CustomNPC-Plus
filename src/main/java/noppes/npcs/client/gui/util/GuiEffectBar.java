@@ -80,9 +80,10 @@ public class GuiEffectBar extends GuiScreen {
                 int iconWidth = entry.effect.getWidth();
                 int iconHeight = entry.effect.getHeight();
                 int texWidth = imageData.getTotalWidth();
+                int texHeight = imageData.getTotalHeight();
 
                 // Use iconYOffset to vertically center the icon
-                func_152125_a(x + 2, drawY + iconYOffset, iconU, iconV, iconWidth, iconHeight, iconRenderSize, iconRenderSize, texWidth, texWidth);
+                func_152125_a(x + 2, drawY + iconYOffset, iconU, iconV, iconWidth, iconHeight, iconRenderSize, iconRenderSize, texWidth, texHeight);
 
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(specialIcons);
@@ -190,7 +191,7 @@ public class GuiEffectBar extends GuiScreen {
         if (imageData != null && imageData.imageLoaded()) {
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             imageData.bindTexture();
-            func_152125_a(tooltipX + (maxWidth - iconSize) / 2, textY + 4, hoveredEffect.iconX, hoveredEffect.iconY, hoveredEffect.getWidth(), hoveredEffect.getHeight(), iconSize, iconSize, imageData.getTotalWidth(), imageData.getTotalWidth());
+            func_152125_a(tooltipX + (maxWidth - iconSize) / 2, textY + 4, hoveredEffect.iconX, hoveredEffect.iconY, hoveredEffect.getWidth(), hoveredEffect.getHeight(), iconSize, iconSize, imageData.getTotalWidth(), imageData.getTotalHeight());
         }
 
         textureManager.bindTexture(specialIcons);
