@@ -29,6 +29,8 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
     public EntityEnergyDome(World world) {
         super(world);
+        this.noClip = true;
+        this.stepHeight = 0.0F;
         this.setSize(1.0f, 1.0f);
     }
 
@@ -36,8 +38,10 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
                             float domeRadius, EnergyDisplayData display, EnergyLightningData lightning,
                             EnergyBarrierData barrier) {
         this(world);
+        this.noClip = true;
+        this.stepHeight = 0.0F;
         this.ownerEntityId = owner.getEntityId();
-        this.domeRadius = domeRadius;
+        this.setDomeRadius(domeRadius);
         this.displayData = display;
         this.lightningData = lightning;
         this.barrierData = barrier;
@@ -45,25 +49,23 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         this.setPosition(x, y, z);
     }
 
-    protected void setSize(float width, float height){
-        super.setSize(width, height);
-
-        this.ySize = 0.0F;
-        this.yOffset = this.height * 0.5F;
-    }
-
-
     // ==================== POSITION / BOUNDING BOX ====================
 
-    /**
-     * Override setPosition to maintain dome-sized bounding box.
-     * MC's default setPosition() resets BB based on width/height fields.
-     * Network sync calls setPosition(), which would shrink the BB.
-     * This ensures melee targeting always works against the full dome sphere.
-     */
     @Override
-    public void setPosition(double x, double y, double z) {
-        super.setPosition(x, y, z);
+    protected void setSize(float width, float height) {
+        if (width != this.width || height != this.height) {
+            this.width = width;
+            this.height = height;
+            this.boundingBox.maxX = this.boundingBox.minX + (double) this.width;
+            this.boundingBox.maxZ = this.boundingBox.minZ + (double) this.width;
+            this.boundingBox.maxY = this.boundingBox.minY + (double) this.height;
+        }
+        this.ySize = 0.0F;
+        this.yOffset = -this.height * 0.5F;
+    }
+
+    @Override
+    public void applyEntityCollision(Entity entityIn) {
     }
 
     @Override
@@ -90,7 +92,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         if (isCharging()) {
             chargeTick++;
             float progress = getChargeProgress();
-            this.domeRadius = targetDomeRadius * progress;
+            this.setDomeRadius(targetDomeRadius * progress);
             // Refresh BB for current charge radius
             this.setPosition(posX, posY, posZ);
             return; // Don't tick duration/death during charging
@@ -196,7 +198,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     @Override
     public void setupCharging(int duration) {
         this.targetDomeRadius = this.domeRadius;
-        this.domeRadius = 0.01f;
+        this.setDomeRadius(0.01f);
         this.chargeDuration = duration;
         this.chargeTick = 0;
         setCharging(true);
@@ -204,7 +206,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
     @Override
     public void finishCharging() {
-        this.domeRadius = targetDomeRadius;
+        this.setDomeRadius(this.targetDomeRadius);
         setCharging(false);
     }
 
@@ -412,6 +414,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
     public void setDomeRadius(float radius) {
         this.domeRadius = Math.max(0.1f, radius);
+        this.setSize(this.domeRadius * 2, this.domeRadius * 2);
     }
 
     public boolean isFollowCaster() {
@@ -427,7 +430,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
         readBarrierBaseNBT(nbt);
-        this.domeRadius = sanitize(nbt.getFloat("DomeRadius"), 5.0f, MAX_ENTITY_RADIUS);
+        this.setDomeRadius(sanitize(nbt.getFloat("DomeRadius"), 5.0f, MAX_ENTITY_RADIUS));
         this.targetDomeRadius = sanitize(nbt.hasKey("TargetDomeRadius") ? nbt.getFloat("TargetDomeRadius") : domeRadius, 5.0f, MAX_ENTITY_RADIUS);
         this.followCaster = nbt.hasKey("FollowCaster") && nbt.getBoolean("FollowCaster");
     }

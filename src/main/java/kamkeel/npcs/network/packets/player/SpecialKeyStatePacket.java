@@ -60,9 +60,6 @@ public final class SpecialKeyStatePacket extends AbstractPacket {
             // Trigger ability activation on key press (rising edge)
             if (keyDown && !wasDown) {
                 // Don't activate if player has a GUI open (not the default inventory)
-                if (player.openContainer != null && !(player.openContainer instanceof net.minecraft.inventory.ContainerPlayer)) {
-                    return;
-                }
 
                 // Don't activate if player is riding an entity (mount)
                 if (player.ridingEntity != null) {
