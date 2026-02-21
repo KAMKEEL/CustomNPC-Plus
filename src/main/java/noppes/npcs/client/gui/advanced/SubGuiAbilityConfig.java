@@ -20,6 +20,8 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import java.util.ArrayList;
 import java.util.List;
 
+import static kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition.MAX_CONDITIONS;
+
 public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldListener, ISubGuiListener {
 
     private static final int DECLARATIVE_ID_START = 1000;
@@ -41,6 +43,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     private static final int L_LABEL_X = 5;
     private static final int ROW_H = 24;
+
+    // Condition buttons
+    private static final int COND_BASE = 50;
+    private static final int COND_STRIDE = 10;
+    private static final int COND_END = COND_BASE + MAX_CONDITIONS * COND_STRIDE; // 50 + N*10
+    private static final int BTN_ADD_COND = COND_END;
 
     private final Ability ability;
     private final IAbilityConfigCallback callback;
@@ -234,17 +242,17 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
         y += 15;
 
-        for (int i = 0; i < conditions.size() && i < 3; i++) {
+        for (int i = 0; i < conditions.size() && i < MAX_CONDITIONS; i++) {
             AbilityCondition cond = conditions.get(i);
             String condName = getConditionDisplayName(cond);
-            sw.addButton(new GuiNpcButton(50 + i * 10, L_LABEL_X, y, 140, 20, condName));
-            sw.addButton(new GuiNpcButton(51 + i * 10, L_LABEL_X + 145, y, 40, 20, "gui.edit"));
-            sw.addButton(new GuiNpcButton(52 + i * 10, L_LABEL_X + 190, y, 20, 20, "X"));
+            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName));
+            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 1, L_LABEL_X + 145, y,  40, 20, "gui.edit"));
+            sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE + 2, L_LABEL_X + 190, y,  20, 20, "X"));
             y += 22;
         }
 
-        if (conditions.size() < 3) {
-            sw.addButton(new GuiNpcButton(80, L_LABEL_X, y, 50, 20, "gui.add"));
+        if (conditions.size() < MAX_CONDITIONS) {
+            sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));;
             y += ROW_H;
         }
 
@@ -312,9 +320,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     }
 
     private boolean handleConditionButton(int id) {
-        if (id >= 50 && id < 80) {
-            int condIndex = (id - 50) / 10;
-            int action = (id - 50) % 10;
+        if (id >= COND_BASE && id < COND_END) {
+            int condIndex = (id - COND_BASE) / COND_STRIDE;
+            int action    = (id - COND_BASE) % COND_STRIDE;
             if (action == 0 || action == 1) {
                 if (condIndex < conditions.size()) {
                     editingConditionIndex = condIndex;
@@ -328,8 +336,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
             return true;
         }
-        if (id == 80) {
-            if (conditions.size() < 3) {
+        if (id == BTN_ADD_COND) {
+            if (conditions.size() < MAX_CONDITIONS) {
                 editingConditionIndex = conditions.size();
                 setSubGui(new SubGuiConditionEdit(null));
             }

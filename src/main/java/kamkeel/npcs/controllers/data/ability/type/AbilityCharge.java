@@ -52,7 +52,7 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         this.windUpSound = "mob.zombie.wood";
         this.activeSound = "mob.zombie.attack";
         this.windUpAnimationName = "Ability_Charge_Windup";
-        this.activeAnimationName = "Ability_Active_Windup";
+        this.activeAnimationName = "Ability_Charge_Active";
     }
 
     @Override

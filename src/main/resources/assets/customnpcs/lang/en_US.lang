@@ -2076,14 +2076,28 @@ condition.filter=Filter Type
 condition.filter.target=Target
 condition.filter.caster=Caster
 condition.filter.both=Both
-condition.hit_count=Hit Count
+
+# Condition HP Threshold
 condition.hp_threshold=HP Threshold
 condition.hp_above=HP Above
 condition.hp_below=HP Below
+condition.hp_equal=HP Equal
 condition.threshold=Threshold
+condition.percent=Use Percent
 condition.threshold_type=Threshold Type
+
+# Condition Hit Count
+condition.hit_count=Hit Count
 condition.required_hits=Required Hits
 condition.within_ticks=Within (ticks)
+
+# Condition Item
+condition.item=Has Item
+condition.usage_type=Usage Type
+condition.armor_slot=Armor Slot
+condition.full_armor=Full Armor
+condition.item_count=Item Count
+condition.item_name=Item Name
 
 # Condition Hover Tooltips
 condition.hover.type=Condition type that must be met for ability to activate

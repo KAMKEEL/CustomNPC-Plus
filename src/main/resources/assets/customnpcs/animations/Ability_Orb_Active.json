@@ -1,11 +1,11 @@
 {
-    "Loop": 0,
+    "Loop": -1,
     "Speed": 1.0f,
     "Frames": [
         {
             "ColorMarker": 16777215,
             "Comment": "",
-            "Speed": 0.5f,
+            "Speed": 1.0f,
             "FrameParts": [
                 {
                     "Pivot2": 0.0f,
@@ -63,7 +63,7 @@
                 }
             ],
             "Smooth": 0b,
-            "Duration": 30
+            "Duration": 20
         }
     ],
     "CurrentFrameTime": 0,
