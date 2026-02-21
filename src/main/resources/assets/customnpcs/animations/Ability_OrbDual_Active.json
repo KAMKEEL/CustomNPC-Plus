@@ -1,5 +1,5 @@
 {
-    "Loop": 3,
+    "Loop": -1,
     "Speed": 1.0f,
     "Frames": [
         {
@@ -252,7 +252,7 @@
                 }
             ],
             "Smooth": 0b,
-            "Duration": 3
+            "Duration": 20
         }
     ],
     "CurrentFrameTime": 0,

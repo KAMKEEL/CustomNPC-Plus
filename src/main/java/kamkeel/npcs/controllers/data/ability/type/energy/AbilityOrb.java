@@ -115,6 +115,9 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
                 orb.setDamage(4.0f);
                 orb.setKnockback(0.0f);
                 orb.setKnockbackUp(0.0f);
+                orb.setProjectileCount(2);
+                orb.setFireDelay(2);
+                a.setLockMovement(LockMovementType.WINDUP_AND_ACTIVE);
                 a.setMaxRange(75.0f);
                 a.setBurstEnabled(true);
                 a.setBurstAmount(15);

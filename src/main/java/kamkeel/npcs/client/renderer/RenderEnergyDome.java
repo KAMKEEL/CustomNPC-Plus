@@ -34,7 +34,7 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
         // Hit flash effect
         float flashAlpha = computeFlashAlpha(dome);
 
-        float innerScale = 0.95f;
+        float innerScale = 1.0f;
 
         // Render outer dome (translucent glow)
         if (dome.isOuterColorEnabled()) {
@@ -51,7 +51,7 @@ public class RenderEnergyDome extends RenderEnergyBarrier {
 
         GL11.glDepthMask(true);
         // Render inner dome (depth write enabled so inner sphere properly occludes)
-        renderSphere(dome.getInnerColor(), dome.getInnerAlpha(), radius * innerScale, 8);
+        renderSphere(dome.getInnerColor(), dome.getInnerAlpha() * healthPercent, radius * innerScale, 8);
         GL11.glPopMatrix();
 
         restoreRenderState();

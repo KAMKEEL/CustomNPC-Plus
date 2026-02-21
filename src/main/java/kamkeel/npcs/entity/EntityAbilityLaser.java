@@ -14,6 +14,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.EventHooks;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
 import java.util.List;
@@ -367,6 +368,99 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         if (closestY > entityMaxY + laserHalfWidth) return false;
 
         return true;
+    }
+
+    // ==================== BARRIER COLLISION ====================
+
+    /**
+     * Override barrier collision for lasers. The base class uses projectile position/velocity
+     * which doesn't work for lasers (posX/Y/Z stays at origin, motionX/Y/Z is zero).
+     * Instead, performs line-sphere intersection against domes.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    protected boolean checkBarrierCollision() {
+        if (currentLength <= 0 || fullyExtended) return false;
+
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier.isDead || barrier.isCharging()) continue;
+            if (barrier.getOwnerEntityId() == this.ownerEntityId) continue;
+
+            // Same-faction NPC check
+            Entity bOwner = barrier.getOwnerEntity();
+            Entity lOwner = this.getOwnerEntity();
+            if (bOwner instanceof EntityNPCInterface && lOwner instanceof EntityNPCInterface) {
+                if (((EntityNPCInterface) bOwner).faction.id == ((EntityNPCInterface) lOwner).faction.id) {
+                    continue;
+                }
+            }
+
+            if (barrier instanceof EntityEnergyDome) {
+                EntityEnergyDome dome = (EntityEnergyDome) barrier;
+                float intersectDist = getLineSphereIntersection(dome);
+                if (intersectDist >= 0) {
+                    // Truncate laser at dome surface
+                    currentLength = intersectDist;
+                    endX = startX + dirX * currentLength;
+                    endY = startY + dirY * currentLength;
+                    endZ = startZ + dirZ * currentLength;
+                    fullyExtended = true;
+
+                    float damage = getModifiedDamage();
+                    dome.onProjectileHit(this, damage);
+                    return false; // Don't kill laser — it's truncated and will linger
+                }
+            } else {
+                // Non-dome barriers: fall through to standard check
+                if (barrier.isIncomingProjectile(this)) {
+                    float damage = getModifiedDamage();
+                    if (barrier.onProjectileHit(this, damage)) {
+                        hasHit = true;
+                        this.setDead();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Line-sphere intersection between the laser line segment and a dome.
+     * Returns the distance along the laser direction to the first entry point,
+     * or -1 if no intersection from outside.
+     */
+    private float getLineSphereIntersection(EntityEnergyDome dome) {
+        double cx = dome.posX;
+        double cy = dome.posY;
+        double cz = dome.posZ;
+        float radius = dome.getDomeRadius();
+
+        // If laser origin is inside the dome, don't block (outgoing)
+        double ocX = startX - cx;
+        double ocY = startY - cy;
+        double ocZ = startZ - cz;
+        double originDistSq = ocX * ocX + ocY * ocY + ocZ * ocZ;
+        if (originDistSq < (double) radius * radius) return -1;
+
+        // Solve: |start + t*dir - C|^2 = R^2
+        // a*t^2 + b*t + c = 0
+        double a = dirX * dirX + dirY * dirY + dirZ * dirZ;
+        double b = 2.0 * (dirX * ocX + dirY * ocY + dirZ * ocZ);
+        double c = originDistSq - (double) radius * radius;
+
+        double discriminant = b * b - 4.0 * a * c;
+        if (discriminant < 0) return -1;
+
+        double sqrtD = Math.sqrt(discriminant);
+        double t1 = (-b - sqrtD) / (2.0 * a); // Entry point
+
+        if (t1 >= 0 && t1 <= currentLength) {
+            return (float) t1;
+        }
+
+        return -1;
     }
 
     // ==================== GETTERS FOR RENDERER ====================

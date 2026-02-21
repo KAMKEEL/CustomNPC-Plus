@@ -1,5 +1,6 @@
 package kamkeel.npcs.controllers.data.ability;
 
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -30,7 +31,7 @@ public interface IAbilityAction {
 
     UserType getAllowedBy();
 
-    List<Condition> getConditions();
+    List<AbilityCondition> getConditions();
 
     boolean checkConditions(EntityLivingBase caster, EntityLivingBase target);
 

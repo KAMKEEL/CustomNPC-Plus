@@ -1,14 +1,20 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.EventHooks;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Base class for energy barrier entities (Dome, Panel).
@@ -17,6 +23,35 @@ import noppes.npcs.entity.EntityNPCInterface;
  * Extends EntityEnergyAbility for shared visual/owner/charging state.
  */
 public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
+
+    // ==================== ACTIVE BARRIER REGISTRY ====================
+    private static final List<WeakReference<EntityEnergyBarrier>> activeBarriers = new ArrayList<>();
+    private boolean tracked = false;
+
+    public static void trackBarrier(EntityEnergyBarrier barrier) {
+        activeBarriers.add(new WeakReference<>(barrier));
+    }
+
+    /**
+     * Get all living barriers in the given world. Auto-cleans dead refs.
+     */
+    public static List<EntityEnergyBarrier> getActiveBarriers(World world) {
+        List<EntityEnergyBarrier> result = new ArrayList<>();
+        Iterator<WeakReference<EntityEnergyBarrier>> it = activeBarriers.iterator();
+        while (it.hasNext()) {
+            EntityEnergyBarrier b = it.next().get();
+            if (b == null || b.isDead) {
+                it.remove();
+            } else if (b.worldObj == world) {
+                result.add(b);
+            }
+        }
+        return result;
+    }
+
+    public static void clearAllBarriers() {
+        activeBarriers.clear();
+    }
 
     // ==================== BARRIER PROPERTIES ====================
     protected EnergyBarrierData barrierData = new EnergyBarrierData();
@@ -58,9 +93,69 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
     public abstract void finishCharging();
 
     /**
-     * Push entities away from the barrier surface.
+     * Process entity physics for this barrier.
+     * Handles solid wall (entity repositioning) and knockback (repulsion force).
      */
-    protected abstract void knockbackEntities();
+    protected abstract void processEntityPhysics();
+
+    /**
+     * Get the maximum extent of this barrier for distance pre-filtering.
+     * Dome returns radius, Panel returns max(width, height) / 2.
+     */
+    public abstract float getMaxExtent();
+
+    /**
+     * Check if a generic (non-CNPC+) projectile is incoming toward this barrier.
+     * Uses the same geometric logic as isIncomingProjectile but with raw position data.
+     *
+     * @param posX, posY, posZ           Current (or predicted) position of the projectile
+     * @param motionX, motionY, motionZ  Current velocity of the projectile
+     * @param prevPosX, prevPosY, prevPosZ Previous position of the projectile
+     * @param ownerEntityId              Entity ID of the projectile's shooter
+     */
+    public abstract boolean isIncomingGenericProjectile(
+        double posX, double posY, double posZ,
+        double motionX, double motionY, double motionZ,
+        double prevPosX, double prevPosY, double prevPosZ,
+        int ownerEntityId);
+
+    // ==================== GENERIC PROJECTILE HIT ====================
+
+    /**
+     * Apply damage from a generic (non-CNPC+) projectile to this barrier.
+     * Uses the typeId for damage multiplier lookup (e.g. "dbc.ki_attack").
+     *
+     * @param projectileEntity The entity that hit the barrier (for context)
+     * @param damage           Base damage to apply
+     * @param typeId           Type identifier for damage multiplier lookup
+     * @return true if the barrier absorbed the hit (projectile should be destroyed)
+     */
+    public boolean onGenericProjectileHit(Entity projectileEntity, float damage, String typeId) {
+        float multiplier = barrierData.getMultiplier(typeId);
+        float finalDamage = damage * multiplier;
+
+        if (!worldObj.isRemote) {
+            float eventDamage = EventHooks.onEnergyBarrierHit(this, ownerEntityId, null, finalDamage);
+            if (eventDamage < 0) return false;
+            finalDamage = eventDamage;
+        }
+
+        triggerHitFlash();
+
+        if (!barrierData.useHealth) {
+            return true;
+        }
+
+        currentHealth -= finalDamage;
+        syncHealthPercent();
+
+        if (currentHealth <= 0) {
+            onBarrierDestroyed();
+            this.setDead();
+        }
+
+        return true;
+    }
 
     // ==================== PROJECTILE HIT ====================
 
@@ -109,6 +204,16 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
     }
 
     @Override
+    public boolean isEntityInsideOpaqueBlock() {
+        return false;
+    }
+
+    @Override
+    protected boolean func_145771_j(double x, double y, double z) {
+        return false;
+    }
+
+    @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
         if (worldObj.isRemote || !barrierData.meleeEnabled) return false;
         if (isCharging()) return false;
@@ -145,8 +250,12 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
      */
     protected boolean updateBarrierTick() {
         if (!worldObj.isRemote) {
-            // Fire spawned event on first tick
+            // Track barrier and fire spawned event on first tick
             if (ticksAlive == 1) {
+                if (!tracked) {
+                    trackBarrier(this);
+                    tracked = true;
+                }
                 EventHooks.onEnergyBarrierSpawned(this, ownerEntityId);
             }
 
@@ -225,14 +334,79 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         return this.dataWatcher.getWatchableObjectFloat(DW_HEALTH_PERCENT);
     }
 
-    protected boolean isKnockbackTarget(EntityLivingBase entity) {
-        switch (barrierData.knockbackTarget) {
-            case 1:
-                return entity instanceof EntityPlayer;
-            case 2:
-                return entity instanceof EntityNPCInterface;
-            default:
-                return entity instanceof EntityPlayer || entity instanceof EntityNPCInterface;
+    /**
+     * Check if an entity is an ally of this barrier's owner.
+     * Allies are not affected by barrier physics.
+     */
+    protected boolean isAllyOfOwner(EntityLivingBase entity) {
+        Entity owner = getOwnerEntity();
+        if (owner == null || !(owner instanceof EntityLivingBase)) return false;
+        return AbilityTargetHelper.isAlly((EntityLivingBase) owner, entity);
+    }
+
+    // ==================== CONTAINMENT & ABSORBING ====================
+
+    /**
+     * Check if an entity is geometrically inside this barrier's protected zone.
+     * Override in subclasses (dome checks sphere containment).
+     */
+    public boolean isEntityInside(Entity entity) {
+        return false;
+    }
+
+    /**
+     * Find a barrier that would absorb damage for the given entity (its caster).
+     * Returns the barrier if: absorbing is enabled AND entity is the barrier's owner.
+     */
+    public static EntityEnergyBarrier getAbsorbingBarrier(Entity entity) {
+        if (entity == null || entity.worldObj == null) return null;
+        List<EntityEnergyBarrier> barriers = getActiveBarriers(entity.worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier.isDead) continue;
+            if (!barrier.barrierData.absorbing) continue;
+            if (barrier.ownerEntityId == entity.getEntityId()) {
+                return barrier;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Absorb damage from an external source. Reduces barrier health directly.
+     * Used by damage protection to redirect attacks on inside entities to the barrier.
+     *
+     * @param amount The damage amount to absorb
+     * @return true if damage was absorbed (barrier still alive or just destroyed)
+     */
+    public boolean absorbDamage(float amount) {
+        if (worldObj.isRemote) return false;
+
+        triggerHitFlash();
+
+        if (!barrierData.useHealth) {
+            return true; // Duration-only: absorb but no health loss
+        }
+
+        currentHealth -= amount;
+        syncHealthPercent();
+
+        if (currentHealth <= 0) {
+            onBarrierDestroyed();
+            this.setDead();
+        }
+        return true;
+    }
+
+    /**
+     * Teleport an entity to a position. Uses network handler for players
+     * to ensure reliable client synchronization.
+     */
+    protected void teleportEntity(EntityLivingBase ent, double x, double y, double z) {
+        if (ent instanceof EntityPlayerMP) {
+            EntityPlayerMP player = (EntityPlayerMP) ent;
+            player.playerNetServerHandler.setPlayerLocation(x, y, z, player.rotationYaw, player.rotationPitch);
+        } else {
+            ent.setPosition(x, y, z);
         }
     }
 

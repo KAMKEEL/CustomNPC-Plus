@@ -33,6 +33,7 @@ public class TelegraphInstance {
     private int entityIdToFollow = -1;
     private int casterEntityId = -1;
     private int targetEntityId = -1;  // For LINE telegraphs: entity to face (yaw tracking)
+    private boolean trackFollowedEntityYaw = false; // Track followed entity's rotationYaw when no targetEntity
 
     // Timing
     private int remainingTicks;
@@ -96,6 +97,11 @@ public class TelegraphInstance {
                 this.z = entity.posZ;
                 // Find ground level below the entity for proper telegraph placement
                 this.y = Ability.findGroundLevel(world, entity.posX, entity.posY, entity.posZ);
+
+                // Track followed entity's yaw for directional telegraphs (player casters)
+                if (trackFollowedEntityYaw && targetEntityId < 0) {
+                    this.yaw = entity.rotationYaw;
+                }
             }
         }
 
@@ -218,6 +224,7 @@ public class TelegraphInstance {
         nbt.setInteger("entityIdToFollow", entityIdToFollow);
         nbt.setInteger("casterEntityId", casterEntityId);
         nbt.setInteger("targetEntityId", targetEntityId);
+        nbt.setBoolean("trackFollowedYaw", trackFollowedEntityYaw);
 
         nbt.setInteger("remainingTicks", remainingTicks);
         nbt.setInteger("totalTicks", totalTicks);
@@ -243,6 +250,7 @@ public class TelegraphInstance {
         this.entityIdToFollow = nbt.getInteger("entityIdToFollow");
         this.casterEntityId = nbt.getInteger("casterEntityId");
         this.targetEntityId = nbt.getInteger("targetEntityId");
+        this.trackFollowedEntityYaw = nbt.hasKey("trackFollowedYaw") && nbt.getBoolean("trackFollowedYaw");
 
         this.remainingTicks = nbt.getInteger("remainingTicks");
         this.totalTicks = nbt.getInteger("totalTicks");
@@ -333,6 +341,14 @@ public class TelegraphInstance {
 
     public void setTargetEntityId(int targetEntityId) {
         this.targetEntityId = targetEntityId;
+    }
+
+    public boolean isTrackFollowedEntityYaw() {
+        return trackFollowedEntityYaw;
+    }
+
+    public void setTrackFollowedEntityYaw(boolean track) {
+        this.trackFollowedEntityYaw = track;
     }
 
     public int getRemainingTicks() {

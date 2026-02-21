@@ -81,10 +81,10 @@ public class CompassHudComponent extends HudComponent {
         ConfigClient.CompassEnabledProperty.set(ConfigClient.CompassEnabled);
 
         ConfigClient.CompassOverlayX = posX;
-        ConfigClient.CompassOverlayXProperty.set(ConfigClient.CompassOverlayX);
+        ConfigClient.CompassOverlayXProperty.set((double) ConfigClient.CompassOverlayX);
 
         ConfigClient.CompassOverlayY = posY;
-        ConfigClient.CompassOverlayYProperty.set(ConfigClient.CompassOverlayY);
+        ConfigClient.CompassOverlayYProperty.set((double) ConfigClient.CompassOverlayY);
 
         ConfigClient.CompassOverlayScale = scale;
         ConfigClient.CompassOverlayScaleProperty.set(ConfigClient.CompassOverlayScale);

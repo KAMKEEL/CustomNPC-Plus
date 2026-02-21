@@ -37,4 +37,9 @@ public enum EnumPlayerPacket {
 
     // Auction
     AuctionAction,
+
+    // Ability Hotbar
+    AbilityHotbarSave,
+    AbilityHotbarSelect,
+    AbilityToggle,
 }

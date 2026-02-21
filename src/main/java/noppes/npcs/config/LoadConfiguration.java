@@ -10,6 +10,7 @@ public class LoadConfiguration {
     public static File clientConfigFile;
     public static File experimentalConfigFile;
     public static File marketConfigFile;
+    public static File energyConfigFile;
 
     public static void init(String configpath) {
         mainConfigFile = new File(configpath + "main.cfg");
@@ -19,6 +20,7 @@ public class LoadConfiguration {
         debugConfigFile = new File(configpath + "debug.cfg");
         experimentalConfigFile = new File(configpath + "experimental.cfg");
         marketConfigFile = new File(configpath + "market.cfg");
+        energyConfigFile = new File(configpath + "energy.cfg");
 
         ConfigMain.init(mainConfigFile);
         ConfigItem.init(itemConfigFile);
@@ -27,5 +29,6 @@ public class LoadConfiguration {
         ConfigDebug.init(debugConfigFile);
         ConfigExperimental.init(experimentalConfigFile);
         ConfigMarket.init(marketConfigFile);
+        ConfigEnergy.init(energyConfigFile);
     }
 }

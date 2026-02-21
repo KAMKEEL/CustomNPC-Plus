@@ -4,6 +4,7 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.IEffectAction;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
@@ -205,6 +206,38 @@ public class Register<T> {
             NAMESPACE_DISPLAY_NAMES.put(namespace, displayName);
 
             return new Register.EffectActions(namespace);
+        }
+    }
+
+    public static class Conditions extends Register<AbilityCondition> {
+
+        private Conditions(String namespace) {
+            super("condition", namespace);
+        }
+
+        public AbilityCondition register(String name, Supplier<AbilityCondition> factory) {
+            entries.put(registryKey + "." + namespace + "." + name, factory);
+            return factory.get();
+        }
+
+        public void register() {
+            for (Map.Entry<String, Supplier<AbilityCondition>> entry : entries.entrySet()) {
+                AbilityController.Instance.registerCondition(entry.getValue());
+            }
+        }
+
+        public static Register.Conditions create(String namespace, String displayName) {
+            if (!REGISTERED_NAMESPACES.containsKey("condition"))
+                REGISTERED_NAMESPACES.put("condition", new ArrayList<>());
+
+            if (REGISTERED_NAMESPACES.get("condition").contains(namespace)) {
+                LogWriter.error("REGISTER CONDITIONS: Namespace " + namespace + " already registered!");
+            }
+
+            REGISTERED_NAMESPACES.get("condition").add(namespace);
+            NAMESPACE_DISPLAY_NAMES.put(namespace, displayName);
+
+            return new Register.Conditions(namespace);
         }
     }
 }

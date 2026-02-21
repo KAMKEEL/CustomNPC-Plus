@@ -1,15 +1,12 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityPhase;
-import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.IAbilityAction;
-import kamkeel.npcs.controllers.data.ability.IAbilityExtender;
-import kamkeel.npcs.controllers.data.ability.IAbilityFieldProvider;
-import kamkeel.npcs.controllers.data.ability.IEffectAction;
-import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
-import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.*;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionHPThreshold;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionHitCount;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionItem;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionHasEffect;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionQuestCompleted;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
@@ -43,14 +40,7 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -70,6 +60,7 @@ public class AbilityController implements IAbilityHandler {
     private final List<IAbilityFieldProvider> fieldProviders = new ArrayList<>();
     private final List<IChainedAbilityFieldProvider> chainedFieldProviders = new ArrayList<>();
     private final List<IAbilityExtender> extenders = new ArrayList<>();
+    private final Map<String, Supplier<AbilityCondition>> conditionTypes = new HashMap<>();
     private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
 
     // ── Legacy Migration ─────────────────────────────────────────────────────
@@ -90,6 +81,7 @@ public class AbilityController implements IAbilityHandler {
 
     public AbilityController() {
         registerBuiltinTypes();
+        registerBuiltinConditionTypes();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -158,6 +150,14 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:wall", AbilityWall::new);
         registerType("cnpc:shield", AbilityShield::new);
         registerType("cnpc:slicer", AbilitySlicer::new);
+    }
+
+    private void registerBuiltinConditionTypes() {
+        registerCondition(ConditionHPThreshold::new);
+        registerCondition(ConditionHitCount::new);
+        registerCondition(ConditionItem::new);
+        registerCondition(ConditionQuestCompleted::new);
+        registerCondition(ConditionHasEffect::new);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -890,6 +890,45 @@ public class AbilityController implements IAbilityHandler {
         return extenders;
     }
 
+    public void registerCondition(Supplier<AbilityCondition> conditionFactory) {
+        AbilityCondition temp = conditionFactory.get();
+        String typeId = temp.getTypeId();
+        if (conditionTypes.containsKey(typeId)) {
+            LogWriter.info("AbilityController: Overwriting Condition type: " + typeId);
+        }
+        conditionTypes.put(typeId, conditionFactory);
+    }
+
+    public Supplier<AbilityCondition> getConditionType(String key) {
+        return conditionTypes.get(key);
+    }
+
+    public String[] getConditionTypes() {
+        return conditionTypes.keySet().toArray(new String[0]);
+    }
+
+    public List<String> getConditionNamespaces() {
+        LinkedHashSet<String> seen = new LinkedHashSet<>();
+        for (String typeId : conditionTypes.keySet()) {
+            String[] parts = typeId.split("\\.", 3);
+            if (parts.length >= 2) {
+                seen.add(parts[1]);
+            }
+        }
+        return new ArrayList<>(seen);
+    }
+
+    public String[] getConditionTypesByNamespace(String namespace) {
+        String prefix = "condition." + namespace + ".";
+        List<String> result = new ArrayList<>();
+        for (String typeId : conditionTypes.keySet()) {
+            if (typeId.startsWith(prefix)) {
+                result.add(typeId);
+            }
+        }
+        return result.toArray(new String[0]);
+    }
+
     public void registerFlightChecker(Predicate<EntityPlayer> checker) {
         flightCheckers.add(checker);
     }
@@ -950,6 +989,17 @@ public class AbilityController implements IAbilityHandler {
             }
         }
         return false;
+    }
+
+    /**
+     * Fire modifyProjectileDamage on all extenders. Cumulative — each extender's output feeds the next.
+     */
+    public float fireModifyProjectileDamage(Ability ability, EntityLivingBase caster, float baseDamage) {
+        float damage = baseDamage;
+        for (IAbilityExtender ext : extenders) {
+            damage = ext.modifyProjectileDamage(ability, caster, damage);
+        }
+        return damage;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

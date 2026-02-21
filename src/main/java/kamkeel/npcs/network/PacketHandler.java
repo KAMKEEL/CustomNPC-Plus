@@ -8,24 +8,9 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumChannelType;
-import kamkeel.npcs.network.packets.data.AchievementPacket;
-import kamkeel.npcs.network.packets.data.ChatAlertPacket;
-import kamkeel.npcs.network.packets.data.ChatBubblePacket;
-import kamkeel.npcs.network.packets.data.ClonerPacket;
-import kamkeel.npcs.network.packets.data.ConfigCommandPacket;
-import kamkeel.npcs.network.packets.data.DisableMouseInputPacket;
-import kamkeel.npcs.network.packets.data.LoginPacket;
-import kamkeel.npcs.network.packets.data.MarkDataPacket;
-import kamkeel.npcs.network.packets.data.OverlayQuestTrackingPacket;
-import kamkeel.npcs.network.packets.data.ParticlePacket;
-import kamkeel.npcs.network.packets.data.PlayerDataInfoPacket;
-import kamkeel.npcs.network.packets.data.PlayerUpdateSkinOverlaysPacket;
-import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
-import kamkeel.npcs.network.packets.data.ScrollSelectedPacket;
-import kamkeel.npcs.network.packets.data.SoundManagementPacket;
-import kamkeel.npcs.network.packets.data.SwingPlayerArmPacket;
-import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
-import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.*;
+import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
+import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
@@ -54,6 +39,9 @@ import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import kamkeel.npcs.network.packets.player.AuctionActionPacket;
+import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSavePacket;
+import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSelectPacket;
+import kamkeel.npcs.network.packets.player.ability.AbilityTogglePacket;
 import kamkeel.npcs.network.packets.player.BankActionPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.CompanionActionPacket;
@@ -578,6 +566,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new DialogPacket());
         DATA_PACKET.registerPacket(new RolePacket());
         DATA_PACKET.registerPacket(new WeaponNpcPacket());
+        DATA_PACKET.registerPacket(new RequestProperSpawnData());
 
         // Data | Script Packets
         DATA_PACKET.registerPacket(new ScriptedParticlePacket());
@@ -598,6 +587,8 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new TelegraphRemovePacket());
         DATA_PACKET.registerPacket(new PlayerAbilitySyncPacket());
         DATA_PACKET.registerPacket(new PlayerAbilityStatePacket());
+        DATA_PACKET.registerPacket(new AbilityHotbarSyncPacket());
+        DATA_PACKET.registerPacket(new AbilityCooldownSyncPacket());
     }
 
     public void registerPlayerPackets() {
@@ -663,6 +654,11 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new PartyAcceptInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyIgnoreInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyLogToServerPacket());
+
+        // Ability Hotbar Packets
+        PLAYER_PACKET.registerPacket(new AbilityHotbarSavePacket());
+        PLAYER_PACKET.registerPacket(new AbilityHotbarSelectPacket());
+        PLAYER_PACKET.registerPacket(new AbilityTogglePacket());
     }
 
     public void registerChannels() {

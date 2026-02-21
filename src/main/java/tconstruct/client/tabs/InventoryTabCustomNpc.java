@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
+import noppes.npcs.client.gui.player.inventory.GuiAbilities;
 import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.gui.player.inventory.GuiFaction;
 import noppes.npcs.client.gui.player.inventory.GuiParty;
@@ -57,6 +58,9 @@ public class InventoryTabCustomNpc extends AbstractTab {
         }
         if (tab == -104) {
             mc.displayGuiScreen(new GuiProfiles());
+        }
+        if (tab == -105) {
+            mc.displayGuiScreen(new GuiAbilities());
         }
     }
 }

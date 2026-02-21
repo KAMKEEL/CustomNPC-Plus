@@ -1,6 +1,7 @@
 package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -57,7 +58,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     /**
      * Chain-level conditions (individual ability conditions are ignored).
      */
-    private List<Condition> conditions = new ArrayList<>();
+    private List<AbilityCondition> conditions = new ArrayList<>();
 
     /**
      * Ordered list of ability entries to execute.
@@ -185,11 +186,11 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         return UserType.NPC_ONLY;
     }
 
-    public List<Condition> getConditions() {
+    public List<AbilityCondition> getConditions() {
         return conditions;
     }
 
-    public void setConditions(List<Condition> conditions) {
+    public void setConditions(List<AbilityCondition> conditions) {
         this.conditions = conditions != null ? conditions : new ArrayList<>();
     }
 
@@ -279,7 +280,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      * Check all chain-level conditions against the caster and target.
      */
     public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
             if (!c.check(caster, target)) {
                 return false;
             }
@@ -291,7 +292,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      * Check conditions for player use (skip target-requiring conditions).
      */
     public boolean checkConditionsForPlayer(EntityLivingBase caster) {
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
             if (c.requiresTarget()) continue;
             if (!c.check(caster, null)) {
                 return false;
@@ -382,7 +383,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
         // Conditions
         NBTTagList condList = new NBTTagList();
-        for (Condition c : conditions) {
+        for (AbilityCondition c : conditions) {
             condList.appendTag(c.writeNBT());
         }
         nbt.setTag("Conditions", condList);
@@ -416,7 +417,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         conditions.clear();
         NBTTagList condList = nbt.getTagList("Conditions", 10);
         for (int i = 0; i < condList.tagCount(); i++) {
-            Condition c = Condition.fromNBT(condList.getCompoundTagAt(i));
+            AbilityCondition c = AbilityCondition.fromNBT(condList.getCompoundTagAt(i));
             if (c != null) {
                 conditions.add(c);
             }

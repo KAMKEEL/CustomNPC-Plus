@@ -89,6 +89,14 @@ public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEn
         entity.getBarrierData().defaultMultiplier = multiplier;
     }
 
+    public boolean isSolid() {
+        return entity.getBarrierData().solid;
+    }
+
+    public void setSolid(boolean solid) {
+        entity.getBarrierData().solid = solid;
+    }
+
     public boolean isKnockbackEnabled() {
         return entity.getBarrierData().knockbackEnabled;
     }
@@ -105,12 +113,12 @@ public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEn
         entity.getBarrierData().knockbackStrength = strength;
     }
 
-    public int getKnockbackTarget() {
-        return entity.getBarrierData().knockbackTarget;
+    public boolean isAbsorbing() {
+        return entity.getBarrierData().absorbing;
     }
 
-    public void setKnockbackTarget(int target) {
-        entity.getBarrierData().knockbackTarget = target;
+    public void setAbsorbing(boolean absorbing) {
+        entity.getBarrierData().absorbing = absorbing;
     }
 
     public int getBarrierType() {

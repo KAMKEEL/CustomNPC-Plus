@@ -48,7 +48,7 @@ public class RenderEnergyPanel extends RenderEnergyBarrier {
         GL11.glPushMatrix();
         GL11.glScalef(scale, scale, scale);
 
-        float innerScale = 0.9f;
+        float innerScale = 1.0f;
         float panelThickness = 0.1f;
 
         // Render outer panel (translucent glow)

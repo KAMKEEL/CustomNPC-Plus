@@ -52,7 +52,7 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         this.windUpSound = "mob.zombie.wood";
         this.activeSound = "mob.zombie.attack";
         this.windUpAnimationName = "Ability_Charge_Windup";
-        this.activeAnimationName = "Ability_Active_Windup";
+        this.activeAnimationName = "Ability_Charge_Active";
     }
 
     @Override
@@ -226,6 +226,11 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         instance.setCasterEntityId(caster.getEntityId());
         // Telegraph follows caster during windup - allows caster to reposition
         instance.setEntityIdToFollow(caster.getEntityId());
+
+        // For player casters, track their rotation so telegraph follows look direction
+        if (isPlayerCaster(caster)) {
+            instance.setTrackFollowedEntityYaw(true);
+        }
 
         return instance;
     }
