@@ -57,7 +57,7 @@ public class ConditionHasEffect extends AbilityCondition {
 
     @Override
     public String getConditionSummary() {
-        String filterLabel = StatCollector.translateToLocal("condition.filter." + getFilter().name().toLowerCase());
+        String filterLabel = StatCollector.translateToLocal(getFilter().toString());
         String effectName = "None";
         if (effectId >= 0) {
             CustomEffect effect = getEffect();
