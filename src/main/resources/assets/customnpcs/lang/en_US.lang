@@ -2110,6 +2110,10 @@ condition.threshold_percent=Threshold %
 condition.quest_completed=Quest Completed
 condition.select_quest=Select Quest
 
+# Condition Has Effect
+condition.has_effect=Has Effect
+condition.select_effect=Select Effect
+
 # Condition Hover Tooltips
 condition.hover.type=Condition type that must be met for ability to activate
 condition.hover.hpAbove=Activates when NPC health is above this percentage
