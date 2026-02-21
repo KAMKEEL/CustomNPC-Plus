@@ -28,7 +28,8 @@ public class RequestProperSpawnData extends AbstractPacket {
     private static final int BATCH_LIMIT = 5;
 
     @SideOnly(Side.CLIENT)
-    private static final Set<Integer> entitiesToFix;
+    private static Set<Integer> entitiesToFix;
+
     @SideOnly(Side.CLIENT)
     private static long lastBatchAttemptMillis;
 
