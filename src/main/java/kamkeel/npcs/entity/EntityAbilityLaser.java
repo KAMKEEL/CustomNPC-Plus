@@ -8,6 +8,7 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
@@ -172,18 +173,6 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
         EntityLivingBase livingOwner = (EntityLivingBase) owner;
 
-        // Update origin from anchor point
-        if (anchorData != null) {
-            Vec3 pos = AnchorPointHelper.calculateAnchorPosition(livingOwner, anchorData);
-            startX = pos.xCoord;
-            startY = pos.yCoord;
-            startZ = pos.zCoord;
-        } else {
-            startX = owner.posX;
-            startY = owner.posY + owner.height * 0.7;
-            startZ = owner.posZ;
-        }
-
         // Update direction from owner's current rotation
         float yaw = (float) Math.toRadians(owner.rotationYaw);
         if (lockVerticalDirection) {
@@ -199,6 +188,25 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             dirZ = Math.cos(yaw) * Math.cos(pitch);
         }
 
+        // Update origin: for player casters, snap to look vector so laser aligns with crosshair.
+        // For NPCs, use the configured anchor point.
+        if (owner instanceof EntityPlayer) {
+            double eyeY = owner.posY + owner.getEyeHeight();
+            float frontDist = Math.max(0.5f, laserWidth * 0.5f);
+            startX = owner.posX + dirX * frontDist;
+            startY = eyeY + dirY * frontDist;
+            startZ = owner.posZ + dirZ * frontDist;
+        } else if (anchorData != null) {
+            Vec3 pos = AnchorPointHelper.calculateAnchorPosition(livingOwner, anchorData);
+            startX = pos.xCoord;
+            startY = pos.yCoord;
+            startZ = pos.zCoord;
+        } else {
+            startX = owner.posX;
+            startY = owner.posY + owner.height * 0.7;
+            startZ = owner.posZ;
+        }
+
         // Keep entity positioned at origin
         prevPosX = startX;
         prevPosY = startY;
@@ -209,12 +217,6 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     public void startMoving(EntityLivingBase target) {
         setCharging(false);
 
-        // Initialize from current anchor position
-        // updateLaserOriginAndDirection() will keep these updated each tick
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
         // Set initial direction from owner's rotation
         Entity owner = getOwnerEntity();
         if (owner != null) {
@@ -224,15 +226,33 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             this.dirY = -Math.sin(pitch);
             this.dirZ = Math.cos(yaw) * Math.cos(pitch);
         } else if (target != null) {
-            double dx = target.posX - startX;
-            double dy = (target.posY + target.getEyeHeight() - 0.4) - startY;
-            double dz = target.posZ - startZ;
+            double dx = target.posX - posX;
+            double dy = (target.posY + target.getEyeHeight() - 0.4) - posY;
+            double dz = target.posZ - posZ;
             double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len > 0) {
                 this.dirX = dx / len;
                 this.dirY = dy / len;
                 this.dirZ = dz / len;
             }
+        }
+
+        // For player casters, snap origin to look vector so laser aligns with crosshair.
+        // For NPCs, use current anchor position.
+        if (owner instanceof EntityPlayer) {
+            double eyeY = owner.posY + owner.getEyeHeight();
+            float frontDist = Math.max(0.5f, laserWidth * 0.5f);
+            startX = owner.posX + dirX * frontDist;
+            startY = eyeY + dirY * frontDist;
+            startZ = owner.posZ + dirZ * frontDist;
+            setPosition(startX, startY, startZ);
+            prevPosX = startX;
+            prevPosY = startY;
+            prevPosZ = startZ;
+        } else {
+            startX = posX;
+            startY = posY;
+            startZ = posZ;
         }
 
         // Initialize end point at start (will expand from here)

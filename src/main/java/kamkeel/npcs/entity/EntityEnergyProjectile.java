@@ -132,6 +132,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     public EntityEnergyProjectile(World world) {
         super(world);
         this.setSize(0.5f, 0.5f);
+        this.yOffset = this.height / 2.0f;
         this.noClip = false;
     }
 
@@ -363,6 +364,20 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     @Override
     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements) {
+        // If position changed significantly (e.g. snap from anchor to look vector),
+        // skip interpolation and jump directly to prevent visual offset from crosshair
+        double dx = x - this.posX;
+        double dy = y - this.posY;
+        double dz = z - this.posZ;
+        if (dx * dx + dy * dy + dz * dz > 1.0) {
+            this.setPosition(x, y, z);
+            this.prevPosX = x;
+            this.prevPosY = y;
+            this.prevPosZ = z;
+            this.interpSteps = 0;
+            return;
+        }
+
         this.interpTargetX = x;
         this.interpTargetY = y;
         this.interpTargetZ = z;
