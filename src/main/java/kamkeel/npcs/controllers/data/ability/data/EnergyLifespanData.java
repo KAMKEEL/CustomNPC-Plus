@@ -26,7 +26,7 @@ public class EnergyLifespanData implements IEnergyLifespanData {
 
     @Override
     public void setMaxDistance(float maxDistance) {
-        this.maxDistance = maxDistance;
+        this.maxDistance = Float.isNaN(maxDistance) || maxDistance <= 0 ? 150.0f : maxDistance;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class EnergyLifespanData implements IEnergyLifespanData {
 
     @Override
     public void setMaxLifetime(int maxLifetime) {
-        this.maxLifetime = maxLifetime;
+        this.maxLifetime = maxLifetime <= 0 ? 200 : maxLifetime;
     }
 
     public void writeNBT(NBTTagCompound nbt) {

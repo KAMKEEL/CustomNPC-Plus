@@ -210,7 +210,7 @@ public class RenderAbilityZone extends Render {
 
         if (c.accents) {
             float aa = 0.5f * c.brightness * (0.3f + 0.2f * sin(c.pulse * 0.7f));
-            AccentStyle style = AccentStyle.values()[Math.min(c.accentStyle, AccentStyle.values().length - 1)];
+            AccentStyle style = AccentStyle.values()[Math.max(0, Math.min(c.accentStyle, AccentStyle.values().length - 1))];
             switch (style) {
                 case SWAYING:
                     renderSwayingAccents(c, c.ir, c.ig, c.ib, aa, c.height);
@@ -314,7 +314,7 @@ public class RenderAbilityZone extends Render {
 
     private void spawnDefaultParticles(Ctx c) {
         int count = Math.round(3 * c.particleDensity);
-        ParticleMotion motion = ParticleMotion.values()[Math.min(c.particleMotion, ParticleMotion.values().length - 1)];
+        ParticleMotion motion = ParticleMotion.values()[Math.max(0, Math.min(c.particleMotion, ParticleMotion.values().length - 1))];
         for (int i = 0; i < count; i++) {
             double[] pos = randomPosInZone(c);
             double mx, my, mz;
@@ -350,7 +350,7 @@ public class RenderAbilityZone extends Render {
     }
 
     private double[] getMotionForStyle(int motionOrdinal) {
-        ParticleMotion motion = ParticleMotion.values()[Math.min(motionOrdinal, ParticleMotion.values().length - 1)];
+        ParticleMotion motion = ParticleMotion.values()[Math.max(0, Math.min(motionOrdinal, ParticleMotion.values().length - 1))];
         switch (motion) {
             case DRIFTING:
                 return new double[]{

@@ -331,8 +331,8 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         this.sliceWidth = sanitize(nbt.hasKey("SliceWidth") ? nbt.getFloat("SliceWidth") : 3.0f, 3.0f, MAX_ENTITY_SIZE);
         this.sliceThickness = sanitize(nbt.hasKey("SliceThickness") ? nbt.getFloat("SliceThickness") : 0.15f, 0.15f, MAX_ENTITY_SIZE);
         this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
-        this.targetSliceWidth = nbt.hasKey("TargetSliceWidth") ? nbt.getFloat("TargetSliceWidth") : sliceWidth;
-        this.targetSliceThickness = nbt.hasKey("TargetSliceThickness") ? nbt.getFloat("TargetSliceThickness") : sliceThickness;
+        this.targetSliceWidth = sanitize(nbt.hasKey("TargetSliceWidth") ? nbt.getFloat("TargetSliceWidth") : sliceWidth, sliceWidth, MAX_ENTITY_SIZE);
+        this.targetSliceThickness = sanitize(nbt.hasKey("TargetSliceThickness") ? nbt.getFloat("TargetSliceThickness") : sliceThickness, sliceThickness, MAX_ENTITY_SIZE);
     }
 
     @Override

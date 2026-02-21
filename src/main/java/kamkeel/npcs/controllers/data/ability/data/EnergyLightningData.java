@@ -61,7 +61,7 @@ public class EnergyLightningData implements IEnergyLightningData {
 
     @Override
     public void setLightningFadeTime(int lightningFadeTime) {
-        this.lightningFadeTime = lightningFadeTime;
+        this.lightningFadeTime = Math.max(1, lightningFadeTime);
     }
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -72,10 +72,11 @@ public class EnergyLightningData implements IEnergyLightningData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        lightningEffect = nbt.getBoolean("lightningEffect");
-        lightningDensity = nbt.getFloat("lightningDensity");
-        lightningRadius = nbt.getFloat("lightningRadius");
-        lightningFadeTime = nbt.getInteger("lightningFadeTime");
+        lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
+        lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
+        lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;
+        lightningFadeTime = nbt.hasKey("lightningFadeTime") ? nbt.getInteger("lightningFadeTime") : 6;
+        if (lightningFadeTime <= 0) lightningFadeTime = 1;
     }
 
     public EnergyLightningData copy() {
