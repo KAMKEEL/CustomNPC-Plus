@@ -1233,6 +1233,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
         for (AbilityCondition c : conditions) {
+            if (!c.getUserType().allowsNpc()) continue;
             if (!c.check(caster, target)) return false;
         }
         return true;
@@ -1243,6 +1244,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     public boolean checkConditionsForPlayer(EntityLivingBase caster) {
         for (AbilityCondition c : conditions) {
+            if (!c.getUserType().allowsPlayer()) continue;
             if (c.requiresTarget()) continue;
             if (!c.check(caster, null)) return false;
         }

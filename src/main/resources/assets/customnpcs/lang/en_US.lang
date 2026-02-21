@@ -2079,14 +2079,18 @@ gui.players=Players
 
 # Conditions
 condition.edit=Edit Condition
-condition.hp_above=NPC HP Above
-condition.hp_below=NPC HP Below
-condition.target_hp_above=Target HP Above
-condition.target_hp_below=Target HP Below
+condition.filter=Filter Type
+condition.filter.target=Target
+condition.filter.caster=Caster
+condition.filter.both=Both
 condition.hit_count=Hit Count
-condition.percent=Threshold
-condition.hits=Required Hits
-condition.within=Within (ticks)
+condition.hp_threshold=HP Threshold
+condition.hp_above=HP Above
+condition.hp_below=HP Below
+condition.threshold=Threshold
+condition.threshold_type=Threshold Type
+condition.required_hits=Required Hits
+condition.within_ticks=Within (ticks)
 
 # Condition Hover Tooltips
 condition.hover.type=Condition type that must be met for ability to activate

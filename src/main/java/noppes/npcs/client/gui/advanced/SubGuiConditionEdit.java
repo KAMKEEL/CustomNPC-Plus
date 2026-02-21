@@ -1,190 +1,159 @@
 package noppes.npcs.client.gui.advanced;
 
-import kamkeel.npcs.controllers.data.ability.Condition;
+import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.client.gui.util.*;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
- * SubGui for editing a single ability condition.
- * Allows selecting condition type and configuring its parameters.
+ * SubGui for editing a single AbilityCondition.
+ *
+ * Type selection stays manual (we need to swap the condition object).
+ * Field rendering is fully delegated to AbilityCondition#getAbilityDefinitions(),
+ * mirroring the pattern used in SubGuiAbilityConfig.
  */
-public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldListener {
+public class SubGuiConditionEdit extends SubGuiInterface implements ITextfieldListener, ISubGuiListener {
 
-    // Condition types
-    private static final String[] CONDITION_TYPES = {
-        "condition.hp_above",
-        "condition.hp_below",
-        "condition.target_hp_above",
-        "condition.target_hp_below",
-        "condition.hit_count"
-    };
+    private static final int DECLARATIVE_ID_START = 1000;
+    private static final int CLEAR_ID_START = 2000;
+    private static final int LABEL_ID_START = 3000;
 
-    private static final String[] CONDITION_TYPE_IDS = {
-        "hp_above",
-        "hp_below",
-        "target_hp_above",
-        "target_hp_below",
-        "hit_count"
-    };
+    private static final int BTN_TYPE = 1;
+    private static final int BTN_CANCEL = 10;
+    private static final int BTN_DONE = 11;
 
-    // Current condition being edited
-    private Condition condition;
-    private Condition result;
+    private AbilityCondition condition;
+    private AbilityCondition result;
 
-    // State
+    private final String[] conditionTypeIds;
+    private final String[] conditionTypeNames;
     private int selectedTypeIndex = 0;
-    private float threshold = 0.5f;  // For HP conditions (0.0-1.0)
-    private int requiredHits = 3;    // For hit_count
-    private int withinTicks = 60;    // For hit_count
 
-    public SubGuiConditionEdit(Condition existing) {
-        this.condition = existing;
+    private AbilityFieldBuilder builder;
+
+    public SubGuiConditionEdit(AbilityCondition existing) {
         this.result = null;
 
+        conditionTypeIds = AbilityController.Instance.getConditionTypes();
+        conditionTypeNames = new String[conditionTypeIds.length];
+        for (int i = 0; i < conditionTypeIds.length; i++) {
+            Supplier<AbilityCondition> factory = AbilityController.Instance.getConditionType(conditionTypeIds[i]);
+            conditionTypeNames[i] = factory != null ? factory.get().getName() : conditionTypeIds[i];
+        }
+
         if (existing != null) {
-            String typeId = existing.getTypeId();
-            for (int i = 0; i < CONDITION_TYPE_IDS.length; i++) {
-                if (CONDITION_TYPE_IDS[i].equals(typeId)) {
+            for (int i = 0; i < conditionTypeIds.length; i++) {
+                if (conditionTypeIds[i].equals(existing.getTypeId())) {
                     selectedTypeIndex = i;
                     break;
                 }
             }
-            loadFromCondition(existing);
+            this.condition = existing;
+        } else {
+            this.condition = spawnCondition(selectedTypeIndex);
         }
 
         setBackground("menubg.png");
-        xSize = 220;
-        ySize = 140;
+        xSize = 240;
+        ySize = 180;
     }
 
-    private void loadFromCondition(Condition cond) {
-        String typeId = cond.getTypeId();
-        if (typeId.equals("hit_count")) {
-            Condition.ConditionHitCount hitCount = (Condition.ConditionHitCount) cond;
-            requiredHits = hitCount.getRequiredHits();
-            withinTicks = hitCount.getWithinTicks();
-        } else {
-            // HP-based conditions
-            net.minecraft.nbt.NBTTagCompound nbt = cond.writeNBT();
-            threshold = nbt.hasKey("threshold") ? nbt.getFloat("threshold") : 0.5f;
-        }
+    private AbilityCondition spawnCondition(int typeIndex) {
+        if (typeIndex < 0 || typeIndex >= conditionTypeIds.length) return null;
+        Supplier<AbilityCondition> factory = AbilityController.Instance.getConditionType(conditionTypeIds[typeIndex]);
+        return factory != null ? factory.get() : null;
     }
 
     @Override
     public void initGui() {
+        GuiNpcTextField.unfocus();
         super.initGui();
 
-        int y = guiTop + 8;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 90;
+        int swX = guiLeft + 4;
+        int swY = guiTop + 5;
+        int swW = xSize - 8;
+        int swH = ySize - 35;
 
-        // Title
-        addLabel(new GuiNpcLabel(0, "condition.edit", labelX, y));
-        y += 18;
-
-        // Condition Type selector
-        addLabel(new GuiNpcLabel(1, "gui.type", labelX, y + 5));
-        GuiNpcButton typeBtn = new GuiNpcButton(1, fieldX, y, 115, 20, CONDITION_TYPES, selectedTypeIndex);
-        typeBtn.setHoverText("condition.hover.type");
+        int labelY = guiTop + 8;
+        addLabel(new GuiNpcLabel(0, "gui.type", guiLeft + 8, labelY + 5));
+        GuiNpcButton typeBtn = new GuiNpcButton(BTN_TYPE, guiLeft + 80, labelY, 155, 20, conditionTypeNames, selectedTypeIndex);
         addButton(typeBtn);
-        y += 26;
 
-        // Type-specific fields
-        String typeId = CONDITION_TYPE_IDS[selectedTypeIndex];
-        if (typeId.equals("hit_count")) {
-            // Hit count fields
-            addLabel(new GuiNpcLabel(2, "condition.hits", labelX, y + 5));
-            GuiNpcTextField hitsField = new GuiNpcTextField(2, this, fontRendererObj, fieldX, y, 40, 20, "" + requiredHits);
-            hitsField.setIntegersOnly();
-            hitsField.setMinMaxDefault(1, 100, 3);
-            hitsField.setHoverText("condition.hover.hits");
-            addTextField(hitsField);
-            y += 24;
+        swY += 26;
+        swH -= 26;
 
-            addLabel(new GuiNpcLabel(3, "condition.within", labelX, y + 5));
-            GuiNpcTextField ticksField = new GuiNpcTextField(3, this, fontRendererObj, fieldX, y, 40, 20, "" + withinTicks);
-            ticksField.setIntegersOnly();
-            ticksField.setMinMaxDefault(1, 1200, 60);
-            ticksField.setHoverText("condition.hover.within");
-            addTextField(ticksField);
-        } else {
-            // HP threshold field (as percentage)
-            addLabel(new GuiNpcLabel(2, "condition.percent", labelX, y + 5));
-            int percent = (int) (threshold * 100);
-            GuiNpcTextField thresholdField = new GuiNpcTextField(4, this, fontRendererObj, fieldX, y, 40, 20, "" + percent);
-            thresholdField.setIntegersOnly();
-            thresholdField.setMinMaxDefault(1, 99, 50);
-            thresholdField.setHoverText("condition.hover.threshold");
-            addTextField(thresholdField);
-            addLabel(new GuiNpcLabel(4, "%", fieldX + 45, y + 5));
+        List<FieldDef> fields = new ArrayList<>();
+        if (condition != null) {
+            fields = condition.getAllDefinitions();
         }
 
-        // Bottom buttons
-        addButton(new GuiNpcButton(10, guiLeft + 8, guiTop + ySize - 28, 60, 20, "gui.cancel"));
-        addButton(new GuiNpcButton(11, guiLeft + xSize - 68, guiTop + ySize - 28, 60, 20, "gui.done"));
+        builder = new AbilityFieldBuilder(this, fontRendererObj);
+        builder.startIds(DECLARATIVE_ID_START, CLEAR_ID_START, LABEL_ID_START);
+        builder.startY(5);
+
+        builder.buildScrollWindow(fields, swX, swY, swW, swH);
+
+        int btnY = guiTop + ySize - 26;
+        addButton(new GuiNpcButton(BTN_CANCEL, guiLeft + 8,          btnY, 60, 20, "gui.cancel"));
+        addButton(new GuiNpcButton(BTN_DONE,   guiLeft + xSize - 68, btnY, 60, 20, "gui.done"));
     }
 
     @Override
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
 
-        if (id == 1) {
-            // Type changed
-            selectedTypeIndex = ((GuiNpcButton) guibutton).getValue();
+        if (id == BTN_TYPE) {
+            int newIndex = ((GuiNpcButton) guibutton).getValue();
+            if (newIndex != selectedTypeIndex) {
+                selectedTypeIndex = newIndex;
+                condition = spawnCondition(selectedTypeIndex);
+            }
             initGui();
-        } else if (id == 10) {
-            // Cancel - close without saving
+            return;
+        }
+
+        if (id == BTN_CANCEL) {
             result = null;
             close();
-        } else if (id == 11) {
-            // Done - create condition and close
-            result = createCondition();
+            return;
+        }
+
+        if (id == BTN_DONE) {
+            result = condition;
             close();
+            return;
+        }
+
+        if (builder != null && builder.handleButtonEvent(id, guibutton)) {
+            if (!hasSubGui()) {
+                initGui();
+            }
         }
     }
 
     @Override
     public void unFocused(GuiNpcTextField textField) {
-        int id = textField.id;
-
-        if (id == 2) {
-            requiredHits = textField.getInteger();
-        } else if (id == 3) {
-            withinTicks = textField.getInteger();
-        } else if (id == 4) {
-            int percent = textField.getInteger();
-            threshold = percent / 100.0f;
+        if (textField.id < DECLARATIVE_ID_START) return;
+        if (builder != null && builder.handleTextFieldEvent(textField.id, textField)) {
+            initGui();
         }
     }
 
-    private Condition createCondition() {
-        String typeId = CONDITION_TYPE_IDS[selectedTypeIndex];
-
-        switch (typeId) {
-            case "hp_above":
-                return new Condition.ConditionHPAbove(threshold);
-            case "hp_below":
-                return new Condition.ConditionHPBelow(threshold);
-            case "target_hp_above":
-                return new Condition.ConditionTargetHPAbove(threshold);
-            case "target_hp_below":
-                return new Condition.ConditionTargetHPBelow(threshold);
-            case "hit_count":
-                return new Condition.ConditionHitCount(requiredHits, withinTicks);
-            default:
-                return null;
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if (builder != null && builder.handleSubGuiClosed(subgui)) {
+            initGui();
         }
     }
 
-    /**
-     * Get the resulting condition after dialog closes.
-     * Returns null if cancelled or no valid condition.
-     */
-    public Condition getResult() {
+    public AbilityCondition getResult() {
         return result;
     }
 }

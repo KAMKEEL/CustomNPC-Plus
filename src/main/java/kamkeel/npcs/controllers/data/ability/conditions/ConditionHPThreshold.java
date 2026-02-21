@@ -1,11 +1,9 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
-import kamkeel.npcs.controllers.data.ability.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
 
-import java.util.Collections;
 import java.util.List;
 
 public class ConditionHPThreshold extends AbilityCondition{
@@ -16,13 +14,13 @@ public class ConditionHPThreshold extends AbilityCondition{
         ABOVE {
             @Override
             public boolean test(float value, float threshold) {
-                return value > threshold;
+                return value >= threshold;
             }
         },
         BELOW {
             @Override
             public boolean test(float value, float threshold) {
-                return value < threshold;
+                return value <= threshold;
             }
         };
 
@@ -35,12 +33,23 @@ public class ConditionHPThreshold extends AbilityCondition{
             }
             return ABOVE;
         }
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case ABOVE:
+                    return "condition.hp_above";
+                case BELOW:
+                    return "condition.hp_below";
+                default:
+                    return name();
+            }
+        }
     }
 
     public ConditionHPThreshold() {
         this.typeId = "condition.cnpc.hp_threshold";
-        this.name = "Health Threshold";
-        this.userType = UserType.NPC_ONLY;
+        this.name = "condition.hp_threshold";
     }
 
     @Override
@@ -56,10 +65,10 @@ public class ConditionHPThreshold extends AbilityCondition{
         boolean casterCheck = thresholdType.test(casterHp, threshold);
         boolean targetCheck = thresholdType.test(targetHp, threshold);
 
-        switch (getUserType()) {
+        switch (getFilter()) {
             case BOTH:
                 return casterCheck && targetCheck;
-            case PLAYER_ONLY:
+            case CASTER:
                 return casterCheck;
             default:
                 return targetCheck;
@@ -83,8 +92,10 @@ public class ConditionHPThreshold extends AbilityCondition{
     }
 
     @Override
-    public List<FieldDef> getAbilityDefinitions(List<FieldDef> defs) {
-        return Collections.emptyList();
+    public void getConditionDefinitions(List<FieldDef> defs) {
+        defs.add(FieldDef.floatField("condition.threshold", this::getThreshold, this::setThreshold).min(0));
+        defs.add(FieldDef.enumField("condition.threshold_type", ThresholdType.class,
+            this::getThresholdType, this::setThresholdType));
     }
 
     @Override

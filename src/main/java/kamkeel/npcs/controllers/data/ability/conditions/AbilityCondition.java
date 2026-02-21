@@ -9,6 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.LogWriter;
 import noppes.npcs.client.gui.builder.FieldDef;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -16,6 +17,7 @@ public abstract class AbilityCondition {
     protected String typeId = "";
     protected String name = "";
     protected UserType userType = UserType.BOTH;
+    protected ConditionFilter conditionFilter = ConditionFilter.CASTER;
 
     /**
      * Check if this condition is met.
@@ -34,10 +36,6 @@ public abstract class AbilityCondition {
         return userType;
     }
 
-    public void setUserType(UserType userType) {
-        this.userType = userType;
-    }
-
     public String getTypeId() {
         return typeId;
     }
@@ -46,14 +44,32 @@ public abstract class AbilityCondition {
         return name;
     }
 
+    public ConditionFilter getFilter() {
+        return conditionFilter;
+    }
+
+    public void setFilter(ConditionFilter filter) {
+        this.conditionFilter = filter;
+    }
+
     @SideOnly(Side.CLIENT)
-    public abstract List<FieldDef> getAbilityDefinitions(List<FieldDef> defs);
+    public abstract void getConditionDefinitions(List<FieldDef> defs);
+
+    @SideOnly(Side.CLIENT)
+    public final List<FieldDef> getAllDefinitions() {
+        List<FieldDef> defs = new ArrayList<>();
+
+        defs.add(FieldDef.enumField("condition.filter", ConditionFilter.class, this::getFilter, this::setFilter));
+        getConditionDefinitions(defs);
+        return defs;
+    }
 
     public final NBTTagCompound writeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
-        nbt.setInteger("userType", getUserType().ordinal());
-        nbt.setString("type", getTypeId());
+        nbt.setString("typeId", getTypeId());
         nbt.setString("name", getName());
+        nbt.setInteger("userType", getUserType().ordinal());
+        nbt.setInteger("filter", getUserType().ordinal());
         writeTypeNBT(nbt);
         return nbt;
     }
@@ -63,14 +79,15 @@ public abstract class AbilityCondition {
     public abstract void readTypeNBT(NBTTagCompound nbt);
 
     public final void readNBT(NBTTagCompound nbt) {
-        typeId = nbt.getString("type");
+        typeId = nbt.getString("typeId");
         name = nbt.getString("name");
         userType = UserType.fromOrdinal(nbt.getInteger("userType"));
+        conditionFilter = ConditionFilter.fromOrdinal(nbt.getInteger("filter"));
         readTypeNBT(nbt);
     }
 
     public static AbilityCondition fromNBT(NBTTagCompound nbt) {
-        String typeId = nbt.getString("type");
+        String typeId = nbt.getString("typeId");
         Supplier<AbilityCondition> factory = AbilityController.Instance.getConditionType(typeId);
         if (factory == null) {
             LogWriter.info("AbilityController: Unknown condition type: " + typeId);

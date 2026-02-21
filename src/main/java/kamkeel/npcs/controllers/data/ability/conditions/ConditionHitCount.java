@@ -6,16 +6,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.Collections;
 import java.util.List;
 
-public class ConditionHitCount extends AbilityCondition{
+public class ConditionHitCount extends AbilityCondition {
     private int requiredHits = 3;
     private int withinTicks = 60;
 
     public ConditionHitCount() {
         this.typeId = "condition.cnpc.hit_count";
-        this.name = "Hit Count";
+        this.name = "condition.hit_count";
         this.userType = UserType.NPC_ONLY;
     }
 
@@ -49,8 +48,9 @@ public class ConditionHitCount extends AbilityCondition{
     }
 
     @Override
-    public List<FieldDef> getAbilityDefinitions(List<FieldDef> defs) {
-        return Collections.emptyList();
+    public void getConditionDefinitions(List<FieldDef> defs) {
+        defs.add(FieldDef.intField("condition.required_hits", this::getRequiredHits, this::setRequiredHits).min(1));
+        defs.add(FieldDef.intField("condition.within_ticks", this::getWithinTicks, this::setWithinTicks).min(0));
     }
 
     @Override
