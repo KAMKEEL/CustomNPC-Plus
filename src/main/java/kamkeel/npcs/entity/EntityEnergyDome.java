@@ -11,9 +11,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -28,6 +30,10 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     protected float domeRadius = 5.0f;
     protected float targetDomeRadius = 5.0f;
     protected boolean followCaster = false;
+
+    // Server-side melee detection state
+    private boolean inTickMelee = false;
+    private final HashSet<Integer> processedMeleeSwings = new HashSet<>();
 
     public EntityEnergyDome(World world) {
         super(world);
@@ -96,11 +102,24 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
         if (updateBarrierTick()) return;
 
+        // Server-side: detect and apply melee hits from nearby players.
+        // Bypasses MC's processUseEntity reach check (which uses center-to-center
+        // distance and fails for domes with radius > 5).
+        if (!worldObj.isRemote && barrierData.meleeEnabled) {
+            processMeleeHits();
+        }
+
         // Process entity physics every tick
         // Server: solid + knockback for all entities
         // Client: solid prediction for local player only (smooth movement blocking)
         if (barrierData.solid || barrierData.knockbackEnabled) {
             processEntityPhysics();
+        }
+
+        // Client-side: adjust BB for accurate melee targeting at all approach angles.
+        // Must run AFTER all position/BB updates and BEFORE getMouseOver() in the render phase.
+        if (worldObj.isRemote && barrierData.meleeEnabled && !isCharging()) {
+            adjustMeleeBoundingBox();
         }
     }
 
@@ -349,29 +368,74 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     // ==================== MELEE (spherical check) ====================
 
     /**
-     * On the client side, the dome's large bounding box intercepts all raycasts from inside,
-     * preventing the player from targeting mobs within the dome. To fix this, return false
-     * when the local player is inside the dome so the raycast passes through to other entities.
-     * Players outside the dome can still target it for melee normally.
+     * Controls whether MC's entity picking (crosshair raycast) can target this dome.
+     * Returns false when melee is disabled or the dome is still charging.
+     * <p>
+     * Inside players CAN target the dome because adjustMeleeBoundingBox places a small BB
+     * at the nearest surface point, allowing mobs in other directions to still be targeted.
      */
     @Override
     public boolean canBeCollidedWith() {
         if (!barrierData.meleeEnabled) return false;
-        if (worldObj.isRemote) {
-            EntityPlayer player = CustomNpcs.proxy.getPlayer();
-            if (player != null && isEntityInside(player)) {
-                return false;
-            }
-        }
+        if (isCharging()) return false;
         return true;
     }
 
     /**
-     * Reject melee hits that land on the cubic bounding box but are outside the actual sphere.
-     * Uses distance from the sphere surface (not center) for accurate spherical rejection.
+     * Client-side: Repositions the bounding box to a small cube at the nearest sphere surface
+     * point toward the player. This fixes melee targeting at diagonal approach angles where the
+     * player would otherwise be inside the dome-sized cubic BB but outside the actual sphere,
+     * causing MC's AABB raycast to return the far exit point (beyond reach distance).
+     * <p>
+     * With a small BB (2x2x2) at the surface point, even if the player is inside it at close
+     * range, the exit point is at most ~1.7 blocks away — well within melee reach.
+     */
+    private void adjustMeleeBoundingBox() {
+        EntityPlayer player = CustomNpcs.proxy.getPlayer();
+        if (player == null) {
+            updateBoundingBox();
+            return;
+        }
+
+        double dx = player.posX - posX;
+        double dy = (player.posY + player.getEyeHeight()) - posY;
+        double dz = player.posZ - posZ;
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        // Only adjust when player is within reasonable melee range of dome surface
+        if (dist < 0.01 || dist > domeRadius + 6.0) {
+            updateBoundingBox();
+            return;
+        }
+
+        // Nearest point on sphere surface toward player
+        double nx = dx / dist;
+        double ny = dy / dist;
+        double nz = dz / dist;
+        double surfX = posX + nx * domeRadius;
+        double surfY = posY + ny * domeRadius;
+        double surfZ = posZ + nz * domeRadius;
+
+        float s = 1.0f;
+        this.boundingBox.setBounds(
+            surfX - s, surfY - s, surfZ - s,
+            surfX + s, surfY + s, surfZ + s
+        );
+    }
+
+    /**
+     * Player melee is handled by processMeleeHits (server-side tick detection) to bypass
+     * MC's processUseEntity reach check which uses center-to-center distance.
+     * Direct player melee ("player" damage type) is rejected unless inTickMelee is set,
+     * preventing double-hits when both the C02 path and tick detection fire.
+     * Non-player melee (mobs) and all other damage sources pass through with sphere validation.
      */
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
+        // Player melee: only allow from tick-based detection
+        if (!inTickMelee && "player".equals(source.damageType)) {
+            return false;
+        }
         if (source.getEntity() != null) {
             Entity attacker = source.getEntity();
             double dx = attacker.posX - this.posX;
@@ -379,10 +443,71 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
             double dz = attacker.posZ - this.posZ;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
             double surfaceDist = Math.abs(dist - domeRadius);
-            // Allow hit only if attacker is within melee reach of the sphere surface
             if (surfaceDist > 5.0) return false;
         }
         return super.attackEntityFrom(source, amount);
+    }
+
+    /**
+     * Server-side melee detection. Each tick, finds players near the dome surface who are
+     * swinging and looking at the dome, then applies the attack via attackTargetEntityWithCurrentItem
+     * (preserving enchantments, crits, fire aspect, etc.). This bypasses MC's processUseEntity
+     * reach check which uses center-to-center distance and fails for large domes.
+     */
+    @SuppressWarnings("unchecked")
+    private void processMeleeHits() {
+        float r = domeRadius;
+        float maxReach = 6.0f;
+
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+            posX - r - maxReach, posY - r - maxReach, posZ - r - maxReach,
+            posX + r + maxReach, posY + r + maxReach, posZ + r + maxReach
+        );
+
+        List<EntityPlayer> players = worldObj.getEntitiesWithinAABB(EntityPlayer.class, searchBox);
+        for (EntityPlayer player : players) {
+            if (player.getEntityId() == ownerEntityId) continue;
+            if (isAllyOfOwner(player)) continue;
+
+            int playerId = player.getEntityId();
+
+            if (!player.isSwingInProgress) {
+                processedMeleeSwings.remove(playerId);
+                continue;
+            }
+
+            if (processedMeleeSwings.contains(playerId)) continue;
+
+            // Check surface distance
+            double dx = player.posX - posX;
+            double dy = (player.posY + 1.62) - posY;
+            double dz = player.posZ - posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+            double dist = Math.sqrt(distSq);
+            double surfaceDist = Math.abs(dist - r);
+            if (surfaceDist > maxReach) continue;
+
+            // Ray-sphere intersection: check if look direction hits the dome
+            Vec3 look = player.getLook(1.0f);
+            double b = 2.0 * (dx * look.xCoord + dy * look.yCoord + dz * look.zCoord);
+            double c = distSq - (double)(r * r);
+            double discriminant = b * b - 4.0 * c;
+            if (discriminant < 0) continue;
+
+            double sqrtDisc = Math.sqrt(discriminant);
+            double t1 = (-b - sqrtDisc) / 2.0;
+            double t2 = (-b + sqrtDisc) / 2.0;
+
+            // Outside: t1 is entry distance. Inside: t1 < 0, t2 is exit distance.
+            double hitDist = t1 >= 0 ? t1 : t2;
+            if (hitDist < 0 || hitDist > maxReach) continue;
+
+            // Apply the attack with full MC damage calculation
+            processedMeleeSwings.add(playerId);
+            inTickMelee = true;
+            player.attackTargetEntityWithCurrentItem(this);
+            inTickMelee = false;
+        }
     }
 
     // ==================== BOUNDING BOX ====================
