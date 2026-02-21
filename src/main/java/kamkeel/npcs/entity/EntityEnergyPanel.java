@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -119,9 +120,11 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
         if (updateBarrierTick()) return;
 
-        // Knockback velocity push every tick (not during launched mode)
-        if (!worldObj.isRemote && barrierData.knockbackEnabled && mode != PanelMode.LAUNCHED) {
-            knockbackEntities();
+        // Process entity physics every tick (not during launched mode)
+        // Server: solid + knockback for all entities
+        // Client: solid prediction for local player only (smooth movement blocking)
+        if ((barrierData.solid || barrierData.knockbackEnabled) && mode != PanelMode.LAUNCHED) {
+            processEntityPhysics();
         }
 
         // Mode-specific updates
@@ -365,27 +368,37 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         setCharging(false);
     }
 
-    // ==================== KNOCKBACK (DBO-style motion prediction) ====================
+    // ==================== ENTITY PHYSICS (Solid + Knockback) ====================
 
     /**
-     * DBO-inspired planar knockback:
-     * - Predict future position from current motion
-     * - Detect crossing or proximity to panel surface
-     * - Apply counter-force via full motion replacement
-     * - No separate phases — single unified algorithm
+     * Processes entity physics for the panel barrier. Two independent systems:
+     * <p>
+     * SOLID: Hard wall — entities cannot cross the panel plane within its bounds.
+     *   Uses reactive crossing detection: compares current side to previous tick
+     *   to detect plane crossings, then teleports back and applies velocity correction.
+     *   Also preemptively cancels normal velocity when near the plane.
+     * <p>
+     * KNOCKBACK: Repulsion force — entities near the panel surface get pushed away.
+     *   This is a push effect only; entities can still pass through with enough effort.
+     *   Does NOT prevent passthrough — use solid for that.
      */
     @Override
     @SuppressWarnings("unchecked")
-    protected void knockbackEntities() {
+    protected void processEntityPhysics() {
         float halfW = panelData.panelWidth * 0.5f;
         float halfH = panelData.panelHeight * 0.5f;
-        float searchExtension = 5.0f;
+        float searchExtension = 3.0f;
+        boolean solid = barrierData.solid;
+        boolean knockback = barrierData.knockbackEnabled;
         float strength = barrierData.knockbackStrength;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
             posX - halfW - searchExtension, posY - halfH - searchExtension, posZ - halfW - searchExtension,
             posX + halfW + searchExtension, posY + halfH + searchExtension, posZ + halfW + searchExtension
         );
+
+        // On client, identify local player for client-side solid prediction
+        EntityPlayer localPlayer = worldObj.isRemote ? CustomNpcs.proxy.getPlayer() : null;
 
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
         float yawRad = (float) Math.toRadians(panelYaw);
@@ -394,8 +407,10 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
         for (EntityLivingBase ent : entities) {
             if (ent.getEntityId() == ownerEntityId) continue;
-            if (!isKnockbackTarget(ent)) continue;
             if (isAllyOfOwner(ent)) continue;
+
+            // Client-side: only process local player for solid prediction
+            if (worldObj.isRemote && (localPlayer == null || ent != localPlayer)) continue;
 
             // Current position relative to panel center
             double dx = ent.posX - posX;
@@ -407,45 +422,67 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
             float localRight = (float) (dx * (-normalZ) + dz * normalX);
 
             // Skip if outside panel bounds (with margin)
-            if (Math.abs(localRight) > halfW + searchExtension) continue;
-            if (Math.abs(dy) > halfH + searchExtension) continue;
-            if (Math.abs(localForward) > searchExtension) continue;
-
-            // Skip if outside panel width/height bounds (no wall to push against)
             if (Math.abs(localRight) > halfW + 1.0f) continue;
             if (Math.abs(dy) > halfH + 1.0f) continue;
-
-            // Predicted future position
-            double futDx = (ent.posX + ent.motionX) - posX;
-            double futDz = (ent.posZ + ent.motionZ) - posZ;
-            float futLocalForward = (float) (futDx * normalX + futDz * normalZ);
-
-            // Normal velocity component (positive = moving in normal direction)
-            double normalVel = ent.motionX * normalX + ent.motionZ * normalZ;
+            if (Math.abs(localForward) > searchExtension) continue;
 
             // Determine which side the entity is on
             float side = localForward >= 0 ? 1.0f : -1.0f;
-            boolean movingTowardPanel = (localForward >= 0 && normalVel < 0) || (localForward < 0 && normalVel > 0);
 
-            // Check if predicted position would cross the plane (sign change)
-            boolean wouldCross = (localForward > 0 && futLocalForward <= 0) || (localForward < 0 && futLocalForward >= 0);
+            // Check if within panel width/height bounds
+            boolean inBounds = Math.abs(localRight) <= halfW && Math.abs(dy) <= halfH;
 
-            if (wouldCross && Math.abs(localRight) <= halfW && Math.abs(dy) <= halfH) {
-                // Hard block: full motion replacement to prevent crossing
-                // Push back along normal, proportional to how far past the surface they'd go
-                double overshoot = Math.abs(futLocalForward);
-                double pushForce = (overshoot + 0.05) * strength * 0.1;
-                ent.motionX = normalX * side * pushForce;
-                ent.motionZ = normalZ * side * pushForce;
-                ent.velocityChanged = true;
-            } else if (Math.abs(localForward) < 1.0 && movingTowardPanel
-                       && Math.abs(localRight) <= halfW && Math.abs(dy) <= halfH) {
-                // Soft push: entity is close and approaching, apply proportional force
-                double proximity = 1.0 - Math.abs(localForward);
-                double pushForce = proximity * strength * 0.1;
-                ent.motionX = normalX * side * pushForce;
-                ent.motionZ = normalZ * side * pushForce;
-                ent.velocityChanged = true;
+            // --- SOLID: hard wall preventing plane crossing ---
+            if (solid && inBounds) {
+                // Previous tick: entity position relative to panel
+                double prevDx = ent.prevPosX - prevPosX;
+                double prevDz = ent.prevPosZ - prevPosZ;
+                float prevLocalForward = (float) (prevDx * normalX + prevDz * normalZ);
+                float prevSide = prevLocalForward >= 0 ? 1.0f : -1.0f;
+
+                // Normal velocity component (positive = moving in normal direction)
+                double normalVel = ent.motionX * normalX + ent.motionZ * normalZ;
+
+                if (prevSide != side) {
+                    // Entity crossed the panel plane this tick — push back to original side
+                    double pushDist = 0.3;
+                    double newX = posX + normalX * prevSide * pushDist + (localRight * (-normalZ));
+                    double newZ = posZ + normalZ * prevSide * pushDist + (localRight * normalX);
+                    teleportEntity(ent, newX, ent.posY, newZ);
+
+                    // Cancel normal velocity and add corrective push
+                    ent.motionX -= normalVel * normalX;
+                    ent.motionZ -= normalVel * normalZ;
+                    ent.motionX += normalX * prevSide * 0.15;
+                    ent.motionZ += normalZ * prevSide * 0.15;
+                    ent.velocityChanged = true;
+                } else {
+                    // Preemptive: near the plane and moving toward it — cancel normal velocity
+                    double absDist = Math.abs(localForward);
+                    if (absDist < 1.5) {
+                        boolean movingToward = (side > 0 && normalVel < -0.01)
+                            || (side < 0 && normalVel > 0.01);
+                        if (movingToward) {
+                            ent.motionX -= normalVel * normalX;
+                            ent.motionZ -= normalVel * normalZ;
+                            ent.motionX += normalX * side * 0.05;
+                            ent.motionZ += normalZ * side * 0.05;
+                            ent.velocityChanged = true;
+                        }
+                    }
+                }
+            }
+
+            // --- KNOCKBACK: repulsion push (server only, synced via velocityChanged) ---
+            if (!worldObj.isRemote && knockback && inBounds) {
+                double absDist = Math.abs(localForward);
+                if (absDist < searchExtension) {
+                    double proximity = 1.0 - (absDist / searchExtension);
+                    double force = proximity * strength * 0.06;
+                    ent.motionX += normalX * side * force;
+                    ent.motionZ += normalZ * side * force;
+                    ent.velocityChanged = true;
+                }
             }
         }
     }
