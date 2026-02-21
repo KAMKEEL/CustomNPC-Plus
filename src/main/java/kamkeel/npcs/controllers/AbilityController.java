@@ -124,19 +124,23 @@ public class AbilityController implements IAbilityHandler {
 
     private void registerBuiltinTypes() {
         registerType("cnpc:slam", AbilitySlam::new);
+        registerType("cnpc:charge", AbilityCharge::new);
+
         registerType("cnpc:heavy_hit", AbilityHeavyHit::new);
         registerType("cnpc:cutter", AbilityCutter::new);
 
+        // registerType("cnpc:projectile", AbilityProjectile::new);
+
         registerType("cnpc:sweeper", AbilitySweeper::new);
-        registerType("cnpc:projectile", AbilityProjectile::new);
         registerType("cnpc:orb", AbilityOrb::new);
         registerType("cnpc:disc", AbilityDisc::new);
         registerType("cnpc:laser_shot", AbilityLaserShot::new);
         registerType("cnpc:beam", AbilityBeam::new);
+        // registerType("cnpc:slicer", AbilitySlicer::new);
 
-        registerType("cnpc:charge", AbilityCharge::new);
         registerType("cnpc:dash", AbilityDash::new);
         registerType("cnpc:teleport", AbilityTeleport::new);
+
         registerType("cnpc:vortex", AbilityVortex::new);
         registerType("cnpc:shockwave", AbilityShockwave::new);
 
@@ -149,7 +153,6 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:dome", AbilityDome::new);
         registerType("cnpc:wall", AbilityWall::new);
         registerType("cnpc:shield", AbilityShield::new);
-        registerType("cnpc:slicer", AbilitySlicer::new);
     }
 
     private void registerBuiltinConditionTypes() {

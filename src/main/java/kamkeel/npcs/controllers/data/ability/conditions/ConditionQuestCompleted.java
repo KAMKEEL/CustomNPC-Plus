@@ -52,7 +52,7 @@ public class ConditionQuestCompleted extends AbilityCondition {
 
     @Override
     public String getConditionSummary() {
-        String filterLabel = StatCollector.translateToLocal("condition.filter." + getFilter().name().toLowerCase());
+        String filterLabel = StatCollector.translateToLocal(getFilter().toString());
         String questName = "None";
         if (questId >= 0) {
             Quest q = QuestController.Instance.quests.get(questId);

@@ -152,7 +152,7 @@ public class ConditionItem extends AbilityCondition {
 
     @Override
     public String getConditionSummary() {
-        String filterLabel = StatCollector.translateToLocal("condition.filter." + getFilter().name().toLowerCase());
+        String filterLabel = StatCollector.translateToLocal(getFilter().toString());
         String usage = usageType.name();
         String item = itemName.isEmpty() ? "None" : itemName;
         return "[" + filterLabel + "] " + usage + ": " + item;
