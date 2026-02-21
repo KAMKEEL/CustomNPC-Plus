@@ -164,12 +164,10 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         currentRotation = -arcAngle / 2.0f;
         activeSoundPlayed = false;
 
-        // Use the telegraph's locked yaw if available, so the sweep direction
-        // matches the telegraph the player/NPC was seeing during windup.
-        // The telegraph yaw is locked when entering ACTIVE phase via lockPosition().
-        if (!telegraphInstances.isEmpty()) {
-            sweepBaseYaw = telegraphInstances.get(0).getYaw();
-        } else if (target != null) {
+        // Compute sweep direction from caster/target at execution time.
+        // Server-side telegraph instances are not ticked, so their yaw is stale
+        // from windup start — use the caster's current rotation instead.
+        if (target != null) {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             if (dx * dx + dz * dz > 0.0001) {
