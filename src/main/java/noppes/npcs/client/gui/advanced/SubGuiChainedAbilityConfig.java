@@ -563,6 +563,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     return true;
                 case 2: // Up
                     if (entryIndex > 0) {
+                        // Commit any focused delay field before reordering
+                        GuiNpcTextField.unfocus();
                         ChainedAbilityEntry entry = entries.remove(entryIndex);
                         entries.add(entryIndex - 1, entry);
                         // Can't be concurrent at position 0
@@ -574,12 +576,16 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     return true;
                 case 3: // Down
                     if (entryIndex < entries.size() - 1) {
+                        // Commit any focused delay field before reordering
+                        GuiNpcTextField.unfocus();
                         ChainedAbilityEntry entry = entries.remove(entryIndex);
                         entries.add(entryIndex + 1, entry);
                         initGui();
                     }
                     return true;
                 case 4: // Delete
+                    // Commit any focused delay field before removing
+                    GuiNpcTextField.unfocus();
                     entries.remove(entryIndex);
                     initGui();
                     return true;

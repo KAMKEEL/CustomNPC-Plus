@@ -96,7 +96,10 @@ public class GuiMenuTopButton extends GuiNpcButton {
 
     @Override
     public boolean mousePressed(Minecraft minecraft, int i, int j) {
-        boolean bo = !active && getVisible() && hover;
+        int h = this.height - (active ? 0 : 2);
+        boolean bo = !active && getVisible()
+            && i >= xPosition && j >= yPosition
+            && i < xPosition + getWidth() && j < yPosition + h;
         if (bo && listener != null) {
             listener.actionPerformed(this);
             return false;
