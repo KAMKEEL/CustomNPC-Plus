@@ -1562,6 +1562,7 @@ ability.sweep.spin=Spin
 # Dash Mode
 ability.dash.aggressive=Aggressive
 ability.dash.defensive=Defensive
+ability.dash.directional=Directional
 
 # Counter Type
 ability.counter.flat=Flat
@@ -1995,7 +1996,7 @@ ability.hover.speed=Movement speed of projectile
 ability.hover.lifetime=Maximum ticks before despawning
 ability.hover.knockback=Push force applied to targets
 ability.hover.boomerang=Projectile returns to caster after reaching max distance
-ability.hover.dashMode=Aggressive dashes toward target, Defensive dashes away
+ability.hover.dashMode=Aggressive dashes toward target, Defensive dashes away, Directional dashes in looking direction
 ability.hover.aoe=Affects all valid targets in range instead of just one
 ability.hover.dmgOnPull=Deal damage continuously while pulling targets
 ability.hover.lineOfSight=Requires clear line of sight to the target
