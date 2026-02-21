@@ -48,8 +48,8 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
         this.cooldownTicks = 0;
         this.windUpTicks = 40;
         this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
-        this.rotationMode = RotationMode.TRACK;
-        this.rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
+        this.rotationMode = RotationMode.LOCKED;
+        this.rotationPhase = LockMovementType.ACTIVE;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Beam_Windup";

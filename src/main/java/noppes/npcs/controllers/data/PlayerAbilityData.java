@@ -23,6 +23,7 @@ import net.minecraft.util.DamageSource;
 import noppes.npcs.AbstractDataAbilities;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.ScriptController;
@@ -297,6 +298,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             // Apply rotation and position locks after ability tick
             applyRotationControl(player);
             applyPositionLock(player);
+            applyAnimationRotationSync(player);
 
             // Sync lock state to client (only sends when flags change)
             syncAbilityStateIfNeeded(player);
@@ -841,6 +843,17 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             if (player instanceof EntityPlayerMP) {
                 player.rotationYawHead = lockedYaw;
             }
+        }
+    }
+
+    private void applyAnimationRotationSync(EntityPlayer player) {
+        if (rotationLocked || currentAbility == null) return;
+        if (currentAbility.getPhase() == AbilityPhase.IDLE || currentAbility.getPhase() == AbilityPhase.DAZED)
+            return;
+
+        // TODO This is a temporary duct-tape solution to fix the animation not rotating with head rotation
+        if (!currentAbility.isRotationLockedForCurrentPhase() && player instanceof EntityPlayerMP) {
+            NoppesUtilPlayer.swingPlayerArm((EntityPlayerMP) player);
         }
     }
 
