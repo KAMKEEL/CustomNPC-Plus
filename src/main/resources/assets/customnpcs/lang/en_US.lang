@@ -2088,7 +2088,9 @@ condition.filter.both=Both
 condition.hp_threshold=HP Threshold
 condition.hp_above=HP Above
 condition.hp_below=HP Below
+condition.hp_equal=HP Equal
 condition.threshold=Threshold
+condition.percent=Use Percent
 condition.threshold_type=Threshold Type
 
 # Condition Hit Count

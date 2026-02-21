@@ -8,19 +8,26 @@ import java.util.List;
 
 public class ConditionHPThreshold extends AbilityCondition{
     private float threshold = 0.5f; // 50%
+    private boolean percent = true;
     private ThresholdType thresholdType = ThresholdType.ABOVE;
 
     public enum ThresholdType {
         ABOVE {
             @Override
             public boolean test(float value, float threshold) {
-                return value >= threshold;
+                return value > threshold;
             }
         },
         BELOW {
             @Override
             public boolean test(float value, float threshold) {
-                return value <= threshold;
+                return value < threshold;
+            }
+        },
+        EQUAL {
+            @Override
+            public boolean test(float value, float threshold) {
+                return value == threshold;
             }
         };
 
@@ -41,6 +48,8 @@ public class ConditionHPThreshold extends AbilityCondition{
                     return "condition.hp_above";
                 case BELOW:
                     return "condition.hp_below";
+                case EQUAL:
+                    return "condition.hp_equal";
                 default:
                     return name();
             }
@@ -54,8 +63,8 @@ public class ConditionHPThreshold extends AbilityCondition{
 
     @Override
     public boolean check(EntityLivingBase caster, EntityLivingBase target) {
-        float casterHP = caster.getHealth() / caster.getMaxHealth();
-        float targetHP = target.getHealth() / target.getMaxHealth();
+        float casterHP = isPercent() ? caster.getHealth() / caster.getMaxHealth() : caster.getHealth();
+        float targetHP = isPercent() ? target.getHealth() / target.getMaxHealth() : target.getHealth();
 
 
         return compare(casterHP, targetHP);
@@ -75,6 +84,24 @@ public class ConditionHPThreshold extends AbilityCondition{
         }
     }
 
+    @Override
+    public void getConditionDefinitions(List<FieldDef> defs) {
+        defs.add(FieldDef.floatField("condition.threshold", this::getThreshold, this::setThreshold).min(0));
+        defs.add(FieldDef.boolField("condition.percent", this::isPercent, this::setIsPercent));
+        defs.add(FieldDef.enumField("condition.threshold_type", ThresholdType.class,
+            this::getThresholdType, this::setThresholdType));
+    }
+
+    @Override
+    public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setFloat("threshold", threshold);
+    }
+
+    @Override
+    public void readTypeNBT(NBTTagCompound nbt) {
+        threshold = nbt.getFloat("threshold");
+    }
+
     public float getThreshold() {
         return threshold;
     }
@@ -91,20 +118,11 @@ public class ConditionHPThreshold extends AbilityCondition{
         this.thresholdType = thresholdType;
     }
 
-    @Override
-    public void getConditionDefinitions(List<FieldDef> defs) {
-        defs.add(FieldDef.floatField("condition.threshold", this::getThreshold, this::setThreshold).min(0));
-        defs.add(FieldDef.enumField("condition.threshold_type", ThresholdType.class,
-            this::getThresholdType, this::setThresholdType));
+    public boolean isPercent() {
+        return percent;
     }
 
-    @Override
-    public void writeTypeNBT(NBTTagCompound nbt) {
-        nbt.setFloat("threshold", threshold);
-    }
-
-    @Override
-    public void readTypeNBT(NBTTagCompound nbt) {
-        threshold = nbt.getFloat("threshold");
+    public void setIsPercent(boolean percent) {
+        this.percent = percent;
     }
 }
