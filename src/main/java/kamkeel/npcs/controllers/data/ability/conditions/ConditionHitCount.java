@@ -19,6 +19,12 @@ public class ConditionHitCount extends AbilityCondition {
     }
 
     @Override
+    protected boolean checkEntity(EntityLivingBase entity) {
+        // Not used — this condition overrides check() directly
+        return false;
+    }
+
+    @Override
     public boolean check(EntityLivingBase caster, EntityLivingBase target) {
         if (caster instanceof EntityNPCInterface) {
             EntityNPCInterface npc = (EntityNPCInterface) caster;

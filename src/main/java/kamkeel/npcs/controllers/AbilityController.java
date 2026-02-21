@@ -903,6 +903,28 @@ public class AbilityController implements IAbilityHandler {
         return conditionTypes.keySet().toArray(new String[0]);
     }
 
+    public List<String> getConditionNamespaces() {
+        LinkedHashSet<String> seen = new LinkedHashSet<>();
+        for (String typeId : conditionTypes.keySet()) {
+            String[] parts = typeId.split("\\.", 3);
+            if (parts.length >= 2) {
+                seen.add(parts[1]);
+            }
+        }
+        return new ArrayList<>(seen);
+    }
+
+    public String[] getConditionTypesByNamespace(String namespace) {
+        String prefix = "condition." + namespace + ".";
+        List<String> result = new ArrayList<>();
+        for (String typeId : conditionTypes.keySet()) {
+            if (typeId.startsWith(prefix)) {
+                result.add(typeId);
+            }
+        }
+        return result.toArray(new String[0]);
+    }
+
     public void registerFlightChecker(Predicate<EntityPlayer> checker) {
         flightCheckers.add(checker);
     }
