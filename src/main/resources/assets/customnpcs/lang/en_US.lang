@@ -2099,6 +2099,17 @@ condition.full_armor=Full Armor
 condition.item_count=Item Count
 condition.item_name=Item Name
 
+# Condition Threshold
+condition.above=Above
+condition.below=Below
+condition.equal=Equal
+condition.threshold_flat=Threshold
+condition.threshold_percent=Threshold %
+
+# Condition Quest Completed
+condition.quest_completed=Quest Completed
+condition.select_quest=Select Quest
+
 # Condition Hover Tooltips
 condition.hover.type=Condition type that must be met for ability to activate
 condition.hover.hpAbove=Activates when NPC health is above this percentage

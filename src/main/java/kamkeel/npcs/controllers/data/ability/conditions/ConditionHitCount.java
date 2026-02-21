@@ -1,8 +1,8 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
-import kamkeel.npcs.controllers.data.ability.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -15,7 +15,6 @@ public class ConditionHitCount extends AbilityCondition {
     public ConditionHitCount() {
         this.typeId = "condition.cnpc.hit_count";
         this.name = "condition.hit_count";
-        this.userType = UserType.NPC_ONLY;
     }
 
     @Override
@@ -57,6 +56,12 @@ public class ConditionHitCount extends AbilityCondition {
     public void getConditionDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.intField("condition.required_hits", this::getRequiredHits, this::setRequiredHits).min(1));
         defs.add(FieldDef.intField("condition.within_ticks", this::getWithinTicks, this::setWithinTicks).min(0));
+    }
+
+    @Override
+    public String getConditionSummary() {
+        String filterLabel = StatCollector.translateToLocal("condition.filter." + getFilter().name().toLowerCase());
+        return "[" + filterLabel + "] Hit " + requiredHits + " times in " + withinTicks + " ticks";
     }
 
     @Override

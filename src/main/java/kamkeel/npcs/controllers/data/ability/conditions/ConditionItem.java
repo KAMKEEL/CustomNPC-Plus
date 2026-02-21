@@ -4,6 +4,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -150,6 +151,14 @@ public class ConditionItem extends AbilityCondition {
     }
 
     @Override
+    public String getConditionSummary() {
+        String filterLabel = StatCollector.translateToLocal("condition.filter." + getFilter().name().toLowerCase());
+        String usage = usageType.name();
+        String item = itemName.isEmpty() ? "None" : itemName;
+        return "[" + filterLabel + "] " + usage + ": " + item;
+    }
+
+    @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setString("itemName", itemName);
         nbt.setInteger("usageType", usageType.ordinal());
@@ -165,6 +174,11 @@ public class ConditionItem extends AbilityCondition {
         requiredCount = nbt.getInteger("requiredCount");
     }
 
+
+    @Override
+    public boolean isConfigured() {
+        return itemName != null && !itemName.isEmpty();
+    }
 
     public UsageType getUsageType() { return usageType; }
     public void setUsageType(UsageType usageType) { this.usageType = usageType; }
