@@ -863,11 +863,17 @@ public abstract class Ability implements IAbility, IAbilityAction {
             // AOE_SELF abilities: telegraph follows caster during windup
             instance.setEntityIdToFollow(caster.getEntityId());
 
-            // For LINE/CONE telegraphs: track target direction during windup
+            // For LINE/CONE telegraphs: track direction during windup
             // Only track if rotation is NOT locked during windup (NPC can still turn)
-            if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
+            if (telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) {
                 if (!isRotationLockedDuringWindup()) {
-                    instance.setTargetEntityId(target.getEntityId());
+                    if (target != null) {
+                        // Face the target entity
+                        instance.setTargetEntityId(target.getEntityId());
+                    } else {
+                        // No target (AOE_SELF etc.): track caster's own rotationYaw
+                        instance.setTrackFollowedEntityYaw(true);
+                    }
                 }
                 // If rotation is locked, yaw stays fixed at creation time
             }
