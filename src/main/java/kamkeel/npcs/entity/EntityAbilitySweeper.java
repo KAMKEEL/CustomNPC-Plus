@@ -373,4 +373,50 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
     protected void writeEntityToNBT(NBTTagCompound nbt) {
         // Intentionally empty — ability entities are transient (not saved to world)
     }
+
+    @Override
+    protected void writeSpawnNBT(NBTTagCompound nbt) {
+        writeEnergyBaseNBT(nbt);
+        nbt.setFloat("BeamLength", beamLength);
+        nbt.setFloat("BeamWidth", beamWidth);
+        nbt.setFloat("BeamHeight", beamHeight);
+        nbt.setFloat("SweepSpeed", sweepSpeed);
+        nbt.setInteger("NumRotations", numberOfRotations);
+        nbt.setInteger("CompletedRotations", completedRotations);
+        nbt.setInteger("MaxTicks", maxTicks);
+        nbt.setInteger("TargetId", targetEntityId);
+        nbt.setFloat("CurrentAngle", currentAngle);
+        nbt.setFloat("BaseYaw", baseYaw);
+        nbt.setLong("DeathWorldTime", deathWorldTime);
+        nbt.setFloat("Damage", damage);
+        nbt.setInteger("DamageInterval", damageInterval);
+        nbt.setBoolean("Piercing", piercing);
+        nbt.setBoolean("LockOnTarget", lockOnTarget);
+    }
+
+    @Override
+    protected void readSpawnNBT(NBTTagCompound nbt) {
+        readEnergyBaseNBT(nbt);
+        this.beamLength = sanitize(nbt.getFloat("BeamLength"), 10.0f, MAX_ENTITY_SIZE);
+        this.beamWidth = sanitize(nbt.getFloat("BeamWidth"), 0.3f, MAX_ENTITY_SIZE);
+        this.beamHeight = sanitize(nbt.getFloat("BeamHeight"), 1.0f, MAX_ENTITY_SIZE);
+        this.sweepSpeed = nbt.hasKey("SweepSpeed") ? nbt.getFloat("SweepSpeed") : 3.0f;
+        if (Float.isNaN(sweepSpeed) || Float.isInfinite(sweepSpeed) || sweepSpeed <= 0) sweepSpeed = 3.0f;
+        this.numberOfRotations = nbt.hasKey("NumRotations") ? nbt.getInteger("NumRotations") : 2;
+        if (numberOfRotations <= 0) numberOfRotations = 1;
+        this.completedRotations = nbt.getInteger("CompletedRotations");
+        this.maxTicks = nbt.hasKey("MaxTicks") ? nbt.getInteger("MaxTicks") : 400;
+        if (maxTicks <= 0) maxTicks = 400;
+        this.targetEntityId = nbt.getInteger("TargetId");
+        this.currentAngle = nbt.getFloat("CurrentAngle");
+        this.prevAngle = currentAngle;
+        this.baseYaw = nbt.getFloat("BaseYaw");
+        this.deathWorldTime = nbt.getLong("DeathWorldTime");
+        this.damage = nbt.hasKey("Damage") ? nbt.getFloat("Damage") : 5.0f;
+        if (Float.isNaN(damage) || Float.isInfinite(damage)) damage = 5.0f;
+        this.damageInterval = nbt.hasKey("DamageInterval") ? nbt.getInteger("DamageInterval") : 5;
+        if (damageInterval <= 0) damageInterval = 1;
+        this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
+        this.lockOnTarget = nbt.getBoolean("LockOnTarget");
+    }
 }

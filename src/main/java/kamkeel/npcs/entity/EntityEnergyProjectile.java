@@ -934,6 +934,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         // Intentionally empty — ability entities are transient (not saved to world)
     }
 
+    @Override
+    protected void writeSpawnNBT(NBTTagCompound nbt) {
+        writeBaseNBT(nbt);
+        writeProjectileNBT(nbt);
+    }
+
+    @Override
+    protected void readSpawnNBT(NBTTagCompound nbt) {
+        readBaseNBT(nbt);
+        readProjectileNBT(nbt);
+    }
+
     /**
      * Read base projectile properties from NBT.
      */

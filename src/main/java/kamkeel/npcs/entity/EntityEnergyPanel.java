@@ -563,4 +563,28 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
     protected void writeEntityToNBT(NBTTagCompound nbt) {
         // Intentionally empty — ability entities are transient (not saved to world)
     }
+
+    @Override
+    protected void writeSpawnNBT(NBTTagCompound nbt) {
+        writeBarrierBaseNBT(nbt);
+        nbt.setFloat("PanelYaw", panelYaw);
+        nbt.setInteger("PanelMode", mode.ordinal());
+        nbt.setFloat("TargetPanelWidth", targetPanelWidth);
+        nbt.setFloat("TargetPanelHeight", targetPanelHeight);
+        panelData.writeNBT(nbt);
+    }
+
+    @Override
+    protected void readSpawnNBT(NBTTagCompound nbt) {
+        readBarrierBaseNBT(nbt);
+        this.panelYaw = nbt.getFloat("PanelYaw");
+        int modeOrdinal = nbt.getInteger("PanelMode");
+        this.mode = (modeOrdinal >= 0 && modeOrdinal < PanelMode.values().length)
+            ? PanelMode.values()[modeOrdinal] : PanelMode.PLACED;
+        panelData.readNBT(nbt);
+        panelData.panelWidth = sanitize(panelData.panelWidth, 3.0f, MAX_ENTITY_SIZE);
+        panelData.panelHeight = sanitize(panelData.panelHeight, 3.0f, MAX_ENTITY_SIZE);
+        this.targetPanelWidth = sanitize(nbt.hasKey("TargetPanelWidth") ? nbt.getFloat("TargetPanelWidth") : panelData.panelWidth, 3.0f, MAX_ENTITY_SIZE);
+        this.targetPanelHeight = sanitize(nbt.hasKey("TargetPanelHeight") ? nbt.getFloat("TargetPanelHeight") : panelData.panelHeight, 3.0f, MAX_ENTITY_SIZE);
+    }
 }

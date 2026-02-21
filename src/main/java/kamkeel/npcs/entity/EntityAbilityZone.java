@@ -1,6 +1,6 @@
 package kamkeel.npcs.entity;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
+import kamkeel.npcs.util.ByteBufUtils;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -731,7 +731,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     @Override
     public void writeSpawnData(ByteBuf buffer) {
         buffer.writeInt(zoneType.ordinal());
-        ByteBufUtils.writeUTF8String(buffer, shape.name());
+        ByteBufUtils.writeString(buffer, shape.name());
         buffer.writeInt(ownerEntityId);
         buffer.writeFloat(radius);
         buffer.writeInt(durationTicks);
@@ -757,7 +757,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         buffer.writeBoolean(lightning);
         buffer.writeBoolean(particles);
         buffer.writeInt(particleMotion);
-        ByteBufUtils.writeUTF8String(buffer, particleDir);
+        ByteBufUtils.writeString(buffer, particleDir);
         buffer.writeInt(particleSize);
         buffer.writeBoolean(particleGlow);
 
@@ -772,14 +772,14 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
             effectList.appendTag(effect.writeNBT());
         }
         effectsNbt.setTag("Effects", effectList);
-        ByteBufUtils.writeTag(buffer, effectsNbt);
+        ByteBufUtils.writeNBT(buffer, effectsNbt);
     }
 
     @Override
     public void readSpawnData(ByteBuf buffer) {
         int zoneTypeOrd = buffer.readInt();
         this.zoneType = (zoneTypeOrd >= 0 && zoneTypeOrd < ZoneType.values().length) ? ZoneType.values()[zoneTypeOrd] : ZoneType.TRAP;
-        String shapeName = ByteBufUtils.readUTF8String(buffer);
+        String shapeName = ByteBufUtils.readString(buffer);
         try {
             this.shape = ZoneShape.valueOf(shapeName);
         } catch (Exception e) {
@@ -810,7 +810,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.lightning = buffer.readBoolean();
         this.particles = buffer.readBoolean();
         this.particleMotion = buffer.readInt();
-        this.particleDir = ByteBufUtils.readUTF8String(buffer);
+        this.particleDir = ByteBufUtils.readString(buffer);
         this.particleSize = buffer.readInt();
         this.particleGlow = buffer.readBoolean();
 
@@ -818,7 +818,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.visible = buffer.readBoolean();
 
         // Effects
-        NBTTagCompound effectsNbt = ByteBufUtils.readTag(buffer);
+        NBTTagCompound effectsNbt = ByteBufUtils.readNBT(buffer);
         effects.clear();
         if (effectsNbt != null && effectsNbt.hasKey("Effects")) {
             NBTTagList effectList = effectsNbt.getTagList("Effects", 10);
