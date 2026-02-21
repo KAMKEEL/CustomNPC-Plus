@@ -4,6 +4,7 @@ import kamkeel.npcs.controllers.data.ability.*;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.ability.conditions.ConditionHPThreshold;
 import kamkeel.npcs.controllers.data.ability.conditions.ConditionHitCount;
+import kamkeel.npcs.controllers.data.ability.conditions.ConditionItem;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
@@ -152,6 +153,7 @@ public class AbilityController implements IAbilityHandler {
     private void registerBuiltinConditionTypes() {
         registerCondition(ConditionHPThreshold::new);
         registerCondition(ConditionHitCount::new);
+        registerCondition(ConditionItem::new);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

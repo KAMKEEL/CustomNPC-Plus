@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public abstract class AbilityCondition {
+    public static final int MAX_CONDITIONS = 5;
+
     protected String typeId = "";
     protected String name = "";
     protected UserType userType = UserType.BOTH;
@@ -69,7 +71,7 @@ public abstract class AbilityCondition {
         nbt.setString("typeId", getTypeId());
         nbt.setString("name", getName());
         nbt.setInteger("userType", getUserType().ordinal());
-        nbt.setInteger("filter", getUserType().ordinal());
+        nbt.setInteger("filter", getFilter().ordinal());
         writeTypeNBT(nbt);
         return nbt;
     }
