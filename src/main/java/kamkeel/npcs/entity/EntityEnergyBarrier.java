@@ -4,7 +4,6 @@ import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -94,9 +93,10 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
     public abstract void finishCharging();
 
     /**
-     * Push entities away from the barrier surface.
+     * Process entity physics for this barrier.
+     * Handles solid wall (entity repositioning) and knockback (repulsion force).
      */
-    protected abstract void knockbackEntities();
+    protected abstract void processEntityPhysics();
 
     /**
      * Get the maximum extent of this barrier for distance pre-filtering.
@@ -201,6 +201,16 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
     @Override
     public boolean canBeCollidedWith() {
         return barrierData.meleeEnabled;
+    }
+
+    @Override
+    public boolean isEntityInsideOpaqueBlock() {
+        return false;
+    }
+
+    @Override
+    protected boolean func_145771_j(double x, double y, double z) {
+        return false;
     }
 
     @Override
@@ -324,20 +334,9 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         return this.dataWatcher.getWatchableObjectFloat(DW_HEALTH_PERCENT);
     }
 
-    protected boolean isKnockbackTarget(EntityLivingBase entity) {
-        switch (barrierData.knockbackTarget) {
-            case 1:
-                return entity instanceof EntityPlayer;
-            case 2:
-                return entity instanceof EntityNPCInterface;
-            default:
-                return entity instanceof EntityPlayer || entity instanceof EntityNPCInterface;
-        }
-    }
-
     /**
      * Check if an entity is an ally of this barrier's owner.
-     * Allies should not be knocked back by barriers.
+     * Allies are not affected by barrier physics.
      */
     protected boolean isAllyOfOwner(EntityLivingBase entity) {
         Entity owner = getOwnerEntity();
@@ -345,7 +344,7 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         return AbilityTargetHelper.isAlly((EntityLivingBase) owner, entity);
     }
 
-    // ==================== CONTAINMENT & PROTECTION ====================
+    // ==================== CONTAINMENT & ABSORBING ====================
 
     /**
      * Check if an entity is geometrically inside this barrier's protected zone.
@@ -356,27 +355,16 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
     }
 
     /**
-     * Check if a damage source originates from outside this barrier.
-     * Uses geometry-specific containment check via isEntityInside().
+     * Find a barrier that would absorb damage for the given entity (its caster).
+     * Returns the barrier if: absorbing is enabled AND entity is the barrier's owner.
      */
-    public boolean isDamageFromOutside(DamageSource source) {
-        Entity attacker = source.getEntity();
-        if (attacker == null) return true; // Environmental damage treated as outside
-        return !isEntityInside(attacker);
-    }
-
-    /**
-     * Find a barrier that would protect the given entity from outside damage.
-     * Returns the barrier if: damageProtection is enabled AND entity is inside.
-     * Any entity inside a dome with damageProtection gets redirected damage.
-     */
-    public static EntityEnergyBarrier getProtectingBarrier(Entity entity) {
+    public static EntityEnergyBarrier getAbsorbingBarrier(Entity entity) {
         if (entity == null || entity.worldObj == null) return null;
         List<EntityEnergyBarrier> barriers = getActiveBarriers(entity.worldObj);
         for (EntityEnergyBarrier barrier : barriers) {
             if (barrier.isDead) continue;
-            if (!barrier.barrierData.damageProtection) continue;
-            if (barrier.isEntityInside(entity)) {
+            if (!barrier.barrierData.absorbing) continue;
+            if (barrier.ownerEntityId == entity.getEntityId()) {
                 return barrier;
             }
         }

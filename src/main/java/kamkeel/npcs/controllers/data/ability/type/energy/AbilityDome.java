@@ -135,14 +135,5 @@ public class AbilityDome extends AbilityEnergyBarrier {
             .range(1.0f, 50.0f));
         defs.add(FieldDef.boolField("ability.followCaster", this::isFollowCaster, this::setFollowCaster)
             .hover("ability.hover.followCaster"));
-
-        // Jail & protection section (dome-only: only enclosures can jail)
-        defs.add(FieldDef.section("ability.section.jail"));
-        defs.add(FieldDef.boolField("ability.jailEnabled", this::isJailEnabled, this::setJailEnabled)
-            .hover("ability.hover.jailEnabled"));
-        defs.add(FieldDef.floatField("ability.jailThreshold", this::getJailThreshold, this::setJailThreshold)
-            .range(0.1f, 1.0f).visibleWhen(this::isJailEnabled));
-        defs.add(FieldDef.boolField("ability.damageProtection", this::isDamageProtection, this::setDamageProtection)
-            .hover("ability.hover.damageProtection"));
     }
 }

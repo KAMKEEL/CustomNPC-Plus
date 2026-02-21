@@ -190,6 +190,15 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
         return barrierData.getMultiplier(typeId);
     }
 
+    // Solid data
+    public boolean isSolid() {
+        return barrierData.solid;
+    }
+
+    public void setSolid(boolean solid) {
+        barrierData.solid = solid;
+    }
+
     // Knockback data
     public boolean isKnockbackEnabled() {
         return barrierData.knockbackEnabled;
@@ -207,12 +216,13 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
         barrierData.knockbackStrength = strength;
     }
 
-    public String getKnockbackTargetKey() {
-        return barrierData.getKnockbackTargetKey();
+    // Absorbing data
+    public boolean isAbsorbing() {
+        return barrierData.absorbing;
     }
 
-    public void setKnockbackTargetKey(String key) {
-        barrierData.setKnockbackTargetFromKey(key);
+    public void setAbsorbing(boolean absorbing) {
+        barrierData.absorbing = absorbing;
     }
 
     // Melee data
@@ -230,31 +240,6 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
 
     public void setMeleeDamageMultiplier(float mult) {
         barrierData.meleeDamageMultiplier = mult;
-    }
-
-    // Jail data
-    public boolean isJailEnabled() {
-        return barrierData.jailEnabled;
-    }
-
-    public void setJailEnabled(boolean enabled) {
-        barrierData.jailEnabled = enabled;
-    }
-
-    public boolean isDamageProtection() {
-        return barrierData.damageProtection;
-    }
-
-    public void setDamageProtection(boolean enabled) {
-        barrierData.damageProtection = enabled;
-    }
-
-    public float getJailThreshold() {
-        return barrierData.jailThreshold;
-    }
-
-    public void setJailThreshold(float threshold) {
-        barrierData.jailThreshold = Math.max(0.1f, Math.min(1.0f, threshold));
     }
 
     // ==================== GUI ====================
@@ -275,19 +260,13 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
             .range(1, 12000).visibleWhen(this::isUseDuration));
         defs.add(FieldDef.floatField("ability.defaultMultiplier", this::getDefaultMultiplier, this::setDefaultMultiplier));
 
-        // Knockback section
-        defs.add(FieldDef.section("ability.section.knockback"));
+        // Properties section
+        defs.add(FieldDef.section("ability.section.properties"));
+        defs.add(FieldDef.boolField("ability.solid", this::isSolid, this::setSolid));
         defs.add(FieldDef.boolField("ability.knockbackEnabled", this::isKnockbackEnabled, this::setKnockbackEnabled));
-        defs.add(FieldDef.row(
-            FieldDef.floatField("ability.knockbackStrength", this::getKnockbackStrength, this::setKnockbackStrength)
-                .range(0, 10).visibleWhen(this::isKnockbackEnabled),
-            FieldDef.stringEnumField("ability.knockbackTarget", EnergyBarrierData.getKnockbackTargetKeys(),
-                    this::getKnockbackTargetKey, this::setKnockbackTargetKey)
-                .visibleWhen(this::isKnockbackEnabled)
-        ));
-
-        // Melee section
-        defs.add(FieldDef.section("ability.section.melee"));
+        defs.add(FieldDef.floatField("ability.knockbackStrength", this::getKnockbackStrength, this::setKnockbackStrength)
+            .range(0, 10).visibleWhen(this::isKnockbackEnabled));
+        defs.add(FieldDef.boolField("ability.absorbing", this::isAbsorbing, this::setAbsorbing));
         defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled));
         defs.add(FieldDef.floatField("ability.meleeDamageMultiplier", this::getMeleeDamageMultiplier, this::setMeleeDamageMultiplier)
             .range(0, 10).visibleWhen(this::isMeleeEnabled));

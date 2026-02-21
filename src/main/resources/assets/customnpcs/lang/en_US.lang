@@ -2019,7 +2019,7 @@ ability.cnpc.shield=Shield
 ability.cnpc.slicer=Slicer
 
 ability.section.barrier=Barrier
-ability.section.knockback=Knockback
+ability.section.properties=Properties
 ability.section.panel=Panel
 ability.section.launch=Launch
 ability.section.slicer=Slicer
@@ -2032,23 +2032,16 @@ ability.defaultMultiplier=Default Multiplier
 ability.innerAlpha=Inner Alpha
 ability.heightOffset=Height Offset
 
+ability.solid=Solid
 ability.knockbackEnabled=Knockback
 ability.knockbackStrength=Knockback Strength
-ability.knockbackTarget=Target
-
-ability.section.melee=Melee
-ability.meleeEnabled=Melee Attackable
+ability.absorbing=Absorbing
+ability.meleeEnabled=Allows Melee
 ability.meleeDamageMultiplier=Melee Multiplier
 
 ability.followCaster=Follow Caster
 ability.hover.followCaster=Dome stays centered on the caster as they move
 
-ability.section.jail=Jail & Protection
-ability.jailEnabled=Jail Mode
-ability.hover.jailEnabled=Entities inside stay inside, entities outside stay outside
-ability.jailThreshold=Jail Threshold
-ability.damageProtection=Damage Protection
-ability.hover.damageProtection=Outside attacks on entities inside are redirected to the dome
 
 ability.variant.small=Small
 ability.variant.large=Large

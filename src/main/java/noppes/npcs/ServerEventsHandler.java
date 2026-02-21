@@ -153,13 +153,13 @@ public class ServerEventsHandler {
     }
 
     @SubscribeEvent
-    public void barrierDamageProtection(LivingAttackEvent event) {
+    public void barrierAbsorbDamage(LivingAttackEvent event) {
         if (event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving.worldObj.isRemote)
             return;
 
-        EntityEnergyBarrier barrier = EntityEnergyBarrier.getProtectingBarrier(event.entityLiving);
-        if (barrier != null && barrier.isDamageFromOutside(event.source)) {
-            // Redirect the damage to the barrier instead of preventing it
+        EntityEnergyBarrier barrier = EntityEnergyBarrier.getAbsorbingBarrier(event.entityLiving);
+        if (barrier != null) {
+            // Redirect the caster's damage to their barrier
             barrier.absorbDamage(event.ammount);
             event.setCanceled(true);
         }
