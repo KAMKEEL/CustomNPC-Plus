@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -52,12 +54,14 @@ public class ConditionHitCount extends AbilityCondition {
         this.withinTicks = Math.max(0, withinTicks);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void getConditionDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.intField("condition.required_hits", this::getRequiredHits, this::setRequiredHits).min(1));
         defs.add(FieldDef.intField("condition.within_ticks", this::getWithinTicks, this::setWithinTicks).min(0));
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public String getConditionSummary() {
         String filterLabel = StatCollector.translateToLocal(getFilter().toString());

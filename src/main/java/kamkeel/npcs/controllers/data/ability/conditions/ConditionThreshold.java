@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -95,6 +97,7 @@ public abstract class ConditionThreshold extends AbilityCondition {
         return thresholdType.test(value, threshold);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void getConditionDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.floatField("condition.threshold_flat", this::getThresholdFlat, this::setThresholdFlat)
@@ -122,6 +125,7 @@ public abstract class ConditionThreshold extends AbilityCondition {
         thresholdType = ThresholdType.fromOrdinal(nbt.getInteger("thresholdType"));
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public String getConditionSummary() {
         String filterLabel = StatCollector.translateToLocal(getFilter().toString());

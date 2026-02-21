@@ -62,15 +62,16 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         } else if (heightOffGround > this.ais.flyHeightLimit) {
             aboveLimit = true;
         }
-        if (aboveLimit && this.ais.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
+        if (aboveLimit && this.ais.hasFlyLimit) {
             this.flyLimitAllow = false;
-            if (!this.getNavigator().noPath() && this.motionY > 0) {
+            if (this.motionY > 0) {
                 this.motionY = 0;
-            } else {
-                setNpcFlyingState(false);
-                super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
-                return;
             }
+        } else if (heightOffGround < Math.ceil(this.height) && this.motionY == 0) {
+            this.flyLimitAllow = false;
+            setNpcFlyingState(false);
+            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+            return;
         }
         this.flyLimitAllow = true;
         setNpcFlyingState(true);
@@ -120,15 +121,16 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         } else if (heightOffGround > this.ais.flyHeightLimit) {
             aboveLimit = true;
         }
-        if (aboveLimit && this.ais.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
+        if (aboveLimit && this.ais.hasFlyLimit) {
             this.flyLimitAllow = false;
-            if (!this.getNavigator().noPath() && this.motionY > 0) {
+            if (this.motionY > 0) {
                 this.motionY = 0;
-            } else {
-                setNpcFlyingState(false);
-                super.performMountedMovement(strafe, forward, moveSpeed);
-                return;
             }
+        } else if (heightOffGround < Math.ceil(this.height) && this.motionY == 0) {
+            this.flyLimitAllow = false;
+            setNpcFlyingState(false);
+            super.performMountedMovement(strafe, forward, moveSpeed);
+            return;
         }
         this.flyLimitAllow = true;
         setNpcFlyingState(true);

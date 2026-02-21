@@ -28,9 +28,17 @@ public class RequestProperSpawnData extends AbstractPacket {
     private static final int BATCH_LIMIT = 5;
 
     @SideOnly(Side.CLIENT)
-    private static final Set<Integer> entitiesToFix = new HashSet<>();
+    private static Set<Integer> entitiesToFix;
+
     @SideOnly(Side.CLIENT)
-    private static long lastBatchAttemptMillis = 0;
+    private static long lastBatchAttemptMillis;
+
+    static {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            entitiesToFix = new HashSet<>();
+            lastBatchAttemptMillis = 0;
+        }
+    }
 
     private int entityId;
 
