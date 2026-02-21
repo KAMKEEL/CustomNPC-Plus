@@ -36,6 +36,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
     protected EnergyPanelData panelData = new EnergyPanelData();
     protected PanelMode mode = PanelMode.PLACED;
     protected float panelYaw = 0.0f; // Rotation of the panel face (degrees)
+    protected float prevPanelYaw = 0.0f; // Previous tick yaw for smooth interpolation
 
     // ==================== CHARGING (panel-specific targets) ====================
     protected float targetPanelWidth;
@@ -54,6 +55,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         this.setPosition(x, y + panel.heightOffset, z);
         this.ownerEntityId = owner.getEntityId();
         this.panelYaw = yaw;
+        this.prevPanelYaw = yaw;
         this.mode = mode;
         this.displayData = display;
         this.lightningData = lightning;
@@ -99,6 +101,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         this.prevPosX = this.posX;
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
+        this.prevPanelYaw = this.panelYaw;
 
         super.onUpdate();
 
@@ -546,6 +549,10 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     public float getPanelYaw() {
         return panelYaw;
+    }
+
+    public float getPrevPanelYaw() {
+        return prevPanelYaw;
     }
 
     public EnergyPanelData getPanelData() {

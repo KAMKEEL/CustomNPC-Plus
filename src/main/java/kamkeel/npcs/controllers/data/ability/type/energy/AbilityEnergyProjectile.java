@@ -245,6 +245,16 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     }
 
     @Override
+    public boolean allowFreeOnCast() {
+        return true;
+    }
+
+    @Override
+    public void detach() {
+        entities = null;
+    }
+
+    @Override
     public boolean isReadyForBurstCompletion(int activeTick) {
         return fireDelay <= 0 || activeTick >= fireDelay * (projectileCount - 1);
     }
@@ -335,6 +345,15 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
                 if (tick == fireDelay * i) {
                     fireEntitySafe(entities[i], target);
                 }
+            }
+        }
+
+        // Free on Cast: complete once all projectiles have been fired
+        if (isFreeOnCast()) {
+            int lastFireTick = fireDelay > 0 ? fireDelay * (projectileCount - 1) : 0;
+            if (tick >= lastFireTick) {
+                signalCompletion();
+                return;
             }
         }
 

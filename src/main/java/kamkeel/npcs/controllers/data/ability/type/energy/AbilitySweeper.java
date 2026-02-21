@@ -63,6 +63,21 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
     }
 
     @Override
+    public boolean isConcurrentCapable() {
+        return true;
+    }
+
+    @Override
+    public boolean allowFreeOnCast() {
+        return true;
+    }
+
+    @Override
+    public void detach() {
+        activeEntity = null;
+    }
+
+    @Override
     public boolean isTargetingModeLocked() {
         return true;
     }
@@ -96,6 +111,12 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
         // Signal completion when entity dies
         if (activeEntity == null || activeEntity.isDead) {
             activeEntity = null;
+            signalCompletion();
+            return;
+        }
+
+        // Free on Cast: complete immediately — sweeper lives independently
+        if (isFreeOnCast()) {
             signalCompletion();
         }
     }

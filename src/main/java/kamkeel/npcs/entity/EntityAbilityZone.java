@@ -772,7 +772,11 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
             effectList.appendTag(effect.writeNBT());
         }
         effectsNbt.setTag("Effects", effectList);
-        ByteBufUtils.writeNBT(buffer, effectsNbt);
+        try {
+            ByteBufUtils.writeNBT(buffer, effectsNbt);
+        } catch (java.io.IOException e) {
+            noppes.npcs.LogWriter.error("Error writing zone effects spawn data", e);
+        }
     }
 
     @Override
@@ -818,7 +822,12 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         this.visible = buffer.readBoolean();
 
         // Effects
-        NBTTagCompound effectsNbt = ByteBufUtils.readNBT(buffer);
+        NBTTagCompound effectsNbt = null;
+        try {
+            effectsNbt = ByteBufUtils.readNBT(buffer);
+        } catch (java.io.IOException e) {
+            noppes.npcs.LogWriter.error("Error reading zone effects spawn data", e);
+        }
         effects.clear();
         if (effectsNbt != null && effectsNbt.hasKey("Effects")) {
             NBTTagList effectList = effectsNbt.getTagList("Effects", 10);

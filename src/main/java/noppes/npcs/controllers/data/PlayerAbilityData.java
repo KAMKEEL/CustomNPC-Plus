@@ -91,6 +91,16 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      */
     private transient byte lastSyncedFlags = 0;
 
+    /**
+     * World time when the last ability was activated (for double-press cancel detection).
+     */
+    private transient long lastAbilityActivationTime = -1;
+
+    /**
+     * Ticks after activation during which a second key press will cancel the ability.
+     */
+    private static final int CANCEL_WINDOW_TICKS = 10;
+
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
     // ═══════════════════════════════════════════════════════════════════
@@ -258,6 +268,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
         syncAbilityStateClear(playerData.player);
     }
 
@@ -273,6 +284,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
         syncAbilityStateClear(playerData.player);
     }
 
@@ -378,6 +390,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
             currentAbilityKey = key;
             currentTarget = null;
+            lastAbilityActivationTime = getWorldTime();
             return startChain((ChainedAbility) action, null);
         }
 
@@ -413,6 +426,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = ability;
         currentAbilityKey = key;
         currentTarget = null; // Players don't have auto-targets
+        lastAbilityActivationTime = getWorldTime();
         ability.start(null);
 
         if (ability.getPhase() == AbilityPhase.ACTIVE) {
@@ -662,6 +676,38 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         interruptCurrentAbility(null, 0);
     }
 
+    /**
+     * Try to cancel the current ability via double-press.
+     * Only succeeds if within the cancel window and not in DAZED phase.
+     * Also handles cancellation during chain delay (between chain entries).
+     *
+     * @return true if the ability was cancelled
+     */
+    public boolean tryCancelAbility() {
+        boolean hasExecutingAbility = currentAbility != null && currentAbility.isExecuting();
+        boolean isInChainDelay = currentChain != null && chainDelayRemaining > 0;
+
+        if (!hasExecutingAbility && !isInChainDelay) return false;
+
+        // Don't allow cancel during DAZED
+        if (hasExecutingAbility) {
+            AbilityPhase phase = currentAbility.getPhase();
+            if (phase == AbilityPhase.DAZED) return false;
+            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
+                && phase != AbilityPhase.BURST_DELAY) return false;
+        }
+
+        long worldTime = getWorldTime();
+        if (lastAbilityActivationTime < 0 || (worldTime - lastAbilityActivationTime) > CANCEL_WINDOW_TICKS) {
+            // Outside cancel window — update time so a quick follow-up press can cancel
+            lastAbilityActivationTime = worldTime;
+            return false;
+        }
+
+        cancelCurrentAbility();
+        return true;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // ENTITY RECONSTRUCTION RESET
     // ═══════════════════════════════════════════════════════════════════
@@ -701,6 +747,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
 
         if (clearCooldowns) {
             cooldownEndTime = 0;

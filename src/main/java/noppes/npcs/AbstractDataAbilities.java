@@ -1034,6 +1034,62 @@ public abstract class AbstractDataAbilities {
     protected void onInterruptComplete() {
     }
 
+    /**
+     * Cancel the currently executing ability (voluntary player action).
+     * Unlike interrupt, this always goes directly to IDLE (never DAZED),
+     * immediately rolls cooldown, and clears state.
+     * Also handles cancellation during chain delay (between chain entries).
+     */
+    public void cancelCurrentAbility() {
+        boolean hasExecutingAbility = currentAbility != null && currentAbility.isExecuting();
+        boolean isInChainDelay = currentChain != null && chainDelayRemaining > 0;
+
+        if (!hasExecutingAbility && !isInChainDelay) return;
+
+        if (hasExecutingAbility) {
+            AbilityPhase phase = currentAbility.getPhase();
+            // Cannot cancel during DAZED (already interrupted)
+            if (phase == AbilityPhase.DAZED) return;
+            // Only allow cancel during active phases
+            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
+                && phase != AbilityPhase.BURST_DELAY) return;
+
+            // Remove telegraph
+            removeTelegraph(currentAbility);
+
+            // Fire extender complete hook (cancelled = interrupted)
+            AbilityController.Instance.fireOnAbilityComplete(currentAbility, getEntity(), getTarget(), true);
+
+            // Fire interrupt event (source=null, damage=0 for voluntary cancel)
+            fireInterruptEvent(currentAbility, getTarget(), null, 0);
+
+            // Cancel the ability (cleanup + go directly to IDLE, no DAZED)
+            currentAbility.onInterrupt(getEntity(), null, 0);
+            currentAbility.cancel();
+
+            // Release locks and stop animation
+            stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
+        }
+
+        // Roll cooldown
+        if (currentChain != null) {
+            rollChainCooldown(currentChain);
+            currentChain = null;
+            chainEntryIndex = -1;
+            chainDelayRemaining = -1;
+        } else if (currentAbility != null) {
+            rollCooldown(currentAbility);
+        }
+
+        // Interrupt all concurrent slots
+        interruptConcurrentSlots();
+
+        // Clear state via the normal completion path
+        onAbilityComplete();
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // CHAINED ABILITY EXECUTION
     // ═══════════════════════════════════════════════════════════════════

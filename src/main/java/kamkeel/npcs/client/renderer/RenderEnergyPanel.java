@@ -21,8 +21,16 @@ public class RenderEnergyPanel extends RenderEnergyBarrier {
 
         float width = panel.getPanelData().panelWidth;
         float height = panel.getPanelData().panelHeight;
-        float panelYaw = panel.getPanelYaw();
         float healthPercent = panel.getHealthPercent();
+
+        // Interpolate panel yaw for smooth rotation between ticks
+        float prevYaw = panel.getPrevPanelYaw();
+        float currentYaw = panel.getPanelYaw();
+        float yawDelta = currentYaw - prevYaw;
+        // Wrap angle delta to -180..180 for shortest rotation path
+        while (yawDelta > 180.0f) yawDelta -= 360.0f;
+        while (yawDelta < -180.0f) yawDelta += 360.0f;
+        float renderYaw = prevYaw + yawDelta * partialTicks;
 
         setupRenderState();
 
@@ -34,8 +42,8 @@ public class RenderEnergyPanel extends RenderEnergyBarrier {
             renderAttachedLightning(panel, 0.9f, Math.max(width, height) * 0.5f);
         }
 
-        // Rotate panel to face the correct direction
-        GL11.glRotatef(-panelYaw, 0.0f, 1.0f, 0.0f);
+        // Rotate panel to face the correct direction (interpolated)
+        GL11.glRotatef(-renderYaw, 0.0f, 1.0f, 0.0f);
 
         // Hit flash
         float flashAlpha = computeFlashAlpha(panel);

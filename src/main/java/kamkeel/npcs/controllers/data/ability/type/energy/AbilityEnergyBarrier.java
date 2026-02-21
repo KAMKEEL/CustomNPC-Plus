@@ -64,6 +64,16 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
     }
 
     @Override
+    public boolean allowFreeOnCast() {
+        return true;
+    }
+
+    @Override
+    public void detach() {
+        barrierEntity = null;
+    }
+
+    @Override
     public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (caster.worldObj.isRemote) return;
 
@@ -93,6 +103,12 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (barrierEntity == null || barrierEntity.isDead) {
+            signalCompletion();
+            return;
+        }
+
+        // Free on Cast: complete immediately after barrier becomes active
+        if (isFreeOnCast()) {
             signalCompletion();
             return;
         }

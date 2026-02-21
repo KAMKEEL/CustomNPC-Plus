@@ -114,6 +114,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // instead of sharing the global cooldown with other abilities
     protected boolean perAbilityCooldown = false;
 
+    // Free on Cast: if true, ability enters cooldown immediately after entities are spawned,
+    // allowing the caster to use other abilities while summoned entities remain active
+    protected boolean freeOnCast = false;
+
     // ═══════════════════════════════════════════════════════════════════
     // BUILT-IN (set in constructor via configureAsBuiltIn, NOT persisted)
     // ═══════════════════════════════════════════════════════════════════
@@ -253,6 +257,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     public boolean isConcurrentCapable() {
         return false;
+    }
+
+    /**
+     * Whether this ability type supports the Free on Cast option.
+     * Override to return true for abilities that spawn persistent entities (projectiles, barriers, zones, sweeper).
+     */
+    public boolean allowFreeOnCast() {
+        return false;
+    }
+
+    /**
+     * Detach all spawned entities (let them live independently) without killing them.
+     * Called during signalCompletion() when freeOnCast is enabled.
+     * Override in subclasses to null entity references without calling setDead().
+     */
+    public void detach() {
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -612,6 +632,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
             FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks).range(0, 10000),
             FieldDef.boolField("ability.perAbilityCooldown", this::isPerAbilityCooldown, this::setPerAbilityCooldown)
         ).tab("General"));
+        if (allowFreeOnCast()) {
+            defs.add(FieldDef.boolField("ability.freeOnCast", this::isFreeOnCast, this::setFreeOnCast)
+                .tab("General").hover("ability.hover.freeOnCast"));
+        }
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
         defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
                 () -> this.getLockMovement().getDisplayKey(),
@@ -1072,7 +1096,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
             // Final completion - let burst entities die naturally (don't force-kill)
             burstEntities.clear();
-            cleanup();
+            if (freeOnCast) {
+                // Free on Cast: detach entities (let them live independently) instead of killing
+                detach();
+            } else {
+                cleanup();
+            }
             phase = AbilityPhase.IDLE;
             currentTick = 0;
             return true;
@@ -1096,6 +1125,20 @@ public abstract class Ability implements IAbility, IAbilityAction {
             phase = AbilityPhase.IDLE;
             currentTick = 0;
         }
+        burstIndex = 0;
+        currentTarget = null;
+        telegraphInstances.clear();
+    }
+
+    /**
+     * Cancel this ability (voluntary player action). Goes directly to IDLE, skipping DAZED.
+     * Entities are killed via cleanup(). Unlike interrupt(), this never enters DAZED phase.
+     */
+    public void cancel() {
+        cleanupBurstEntities();
+        cleanup();
+        phase = AbilityPhase.IDLE;
+        currentTick = 0;
         burstIndex = 0;
         currentTarget = null;
         telegraphInstances.clear();
@@ -1298,6 +1341,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
         nbt.setBoolean("perAbilityCooldown", perAbilityCooldown);
+        nbt.setBoolean("freeOnCast", freeOnCast);
 
         // Toggle
         nbt.setInteger("toggleStates", toggleStates);
@@ -1380,6 +1424,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
         perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");
+        freeOnCast = nbt.getBoolean("freeOnCast");
 
         // Toggle
         toggleStates = nbt.getInteger("toggleStates");
@@ -1974,6 +2019,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public void setPerAbilityCooldown(boolean perAbilityCooldown) {
         this.perAbilityCooldown = perAbilityCooldown;
+    }
+
+    public boolean isFreeOnCast() {
+        return freeOnCast;
+    }
+
+    public void setFreeOnCast(boolean freeOnCast) {
+        this.freeOnCast = freeOnCast;
     }
 
     public boolean isToggleable() {
