@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -127,6 +129,7 @@ public class ConditionItem extends AbilityCondition {
         return itemName.equals(registryName);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void getConditionDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.enumField("condition.usage_type", UsageType.class,
@@ -150,6 +153,7 @@ public class ConditionItem extends AbilityCondition {
 //            .hover("condition.hover.required_count"));
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public String getConditionSummary() {
         String filterLabel = StatCollector.translateToLocal(getFilter().toString());
