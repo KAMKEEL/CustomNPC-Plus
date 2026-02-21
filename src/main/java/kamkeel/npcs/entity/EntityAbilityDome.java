@@ -22,9 +22,9 @@ import java.util.List;
  * Energy Dome entity - a spherical barrier that blocks incoming energy projectiles.
  * Centered on the caster's position at time of casting.
  * Only blocks incoming attacks (not outgoing from allies inside).
- * Extends EntityEnergyBarrier for shared barrier logic.
+ * Extends EntityAbilityBarrier for shared barrier logic.
  */
-public class EntityEnergyDome extends EntityEnergyBarrier {
+public class EntityAbilityDome extends EntityAbilityBarrier {
 
     // ==================== DOME-SPECIFIC PROPERTIES ====================
     protected float domeRadius = 5.0f;
@@ -35,16 +35,16 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     private boolean inTickMelee = false;
     private final HashSet<Integer> processedMeleeSwings = new HashSet<>();
 
-    public EntityEnergyDome(World world) {
+    public EntityAbilityDome(World world) {
         super(world);
         this.noClip = true;
         this.stepHeight = 0.0F;
         this.setSize(1.0f, 1.0f);
     }
 
-    public EntityEnergyDome(World world, EntityLivingBase owner, double x, double y, double z,
-                            float domeRadius, EnergyDisplayData display, EnergyLightningData lightning,
-                            EnergyBarrierData barrier) {
+    public EntityAbilityDome(World world, EntityLivingBase owner, double x, double y, double z,
+                             float domeRadius, EnergyDisplayData display, EnergyLightningData lightning,
+                             EnergyBarrierData barrier) {
         this(world);
         this.noClip = true;
         this.stepHeight = 0.0F;

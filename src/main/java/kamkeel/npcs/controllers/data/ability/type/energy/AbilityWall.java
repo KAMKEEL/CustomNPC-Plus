@@ -9,8 +9,8 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -23,7 +23,7 @@ import java.util.List;
  * Can float above ground (configurable height offset).
  * Optional launching mode fires the wall forward with damage/knockback.
  */
-public class AbilityWall extends AbilityEnergyBarrier {
+public class AbilityWall extends AbilityBarrier {
 
     private final EnergyPanelData panelData;
 
@@ -55,7 +55,7 @@ public class AbilityWall extends AbilityEnergyBarrier {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         // Place wall between caster and target
         double placeX, placeY, placeZ;
         float yaw;
@@ -87,11 +87,11 @@ public class AbilityWall extends AbilityEnergyBarrier {
             yaw = caster.rotationYaw;
         }
 
-        EntityEnergyPanel.PanelMode mode = panelData.launching
-            ? EntityEnergyPanel.PanelMode.LAUNCHED
-            : EntityEnergyPanel.PanelMode.PLACED;
+        EntityAbilityPanel.PanelMode mode = panelData.launching
+            ? EntityAbilityPanel.PanelMode.LAUNCHED
+            : EntityAbilityPanel.PanelMode.PLACED;
 
-        EntityEnergyPanel panel = new EntityEnergyPanel(
+        EntityAbilityPanel panel = new EntityAbilityPanel(
             caster.worldObj, caster,
             placeX, placeY, placeZ, yaw, mode,
             displayData.copy(), lightningData.copy(), barrierData.copy(), panelData.copy()

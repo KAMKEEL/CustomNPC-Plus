@@ -131,7 +131,7 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
 
             if (instantHeal) {
                 for (EntityLivingBase entity : getAffectedEntities()) {
-                    healEntity(entity);
+                    healEntity(caster, entity);
                     applyAllEffects(caster, entity);
                     spawnHealParticles(caster.worldObj, entity);
                 }
@@ -159,7 +159,9 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
                 }
 
                 if (totalTickHeal > 0) {
-                    entity.heal(totalTickHeal);
+                    if (!AbilityController.Instance.fireOnAbilityHeal(this, caster, entity, totalTickHeal)) {
+                        entity.heal(totalTickHeal);
+                    }
                 }
 
                 if (tick % 20 == 0) {
@@ -226,13 +228,15 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
         }
     }
 
-    private void healEntity(EntityLivingBase entity) {
+    private void healEntity(EntityLivingBase caster, EntityLivingBase entity) {
         float totalHeal = healAmount;
         if (healPercent > 0) {
             totalHeal += entity.getMaxHealth() * healPercent;
         }
         if (totalHeal > 0) {
-            entity.heal(totalHeal);
+            if (!AbilityController.Instance.fireOnAbilityHeal(this, caster, entity, totalHeal)) {
+                entity.heal(totalHeal);
+            }
         }
     }
 

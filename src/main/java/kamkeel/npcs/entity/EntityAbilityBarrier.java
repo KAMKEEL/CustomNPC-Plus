@@ -22,24 +22,24 @@ import java.util.List;
  * and barrier lifecycle management.
  * Extends EntityEnergyAbility for shared visual/owner/charging state.
  */
-public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
+public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
 
     // ==================== ACTIVE BARRIER REGISTRY ====================
-    private static final List<WeakReference<EntityEnergyBarrier>> activeBarriers = new ArrayList<>();
+    private static final List<WeakReference<EntityAbilityBarrier>> activeBarriers = new ArrayList<>();
     private boolean tracked = false;
 
-    public static void trackBarrier(EntityEnergyBarrier barrier) {
+    public static void trackBarrier(EntityAbilityBarrier barrier) {
         activeBarriers.add(new WeakReference<>(barrier));
     }
 
     /**
      * Get all living barriers in the given world. Auto-cleans dead refs.
      */
-    public static List<EntityEnergyBarrier> getActiveBarriers(World world) {
-        List<EntityEnergyBarrier> result = new ArrayList<>();
-        Iterator<WeakReference<EntityEnergyBarrier>> it = activeBarriers.iterator();
+    public static List<EntityAbilityBarrier> getActiveBarriers(World world) {
+        List<EntityAbilityBarrier> result = new ArrayList<>();
+        Iterator<WeakReference<EntityAbilityBarrier>> it = activeBarriers.iterator();
         while (it.hasNext()) {
-            EntityEnergyBarrier b = it.next().get();
+            EntityAbilityBarrier b = it.next().get();
             if (b == null || b.isDead) {
                 it.remove();
             } else if (b.worldObj == world) {
@@ -62,7 +62,7 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
     protected static final int DW_HEALTH_PERCENT = 21;
     protected static final int DW_HIT_FLASH = 22;
 
-    public EntityEnergyBarrier(World world) {
+    public EntityAbilityBarrier(World world) {
         super(world);
         this.noClip = true;
     }
@@ -358,10 +358,10 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
      * Find a barrier that would absorb damage for the given entity (its caster).
      * Returns the barrier if: absorbing is enabled AND entity is the barrier's owner.
      */
-    public static EntityEnergyBarrier getAbsorbingBarrier(Entity entity) {
+    public static EntityAbilityBarrier getAbsorbingBarrier(Entity entity) {
         if (entity == null || entity.worldObj == null) return null;
-        List<EntityEnergyBarrier> barriers = getActiveBarriers(entity.worldObj);
-        for (EntityEnergyBarrier barrier : barriers) {
+        List<EntityAbilityBarrier> barriers = getActiveBarriers(entity.worldObj);
+        for (EntityAbilityBarrier barrier : barriers) {
             if (barrier.isDead) continue;
             if (!barrier.barrierData.absorbing) continue;
             if (barrier.ownerEntityId == entity.getEntityId()) {
@@ -422,6 +422,16 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
 
     public void setCurrentHealth(float health) {
         this.currentHealth = health;
+        syncHealthPercent();
+    }
+
+    /**
+     * Override the barrier's max health and set current health to match.
+     * Used by extenders (e.g., DBC scaling) to dynamically set barrier HP at spawn time.
+     */
+    public void setBarrierMaxHealth(float maxHealth) {
+        this.barrierData.setMaxHealth(maxHealth);
+        this.currentHealth = maxHealth;
         syncHealthPercent();
     }
 

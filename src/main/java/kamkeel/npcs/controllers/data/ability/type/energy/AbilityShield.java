@@ -10,8 +10,8 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -24,7 +24,7 @@ import java.util.List;
  * The shield follows the caster's position and rotates with their look direction.
  * Cannot be placed — it's always held.
  */
-public class AbilityShield extends AbilityEnergyBarrier {
+public class AbilityShield extends AbilityBarrier {
 
     private float shieldWidth = 2.5f;
     private float shieldHeight = 2.5f;
@@ -50,7 +50,7 @@ public class AbilityShield extends AbilityEnergyBarrier {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         EnergyPanelData panelData = new EnergyPanelData(shieldWidth, shieldHeight, 0.0f);
 
         float frontDist = 1.5f;
@@ -59,10 +59,10 @@ public class AbilityShield extends AbilityEnergyBarrier {
         double spawnY = caster.posY + (caster.height * 0.5f);
         double spawnZ = caster.posZ + (Math.cos(yawRad) * frontDist);
 
-        EntityEnergyPanel panel = new EntityEnergyPanel(
+        EntityAbilityPanel panel = new EntityAbilityPanel(
             caster.worldObj, caster,
             spawnX, spawnY, spawnZ, caster.rotationYaw,
-            EntityEnergyPanel.PanelMode.HELD,
+            EntityAbilityPanel.PanelMode.HELD,
             displayData.copy(), lightningData.copy(), barrierData.copy(), panelData
         );
         panel.setSourceAbility(this);

@@ -2,9 +2,10 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -16,14 +17,14 @@ import java.util.List;
  * Abstract base for energy barrier abilities (Dome, Wall, Shield).
  * Handles shared visual data, barrier configuration, and lifecycle management.
  */
-public abstract class AbilityEnergyBarrier extends AbilityEnergy {
+public abstract class AbilityBarrier extends AbilityEnergy {
 
     protected final EnergyBarrierData barrierData;
 
     // Runtime entity tracking
-    protected transient EntityEnergyBarrier barrierEntity;
+    protected transient EntityAbilityBarrier barrierEntity;
 
-    protected AbilityEnergyBarrier(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
+    protected AbilityBarrier(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
         super(displayData);
         this.barrierData = barrierData;
     }
@@ -33,7 +34,7 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
     /**
      * Create and spawn the barrier entity during execution.
      */
-    protected abstract EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
+    protected abstract EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
 
     /**
      * Add type-specific GUI field definitions.
@@ -80,6 +81,7 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
         if (tick == 1) {
             barrierEntity = createBarrierEntity(caster, target);
             if (barrierEntity != null) {
+                applyBarrierHealthModifiers(caster);
                 barrierEntity.setupCharging(getWindUpTicks());
                 spawnAbilityEntity(barrierEntity);
             }
@@ -95,6 +97,7 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
             // No windup or entity died — create fresh
             barrierEntity = createBarrierEntity(caster, target);
             if (barrierEntity != null) {
+                applyBarrierHealthModifiers(caster);
                 spawnAbilityEntity(barrierEntity);
             }
         }
@@ -122,6 +125,16 @@ public abstract class AbilityEnergyBarrier extends AbilityEnergy {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+    }
+
+    /**
+     * Allow extenders to modify the barrier's max health at spawn time.
+     */
+    private void applyBarrierHealthModifiers(EntityLivingBase caster) {
+        float modHealth = AbilityController.Instance.fireModifyBarrierHealth(this, caster, barrierData.maxHealth);
+        if (modHealth != barrierData.maxHealth) {
+            barrierEntity.setBarrierMaxHealth(modHealth);
+        }
     }
 
     @Override

@@ -2,7 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -13,11 +13,11 @@ import org.lwjgl.opengl.GL11;
  * Optional skybox texture rendered on the interior surface.
  */
 @SideOnly(Side.CLIENT)
-public class RenderEnergyDome extends RenderEnergyBarrier {
+public class RenderAbilityDome extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
-        EntityEnergyDome dome = (EntityEnergyDome) entity;
+        EntityAbilityDome dome = (EntityAbilityDome) entity;
         float radius = dome.getDomeRadius();
         float healthPercent = dome.getHealthPercent();
 

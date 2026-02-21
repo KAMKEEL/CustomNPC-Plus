@@ -87,4 +87,32 @@ public interface IAbilityExtender {
     default float modifyProjectileDamage(Ability ability, EntityLivingBase caster, float baseDamage) {
         return baseDamage;
     }
+
+    /**
+     * Called when a barrier entity is about to be created, allowing extenders to modify its max health.
+     * Cumulative: all extenders apply in sequence, each receiving the previous output.
+     *
+     * @param ability    The barrier ability being executed
+     * @param caster     The entity creating the barrier
+     * @param baseHealth The base max health from EnergyBarrierData.maxHealth
+     * @return The modified max health value
+     */
+    default float modifyBarrierHealth(Ability ability, EntityLivingBase caster, float baseHealth) {
+        return baseHealth;
+    }
+
+    /**
+     * Called when an ability is about to heal an entity.
+     * Return true to handle the healing (skip default entity.heal()).
+     * Chain of responsibility: first returning true wins.
+     *
+     * @param ability    The ability performing the heal
+     * @param caster     The entity casting the ability
+     * @param target     The entity being healed
+     * @param healAmount The heal amount calculated by the ability
+     * @return true if healing was handled (skip default), false to pass to next extender or default
+     */
+    default boolean onAbilityHeal(Ability ability, EntityLivingBase caster, EntityLivingBase target, float healAmount) {
+        return false;
+    }
 }

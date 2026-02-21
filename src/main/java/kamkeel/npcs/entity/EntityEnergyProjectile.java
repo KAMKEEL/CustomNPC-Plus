@@ -318,8 +318,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * @return true if projectile was absorbed (caller should stop processing)
      */
     protected boolean checkBarrierCollision() {
-        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
-        for (EntityEnergyBarrier barrier : barriers) {
+        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(worldObj);
+        for (EntityAbilityBarrier barrier : barriers) {
             if (barrier.isDead) continue;
 
             // Quick distance pre-filter

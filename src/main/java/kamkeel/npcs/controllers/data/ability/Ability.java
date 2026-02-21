@@ -7,6 +7,9 @@ import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -20,9 +23,6 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityEnergyDome;
-import kamkeel.npcs.entity.EntityEnergyPanel;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
@@ -2264,9 +2264,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
         double maxZ = Math.max(caster.posZ, target.posZ) + searchRange;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
-        List<EntityEnergyBarrier> barriers = world.getEntitiesWithinAABB(EntityEnergyBarrier.class, searchBox);
+        List<EntityAbilityBarrier> barriers = world.getEntitiesWithinAABB(EntityAbilityBarrier.class, searchBox);
 
-        for (EntityEnergyBarrier barrier : barriers) {
+        for (EntityAbilityBarrier barrier : barriers) {
             if (barrier.isDead) continue;
             if (barrier.isCharging()) continue;
 
@@ -2277,10 +2277,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 if (AbilityTargetHelper.isAlly(caster, (EntityLivingBase) barrierOwner)) continue;
             }
 
-            if (barrier instanceof EntityEnergyDome) {
-                if (isDomeBlocking((EntityEnergyDome) barrier, caster, target)) return true;
-            } else if (barrier instanceof EntityEnergyPanel) {
-                if (isPanelBlocking((EntityEnergyPanel) barrier, caster, target)) return true;
+            if (barrier instanceof EntityAbilityDome) {
+                if (isDomeBlocking((EntityAbilityDome) barrier, caster, target)) return true;
+            } else if (barrier instanceof EntityAbilityPanel) {
+                if (isPanelBlocking((EntityAbilityPanel) barrier, caster, target)) return true;
             }
         }
 
@@ -2291,7 +2291,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Check if a dome blocks an attack from caster to target.
      * Blocks when caster is outside and target is inside the dome.
      */
-    private static boolean isDomeBlocking(EntityEnergyDome dome, EntityLivingBase caster, EntityLivingBase target) {
+    private static boolean isDomeBlocking(EntityAbilityDome dome, EntityLivingBase caster, EntityLivingBase target) {
         float radius = dome.getDomeRadius();
 
         double cdx = caster.posX - dome.posX;
@@ -2312,7 +2312,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Check if a panel blocks an attack from caster to target.
      * Checks if the line from caster to target crosses through the panel bounds.
      */
-    private static boolean isPanelBlocking(EntityEnergyPanel panel, EntityLivingBase caster, EntityLivingBase target) {
+    private static boolean isPanelBlocking(EntityAbilityPanel panel, EntityLivingBase caster, EntityLivingBase target) {
         float halfW = panel.getPanelData().panelWidth * 0.5f;
         float halfH = panel.getPanelData().panelHeight * 0.5f;
 

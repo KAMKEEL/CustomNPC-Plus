@@ -2,7 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -13,11 +13,11 @@ import org.lwjgl.opengl.GL11;
  * Voxel-blocky style with inner/outer layers.
  */
 @SideOnly(Side.CLIENT)
-public class RenderEnergyPanel extends RenderEnergyBarrier {
+public class RenderAbilityPanel extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
-        EntityEnergyPanel panel = (EntityEnergyPanel) entity;
+        EntityAbilityPanel panel = (EntityAbilityPanel) entity;
 
         float width = panel.getPanelData().panelWidth;
         float height = panel.getPanelData().panelHeight;

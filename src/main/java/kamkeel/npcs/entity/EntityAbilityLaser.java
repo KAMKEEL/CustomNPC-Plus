@@ -382,8 +382,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     protected boolean checkBarrierCollision() {
         if (currentLength <= 0 || fullyExtended) return false;
 
-        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
-        for (EntityEnergyBarrier barrier : barriers) {
+        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(worldObj);
+        for (EntityAbilityBarrier barrier : barriers) {
             if (barrier.isDead || barrier.isCharging()) continue;
             if (barrier.getOwnerEntityId() == this.ownerEntityId) continue;
 
@@ -396,8 +396,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                 }
             }
 
-            if (barrier instanceof EntityEnergyDome) {
-                EntityEnergyDome dome = (EntityEnergyDome) barrier;
+            if (barrier instanceof EntityAbilityDome) {
+                EntityAbilityDome dome = (EntityAbilityDome) barrier;
                 float intersectDist = getLineSphereIntersection(dome);
                 if (intersectDist >= 0) {
                     // Truncate laser at dome surface
@@ -431,7 +431,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
      * Returns the distance along the laser direction to the first entry point,
      * or -1 if no intersection from outside.
      */
-    private float getLineSphereIntersection(EntityEnergyDome dome) {
+    private float getLineSphereIntersection(EntityAbilityDome dome) {
         double cx = dome.posX;
         double cy = dome.posY;
         double cz = dome.posZ;

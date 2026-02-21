@@ -1002,6 +1002,29 @@ public class AbilityController implements IAbilityHandler {
         return damage;
     }
 
+    /**
+     * Fire modifyBarrierHealth on all extenders. Cumulative — each extender's output feeds the next.
+     */
+    public float fireModifyBarrierHealth(Ability ability, EntityLivingBase caster, float baseHealth) {
+        float health = baseHealth;
+        for (IAbilityExtender ext : extenders) {
+            health = ext.modifyBarrierHealth(ability, caster, health);
+        }
+        return health;
+    }
+
+    /**
+     * Fire onAbilityHeal on all extenders. Chain of responsibility — first true wins.
+     */
+    public boolean fireOnAbilityHeal(Ability ability, EntityLivingBase caster, EntityLivingBase target, float healAmount) {
+        for (IAbilityExtender ext : extenders) {
+            if (ext.onAbilityHeal(ability, caster, target, healAmount)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // IAbilityHandler
     // ═══════════════════════════════════════════════════════════════════════════

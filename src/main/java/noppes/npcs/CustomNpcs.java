@@ -28,14 +28,15 @@ import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
-import kamkeel.npcs.entity.EntityEnergyDome;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.util.BukkitUtil;
@@ -297,8 +298,8 @@ public class CustomNpcs {
         registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 3, true);
         registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
         registerNewEntity(EntityAbilityZone.class, "abilityzone", 64, 3, true);
-        registerNewEntity(EntityEnergyDome.class, "energydome", 64, 3, true);
-        registerNewEntity(EntityEnergyPanel.class, "energypanel", 64, 3, true);
+        registerNewEntity(EntityAbilityDome.class, "energydome", 64, 3, true);
+        registerNewEntity(EntityAbilityPanel.class, "energypanel", 64, 3, true);
         registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 3, true);
 
         new RecipeController();
@@ -430,7 +431,7 @@ public class CustomNpcs {
         }
 
         kamkeel.npcs.entity.EntityEnergyProjectile.clearAllProjectiles();
-        kamkeel.npcs.entity.EntityEnergyBarrier.clearAllBarriers();
+        EntityAbilityBarrier.clearAllBarriers();
 
         if (FMLCommonHandler.instance().getSide().isClient())
             clientJaninoCompiler = null;
