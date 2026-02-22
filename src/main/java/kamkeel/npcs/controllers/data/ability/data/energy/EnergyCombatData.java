@@ -22,6 +22,19 @@ public class EnergyCombatData implements IEnergyCombatData {
     }
 
     public EnergyCombatData(float damage, float knockback, float knockbackUp,
+                            boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                            HitType hitType, int multiHitDelay) {
+        this.damage = damage;
+        this.knockback = knockback;
+        this.knockbackUp = knockbackUp;
+        this.explosive = explosive;
+        this.explosionRadius = explosionRadius;
+        this.explosionDamageFalloff = explosionDamageFalloff;
+        this.hitType = hitType;
+        this.multiHitDelayTicks = multiHitDelay;
+    }
+
+    public EnergyCombatData(float damage, float knockback, float knockbackUp,
                             boolean explosive, float explosionRadius, float explosionDamageFalloff) {
         this.damage = damage;
         this.knockback = knockback;

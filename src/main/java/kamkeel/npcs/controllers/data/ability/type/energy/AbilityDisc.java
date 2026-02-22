@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
+import kamkeel.npcs.controllers.data.ability.enums.HitType;
 import kamkeel.npcs.controllers.data.ability.enums.LockMode;
 import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
@@ -38,7 +39,7 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
     public AbilityDisc() {
         super(
             new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
-            new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f),
+            new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f, HitType.PIERCE, 5),
             new EnergyHomingData(0.6f, true, 0.12f, 18.0f),
             new EnergyLifespanData(150.0f, 200)
         );

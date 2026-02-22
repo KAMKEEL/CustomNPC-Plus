@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
+import kamkeel.npcs.controllers.data.ability.enums.HitType;
 import kamkeel.npcs.controllers.data.ability.enums.LockMode;
 import kamkeel.npcs.controllers.data.ability.enums.RotationMode;
 import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
@@ -36,7 +37,7 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
     public AbilityBeam() {
         super(
             new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
-            new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f),
+            new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f, HitType.MULTI, 5),
             new EnergyHomingData(0.4f, true, 0.1f, 15.0f),
             new EnergyLifespanData(150.0f, 200)
         );

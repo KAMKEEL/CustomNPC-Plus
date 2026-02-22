@@ -2,10 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.enums.LockMode;
-import kamkeel.npcs.controllers.data.ability.enums.RotationMode;
-import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.*;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
@@ -38,7 +35,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     public AbilityLaserShot() {
         super(
             new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f),
-            new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f),
+            new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f, HitType.PIERCE, 5),
             new EnergyHomingData(),
             new EnergyLifespanData(150.0f, 100)
         );
