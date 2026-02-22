@@ -569,7 +569,6 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new DialogPacket());
         DATA_PACKET.registerPacket(new RolePacket());
         DATA_PACKET.registerPacket(new WeaponNpcPacket());
-//        DATA_PACKET.registerPacket(new RequestProperSpawnData());
 
         // Data | Script Packets
         DATA_PACKET.registerPacket(new ScriptedParticlePacket());
@@ -628,6 +627,7 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new SpecialKeyStatePacket());
 
         PLAYER_PACKET.registerPacket(new SyncRevisionInfoPacket());
+        PLAYER_PACKET.registerPacket(new RequestProperSpawnData());
 
         // CustomGUI Packets
         PLAYER_PACKET.registerPacket(new CustomGuiButtonPacket());
