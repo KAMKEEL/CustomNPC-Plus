@@ -61,7 +61,6 @@ import java.util.UUID;
  * Design inspired by LouisXIV's energy attack system.
  */
 public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
-
     // ==================== ACTIVE PROJECTILE TRACKING ====================
     private static final Map<Integer, List<WeakReference<EntityEnergyProjectile>>> activeProjectiles = new HashMap<>();
 
@@ -380,10 +379,42 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     @Override
     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements) {
+        int steps = Math.max(1, posRotationIncrements);
+        double dx = x - this.posX;
+        double dy = y - this.posY;
+        double dz = z - this.posZ;
+        double dotToCurrentMotion = dx * this.motionX + dy * this.motionY + dz * this.motionZ;
+
+        // Spawn-time and large correction snaps: avoid visible startup rubber-banding.
+        if (worldObj != null && worldObj.isRemote) {
+            double distSq = dx * dx + dy * dy + dz * dz;
+            // Launch-time stale tracker packets can arrive one update late and point behind
+            // an already-predicted projectile. Skipping these avoids visible backward "bounce".
+            if (ticksExisted <= 24 && distSq <= 4.0D && dotToCurrentMotion < -0.0025D) {
+                return;
+            }
+            if (ticksExisted <= 2 || distSq > 16.0D) {
+                this.setPosition(x, y, z);
+                syncPositionState(x, y, z, true);
+                return;
+            }
+        }
+
         this.interpTargetX = x;
         this.interpTargetY = y;
         this.interpTargetZ = z;
-        this.interpSteps = posRotationIncrements;
+        if (worldObj != null && worldObj.isRemote && ticksExisted <= 24 && dotToCurrentMotion < 0.0D) {
+            // Keep existing velocity when correction points opposite current travel
+            // to prevent launch-time reverse lerp.
+            this.interpTargetMotionX = this.motionX;
+            this.interpTargetMotionY = this.motionY;
+            this.interpTargetMotionZ = this.motionZ;
+        } else {
+            this.interpTargetMotionX = dx / steps;
+            this.interpTargetMotionY = dy / steps;
+            this.interpTargetMotionZ = dz / steps;
+        }
+        this.interpSteps = steps;
     }
 
     @Override
@@ -816,6 +847,38 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     /**
+     * Default preview launch: snap to look-vector origin and fire along look.
+     */
+    protected void startPreviewFiringDefault() {
+        beginLookVectorLaunch(true);
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
+     * Default active launch: snap to look-vector origin and fire toward target when available.
+     */
+    protected void startMovingTowardTargetDefault(EntityLivingBase target) {
+        beginLookVectorLaunch(false);
+        setMotionTowardTargetOrLookVector(target, posX, posY, posZ, getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
+     * Default active launch from fixed origin fields (used by beam-like projectiles).
+     */
+    protected void startMovingTowardTargetFromStartDefault(EntityLivingBase target) {
+        beginLookVectorLaunch(false);
+        setMotionTowardTargetOrLookVector(target, startX, startY, startZ, getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
+     * Default active launch strictly along look vector.
+     */
+    protected void startMovingAlongLookVectorDefault() {
+        beginLookVectorLaunch(false);
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
      * Resolve the owner's look vector.
      * Falls back to yaw/pitch math if look vector is unavailable.
      */
@@ -836,7 +899,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     /**
-     * Shared launch origin: owner position + chest height + look-vector offset.
+     * Shared launch origin: owner eye position + look-vector offset.
      *
      * @param syncPositionState When true, sync prev/lastTick/interp targets to this position.
      */
@@ -855,7 +918,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (owner == null || look == null) return false;
 
         double originX = owner.posX;
-        double originY = owner.posY + owner.height * 0.7;
+        double originY = owner.posY + owner.getEyeHeight();
         double originZ = owner.posZ;
 
         float frontDist = computeLaunchFrontDistance(owner, look, originX, originY, originZ);
@@ -1012,22 +1075,86 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     // ==================== CHARGING METHODS (projectile-specific) ====================
 
     /**
+     * Shared charging-state bootstrap used by both world and preview setup paths.
+     */
+    protected void setupChargingState(EnergyAnchorData anchor, int chargeDuration) {
+        setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.anchorData = anchor;
+    }
+
+    /**
+     * Shared preview bootstrap used by projectile preview setup methods.
+     */
+    protected void setupPreviewState(EntityLivingBase owner, EnergyDisplayData display,
+                                     EnergyLightningData lightning, EnergyAnchorData anchor,
+                                     int chargeDuration) {
+        this.setPreviewMode(true);
+        this.setPreviewOwner(owner);
+        this.displayData = display;
+        this.lightningData = lightning;
+        setupChargingState(anchor, chargeDuration);
+    }
+
+    /**
+     * Set size and render-size state to a single value.
+     */
+    protected void setVisualSize(float value) {
+        this.size = value;
+        this.renderCurrentSize = value;
+        this.prevRenderSize = value;
+    }
+
+    /**
+     * Set entity/start state to a fixed position used as charging/launch origin.
+     */
+    protected void setChargeOrigin(Vec3 pos) {
+        if (pos == null) return;
+        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        this.prevPosX = pos.xCoord;
+        this.prevPosY = pos.yCoord;
+        this.prevPosZ = pos.zCoord;
+        this.startX = pos.xCoord;
+        this.startY = pos.yCoord;
+        this.startZ = pos.zCoord;
+    }
+
+    /**
+     * Resolve and apply charging/launch origin from anchor position.
+     */
+    protected void setChargeOriginFromAnchor(EntityLivingBase owner, EnergyAnchorData anchor) {
+        if (owner == null || anchor == null) return;
+        setChargeOrigin(AnchorPointHelper.calculateAnchorPosition(owner, anchor));
+    }
+
+    /**
+     * Resolve and apply charging/launch origin from anchor position with forward offset.
+     */
+    protected void setChargeOriginFromAnchor(EntityLivingBase owner, EnergyAnchorData anchor, float offsetDistance) {
+        if (owner == null || anchor == null) return;
+        setChargeOrigin(AnchorPointHelper.calculateAnchorPosition(owner, anchor, offsetDistance));
+    }
+
+    /**
+     * Zero current motion.
+     */
+    protected void clearMotion() {
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
+    }
+
+    /**
      * Setup this entity in charging mode (for windup phase).
      * Grows from 0 to current size over chargeDuration ticks.
      * Subclasses with different charging behavior should override or use their own method.
      */
     public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
-        setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
+        setupChargingState(anchor, chargeDuration);
         this.targetSize = this.size;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        setVisualSize(0.01f);
+        clearMotion();
     }
 
     /**

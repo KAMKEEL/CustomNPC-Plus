@@ -94,18 +94,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
      * Can be fired when transitioning to active phase.
      */
     public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, boolean vertical) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
-
-        // Set visual properties
-        this.displayData = display;
-        this.lightningData = lightning;
-
-        // Set charging state
-        this.setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
         this.vertical = vertical;
 
         // Store target size and start at 0 for grow effect
@@ -113,32 +102,16 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         this.targetDiscThickness = discThickness;
         this.discRadius = 0.01f;
         this.discThickness = 0.01f;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-
-        // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
-
-        // Clear motion
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        setVisualSize(0.01f);
+        setChargeOriginFromAnchor(owner, anchorData);
+        clearMotion();
     }
 
     /**
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        beginLookVectorLaunch(true);
-        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
+        startPreviewFiringDefault();
     }
 
     /**
@@ -146,8 +119,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
      * Called by ability when windup ends.
      */
     public void startMoving(EntityLivingBase target) {
-        beginLookVectorLaunch(false);
-        setMotionTowardTargetOrLookVector(target, posX, posY, posZ, getSpeed(), getSpeed(), 0, 0);
+        startMovingTowardTargetDefault(target);
     }
 
     @Override

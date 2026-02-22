@@ -68,50 +68,29 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     public void setupPreview(EntityLivingBase owner, float width, float thickness,
                              EnergyDisplayData display, EnergyLightningData lightning,
                              EnergyAnchorData anchor, int chargeDuration) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
-        this.displayData = display;
-        this.lightningData = lightning;
-        this.setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
 
         this.targetSliceWidth = width;
         this.targetSliceThickness = thickness;
         this.sliceWidth = 0.01f;
         this.sliceThickness = 0.01f;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-
-        Vec3 pos = kamkeel.npcs.util.AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        setVisualSize(0.01f);
+        setChargeOriginFromAnchor(owner, anchorData);
+        clearMotion();
     }
 
     /**
      * Start preview firing.
      */
     public void startPreviewFiring() {
-        beginLookVectorLaunch(true);
-        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
+        startPreviewFiringDefault();
     }
 
     /**
      * Start the slicer moving (exit charging mode).
      */
     public void startMoving(EntityLivingBase target) {
-        beginLookVectorLaunch(false);
-        setMotionTowardTargetOrLookVector(target, posX, posY, posZ, getSpeed(), getSpeed(), 0, 0);
+        startMovingTowardTargetDefault(target);
     }
 
     @Override

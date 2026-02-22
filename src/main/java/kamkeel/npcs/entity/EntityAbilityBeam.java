@@ -83,6 +83,15 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         return Math.max(0, trailPoints.size() - trailStartIndex);
     }
 
+    private void resetHeadOffsets() {
+        headOffsetX = 0;
+        headOffsetY = 0;
+        headOffsetZ = 0;
+        prevHeadOffsetX = 0;
+        prevHeadOffsetY = 0;
+        prevHeadOffsetZ = 0;
+    }
+
     private void resetTrailStorage() {
         trailPoints.clear();
         trailPointAges.clear();
@@ -135,12 +144,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         setBeamMode(modeFromAnchored(anchoredMode));
 
         // Initialize head offset at origin (0,0,0 relative)
-        this.headOffsetX = 0;
-        this.headOffsetY = 0;
-        this.headOffsetZ = 0;
-        this.prevHeadOffsetX = 0;
-        this.prevHeadOffsetY = 0;
-        this.prevHeadOffsetZ = 0;
+        resetHeadOffsets();
 
         // Add initial trail point at origin (relative 0,0,0)
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
@@ -154,79 +158,42 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     }
 
     public void setupCharging(EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
-        setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
+        setupChargingState(anchor, chargeDuration);
         this.chargeOffsetDistance = chargeOffsetDistance;
-        this.anchorData = anchor;
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        clearMotion();
     }
 
     public void setupPreview(EntityLivingBase owner, float beamWidth, float headSize, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
 
         // Set visual properties
         this.beamWidth = beamWidth;
         this.headSize = headSize;
-        this.size = headSize;
-        this.displayData = display;
-        this.lightningData = lightning;
+        setVisualSize(headSize);
 
-        // Set charging state
-        this.setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
         this.chargeOffsetDistance = chargeOffsetDistance;
-        this.anchorData = anchor;
-
-        // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData, chargeOffsetDistance);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
+        setChargeOriginFromAnchor(owner, anchorData, chargeOffsetDistance);
 
         // Initialize head offsets
-        this.headOffsetX = 0;
-        this.headOffsetY = 0;
-        this.headOffsetZ = 0;
-        this.prevHeadOffsetX = 0;
-        this.prevHeadOffsetY = 0;
-        this.prevHeadOffsetZ = 0;
+        resetHeadOffsets();
 
         // Clear motion
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        clearMotion();
     }
 
     /**
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        beginLookVectorLaunch(true);
+        startPreviewFiringDefault();
 
         // Reset head offset to origin
-        headOffsetX = 0;
-        headOffsetY = 0;
-        headOffsetZ = 0;
-        prevHeadOffsetX = 0;
-        prevHeadOffsetY = 0;
-        prevHeadOffsetZ = 0;
+        resetHeadOffsets();
 
         // Reset trail
         resetTrailStorage();
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
         if (isFadingMode()) trailPointAges.add(0);
-
-        // Fire along look vector for parity with real launch behavior.
-        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
     }
 
     /**
@@ -234,23 +201,15 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
      * Called by ability when windup ends.
      */
     public void startFiring(EntityLivingBase target) {
-        beginLookVectorLaunch(false);
+        startMovingTowardTargetFromStartDefault(target);
 
         // Head starts at the origin (tail position)
-        headOffsetX = 0;
-        headOffsetY = 0;
-        headOffsetZ = 0;
-        prevHeadOffsetX = 0;
-        prevHeadOffsetY = 0;
-        prevHeadOffsetZ = 0;
+        resetHeadOffsets();
 
         // Initialize trail with just the origin point
         resetTrailStorage();
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
         if (isFadingMode()) trailPointAges.add(0);
-
-        // Calculate velocity toward target when provided; otherwise along look vector.
-        setMotionTowardTargetOrLookVector(target, startX, startY, startZ, getSpeed(), getSpeed(), 0, 0);
 
         if (DEBUG_LOGGING && !worldObj.isRemote) {
             LogWriter.info("[Beam] startFiring: origin=(" + startX + "," + startY + "," + startZ +

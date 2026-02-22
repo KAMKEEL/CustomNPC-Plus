@@ -292,15 +292,15 @@ public class CustomNpcs {
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
         registerNewEntity(EntityMagicProjectile.class, "magicprojectile", 64, 3, true);
-        registerNewEntity(EntityAbilityOrb.class, "abilityorb", 64, 3, true);
-        registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 3, true);
-        registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 3, true);
-        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 3, true);
+        registerNewEntity(EntityAbilityOrb.class, "abilityorb", 64, 1, true);
+        registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 1, true);
+        registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 1, true);
+        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 1, true);
         registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
         registerNewEntity(EntityAbilityZone.class, "abilityzone", 64, 3, true);
         registerNewEntity(EntityAbilityDome.class, "energydome", 64, 3, true);
         registerNewEntity(EntityAbilityPanel.class, "energypanel", 64, 3, true);
-        registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 3, true);
+        registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 1, true);
 
         new RecipeController();
 

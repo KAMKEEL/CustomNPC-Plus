@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
-import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -619,44 +618,39 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     public void setupPreview(EntityLivingBase owner, float laserWidth, EnergyDisplayData display,
                              EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration,
                              float expansionSpeed, float maxDistance) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
 
-        // Set visual properties
+        // Laser-specific visual/behavior state.
         this.laserWidth = laserWidth;
-        this.size = laserWidth;
-        this.displayData = display;
         this.expansionSpeed = expansionSpeed;
         this.lifespanData.maxDistance = Math.min(maxDistance, 5.0f); // Limit for GUI preview
-        this.lightningData = lightning;
         this.currentLength = 0.0f;
         this.fullyExtended = false;
         this.ticksSinceFullExtension = 0;
 
-        // Charge as an orb at the configured anchor, matching other energy projectiles.
-        setupCharging(anchor, chargeDuration);
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
-        this.endX = pos.xCoord;
-        this.endY = pos.yCoord;
-        this.endZ = pos.zCoord;
+        // Charge as an orb from tiny size to laser width while anchored.
+        this.targetSize = laserWidth;
+        setVisualSize(0.01f);
+        setChargeOriginFromAnchor(owner, anchorData);
+        clearMotion();
+        this.endX = posX;
+        this.endY = posY;
+        this.endZ = posZ;
 
         // Precompute initial direction from owner look for launch.
-        Vec3 look = owner.getLookVec();
+        Vec3 look = owner == null ? null : owner.getLookVec();
         if (look == null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            look = Vec3.createVectorHelper(
-                -Math.sin(yaw) * Math.cos(pitch),
-                -Math.sin(pitch),
-                Math.cos(yaw) * Math.cos(pitch)
-            );
+            if (owner != null) {
+                float yaw = (float) Math.toRadians(owner.rotationYaw);
+                float pitch = (float) Math.toRadians(owner.rotationPitch);
+                look = Vec3.createVectorHelper(
+                    -Math.sin(yaw) * Math.cos(pitch),
+                    -Math.sin(pitch),
+                    Math.cos(yaw) * Math.cos(pitch)
+                );
+            } else {
+                look = Vec3.createVectorHelper(1.0, 0.0, 0.0);
+            }
         }
         this.dirX = look.xCoord;
         this.dirY = look.yCoord;
