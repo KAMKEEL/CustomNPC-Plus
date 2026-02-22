@@ -569,7 +569,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new DialogPacket());
         DATA_PACKET.registerPacket(new RolePacket());
         DATA_PACKET.registerPacket(new WeaponNpcPacket());
-        // DATA_PACKET.registerPacket(new RequestProperSpawnData());
+//        DATA_PACKET.registerPacket(new RequestProperSpawnData());
 
         // Data | Script Packets
         DATA_PACKET.registerPacket(new ScriptedParticlePacket());

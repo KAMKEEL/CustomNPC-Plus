@@ -11,7 +11,6 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.packets.data.ChatBubblePacket;
 import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
-import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
 import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.npc.UpdateNpcPacket;
 import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
@@ -231,8 +230,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
     public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
 
-    @SideOnly(Side.CLIENT)
-    public int immediateSpawnDataFixAttempts = 0;
+//    @SideOnly(Side.CLIENT)
+//    public int immediateSpawnDataFixAttempts = 0;
 
     public EntityNPCInterface(World world) {
         super(world);
@@ -1837,7 +1836,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         try {
             readSpawnData(ByteBufUtils.readNBT(buf));
         } catch (IOException e) {
-//            if(this.worldObj != null && this.worldObj.isRemote){
+//            if (this.worldObj != null && this.worldObj.isRemote) {
 //                RequestProperSpawnData.reportMissingData(this);
 //            }
         }
@@ -1849,8 +1848,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 //            RequestProperSpawnData.reportMissingData(this);
 //            return;
 //        }
-
-        immediateSpawnDataFixAttempts = 0;
+//
+//        immediateSpawnDataFixAttempts = 0;
         stats.maxHealth = compound.getDouble("MaxHealth");
         ais.setWalkingSpeed(compound.getInteger("Speed"));
         stats.hideKilledBody = compound.getBoolean("DeadBody");

@@ -61,7 +61,7 @@ public class ClientTickHandler {
             if (mc.theWorld == null) {
                 ClientCacheHandler.clearCache();
                 ClientAbilityState.reset();
-                // RequestProperSpawnData.clear();
+//                RequestProperSpawnData.clear();
                 if (EnergyChargePreviewManager.ClientInstance != null) {
                     EnergyChargePreviewManager.ClientInstance.clear();
                 }
