@@ -1837,18 +1837,18 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         try {
             readSpawnData(ByteBufUtils.readNBT(buf));
         } catch (IOException e) {
-            if(this.worldObj != null && this.worldObj.isRemote){
-                RequestProperSpawnData.reportMissingData(this);
-            }
+//            if(this.worldObj != null && this.worldObj.isRemote){
+//                RequestProperSpawnData.reportMissingData(this);
+//            }
         }
     }
 
     public void readSpawnData(NBTTagCompound compound) {
-        if (this.worldObj != null && this.worldObj.isRemote &&
-            (compound.hasNoTags() || !compound.hasKey("MaxHealth", Constants.NBT.TAG_DOUBLE))) {
-            RequestProperSpawnData.reportMissingData(this);
-            return;
-        }
+//        if (this.worldObj != null && this.worldObj.isRemote &&
+//            (compound.hasNoTags() || !compound.hasKey("MaxHealth", Constants.NBT.TAG_DOUBLE))) {
+//            RequestProperSpawnData.reportMissingData(this);
+//            return;
+//        }
 
         immediateSpawnDataFixAttempts = 0;
         stats.maxHealth = compound.getDouble("MaxHealth");
