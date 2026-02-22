@@ -2,8 +2,8 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -98,7 +98,7 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;
         this.minRange = 0.0f;
-        this.lockMovement = LockMovementType.NO;
+        this.lockMovement = LockMode.NO;
         this.cooldownTicks = 0;
         this.windUpTicks = 5;
         // No telegraph for dash - it's a quick evasive move

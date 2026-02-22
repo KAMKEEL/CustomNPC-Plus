@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;

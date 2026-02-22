@@ -2,8 +2,8 @@ package noppes.npcs.client.gui.player.inventory;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSavePacket;
 import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSelectPacket;

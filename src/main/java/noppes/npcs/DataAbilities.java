@@ -3,10 +3,10 @@ package noppes.npcs;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
-import kamkeel.npcs.controllers.data.ability.AbilityPhase;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.IAbilityAction;
-import kamkeel.npcs.controllers.data.ability.ToggleEntry;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
@@ -14,7 +14,6 @@ import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -1095,7 +1094,7 @@ public class DataAbilities extends AbstractDataAbilities {
 
         // Active toggles (compound format with state)
         NBTTagList toggleList = new NBTTagList();
-        for (Map.Entry<String, ToggleEntry> entry : activeToggles.entrySet()) {
+        for (Map.Entry<String, AbilityToggleEntry> entry : activeToggles.entrySet()) {
             NBTTagCompound toggleNbt = new NBTTagCompound();
             toggleNbt.setString("Key", entry.getKey());
             toggleNbt.setInteger("State", entry.getValue().getState());

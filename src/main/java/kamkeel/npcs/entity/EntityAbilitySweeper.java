@@ -2,7 +2,7 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -10,7 +10,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.LogWriter;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;

@@ -3,6 +3,17 @@ package kamkeel.npcs.controllers.data.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.data.AbilityIconData;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.preview.PreviewEntityHandler;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.enums.RotationMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -76,9 +87,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected boolean interruptible = true;
 
     // Feedback
-    protected LockMovementType lockMovement = LockMovementType.WINDUP;
+    protected LockMode lockMovement = LockMode.WINDUP;
     protected RotationMode rotationMode = RotationMode.FREE;
-    protected LockMovementType rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
+    protected LockMode rotationPhase = LockMode.WINDUP_AND_ACTIVE;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -637,10 +648,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 .tab("General").hover("ability.hover.freeOnCast"));
         }
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
-        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
+        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMode.getDisplayKeys(),
                 () -> this.getLockMovement().getDisplayKey(),
                 v -> {
-                    for (LockMovementType t : LockMovementType.values()) {
+                    for (LockMode t : LockMode.values()) {
                         if (t.getDisplayKey().equals(v)) {
                             this.setLockMovement(t);
                             break;
@@ -664,7 +675,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
             FieldDef.stringEnumField("ability.rotationPhase", getRotationPhaseKeys(),
                     () -> this.getRotationPhase().getDisplayKey(),
                     v -> {
-                        for (LockMovementType t : LockMovementType.values()) {
+                        for (LockMode t : LockMode.values()) {
                             if (t.getDisplayKey().equals(v)) {
                                 this.setRotationPhase(t);
                                 break;
@@ -1400,9 +1411,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
         syncWindupWithAnimation = nbt.hasKey("syncWindup") ? nbt.getBoolean("syncWindup") : true;
         dazedTicks = nbt.hasKey("recovery") ? nbt.getInteger("recovery") : 80;
         interruptible = nbt.hasKey("interruptible") ? nbt.getBoolean("interruptible") : true;
-        lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
+        lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
-        rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
+        rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
         windUpColor = nbt.getInteger("windUpColor");
         activeColor = nbt.getInteger("activeColor");
         windUpSound = nbt.getString("windUpSound");
@@ -1653,11 +1664,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.interruptible = interruptible;
     }
 
-    public LockMovementType getLockMovement() {
+    public LockMode getLockMovement() {
         return lockMovement;
     }
 
-    public void setLockMovement(LockMovementType lockMovement) {
+    public void setLockMovement(LockMode lockMovement) {
         this.lockMovement = lockMovement;
     }
 
@@ -1669,11 +1680,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.rotationMode = rotationMode;
     }
 
-    public LockMovementType getRotationPhase() {
+    public LockMode getRotationPhase() {
         return rotationPhase;
     }
 
-    public void setRotationPhase(LockMovementType rotationPhase) {
+    public void setRotationPhase(LockMode rotationPhase) {
         this.rotationPhase = rotationPhase;
     }
 
@@ -1694,7 +1705,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     @Override
     public void setLockMovementType(int type) {
-        this.lockMovement = LockMovementType.fromOrdinal(type);
+        this.lockMovement = LockMode.fromOrdinal(type);
     }
 
     /**
@@ -1734,7 +1745,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     @Override
     public void setRotationPhaseType(int type) {
-        this.rotationPhase = LockMovementType.fromOrdinal(type);
+        this.rotationPhase = LockMode.fromOrdinal(type);
     }
 
     /**

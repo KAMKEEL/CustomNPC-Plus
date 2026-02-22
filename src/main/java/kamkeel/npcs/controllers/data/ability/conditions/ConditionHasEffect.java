@@ -2,7 +2,7 @@ package kamkeel.npcs.controllers.data.ability.conditions;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;

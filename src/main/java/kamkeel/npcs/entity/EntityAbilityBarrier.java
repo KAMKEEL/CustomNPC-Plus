@@ -1,7 +1,7 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
-import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;

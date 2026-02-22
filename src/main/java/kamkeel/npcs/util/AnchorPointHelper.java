@@ -1,7 +1,7 @@
 package kamkeel.npcs.util;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.Vec3;

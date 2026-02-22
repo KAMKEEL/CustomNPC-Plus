@@ -2,10 +2,10 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPanelData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;

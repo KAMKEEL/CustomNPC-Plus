@@ -3,8 +3,8 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
@@ -42,7 +42,7 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
         this.maxRange = 20.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 15;
-        this.lockMovement = LockMovementType.NO;
+        this.lockMovement = LockMode.NO;
         // No telegraph for projectile - it's a ranged attack
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;

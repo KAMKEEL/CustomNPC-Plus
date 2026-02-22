@@ -3,7 +3,7 @@ package kamkeel.npcs.util;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.IEffectAction;
+import kamkeel.npcs.controllers.data.ability.data.effect.IEffectAction;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.AnimationController;

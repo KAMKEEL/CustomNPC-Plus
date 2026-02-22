@@ -2,10 +2,10 @@ package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityPhase;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.IAbilityAction;
-import kamkeel.npcs.controllers.data.ability.ToggleEntry;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
@@ -23,7 +23,6 @@ import net.minecraft.util.DamageSource;
 import noppes.npcs.AbstractDataAbilities;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.ScriptController;
@@ -995,7 +994,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         // Active toggles (compound format with state)
         NBTTagList toggleList = new NBTTagList();
-        for (Map.Entry<String, ToggleEntry> entry : activeToggles.entrySet()) {
+        for (Map.Entry<String, AbilityToggleEntry> entry : activeToggles.entrySet()) {
             NBTTagCompound toggleNbt = new NBTTagCompound();
             toggleNbt.setString("Key", entry.getKey());
             toggleNbt.setInteger("State", entry.getValue().getState());
