@@ -168,6 +168,17 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         this.prevPosZ = owner.prevPosZ + (Math.cos(prevYawRad) * frontDist);
     }
 
+    @Override
+    public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements) {
+        // HELD panels are fully owner-driven each tick via updateHeld().
+        // Applying network position lerp on top of owner-following causes visible jitter/stutter
+        // when the caster is moving, so ignore remote corrections in this mode.
+        if (worldObj != null && worldObj.isRemote && mode == PanelMode.HELD && getOwnerEntity() != null) {
+            return;
+        }
+        super.setPositionAndRotation2(x, y, z, yaw, pitch, posRotationIncrements);
+    }
+
     private void updateLaunched() {
         // Move forward on both sides for smooth client rendering
         this.posX += motionX;
