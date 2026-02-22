@@ -516,27 +516,237 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     // ==================== LAUNCH HELPERS ====================
 
     /**
-     * For player casters, snap the projectile to a position along the player's look vector.
-     * This ensures projectiles launch aligned with the crosshair rather than from the hand anchor.
-     * Only affects player casters; NPC projectiles launch from their anchor position as configured.
+     * Snaps the projectile position to the owner's look vector on launch.
+     * This ensures projectiles launch aligned with the owner's facing direction
+     * rather than from the last anchor point position.
      * Should be called in startMoving/startFiring BEFORE setting startX/Y/Z.
      */
-    protected void snapToPlayerLookVector() {
+    protected void snapToLookVector() {
+        setLookVectorLaunchPosition(true);
+    }
+
+    /**
+     * Shared launch transition: exit charging, snap to look-vector launch origin,
+     * sync start position, and optionally reset interpolation state.
+     *
+     * @param resetInterpolationState true to reset prev/lastTick/interp state to launch origin.
+     * @return true when look-vector launch origin was resolved from owner/look data.
+     */
+    protected boolean beginLookVectorLaunch(boolean resetInterpolationState) {
+        setCharging(false);
+        boolean positioned = setLookVectorLaunchPosition(true);
+        syncStartPositionToCurrent();
+        if (resetInterpolationState) {
+            syncPositionStateToCurrent(true);
+        }
+        return positioned;
+    }
+
+    /**
+     * Shared launch transition with explicit owner/look vector data.
+     */
+    protected boolean beginLookVectorLaunch(EntityLivingBase owner, Vec3 look, boolean resetInterpolationState) {
+        setCharging(false);
+        boolean positioned = setLookVectorLaunchPosition(owner, look, true);
+        syncStartPositionToCurrent();
+        if (resetInterpolationState) {
+            syncPositionStateToCurrent(true);
+        }
+        return positioned;
+    }
+
+    /**
+     * Resolve the owner's look vector.
+     * Falls back to yaw/pitch math if look vector is unavailable.
+     */
+    protected Vec3 getOwnerLookVector() {
         Entity owner = getOwnerEntity();
-        if (!(owner instanceof EntityPlayer)) return;
+        if (!(owner instanceof EntityLivingBase)) return null;
 
         Vec3 look = owner.getLookVec();
-        double eyeY = owner.posY + owner.getEyeHeight();
-        float frontDist = Math.max(0.5f, size * 0.5f);
+        if (look != null) return look;
 
-        double newX = owner.posX + look.xCoord * frontDist;
-        double newY = eyeY + look.yCoord * frontDist;
-        double newZ = owner.posZ + look.zCoord * frontDist;
+        float yaw = (float) Math.toRadians(owner.rotationYaw);
+        float pitch = (float) Math.toRadians(owner.rotationPitch);
+        return Vec3.createVectorHelper(
+            -Math.sin(yaw) * Math.cos(pitch),
+            -Math.sin(pitch),
+            Math.cos(yaw) * Math.cos(pitch)
+        );
+    }
+
+    /**
+     * Shared launch origin: owner position + chest height + look-vector offset.
+     *
+     * @param syncPositionState When true, sync prev/lastTick/interp targets to this position.
+     */
+    protected boolean setLookVectorLaunchPosition(boolean syncPositionState) {
+        Entity owner = getOwnerEntity();
+        if (!(owner instanceof EntityLivingBase)) return false;
+        Vec3 look = getOwnerLookVector();
+        if (look == null) return false;
+        return setLookVectorLaunchPosition((EntityLivingBase) owner, look, syncPositionState);
+    }
+
+    /**
+     * Shared launch origin using provided owner/look data.
+     */
+    protected boolean setLookVectorLaunchPosition(EntityLivingBase owner, Vec3 look, boolean syncPositionState) {
+        if (owner == null || look == null) return false;
+
+        double originX = owner.posX;
+        double originY = owner.posY + owner.height * 0.7;
+        double originZ = owner.posZ;
+
+        float frontDist = computeLaunchFrontDistance(owner, look, originX, originY, originZ);
+        double newX = originX + look.xCoord * frontDist;
+        double newY = originY + look.yCoord * frontDist;
+        double newZ = originZ + look.zCoord * frontDist;
 
         setPosition(newX, newY, newZ);
-        prevPosX = newX;
-        prevPosY = newY;
-        prevPosZ = newZ;
+        if (syncPositionState) {
+            syncPositionState(newX, newY, newZ, true);
+        }
+        return true;
+    }
+
+    /**
+     * Radius used to clear the caster hitbox on launch.
+     * Subclasses may override if their effective launch footprint differs from {@code size}.
+     */
+    protected float getLaunchClearanceRadius() {
+        return Math.max(0.1f, size * 0.5f);
+    }
+
+    private float computeLaunchFrontDistance(EntityLivingBase owner, Vec3 look, double originX, double originY, double originZ) {
+        // Legacy baseline offset retained as lower bound.
+        float baseline = size * 0.4f;
+        float clearance = getLaunchClearanceRadius() + 0.05f;
+
+        AxisAlignedBB bb = owner.boundingBox;
+        if (bb == null) {
+            return Math.max(baseline, owner.width * 0.5f + clearance);
+        }
+
+        double dx = look.xCoord;
+        double dy = look.yCoord;
+        double dz = look.zCoord;
+
+        double tx = computeRayExitT(originX, dx, bb.minX, bb.maxX);
+        double ty = computeRayExitT(originY, dy, bb.minY, bb.maxY);
+        double tz = computeRayExitT(originZ, dz, bb.minZ, bb.maxZ);
+
+        double tExit = Math.min(tx, Math.min(ty, tz));
+        if (Double.isInfinite(tExit) || tExit < 0) {
+            return Math.max(baseline, owner.width * 0.5f + clearance);
+        }
+
+        return (float) Math.max(baseline, tExit + clearance);
+    }
+
+    private double computeRayExitT(double origin, double dir, double min, double max) {
+        final double EPS = 1.0e-6;
+        if (dir > EPS) {
+            return (max - origin) / dir;
+        } else if (dir < -EPS) {
+            return (min - origin) / dir;
+        }
+        return Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * Set projectile motion along owner look vector.
+     *
+     * @return true if owner/look were available.
+     */
+    protected boolean setMotionAlongLookVector(float speed) {
+        Vec3 look = getOwnerLookVector();
+        if (look == null) return false;
+
+        motionX = look.xCoord * speed;
+        motionY = look.yCoord * speed;
+        motionZ = look.zCoord * speed;
+        return true;
+    }
+
+    /**
+     * Set motion along owner look vector or apply explicit fallback values.
+     */
+    protected void setMotionAlongLookVectorOrFallback(float speed, double fallbackX, double fallbackY, double fallbackZ) {
+        if (!setMotionAlongLookVector(speed)) {
+            motionX = fallbackX;
+            motionY = fallbackY;
+            motionZ = fallbackZ;
+        }
+    }
+
+    /**
+     * Set projectile motion toward a target from a given source point.
+     *
+     * @return true if target was valid and motion was updated.
+     */
+    protected boolean setMotionTowardTarget(EntityLivingBase target, double sourceX, double sourceY, double sourceZ, float speed) {
+        if (target == null) return false;
+
+        double dx = target.posX - sourceX;
+        double dy = (target.posY + target.getEyeHeight()) - sourceY;
+        double dz = target.posZ - sourceZ;
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len <= 0.0001) return false;
+
+        motionX = (dx / len) * speed;
+        motionY = (dy / len) * speed;
+        motionZ = (dz / len) * speed;
+        return true;
+    }
+
+    /**
+     * Set motion toward target from source point; when target is unavailable,
+     * fall back to owner look vector, then explicit fallback values.
+     */
+    protected void setMotionTowardTargetOrLookVector(EntityLivingBase target, double sourceX, double sourceY, double sourceZ, float speed,
+                                                     double fallbackX, double fallbackY, double fallbackZ) {
+        if (!setMotionTowardTarget(target, sourceX, sourceY, sourceZ, speed)) {
+            setMotionAlongLookVectorOrFallback(speed, fallbackX, fallbackY, fallbackZ);
+        }
+    }
+
+    /**
+     * Sync start position (distance origin) to the current entity position.
+     */
+    protected void syncStartPositionToCurrent() {
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+    }
+
+    /**
+     * Sync prev/lastTick and optional interpolation state to an explicit position.
+     */
+    protected void syncPositionState(double x, double y, double z, boolean resetInterpolation) {
+        prevPosX = x;
+        prevPosY = y;
+        prevPosZ = z;
+        lastTickPosX = x;
+        lastTickPosY = y;
+        lastTickPosZ = z;
+
+        if (resetInterpolation) {
+            interpTargetX = x;
+            interpTargetY = y;
+            interpTargetZ = z;
+            interpTargetMotionX = motionX;
+            interpTargetMotionY = motionY;
+            interpTargetMotionZ = motionZ;
+            interpSteps = 0;
+        }
+    }
+
+    /**
+     * Sync prev/lastTick and optional interpolation state to current entity position.
+     */
+    protected void syncPositionStateToCurrent(boolean resetInterpolation) {
+        syncPositionState(posX, posY, posZ, resetInterpolation);
     }
 
     // ==================== CHARGING METHODS (projectile-specific) ====================
@@ -1117,6 +1327,23 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.motionX = nbt.getDouble("MotionX");
         this.motionY = nbt.getDouble("MotionY");
         this.motionZ = nbt.getDouble("MotionZ");
+
+        // Authoritative launch origin comes from spawn NBT (set during fire/startMoving).
+        // Sync full client position state to this origin to avoid first-tick spawn/interp pops.
+        this.setPosition(this.startX, this.startY, this.startZ);
+        this.prevPosX = this.startX;
+        this.prevPosY = this.startY;
+        this.prevPosZ = this.startZ;
+        this.lastTickPosX = this.startX;
+        this.lastTickPosY = this.startY;
+        this.lastTickPosZ = this.startZ;
+        this.interpTargetX = this.startX;
+        this.interpTargetY = this.startY;
+        this.interpTargetZ = this.startZ;
+        this.interpTargetMotionX = this.motionX;
+        this.interpTargetMotionY = this.motionY;
+        this.interpTargetMotionZ = this.motionZ;
+        this.interpSteps = 0;
 
         // Always initialize render size from NBT size so entities
         // loading in from outside render distance render correctly

@@ -137,31 +137,8 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        setCharging(false);
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Sync prev position to prevent visual jump on first frame
-        prevPosX = posX;
-        prevPosY = posY;
-        prevPosZ = posZ;
-
-        // Fire forward based on owner facing direction
-        Entity owner = getOwnerEntity();
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = 0; // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        } else {
-            motionX = getSpeed();
-            motionY = 0;
-            motionZ = 0;
-        }
+        beginLookVectorLaunch(true);
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
     }
 
     /**
@@ -169,35 +146,8 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
      * Called by ability when windup ends.
      */
     public void startMoving(EntityLivingBase target) {
-        setCharging(false);
-
-        // For player casters, snap to look vector for crosshair-aligned launch
-        snapToPlayerLookVector();
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Calculate velocity toward target
-        Entity owner = getOwnerEntity();
-        if (target != null) {
-            double dx = target.posX - posX;
-            double dy = (target.posY + target.getEyeHeight()) - posY;
-            double dz = target.posZ - posZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                motionX = (dx / len) * getSpeed();
-                motionY = (dy / len) * getSpeed();
-                motionZ = (dz / len) * getSpeed();
-            }
-        } else if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        }
+        beginLookVectorLaunch(false);
+        setMotionTowardTargetOrLookVector(target, posX, posY, posZ, getSpeed(), getSpeed(), 0, 0);
     }
 
     @Override

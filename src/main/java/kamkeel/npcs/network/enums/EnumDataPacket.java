@@ -70,4 +70,8 @@ public enum EnumDataPacket {
 
     // Auction System
     AUCTION_DATA,
+
+    // Energy Charge Preview
+    ENERGY_CHARGE_SPAWN,
+    ENERGY_CHARGE_REMOVE,
 }

@@ -8,6 +8,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.client.renderer.lightning.LightningBolt;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
@@ -62,6 +63,9 @@ public class ClientTickHandler {
                 ClientCacheHandler.clearCache();
                 ClientAbilityState.reset();
                 RequestProperSpawnData.clear();
+                if (EnergyChargePreviewManager.ClientInstance != null) {
+                    EnergyChargePreviewManager.ClientInstance.clear();
+                }
             }
             this.prevWorld = mc.theWorld;
         }
@@ -162,6 +166,11 @@ public class ClientTickHandler {
             // match entity interpolation (Phase.END runs after world tick)
             if (TelegraphManager.ClientInstance != null) {
                 TelegraphManager.ClientInstance.tick(mc.theWorld);
+            }
+
+            // Tick packet-driven energy charge previews
+            if (EnergyChargePreviewManager.ClientInstance != null) {
+                EnergyChargePreviewManager.ClientInstance.tick(mc.theWorld);
             }
 
             // Update lightning bolts for ability effects

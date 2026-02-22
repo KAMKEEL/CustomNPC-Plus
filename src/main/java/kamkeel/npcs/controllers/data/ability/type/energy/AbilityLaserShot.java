@@ -139,7 +139,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     @Override
     protected void setupEntityPreview(EntityAbilityLaser laser, EntityLivingBase caster,
                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
-        laser.setupPreview(caster, laserWidth, resolved, lightningData, expansionSpeed, lifespanData.maxDistance);
+        laser.setupPreview(caster, laserWidth, resolved, lightningData, projData.anchor, windUpTicks, expansionSpeed, lifespanData.maxDistance);
     }
 
     @Override

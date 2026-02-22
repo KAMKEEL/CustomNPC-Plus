@@ -1,5 +1,6 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
@@ -8,7 +9,6 @@ import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
@@ -156,13 +156,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     }
 
     /**
-     * Update laser origin and direction from the owner's current anchor position and rotation.
-     * Called each tick so the laser follows the NPC when tracking a target.
+     * Update laser origin and direction from the owner's current look rotation.
+     * Called each tick so the laser origin stays centered on look vector.
      */
     private void updateLaserOriginAndDirection() {
         Entity owner = getOwnerEntity();
         if (owner == null || !(owner instanceof EntityLivingBase)) return;
-
         EntityLivingBase livingOwner = (EntityLivingBase) owner;
 
         // Update direction from owner's current rotation
@@ -180,77 +179,71 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             dirZ = Math.cos(yaw) * Math.cos(pitch);
         }
 
-        // Update origin: for player casters, snap to look vector so laser aligns with crosshair.
-        // For NPCs, use the configured anchor point.
-        if (owner instanceof EntityPlayer) {
-            double eyeY = owner.posY + owner.getEyeHeight();
-            float frontDist = Math.max(0.5f, laserWidth * 0.5f);
-            startX = owner.posX + dirX * frontDist;
-            startY = eyeY + dirY * frontDist;
-            startZ = owner.posZ + dirZ * frontDist;
-        } else if (anchorData != null) {
-            Vec3 pos = AnchorPointHelper.calculateAnchorPosition(livingOwner, anchorData);
-            startX = pos.xCoord;
-            startY = pos.yCoord;
-            startZ = pos.zCoord;
+        // Keep direction normalized for consistent expansion and collision math.
+        Vec3 direction = Vec3.createVectorHelper(dirX, dirY, dirZ);
+        double dirLen = Math.sqrt(direction.xCoord * direction.xCoord + direction.yCoord * direction.yCoord + direction.zCoord * direction.zCoord);
+        if (dirLen > 0.0001) {
+            direction = Vec3.createVectorHelper(
+                direction.xCoord / dirLen,
+                direction.yCoord / dirLen,
+                direction.zCoord / dirLen
+            );
         } else {
-            startX = owner.posX;
-            startY = owner.posY + owner.height * 0.7;
-            startZ = owner.posZ;
-        }
-
-        // Keep entity positioned at origin
-        prevPosX = startX;
-        prevPosY = startY;
-        prevPosZ = startZ;
-        setPosition(startX, startY, startZ);
-    }
-
-    public void startMoving(EntityLivingBase target) {
-        setCharging(false);
-
-        Entity owner = getOwnerEntity();
-        // Set initial direction from owner's rotation
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            this.dirX = -Math.sin(yaw) * Math.cos(pitch);
-            this.dirY = -Math.sin(pitch);
-            this.dirZ = Math.cos(yaw) * Math.cos(pitch);
-        } else if (target != null) {
-            double dx = target.posX - posX;
-            double dy = (target.posY + target.getEyeHeight() - 0.4) - posY;
-            double dz = target.posZ - posZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                this.dirX = dx / len;
-                this.dirY = dy / len;
-                this.dirZ = dz / len;
+            Vec3 look = livingOwner.getLookVec();
+            if (look != null) {
+                direction = look;
             }
         }
 
-        // For player casters, snap origin to look vector so laser aligns with crosshair.
-        // For NPCs, use current anchor position.
-        if (owner instanceof EntityPlayer) {
-            double eyeY = owner.posY + owner.getEyeHeight();
-            float frontDist = Math.max(0.5f, laserWidth * 0.5f);
-            startX = owner.posX + dirX * frontDist;
-            startY = eyeY + dirY * frontDist;
-            startZ = owner.posZ + dirZ * frontDist;
-            setPosition(startX, startY, startZ);
-            prevPosX = startX;
-            prevPosY = startY;
-            prevPosZ = startZ;
-        } else {
-            startX = posX;
-            startY = posY;
-            startZ = posZ;
+        dirX = direction.xCoord;
+        dirY = direction.yCoord;
+        dirZ = direction.zCoord;
+
+        // Keep origin centered on look vector while active and clear owner bbox.
+        setLookVectorLaunchPosition(livingOwner, direction, false);
+        syncStartPositionToCurrent();
+        syncPositionStateToCurrent(false);
+    }
+
+    public void startMoving(EntityLivingBase target) {
+        beginLookVectorLaunch(false);
+
+        currentLength = 0.0f;
+        fullyExtended = false;
+        ticksSinceFullExtension = 0;
+
+        // Set initial direction: target-based when available, otherwise owner look vector.
+        Vec3 look = getOwnerLookVector();
+        if (!setDirectionTowardTarget(target, startX, startY, startZ)) {
+            if (look != null) {
+                dirX = look.xCoord;
+                dirY = look.yCoord;
+                dirZ = look.zCoord;
+            } else {
+                dirX = 1.0;
+                dirY = 0.0;
+                dirZ = 0.0;
+            }
         }
 
         // Initialize end point at start (will expand from here)
         this.endX = startX;
         this.endY = startY;
         this.endZ = startZ;
+    }
+
+    private boolean setDirectionTowardTarget(EntityLivingBase target, double sourceX, double sourceY, double sourceZ) {
+        if (target == null) return false;
+        double dx = target.posX - sourceX;
+        double dy = (target.posY + target.getEyeHeight() - 0.4) - sourceY;
+        double dz = target.posZ - sourceZ;
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len <= 0.0001) return false;
+
+        dirX = dx / len;
+        dirY = dy / len;
+        dirZ = dz / len;
+        return true;
     }
 
     private void checkBlockCollision() {
@@ -342,8 +335,6 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         double dirLenXZ = Math.sqrt(dirX * dirX + dirZ * dirZ);
         double dot;
         if (dirLenXZ > 0.001) {
-            dot = (vx * dirX + vz * dirZ) / (dirLenXZ * dirLenXZ) * dirLenXZ;
-            // Remap to full 3D parameter
             dot = (vx * dirX + vz * dirZ + (entity.posY + entity.height * 0.5 - startY) * dirY);
         } else {
             // Laser fires nearly straight up/down - use full 3D projection
@@ -561,6 +552,24 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         return Math.max(0.0f, 1.0f - ((float) ticksSinceFullExtension / lingerTicks));
     }
 
+    @Override
+    protected float getLaunchClearanceRadius() {
+        return Math.max(0.1f, laserWidth * 0.5f);
+    }
+
+    @Override
+    public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
+        // Ensure charging visuals grow from a small orb based on laser width.
+        this.size = laserWidth;
+        this.currentLength = 0.0f;
+        this.fullyExtended = false;
+        this.ticksSinceFullExtension = 0;
+        super.setupCharging(anchor, chargeDuration);
+        this.endX = posX;
+        this.endY = posY;
+        this.endZ = posZ;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -605,10 +614,11 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     /**
      * Setup this laser in preview mode for GUI display.
-     * Laser doesn't have charging state - spawns at active phase and fires immediately.
+     * Uses charging-orb visuals during windup before firing.
      */
     public void setupPreview(EntityLivingBase owner, float laserWidth, EnergyDisplayData display,
-                             EnergyLightningData lightning, float expansionSpeed, float maxDistance) {
+                             EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration,
+                             float expansionSpeed, float maxDistance) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
 
@@ -619,28 +629,37 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.expansionSpeed = expansionSpeed;
         this.lifespanData.maxDistance = Math.min(maxDistance, 5.0f); // Limit for GUI preview
         this.lightningData = lightning;
+        this.currentLength = 0.0f;
+        this.fullyExtended = false;
+        this.ticksSinceFullExtension = 0;
 
-        // Position at chest height
-        double x = owner.posX;
-        double y = owner.posY + owner.height * 0.7;
-        double z = owner.posZ;
-        this.setPosition(x, y, z);
-        this.prevPosX = x;
-        this.prevPosY = y;
-        this.prevPosZ = z;
-        this.startX = x;
-        this.startY = y;
-        this.startZ = z;
+        // Charge as an orb at the configured anchor, matching other energy projectiles.
+        setupCharging(anchor, chargeDuration);
+        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
+        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        this.prevPosX = pos.xCoord;
+        this.prevPosY = pos.yCoord;
+        this.prevPosZ = pos.zCoord;
+        this.startX = pos.xCoord;
+        this.startY = pos.yCoord;
+        this.startZ = pos.zCoord;
+        this.endX = pos.xCoord;
+        this.endY = pos.yCoord;
+        this.endZ = pos.zCoord;
 
-        // Fire in owner's facing direction
-        float yaw = (float) Math.toRadians(owner.rotationYaw);
-        this.dirX = -Math.sin(yaw);
-        this.dirY = 0;
-        this.dirZ = Math.cos(yaw);
-
-        // Initialize end point (same as start, will expand)
-        this.endX = x;
-        this.endY = y;
-        this.endZ = z;
+        // Precompute initial direction from owner look for launch.
+        Vec3 look = owner.getLookVec();
+        if (look == null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
+            float pitch = (float) Math.toRadians(owner.rotationPitch);
+            look = Vec3.createVectorHelper(
+                -Math.sin(yaw) * Math.cos(pitch),
+                -Math.sin(pitch),
+                Math.cos(yaw) * Math.cos(pitch)
+            );
+        }
+        this.dirX = look.xCoord;
+        this.dirY = look.yCoord;
+        this.dirZ = look.zCoord;
     }
 }

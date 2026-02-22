@@ -1834,12 +1834,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         try {
             readSpawnData(ByteBufUtils.readNBT(buf));
         } catch (IOException e) {
-            RequestProperSpawnData.reportMissingData(this);
+            if(this.worldObj != null && this.worldObj.isRemote){
+                RequestProperSpawnData.reportMissingData(this);
+            }
         }
     }
 
     public void readSpawnData(NBTTagCompound compound) {
-        if ((compound.hasNoTags() || !compound.hasKey("MaxHealth", Constants.NBT.TAG_DOUBLE))) {
+        if (this.worldObj != null && this.worldObj.isRemote &&
+            (compound.hasNoTags() || !compound.hasKey("MaxHealth", Constants.NBT.TAG_DOUBLE))) {
             RequestProperSpawnData.reportMissingData(this);
             return;
         }

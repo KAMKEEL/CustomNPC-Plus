@@ -14,9 +14,11 @@ import kamkeel.npcs.client.renderer.RenderAbilitySweeper;
 import kamkeel.npcs.client.renderer.RenderAbilityZone;
 import kamkeel.npcs.client.renderer.RenderAbilityDome;
 import kamkeel.npcs.client.renderer.RenderAbilityPanel;
+import kamkeel.npcs.client.renderer.EnergyChargePreviewRenderer;
 import kamkeel.npcs.client.renderer.RenderEnergySlicer;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
 import kamkeel.npcs.client.renderer.lightning.LightningHandler;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
@@ -355,6 +357,10 @@ public class ClientProxy extends CommonProxy {
         // Telegraph rendering system
         TelegraphManager.initClient();
         MinecraftForge.EVENT_BUS.register(new TelegraphRenderer());
+
+        // Energy charge preview rendering system
+        EnergyChargePreviewManager.initClient();
+        MinecraftForge.EVENT_BUS.register(new EnergyChargePreviewRenderer());
 
         // Lightning effect rendering system
         MinecraftForge.EVENT_BUS.register(new LightningHandler());

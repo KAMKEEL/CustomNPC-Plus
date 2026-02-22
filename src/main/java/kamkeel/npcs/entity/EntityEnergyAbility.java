@@ -83,6 +83,10 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         }
     }
 
+    public void setChargeDuration(int duration) {
+        this.chargeDuration = duration;
+    }
+
     public float getChargeProgress() {
         if (chargeDuration <= 0) return 1.0f;
         return Math.min(1.0f, (float) chargeTick / chargeDuration);
@@ -331,6 +335,24 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
      */
     protected void readSpawnNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
+    }
+
+    /**
+     * Export spawn NBT for non-world preview rendering sync.
+     */
+    public final NBTTagCompound exportSpawnNBT() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        writeSpawnNBT(nbt);
+        return nbt;
+    }
+
+    /**
+     * Import spawn NBT for non-world preview rendering sync.
+     */
+    public final void importSpawnNBT(NBTTagCompound nbt) {
+        if (nbt != null) {
+            readSpawnNBT(nbt);
+        }
     }
 
     @Override

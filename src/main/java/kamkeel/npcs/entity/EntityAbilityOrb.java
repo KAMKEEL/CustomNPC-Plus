@@ -14,6 +14,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.LogWriter;
+
+import java.util.Locale;
 
 /**
  * Orb projectile - spherical homing energy ball.
@@ -22,6 +25,10 @@ import net.minecraft.world.World;
  * Design inspired by LouisXIV's energy attack system.
  */
 public class EntityAbilityOrb extends EntityEnergyProjectile {
+    private static final int HOMING_STARTUP_TICKS = 4;
+    private static final int HOMING_RAMP_TICKS = 8;
+    private static final boolean DEBUG_ORB_FIRE_TRACE = false;
+    private static final int DEBUG_TRACE_TICKS = 14;
 
     public EntityAbilityOrb(World world) {
         super(world);
@@ -71,7 +78,7 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         this.renderCurrentSize = 0.01f;
         this.prevRenderSize = 0.01f;
 
-        // Initial position at anchor point
+        // Initial position follows anchor helper during charging.
         Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
         this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
         this.prevPosX = pos.xCoord;
@@ -91,32 +98,8 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        setCharging(false);
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Sync prev position to prevent visual jump on first frame
-        prevPosX = posX;
-        prevPosY = posY;
-        prevPosZ = posZ;
-
-        // Fire forward based on owner facing direction
-        Entity owner = getOwnerEntity();
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(0); // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        } else {
-            // Default: fire forward (positive X in model space)
-            motionX = getSpeed();
-            motionY = 0;
-            motionZ = 0;
-        }
+        beginLookVectorLaunch(true);
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
     }
 
     /**
@@ -124,35 +107,28 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
      * Called by ability when windup ends.
      */
     public void startMoving(EntityLivingBase target) {
-        setCharging(false);
-
-        // For player casters, snap to look vector for crosshair-aligned launch
-        snapToPlayerLookVector();
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Calculate velocity toward target
+        // Launch strictly along owner's look vector using shared launch origin.
         Entity owner = getOwnerEntity();
-        if (target != null) {
-            double dx = target.posX - posX;
-            double dy = (target.posY + target.getEyeHeight()) - posY;
-            double dz = target.posZ - posZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                motionX = (dx / len) * getSpeed();
-                motionY = (dy / len) * getSpeed();
-                motionZ = (dz / len) * getSpeed();
+        if (owner instanceof EntityLivingBase) {
+            Vec3 look = getOwnerLookVector();
+            if (look != null) {
+                debugTrace("startMoving:before", look, -1.0f);
+                if (beginLookVectorLaunch((EntityLivingBase) owner, look, false)) {
+                    debugTrace("setLaunchPosition", look, -1.0f);
+                }
+                motionX = look.xCoord * getSpeed();
+                motionY = look.yCoord * getSpeed();
+                motionZ = look.zCoord * getSpeed();
+                debugTrace("startMoving:after", look, -1.0f);
+                return;
             }
-        } else if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
         }
+
+        // Fallback if owner is unavailable.
+        setCharging(false);
+        syncStartPositionToCurrent();
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
+        debugTrace("startMoving:fallback", null, -1.0f);
     }
 
     @Override
@@ -170,13 +146,17 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         }
 
         if (worldObj.isRemote) {
+            if (shouldDebugTick()) debugTrace("client:beforeInterpolation", null, -1.0f);
             handleClientInterpolation();
+            if (shouldDebugTick()) debugTrace("client:afterInterpolation", null, -1.0f);
         } else {
             // Server-side logic
+            if (shouldDebugTick()) debugTrace("server:beforeMovement", null, -1.0f);
             updateMovement();
             checkBlockCollision();
             checkEntityCollision();
             this.moveEntity(motionX, motionY, motionZ);
+            if (shouldDebugTick()) debugTrace("server:afterMove", null, -1.0f);
         }
 
         // Check wall collision
@@ -197,8 +177,26 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         if (!isTrajectoryConcluded()) {
             updateTrajectory();
         } else {
-            updateHoming();
+            if (ticksExisted > HOMING_STARTUP_TICKS) {
+                int homingTicks = ticksExisted - HOMING_STARTUP_TICKS;
+                if (homingTicks >= HOMING_RAMP_TICKS) {
+                    if (shouldDebugTick()) debugTrace("updateMovement:homingFull", null, 1.0f);
+                    updateHoming();
+                } else {
+                    float ramp = homingTicks / (float) HOMING_RAMP_TICKS;
+                    if (shouldDebugTick()) debugTrace("updateMovement:homingRamp", null, ramp);
+                    updateHomingWithRamp(ramp);
+                }
+            }
         }
+    }
+
+    private void updateHomingWithRamp(float ramp) {
+        if (ramp <= 0.0f) return;
+        float originalStrength = homingData.homingStrength;
+        homingData.homingStrength = originalStrength * ramp;
+        updateHoming();
+        homingData.homingStrength = originalStrength;
     }
 
     private void updateTrajectory() {
@@ -224,12 +222,54 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
     }
 
     private void checkEntityCollision() {
-        double hitSize = size * 0.5;
+        // Swept collision to avoid fast orbs skipping targets between ticks.
+        double nextX = posX + motionX;
+        double nextY = posY + motionY;
+        double nextZ = posZ + motionZ;
+        // Keep collision radius proportional to rendered orb size.
+        double hitSize = Math.max(0.05, size * 0.5);
         AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
-            posX - hitSize, posY - hitSize, posZ - hitSize,
-            posX + hitSize, posY + hitSize, posZ + hitSize
+            Math.min(posX, nextX) - hitSize, Math.min(posY, nextY) - hitSize, Math.min(posZ, nextZ) - hitSize,
+            Math.max(posX, nextX) + hitSize, Math.max(posY, nextY) + hitSize, Math.max(posZ, nextZ) + hitSize
         );
-        processEntitiesInHitBox(hitBox, posX, posY, posZ);
+        processEntitiesInHitBox(hitBox, nextX, nextY, nextZ);
+    }
+
+    private boolean shouldDebugTick() {
+        return DEBUG_ORB_FIRE_TRACE && !isCharging() && !previewMode && ticksExisted <= DEBUG_TRACE_TICKS;
+    }
+
+    private void debugTrace(String stage, Vec3 look, float ramp) {
+        if (!DEBUG_ORB_FIRE_TRACE || worldObj == null) return;
+
+        String side = worldObj.isRemote ? "CLIENT" : "SERVER";
+        Entity owner = getOwnerEntity();
+        String ownerInfo = owner == null
+            ? "null"
+            : owner.getEntityId() + "@(" + fmt(owner.posX) + "," + fmt(owner.posY) + "," + fmt(owner.posZ) + ")";
+        String lookInfo = look == null
+            ? "null"
+            : "(" + fmt(look.xCoord) + "," + fmt(look.yCoord) + "," + fmt(look.zCoord) + ")";
+
+        LogWriter.info(
+            "[OrbFireTrace][" + side + "][" + stage + "] "
+                + "id=" + getEntityId()
+                + " tick=" + ticksExisted
+                + " charging=" + isCharging()
+                + " start=(" + fmt(startX) + "," + fmt(startY) + "," + fmt(startZ) + ")"
+                + " pos=(" + fmt(posX) + "," + fmt(posY) + "," + fmt(posZ) + ")"
+                + " prev=(" + fmt(prevPosX) + "," + fmt(prevPosY) + "," + fmt(prevPosZ) + ")"
+                + " motion=(" + fmt(motionX) + "," + fmt(motionY) + "," + fmt(motionZ) + ")"
+                + " size=" + fmt(size)
+                + " speed=" + fmt(getSpeed())
+                + " ramp=" + (ramp < 0 ? "n/a" : fmt(ramp))
+                + " owner=" + ownerInfo
+                + " look=" + lookInfo
+        );
+    }
+
+    private static String fmt(double v) {
+        return String.format(Locale.ROOT, "%.4f", v);
     }
 
     // ==================== GETTERS ====================

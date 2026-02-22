@@ -102,55 +102,16 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
      * Start preview firing.
      */
     public void startPreviewFiring() {
-        setCharging(false);
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-        prevPosX = posX;
-        prevPosY = posY;
-        prevPosZ = posZ;
-
-        Entity owner = getOwnerEntity();
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            motionX = -Math.sin(yaw) * getSpeed();
-            motionY = 0;
-            motionZ = Math.cos(yaw) * getSpeed();
-        } else {
-            motionX = getSpeed();
-            motionY = 0;
-            motionZ = 0;
-        }
+        beginLookVectorLaunch(true);
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
     }
 
     /**
      * Start the slicer moving (exit charging mode).
      */
     public void startMoving(EntityLivingBase target) {
-        setCharging(false);
-        snapToPlayerLookVector();
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        Entity owner = getOwnerEntity();
-        if (target != null) {
-            double dx = target.posX - posX;
-            double dy = (target.posY + target.getEyeHeight()) - posY;
-            double dz = target.posZ - posZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                motionX = (dx / len) * getSpeed();
-                motionY = (dy / len) * getSpeed();
-                motionZ = (dz / len) * getSpeed();
-            }
-        } else if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        }
+        beginLookVectorLaunch(false);
+        setMotionTowardTargetOrLookVector(target, posX, posY, posZ, getSpeed(), getSpeed(), 0, 0);
     }
 
     @Override
