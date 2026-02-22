@@ -79,7 +79,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
             RenderHelper.disableStandardItemLighting();
         }
 
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.alpha);
+        glColor(overlayData.getColor(), overlayData.getAlpha());
 
         GL11.glDepthMask(!player.isInvisible());
 
@@ -95,6 +95,14 @@ public class RenderCNPCPlayer extends RenderPlayer {
         GL11.glScalef(overlayData.size, overlayData.size, overlayData.size);
 
         return true;
+    }
+
+    private static void glColor(int color, float alpha) {
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8)  & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+
+        GL11.glColor4f(r, g, b, alpha);
     }
 
     public void postRenderOverlay() {
