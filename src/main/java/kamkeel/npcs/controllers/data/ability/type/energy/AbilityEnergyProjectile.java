@@ -3,6 +3,7 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.HitType;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
@@ -557,6 +558,22 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         combatData.explosionDamageFalloff = falloff;
     }
 
+    public int getHitType() {
+        return combatData.hitType.ordinal();
+    }
+
+    public void setHitType(int hitType) {
+        this.combatData.hitType = HitType.fromOrdinal(hitType);
+    }
+
+    public int getMultiHitDelayTicks() {
+        return combatData.multiHitDelayTicks;
+    }
+
+    public void setMultiHitDelayTicks(int delay) {
+        this.combatData.multiHitDelayTicks = Math.max(1, delay);
+    }
+
     // Lifespan data
     @Override
     public float getMaxDistance() {
@@ -696,6 +713,15 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     @SideOnly(Side.CLIENT)
     @Override
     public final void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.add(FieldDef.enumField("ability.hitType", HitType.class,
+                () -> HitType.fromOrdinal(getHitType()),
+                (v) -> setHitType(v.ordinal()))
+            .hover("ability.hover.hitType"));
+        defs.add(FieldDef.intField("ability.multiHitDelay", this::getMultiHitDelayTicks, this::setMultiHitDelayTicks)
+            .range(1, 200)
+            .visibleWhen(() -> getHitType() == HitType.MULTI.ordinal())
+            .hover("ability.hover.multiHitDelay"));
+
         // Type-specific fields first
         addTypeDefinitions(defs);
 

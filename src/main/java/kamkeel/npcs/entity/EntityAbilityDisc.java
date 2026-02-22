@@ -12,12 +12,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.EventHooks;
-
-import java.util.List;
 
 /**
  * Disc projectile - flat spinning disc with optional boomerang behavior.
@@ -185,7 +181,6 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
 
         // Calculate velocity toward target
         Entity owner = getOwnerEntity();
-
         if (target != null) {
             double dx = target.posX - posX;
             double dy = (target.posY + target.getEyeHeight()) - posY;
@@ -248,15 +243,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         }
 
         // Check wall collision
-        if (this.isCollidedHorizontally || this.isCollidedVertically) {
-            if (!worldObj.isRemote) {
-                hasHit = true;
-                if (isExplosive()) {
-                    doExplosion();
-                }
-            }
-            this.setDead();
-        }
+        handleSolidCollisionTermination();
     }
 
     @Override
@@ -352,24 +339,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     }
 
     private void checkBlockCollision() {
-        Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
-        Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
-        // Use full raytrace that doesn't stop at liquids and checks all blocks
-        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
-
-        if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (!worldObj.isRemote) {
-                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
-            }
-            hasHit = true;
-            if (isExplosive()) {
-                posX = blockHit.hitVec.xCoord;
-                posY = blockHit.hitVec.yCoord;
-                posZ = blockHit.hitVec.zCoord;
-                doExplosion();
-            }
-            this.setDead();
-        }
+        handleBlockImpact(rayTraceBlocks(posX, posY, posZ, posX + motionX, posY + motionY, posZ + motionZ), true);
     }
 
     private void checkEntityCollision() {
@@ -381,23 +351,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
             posX + halfWidth, posY + halfHeight, posZ + halfWidth
         );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
-
-        for (EntityLivingBase entity : entities) {
-            if (shouldIgnoreEntity(entity)) continue;
-
-            hasHit = true;
-
-            if (isExplosive()) {
-                doExplosion();
-            } else {
-                applyDamage(entity);
-            }
-
-            this.setDead();
-            return;
-        }
+        processEntitiesInHitBox(hitBox, posX, posY, posZ);
     }
 
     /**

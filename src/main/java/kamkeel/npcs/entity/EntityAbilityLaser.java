@@ -17,12 +17,10 @@ import net.minecraft.world.World;
 import noppes.npcs.EventHooks;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
- * Laser projectile - fast expanding thin line that pierces through multiple targets.
+ * Laser projectile - fast expanding thin line.
  * No homing, travels in a straight line from origin to max distance.
  * <p>
  * Design inspired by LouisXIV's energy attack system.
@@ -44,12 +42,6 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     // Lock vertical direction after firing (only update yaw, keep pitch fixed)
     private boolean lockVerticalDirection = false;
-
-    // Whether to die on first entity impact (hit-scan mode)
-    private boolean dieOnImpact = false;
-
-    // Track hit entities to avoid double-damage
-    private Set<Integer> hitEntities = new HashSet<>();
 
     // End point for rendering
     private double endX, endY, endZ;
@@ -217,8 +209,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     public void startMoving(EntityLivingBase target) {
         setCharging(false);
 
-        // Set initial direction from owner's rotation
         Entity owner = getOwnerEntity();
+        // Set initial direction from owner's rotation
         if (owner != null) {
             float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
@@ -262,10 +254,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     }
 
     private void checkBlockCollision() {
-        Vec3 start = Vec3.createVectorHelper(startX, startY, startZ);
-        Vec3 end = Vec3.createVectorHelper(endX, endY, endZ);
-        // Use full raytrace that doesn't stop at liquids and checks all blocks
-        MovingObjectPosition blockHit = worldObj.func_147447_a(start, end, false, true, false);
+        MovingObjectPosition blockHit = rayTraceBlocks(startX, startY, startZ, endX, endY, endZ);
 
         if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             if (!worldObj.isRemote) {
@@ -315,15 +304,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
         for (EntityLivingBase entity : entities) {
             if (shouldIgnoreEntity(entity)) continue;
-            if (hitEntities.contains(entity.getEntityId())) continue;
+            if (!canHitEntityNow(entity)) continue;
 
             // Check if entity's bounding box intersects with the laser line
             if (isEntityOnLine(entity)) {
-                hitEntities.add(entity.getEntityId());
-                applyDamage(entity);
-
-                if (dieOnImpact) {
-                    // Stop at impact point and begin linger/fade
+                if (processEntityHit(entity, entity.posX, entity.posY + entity.height * 0.5, entity.posZ)) {
+                    // Stop at impact point and terminate
                     double dx = entity.posX - startX;
                     double dy = (entity.posY + entity.height * 0.5) - startY;
                     double dz = entity.posZ - startZ;
@@ -332,11 +318,10 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                     endX = startX + dirX * currentLength;
                     endY = startY + dirY * currentLength;
                     endZ = startZ + dirZ * currentLength;
-                    fullyExtended = true;
-                    return; // Stop checking further entities
+                    return;
                 }
 
-                // Piercing - don't stop, continue to next entity
+                // PIERCE/MULTI continue through remaining entities.
             }
         }
     }
@@ -517,14 +502,6 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.lingerTicks = ticks;
     }
 
-    public boolean isDieOnImpact() {
-        return dieOnImpact;
-    }
-
-    public void setDieOnImpact(boolean dieOnImpact) {
-        this.dieOnImpact = dieOnImpact;
-    }
-
     public void setDirection(double x, double y, double z) {
         this.dirX = x;
         this.dirY = y;
@@ -593,7 +570,6 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         if (Float.isNaN(expansionSpeed) || Float.isInfinite(expansionSpeed) || expansionSpeed <= 0) expansionSpeed = 2.0f;
         this.lingerTicks = nbt.hasKey("LingerTicks") ? nbt.getInteger("LingerTicks") : 10;
         if (lingerTicks <= 0) lingerTicks = 1;
-        this.dieOnImpact = nbt.getBoolean("DieOnImpact");
         this.lockVerticalDirection = nbt.getBoolean("LockVerticalDir");
         this.ticksSinceFullExtension = nbt.getInteger("TicksSinceExtended");
         this.dirX = nbt.getDouble("DirX");
@@ -613,7 +589,6 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         nbt.setFloat("LaserWidth", laserWidth);
         nbt.setFloat("ExpansionSpeed", expansionSpeed);
         nbt.setInteger("LingerTicks", lingerTicks);
-        nbt.setBoolean("DieOnImpact", dieOnImpact);
         nbt.setBoolean("LockVerticalDir", lockVerticalDirection);
         nbt.setInteger("TicksSinceExtended", ticksSinceFullExtension);
         nbt.setDouble("DirX", dirX);

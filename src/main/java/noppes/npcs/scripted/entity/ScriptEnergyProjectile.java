@@ -161,6 +161,22 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
         entity.setExplosionDamageFalloff(falloff);
     }
 
+    public int getHitType() {
+        return entity.getHitType();
+    }
+
+    public void setHitType(int hitType) {
+        entity.setHitType(hitType);
+    }
+
+    public int getMultiHitDelayTicks() {
+        return entity.getMultiHitDelayTicks();
+    }
+
+    public void setMultiHitDelayTicks(int delayTicks) {
+        entity.setMultiHitDelayTicks(delayTicks);
+    }
+
     // ==================== MOVEMENT ====================
 
     public float getSpeed() {

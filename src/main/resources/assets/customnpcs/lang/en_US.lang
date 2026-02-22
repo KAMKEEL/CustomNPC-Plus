@@ -1783,6 +1783,11 @@ gui.applyPreset=Apply Preset
 ability.radius=Radius
 ability.knockback=Knockback
 ability.knockbackUp=Knockback Up
+ability.hitType=Hit Type
+ability.hitType.single=Single
+ability.hitType.pierce=Pierce
+ability.hitType.multi=Multi
+ability.multiHitDelay=Multi-Hit Delay
 ability.distance=Distance
 ability.maxDistance=Max Distance
 ability.lifetime=Lifetime
@@ -1985,6 +1990,8 @@ ability.hover.windUpColor=Color of telegraph during charge-up phase
 ability.hover.activeColor=Color of telegraph when ability is active
 ability.hover.homing=Projectile tracks toward target
 ability.hover.homingStr=How aggressively the projectile tracks (higher = tighter turns)
+ability.hover.hitType=Single: stops on first hit. Pierce: can hit each entity once. Multi: can re-hit entities using the delay below.
+ability.hover.multiHitDelay=Ticks between repeat hits on the same entity when Hit Type is Multi (20 ticks = 1 second)
 ability.hover.explosive=Creates explosion on impact
 ability.hover.explosionRad=Size of explosion radius
 ability.hover.piercing=Hits multiple targets instead of stopping on first hit
@@ -2064,8 +2071,6 @@ ability.validFor=Valid For
 ability.userType.NPC_ONLY=NPCs
 ability.userType.PLAYER_ONLY=Players
 ability.userType.BOTH=Both
-ability.dieOnImpact=Die on Impact
-
 ability.icon.section.uv=UV Coordinates
 ability.icon.x=Icon X
 ability.icon.y=Icon Y

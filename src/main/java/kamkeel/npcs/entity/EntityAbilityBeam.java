@@ -13,10 +13,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 
 import java.util.ArrayList;
@@ -546,24 +544,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         double prevHeadWorldY = startY + prevHeadOffsetY;
         double prevHeadWorldZ = startZ + prevHeadOffsetZ;
 
-        Vec3 currentPos = Vec3.createVectorHelper(prevHeadWorldX, prevHeadWorldY, prevHeadWorldZ);
-        Vec3 nextPos = Vec3.createVectorHelper(headX, headY, headZ);
-        // Use full raytrace that doesn't stop at liquids and checks all blocks
-        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
-
-        if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (!worldObj.isRemote) {
-                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
-            }
-            hasHit = true;
-            if (isExplosive()) {
-                posX = blockHit.hitVec.xCoord;
-                posY = blockHit.hitVec.yCoord;
-                posZ = blockHit.hitVec.zCoord;
-                doExplosion();
-            }
-            this.setDead();
-        }
+        handleBlockImpact(rayTraceBlocks(prevHeadWorldX, prevHeadWorldY, prevHeadWorldZ, headX, headY, headZ), true);
     }
 
     private void checkEntityCollision(double headX, double headY, double headZ) {
@@ -577,24 +558,12 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
 
         for (EntityLivingBase entity : entities) {
-            if (shouldIgnoreEntity(entity)) continue;
-
-            if (DEBUG_LOGGING) {
-                LogWriter.info("[Beam] DEAD: Entity collision with " + entity.getClass().getSimpleName() + " at tick " + ticksExisted);
+            if (processEntityHit(entity, headX, headY, headZ)) {
+                if (DEBUG_LOGGING) {
+                    LogWriter.info("[Beam] DEAD: Entity collision with " + entity.getClass().getSimpleName() + " at tick " + ticksExisted);
+                }
+                return;
             }
-            hasHit = true;
-
-            if (isExplosive()) {
-                posX = headX;
-                posY = headY;
-                posZ = headZ;
-                doExplosion();
-            } else {
-                applyDamage(entity);
-            }
-
-            this.setDead();
-            return;
         }
     }
 

@@ -25,8 +25,8 @@ import noppes.npcs.client.gui.builder.FieldDef;
 import java.util.List;
 
 /**
- * Laser Shot ability: Fast expanding thin line that pierces through targets.
- * Travels in a straight line from origin, damaging all entities it passes through.
+ * Laser Shot ability: Fast expanding thin line.
+ * Travels in a straight line from origin.
  * Single-projectile only (always projectileCount=1).
  */
 public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser> implements IAbilityLaserShot {
@@ -34,7 +34,6 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     private float laserWidth = 0.3f;
     private float expansionSpeed = 3.0f;
     private int lingerTicks = 8;
-    private boolean dieOnImpact = false;
 
     public AbilityLaserShot() {
         super(
@@ -123,7 +122,6 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             laserWidth,
             resolved, combatData, lightningData, lifespanData, trajectoryData,
             expansionSpeed, lingerTicks);
-        laser.setDieOnImpact(dieOnImpact);
         return laser;
     }
 
@@ -161,7 +159,6 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         nbt.setFloat("laserWidth", laserWidth);
         nbt.setFloat("expansionSpeed", expansionSpeed);
         nbt.setInteger("lingerTicks", lingerTicks);
-        nbt.setBoolean("dieOnImpact", dieOnImpact);
     }
 
     @Override
@@ -169,7 +166,6 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         this.laserWidth = nbt.getFloat("laserWidth");
         this.expansionSpeed = nbt.getFloat("expansionSpeed");
         this.lingerTicks = nbt.getInteger("lingerTicks");
-        this.dieOnImpact = nbt.getBoolean("dieOnImpact");
     }
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
@@ -198,14 +194,6 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         this.lingerTicks = lingerTicks;
     }
 
-    public boolean isDieOnImpact() {
-        return dieOnImpact;
-    }
-
-    public void setDieOnImpact(boolean dieOnImpact) {
-        this.dieOnImpact = dieOnImpact;
-    }
-
     // ==================== TYPE-SPECIFIC GUI ====================
 
     @SideOnly(Side.CLIENT)
@@ -226,7 +214,6 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200)
         ));
         defs.add(FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).range(1.0f, 500.0f));
-        defs.add(FieldDef.boolField("ability.dieOnImpact", this::isDieOnImpact, this::setDieOnImpact));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
         defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));

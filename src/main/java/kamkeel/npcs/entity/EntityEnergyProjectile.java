@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.HitType;
 import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
@@ -20,6 +21,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.EventHooks;
@@ -35,9 +37,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Base class for all ability projectiles (Orb, Disc, Beam, Laser, Slicer).
@@ -112,6 +116,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
+    protected final Set<Integer> hitOnceEntities = new HashSet<Integer>();
+    protected final Map<Integer, Integer> lastHitTickByEntity = new HashMap<Integer, Integer>();
 
     // ==================== CHARGING STATE (projectile-specific) ====================
     protected float targetSize = 1.0f;
@@ -364,20 +370,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     @Override
     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements) {
-        // If position changed significantly (e.g. snap from anchor to look vector),
-        // skip interpolation and jump directly to prevent visual offset from crosshair
-        double dx = x - this.posX;
-        double dy = y - this.posY;
-        double dz = z - this.posZ;
-        if (dx * dx + dy * dy + dz * dz > 1.0) {
-            this.setPosition(x, y, z);
-            this.prevPosX = x;
-            this.prevPosY = y;
-            this.prevPosZ = z;
-            this.interpSteps = 0;
-            return;
-        }
-
         this.interpTargetX = x;
         this.interpTargetY = y;
         this.interpTargetZ = z;
@@ -859,6 +851,142 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     public void setExplosionDamageFalloff(float falloff) {
         combatData.setExplosionDamageFalloff(falloff);
+    }
+
+    public int getHitType() {
+        return combatData.hitType.ordinal();
+    }
+
+    public void setHitType(int hitType) {
+        combatData.hitType = HitType.fromOrdinal(hitType);
+    }
+
+    public int getMultiHitDelayTicks() {
+        return combatData.multiHitDelayTicks;
+    }
+
+    public void setMultiHitDelayTicks(int delayTicks) {
+        combatData.multiHitDelayTicks = Math.max(1, delayTicks);
+    }
+
+    protected boolean canHitEntityNow(EntityLivingBase entity) {
+        if (entity == null) return false;
+
+        int entityId = entity.getEntityId();
+        switch (combatData.hitType) {
+            case PIERCE:
+                return !hitOnceEntities.contains(entityId);
+            case MULTI:
+                Integer lastHitTick = lastHitTickByEntity.get(entityId);
+                if (lastHitTick == null) return true;
+                int delay = Math.max(1, combatData.multiHitDelayTicks);
+                return ticksExisted - lastHitTick >= delay;
+            case SINGLE:
+            default:
+                return !hasHit;
+        }
+    }
+
+    protected void recordEntityHit(EntityLivingBase entity) {
+        if (entity == null) return;
+        int entityId = entity.getEntityId();
+        hitOnceEntities.add(entityId);
+        lastHitTickByEntity.put(entityId, ticksExisted);
+    }
+
+    protected boolean shouldTerminateAfterHit() {
+        return combatData.hitType == HitType.SINGLE;
+    }
+
+    /**
+     * Shared block raytrace helper used by most projectile types.
+     */
+    protected MovingObjectPosition rayTraceBlocks(double fromX, double fromY, double fromZ, double toX, double toY, double toZ) {
+        Vec3 currentPos = Vec3.createVectorHelper(fromX, fromY, fromZ);
+        Vec3 nextPos = Vec3.createVectorHelper(toX, toY, toZ);
+        return worldObj.func_147447_a(currentPos, nextPos, false, true, false);
+    }
+
+    /**
+     * Shared block-hit handling: fires block impact hook, optional explosion, and kills projectile.
+     */
+    protected boolean handleBlockImpact(MovingObjectPosition blockHit, boolean explodeAtHitPoint) {
+        if (blockHit == null || blockHit.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+
+        if (!worldObj.isRemote) {
+            EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
+        }
+        hasHit = true;
+
+        if (isExplosive()) {
+            if (explodeAtHitPoint && blockHit.hitVec != null) {
+                posX = blockHit.hitVec.xCoord;
+                posY = blockHit.hitVec.yCoord;
+                posZ = blockHit.hitVec.zCoord;
+            }
+            doExplosion();
+        }
+
+        this.setDead();
+        return true;
+    }
+
+    /**
+     * Apply projectile hit behavior to a target and return true if the projectile terminated.
+     */
+    protected boolean processEntityHit(EntityLivingBase entity, double impactX, double impactY, double impactZ) {
+        if (entity == null || shouldIgnoreEntity(entity) || !canHitEntityNow(entity)) return false;
+
+        recordEntityHit(entity);
+        if (isExplosive()) {
+            double oldX = posX;
+            double oldY = posY;
+            double oldZ = posZ;
+            posX = impactX;
+            posY = impactY;
+            posZ = impactZ;
+            doExplosion();
+            posX = oldX;
+            posY = oldY;
+            posZ = oldZ;
+        } else {
+            applyDamage(entity);
+        }
+
+        if (shouldTerminateAfterHit()) {
+            hasHit = true;
+            this.setDead();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Scan entities in a hitbox and process the first/each valid hit based on hit mode.
+     */
+    protected boolean processEntitiesInHitBox(AxisAlignedBB hitBox, double impactX, double impactY, double impactZ) {
+        @SuppressWarnings("unchecked")
+        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+        for (EntityLivingBase entity : entities) {
+            if (processEntityHit(entity, impactX, impactY, impactZ)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean handleSolidCollisionTermination() {
+        if (!this.isCollidedHorizontally && !this.isCollidedVertically) return false;
+
+        if (!worldObj.isRemote) {
+            hasHit = true;
+            if (isExplosive()) {
+                doExplosion();
+            }
+        }
+        this.setDead();
+        return true;
     }
 
     // ==================== HOMING GETTERS & SETTERS ====================

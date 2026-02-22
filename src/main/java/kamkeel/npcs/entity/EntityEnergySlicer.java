@@ -11,25 +11,18 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.EventHooks;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Energy Slicer entity - a thin, wide blade projectile that flies in a straight line.
- * JJK Cleave/Dismantle inspired. Piercing by default (passes through entities).
+ * JJK Cleave/Dismantle inspired.
  * Extends EntityEnergyAbility to leverage the existing projectile infrastructure.
  */
 public class EntityEnergySlicer extends EntityEnergyProjectile {
 
     private float sliceWidth = 3.0f;
     private float sliceThickness = 0.15f;
-    private boolean piercing = true;
-    private List<Integer> hitEntities = new ArrayList<>();
 
     public EntityEnergySlicer(World world) {
         super(world);
@@ -43,15 +36,13 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
                               float sliceWidth, float sliceThickness,
                               EnergyDisplayData display, EnergyCombatData combat,
                               EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
-                              boolean piercing) {
+                              EnergyLifespanData lifespan, EnergyTrajectoryData trajectory) {
         super(world);
 
         initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan, trajectory);
         this.homingData = homing;
         this.sliceWidth = sliceWidth;
         this.sliceThickness = sliceThickness;
-        this.piercing = piercing;
 
         calculateInitialVelocity(owner, target, x, y, z);
     }
@@ -196,15 +187,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         }
 
         // Wall collision
-        if (this.isCollidedHorizontally || this.isCollidedVertically) {
-            if (!worldObj.isRemote) {
-                hasHit = true;
-                if (isExplosive()) {
-                    doExplosion();
-                }
-            }
-            this.setDead();
-        }
+        handleSolidCollisionTermination();
     }
 
     @Override
@@ -223,19 +206,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     }
 
     private void checkBlockCollision() {
-        if (piercing) return; // Piercing slicers pass through blocks
-
-        Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
-        Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
-        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
-
-        if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (!worldObj.isRemote) {
-                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
-            }
-            hasHit = true;
-            this.setDead();
-        }
+        handleBlockImpact(rayTraceBlocks(posX, posY, posZ, posX + motionX, posY + motionY, posZ + motionZ), false);
     }
 
     private void checkEntityCollision() {
@@ -246,29 +217,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
             posX + halfW, posY + halfH, posZ + halfW
         );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
-
-        for (EntityLivingBase entity : entities) {
-            if (shouldIgnoreEntity(entity)) continue;
-            if (hitEntities.contains(entity.getEntityId())) continue; // Already hit this entity
-
-            if (piercing) {
-                // Pierce: damage but keep flying
-                applyDamage(entity);
-                hitEntities.add(entity.getEntityId());
-            } else {
-                // Non-piercing: damage and die
-                hasHit = true;
-                if (isExplosive()) {
-                    doExplosion();
-                } else {
-                    applyDamage(entity);
-                }
-                this.setDead();
-                return;
-            }
-        }
+        processEntitiesInHitBox(hitBox, posX, posY, posZ);
     }
 
     /**
@@ -315,14 +264,6 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         this.sliceThickness = thickness;
     }
 
-    public boolean isPiercing() {
-        return piercing;
-    }
-
-    public void setPiercing(boolean piercing) {
-        this.piercing = piercing;
-    }
-
     // ==================== NBT ====================
 
     @Override
@@ -330,7 +271,6 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         readChargingNBT(nbt);
         this.sliceWidth = sanitize(nbt.hasKey("SliceWidth") ? nbt.getFloat("SliceWidth") : 3.0f, 3.0f, MAX_ENTITY_SIZE);
         this.sliceThickness = sanitize(nbt.hasKey("SliceThickness") ? nbt.getFloat("SliceThickness") : 0.15f, 0.15f, MAX_ENTITY_SIZE);
-        this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
         this.targetSliceWidth = sanitize(nbt.hasKey("TargetSliceWidth") ? nbt.getFloat("TargetSliceWidth") : sliceWidth, sliceWidth, MAX_ENTITY_SIZE);
         this.targetSliceThickness = sanitize(nbt.hasKey("TargetSliceThickness") ? nbt.getFloat("TargetSliceThickness") : sliceThickness, sliceThickness, MAX_ENTITY_SIZE);
     }
@@ -340,7 +280,6 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         writeChargingNBT(nbt);
         nbt.setFloat("SliceWidth", sliceWidth);
         nbt.setFloat("SliceThickness", sliceThickness);
-        nbt.setBoolean("Piercing", piercing);
         nbt.setFloat("TargetSliceWidth", targetSliceWidth);
         nbt.setFloat("TargetSliceThickness", targetSliceThickness);
     }
