@@ -15,6 +15,7 @@ import kamkeel.npcs.client.renderer.RenderAbilityZone;
 import kamkeel.npcs.client.renderer.RenderAbilityDome;
 import kamkeel.npcs.client.renderer.RenderAbilityPanel;
 import kamkeel.npcs.client.renderer.EnergyChargePreviewRenderer;
+import kamkeel.npcs.client.renderer.RenderEnergyExplosion;
 import kamkeel.npcs.client.renderer.RenderEnergySlicer;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
 import kamkeel.npcs.client.renderer.lightning.LightningHandler;
@@ -28,6 +29,7 @@ import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyExplosion;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -283,6 +285,7 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityDome.class, new RenderAbilityDome());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityPanel.class, new RenderAbilityPanel());
         RenderingRegistry.registerEntityRenderingHandler(EntityEnergySlicer.class, new RenderEnergySlicer());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyExplosion.class, new RenderEnergyExplosion());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 

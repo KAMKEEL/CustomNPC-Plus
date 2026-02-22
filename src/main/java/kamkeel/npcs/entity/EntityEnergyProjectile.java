@@ -14,19 +14,26 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.config.ConfigEnergy;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -485,6 +492,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (previewMode) return; // Skip explosion in preview mode
         float explosionRad = getExplosionRadius();
         if (Float.isNaN(explosionRad) || explosionRad <= 0) return;
+        spawnExplosionRenderEntity(explosionRad);
+        spawnExplosionVisuals(explosionRad);
         worldObj.playSoundEffect(posX, posY, posZ, "random.explode", 1.0f, 1.0f);
 
         Entity owner = getOwnerEntity();
@@ -509,6 +518,221 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             if (dist <= explosionRad) {
                 float falloff = 1.0f - (float) (dist / explosionRad) * getExplosionDamageFalloff();
                 applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
+            }
+        }
+
+        tryDestroyTerrain(explosionRad);
+    }
+
+    /**
+     * Spawn a short-lived voxel render entity so explosions are visible as geometry,
+     * not only as particles.
+     */
+    protected void spawnExplosionRenderEntity(float explosionRad) {
+        if (worldObj == null || worldObj.isRemote) return;
+        float renderRad = Math.max(0.75f, Math.min(explosionRad, 12.0f));
+        EntityEnergyExplosion fx = new EntityEnergyExplosion(worldObj, this, renderRad);
+        worldObj.spawnEntityInWorld(fx);
+    }
+
+    /**
+     * Shared voxel-style explosion VFX for all energy projectile abilities.
+     */
+    protected void spawnExplosionVisuals(float explosionRad) {
+        if (worldObj == null) return;
+
+        float visualRad = Math.max(0.75f, Math.min(explosionRad, 12.0f));
+        int coreBursts = Math.max(1, Math.min(4, Math.round(visualRad * 0.35f)));
+        int shellCount = Math.max(1, Math.min(3, Math.round(visualRad / 3.5f) + 1));
+
+        // Core flash.
+        emitRandomBurstParticle("largeexplode", coreBursts, visualRad * 0.10, visualRad * 0.08, visualRad * 0.10, 0.01);
+
+        // Expanding voxel shells.
+        for (int i = 1; i <= shellCount; i++) {
+            double frac = i / (double) shellCount;
+            double shellRadius = visualRad * (0.35D + 0.65D * frac);
+            spawnVoxelShell(shellRadius, i, visualRad);
+        }
+
+        // Residual smoke volume.
+        int smokeCount = Math.max(6, Math.min(40, Math.round(visualRad * 4.5f)));
+        emitRandomBurstParticle("smoke", smokeCount, visualRad * 0.45, visualRad * 0.30, visualRad * 0.45, 0.01);
+
+        // Pull block fragments for stronger voxel feel.
+        spawnVoxelDebris(visualRad);
+    }
+
+    /**
+     * Emit random burst particles centered around this explosion.
+     */
+    protected void emitRandomBurstParticle(String particle, int count,
+                                           double spreadX, double spreadY, double spreadZ,
+                                           double speed) {
+        if (worldObj == null || count <= 0 || particle == null || particle.isEmpty()) return;
+
+        if (worldObj.isRemote) {
+            for (int i = 0; i < count; i++) {
+                double px = posX + (rand.nextDouble() - 0.5D) * 2.0D * spreadX;
+                double py = posY + (rand.nextDouble() - 0.5D) * 2.0D * spreadY;
+                double pz = posZ + (rand.nextDouble() - 0.5D) * 2.0D * spreadZ;
+                double mx = rand.nextGaussian() * speed;
+                double my = rand.nextGaussian() * speed;
+                double mz = rand.nextGaussian() * speed;
+                worldObj.spawnParticle(particle, px, py, pz, mx, my, mz);
+            }
+            return;
+        }
+
+        if (worldObj instanceof WorldServer) {
+            ((WorldServer) worldObj).func_147487_a(particle, posX, posY, posZ, count, spreadX, spreadY, spreadZ, speed);
+        }
+    }
+
+    /**
+     * Emits a single directed voxel particle.
+     * Uses count=0 packet mode on server so motion values are preserved.
+     */
+    protected void emitVoxelParticle(String particle, double x, double y, double z,
+                                     double motionX, double motionY, double motionZ) {
+        if (worldObj == null || particle == null || particle.isEmpty()) return;
+
+        if (worldObj.isRemote) {
+            worldObj.spawnParticle(particle, x, y, z, motionX, motionY, motionZ);
+            return;
+        }
+
+        if (worldObj instanceof WorldServer) {
+            ((WorldServer) worldObj).func_147487_a(particle, x, y, z, 0, motionX, motionY, motionZ, 1.0D);
+        }
+    }
+
+    /**
+     * Spawn one cubic shell of explosion particles to get a blocky/voxel silhouette.
+     */
+    protected void spawnVoxelShell(double shellRadius, int shellIndex, float visualRad) {
+        int steps = Math.max(2, Math.min(4, (int) Math.ceil(shellRadius * 0.55D)));
+        double cell = shellRadius / steps;
+        double jitter = Math.min(0.15D, cell * 0.20D);
+        double shellSpeed = 0.03D + (shellRadius / Math.max(1.0D, visualRad)) * 0.05D;
+
+        for (int ix = -steps; ix <= steps; ix++) {
+            for (int iy = -steps; iy <= steps; iy++) {
+                for (int iz = -steps; iz <= steps; iz++) {
+                    int edge = Math.max(Math.abs(ix), Math.max(Math.abs(iy), Math.abs(iz)));
+                    if (edge != steps) continue;
+                    if (((ix + iy + iz + shellIndex) & 1) != 0) continue;
+
+                    double px = posX + ix * cell + (rand.nextDouble() - 0.5D) * jitter;
+                    double py = posY + iy * cell + (rand.nextDouble() - 0.5D) * jitter;
+                    double pz = posZ + iz * cell + (rand.nextDouble() - 0.5D) * jitter;
+
+                    double nx = ix;
+                    double ny = iy;
+                    double nz = iz;
+                    double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    if (len < 0.001D) {
+                        ny = 1.0D;
+                        len = 1.0D;
+                    }
+                    nx /= len;
+                    ny /= len;
+                    nz /= len;
+
+                    emitVoxelParticle("explode", px, py, pz, nx * shellSpeed, ny * shellSpeed, nz * shellSpeed);
+
+                    if (((ix + iy + iz + shellIndex) % 3) == 0) {
+                        emitVoxelParticle("smoke", px, py, pz, nx * shellSpeed * 0.35D, ny * shellSpeed * 0.35D, nz * shellSpeed * 0.35D);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Spawn debris particles using nearby block textures.
+     */
+    protected void spawnVoxelDebris(float visualRad) {
+        if (worldObj == null) return;
+
+        int count = Math.max(4, Math.min(24, Math.round(visualRad * 2.5f)));
+        for (int i = 0; i < count; i++) {
+            double ox = (rand.nextDouble() - 0.5D) * visualRad * 1.2D;
+            double oy = (rand.nextDouble() - 0.35D) * visualRad * 0.9D;
+            double oz = (rand.nextDouble() - 0.5D) * visualRad * 1.2D;
+
+            int bx = MathHelper.floor_double(posX + ox);
+            int by = MathHelper.floor_double(posY + oy);
+            int bz = MathHelper.floor_double(posZ + oz);
+
+            Block block = worldObj.getBlock(bx, by, bz);
+            if (block == null || block == Blocks.air) continue;
+
+            int blockId = Block.getIdFromBlock(block);
+            if (blockId <= 0) continue;
+            int meta = worldObj.getBlockMetadata(bx, by, bz);
+
+            String particle = "blockcrack_" + blockId + "_" + Math.max(0, meta);
+            emitVoxelParticle(
+                particle,
+                posX + ox * 0.55D,
+                posY + oy * 0.55D,
+                posZ + oz * 0.55D,
+                ox * 0.03D, oy * 0.03D, oz * 0.03D
+            );
+        }
+    }
+
+    /**
+     * Optional terrain damage for energy explosions.
+     * Controlled server-side by ConfigEnergy.EnableEnergyExplosionBlockDamage.
+     */
+    protected void tryDestroyTerrain(float explosionRad) {
+        if (worldObj == null || worldObj.isRemote) return;
+        if (!ConfigEnergy.EnableEnergyExplosionBlockDamage) return;
+        if (!worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing")) return;
+
+        float terrainRad = Math.max(0.5f, Math.min(explosionRad, 12.0f));
+        int minX = MathHelper.floor_double(posX - terrainRad);
+        int maxX = MathHelper.floor_double(posX + terrainRad);
+        int minY = MathHelper.floor_double(posY - terrainRad);
+        int maxY = MathHelper.floor_double(posY + terrainRad);
+        int minZ = MathHelper.floor_double(posZ - terrainRad);
+        int maxZ = MathHelper.floor_double(posZ + terrainRad);
+        float resistanceCutoff = Math.max(4.0f, terrainRad * 6.0f);
+
+        Explosion context = new Explosion(worldObj, this, posX, posY, posZ, terrainRad);
+        context.isFlaming = false;
+        context.isSmoking = true;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    double cx = x + 0.5D - posX;
+                    double cy = y + 0.5D - posY;
+                    double cz = z + 0.5D - posZ;
+
+                    // Chebyshev metric yields a voxel/cubic blast shape.
+                    double chebyshev = Math.max(Math.abs(cx), Math.max(Math.abs(cy), Math.abs(cz)));
+                    if (chebyshev > terrainRad) continue;
+
+                    // Soften cube corners a bit for a less artificial crater edge.
+                    double normalized = chebyshev / terrainRad;
+                    if (normalized > 0.72D && rand.nextDouble() < (normalized - 0.72D) * 1.4D) continue;
+
+                    Block block = worldObj.getBlock(x, y, z);
+                    if (block == null || block == Blocks.air || block == Blocks.bedrock) continue;
+                    Material material = block.getMaterial();
+                    if (material == null || material == Material.air) continue;
+
+                    float resistance = block.getExplosionResistance(this, worldObj, x, y, z, posX, posY, posZ);
+                    if (resistance > resistanceCutoff) continue;
+
+                    try {
+                        block.onBlockExploded(worldObj, x, y, z, context);
+                    } catch (Exception ignored) {
+                    }
+                }
             }
         }
     }
