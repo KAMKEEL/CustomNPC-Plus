@@ -3,12 +3,12 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -23,14 +23,13 @@ import java.util.List;
 
 /**
  * Energy Slicer ability: Fires a thin, wide blade projectile in a straight line.
- * JJK Cleave/Dismantle inspired. Piercing by default.
+ * JJK Cleave/Dismantle inspired.
  * Extends AbilityEnergyProjectile to leverage the existing projectile infrastructure.
  */
 public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
 
     private float sliceWidth = 3.0f;
     private float sliceThickness = 0.15f;
-    private boolean piercing = true;
 
     public AbilitySlicer() {
         super(
@@ -46,7 +45,7 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
         this.minRange = 3.0f;
         this.cooldownTicks = 40;
         this.windUpTicks = 15;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMode.WINDUP;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
         this.windUpAnimationName = "";
@@ -62,8 +61,7 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             sliceWidth, sliceThickness,
-            resolved, combatData, homingData, lightningData, lifespanData, trajectoryData,
-            piercing
+            resolved, combatData, homingData, lightningData, lifespanData, trajectoryData
         );
     }
 
@@ -122,14 +120,12 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
     protected void writeTypeSpecificNBT(NBTTagCompound nbt) {
         nbt.setFloat("sliceWidth", sliceWidth);
         nbt.setFloat("sliceThickness", sliceThickness);
-        nbt.setBoolean("piercing", piercing);
     }
 
     @Override
     protected void readTypeSpecificNBT(NBTTagCompound nbt) {
         this.sliceWidth = nbt.hasKey("sliceWidth") ? nbt.getFloat("sliceWidth") : 3.0f;
         this.sliceThickness = nbt.hasKey("sliceThickness") ? nbt.getFloat("sliceThickness") : 0.15f;
-        this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");
     }
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
@@ -158,14 +154,6 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
         this.sliceThickness = Math.max(0.05f, thickness);
     }
 
-    public boolean isPiercing() {
-        return piercing;
-    }
-
-    public void setPiercing(boolean piercing) {
-        this.piercing = piercing;
-    }
-
     // ==================== TYPE-SPECIFIC GUI ====================
 
     @SideOnly(Side.CLIENT)
@@ -186,8 +174,6 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
             FieldDef.floatField("gui.width", this::getSliceWidth, this::setSliceWidth).range(0.5f, 100.0f),
             FieldDef.floatField("gui.thickness", this::getSliceThickness, this::setSliceThickness).range(0.05f, 100.0f)
         ));
-        defs.add(FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
-            .hover("ability.hover.piercing"));
         defs.add(FieldDef.row(
             FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).range(1.0f, 500.0f),
             FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200)

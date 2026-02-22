@@ -226,7 +226,7 @@ public abstract class AbilityMovement extends Ability {
      * By sending S12 manually here — before friction — the client receives the full
      * velocity and moves at the correct speed.
      */
-    private void sendPlayerVelocity(EntityLivingBase caster) {
+    protected void sendPlayerVelocity(EntityLivingBase caster) {
         if (caster instanceof EntityPlayerMP) {
             ((EntityPlayerMP) caster).playerNetServerHandler.sendPacket(
                 new S12PacketEntityVelocity(caster));
@@ -234,11 +234,11 @@ public abstract class AbilityMovement extends Ability {
     }
 
     /**
-     * Apply movement velocity to the caster (horizontal only, Y unchanged).
+     * Apply horizontal momentum and sync to client.
      */
-    protected void applyVelocity(EntityLivingBase caster, float speed) {
-        caster.motionX = movementDirection.xCoord * speed;
-        caster.motionZ = movementDirection.zCoord * speed;
+    protected void applyHorizontalMomentum(EntityLivingBase caster, double motionX, double motionZ) {
+        caster.motionX = motionX;
+        caster.motionZ = motionZ;
         if (!isPreview()) {
             if (caster instanceof EntityPlayerMP) {
                 sendPlayerVelocity(caster);
@@ -246,6 +246,13 @@ public abstract class AbilityMovement extends Ability {
                 caster.velocityChanged = true;
             }
         }
+    }
+
+    /**
+     * Apply movement velocity to the caster (horizontal only, Y unchanged).
+     */
+    protected void applyVelocity(EntityLivingBase caster, float speed) {
+        applyHorizontalMomentum(caster, movementDirection.xCoord * speed, movementDirection.zCoord * speed);
     }
 
     /**
@@ -253,31 +260,15 @@ public abstract class AbilityMovement extends Ability {
      * Used for ground-locked movement like Charge.
      */
     protected void applyVelocityFlat(EntityLivingBase caster, float speed) {
-        caster.motionX = movementDirection.xCoord * speed;
+        applyHorizontalMomentum(caster, movementDirection.xCoord * speed, movementDirection.zCoord * speed);
         caster.motionY = 0;
-        caster.motionZ = movementDirection.zCoord * speed;
-        if (!isPreview()) {
-            if (caster instanceof EntityPlayerMP) {
-                sendPlayerVelocity(caster);
-            } else {
-                caster.velocityChanged = true;
-            }
-        }
     }
 
     /**
      * Stop all horizontal momentum.
      */
     protected void stopMomentum(EntityLivingBase caster) {
-        caster.motionX = 0;
-        caster.motionZ = 0;
-        if (!isPreview()) {
-            if (caster instanceof EntityPlayerMP) {
-                sendPlayerVelocity(caster);
-            } else {
-                caster.velocityChanged = true;
-            }
-        }
+        applyHorizontalMomentum(caster, 0, 0);
     }
 
     // ═══════════════════════════════════════════════════════════════════

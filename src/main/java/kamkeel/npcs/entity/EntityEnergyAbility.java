@@ -5,8 +5,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -81,6 +81,10 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         if (!worldObj.isRemote) {
             this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));
         }
+    }
+
+    public void setChargeDuration(int duration) {
+        this.chargeDuration = duration;
     }
 
     public float getChargeProgress() {
@@ -331,6 +335,24 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
      */
     protected void readSpawnNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
+    }
+
+    /**
+     * Export spawn NBT for non-world preview rendering sync.
+     */
+    public final NBTTagCompound exportSpawnNBT() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        writeSpawnNBT(nbt);
+        return nbt;
+    }
+
+    /**
+     * Import spawn NBT for non-world preview rendering sync.
+     */
+    public final void importSpawnNBT(NBTTagCompound nbt) {
+        if (nbt != null) {
+            readSpawnNBT(nbt);
+        }
     }
 
     @Override

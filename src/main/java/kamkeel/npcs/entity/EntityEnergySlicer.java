@@ -1,35 +1,28 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.EventHooks;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Energy Slicer entity - a thin, wide blade projectile that flies in a straight line.
- * JJK Cleave/Dismantle inspired. Piercing by default (passes through entities).
+ * JJK Cleave/Dismantle inspired.
  * Extends EntityEnergyAbility to leverage the existing projectile infrastructure.
  */
 public class EntityEnergySlicer extends EntityEnergyProjectile {
 
     private float sliceWidth = 3.0f;
     private float sliceThickness = 0.15f;
-    private boolean piercing = true;
-    private List<Integer> hitEntities = new ArrayList<>();
 
     public EntityEnergySlicer(World world) {
         super(world);
@@ -43,15 +36,13 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
                               float sliceWidth, float sliceThickness,
                               EnergyDisplayData display, EnergyCombatData combat,
                               EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
-                              boolean piercing) {
+                              EnergyLifespanData lifespan, EnergyTrajectoryData trajectory) {
         super(world);
 
         initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan, trajectory);
         this.homingData = homing;
         this.sliceWidth = sliceWidth;
         this.sliceThickness = sliceThickness;
-        this.piercing = piercing;
 
         calculateInitialVelocity(owner, target, x, y, z);
     }
@@ -77,89 +68,29 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     public void setupPreview(EntityLivingBase owner, float width, float thickness,
                              EnergyDisplayData display, EnergyLightningData lightning,
                              EnergyAnchorData anchor, int chargeDuration) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
-        this.displayData = display;
-        this.lightningData = lightning;
-        this.setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
 
         this.targetSliceWidth = width;
         this.targetSliceThickness = thickness;
         this.sliceWidth = 0.01f;
         this.sliceThickness = 0.01f;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-
-        Vec3 pos = kamkeel.npcs.util.AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        setVisualSize(0.01f);
+        setChargeOriginFromAnchor(owner, anchorData);
+        clearMotion();
     }
 
     /**
      * Start preview firing.
      */
     public void startPreviewFiring() {
-        setCharging(false);
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-        prevPosX = posX;
-        prevPosY = posY;
-        prevPosZ = posZ;
-
-        Entity owner = getOwnerEntity();
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            motionX = -Math.sin(yaw) * getSpeed();
-            motionY = 0;
-            motionZ = Math.cos(yaw) * getSpeed();
-        } else {
-            motionX = getSpeed();
-            motionY = 0;
-            motionZ = 0;
-        }
+        startPreviewFiringDefault();
     }
 
     /**
      * Start the slicer moving (exit charging mode).
      */
     public void startMoving(EntityLivingBase target) {
-        setCharging(false);
-        snapToPlayerLookVector();
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        Entity owner = getOwnerEntity();
-        if (target != null) {
-            double dx = target.posX - posX;
-            double dy = (target.posY + target.getEyeHeight()) - posY;
-            double dz = target.posZ - posZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                motionX = (dx / len) * getSpeed();
-                motionY = (dy / len) * getSpeed();
-                motionZ = (dz / len) * getSpeed();
-            }
-        } else if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        }
+        startMovingTowardTargetDefault(target);
     }
 
     @Override
@@ -196,15 +127,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         }
 
         // Wall collision
-        if (this.isCollidedHorizontally || this.isCollidedVertically) {
-            if (!worldObj.isRemote) {
-                hasHit = true;
-                if (isExplosive()) {
-                    doExplosion();
-                }
-            }
-            this.setDead();
-        }
+        handleSolidCollisionTermination();
     }
 
     @Override
@@ -223,19 +146,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     }
 
     private void checkBlockCollision() {
-        if (piercing) return; // Piercing slicers pass through blocks
-
-        Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
-        Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
-        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
-
-        if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (!worldObj.isRemote) {
-                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
-            }
-            hasHit = true;
-            this.setDead();
-        }
+        handleBlockImpact(rayTraceBlocks(posX, posY, posZ, posX + motionX, posY + motionY, posZ + motionZ), false);
     }
 
     private void checkEntityCollision() {
@@ -246,29 +157,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
             posX + halfW, posY + halfH, posZ + halfW
         );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
-
-        for (EntityLivingBase entity : entities) {
-            if (shouldIgnoreEntity(entity)) continue;
-            if (hitEntities.contains(entity.getEntityId())) continue; // Already hit this entity
-
-            if (piercing) {
-                // Pierce: damage but keep flying
-                applyDamage(entity);
-                hitEntities.add(entity.getEntityId());
-            } else {
-                // Non-piercing: damage and die
-                hasHit = true;
-                if (isExplosive()) {
-                    doExplosion();
-                } else {
-                    applyDamage(entity);
-                }
-                this.setDead();
-                return;
-            }
-        }
+        processEntitiesInHitBox(hitBox, posX, posY, posZ);
     }
 
     /**
@@ -315,14 +204,6 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         this.sliceThickness = thickness;
     }
 
-    public boolean isPiercing() {
-        return piercing;
-    }
-
-    public void setPiercing(boolean piercing) {
-        this.piercing = piercing;
-    }
-
     // ==================== NBT ====================
 
     @Override
@@ -330,7 +211,6 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         readChargingNBT(nbt);
         this.sliceWidth = sanitize(nbt.hasKey("SliceWidth") ? nbt.getFloat("SliceWidth") : 3.0f, 3.0f, MAX_ENTITY_SIZE);
         this.sliceThickness = sanitize(nbt.hasKey("SliceThickness") ? nbt.getFloat("SliceThickness") : 0.15f, 0.15f, MAX_ENTITY_SIZE);
-        this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
         this.targetSliceWidth = sanitize(nbt.hasKey("TargetSliceWidth") ? nbt.getFloat("TargetSliceWidth") : sliceWidth, sliceWidth, MAX_ENTITY_SIZE);
         this.targetSliceThickness = sanitize(nbt.hasKey("TargetSliceThickness") ? nbt.getFloat("TargetSliceThickness") : sliceThickness, sliceThickness, MAX_ENTITY_SIZE);
     }
@@ -340,7 +220,6 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         writeChargingNBT(nbt);
         nbt.setFloat("SliceWidth", sliceWidth);
         nbt.setFloat("SliceThickness", sliceThickness);
-        nbt.setBoolean("Piercing", piercing);
         nbt.setFloat("TargetSliceWidth", targetSliceWidth);
         nbt.setFloat("TargetSliceThickness", targetSliceThickness);
     }

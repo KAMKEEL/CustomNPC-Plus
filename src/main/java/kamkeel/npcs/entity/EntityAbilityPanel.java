@@ -2,10 +2,10 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyPanelData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPanelData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -166,6 +166,17 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         this.prevPosX = owner.prevPosX + (-Math.sin(prevYawRad) * frontDist);
         this.prevPosY = owner.prevPosY + panelData.heightOffset + (owner.height * 0.5f);
         this.prevPosZ = owner.prevPosZ + (Math.cos(prevYawRad) * frontDist);
+    }
+
+    @Override
+    public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements) {
+        // HELD panels are fully owner-driven each tick via updateHeld().
+        // Applying network position lerp on top of owner-following causes visible jitter/stutter
+        // when the caster is moving, so ignore remote corrections in this mode.
+        if (worldObj != null && worldObj.isRemote && mode == PanelMode.HELD && getOwnerEntity() != null) {
+            return;
+        }
+        super.setPositionAndRotation2(x, y, z, yaw, pitch, posRotationIncrements);
     }
 
     private void updateLaunched() {

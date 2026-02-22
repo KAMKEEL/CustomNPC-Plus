@@ -2,18 +2,21 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
+import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.enums.HitType;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
+import kamkeel.npcs.network.packets.data.energycharge.EnergyChargeRemovePacket;
+import kamkeel.npcs.network.packets.data.energycharge.EnergyChargeSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -54,6 +57,10 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     // Transient entity state
     protected transient E[] entities;
+    protected transient boolean[] projectileSpawned;
+    protected transient int spawnedCount;
+    protected transient String[] chargeVisualIds;
+    protected transient EntityLivingBase chargeVisualCaster;
 
     // ==================== CONSTRUCTOR ====================
 
@@ -76,7 +83,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     /**
      * Create a single entity for the given projectile index.
-     * Called during windup (tick 1) and burst refire (onExecute when entities are null).
+     * Called when a projectile actually fires.
      */
     protected abstract E createEntity(EntityLivingBase caster, EntityLivingBase target,
                                       Vec3 spawnPos, EnergyDisplayData resolved, int index);
@@ -208,32 +215,99 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     // ==================== ENTITY CREATION ====================
 
-    /**
-     * Create all entities for this ability.
-     * Sets effects, source ability, and sibling links.
-     */
-    protected E[] createAllEntities(EntityLivingBase caster, EntityLivingBase target) {
-        E[] newEntities = createEntityArray(projectileCount);
-        for (int i = 0; i < projectileCount; i++) {
-            Vec3 spawnPos = getSpawnPosition(caster, i);
-            EnergyDisplayData resolved = projectiles[i].resolveDisplay(displayData);
-            newEntities[i] = createEntity(caster, target, spawnPos, resolved, i);
-            newEntities[i].setEffects(this.effects);
-            newEntities[i].setSourceAbility(this);
+    protected void initRuntimeState(EntityLivingBase caster) {
+        entities = createEntityArray(projectileCount);
+        projectileSpawned = new boolean[projectileCount];
+        spawnedCount = 0;
+        chargeVisualIds = new String[projectileCount];
+        chargeVisualCaster = caster;
+    }
+
+    protected E createProjectileEntity(EntityLivingBase caster, EntityLivingBase target, int index) {
+        Vec3 spawnPos = getSpawnPosition(caster, index);
+        EnergyDisplayData resolved = projectiles[index].resolveDisplay(displayData);
+        E entity = createEntity(caster, target, spawnPos, resolved, index);
+        entity.setEffects(this.effects);
+        entity.setSourceAbility(this);
+        return entity;
+    }
+
+    protected void spawnProjectileEntity(E entity, int index) {
+        if (entity == null) return;
+        spawnAbilityEntity(entity);
+        entities[index] = entity;
+        if (!projectileSpawned[index]) {
+            projectileSpawned[index] = true;
+            spawnedCount++;
         }
-        return newEntities;
+    }
+
+    protected void spawnAndFireProjectile(EntityLivingBase caster, EntityLivingBase target, int index) {
+        if (entities != null && entities[index] != null && !entities[index].isDead) return;
+        E entity = createProjectileEntity(caster, target, index);
+
+        // Initialize launch position/motion BEFORE spawn so the
+        // initial spawn packet already has centered look-vector data on all clients.
+        fireEntitySafe(entity, caster, target);
+        spawnProjectileEntity(entity, index);
+    }
+
+    /**
+     * Hook for launch target selection.
+     * Default returns null so projectiles launch along owner look vector.
+     */
+    protected EntityLivingBase getLaunchTarget(EntityLivingBase caster, EntityLivingBase target) {
+        return null;
     }
 
     /**
      * Fire an entity if it's valid.
      * Clears charging state first so the entity can move and check collisions.
      */
-    protected void fireEntitySafe(E entity, EntityLivingBase target) {
+    protected void fireEntitySafe(E entity, EntityLivingBase caster, EntityLivingBase target) {
         if (entity != null && !entity.isDead) {
             if (entity.isCharging()) {
                 entity.setCharging(false);
             }
-            fireEntity(entity, target);
+            fireEntity(entity, getLaunchTarget(caster, target));
+        }
+    }
+
+    protected String getChargeVisualId(EntityLivingBase caster, int index) {
+        return "energy_charge:" + caster.getEntityId() + ":" + executionStartTime + ":" + burstIndex + ":" + index;
+    }
+
+    protected void spawnChargeVisual(EntityLivingBase caster, EntityLivingBase target, int index, int chargeDuration) {
+        if (isPreview() || caster == null || caster.worldObj == null || caster.worldObj.isRemote) return;
+        if (chargeVisualIds == null || index < 0 || index >= chargeVisualIds.length) return;
+
+        E previewEntity = createProjectileEntity(caster, target, index);
+        previewEntity.setPreviewMode(true);
+        previewEntity.setPreviewOwner(caster);
+        setupEntityCharging(previewEntity, projectiles[index], index);
+        previewEntity.setChargeDuration(Math.max(1, chargeDuration));
+
+        String id = getChargeVisualId(caster, index);
+        chargeVisualIds[index] = id;
+        chargeVisualCaster = caster;
+        EnergyChargeSpawnPacket.sendToTracking(id, previewEntity, caster);
+    }
+
+    protected void removeChargeVisual(EntityLivingBase caster, int index) {
+        if (isPreview() || caster == null || caster.worldObj == null || caster.worldObj.isRemote) return;
+        if (chargeVisualIds == null || index < 0 || index >= chargeVisualIds.length) return;
+
+        String id = chargeVisualIds[index];
+        if (id != null && !id.isEmpty()) {
+            EnergyChargeRemovePacket.sendToTracking(id, caster);
+            chargeVisualIds[index] = null;
+        }
+    }
+
+    protected void removeAllChargeVisuals(EntityLivingBase caster) {
+        if (chargeVisualIds == null || caster == null) return;
+        for (int i = 0; i < chargeVisualIds.length; i++) {
+            removeChargeVisual(caster, i);
         }
     }
 
@@ -252,6 +326,8 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     @Override
     public void detach() {
         entities = null;
+        projectileSpawned = null;
+        spawnedCount = 0;
     }
 
     @Override
@@ -274,21 +350,31 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         if (caster.worldObj.isRemote && !isPreview()) return;
 
         if (tick == 1) {
-            entities = createAllEntities(caster, target);
-            for (int i = 0; i < projectileCount; i++) {
-                EnergyDisplayData resolved = projectiles[i].resolveDisplay(displayData);
-                if (isPreview()) {
-                    setupEntityPreview(entities[i], caster, resolved, projectiles[i], i);
-                } else {
-                    setupEntityCharging(entities[i], projectiles[i], i);
+            initRuntimeState(caster);
+
+            if (isPreview()) {
+                for (int i = 0; i < projectileCount; i++) {
+                    E previewEntity = createProjectileEntity(caster, target, i);
+                    EnergyDisplayData resolved = projectiles[i].resolveDisplay(displayData);
+                    setupEntityPreview(previewEntity, caster, resolved, projectiles[i], i);
+                    spawnAbilityEntity(previewEntity);
+                    entities[i] = previewEntity;
+                    projectileSpawned[i] = true;
+                    spawnedCount++;
                 }
-                spawnAbilityEntity(entities[i]);
+                return;
+            }
+
+            for (int i = 0; i < projectileCount; i++) {
+                spawnChargeVisual(caster, target, i, windUpTicks);
             }
         }
     }
 
     @Override
     public void resetForBurst() {
+        removeAllChargeVisuals(chargeVisualCaster);
+
         // Non-overlap: kill old entities before next burst creates new ones
         if (!burstOverlap) {
             cleanup();
@@ -296,54 +382,71 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         // Clear reference so the next iteration creates fresh entities.
         // For overlap mode, old entities stay alive (tracked in burstEntities).
         entities = null;
+        projectileSpawned = null;
+        spawnedCount = 0;
     }
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
-        // Create entities if they don't exist yet.
-        // They'll already exist if onWindUpTick ran (windup replay), otherwise we create here.
-        if (entities == null) {
-            entities = createAllEntities(caster, target);
-
-            // If there's a fire delay, put unfired entities in charging state
-            // to prevent collision checks before they're actually fired.
-            // Entity[0] will be fired immediately below, so skip it.
-            if (fireDelay > 0 && projectileCount > 1) {
-                for (int i = 1; i < projectileCount; i++) {
-                    if (entities[i] != null) {
-                        entities[i].setCharging(true);
-                    }
+        // GUI preview keeps the original non-world preview entity flow.
+        if (isPreview()) {
+            if (entities == null) {
+                initRuntimeState(caster);
+                for (int i = 0; i < projectileCount; i++) {
+                    E previewEntity = createProjectileEntity(caster, target, i);
+                    EnergyDisplayData resolved = projectiles[i].resolveDisplay(displayData);
+                    setupEntityPreview(previewEntity, caster, resolved, projectiles[i], i);
+                    spawnAbilityEntity(previewEntity);
+                    entities[i] = previewEntity;
+                    projectileSpawned[i] = true;
+                    spawnedCount++;
                 }
             }
 
-            for (E entity : entities) {
-                spawnAbilityEntity(entity);
+            fireEntitySafe(entities[0], caster, target);
+            if (fireDelay <= 0) {
+                for (int i = 1; i < projectileCount; i++) {
+                    fireEntitySafe(entities[i], caster, target);
+                }
             }
+            return;
         }
 
-        // Fire first projectile immediately
-        fireEntitySafe(entities[0], target);
+        if (entities == null || projectileSpawned == null || entities.length != projectileCount) {
+            initRuntimeState(caster);
+        }
 
-        // Fire remaining projectiles if no delay
+        removeAllChargeVisuals(caster);
+
+        // Fire first projectile immediately.
+        spawnAndFireProjectile(caster, target, 0);
+
+        // Fire remaining projectiles immediately if there is no stagger delay.
         if (fireDelay <= 0) {
             for (int i = 1; i < projectileCount; i++) {
-                fireEntitySafe(entities[i], target);
+                spawnAndFireProjectile(caster, target, i);
+            }
+        } else {
+            // During active stagger, keep client-only charging visuals for unfired projectiles.
+            for (int i = 1; i < projectileCount; i++) {
+                spawnChargeVisual(caster, target, i, fireDelay * i);
             }
         }
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        if (entities == null) {
+        if (entities == null || projectileSpawned == null) {
             signalCompletion();
             return;
         }
 
-        // Fire staggered projectiles
+        // Fire staggered projectiles: spawn real world entity only when it is time to fire.
         if (fireDelay > 0) {
             for (int i = 1; i < projectileCount; i++) {
                 if (tick == fireDelay * i) {
-                    fireEntitySafe(entities[i], target);
+                    removeChargeVisual(caster, i);
+                    spawnAndFireProjectile(caster, target, i);
                 }
             }
         }
@@ -357,21 +460,21 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
             }
         }
 
-        // Check if all entities are dead or unreachable
-        boolean allDead = true;
-        for (E entity : entities) {
-            if (entity == null || entity.isDead) continue;
+        // Before all projectiles have fired, the ability is still active by definition.
+        boolean allDead = spawnedCount >= projectileCount;
+        if (allDead) {
+            for (E entity : entities) {
+                if (entity == null || entity.isDead) continue;
 
-            // Check if entity was removed from world (chunk unload, etc.)
-            // Skip this check for preview entities - they're not registered in the world
-            if (!isPreview() && tick > 5 && entity.worldObj != null
-                && entity.worldObj.getEntityByID(entity.getEntityId()) != entity) {
-                entity.setDead();
-                continue;
+                if (!isPreview() && tick > 5 && entity.worldObj != null
+                    && entity.worldObj.getEntityByID(entity.getEntityId()) != entity) {
+                    entity.setDead();
+                    continue;
+                }
+
+                allDead = false;
+                break;
             }
-
-            allDead = false;
-            break;
         }
 
         // Failsafe timeout: force completion if active phase exceeded max possible flight time
@@ -391,15 +494,19 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+        removeAllChargeVisuals(caster);
     }
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        removeAllChargeVisuals(caster);
         cleanup();
     }
 
     @Override
     public void cleanup() {
+        removeAllChargeVisuals(chargeVisualCaster);
+
         if (entities != null) {
             for (int i = 0; i < entities.length; i++) {
                 if (entities[i] != null && !entities[i].isDead) {
@@ -409,6 +516,10 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
             }
         }
         entities = null;
+        projectileSpawned = null;
+        spawnedCount = 0;
+        chargeVisualIds = null;
+        chargeVisualCaster = null;
     }
 
     // ==================== TELEGRAPH ====================
@@ -557,6 +668,22 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         combatData.explosionDamageFalloff = falloff;
     }
 
+    public int getHitType() {
+        return combatData.hitType.ordinal();
+    }
+
+    public void setHitType(int hitType) {
+        this.combatData.hitType = HitType.fromOrdinal(hitType);
+    }
+
+    public int getMultiHitDelayTicks() {
+        return combatData.multiHitDelayTicks;
+    }
+
+    public void setMultiHitDelayTicks(int delay) {
+        this.combatData.multiHitDelayTicks = Math.max(1, delay);
+    }
+
     // Lifespan data
     @Override
     public float getMaxDistance() {
@@ -696,6 +823,15 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     @SideOnly(Side.CLIENT)
     @Override
     public final void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.add(FieldDef.enumField("ability.hitType", HitType.class,
+                () -> HitType.fromOrdinal(getHitType()),
+                (v) -> setHitType(v.ordinal()))
+            .hover("ability.hover.hitType"));
+        defs.add(FieldDef.intField("ability.multiHitDelay", this::getMultiHitDelayTicks, this::setMultiHitDelayTicks)
+            .range(1, 200)
+            .visibleWhen(() -> getHitType() == HitType.MULTI.ordinal())
+            .hover("ability.hover.multiHitDelay"));
+
         // Type-specific fields first
         addTypeDefinitions(defs);
 

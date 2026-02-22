@@ -1,25 +1,24 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,6 +32,11 @@ import java.util.List;
  */
 public class EntityAbilityBeam extends EntityEnergyProjectile {
 
+    private enum BeamMode {
+        ANCHORED,
+        FREE_TRAIL
+    }
+
     // Beam shape properties
     private float beamWidth = 0.3f;
     private float headSize = 0.5f;
@@ -41,22 +45,18 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     private List<Vec3> trailPoints = new ArrayList<>();
     private static final int MAX_TRAIL_POINTS = 200;
     private static final double MIN_POINT_DISTANCE = 0.2;
+    private static final int TRAIL_COMPACT_THRESHOLD = 128;
+    private int trailStartIndex = 0;
 
     // Head position relative to origin
     private double headOffsetX, headOffsetY, headOffsetZ;
     private double prevHeadOffsetX, prevHeadOffsetY, prevHeadOffsetZ;
 
-    // Origin stays fixed (or follows owner)
-    private boolean attachedToOwner = true;
-
-    // Whether to render tail orb (only when anchored)
-    private boolean renderTailOrb = true;
+    // Beam behavior mode (single source of truth).
+    private BeamMode beamMode = BeamMode.ANCHORED;
 
     // Charging state (beam-specific)
     private float chargeOffsetDistance = 1.0f;
-
-    // Trail fading for non-anchored beams (comet effect)
-    private boolean fadeTrail = false;
     private int trailFadeTime = 20; // Ticks for trail to fully fade
     private List<Integer> trailPointAges = new ArrayList<>();
 
@@ -65,6 +65,55 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     public EntityAbilityBeam(World world) {
         super(world);
+    }
+
+    private static BeamMode modeFromAnchored(boolean anchored) {
+        return anchored ? BeamMode.ANCHORED : BeamMode.FREE_TRAIL;
+    }
+
+    private boolean isAnchoredMode() {
+        return beamMode == BeamMode.ANCHORED;
+    }
+
+    private boolean isFadingMode() {
+        return beamMode == BeamMode.FREE_TRAIL;
+    }
+
+    private int getActiveTrailSize() {
+        return Math.max(0, trailPoints.size() - trailStartIndex);
+    }
+
+    private void resetHeadOffsets() {
+        headOffsetX = 0;
+        headOffsetY = 0;
+        headOffsetZ = 0;
+        prevHeadOffsetX = 0;
+        prevHeadOffsetY = 0;
+        prevHeadOffsetZ = 0;
+    }
+
+    private void resetTrailStorage() {
+        trailPoints.clear();
+        trailPointAges.clear();
+        trailStartIndex = 0;
+    }
+
+    private void setBeamMode(BeamMode mode) {
+        beamMode = mode != null ? mode : BeamMode.ANCHORED;
+        if (isFadingMode()) {
+            while (trailPointAges.size() < trailPoints.size()) {
+                trailPointAges.add(0);
+            }
+            while (trailPointAges.size() > trailPoints.size()) {
+                trailPointAges.remove(trailPointAges.size() - 1);
+            }
+        } else {
+            if (trailStartIndex > 0 && trailStartIndex < trailPoints.size()) {
+                trailPoints = new ArrayList<Vec3>(trailPoints.subList(trailStartIndex, trailPoints.size()));
+            }
+            trailStartIndex = 0;
+            trailPointAges.clear();
+        }
     }
 
     /**
@@ -91,17 +140,11 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         this.beamWidth = beamWidth;
         this.headSize = headSize;
 
-        // Anchored mode controls whether origin follows owner and tail orb is rendered
-        this.attachedToOwner = anchoredMode;
-        this.renderTailOrb = anchoredMode;
+        // Beam mode controls tail attachment/orb/fading behavior.
+        setBeamMode(modeFromAnchored(anchoredMode));
 
         // Initialize head offset at origin (0,0,0 relative)
-        this.headOffsetX = 0;
-        this.headOffsetY = 0;
-        this.headOffsetZ = 0;
-        this.prevHeadOffsetX = 0;
-        this.prevHeadOffsetY = 0;
-        this.prevHeadOffsetZ = 0;
+        resetHeadOffsets();
 
         // Add initial trail point at origin (relative 0,0,0)
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
@@ -115,166 +158,58 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     }
 
     public void setupCharging(EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
-        setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
+        setupChargingState(anchor, chargeDuration);
         this.chargeOffsetDistance = chargeOffsetDistance;
-        this.anchorData = anchor;
-        this.fadeTrail = !attachedToOwner;
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        clearMotion();
     }
 
     public void setupPreview(EntityLivingBase owner, float beamWidth, float headSize, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, float chargeOffsetDistance) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
 
         // Set visual properties
         this.beamWidth = beamWidth;
         this.headSize = headSize;
-        this.size = headSize;
-        this.displayData = display;
-        this.lightningData = lightning;
+        setVisualSize(headSize);
 
-        // Set charging state
-        this.setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
         this.chargeOffsetDistance = chargeOffsetDistance;
-        this.anchorData = anchor;
-
-        // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData, chargeOffsetDistance);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
+        setChargeOriginFromAnchor(owner, anchorData, chargeOffsetDistance);
 
         // Initialize head offsets
-        this.headOffsetX = 0;
-        this.headOffsetY = 0;
-        this.headOffsetZ = 0;
-        this.prevHeadOffsetX = 0;
-        this.prevHeadOffsetY = 0;
-        this.prevHeadOffsetZ = 0;
-
-        // Attach to owner for anchor following
-        this.attachedToOwner = true;
-        this.renderTailOrb = true;
+        resetHeadOffsets();
 
         // Clear motion
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        clearMotion();
     }
 
     /**
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        setCharging(false);
-
-        // Origin (tail) stays at the charged position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
+        startPreviewFiringDefault();
 
         // Reset head offset to origin
-        headOffsetX = 0;
-        headOffsetY = 0;
-        headOffsetZ = 0;
-        prevHeadOffsetX = 0;
-        prevHeadOffsetY = 0;
-        prevHeadOffsetZ = 0;
-
-        // Origin no longer follows owner after firing
-        attachedToOwner = false;
-
-        // Sync prev position to prevent visual jump on first frame
-        prevPosX = posX;
-        prevPosY = posY;
-        prevPosZ = posZ;
+        resetHeadOffsets();
 
         // Reset trail
-        trailPoints.clear();
-        trailPointAges.clear();
+        resetTrailStorage();
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
-
-        // Fire forward based on owner facing direction
-        Entity owner = getOwnerEntity();
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            motionX = -Math.sin(yaw) * getSpeed();
-            motionY = 0;
-            motionZ = Math.cos(yaw) * getSpeed();
-        } else {
-            motionX = getSpeed();
-            motionY = 0;
-            motionZ = 0;
-        }
+        if (isFadingMode()) trailPointAges.add(0);
     }
 
     /**
      * Start the beam firing (exit charging mode).
      * Called by ability when windup ends.
-     * <p>
-     * For anchored beams: origin follows owner, head starts at charged position
-     * For non-anchored beams: origin fixed at charged position, head starts there
      */
     public void startFiring(EntityLivingBase target) {
-        setCharging(false);
-
-        // For player casters, snap to look vector for crosshair-aligned launch
-        snapToPlayerLookVector();
-
-        // Origin (tail) stays at the charged position - where the orb was
-        // This is the same for both anchored and non-anchored modes
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
+        startMovingTowardTargetFromStartDefault(target);
 
         // Head starts at the origin (tail position)
-        headOffsetX = 0;
-        headOffsetY = 0;
-        headOffsetZ = 0;
-        prevHeadOffsetX = 0;
-        prevHeadOffsetY = 0;
-        prevHeadOffsetZ = 0;
-
-        // Origin no longer follows owner after firing starts
-        // (for anchored mode, tail is fixed in space; for non-anchored, there's no tail)
-        attachedToOwner = false;
+        resetHeadOffsets();
 
         // Initialize trail with just the origin point
-        trailPoints.clear();
-        trailPointAges.clear();
+        resetTrailStorage();
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
-        if (fadeTrail) trailPointAges.add(0);
-
-        // Calculate velocity toward target (head starts at origin = startX/Y/Z)
-        Entity owner = getOwnerEntity();
-
-        if (target != null) {
-            double dx = target.posX - startX;
-            double dy = (target.posY + target.getEyeHeight()) - startY;
-            double dz = target.posZ - startZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                motionX = (dx / len) * getSpeed();
-                motionY = (dy / len) * getSpeed();
-                motionZ = (dz / len) * getSpeed();
-            }
-        } else if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        }
+        if (isFadingMode()) trailPointAges.add(0);
 
         if (DEBUG_LOGGING && !worldObj.isRemote) {
             LogWriter.info("[Beam] startFiring: origin=(" + startX + "," + startY + "," + startZ +
@@ -312,7 +247,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         prevHeadOffsetZ = headOffsetZ;
 
         // Age trail points for fading effect
-        if (fadeTrail) {
+        if (isFadingMode()) {
             ageTrailPoints();
         }
 
@@ -346,7 +281,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
             headOffsetZ += motionZ;
 
             // Update origin if attached to owner
-            if (attachedToOwner) {
+            if (isAnchoredMode()) {
                 Entity owner = getOwnerEntity();
                 if (owner != null) {
                     startX = owner.posX;
@@ -374,7 +309,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
                     String.format("%.2f", headOffsetZ) + ") origin=(" +
                     String.format("%.2f", startX) + "," +
                     String.format("%.2f", startY) + "," +
-                    String.format("%.2f", startZ) + ") trail=" + trailPoints.size());
+                    String.format("%.2f", startZ) + ") trail=" + getActiveTrailSize());
             }
 
             // Skip collision checks on first few ticks
@@ -420,25 +355,43 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
      * Age trail points and remove old ones (for comet effect).
      */
     private void ageTrailPoints() {
-        // Age all trail points
-        for (int i = 0; i < trailPointAges.size(); i++) {
+        if (trailStartIndex >= trailPoints.size()) {
+            resetTrailStorage();
+            return;
+        }
+
+        // Age all active trail points.
+        for (int i = trailStartIndex; i < trailPointAges.size(); i++) {
             trailPointAges.set(i, trailPointAges.get(i) + 1);
         }
 
-        // Remove trail points that have fully faded
-        while (!trailPointAges.isEmpty() && trailPointAges.get(0) >= trailFadeTime) {
-            trailPointAges.remove(0);
-            if (!trailPoints.isEmpty()) {
-                trailPoints.remove(0);
-            }
+        // Move logical start index forward for fully faded points.
+        while (trailStartIndex < trailPointAges.size() && trailPointAges.get(trailStartIndex) >= trailFadeTime) {
+            trailStartIndex++;
+        }
+
+        if (trailStartIndex >= trailPoints.size()) {
+            resetTrailStorage();
+            return;
+        }
+
+        // Compact stale prefix to avoid unbounded growth of dead entries.
+        if (trailStartIndex >= TRAIL_COMPACT_THRESHOLD && trailStartIndex * 2 >= trailPoints.size()) {
+            trailPoints = new ArrayList<Vec3>(trailPoints.subList(trailStartIndex, trailPoints.size()));
+            trailPointAges = new ArrayList<Integer>(trailPointAges.subList(trailStartIndex, trailPointAges.size()));
+            trailStartIndex = 0;
         }
     }
 
     private void addTrailPoint() {
+        if (trailStartIndex >= trailPoints.size()) {
+            resetTrailStorage();
+        }
+
         // Trail points are RELATIVE to origin
         if (trailPoints.isEmpty()) {
             trailPoints.add(Vec3.createVectorHelper(headOffsetX, headOffsetY, headOffsetZ));
-            if (fadeTrail) {
+            if (isFadingMode()) {
                 trailPointAges.add(0);
             }
             return;
@@ -453,12 +406,12 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
         if (dist >= MIN_POINT_DISTANCE) {
             trailPoints.add(Vec3.createVectorHelper(headOffsetX, headOffsetY, headOffsetZ));
-            if (fadeTrail) {
+            if (isFadingMode()) {
                 trailPointAges.add(0);
             }
 
             // Limit trail length (only if not using fading - fading handles its own cleanup)
-            if (!fadeTrail) {
+            if (!isFadingMode()) {
                 while (trailPoints.size() > MAX_TRAIL_POINTS) {
                     trailPoints.remove(0);
                 }
@@ -476,7 +429,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         headOffsetZ += motionZ;
 
         // Update origin if attached to owner
-        if (attachedToOwner) {
+        if (isAnchoredMode()) {
             Entity owner = getOwnerEntity();
             if (owner != null) {
                 startX = owner.posX;
@@ -546,24 +499,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         double prevHeadWorldY = startY + prevHeadOffsetY;
         double prevHeadWorldZ = startZ + prevHeadOffsetZ;
 
-        Vec3 currentPos = Vec3.createVectorHelper(prevHeadWorldX, prevHeadWorldY, prevHeadWorldZ);
-        Vec3 nextPos = Vec3.createVectorHelper(headX, headY, headZ);
-        // Use full raytrace that doesn't stop at liquids and checks all blocks
-        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
-
-        if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (!worldObj.isRemote) {
-                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
-            }
-            hasHit = true;
-            if (isExplosive()) {
-                posX = blockHit.hitVec.xCoord;
-                posY = blockHit.hitVec.yCoord;
-                posZ = blockHit.hitVec.zCoord;
-                doExplosion();
-            }
-            this.setDead();
-        }
+        handleBlockImpact(rayTraceBlocks(prevHeadWorldX, prevHeadWorldY, prevHeadWorldZ, headX, headY, headZ), true);
     }
 
     private void checkEntityCollision(double headX, double headY, double headZ) {
@@ -577,24 +513,12 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
 
         for (EntityLivingBase entity : entities) {
-            if (shouldIgnoreEntity(entity)) continue;
-
-            if (DEBUG_LOGGING) {
-                LogWriter.info("[Beam] DEAD: Entity collision with " + entity.getClass().getSimpleName() + " at tick " + ticksExisted);
+            if (processEntityHit(entity, headX, headY, headZ)) {
+                if (DEBUG_LOGGING) {
+                    LogWriter.info("[Beam] DEAD: Entity collision with " + entity.getClass().getSimpleName() + " at tick " + ticksExisted);
+                }
+                return;
             }
-            hasHit = true;
-
-            if (isExplosive()) {
-                posX = headX;
-                posY = headY;
-                posZ = headZ;
-                doExplosion();
-            } else {
-                applyDamage(entity);
-            }
-
-            this.setDead();
-            return;
         }
     }
 
@@ -617,7 +541,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     }
 
     public void setAttachedToOwner(boolean attached) {
-        this.attachedToOwner = attached;
+        setBeamMode(modeFromAnchored(attached));
     }
 
     /**
@@ -640,7 +564,13 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
      * Get trail points. These are RELATIVE to origin (startX/Y/Z).
      */
     public List<Vec3> getTrailPoints() {
-        return trailPoints;
+        if (trailStartIndex <= 0) {
+            return trailPoints;
+        }
+        if (trailStartIndex >= trailPoints.size()) {
+            return Collections.emptyList();
+        }
+        return trailPoints.subList(trailStartIndex, trailPoints.size());
     }
 
     public double getOriginX() {
@@ -659,28 +589,34 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
      * Whether the tail orb should be rendered (only true in anchored mode).
      */
     public boolean shouldRenderTailOrb() {
-        return renderTailOrb;
+        return isAnchoredMode();
     }
 
     /**
      * Whether the beam is attached to its owner (anchored mode).
      */
     public boolean isAttachedToOwner() {
-        return attachedToOwner;
+        return isAnchoredMode();
     }
 
     /**
      * Whether trail should fade (comet effect for non-anchored beams).
      */
     public boolean hasFadingTrail() {
-        return fadeTrail;
+        return isFadingMode();
     }
 
     /**
      * Get trail point ages for fading calculation.
      */
     public List<Integer> getTrailPointAges() {
-        return trailPointAges;
+        if (trailStartIndex <= 0) {
+            return trailPointAges;
+        }
+        if (trailStartIndex >= trailPointAges.size()) {
+            return Collections.emptyList();
+        }
+        return trailPointAges.subList(trailStartIndex, trailPointAges.size());
     }
 
     /**
@@ -702,17 +638,26 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         this.prevHeadOffsetX = this.headOffsetX;
         this.prevHeadOffsetY = this.headOffsetY;
         this.prevHeadOffsetZ = this.headOffsetZ;
-        this.attachedToOwner = !nbt.hasKey("AttachedToOwner") || nbt.getBoolean("AttachedToOwner");
-        this.renderTailOrb = !nbt.hasKey("RenderTailOrb") || nbt.getBoolean("RenderTailOrb");
         readChargingNBT(nbt);
         this.chargeOffsetDistance = nbt.hasKey("ChargeOffsetDistance") ? nbt.getFloat("ChargeOffsetDistance") : 1.0f;
-        this.fadeTrail = nbt.hasKey("FadeTrail") && nbt.getBoolean("FadeTrail");
         this.trailFadeTime = nbt.hasKey("TrailFadeTime") ? nbt.getInteger("TrailFadeTime") : 20;
 
+        boolean attachedLegacy = !nbt.hasKey("AttachedToOwner") || nbt.getBoolean("AttachedToOwner");
+        BeamMode loadedMode = modeFromAnchored(attachedLegacy);
+        if (nbt.hasKey("BeamMode")) {
+            try {
+                loadedMode = BeamMode.valueOf(nbt.getString("BeamMode"));
+            } catch (IllegalArgumentException ignored) {
+                loadedMode = modeFromAnchored(attachedLegacy);
+            }
+        } else if (nbt.hasKey("FadeTrail")) {
+            loadedMode = nbt.getBoolean("FadeTrail") ? BeamMode.FREE_TRAIL : modeFromAnchored(attachedLegacy);
+        }
 
         // Read trail points (relative to origin)
         trailPoints.clear();
         trailPointAges.clear();
+        trailStartIndex = 0;
         if (nbt.hasKey("Trail")) {
             NBTTagList trailList = nbt.getTagList("Trail", 10);
             for (int i = 0; i < trailList.tagCount(); i++) {
@@ -732,10 +677,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
                 trailPointAges.add(age);
             }
         }
-        // If trail points exist but ages don't (legacy data), initialize ages to 0
-        while (trailPointAges.size() < trailPoints.size()) {
-            trailPointAges.add(0);
-        }
+        setBeamMode(loadedMode);
     }
 
     @Override
@@ -745,16 +687,18 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         nbt.setDouble("HeadOffsetX", headOffsetX);
         nbt.setDouble("HeadOffsetY", headOffsetY);
         nbt.setDouble("HeadOffsetZ", headOffsetZ);
-        nbt.setBoolean("AttachedToOwner", attachedToOwner);
-        nbt.setBoolean("RenderTailOrb", renderTailOrb);
+        nbt.setBoolean("AttachedToOwner", isAnchoredMode());
+        nbt.setBoolean("RenderTailOrb", isAnchoredMode());
+        nbt.setString("BeamMode", beamMode.name());
         writeChargingNBT(nbt);
         nbt.setFloat("ChargeOffsetDistance", chargeOffsetDistance);
-        nbt.setBoolean("FadeTrail", fadeTrail);
+        nbt.setBoolean("FadeTrail", isFadingMode());
         nbt.setInteger("TrailFadeTime", trailFadeTime);
 
         // Write trail points
         NBTTagList trailList = new NBTTagList();
-        for (Vec3 point : trailPoints) {
+        for (int i = trailStartIndex; i < trailPoints.size(); i++) {
+            Vec3 point = trailPoints.get(i);
             NBTTagCompound pointNbt = new NBTTagCompound();
             pointNbt.setDouble("X", point.xCoord);
             pointNbt.setDouble("Y", point.yCoord);
@@ -764,9 +708,11 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         nbt.setTag("Trail", trailList);
 
         // Write trail point ages for fading trail sync
-        int[] ages = new int[trailPointAges.size()];
-        for (int i = 0; i < trailPointAges.size(); i++) {
-            ages[i] = trailPointAges.get(i);
+        int activeSize = isFadingMode() ? Math.max(0, trailPoints.size() - trailStartIndex) : 0;
+        int[] ages = new int[activeSize];
+        for (int i = 0; i < activeSize; i++) {
+            int idx = trailStartIndex + i;
+            ages[i] = idx < trailPointAges.size() ? trailPointAges.get(idx) : 0;
         }
         nbt.setIntArray("TrailAges", ages);
     }

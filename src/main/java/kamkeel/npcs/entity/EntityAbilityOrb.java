@@ -1,23 +1,16 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
-import kamkeel.npcs.util.AnchorPointHelper;
-import net.minecraft.entity.Entity;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.EventHooks;
-
-import java.util.List;
 
 /**
  * Orb projectile - spherical homing energy ball.
@@ -26,6 +19,8 @@ import java.util.List;
  * Design inspired by LouisXIV's energy attack system.
  */
 public class EntityAbilityOrb extends EntityEnergyProjectile {
+    private static final int HOMING_STARTUP_TICKS = 4;
+    private static final int HOMING_RAMP_TICKS = 8;
 
     public EntityAbilityOrb(World world) {
         super(world);
@@ -56,71 +51,20 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
      * Can be fired when transitioning to active phase.
      */
     public void setupPreview(EntityLivingBase owner, float orbSize, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
-
-        // Set visual properties
-        this.displayData = display;
-        this.lightningData = lightning;
-
-        // Set charging state
-        this.setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
 
         // Store target size and start at 0 for grow effect
         this.targetSize = orbSize;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-
-        // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
-
-        // Clear motion
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        setVisualSize(0.01f);
+        setChargeOriginFromAnchor(owner, anchorData);
+        clearMotion();
     }
 
     /**
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        setCharging(false);
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Sync prev position to prevent visual jump on first frame
-        prevPosX = posX;
-        prevPosY = posY;
-        prevPosZ = posZ;
-
-        // Fire forward based on owner facing direction
-        Entity owner = getOwnerEntity();
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(0); // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        } else {
-            // Default: fire forward (positive X in model space)
-            motionX = getSpeed();
-            motionY = 0;
-            motionZ = 0;
-        }
+        startPreviewFiringDefault();
     }
 
     /**
@@ -128,36 +72,7 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
      * Called by ability when windup ends.
      */
     public void startMoving(EntityLivingBase target) {
-        setCharging(false);
-
-        // For player casters, snap to look vector for crosshair-aligned launch
-        snapToPlayerLookVector();
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Calculate velocity toward target
-        Entity owner = getOwnerEntity();
-
-        if (target != null) {
-            double dx = target.posX - posX;
-            double dy = (target.posY + target.getEyeHeight()) - posY;
-            double dz = target.posZ - posZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                motionX = (dx / len) * getSpeed();
-                motionY = (dy / len) * getSpeed();
-                motionZ = (dz / len) * getSpeed();
-            }
-        } else if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        }
+        startMovingAlongLookVectorDefault();
     }
 
     @Override
@@ -185,15 +100,7 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         }
 
         // Check wall collision
-        if (this.isCollidedHorizontally || this.isCollidedVertically) {
-            if (!worldObj.isRemote) {
-                hasHit = true;
-                if (isExplosive()) {
-                    doExplosion();
-                }
-            }
-            this.setDead();
-        }
+        handleSolidCollisionTermination();
     }
 
     /**
@@ -210,8 +117,24 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         if (!isTrajectoryConcluded()) {
             updateTrajectory();
         } else {
-            updateHoming();
+            if (ticksExisted > HOMING_STARTUP_TICKS) {
+                int homingTicks = ticksExisted - HOMING_STARTUP_TICKS;
+                if (homingTicks >= HOMING_RAMP_TICKS) {
+                    updateHoming();
+                } else {
+                    float ramp = homingTicks / (float) HOMING_RAMP_TICKS;
+                    updateHomingWithRamp(ramp);
+                }
+            }
         }
+    }
+
+    private void updateHomingWithRamp(float ramp) {
+        if (ramp <= 0.0f) return;
+        float originalStrength = homingData.homingStrength;
+        homingData.homingStrength = originalStrength * ramp;
+        updateHoming();
+        homingData.homingStrength = originalStrength;
     }
 
     private void updateTrajectory() {
@@ -233,50 +156,21 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
     }
 
     private void checkBlockCollision() {
-        Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
-        Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
-        // Use full raytrace that doesn't stop at liquids and checks all blocks
-        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
-
-        if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (!worldObj.isRemote) {
-                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
-            }
-            hasHit = true;
-            if (isExplosive()) {
-                posX = blockHit.hitVec.xCoord;
-                posY = blockHit.hitVec.yCoord;
-                posZ = blockHit.hitVec.zCoord;
-                doExplosion();
-            }
-            this.setDead();
-        }
+        handleBlockImpact(rayTraceBlocks(posX, posY, posZ, posX + motionX, posY + motionY, posZ + motionZ), true);
     }
 
     private void checkEntityCollision() {
-        double hitSize = size * 0.5;
+        // Swept collision to avoid fast orbs skipping targets between ticks.
+        double nextX = posX + motionX;
+        double nextY = posY + motionY;
+        double nextZ = posZ + motionZ;
+        // Keep collision radius proportional to rendered orb size.
+        double hitSize = Math.max(0.05, size * 0.5);
         AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
-            posX - hitSize, posY - hitSize, posZ - hitSize,
-            posX + hitSize, posY + hitSize, posZ + hitSize
+            Math.min(posX, nextX) - hitSize, Math.min(posY, nextY) - hitSize, Math.min(posZ, nextZ) - hitSize,
+            Math.max(posX, nextX) + hitSize, Math.max(posY, nextY) + hitSize, Math.max(posZ, nextZ) + hitSize
         );
-
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
-
-        for (EntityLivingBase entity : entities) {
-            if (shouldIgnoreEntity(entity)) continue;
-
-            hasHit = true;
-
-            if (isExplosive()) {
-                doExplosion();
-            } else {
-                applyDamage(entity);
-            }
-
-            this.setDead();
-            return;
-        }
+        processEntitiesInHitBox(hitBox, nextX, nextY, nextZ);
     }
 
     // ==================== GETTERS ====================

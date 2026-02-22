@@ -1,12 +1,22 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.data.ability.*;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.ability.conditions.ConditionHPThreshold;
 import kamkeel.npcs.controllers.data.ability.conditions.ConditionHitCount;
 import kamkeel.npcs.controllers.data.ability.conditions.ConditionItem;
 import kamkeel.npcs.controllers.data.ability.conditions.ConditionHasEffect;
 import kamkeel.npcs.controllers.data.ability.conditions.ConditionQuestCompleted;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.AbilityVariant;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.data.effect.IEffectAction;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
+import kamkeel.npcs.controllers.data.ability.extender.IAbilityExtender;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
@@ -14,7 +24,6 @@ import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
 import kamkeel.npcs.controllers.data.ability.type.AbilityEffect;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHeavyHit;
-import kamkeel.npcs.controllers.data.ability.type.AbilityProjectile;
 import kamkeel.npcs.controllers.data.ability.type.AbilityShockwave;
 import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
 import kamkeel.npcs.controllers.data.ability.type.AbilityTeleport;
@@ -26,7 +35,6 @@ import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDome;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityLaserShot;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityOrb;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityShield;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySlicer;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySweeper;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityWall;
 import net.minecraft.entity.EntityLivingBase;
@@ -38,6 +46,7 @@ import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
+import kamkeel.npcs.util.FileNameHelper;
 
 import java.io.File;
 import java.util.*;
@@ -206,6 +215,7 @@ public class AbilityController implements IAbilityHandler {
         customAbilities.clear();
         customAbilitiesById.clear();
         int migrated = 0;
+        Map<String, String> migratedAbilityNames = new HashMap<String, String>();
 
         File dir = getDir();
         File[] files = dir.exists() ? dir.listFiles() : null;
@@ -214,7 +224,7 @@ public class AbilityController implements IAbilityHandler {
                 if (!file.isFile() || !file.getName().endsWith(".json")) continue;
                 try {
                     String filename = file.getName();
-                    String key = filename.substring(0, filename.length() - 5);
+                    String fileKey = filename.substring(0, filename.length() - 5);
 
                     NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
                     Ability ability = fromNBT(nbt);
@@ -227,48 +237,55 @@ public class AbilityController implements IAbilityHandler {
                         continue;
                     }
 
-                    // Legacy migration: UUID-named files get renamed to name-based
-                    if (UUID_PATTERN.matcher(key).matches()) {
-                        String name = ability.getName();
-                        if (name == null || name.isEmpty()) {
-                            name = key; // Fallback to UUID if no name stored
-                        }
+                    String storedName = ability.getName();
+                    String preferredName;
+                    if (UUID_PATTERN.matcher(fileKey).matches()) {
+                        preferredName = (storedName != null && !storedName.isEmpty()) ? storedName : fileKey;
+                    } else {
+                        preferredName = fileKey;
+                    }
+                    String name = FileNameHelper.sanitizeName(preferredName, "Ability");
+                    name = makeUniqueNameForLoad(customAbilities, dir, file, name, fileKey);
 
-                        // Ensure unique name
-                        while (hasCustomAbilityName(name) || nameFileExists(dir, name)) {
-                            name = name + "_";
-                        }
-                        ability.setName(name);
-
-                        // Rename file from UUID.json to name.json
-                        File newFile = new File(dir, name + ".json");
-                        if (file.renameTo(newFile)) {
-                            LogWriter.info("Migrated ability file: " + key + ".json -> " + name + ".json");
+                    boolean dirty = false;
+                    if (!name.equals(fileKey)) {
+                        File renamedFile = new File(dir, name + ".json");
+                        if (file.renameTo(renamedFile)) {
+                            LogWriter.info("Migrated ability file: " + fileKey + ".json -> " + name + ".json");
+                            file = renamedFile;
+                            migrated++;
+                            dirty = true;
                         } else {
-                            LogWriter.error("Failed to rename ability file: " + key + ".json -> " + name + ".json");
+                            LogWriter.error("Failed to rename ability file: " + fileKey + ".json -> " + name + ".json");
                         }
+                    }
 
-                        key = name;
-                        migrated++;
+                    ability.setName(name);
+                    if (storedName != null && !storedName.equals(name)) {
+                        dirty = true;
+                        if (!storedName.isEmpty()) {
+                            migratedAbilityNames.put(storedName, name);
+                        }
+                    }
+                    if (!fileKey.equals(name)) {
+                        migratedAbilityNames.put(fileKey, name);
                     }
 
                     // Ensure ability has a UUID; generate one for legacy abilities
                     String uuid = ability.getId();
-                    if (uuid == null || uuid.isEmpty() || uuid.equals(key)) {
+                    if (uuid == null || uuid.isEmpty() || uuid.equals(fileKey) || uuid.equals(name)) {
                         // Legacy: id was the name or empty — generate a real UUID
                         uuid = UUID.randomUUID().toString();
                         ability.setId(uuid);
-                        // Re-save file with the new UUID
-                        try {
-                            NBTJsonUtil.SaveFile(file, ability.writeNBT());
-                        } catch (Exception ex) {
-                            LogWriter.error("Failed to save UUID for ability: " + key, ex);
-                        }
                         migrated++;
+                        dirty = true;
                     }
 
-                    ability.setName(key);
-                    customAbilities.put(key, ability);
+                    if (dirty) {
+                        NBTJsonUtil.SaveFile(file, ability.writeNBT());
+                    }
+
+                    customAbilities.put(name, ability);
                     customAbilitiesById.put(uuid, ability);
                 } catch (Exception e) {
                     LogWriter.error("Error loading custom ability: " + file.getAbsolutePath(), e);
@@ -278,23 +295,68 @@ public class AbilityController implements IAbilityHandler {
 
         customAbilityRevision++;
         if (migrated > 0) {
-            LogWriter.info("Migrated " + migrated + " abilities (UUID-named files or missing UUIDs)");
+            LogWriter.info("Migrated " + migrated + " abilities (filename normalization / UUID repair)");
         }
         LogWriter.info("Loaded " + customAbilities.size() + " custom abilities");
 
-        loadChainedAbilities();
+        loadChainedAbilities(migratedAbilityNames);
     }
 
-    private boolean nameFileExists(File dir, String name) {
-        return new File(dir, name + ".json").exists();
+    private boolean nameFileExists(File dir, String name, File ignoredFile) {
+        File existing = new File(dir, name + ".json");
+        if (!existing.exists()) return false;
+        return ignoredFile == null || !existing.getAbsolutePath().equals(ignoredFile.getAbsolutePath());
+    }
+
+    private String makeUniqueNameForLoad(Map<String, ?> loadedMap, File dir, File currentFile, String baseName, String selfKey) {
+        String candidate = baseName;
+        while ((loadedMap.containsKey(candidate) && !candidate.equals(selfKey))
+            || nameFileExists(dir, candidate, currentFile)) {
+            candidate = candidate + "_";
+        }
+        return candidate;
+    }
+
+    private String makeUniqueNameForMap(Map<String, ?> map, String baseName, String selfName) {
+        String candidate = baseName;
+        while (map.containsKey(candidate) && (selfName == null || !candidate.equals(selfName))) {
+            candidate = candidate + "_";
+        }
+        return candidate;
+    }
+
+    private boolean remapChainEntryReferences(ChainedAbility chain, Map<String, String> migratedAbilityNames) {
+        if (chain == null || migratedAbilityNames == null || migratedAbilityNames.isEmpty()) return false;
+        boolean changed = false;
+        for (ChainedAbilityEntry entry : chain.getEntries()) {
+            if (entry == null || !entry.isReference()) continue;
+            String ref = entry.getAbilityReference();
+            if (ref == null || ref.isEmpty()) continue;
+
+            String mapped = migratedAbilityNames.get(ref);
+            if (mapped == null) {
+                for (Map.Entry<String, String> e : migratedAbilityNames.entrySet()) {
+                    if (e.getKey().equalsIgnoreCase(ref)) {
+                        mapped = e.getValue();
+                        break;
+                    }
+                }
+            }
+
+            if (mapped != null && !mapped.equals(ref)) {
+                entry.setAbilityReference(mapped);
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     public boolean saveCustomAbility(Ability ability) {
         if (ability == null) return false;
         if (ability.isBuiltIn()) return false;
 
-        String name = ability.getName();
-        if (name == null || name.isEmpty()) return false;
+        String name = FileNameHelper.sanitizeName(ability.getName(), "Ability");
+        ability.setName(name);
 
         String uuid = ability.getId();
         boolean isNew = (uuid == null || uuid.isEmpty());
@@ -305,26 +367,17 @@ public class AbilityController implements IAbilityHandler {
             ability.setId(uuid);
 
             // Ensure unique name
-            while (hasCustomAbilityName(name)) {
-                name = name + "_";
-            }
+            name = makeUniqueNameForMap(customAbilities, name, null);
             ability.setName(name);
         } else {
             // Existing ability — check for rename via UUID lookup
             Ability existing = customAbilitiesById.get(uuid);
             if (existing != null) {
                 String oldName = existing.getName();
-                if (!oldName.equals(name)) {
-                    // Name changed! Ensure new name is unique (excluding self)
-                    String testName = name;
-                    while (customAbilities.containsKey(testName) && !testName.equals(oldName)) {
-                        testName = testName + "_";
-                    }
-                    if (!testName.equals(name)) {
-                        name = testName;
-                        ability.setName(name);
-                    }
+                name = makeUniqueNameForMap(customAbilities, name, oldName);
+                ability.setName(name);
 
+                if (!oldName.equals(name)) {
                     // Delete old file and remove old map entry
                     File oldFile = new File(getDir(), oldName + ".json");
                     if (oldFile.exists()) {
@@ -332,6 +385,9 @@ public class AbilityController implements IAbilityHandler {
                     }
                     customAbilities.remove(oldName);
                 }
+            } else {
+                name = makeUniqueNameForMap(customAbilities, name, null);
+                ability.setName(name);
             }
         }
 
@@ -367,6 +423,15 @@ public class AbilityController implements IAbilityHandler {
         if (name == null || name.isEmpty()) return false;
 
         Ability removed = customAbilities.remove(name);
+        if (removed == null) {
+            String sanitized = FileNameHelper.sanitizeTextInput(name);
+            if (!sanitized.equals(name)) {
+                removed = customAbilities.remove(sanitized);
+                if (removed != null) {
+                    name = sanitized;
+                }
+            }
+        }
         if (removed == null) return false;
 
         // Also remove from UUID index
@@ -405,7 +470,13 @@ public class AbilityController implements IAbilityHandler {
     }
 
     public Ability getCustomAbility(String name) {
-        return customAbilities.get(name);
+        Ability ability = customAbilities.get(name);
+        if (ability != null) return ability;
+        String sanitized = FileNameHelper.sanitizeTextInput(name);
+        if (!sanitized.equals(name)) {
+            return customAbilities.get(sanitized);
+        }
+        return null;
     }
 
     public Set<String> getCustomAbilityNames() {
@@ -445,9 +516,10 @@ public class AbilityController implements IAbilityHandler {
     // CHAINED ABILITIES
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private void loadChainedAbilities() {
+    private void loadChainedAbilities(Map<String, String> migratedAbilityNames) {
         chainedAbilities.clear();
         chainedAbilitiesById.clear();
+        int migrated = 0;
 
         File dir = getChainedDir();
         File[] files = dir.exists() ? dir.listFiles() : null;
@@ -456,19 +528,51 @@ public class AbilityController implements IAbilityHandler {
                 if (!file.isFile() || !file.getName().endsWith(".json")) continue;
                 try {
                     String filename = file.getName();
-                    String key = filename.substring(0, filename.length() - 5);
+                    String fileKey = filename.substring(0, filename.length() - 5);
 
                     NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
                     ChainedAbility chain = new ChainedAbility();
                     chain.readNBT(nbt);
 
-                    chain.setName(key);
-                    chainedAbilities.put(key, chain);
+                    String storedName = chain.getName();
+                    String name = FileNameHelper.sanitizeName(fileKey, "Chain");
+                    name = makeUniqueNameForLoad(chainedAbilities, dir, file, name, fileKey);
+
+                    boolean dirty = false;
+                    if (!name.equals(fileKey)) {
+                        File renamedFile = new File(dir, name + ".json");
+                        if (file.renameTo(renamedFile)) {
+                            LogWriter.info("Migrated chained ability file: " + fileKey + ".json -> " + name + ".json");
+                            file = renamedFile;
+                            dirty = true;
+                        } else {
+                            LogWriter.error("Failed to rename chained ability file: " + fileKey + ".json -> " + name + ".json");
+                        }
+                    }
+
+                    chain.setName(name);
+                    if (storedName != null && !storedName.equals(name)) {
+                        dirty = true;
+                    }
+
+                    if (remapChainEntryReferences(chain, migratedAbilityNames)) {
+                        dirty = true;
+                    }
 
                     String uuid = chain.getId();
-                    if (uuid != null && !uuid.isEmpty()) {
-                        chainedAbilitiesById.put(uuid, chain);
+                    if (uuid == null || uuid.isEmpty() || uuid.equals(fileKey) || uuid.equals(name)) {
+                        uuid = UUID.randomUUID().toString();
+                        chain.setId(uuid);
+                        dirty = true;
                     }
+
+                    if (dirty) {
+                        NBTJsonUtil.SaveFile(file, chain.writeNBT());
+                        migrated++;
+                    }
+
+                    chainedAbilities.put(name, chain);
+                    chainedAbilitiesById.put(uuid, chain);
                 } catch (Exception e) {
                     LogWriter.error("Error loading chained ability: " + file.getAbsolutePath(), e);
                 }
@@ -476,14 +580,17 @@ public class AbilityController implements IAbilityHandler {
         }
 
         chainedAbilityRevision++;
+        if (migrated > 0) {
+            LogWriter.info("Migrated " + migrated + " chained abilities");
+        }
         LogWriter.info("Loaded " + chainedAbilities.size() + " chained abilities");
     }
 
     public boolean saveChainedAbility(ChainedAbility chain) {
         if (chain == null) return false;
 
-        String name = chain.getName();
-        if (name == null || name.isEmpty()) return false;
+        String name = FileNameHelper.sanitizeName(chain.getName(), "Chain");
+        chain.setName(name);
 
         String uuid = chain.getId();
         boolean isNew = (uuid == null || uuid.isEmpty());
@@ -492,30 +599,25 @@ public class AbilityController implements IAbilityHandler {
             uuid = UUID.randomUUID().toString();
             chain.setId(uuid);
 
-            while (hasChainedAbilityName(name)) {
-                name = name + "_";
-            }
+            name = makeUniqueNameForMap(chainedAbilities, name, null);
             chain.setName(name);
         } else {
             ChainedAbility existing = chainedAbilitiesById.get(uuid);
             if (existing != null) {
                 String oldName = existing.getName();
-                if (!oldName.equals(name)) {
-                    String testName = name;
-                    while (chainedAbilities.containsKey(testName) && !testName.equals(oldName)) {
-                        testName = testName + "_";
-                    }
-                    if (!testName.equals(name)) {
-                        name = testName;
-                        chain.setName(name);
-                    }
+                name = makeUniqueNameForMap(chainedAbilities, name, oldName);
+                chain.setName(name);
 
+                if (!oldName.equals(name)) {
                     File oldFile = new File(getChainedDir(), oldName + ".json");
                     if (oldFile.exists()) {
                         oldFile.delete();
                     }
                     chainedAbilities.remove(oldName);
                 }
+            } else {
+                name = makeUniqueNameForMap(chainedAbilities, name, null);
+                chain.setName(name);
             }
         }
 
@@ -551,6 +653,15 @@ public class AbilityController implements IAbilityHandler {
         if (name == null || name.isEmpty()) return false;
 
         ChainedAbility removed = chainedAbilities.remove(name);
+        if (removed == null) {
+            String sanitized = FileNameHelper.sanitizeTextInput(name);
+            if (!sanitized.equals(name)) {
+                removed = chainedAbilities.remove(sanitized);
+                if (removed != null) {
+                    name = sanitized;
+                }
+            }
+        }
         if (removed == null) return false;
 
         String uuid = removed.getId();
@@ -601,6 +712,12 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
+        String sanitizedKey = FileNameHelper.sanitizeTextInput(key);
+        if (!sanitizedKey.equals(key)) {
+            ChainedAbility sanitized = chainedAbilities.get(sanitizedKey);
+            if (sanitized != null) return sanitized.deepCopy();
+        }
+
         return null;
     }
 
@@ -611,12 +728,20 @@ public class AbilityController implements IAbilityHandler {
         for (String name : chainedAbilities.keySet()) {
             if (name.equalsIgnoreCase(key)) return true;
         }
+        String sanitizedKey = FileNameHelper.sanitizeTextInput(key);
+        if (!sanitizedKey.equals(key) && chainedAbilities.containsKey(sanitizedKey)) return true;
         return false;
     }
 
     @Override
     public ChainedAbility getChainedAbility(String name) {
         ChainedAbility chain = chainedAbilities.get(name);
+        if (chain == null) {
+            String sanitized = FileNameHelper.sanitizeTextInput(name);
+            if (!sanitized.equals(name)) {
+                chain = chainedAbilities.get(sanitized);
+            }
+        }
         return chain != null ? chain.deepCopy() : null;
     }
 
@@ -639,7 +764,9 @@ public class AbilityController implements IAbilityHandler {
 
     @Override
     public boolean hasChainedAbilityName(String name) {
-        return chainedAbilities.containsKey(name);
+        if (chainedAbilities.containsKey(name)) return true;
+        String sanitized = FileNameHelper.sanitizeTextInput(name);
+        return !sanitized.equals(name) && chainedAbilities.containsKey(sanitized);
     }
 
     @Override
@@ -727,6 +854,12 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
+        String sanitizedKey = FileNameHelper.sanitizeTextInput(key);
+        if (!sanitizedKey.equals(key)) {
+            Ability sanitized = customAbilities.get(sanitizedKey);
+            if (sanitized != null) return sanitized.deepCopy();
+        }
+
         return null;
     }
 
@@ -771,8 +904,14 @@ public class AbilityController implements IAbilityHandler {
     }
 
     public boolean hasAbility(String key) {
-        return builtAbilities.containsKey(key) || customAbilities.containsKey(key)
-            || customAbilitiesById.containsKey(key);
+        if (builtAbilities.containsKey(key) || customAbilities.containsKey(key)
+            || customAbilitiesById.containsKey(key)) {
+            return true;
+        }
+        String sanitized = FileNameHelper.sanitizeTextInput(key);
+        return !sanitized.equals(key)
+            && (builtAbilities.containsKey(sanitized) || customAbilities.containsKey(sanitized)
+            || customAbilitiesById.containsKey(sanitized));
     }
 
     public Ability getCustomAbilityByUUID(String uuid) {
@@ -780,7 +919,13 @@ public class AbilityController implements IAbilityHandler {
     }
 
     public Ability getCustomAbilityByName(String name) {
-        return customAbilities.get(name);
+        Ability ability = customAbilities.get(name);
+        if (ability != null) return ability;
+        String sanitized = FileNameHelper.sanitizeTextInput(name);
+        if (!sanitized.equals(name)) {
+            return customAbilities.get(sanitized);
+        }
+        return null;
     }
 
     /**
@@ -813,6 +958,9 @@ public class AbilityController implements IAbilityHandler {
         for (Ability ability : customAbilities.values()) {
             if (ability.getName() != null && ability.getName().equalsIgnoreCase(key)) return true;
         }
+
+        String sanitizedKey = FileNameHelper.sanitizeTextInput(key);
+        if (!sanitizedKey.equals(key) && customAbilities.containsKey(sanitizedKey)) return true;
 
         return false;
     }
@@ -1121,7 +1269,9 @@ public class AbilityController implements IAbilityHandler {
 
     @Override
     public boolean hasCustomAbilityName(String name) {
-        return customAbilities.containsKey(name);
+        if (customAbilities.containsKey(name)) return true;
+        String sanitized = FileNameHelper.sanitizeTextInput(name);
+        return !sanitized.equals(name) && customAbilities.containsKey(sanitized);
     }
 
     @Override

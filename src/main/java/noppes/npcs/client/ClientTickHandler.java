@@ -8,6 +8,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.client.renderer.lightning.LightningBolt;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
@@ -53,6 +54,7 @@ public class ClientTickHandler {
     private long buttonTime = 0L;
     private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
     private boolean lastSpecialKeyDown = false;
+    private boolean wasMovementSuppressed = false;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -62,6 +64,9 @@ public class ClientTickHandler {
                 ClientCacheHandler.clearCache();
                 ClientAbilityState.reset();
                 RequestProperSpawnData.clear();
+                if (EnergyChargePreviewManager.ClientInstance != null) {
+                    EnergyChargePreviewManager.ClientInstance.clear();
+                }
             }
             this.prevWorld = mc.theWorld;
         }
@@ -80,9 +85,15 @@ public class ClientTickHandler {
                     lastSpecialKeyDown = specialKeyDown;
                 }
 
+                boolean suppressMovement = mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput();
+                if (!suppressMovement && wasMovementSuppressed) {
+                    syncMovementKeyStates(mc);
+                }
+                wasMovementSuppressed = suppressMovement;
+
                 // Suppress player input during ability-controlled phases.
                 // Only suppress when no GUI screen is open (screens already capture input).
-                if (mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput()) {
+                if (suppressMovement) {
                     // Unpress movement keybinds at the source BEFORE updatePlayerMoveState() reads them.
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false);
@@ -162,6 +173,11 @@ public class ClientTickHandler {
             // match entity interpolation (Phase.END runs after world tick)
             if (TelegraphManager.ClientInstance != null) {
                 TelegraphManager.ClientInstance.tick(mc.theWorld);
+            }
+
+            // Tick packet-driven energy charge previews
+            if (EnergyChargePreviewManager.ClientInstance != null) {
+                EnergyChargePreviewManager.ClientInstance.tick(mc.theWorld);
             }
 
             // Update lightning bolts for ability effects
@@ -290,6 +306,27 @@ public class ClientTickHandler {
             || keyCode == mc.gameSettings.keyBindJump.getKeyCode()
             || keyCode == mc.gameSettings.keyBindSneak.getKeyCode()
             || keyCode == mc.gameSettings.keyBindSprint.getKeyCode();
+    }
+
+    private void syncMovementKeyStates(Minecraft mc) {
+        syncKeyBindingState(mc.gameSettings.keyBindForward);
+        syncKeyBindingState(mc.gameSettings.keyBindBack);
+        syncKeyBindingState(mc.gameSettings.keyBindLeft);
+        syncKeyBindingState(mc.gameSettings.keyBindRight);
+        syncKeyBindingState(mc.gameSettings.keyBindJump);
+        syncKeyBindingState(mc.gameSettings.keyBindSneak);
+        syncKeyBindingState(mc.gameSettings.keyBindSprint);
+    }
+
+    private void syncKeyBindingState(KeyBinding keyBinding) {
+        int keyCode = keyBinding.getKeyCode();
+        boolean pressed;
+        if (keyCode < 0) {
+            pressed = Mouse.isButtonDown(keyCode + 100);
+        } else {
+            pressed = Keyboard.isKeyDown(keyCode);
+        }
+        KeyBinding.setKeyBindState(keyCode, pressed);
     }
 
     private boolean isIgnoredKey(int key) {

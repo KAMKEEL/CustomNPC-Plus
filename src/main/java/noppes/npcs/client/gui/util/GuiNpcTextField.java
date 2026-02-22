@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util;
 
 import kamkeel.npcs.util.TextSplitter;
+import kamkeel.npcs.util.FileNameHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
@@ -26,6 +27,7 @@ public class GuiNpcTextField extends GuiTextField {
     public float minFloat = 0, maxFloat = Float.MAX_VALUE, defFloat = 0;
     protected static GuiNpcTextField activeTextfield = null;
     public boolean canEdit = true;
+    private boolean fileNameSafe = false;
     public String hoverableText = "";
     private boolean wasHovered = false;
     private int hoverCount = 0;
@@ -71,6 +73,11 @@ public class GuiNpcTextField extends GuiTextField {
     public boolean textboxKeyTyped(char c, int i) {
         if (!canEdit || !isFocused())
             return false;
+
+        if (fileNameSafe && !GuiScreen.isCtrlKeyDown() && !isFileNameCharAllowed(c, i)) {
+            return false;
+        }
+
         // Allow Ctrl shortcuts (select all, copy, paste, cut) to bypass char filter
         if (GuiScreen.isCtrlKeyDown()) {
             // For Ctrl+V (paste) on numeric fields, filter clipboard to valid chars
@@ -87,7 +94,17 @@ public class GuiNpcTextField extends GuiTextField {
                 }
                 return true;
             }
-            return super.textboxKeyTyped(c, i);
+            if (i == 47 && fileNameSafe) {
+                String clipboard = GuiScreen.getClipboardString();
+                if (clipboard != null) {
+                    String filtered = filterFileNameClipboard(clipboard);
+                    if (!filtered.isEmpty())
+                        writeText(filtered);
+                }
+                return true;
+            }
+            boolean handled = super.textboxKeyTyped(c, i);
+            return handled;
         }
         if (!charAllowed(c, i))
             return false;
@@ -179,6 +196,9 @@ public class GuiNpcTextField extends GuiTextField {
             else if (getFloat() > maxFloat)
                 setText(maxFloat + "");
         }
+        if (fileNameSafe) {
+            normalizeFileNameText();
+        }
         setCursorPositionZero();
         if (listener != null)
             listener.unFocused(this);
@@ -236,6 +256,51 @@ public class GuiNpcTextField extends GuiTextField {
     public GuiNpcTextField setFloatsOnly() {
         floatsOnly = true;
         return this;
+    }
+
+    public GuiNpcTextField setFileNameSafe() {
+        fileNameSafe = true;
+        normalizeFileNameText();
+        return this;
+    }
+
+    private boolean isSpecialNavigationKey(int keyCode) {
+        for (int allowed : allowedSpecialChars) {
+            if (allowed == keyCode) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isFileNameCharAllowed(char c, int keyCode) {
+        if (isSpecialNavigationKey(keyCode) || c < 32) {
+            return true;
+        }
+        return Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == ' ';
+    }
+
+    private String filterFileNameClipboard(String clipboard) {
+        StringBuilder filtered = new StringBuilder(clipboard.length());
+        for (int idx = 0; idx < clipboard.length(); idx++) {
+            char c = clipboard.charAt(idx);
+            if (Character.isLetterOrDigit(c) || c == '_' || c == '-') {
+                filtered.append(c);
+            } else if (Character.isWhitespace(c)) {
+                filtered.append(' ');
+            }
+        }
+        return filtered.toString();
+    }
+
+    private void normalizeFileNameText() {
+        String current = getText();
+        String sanitized = FileNameHelper.sanitizeTextInput(current);
+        if (sanitized.equals(current)) return;
+
+        int cursor = getCursorPosition();
+        setText(sanitized);
+        setCursorPosition(Math.min(cursor, sanitized.length()));
     }
 
     public void setHoverText(String text) {

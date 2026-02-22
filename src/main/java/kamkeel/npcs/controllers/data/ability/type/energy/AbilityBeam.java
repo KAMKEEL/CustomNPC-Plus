@@ -3,13 +3,14 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.RotationMode;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.enums.HitType;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.RotationMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -36,7 +37,7 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
     public AbilityBeam() {
         super(
             new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
-            new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f),
+            new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f, HitType.MULTI, 5),
             new EnergyHomingData(0.4f, true, 0.1f, 15.0f),
             new EnergyLifespanData(150.0f, 200)
         );
@@ -47,9 +48,9 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 40;
-        this.lockMovement = LockMovementType.WINDUP_AND_ACTIVE;
+        this.lockMovement = LockMode.WINDUP_AND_ACTIVE;
         this.rotationMode = RotationMode.LOCKED;
-        this.rotationPhase = LockMovementType.ACTIVE;
+        this.rotationPhase = LockMode.ACTIVE;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Beam_Windup";

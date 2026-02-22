@@ -629,7 +629,12 @@ public class ScriptPlayerEventHandler {
                 // Handle ability damage interactions (Guard counter, damage reduction)
                 PlayerData pData = PlayerData.get((EntityPlayer) event.entityLiving);
                 if (pData != null && pData.abilityData != null && pData.abilityData.isExecutingAbility()) {
-                    event.ammount = pData.abilityData.onDamage(event.source, event.ammount);
+                    if (pData.abilityData.isCurrentAbilityInvulnerable()) {
+                        event.ammount = 0;
+                        cancel = true;
+                    } else {
+                        event.ammount = pData.abilityData.onDamage(event.source, event.ammount);
+                    }
                 }
 
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);

@@ -2,7 +2,7 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityZone.ZoneShape;

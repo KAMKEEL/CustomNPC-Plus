@@ -1,6 +1,8 @@
 package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**

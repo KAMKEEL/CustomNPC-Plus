@@ -22,9 +22,20 @@ import org.lwjgl.opengl.GL12;
 public abstract class RenderEnergyAbility extends Render {
 
     protected static final ResourceLocation WHITE_TEXTURE = new ResourceLocation("customnpcs", "textures/entity/white.png");
+    protected static final int HIDE_INITIAL_ACTIVE_TICKS = 1;
 
     public RenderEnergyAbility() {
         this.shadowSize = 0.0f;
+    }
+
+    /**
+     * Hide the first active tick to avoid the visible spawn-frame pause at fire time.
+     * Charging previews are never hidden.
+     */
+    protected boolean shouldSkipInitialActiveRender(Entity entity) {
+        if (!(entity instanceof EntityEnergyAbility)) return false;
+        EntityEnergyAbility ability = (EntityEnergyAbility) entity;
+        return !ability.isPreviewMode() && !ability.isCharging() && ability.ticksExisted <= HIDE_INITIAL_ACTIVE_TICKS;
     }
 
     /**
