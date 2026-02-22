@@ -142,7 +142,11 @@ public class SkinOverlay implements ISkinOverlay {
         this.blend = compound.getBoolean("SkinOverlayBlend");
         this.alpha = compound.getFloat("SkinOverlayAlpha");
         this.size = compound.getFloat("SkinOverlaySize");
-        this.color = compound.getInteger("SkinOverlayColor");
+        if(compound.hasKey("SkinOverlayColor")){
+            this.color = compound.getInteger("SkinOverlayColor");
+        } else {
+            this.color = 0xFFFFFF;
+        }
         this.speedX = compound.getFloat("SkinOverlaySpeedX");
         this.speedY = compound.getFloat("SkinOverlaySpeedY");
         this.scaleX = compound.getFloat("SkinOverlayScaleX");
