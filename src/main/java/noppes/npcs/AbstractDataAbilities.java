@@ -269,6 +269,15 @@ public abstract class AbstractDataAbilities {
     }
 
     /**
+     * True when an executing ability grants invulnerability for its current phase.
+     */
+    public boolean isCurrentAbilityInvulnerable() {
+        return currentAbility != null
+            && currentAbility.isExecuting()
+            && currentAbility.isInvulnerableForCurrentPhase();
+    }
+
+    /**
      * Get the currently executing ability.
      */
     public Ability getCurrentAbility() {

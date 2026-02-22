@@ -91,6 +91,8 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
     // Type-specific runtime state
     private transient DashDirection chosenDirection;
+    private transient double preDashMotionX;
+    private transient double preDashMotionZ;
 
     public AbilityDash() {
         this.typeId = "ability.cnpc.dash";
@@ -125,6 +127,8 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        preDashMotionX = caster.motionX;
+        preDashMotionZ = caster.motionZ;
         initMovement(caster, dashDistance, dashSpeed);
 
         if (dashMode == DashMode.DIRECTIONAL) {
@@ -151,37 +155,46 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
         if (checkTimeout(tick)) {
-            stopMomentum(caster);
+            finishDash(caster);
             signalCompletion();
             return;
         }
 
         if (movementDirection == null) {
+            finishDash(caster);
             signalCompletion();
             return;
         }
 
         if (checkStall(caster, tick)) {
-            stopMomentum(caster);
+            finishDash(caster);
             signalCompletion();
             return;
         }
         updatePrevPosition(caster);
 
         if (getDistanceTraveledSq(caster) >= (double) dashDistance * dashDistance) {
-            stopMomentum(caster);
+            finishDash(caster);
             signalCompletion();
             return;
         }
 
         if (checkBlocked(caster, dashSpeed)) {
-            stopMomentum(caster);
+            finishDash(caster);
             signalCompletion();
             return;
         }
 
-        // Move caster (motionY left to gravity for skip arc)
-        applyVelocity(caster, dashSpeed);
+        // Move caster (motionY left to gravity for skip arc).
+        // Directional mode layers the dash over incoming movement so momentum
+        // entering/exiting the dash stays fluid.
+        if (dashMode == DashMode.DIRECTIONAL) {
+            applyHorizontalMomentum(caster,
+                preDashMotionX + movementDirection.xCoord * dashSpeed,
+                preDashMotionZ + movementDirection.zCoord * dashSpeed);
+        } else {
+            applyVelocity(caster, dashSpeed);
+        }
 
         if (!isPreview()) {
             // Trail particles
@@ -191,24 +204,28 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
     @Override
     public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-        stopMomentum(caster);
+        finishDash(caster);
     }
 
     @Override
     public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
-        stopMomentum(caster);
+        finishDash(caster);
     }
 
     @Override
     public void cleanup() {
         super.cleanup();
         chosenDirection = null;
+        preDashMotionX = 0;
+        preDashMotionZ = 0;
     }
 
     @Override
     public void resetForBurst() {
         super.resetForBurst();
         chosenDirection = null;
+        preDashMotionX = 0;
+        preDashMotionZ = 0;
     }
 
     @Override
@@ -277,6 +294,14 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
     public DashDirection getChosenDirection() {
         return chosenDirection;
+    }
+
+    private void finishDash(EntityLivingBase caster) {
+        if (dashMode == DashMode.DIRECTIONAL) {
+            applyHorizontalMomentum(caster, preDashMotionX, preDashMotionZ);
+        } else {
+            stopMomentum(caster);
+        }
     }
 
     @SideOnly(Side.CLIENT)

@@ -555,12 +555,15 @@ public class DataAbilities extends AbstractDataAbilities {
      * @return true if ability was interrupted
      */
     public boolean onDamage(DamageSource source, float amount) {
-        // Track hit for hit count condition
-        recordHit();
-
         if (currentAbility == null || !currentAbility.isExecuting()) {
             return false;
         }
+        if (currentAbility.isInvulnerableForCurrentPhase()) {
+            return false;
+        }
+
+        // Track hit for hit count condition
+        recordHit();
 
         net.minecraft.entity.Entity sourceEntity = source.getEntity();
         EntityLivingBase attacker = sourceEntity instanceof EntityLivingBase ? (EntityLivingBase) sourceEntity : null;

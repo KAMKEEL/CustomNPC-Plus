@@ -104,7 +104,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     // ==================== PENDING SAVE ====================
     private Ability pendingSaveAbility = null;
-    private boolean pendingNewCreation = false;
 
     // ==================== PENDING VARIANT ====================
     private String pendingTypeId = null;
@@ -511,13 +510,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             Ability newAbility = AbilityController.Instance.create(pendingTypeId);
             if (newAbility != null) {
                 gui.getVariants().get(idx).apply(newAbility);
-                if (hasDuplicateName(newAbility)) {
-                    pendingSaveAbility = newAbility;
-                    pendingNewCreation = true;
-                    pendingTypeId = null;
-                    setSubGui(new SubGuiDuplicateNameConfirm());
-                    return true;
-                }
                 pendingTypeId = null;
                 openConfig(newAbility);
                 return true;
@@ -544,12 +536,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                 if (variants.size() == 1) {
                     variants.get(0).apply(newAbility);
                 }
-                if (hasDuplicateName(newAbility)) {
-                    pendingSaveAbility = newAbility;
-                    pendingNewCreation = true;
-                    setSubGui(new SubGuiDuplicateNameConfirm());
-                    return true;
-                }
                 openConfig(newAbility);
                 return true;
             }
@@ -561,27 +547,22 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
      * @return true if a SubGui was opened (caller should return early, skipping initGui)
      */
     private boolean handleDuplicateNameClosed(SubGuiDuplicateNameConfirm gui) {
-        if (gui.isConfirmed() && pendingSaveAbility != null) {
-            if (pendingNewCreation) {
-                openConfig(pendingSaveAbility);
-                pendingSaveAbility = null;
-                pendingNewCreation = false;
-                return true;
-            } else {
-                PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
-                pendingSaveAbility = null;
-            }
-        } else if (pendingSaveAbility != null) {
-            if (pendingNewCreation) {
-                pendingSaveAbility = null;
-                pendingNewCreation = false;
-            } else {
-                Ability ability = pendingSaveAbility;
-                pendingSaveAbility = null;
-                setSubGui(ability.createConfigGui(this));
-                return true;
-            }
+        if (pendingSaveAbility == null) return false;
+
+        if (gui.isConfirmed()) {
+            PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+            pendingSaveAbility = null;
+            return false;
         }
+
+        if (gui.isBack()) {
+            Ability ability = pendingSaveAbility;
+            pendingSaveAbility = null;
+            setSubGui(ability.createConfigGui(this));
+            return true;
+        }
+
+        pendingSaveAbility = null;
         return false;
     }
 
@@ -590,7 +571,6 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
      */
     private boolean handlePendingSave() {
         if (hasDuplicateName(pendingSaveAbility)) {
-            pendingNewCreation = false;
             setSubGui(new SubGuiDuplicateNameConfirm());
             return true;
         }

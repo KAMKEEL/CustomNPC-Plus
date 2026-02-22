@@ -48,7 +48,7 @@ public class AbilityHotbarSlotRenderer extends Gui {
 
     public void drawCarousel(Minecraft mc, ScaledResolution sr, float cooldownProgress,
                              int cx, int cy, int size, boolean isCenter, float slotAlpha,
-                             boolean showText) {
+                             boolean showText, boolean activePhase) {
         float nameAlpha = this.nameAlpha;
         boolean isHorizontal = ConfigClient.AbilityHotbarHorizontal;
         if (size <= 0 || slotAlpha <= 0) return;
@@ -61,21 +61,54 @@ public class AbilityHotbarSlotRenderer extends Gui {
 
         boolean altTexture = ConfigClient.AbilityHotbarAltTexture;
 
-        if (altTexture) {
-            drawRoundedRect(-radius, -radius, radius, radius, 0.6f, 0.6f, 0.6f, 0.75f * alpha, false);
+        float fillR;
+        float fillG;
+        float fillB;
+        float outlineR;
+        float outlineG;
+        float outlineB;
+
+        if (activePhase) {
             if (isCenter) {
-                drawRoundedRect(-radius, -radius, radius, radius, 0.8f, 0.8f, 0.2f, alpha, true);
+                fillR = 0.95f;
+                fillG = 0.26f;
+                fillB = 0.22f;
+                outlineR = 1.0f;
+                outlineG = 0.52f;
+                outlineB = 0.28f;
             } else {
-                drawRoundedRect(-radius, -radius, radius, radius, 0.4f, 0.4f, 0.4f, alpha * 0.8f, true);
+                fillR = 0.36f;
+                fillG = 0.14f;
+                fillB = 0.14f;
+                outlineR = 0.65f;
+                outlineG = 0.22f;
+                outlineB = 0.20f;
             }
+        } else if (isCenter) {
+            fillR = 0.8f;
+            fillG = 0.8f;
+            fillB = 0.2f;
+            outlineR = 0.8f;
+            outlineG = 0.8f;
+            outlineB = 0.2f;
         } else {
-            if (isCenter) {
-                drawCircle(radius, 0.8f, 0.8f, 0.2f, 0.66f * alpha, false);
-                drawCircle(radius, 0.8f, 0.8f, 0.2f, alpha, true);
-            } else {
-                drawCircle(radius, 1f, 1f, 1f, 0.66f * alpha, false);
-                drawCircle(radius, 0.4f, 0.4f, 0.4f, alpha * 0.8f, true);
-            }
+            fillR = 0.4f;
+            fillG = 0.4f;
+            fillB = 0.4f;
+            outlineR = 1f;
+            outlineG = 1f;
+            outlineB = 1f;
+        }
+
+        if (altTexture) {
+            float baseR = activePhase ? 0.30f : 0.6f;
+            float baseG = activePhase ? 0.12f : 0.6f;
+            float baseB = activePhase ? 0.12f : 0.6f;
+            drawRoundedRect(-radius, -radius, radius, radius, baseR, baseG, baseB, 0.75f * alpha, false);
+            drawRoundedRect(-radius, -radius, radius, radius, fillR, fillG, fillB, alpha * 0.8f, true);
+        } else {
+            drawCircle(radius, outlineR, outlineG, outlineB, 0.66f * alpha, false);
+            drawCircle(radius, fillR, fillG, fillB, alpha * 0.8f, true);
         }
 
         // Ability icon

@@ -659,6 +659,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()) {
             reset();
         }
+        if (this.abilities != null && this.abilities.isCurrentAbilityInvulnerable()) {
+            return false;
+        }
 
         // Check for custom weapon attack speed - bypass immunity if enough time has passed
         Entity sourceEntity = damagesource.getEntity();

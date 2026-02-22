@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.ability.IChainedAbility;
+import kamkeel.npcs.util.FileNameHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     }
 
     public ChainedAbility(String name) {
-        this.name = name != null ? name : "";
+        setName(name);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -97,7 +98,8 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     }
 
     public void setName(String name) {
-        this.name = name != null ? name : "";
+        String fallback = (this.name != null && !this.name.isEmpty()) ? this.name : "Chain";
+        this.name = FileNameHelper.sanitizeName(name, fallback);
     }
 
     /**
@@ -106,7 +108,9 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      * Converts &amp; color codes to § for rendering.
      */
     public String getDisplayName() {
-        String result = (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        String result = (displayName != null && !displayName.isEmpty())
+            ? displayName
+            : FileNameHelper.toDisplayName(name);
         return result != null ? result.replaceAll("&([0-9a-fk-or])", "\u00A7$1") : "";
     }
 
@@ -406,7 +410,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
     public void readNBT(NBTTagCompound nbt) {
         id = nbt.getString("Id");
-        name = nbt.getString("Name");
+        setName(nbt.getString("Name"));
         displayName = nbt.getString("DisplayName");
         enabled = !nbt.hasKey("Enabled") || nbt.getBoolean("Enabled");
         weight = nbt.hasKey("Weight") ? nbt.getInteger("Weight") : 10;

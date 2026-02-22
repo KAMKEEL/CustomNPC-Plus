@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.data.AbilityIconData;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.enums.InvulnerableMode;
 import kamkeel.npcs.controllers.data.ability.enums.LockMode;
 import kamkeel.npcs.controllers.data.ability.preview.PreviewEntityHandler;
 import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
@@ -21,6 +22,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityBarrier;
 import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.util.FileNameHelper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -85,6 +87,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     // Interruption
     protected boolean interruptible = true;
+    protected InvulnerableMode invulnerableMode = InvulnerableMode.NONE;
 
     // Feedback
     protected LockMode lockMovement = LockMode.WINDUP;
@@ -687,10 +690,24 @@ public abstract class Ability implements IAbility, IAbilityAction {
         ).tab("General"));
         defs.add(FieldDef.row(
             FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
-                .hover("ability.hover.interruptible"),
+                .hover("ability.hover.interruptible")
+                .enabledWhen(() -> !invulnerableMode.invulnerableDuringWindup()),
             FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
-                .range(0, 1000).visibleWhen(this::isInterruptible)
+                .range(0, 1000)
+                .visibleWhen(() -> isInterruptible() && !invulnerableMode.invulnerableDuringWindup())
         ).tab("General"));
+        defs.add(FieldDef.stringEnumField("ability.invulnerable", InvulnerableMode.getDisplayKeys(),
+                () -> this.getInvulnerableMode().getDisplayKey(),
+                v -> {
+                    for (InvulnerableMode mode : InvulnerableMode.values()) {
+                        if (mode.getDisplayKey().equals(v)) {
+                            this.setInvulnerableMode(mode);
+                            break;
+                        }
+                    }
+                })
+            .hover("ability.hover.invulnerable")
+            .tab("General"));
 
         // ── Burst section ────────────────────────────────────────────
         if (allowBurst()) {
@@ -1174,6 +1191,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
         if (!interruptible || (phase != AbilityPhase.WINDUP && phase != AbilityPhase.BURST_DELAY)) {
             return false;
         }
+        if (isInvulnerableForCurrentPhase()) {
+            return false;
+        }
 
         // Only direct physical hits can interrupt, not magic, fire, or other indirect damage
         if (source == null) {
@@ -1332,6 +1352,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setBoolean("syncWindup", syncWindupWithAnimation);
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
+        nbt.setInteger("invulnerableMode", invulnerableMode.ordinal());
         nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("rotationMode", rotationMode.ordinal());
         nbt.setInteger("rotationPhase", rotationPhase.ordinal());
@@ -1411,6 +1432,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
         syncWindupWithAnimation = nbt.hasKey("syncWindup") ? nbt.getBoolean("syncWindup") : true;
         dazedTicks = nbt.hasKey("recovery") ? nbt.getInteger("recovery") : 80;
         interruptible = nbt.hasKey("interruptible") ? nbt.getBoolean("interruptible") : true;
+        invulnerableMode = nbt.hasKey("invulnerableMode")
+            ? InvulnerableMode.fromOrdinal(nbt.getInteger("invulnerableMode"))
+            : InvulnerableMode.NONE;
         lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
@@ -1501,7 +1525,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     public void setName(String name) {
-        this.name = name;
+        if (builtIn) {
+            this.name = name != null ? name : "";
+            return;
+        }
+        String fallback = (this.name != null && !this.name.isEmpty()) ? this.name : "Ability";
+        this.name = FileNameHelper.sanitizeName(name, fallback);
     }
 
     /**
@@ -1510,7 +1539,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Converts &amp; color codes to § for rendering.
      */
     public String getDisplayName() {
-        String result = (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        String result = (displayName != null && !displayName.isEmpty())
+            ? displayName
+            : FileNameHelper.toDisplayName(name);
         return result != null ? result.replaceAll("&([0-9a-fk-or])", "\u00A7$1") : "";
     }
 
@@ -1664,6 +1695,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.interruptible = interruptible;
     }
 
+    public InvulnerableMode getInvulnerableMode() {
+        return invulnerableMode;
+    }
+
+    public void setInvulnerableMode(InvulnerableMode invulnerableMode) {
+        this.invulnerableMode = invulnerableMode != null ? invulnerableMode : InvulnerableMode.NONE;
+    }
+
+    public boolean isInvulnerableDuringWindup() {
+        return invulnerableMode.invulnerableDuringWindup();
+    }
+
+    public boolean isInvulnerableDuringActive() {
+        return invulnerableMode.invulnerableDuringActive();
+    }
+
     public LockMode getLockMovement() {
         return lockMovement;
     }
@@ -1794,6 +1841,20 @@ public abstract class Ability implements IAbility, IAbilityAction {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Check if this ability grants invulnerability during its current execution phase.
+     */
+    public boolean isInvulnerableForCurrentPhase() {
+        return invulnerableMode.isInvulnerableInPhase(phase);
+    }
+
+    /**
+     * Check if this ability grants invulnerability for a specific phase.
+     */
+    public boolean isInvulnerableForPhase(AbilityPhase phase) {
+        return invulnerableMode.isInvulnerableInPhase(phase);
     }
 
     /**

@@ -806,6 +806,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (currentAbility == null || !currentAbility.isExecuting()) {
             return amount;
         }
+        if (currentAbility.isInvulnerableForCurrentPhase()) {
+            return 0;
+        }
 
         net.minecraft.entity.Entity sourceEntity = source.getEntity();
         EntityLivingBase attacker = sourceEntity instanceof EntityLivingBase ? (EntityLivingBase) sourceEntity : null;
@@ -936,6 +939,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
         if (wasFlyingAtLock) {
             flags |= PlayerAbilityStatePacket.FLAG_WAS_FLYING_AT_LOCK;
+        }
+        if (currentAbility.getPhase() == AbilityPhase.ACTIVE) {
+            flags |= PlayerAbilityStatePacket.FLAG_ACTIVE_PHASE;
         }
         return flags;
     }

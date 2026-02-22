@@ -245,6 +245,9 @@ public class GuiFieldBuilder {
             case STRING: {
                 String sVal = def.getValue() != null ? def.getValue().toString() : "";
                 GuiNpcTextField tf = new GuiNpcTextField(widgetId, parent, fontRenderer, fieldX, y, fieldW, 20, sVal);
+                if ("gui.name".equals(def.getLabel())) {
+                    tf.setFileNameSafe();
+                }
                 if (!def.isEnabled()) tf.setEnabled(false);
                 if (hover != null) tf.setHoverText(hover);
                 sw.addTextField(tf);
