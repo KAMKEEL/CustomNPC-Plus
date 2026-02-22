@@ -19,6 +19,10 @@ public class RenderAbilityOrb extends RenderEnergyAbility {
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         EntityAbilityOrb orb = (EntityAbilityOrb) entity;
 
+        if (shouldSkipInitialActiveRender(entity)) {
+            return;
+        }
+
         setupRenderState();
 
         GL11.glPushMatrix();

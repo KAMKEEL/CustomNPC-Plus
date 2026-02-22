@@ -20,6 +20,7 @@ public class RenderEnergyExplosion extends RenderEnergyAbility {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
+        if (shouldSkipInitialActiveRender(entity)) return;
         if (!(entity instanceof EntityEnergyExplosion)) return;
         if (ConfigClient.LowResExplosion) return;
         EntityEnergyExplosion explosion = (EntityEnergyExplosion) entity;

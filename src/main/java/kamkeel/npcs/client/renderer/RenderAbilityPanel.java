@@ -17,6 +17,9 @@ public class RenderAbilityPanel extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
+        if (shouldSkipInitialActiveRender(entity)) {
+            return;
+        }
         EntityAbilityPanel panel = (EntityAbilityPanel) entity;
 
         float width = panel.getPanelData().panelWidth;
