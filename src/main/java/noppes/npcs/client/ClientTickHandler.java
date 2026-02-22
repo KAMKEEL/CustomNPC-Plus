@@ -7,11 +7,9 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.client.renderer.lightning.LightningBolt;
-import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.InputDevicePacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
@@ -63,7 +61,7 @@ public class ClientTickHandler {
             if (mc.theWorld == null) {
                 ClientCacheHandler.clearCache();
                 ClientAbilityState.reset();
-                RequestProperSpawnData.clear();
+                // RequestProperSpawnData.clear();
                 if (EnergyChargePreviewManager.ClientInstance != null) {
                     EnergyChargePreviewManager.ClientInstance.clear();
                 }
@@ -218,8 +216,8 @@ public class ClientTickHandler {
             return;
 
         if (mc.theWorld.getTotalWorldTime() % 20 == 0) { // Update every second
-            if (RequestProperSpawnData.canDoBatchUpdate())
-                RequestProperSpawnData.handleBacklog();
+//            if (RequestProperSpawnData.canDoBatchUpdate())
+//                RequestProperSpawnData.handleBacklog();
             updateCompassMarks();
         }
     }
