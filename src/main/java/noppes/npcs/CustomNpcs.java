@@ -37,7 +37,6 @@ import kamkeel.npcs.entity.EntityAbilityPanel;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityDome;
-import kamkeel.npcs.entity.EntityEnergyExplosion;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.util.BukkitUtil;
@@ -302,7 +301,6 @@ public class CustomNpcs {
         registerNewEntity(EntityAbilityDome.class, "energydome", 64, 3, true);
         registerNewEntity(EntityAbilityPanel.class, "energypanel", 64, 3, true);
         registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 3, true);
-        registerNewEntity(EntityEnergyExplosion.class, "energyexplosion", 64, 3, true);
 
         new RecipeController();
 

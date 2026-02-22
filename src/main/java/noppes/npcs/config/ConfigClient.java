@@ -17,6 +17,7 @@ public class ConfigClient {
     public final static String MODEL = "Model";
     public final static String TEXTURE = "Texture";
     public final static String HUD = "Hud";
+    public final static String RENDERING = "Rendering";
 
 
     /**
@@ -51,6 +52,10 @@ public class ConfigClient {
 
     public static Property HideEffectsBarProperty;
     public static boolean HideEffectsBar = false;
+
+    // Rendering Properties
+    public static Property LowResExplosionProperty;
+    public static boolean LowResExplosion = false;
 
     /**
      * Questing Properties
@@ -276,6 +281,14 @@ public class ConfigClient {
 
             HideEffectsBarProperty = config.get(VISUAL, "Hide Effects Bar", false, "Hides CNPC+ Inventory Effects Bar");
             HideEffectsBar = HideEffectsBarProperty.getBoolean(false);
+
+            LowResExplosionProperty = config.get(
+                RENDERING,
+                "Low Res Explosion",
+                false,
+                "Disables most Energy Explosion voxel rendering and keeps particle effects only."
+            );
+            LowResExplosion = LowResExplosionProperty.getBoolean(false);
 
             DialogSpeedProperty = config.get(VISUAL, "Dialog Speed", true, "Only set for gradual dialogs");
             DialogSpeed = DialogSpeedProperty.getInt(10);

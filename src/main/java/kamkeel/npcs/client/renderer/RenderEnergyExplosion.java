@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.entity.EntityEnergyExplosion;
 import net.minecraft.entity.Entity;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -20,6 +21,7 @@ public class RenderEnergyExplosion extends RenderEnergyAbility {
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         if (!(entity instanceof EntityEnergyExplosion)) return;
+        if (ConfigClient.LowResExplosion) return;
         EntityEnergyExplosion explosion = (EntityEnergyExplosion) entity;
 
         setupRenderState();

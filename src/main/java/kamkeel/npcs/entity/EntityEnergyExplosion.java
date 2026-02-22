@@ -107,6 +107,9 @@ public class EntityEnergyExplosion extends EntityEnergyAbility {
     @Override
     protected void writeSpawnNBT(NBTTagCompound nbt) {
         writeEnergyBaseNBT(nbt);
+        nbt.setDouble("PosX", this.posX);
+        nbt.setDouble("PosY", this.posY);
+        nbt.setDouble("PosZ", this.posZ);
         nbt.setFloat("ExplosionRadius", maxRadius);
         nbt.setInteger("ExplosionDuration", durationTicks);
         nbt.setLong("ExplosionSeed", renderSeed);
@@ -115,6 +118,16 @@ public class EntityEnergyExplosion extends EntityEnergyAbility {
     @Override
     protected void readSpawnNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
+        double x = nbt.hasKey("PosX") ? nbt.getDouble("PosX") : this.posX;
+        double y = nbt.hasKey("PosY") ? nbt.getDouble("PosY") : this.posY;
+        double z = nbt.hasKey("PosZ") ? nbt.getDouble("PosZ") : this.posZ;
+        this.setPosition(x, y, z);
+        this.prevPosX = x;
+        this.prevPosY = y;
+        this.prevPosZ = z;
+        this.lastTickPosX = x;
+        this.lastTickPosY = y;
+        this.lastTickPosZ = z;
         setExplosionRadius(nbt.hasKey("ExplosionRadius") ? nbt.getFloat("ExplosionRadius") : 2.0f);
         this.durationTicks = nbt.hasKey("ExplosionDuration") ? nbt.getInteger("ExplosionDuration") : durationTicks;
         if (durationTicks <= 0) durationTicks = 10;
@@ -123,4 +136,3 @@ public class EntityEnergyExplosion extends EntityEnergyAbility {
         this.prevRenderRadius = 0.0f;
     }
 }
-

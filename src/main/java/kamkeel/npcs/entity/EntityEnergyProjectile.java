@@ -13,11 +13,13 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
+import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
@@ -49,6 +51,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Base class for all ability projectiles (Orb, Disc, Beam, Laser, Slicer).
@@ -425,6 +428,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
         if (previewMode) return; // Skip damage in preview mode
+        if (target == null || shouldIgnoreEntity(target)) return;
 
         // Fire entity impact event (may cancel or modify damage)
         if (!worldObj.isRemote) {
@@ -437,6 +441,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         // Check for ability extenders (e.g., DBC Addon damage routing)
         boolean handled = false;
+        boolean defaultDamageApplied = false;
         if (sourceAbility != null && owner instanceof EntityLivingBase) {
             double dx = target.posX - posX;
             double dz = target.posZ - posZ;
@@ -449,15 +454,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (!handled) {
             // Default damage path
             if (owner instanceof EntityNPCInterface) {
-                target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+                defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
             } else if (owner instanceof EntityPlayer) {
-                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+                defaultDamageApplied = target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
             } else if (owner instanceof EntityLivingBase) {
-                target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+                defaultDamageApplied = target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
             } else {
-                target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+                defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
             }
         }
+
+        boolean allowSecondaryEffects = handled || dmg <= 0 || defaultDamageApplied;
+        if (!allowSecondaryEffects) return;
 
         if (kb > 0) {
             double dx = target.posX - posX;
@@ -508,6 +516,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         for (EntityLivingBase target : targets) {
             if (target == owner) continue;
+            if (shouldIgnoreExplosionTarget(target)) continue;
 
             double dist = Math.sqrt(
                 Math.pow(target.posX - posX, 2) +
@@ -525,14 +534,41 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     /**
-     * Spawn a short-lived voxel render entity so explosions are visible as geometry,
+     * Explosion safety filter.
+     * Reuses standard projectile-friendly checks and blocks passive non-player entities.
+     */
+    protected boolean shouldIgnoreExplosionTarget(EntityLivingBase target) {
+        if (target == null) return true;
+        if (shouldIgnoreEntity(target)) return true;
+        return isPassiveNonPlayerEntity(target);
+    }
+
+    /**
+     * Passive mobs (animals/ambient/water creatures) are never damaged by energy explosions.
+     * Players and hostile mobs remain valid unless other friendly-fire checks reject them.
+     */
+    protected boolean isPassiveNonPlayerEntity(EntityLivingBase target) {
+        if (target instanceof EntityPlayer) return false;
+        if (target instanceof EntityNPCInterface) return false;
+        if (target.isCreatureType(EnumCreatureType.monster, false)) return false;
+        return target.isCreatureType(EnumCreatureType.creature, false)
+            || target.isCreatureType(EnumCreatureType.ambient, false)
+            || target.isCreatureType(EnumCreatureType.waterCreature, false);
+    }
+
+    /**
+     * Spawn a packet-driven client preview so explosions are visible as geometry,
      * not only as particles.
      */
     protected void spawnExplosionRenderEntity(float explosionRad) {
         if (worldObj == null || worldObj.isRemote) return;
         float renderRad = Math.max(0.75f, Math.min(explosionRad, 12.0f));
         EntityEnergyExplosion fx = new EntityEnergyExplosion(worldObj, this, renderRad);
-        worldObj.spawnEntityInWorld(fx);
+        EnergyExplosionSpawnPacket.sendToTracking(getExplosionVisualInstanceId(), fx, this);
+    }
+
+    protected String getExplosionVisualInstanceId() {
+        return "energy_explosion_" + UUID.randomUUID();
     }
 
     /**
