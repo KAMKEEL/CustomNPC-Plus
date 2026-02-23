@@ -35,6 +35,8 @@ import java.util.Set;
 
 public class NPCSpawning {
     private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();
+    private static final byte CHUNK_SPAWN_RADIUS = 7;
+    private static final int SPAWN_ATTEMPTS_PER_CHUNK = 3;
 
     private static boolean animalSpawn;
     private static boolean monsterSpawn;
@@ -49,7 +51,7 @@ public class NPCSpawning {
             EntityPlayer entityplayer = (EntityPlayer) world.playerEntities.get(i);
             int j = MathHelper.floor_double(entityplayer.posX / 16.0D);
             int k = MathHelper.floor_double(entityplayer.posZ / 16.0D);
-            byte size = 7;
+            byte size = CHUNK_SPAWN_RADIUS;
 
             for (int x = -size; x <= size; ++x) {
                 for (int z = -size; z <= size; ++z) {
@@ -60,7 +62,9 @@ public class NPCSpawning {
                 }
             }
         }
-        if (countNPCs(world) > eligibleChunksForSpawning.size()) {
+        int cap = eligibleChunksForSpawning.size();
+        int npcCount = countNPCs(world);
+        if (npcCount >= cap) {
             return;
         }
         ArrayList<ChunkCoordIntPair> tmp = new ArrayList(eligibleChunksForSpawning);
@@ -68,6 +72,9 @@ public class NPCSpawning {
         Iterator<ChunkCoordIntPair> iterator = tmp.iterator();
 
         while (iterator.hasNext()) {
+            if (npcCount >= cap) {
+                return;
+            }
             ChunkCoordIntPair chunkcoordintpair1 = iterator.next();
 
             ChunkPosition chunkposition = getChunk(world, chunkcoordintpair1.chunkXPos, chunkcoordintpair1.chunkZPos);
@@ -75,7 +82,10 @@ public class NPCSpawning {
             int y = chunkposition.chunkPosY;
             int l1 = chunkposition.chunkPosZ;
 
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < SPAWN_ATTEMPTS_PER_CHUNK; i++) {
+                if (npcCount >= cap) {
+                    return;
+                }
                 int x = j1;
                 int z = l1;
                 byte b1 = 6;
@@ -85,10 +95,12 @@ public class NPCSpawning {
 
                 String name = world.getBiomeGenForCoords(x, z).biomeName;
                 SpawnData data = SpawnController.Instance.getRandomSpawnData(name, world.provider.dimensionId);
-                if (data == null || !canCreatureTypeSpawnAtLocation(data, world, x, y, z) || world.getClosestPlayer(x, y, z, 24.0D) != null)
+                if (data == null || y < data.spawnHeightMin || y > data.spawnHeightMax || !canCreatureTypeSpawnAtLocation(data, world, x, y, z) || world.getClosestPlayer(x, y, z, 24.0D) != null)
                     continue;
 
-                spawnData(data, world, x, y, z);
+                if (spawnData(data, world, x, y, z)) {
+                    npcCount++;
+                }
             }
         }
     }
@@ -112,9 +124,34 @@ public class NPCSpawning {
         return new ChunkPosition(k, i1, l);
     }
 
+    private static int getCap(World world) {
+        Set<ChunkCoordIntPair> chunkSet = Sets.newHashSet();
+        for (int i = 0; i < world.playerEntities.size(); ++i) {
+            EntityPlayer entityplayer = (EntityPlayer) world.playerEntities.get(i);
+            int j = MathHelper.floor_double(entityplayer.posX / 16.0D);
+            int k = MathHelper.floor_double(entityplayer.posZ / 16.0D);
+            byte size = CHUNK_SPAWN_RADIUS;
+
+            for (int x = -size; x <= size; ++x) {
+                for (int z = -size; z <= size; ++z) {
+                    chunkSet.add(new ChunkCoordIntPair(x + j, z + k));
+                }
+            }
+        }
+        return chunkSet.size();
+    }
+
     public static void performWorldGenSpawning(World world, int x, int z, Random rand) {
+        int cap = getCap(world);
+        int npcCount = countNPCs(world);
+        if (npcCount >= cap) {
+            return;
+        }
         BiomeGenBase biome = world.getBiomeGenForCoords(x + 8, z + 8);
         while (rand.nextFloat() < biome.getSpawningChance()) {
+            if (npcCount >= cap) {
+                return;
+            }
             SpawnData data = SpawnController.Instance.getRandomSpawnData(biome.biomeName, world.provider.dimensionId);
             if (data == null)
                 continue;
@@ -127,6 +164,9 @@ public class NPCSpawning {
             int i2 = k1;
 
             for (int k2 = 0; k2 < 4; ++k2) {
+                if (npcCount >= cap) {
+                    return;
+                }
                 int l2 = world.getTopSolidOrLiquidBlock(j1, k1);
                 if (l2 > data.spawnHeightMax || l2 < data.spawnHeightMin) {
                     continue;
@@ -140,8 +180,10 @@ public class NPCSpawning {
                     for (k1 += rand.nextInt(5) - rand.nextInt(5); j1 < x || j1 >= x + size || k1 < z || k1 >= z + size; k1 = i2 + rand.nextInt(5) - rand.nextInt(5)) {
                         j1 = l1 + rand.nextInt(5) - rand.nextInt(5);
                     }
-                } else if (spawnData(data, world, j1, l2, k1))
+                } else if (spawnData(data, world, j1, l2, k1)) {
+                    npcCount++;
                     break;
+                }
 
             }
         }
@@ -184,6 +226,8 @@ public class NPCSpawning {
             if (spawnEntity instanceof EntityCustomNpc) {
                 EntityCustomNpc npc = (EntityCustomNpc) spawnEntity;
                 npc.stats.spawnCycle = 3;
+                npc.stats.canDespawn = true;
+                npc.stats.playerSetCanDespawn = true;
                 npc.ais.returnToStart = false;
                 npc.ais.startPos = new int[]{x, y, z};
                 npc.updateAI = true;
@@ -239,4 +283,3 @@ public class NPCSpawning {
         return animalSpawn || monsterSpawn || caveSpawn || liquidSpawn;
     }
 }
-

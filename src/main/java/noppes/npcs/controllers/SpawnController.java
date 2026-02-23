@@ -223,11 +223,14 @@ public class SpawnController implements INaturalSpawnsHandler {
     }
 
     public INaturalSpawn[] getSpawns(String biome) {
-        return getSpawnList(biome).toArray(new INaturalSpawn[]{});
+        List<SpawnData> biomeSpawns = getSpawnList(biome);
+        if (biomeSpawns == null)
+            return new INaturalSpawn[]{};
+        return biomeSpawns.toArray(new INaturalSpawn[]{});
     }
 
     public void addSpawn(INaturalSpawn spawn) {
-        ((SpawnData) spawn).id = 0;
+        ((SpawnData) spawn).id = -1;
         this.saveSpawnData((SpawnData) spawn);
     }
 
