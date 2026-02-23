@@ -465,6 +465,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
+        // Save velocity before damage to cancel vanilla knockback when ability knockback is zero
+        double prevMotionX = hitEntity.motionX;
+        double prevMotionY = hitEntity.motionY;
+        double prevMotionZ = hitEntity.motionZ;
+
         // Apply damage
         if (damage > 0) {
             // Check for ability extenders (e.g., DBC Addon damage routing)
@@ -483,9 +488,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
-        // Apply knockback if any
+        // Apply knockback if any, otherwise restore velocity to cancel vanilla knockback
         if (knockback > 0 || knockbackUp > 0) {
             applyKnockback(hitEntity, knockbackDirX, knockbackDirZ, knockback, knockbackUp);
+        } else {
+            hitEntity.motionX = prevMotionX;
+            hitEntity.motionY = prevMotionY;
+            hitEntity.motionZ = prevMotionZ;
+            hitEntity.velocityChanged = true;
         }
 
         return true;

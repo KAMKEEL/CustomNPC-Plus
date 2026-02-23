@@ -21,6 +21,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
+    public static final int DESPAWN_FORCE_NATURAL = INaturalSpawn.DESPAWN_FORCE_NATURAL;
+    public static final int DESPAWN_PRESERVE_TEMPLATE = INaturalSpawn.DESPAWN_PRESERVE_TEMPLATE;
+    public static final int DESPAWN_FORCE_PERSISTENT = INaturalSpawn.DESPAWN_FORCE_PERSISTENT;
+
     public List<String> biomes = new ArrayList<>();
     public HashSet<Integer> dimensions = new HashSet<>();
     public int id = -1;
@@ -35,6 +39,11 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 
     public int spawnHeightMin;
     public int spawnHeightMax = 100;
+    public int maxAlive = 0;
+    public int cooldownTicks = 0;
+    public int attemptsPerCycle = 1;
+    public int playerMinDistance = 24;
+    public int despawnMode = DESPAWN_FORCE_NATURAL;
 
     public SpawnData() {
         super(10);
@@ -74,6 +83,19 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
         } else {
             spawnHeightMax = compound.getInteger("HeightMax");
         }
+
+        maxAlive = compound.hasKey("MaxAlive") ? Math.max(0, compound.getInteger("MaxAlive")) : 0;
+        cooldownTicks = compound.hasKey("CooldownTicks") ? Math.max(0, compound.getInteger("CooldownTicks")) : 0;
+        attemptsPerCycle = compound.hasKey("AttemptsPerCycle") ? Math.max(1, compound.getInteger("AttemptsPerCycle")) : 1;
+        playerMinDistance = compound.hasKey("PlayerMinDistance") ? Math.max(0, compound.getInteger("PlayerMinDistance")) : 24;
+        if (compound.hasKey("DespawnMode")) {
+            despawnMode = compound.getInteger("DespawnMode");
+        } else {
+            despawnMode = DESPAWN_FORCE_NATURAL;
+        }
+        if (despawnMode < DESPAWN_FORCE_NATURAL || despawnMode > DESPAWN_FORCE_PERSISTENT) {
+            despawnMode = DESPAWN_FORCE_NATURAL;
+        }
     }
 
     public NBTTagCompound writeNBT(NBTTagCompound compound) {
@@ -98,6 +120,11 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 
         compound.setInteger("HeightMin", spawnHeightMin);
         compound.setInteger("HeightMax", spawnHeightMax);
+        compound.setInteger("MaxAlive", maxAlive);
+        compound.setInteger("CooldownTicks", cooldownTicks);
+        compound.setInteger("AttemptsPerCycle", attemptsPerCycle);
+        compound.setInteger("PlayerMinDistance", playerMinDistance);
+        compound.setInteger("DespawnMode", despawnMode);
         return compound;
     }
 
@@ -203,5 +230,47 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 
     public void setBiomes(String[] biomes) {
         this.biomes = new ArrayList<>(Arrays.asList(biomes));
+    }
+
+    public void setMaxAlive(int maxAlive) {
+        this.maxAlive = Math.max(0, maxAlive);
+    }
+
+    public int getMaxAlive() {
+        return this.maxAlive;
+    }
+
+    public void setCooldownTicks(int ticks) {
+        this.cooldownTicks = Math.max(0, ticks);
+    }
+
+    public int getCooldownTicks() {
+        return this.cooldownTicks;
+    }
+
+    public void setAttemptsPerCycle(int attempts) {
+        this.attemptsPerCycle = Math.max(1, attempts);
+    }
+
+    public int getAttemptsPerCycle() {
+        return this.attemptsPerCycle;
+    }
+
+    public void setPlayerMinDistance(int distance) {
+        this.playerMinDistance = Math.max(0, distance);
+    }
+
+    public int getPlayerMinDistance() {
+        return this.playerMinDistance;
+    }
+
+    public void setDespawnMode(int mode) {
+        if (mode < DESPAWN_FORCE_NATURAL || mode > DESPAWN_FORCE_PERSISTENT)
+            mode = DESPAWN_FORCE_NATURAL;
+        this.despawnMode = mode;
+    }
+
+    public int getDespawnMode() {
+        return this.despawnMode;
     }
 }

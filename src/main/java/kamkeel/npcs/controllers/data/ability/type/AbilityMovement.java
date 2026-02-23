@@ -258,10 +258,12 @@ public abstract class AbilityMovement extends Ability {
     /**
      * Apply movement velocity with zero vertical motion.
      * Used for ground-locked movement like Charge.
+     * motionY is set BEFORE sending velocity packet to prevent client-server desync
+     * (which causes "moved too fast" kicks when used in mid-air).
      */
     protected void applyVelocityFlat(EntityLivingBase caster, float speed) {
-        applyHorizontalMomentum(caster, movementDirection.xCoord * speed, movementDirection.zCoord * speed);
         caster.motionY = 0;
+        applyHorizontalMomentum(caster, movementDirection.xCoord * speed, movementDirection.zCoord * speed);
     }
 
     /**

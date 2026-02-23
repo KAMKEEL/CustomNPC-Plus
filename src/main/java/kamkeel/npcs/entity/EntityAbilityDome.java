@@ -264,10 +264,12 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
         for (EntityLivingBase ent : entities) {
             if (ent.getEntityId() == ownerEntityId) continue;
-            if (isAllyOfOwner(ent)) continue;
 
             // Client-side: only process local player for solid prediction
+            // Must be checked before isAllyOfOwner which uses server-only PlayerData
             if (worldObj.isRemote && (localPlayer == null || ent != localPlayer)) continue;
+
+            if (isAllyOfOwner(ent)) continue;
 
             // Current position relative to dome center
             double dx = ent.posX - posX;

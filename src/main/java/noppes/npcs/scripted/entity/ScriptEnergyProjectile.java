@@ -177,6 +177,14 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
         entity.setMultiHitDelayTicks(delayTicks);
     }
 
+    public int getMaxHits() {
+        return entity.getMaxHits();
+    }
+
+    public void setMaxHits(int maxHits) {
+        entity.setMaxHits(maxHits);
+    }
+
     // ==================== MOVEMENT ====================
 
     public float getSpeed() {

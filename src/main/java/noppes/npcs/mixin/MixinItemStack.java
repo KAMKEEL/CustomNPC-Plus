@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.client.gui.global.GuiNpcManageAuction;
 import noppes.npcs.client.gui.player.GuiAuctionInterface;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,7 +32,7 @@ public abstract class MixinItemStack {
     @Inject(method = "getTooltip", at = @At("TAIL"), cancellable = true)
     public void getAttributeTooltip(EntityPlayer player, boolean advanced, CallbackInfoReturnable<List<String>> cir) {
         boolean override = false;
-        if (Minecraft.getMinecraft().currentScreen instanceof GuiAuctionInterface) {
+        if (Minecraft.getMinecraft().currentScreen instanceof GuiAuctionInterface || Minecraft.getMinecraft().currentScreen instanceof GuiNpcManageAuction) {
             override = true;
         }
 

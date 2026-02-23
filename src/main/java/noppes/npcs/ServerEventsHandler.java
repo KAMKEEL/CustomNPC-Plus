@@ -530,7 +530,7 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void populateChunk(PopulateChunkEvent.Post event) {
-        NPCSpawning.performWorldGenSpawning(event.world, event.chunkX, event.chunkZ, event.rand);
+        NPCSpawning.performWorldGenSpawning(event.world, event.chunkX << 4, event.chunkZ << 4, event.rand);
     }
 
     @SubscribeEvent

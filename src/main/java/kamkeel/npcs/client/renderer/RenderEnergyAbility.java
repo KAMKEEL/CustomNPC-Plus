@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityEnergyAbility;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
@@ -295,6 +296,18 @@ public abstract class RenderEnergyAbility extends Render {
         int outerColor = entity.getOuterColor();
         int innerColor = entity.getInnerColor();
         int fadeTime = entity.getLightningFadeTime();
+
+        // Barrier impact spark: briefly force brighter white crackles at the contact point.
+        if (entity instanceof EntityEnergyProjectile) {
+            int sparkTicks = ((EntityEnergyProjectile) entity).getBarrierSparkTicks();
+            if (sparkTicks > 0) {
+                density = Math.max(density, 4.0f + sparkTicks * 0.6f);
+                radius = Math.max(radius, innerRadius + Math.max(0.35f, baseSize * 0.65f));
+                outerColor = 0xF0F6FF;
+                innerColor = 0xFFFFFF;
+                fadeTime = Math.max(fadeTime, 6);
+            }
+        }
 
         state.update(density, radius, outerColor, innerColor, fadeTime);
         state.render();

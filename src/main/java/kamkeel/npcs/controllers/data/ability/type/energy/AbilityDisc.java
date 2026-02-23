@@ -38,7 +38,7 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
 
     public AbilityDisc() {
         super(
-            new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
+            new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 10.0f),
             new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f, HitType.PIERCE, 5),
             new EnergyHomingData(0.6f, true, 0.12f, 18.0f),
             new EnergyLifespanData(150.0f, 200)
@@ -226,7 +226,9 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
         defs.add(FieldDef.intField("gui.delay", this::getBoomerangDelay, this::setBoomerangDelay).visibleWhen(this::isBoomerang));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
-        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));
+        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
+            .range(0.0f, EnergyCombatData.MAX_EXPLOSION_RADIUS)
+            .visibleWhen(this::isExplosive));
         defs.add(AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects));
     }
 }

@@ -4,6 +4,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.Vec3;
+import noppes.npcs.util.MathUtil;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -53,6 +55,16 @@ public class RenderAbilityDisc extends RenderEnergyAbility {
             GL11.glRotatef(disc.getTravelYaw(), 0.0f, 1.0f, 0.0f);
             GL11.glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
         }
+
+        double motionX = entity.motionX;
+        double motionY = entity.motionY;
+        double motionZ = entity.motionZ;
+        Vec3 motionVec = Vec3.createVectorHelper(motionX, motionY, motionZ);
+
+        float motionYaw = MathUtil.getYaw(motionVec);
+        float motionPitch = MathUtil.getPitch(motionVec);
+        GL11.glRotatef(motionYaw, 0, 1, 0);
+        GL11.glRotatef(motionPitch, 1, 0, 0);
 
         // Apply Y-axis rotation for spin
         GL11.glRotatef(disc.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);

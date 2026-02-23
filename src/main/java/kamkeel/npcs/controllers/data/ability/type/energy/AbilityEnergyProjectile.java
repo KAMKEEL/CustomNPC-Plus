@@ -254,10 +254,11 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     /**
      * Hook for launch target selection.
-     * Default returns null so projectiles launch along owner look vector.
+     * Players launch along their look vector (crosshair-aligned), so target is ignored.
+     * NPCs use their resolved target so launch math can track the target immediately.
      */
     protected EntityLivingBase getLaunchTarget(EntityLivingBase caster, EntityLivingBase target) {
-        return null;
+        return isPlayerCaster(caster) ? null : target;
     }
 
     /**
@@ -650,12 +651,12 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     @Override
     public float getExplosionRadius() {
-        return combatData.explosionRadius;
+        return combatData.getExplosionRadius();
     }
 
     @Override
     public void setExplosionRadius(float explosionRadius) {
-        combatData.explosionRadius = explosionRadius;
+        combatData.setExplosionRadius(explosionRadius);
     }
 
     @Override
@@ -682,6 +683,14 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     public void setMultiHitDelayTicks(int delay) {
         this.combatData.multiHitDelayTicks = Math.max(1, delay);
+    }
+
+    public int getMaxHits() {
+        return combatData.getMaxHits();
+    }
+
+    public void setMaxHits(int maxHits) {
+        combatData.setMaxHits(maxHits);
     }
 
     // Lifespan data
@@ -831,6 +840,10 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
             .range(1, 200)
             .visibleWhen(() -> getHitType() == HitType.MULTI.ordinal())
             .hover("ability.hover.multiHitDelay"));
+        defs.add(FieldDef.intField("ability.maxHits", this::getMaxHits, this::setMaxHits)
+            .range(1, EnergyCombatData.MAX_HITS)
+            .visibleWhen(() -> getHitType() != HitType.SINGLE.ordinal())
+            .hover("ability.hover.maxHits"));
 
         // Type-specific fields first
         addTypeDefinitions(defs);

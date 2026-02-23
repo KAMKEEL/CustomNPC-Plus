@@ -251,12 +251,6 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
         }
 
         GL11.glPopMatrix();
-
-        // Draw hover texts in screen space (after scissor/translation are undone)
-        // so tooltips are not clipped and are positioned correctly
-        if (isMouseOver(mouseX, mouseY)) {
-            drawHoverTexts(mouseX, mouseY);
-        }
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks, int mouseScroll) {
@@ -293,16 +287,21 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
      * Draws hover texts for buttons in screen space (called after GL scissor/translate are undone).
      * Hover state was already computed during drawComponents with scroll-local coords.
      */
-    private void drawHoverTexts(int mouseX, int mouseY) {
+    public void drawHoverTexts(int mouseX, int mouseY) {
         boolean subGui = parent.hasSubGui();
         for (GuiNpcButton button : buttons.values()) {
             if (!button.hoverableText.isEmpty()) {
                 button.drawHover(mouseX, mouseY, subGui);
             }
         }
-        // Label hover: convert screen mouse to scroll-local coords for hit testing
         int localMouseX = mouseX - xPos;
         int localMouseY = (int) (mouseY - yPos + scrollY);
+        for (GuiNpcTextField textField : textfields.values()) {
+            if (textField.hasHoverText()) {
+                textField.drawHover(localMouseX, localMouseY, mouseX, mouseY, subGui);
+            }
+        }
+        // Label hover: convert screen mouse to scroll-local coords for hit testing
         for (GuiNpcLabel label : labels.values()) {
             if (!label.hoverableText.isEmpty()) {
                 label.drawHover(localMouseX, localMouseY, mouseX, mouseY, subGui, fontRendererObj);

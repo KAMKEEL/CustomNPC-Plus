@@ -295,7 +295,7 @@ public class CustomNpcs {
         registerNewEntity(EntityAbilityOrb.class, "abilityorb", 64, 1, true);
         registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 1, true);
         registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 1, true);
-        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 1, true);
+        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 160, 1, true);
         registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
         registerNewEntity(EntityAbilityZone.class, "abilityzone", 64, 3, true);
         registerNewEntity(EntityAbilityDome.class, "energydome", 64, 3, true);

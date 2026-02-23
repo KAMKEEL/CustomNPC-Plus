@@ -62,6 +62,12 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 
         this.addButton(new GuiNpcButton(1, guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
         this.addButton(new GuiNpcButton(2, guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
+        getButton(1).setHoverText("tooltip.naturalspawns.main.addProfile");
+        getButton(2).setHoverText("tooltip.naturalspawns.main.removeProfile");
+
+        if (getTextField(55) != null) {
+            getTextField(55).setHoverText("tooltip.naturalspawns.main.search");
+        }
 
         if (this.spawn.id >= 0)
             showSpawn();
@@ -74,15 +80,18 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         int y = guiTop + 30;
         addLabel(new GuiNpcLabel(3, "spawning.biomes", guiLeft + 4, y));
         addButton(new GuiNpcButton(3, guiLeft + 40, y - 5, 50, 20, "selectServer.edit"));
+        getButton(3).setHoverText("tooltip.naturalspawns.main.biomes");
 
         addLabel(new GuiNpcLabel(11, StatCollector.translateToLocal("Dimensions"), guiLeft + 95, y));
         addButton(new GuiNpcButton(11, guiLeft + 150, y - 5, 50, 20, "selectServer.edit"));
+        getButton(11).setHoverText("tooltip.naturalspawns.main.dimensions");
 
         addLabel(new GuiNpcLabel(4, "spawning.options", guiLeft + 4, y += 22));
         addButton(new GuiNpcButton(4, guiLeft + 90, y - 5, 50, 20, "selectServer.edit"));
+        getButton(4).setHoverText("tooltip.naturalspawns.main.options");
 
         addSlider(new GuiNpcSlider(this, 5, guiLeft + 4, y += 17, 180, 20, (float) this.spawn.itemWeight / 100));
-        addExtra(new GuiHoverText(1, "spawning.naturalInfo", guiLeft + 188, y + 5));
+        addExtra(new GuiHoverText(1, "spawning.naturalInfoPerformance", guiLeft + 188, y + 5));
 
         this.spawnEntryScroll.guiLeft = guiLeft + 4;
         this.spawnEntryScroll.guiTop = y + 40;
@@ -96,13 +105,17 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         addScroll(this.spawnEntryScroll);
 
         addButton(new GuiNpcButton(21, guiLeft + 6, y += 20, 20, 20, "+"));
+        getButton(21).setHoverText("tooltip.naturalspawns.main.addEntry");
         if (this.spawnEntryScroll.hasSelected()) {
             int selected = Integer.parseInt(this.spawnEntryScroll.getSelected());
             addButton(new GuiNpcButton(22, guiLeft + 32, y, 20, 20, "-"));
+            getButton(22).setHoverText("tooltip.naturalspawns.main.removeEntry");
             GuiNpcTextField num = new GuiNpcTextField(25, this, guiLeft + 60, y += 10, 30, 20, "" + selected);
             num.integersOnly = true;
             addTextField(num);
+            getTextField(25).setHoverText("tooltip.naturalspawns.main.slot");
             addButton(new GuiNpcButton(26, guiLeft + 92, y, 100, 20, this.getTitle(this.spawn.spawnCompounds.get(selected))));
+            getButton(26).setHoverText("tooltip.naturalspawns.main.selectEntry");
         }
     }
 

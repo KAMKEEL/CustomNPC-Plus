@@ -1,5 +1,7 @@
 package kamkeel.npcs.entity;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
@@ -65,6 +67,16 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     public EntityAbilityBeam(World world) {
         super(world);
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean isInRangeToRenderDist(double distance) {
+        // Beam can extend far from entity position (head); use a generous render distance
+        // that accounts for the full beam length (origin to head)
+        double headDist = Math.sqrt(headOffsetX * headOffsetX + headOffsetY * headOffsetY + headOffsetZ * headOffsetZ);
+        double range = Math.max(128.0D, headDist * 2.0D + 64.0D);
+        return distance < range * range;
     }
 
     private static BeamMode modeFromAnchored(boolean anchored) {
@@ -503,22 +515,22 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     }
 
     private void checkEntityCollision(double headX, double headY, double headZ) {
-        double hitSize = headSize * 0.5;
+        // Swept head hitbox prevents misses when beam head moves quickly between ticks.
+        double prevHeadWorldX = startX + prevHeadOffsetX;
+        double prevHeadWorldY = startY + prevHeadOffsetY;
+        double prevHeadWorldZ = startZ + prevHeadOffsetZ;
+        double hitSize = Math.max(0.05, headSize * 0.5);
         AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
-            headX - hitSize, headY - hitSize, headZ - hitSize,
-            headX + hitSize, headY + hitSize, headZ + hitSize
+            Math.min(prevHeadWorldX, headX) - hitSize,
+            Math.min(prevHeadWorldY, headY) - hitSize,
+            Math.min(prevHeadWorldZ, headZ) - hitSize,
+            Math.max(prevHeadWorldX, headX) + hitSize,
+            Math.max(prevHeadWorldY, headY) + hitSize,
+            Math.max(prevHeadWorldZ, headZ) + hitSize
         );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
-
-        for (EntityLivingBase entity : entities) {
-            if (processEntityHit(entity, headX, headY, headZ)) {
-                if (DEBUG_LOGGING) {
-                    LogWriter.info("[Beam] DEAD: Entity collision with " + entity.getClass().getSimpleName() + " at tick " + ticksExisted);
-                }
-                return;
-            }
+        if (processEntitiesInHitBox(hitBox, headX, headY, headZ) && DEBUG_LOGGING) {
+            LogWriter.info("[Beam] DEAD: Entity collision at tick " + ticksExisted);
         }
     }
 

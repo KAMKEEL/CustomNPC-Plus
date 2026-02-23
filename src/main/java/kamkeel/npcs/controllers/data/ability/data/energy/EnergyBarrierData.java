@@ -37,6 +37,10 @@ public class EnergyBarrierData {
     public boolean meleeEnabled = false;
     public float meleeDamageMultiplier = 1.0f;
 
+    // Reflection: rebound projectiles that fail to break the barrier
+    public boolean reflect = false;
+    public float reflectStrengthPct = 25.0f;
+
     /**
      * Per-projectile-type damage multipliers.
      * Key is the ability typeId (e.g., "ability.cnpc.orb", "ability.cnpc.beam").
@@ -119,6 +123,22 @@ public class EnergyBarrierData {
         this.defaultMultiplier = defaultMultiplier;
     }
 
+    public boolean isReflect() {
+        return reflect;
+    }
+
+    public void setReflect(boolean reflect) {
+        this.reflect = reflect;
+    }
+
+    public float getReflectStrengthPct() {
+        return reflectStrengthPct;
+    }
+
+    public void setReflectStrengthPct(float reflectStrengthPct) {
+        this.reflectStrengthPct = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
+    }
+
     // ==================== NBT ====================
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -133,6 +153,8 @@ public class EnergyBarrierData {
         nbt.setBoolean("barrierAbsorbing", absorbing);
         nbt.setBoolean("barrierMelee", meleeEnabled);
         nbt.setFloat("barrierMeleeMult", meleeDamageMultiplier);
+        nbt.setBoolean("barrierReflect", reflect);
+        nbt.setFloat("barrierReflectStrPct", reflectStrengthPct);
 
         NBTTagCompound multNbt = new NBTTagCompound();
         for (Map.Entry<String, Float> entry : damageMultipliers.entrySet()) {
@@ -153,6 +175,8 @@ public class EnergyBarrierData {
         absorbing = nbt.hasKey("barrierAbsorbing") && nbt.getBoolean("barrierAbsorbing");
         meleeEnabled = nbt.hasKey("barrierMelee") && nbt.getBoolean("barrierMelee");
         meleeDamageMultiplier = nbt.hasKey("barrierMeleeMult") ? nbt.getFloat("barrierMeleeMult") : 1.0f;
+        reflect = nbt.hasKey("barrierReflect") && nbt.getBoolean("barrierReflect");
+        setReflectStrengthPct(nbt.hasKey("barrierReflectStrPct") ? nbt.getFloat("barrierReflectStrPct") : 25.0f);
 
         damageMultipliers.clear();
         if (nbt.hasKey("barrierMultipliers")) {
@@ -174,6 +198,8 @@ public class EnergyBarrierData {
         copy.absorbing = absorbing;
         copy.meleeEnabled = meleeEnabled;
         copy.meleeDamageMultiplier = meleeDamageMultiplier;
+        copy.reflect = reflect;
+        copy.reflectStrengthPct = reflectStrengthPct;
         copy.damageMultipliers = new HashMap<>(damageMultipliers);
         return copy;
     }

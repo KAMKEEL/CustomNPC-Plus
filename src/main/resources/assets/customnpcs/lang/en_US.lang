@@ -425,7 +425,37 @@ spawning.liquidSpawning=Spawns in Liquid
 spawning.airSpawning=Spawns in Air
 spawning.minHeight=Minimum Height
 spawning.maxHeight=Maximum Height
+spawning.maxAlive=Max Alive (0 = Unlimited)
+spawning.cooldownTicks=Cooldown (Ticks)
+spawning.attemptsPerCycle=Attempts Per Cycle
+spawning.playerMinDistance=Min Player Distance
+spawning.despawnMode=Despawn Mode
+spawning.despawn.forceNatural=Force Natural
+spawning.despawn.preserve=Preserve Template
+spawning.despawn.forcePersistent=Force Persistent
 spawning.naturalInfo=Add at least one spawn entry and configure spawn options for the NPC to spawn naturally
+spawning.naturalInfoPerformance=Natural Spawn Setup\nBest performance baseline:\n- maxAlive: 20-60\n- cooldownTicks: 200-600\n- attemptsPerCycle: 1-2\n- playerMinDistance: 32-48\n- despawnMode: Force Natural
+tooltip.naturalspawns.main.addProfile=Create a new natural spawn profile.\nBest performance: Keep profile count focused by biome/theme.
+tooltip.naturalspawns.main.removeProfile=Delete the selected natural spawn profile.\nBest performance: Remove unused profiles to reduce selection overhead.
+tooltip.naturalspawns.main.search=Filter spawn profiles by name.\nTip: Use biome/type prefixes for faster maintenance.
+tooltip.naturalspawns.main.biomes=Choose biomes this profile can spawn in.\nBest performance: Use only needed biomes.
+tooltip.naturalspawns.main.dimensions=Choose dimensions this profile can spawn in.\nBest performance: Limit to required dimensions.
+tooltip.naturalspawns.main.options=Open advanced spawn controls.\nBest performance: Configure cap, cooldown, attempts, and despawn mode.
+tooltip.naturalspawns.main.addEntry=Add an entry slot to this profile.\nBest performance: Keep only active entries.
+tooltip.naturalspawns.main.removeEntry=Remove selected entry slot.\nBest performance: Remove empty/duplicate entries.
+tooltip.naturalspawns.main.slot=Entry slot index.\nTip: Keep numbering organized for easier debugging.
+tooltip.naturalspawns.main.selectEntry=Select which clone/NPC this slot spawns.\nBest performance: Avoid very heavy scripted clones in high-frequency profiles.
+tooltip.naturalspawns.options.animal=Spawn Rule: Animal\nUses animal-style spawn checks (surface + creature-valid blocks).\nUse for passive/overworld mobs.\nPerformance: Disable if not needed.
+tooltip.naturalspawns.options.monster=Spawn Rule: Monster\nUses monster-style spawn checks (surface + monster-valid blocks).\nUse for hostile/night/cave mobs.\nPerformance: Disable if not needed.
+tooltip.naturalspawns.options.liquid=Spawn Rule: Liquid\nAllows spawn validation in liquid/water spaces.\nUse only for aquatic entries.\nPerformance: Keep OFF unless required.
+tooltip.naturalspawns.options.air=Spawn Rule: Air\nAllows spawn validation in open-air columns.\nUse only for flying/airborne entries.\nPerformance: Keep OFF unless required.
+tooltip.naturalspawns.options.minHeight=Minimum Spawn Y\nLower vertical bound for this profile.\nUse with Max Height to narrow valid layers.\nPerformance: Tighter ranges = fewer failed checks.
+tooltip.naturalspawns.options.maxHeight=Maximum Spawn Y\nUpper vertical bound for this profile.\nUse with Min Height to target a specific layer.\nPerformance: Tighter ranges = fewer failed checks.
+tooltip.naturalspawns.options.maxAlive=Max Alive (Per Profile)\nCounts loaded entities tagged to this natural spawn profile.\n0 = Unlimited (not recommended).\nPerformance baseline: 20-60.
+tooltip.naturalspawns.options.cooldownTicks=Cooldown (Ticks)\nWait time after a successful spawn before this profile can spawn again.\n20 ticks = 1 second.\nPerformance baseline: 200-600 (10-30 seconds).
+tooltip.naturalspawns.options.attemptsPerCycle=Attempts Per Cycle\nHow many nearby positions this profile tests each cycle.\nHigher values increase spawn pressure and CPU checks.\nPerformance baseline: 1-2.
+tooltip.naturalspawns.options.playerMinDistance=Min Player Distance\nBlocks from nearest player where spawning is blocked.\nHigher values reduce pop-in near players.\nPerformance baseline: 32-48.
+tooltip.naturalspawns.options.despawnMode=Despawn Mode (CNPC entries)\nForce Natural: sets canDespawn=true on spawn. Recommended for natural ecosystems.\nPreserve Template: keeps clone/template despawn setting.\nForce Persistent: sets canDespawn=false (NPC stays loaded longer).\nPerformance recommendation: Force Natural.
 
 role.name=Role
 role.none=No Role
@@ -1789,6 +1819,7 @@ ability.hitType.single=Single
 ability.hitType.pierce=Pierce
 ability.hitType.multi=Multi
 ability.multiHitDelay=Multi-Hit Delay
+ability.maxHits=Max Hits
 ability.distance=Distance
 ability.maxDistance=Max Distance
 ability.lifetime=Lifetime
@@ -1997,8 +2028,9 @@ ability.hover.windUpColor=Color of telegraph during charge-up phase
 ability.hover.activeColor=Color of telegraph when ability is active
 ability.hover.homing=Projectile tracks toward target
 ability.hover.homingStr=How aggressively the projectile tracks (higher = tighter turns)
-ability.hover.hitType=Single: stops on first hit. Pierce: can hit each entity once. Multi: can re-hit entities using the delay below.
+ability.hover.hitType=Single: stops on first hit. Pierce: can hit each entity once. Multi: can re-hit entities using the delay below. Pierce/Multi both respect Max Hits.
 ability.hover.multiHitDelay=Ticks between repeat hits on the same entity when Hit Type is Multi (20 ticks = 1 second)
+ability.hover.maxHits=Maximum total hits before projectile ends in Pierce/Multi modes. Lower values reduce repeated hit spam and improve performance.
 ability.hover.explosive=Creates explosion on impact
 ability.hover.explosionRad=Size of explosion radius
 ability.hover.piercing=Hits multiple targets instead of stopping on first hit
@@ -2053,11 +2085,18 @@ ability.solid=Solid
 ability.knockbackEnabled=Knockback
 ability.knockbackStrength=Knockback Strength
 ability.absorbing=Absorbing
+ability.reflect=Reflect
+ability.reflectStrength=Strength (%)
 ability.meleeEnabled=Allows Melee
 ability.meleeDamageMultiplier=Melee Multiplier
 
 ability.followCaster=Follow Caster
 ability.hover.followCaster=Dome stays centered on the caster as they move
+ability.hover.solid=Entities cannot pass through the barrier boundary
+ability.hover.knockbackEnabled=Repulsion field pushing entities away from barrier surface
+ability.hover.absorbing=Damage dealt to the caster is redirected to the barrier's health
+ability.hover.reflect=Rebounds non-breaking projectiles and reduces their damage by Strength
+ability.hover.meleeEnabled=Barrier can be hit and damaged by melee attacks
 
 
 ability.variant.small=Small
@@ -2298,3 +2337,33 @@ auction.bid.yourBalance=Your Balance: %s
 # Auction Buyout SubGui
 auction.buyout.title=Buy Now
 auction.buyout.confirm=Purchase this item for:
+
+# Global Auction Management GUI
+global.auction.manage.title=Global Auction Management
+global.auction.manage.listings=Listings
+global.auction.manage.create=Create
+global.auction.manage.claims=Claims
+global.auction.manage.sort=Sort
+global.auction.manage.search=Search
+global.auction.manage.page=Page
+global.auction.manage.hint.listings=Left-click: open listing details
+global.auction.manage.hint.listings2=Right-click: stop player | Shift-right: cancel to global
+global.auction.manage.hint.stop=Right-click: stop player
+global.auction.manage.hint.cancel=Shift-right-click: cancel to global
+global.auction.manage.hint.claims=Left-click twice to claim global entries
+global.auction.manage.details=Listing Details
+global.auction.manage.selectListing=Left-click a listing to view details
+global.auction.manage.seller=Seller Name
+global.auction.manage.startPrice=Start Price
+global.auction.manage.buyoutPrice=Buyout Price
+global.auction.manage.durationHours=Duration Hours
+global.auction.manage.stagedItem=Staged Item
+global.auction.manage.create.submit=Create Fake Auction
+global.auction.manage.hint.create=Use right-panel inventory to stage items
+global.auction.manage.confirm=Click again to confirm
+global.auction.manage.confirm.stop=Right-click again to confirm stop player
+global.auction.manage.confirm.cancel=Shift-right-click again to confirm cancel to global
+global.auction.manage.confirm.claim=Left-click again to confirm claim
+global.auction.manage.error.noItem=Stage an item first
+global.auction.manage.error.invalidStart=Enter a valid starting price
+global.auction.manage.error.invalidBuyout=Buyout must be zero or >= start
