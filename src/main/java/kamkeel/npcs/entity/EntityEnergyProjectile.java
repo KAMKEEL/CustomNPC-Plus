@@ -124,6 +124,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
+    protected int hitCount = 0;
     protected final Set<Integer> hitOnceEntities = new HashSet<Integer>();
     protected final Map<Integer, Integer> lastHitTickByEntity = new HashMap<Integer, Integer>();
     protected static final int BARRIER_IMPACT_PAUSE_TICKS = 10;
@@ -508,6 +509,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         hitOnceEntities.clear();
         lastHitTickByEntity.clear();
+        hitCount = 0;
         return true;
     }
 
@@ -943,13 +945,12 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             // Using feet position (target.posY) causes explosions at impact height to miss
             // entities standing below — e.g. a projectile hitting at eye height (~1.62 above feet)
             // would measure dist=1.62, failing a radius<=1.6 check despite a direct hit.
-            double closestX = Math.max(target.boundingBox.minX, Math.min(posX, target.boundingBox.maxX));
-            double closestY = Math.max(target.boundingBox.minY, Math.min(posY, target.boundingBox.maxY));
-            double closestZ = Math.max(target.boundingBox.minZ, Math.min(posZ, target.boundingBox.maxZ));
+            Vec3 closest = closestPointOnBoundingBox(target.boundingBox, posX, posY, posZ);
+            if (closest == null) continue;
             double dist = Math.sqrt(
-                (closestX - posX) * (closestX - posX) +
-                    (closestY - posY) * (closestY - posY) +
-                    (closestZ - posZ) * (closestZ - posZ)
+                (closest.xCoord - posX) * (closest.xCoord - posX) +
+                    (closest.yCoord - posY) * (closest.yCoord - posY) +
+                    (closest.zCoord - posZ) * (closest.zCoord - posZ)
             );
 
             if (dist <= explosionRad) {
@@ -968,6 +969,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected boolean shouldIgnoreExplosionTarget(EntityLivingBase target) {
         if (target == null) return true;
         return shouldIgnoreEntity(target);
+    }
+
+    /**
+     * Clamp a point to the nearest point inside the provided AABB.
+     */
+    protected Vec3 closestPointOnBoundingBox(AxisAlignedBB box, double x, double y, double z) {
+        if (box == null) return null;
+        double closestX = Math.max(box.minX, Math.min(x, box.maxX));
+        double closestY = Math.max(box.minY, Math.min(y, box.maxY));
+        double closestZ = Math.max(box.minZ, Math.min(z, box.maxZ));
+        return Vec3.createVectorHelper(closestX, closestY, closestZ);
     }
 
     /**
@@ -1861,8 +1873,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         combatData.multiHitDelayTicks = Math.max(1, delayTicks);
     }
 
+    public int getMaxHits() {
+        return combatData.getMaxHits();
+    }
+
+    public void setMaxHits(int maxHits) {
+        combatData.setMaxHits(maxHits);
+    }
+
     protected boolean canHitEntityNow(EntityLivingBase entity) {
         if (entity == null) return false;
+        if (combatData.hitType != HitType.SINGLE && hasReachedMaxHits()) return false;
 
         int entityId = entity.getEntityId();
         switch (combatData.hitType) {
@@ -1884,10 +1905,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         int entityId = entity.getEntityId();
         hitOnceEntities.add(entityId);
         lastHitTickByEntity.put(entityId, ticksExisted);
+        hitCount++;
+    }
+
+    protected boolean hasReachedMaxHits() {
+        if (combatData.hitType == HitType.SINGLE) return false;
+        return hitCount >= combatData.getMaxHits();
     }
 
     protected boolean shouldTerminateAfterHit() {
-        return combatData.hitType == HitType.SINGLE;
+        if (combatData.hitType == HitType.SINGLE) return true;
+        return hasReachedMaxHits();
     }
 
     /**
@@ -1931,12 +1959,13 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         recordEntityHit(entity);
         if (isExplosive()) {
+            Vec3 impactPoint = resolveEntityImpactPoint(entity, impactX, impactY, impactZ);
             double oldX = posX;
             double oldY = posY;
             double oldZ = posZ;
-            posX = impactX;
-            posY = impactY;
-            posZ = impactZ;
+            posX = impactPoint.xCoord;
+            posY = impactPoint.yCoord;
+            posZ = impactPoint.zCoord;
             doExplosion();
             posX = oldX;
             posY = oldY;
@@ -1952,6 +1981,26 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         }
 
         return false;
+    }
+
+    /**
+     * Resolve a stable impact point on the target so explosive collisions use actual contact.
+     */
+    protected Vec3 resolveEntityImpactPoint(EntityLivingBase entity, double impactX, double impactY, double impactZ) {
+        if (entity == null || entity.boundingBox == null) {
+            return Vec3.createVectorHelper(impactX, impactY, impactZ);
+        }
+
+        Vec3 segmentStart = Vec3.createVectorHelper(posX, posY, posZ);
+        Vec3 segmentEnd = Vec3.createVectorHelper(impactX, impactY, impactZ);
+        AxisAlignedBB expandedBox = entity.boundingBox.expand(1.0e-4, 1.0e-4, 1.0e-4);
+        MovingObjectPosition intercept = expandedBox.calculateIntercept(segmentStart, segmentEnd);
+        if (intercept != null && intercept.hitVec != null) {
+            return intercept.hitVec;
+        }
+
+        Vec3 closest = closestPointOnBoundingBox(entity.boundingBox, impactX, impactY, impactZ);
+        return closest != null ? closest : Vec3.createVectorHelper(impactX, impactY, impactZ);
     }
 
     /**

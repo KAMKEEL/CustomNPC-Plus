@@ -1819,6 +1819,7 @@ ability.hitType.single=Single
 ability.hitType.pierce=Pierce
 ability.hitType.multi=Multi
 ability.multiHitDelay=Multi-Hit Delay
+ability.maxHits=Max Hits
 ability.distance=Distance
 ability.maxDistance=Max Distance
 ability.lifetime=Lifetime
@@ -2027,8 +2028,9 @@ ability.hover.windUpColor=Color of telegraph during charge-up phase
 ability.hover.activeColor=Color of telegraph when ability is active
 ability.hover.homing=Projectile tracks toward target
 ability.hover.homingStr=How aggressively the projectile tracks (higher = tighter turns)
-ability.hover.hitType=Single: stops on first hit. Pierce: can hit each entity once. Multi: can re-hit entities using the delay below.
+ability.hover.hitType=Single: stops on first hit. Pierce: can hit each entity once. Multi: can re-hit entities using the delay below. Pierce/Multi both respect Max Hits.
 ability.hover.multiHitDelay=Ticks between repeat hits on the same entity when Hit Type is Multi (20 ticks = 1 second)
+ability.hover.maxHits=Maximum total hits before projectile ends in Pierce/Multi modes. Lower values reduce repeated hit spam and improve performance.
 ability.hover.explosive=Creates explosion on impact
 ability.hover.explosionRad=Size of explosion radius
 ability.hover.piercing=Hits multiple targets instead of stopping on first hit

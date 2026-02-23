@@ -685,6 +685,14 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         this.combatData.multiHitDelayTicks = Math.max(1, delay);
     }
 
+    public int getMaxHits() {
+        return combatData.getMaxHits();
+    }
+
+    public void setMaxHits(int maxHits) {
+        combatData.setMaxHits(maxHits);
+    }
+
     // Lifespan data
     @Override
     public float getMaxDistance() {
@@ -832,6 +840,10 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
             .range(1, 200)
             .visibleWhen(() -> getHitType() == HitType.MULTI.ordinal())
             .hover("ability.hover.multiHitDelay"));
+        defs.add(FieldDef.intField("ability.maxHits", this::getMaxHits, this::setMaxHits)
+            .range(1, EnergyCombatData.MAX_HITS)
+            .visibleWhen(() -> getHitType() != HitType.SINGLE.ordinal())
+            .hover("ability.hover.maxHits"));
 
         // Type-specific fields first
         addTypeDefinitions(defs);
