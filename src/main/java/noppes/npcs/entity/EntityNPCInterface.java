@@ -1806,6 +1806,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         compound.setBoolean("DeadBody", stats.hideKilledBody);
         compound.setInteger("StandingState", ais.standingType.ordinal());
         compound.setInteger("MovingState", ais.movingType.ordinal());
+        compound.setInteger("MovingType", ais.movementType);
+        compound.setDouble("FlySpeed", ais.flySpeed);
+        compound.setDouble("FlyGravity", ais.flyGravity);
+        compound.setBoolean("HasFlyLimit", ais.hasFlyLimit);
+        compound.setInteger("FlyHeightLimit", ais.flyHeightLimit);
         compound.setInteger("Orientation", ais.orientation);
         compound.setFloat("OffsetY", ais.bodyOffsetY);
         compound.setInteger("Role", advanced.role.ordinal());
@@ -1854,6 +1859,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         stats.hideKilledBody = compound.getBoolean("DeadBody");
         ais.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
         ais.movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
+        if (compound.hasKey("MovingType", Constants.NBT.TAG_INT)) {
+            ais.movementType = compound.getInteger("MovingType");
+        }
+        if (compound.hasKey("FlySpeed", Constants.NBT.TAG_DOUBLE)) {
+            ais.flySpeed = compound.getDouble("FlySpeed");
+        }
+        if (compound.hasKey("FlyGravity", Constants.NBT.TAG_DOUBLE)) {
+            ais.flyGravity = compound.getDouble("FlyGravity");
+        }
+        if (compound.hasKey("HasFlyLimit", Constants.NBT.TAG_BYTE)) {
+            ais.hasFlyLimit = compound.getBoolean("HasFlyLimit");
+        }
+        if (compound.hasKey("FlyHeightLimit", Constants.NBT.TAG_INT)) {
+            ais.flyHeightLimit = compound.getInteger("FlyHeightLimit");
+        }
         ais.orientation = compound.getInteger("Orientation");
         ais.bodyOffsetY = compound.getFloat("OffsetY");
 

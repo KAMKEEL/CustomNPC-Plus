@@ -76,13 +76,13 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         this.flyLimitAllow = true;
         setNpcFlyingState(true);
 
-        double d3 = this.motionY;
-        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
-        this.motionY = d3;
-
+        double desiredMotionY = this.motionY;
         if (this.getNavigator().noPath()) {
-            this.motionY = -Math.abs(this.ais.flyGravity);
+            desiredMotionY = -Math.abs(this.ais.flyGravity);
         }
+        this.motionY = desiredMotionY;
+        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+        this.motionY = desiredMotionY;
 
         this.updateLimbSwing();
     }
@@ -140,13 +140,13 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             return;
         }
 
-        double d3 = this.motionY;
-        super.performMountedMovement(strafe, forward, moveSpeed);
-        this.motionY = d3;
-
+        double desiredMotionY = this.motionY;
         if (this.getNavigator().noPath()) {
-            this.motionY = -Math.abs(this.ais.flyGravity);
+            desiredMotionY = -Math.abs(this.ais.flyGravity);
         }
+        this.motionY = desiredMotionY;
+        super.performMountedMovement(strafe, forward, moveSpeed);
+        this.motionY = desiredMotionY;
 
         this.updateLimbSwing();
     }
