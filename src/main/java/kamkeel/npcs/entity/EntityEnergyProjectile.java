@@ -923,6 +923,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (worldObj.isRemote) return; // Explosions are server-side only
         float explosionRad = getExplosionRadius();
         if (Float.isNaN(explosionRad) || explosionRad <= 0) return;
+        final double explosionRadSq = explosionRad * explosionRad;
+        final float baseDamage = getDamage();
+        final float baseKnockback = getKnockback();
+        final float damageFalloff = getExplosionDamageFalloff();
         spawnExplosionRenderEntity(explosionRad);
         spawnExplosionVisuals(explosionRad);
         worldObj.playSoundEffect(posX, posY, posZ, "random.explode", 1.0f, 1.0f);
@@ -945,18 +949,22 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             // Using feet position (target.posY) causes explosions at impact height to miss
             // entities standing below — e.g. a projectile hitting at eye height (~1.62 above feet)
             // would measure dist=1.62, failing a radius<=1.6 check despite a direct hit.
-            Vec3 closest = closestPointOnBoundingBox(target.boundingBox, posX, posY, posZ);
-            if (closest == null) continue;
-            double dist = Math.sqrt(
-                (closest.xCoord - posX) * (closest.xCoord - posX) +
-                    (closest.yCoord - posY) * (closest.yCoord - posY) +
-                    (closest.zCoord - posZ) * (closest.zCoord - posZ)
-            );
+            if (target.boundingBox == null) continue;
+            double closestX = Math.max(target.boundingBox.minX, Math.min(posX, target.boundingBox.maxX));
+            double closestY = Math.max(target.boundingBox.minY, Math.min(posY, target.boundingBox.maxY));
+            double closestZ = Math.max(target.boundingBox.minZ, Math.min(posZ, target.boundingBox.maxZ));
+            double dx = closestX - posX;
+            double dy = closestY - posY;
+            double dz = closestZ - posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+            if (distSq > explosionRadSq) continue;
 
-            if (dist <= explosionRad) {
-                float falloff = 1.0f - (float) (dist / explosionRad) * getExplosionDamageFalloff();
-                applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
+            float falloff = 1.0f;
+            if (damageFalloff != 0.0f && distSq > 0.0D) {
+                float dist = (float) Math.sqrt(distSq);
+                falloff = 1.0f - (dist / explosionRad) * damageFalloff;
             }
+            applyDamage(target, baseDamage * falloff, baseKnockback * falloff);
         }
 
         tryDestroyTerrain(explosionRad);
@@ -1161,11 +1169,16 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         int maxY = MathHelper.floor_double(posY + terrainRad);
         int minZ = MathHelper.floor_double(posZ - terrainRad);
         int maxZ = MathHelper.floor_double(posZ + terrainRad);
+        int worldMaxY = Math.max(0, worldObj.getActualHeight() - 1);
+        if (maxY < 0 || minY > worldMaxY) return;
         float resistanceCutoff = Math.max(4.0f, terrainRad * 6.0f);
 
         Explosion context = new Explosion(worldObj, this, posX, posY, posZ, terrainRad);
         context.isFlaming = false;
         context.isSmoking = true;
+        int lastChunkX = Integer.MIN_VALUE;
+        int lastChunkZ = Integer.MIN_VALUE;
+        boolean lastChunkLoaded = false;
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
@@ -1181,6 +1194,16 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                     // Soften cube corners a bit for a less artificial crater edge.
                     double normalized = chebyshev / terrainRad;
                     if (normalized > 0.72D && rand.nextDouble() < (normalized - 0.72D) * 1.4D) continue;
+                    if (y < 0 || y > worldMaxY) continue;
+
+                    int chunkX = x >> 4;
+                    int chunkZ = z >> 4;
+                    if (chunkX != lastChunkX || chunkZ != lastChunkZ) {
+                        lastChunkX = chunkX;
+                        lastChunkZ = chunkZ;
+                        lastChunkLoaded = worldObj.getChunkProvider().chunkExists(chunkX, chunkZ);
+                    }
+                    if (!lastChunkLoaded) continue;
 
                     Block block = worldObj.getBlock(x, y, z);
                     if (block == null || block == Blocks.air || block == Blocks.bedrock) continue;
