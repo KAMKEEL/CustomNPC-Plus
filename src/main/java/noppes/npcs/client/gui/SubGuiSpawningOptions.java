@@ -16,7 +16,7 @@ public class SubGuiSpawningOptions extends SubGuiInterface implements ITextfield
     public SubGuiSpawningOptions(SpawnData data) {
         this.data = data;
         setBackground("menubg.png");
-        xSize = 236;
+        xSize = 256;
         ySize = 216;
         closeOnEsc = true;
     }
@@ -98,7 +98,7 @@ public class SubGuiSpawningOptions extends SubGuiInterface implements ITextfield
         sw.getTextField(19).setHoverText("tooltip.naturalspawns.options.playerMinDistance");
         y += 22;
 
-        sw.addButton(new GuiNpcButton(20, controlX, y, 74, 20,
+        sw.addButton(new GuiNpcButton(20, controlX, y, 100, 20,
             new String[]{"spawning.despawn.forceNatural", "spawning.despawn.preserve", "spawning.despawn.forcePersistent"}, data.despawnMode));
         sw.addLabel(new GuiNpcLabel(20, "spawning.despawnMode", labelX, y + 5));
         sw.getButton(20).setHoverText("tooltip.naturalspawns.options.despawnMode");
