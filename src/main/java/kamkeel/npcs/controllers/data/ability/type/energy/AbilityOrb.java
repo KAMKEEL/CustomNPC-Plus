@@ -187,7 +187,9 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
         defs.add(FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
-        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));
+        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
+            .range(0.0f, EnergyCombatData.MAX_EXPLOSION_RADIUS)
+            .visibleWhen(this::isExplosive));
         defs.add(AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects));
     }
 }

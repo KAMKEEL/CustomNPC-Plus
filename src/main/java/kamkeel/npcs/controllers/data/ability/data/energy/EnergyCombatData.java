@@ -9,6 +9,8 @@ import noppes.npcs.api.ability.data.IEnergyCombatData;
  * Used as a parameter object for entity constructors and ability configuration.
  */
 public class EnergyCombatData implements IEnergyCombatData {
+    public static final float MAX_EXPLOSION_RADIUS = 15.0f;
+
     public float damage = 7.0f;
     public float knockback = 1.0f;
     public float knockbackUp = 0.1f;
@@ -28,7 +30,7 @@ public class EnergyCombatData implements IEnergyCombatData {
         this.knockback = knockback;
         this.knockbackUp = knockbackUp;
         this.explosive = explosive;
-        this.explosionRadius = explosionRadius;
+        this.explosionRadius = clampExplosionRadius(explosionRadius);
         this.explosionDamageFalloff = explosionDamageFalloff;
         this.hitType = hitType;
         this.multiHitDelayTicks = multiHitDelay;
@@ -40,7 +42,7 @@ public class EnergyCombatData implements IEnergyCombatData {
         this.knockback = knockback;
         this.knockbackUp = knockbackUp;
         this.explosive = explosive;
-        this.explosionRadius = explosionRadius;
+        this.explosionRadius = clampExplosionRadius(explosionRadius);
         this.explosionDamageFalloff = explosionDamageFalloff;
     }
 
@@ -91,7 +93,7 @@ public class EnergyCombatData implements IEnergyCombatData {
 
     @Override
     public void setExplosionRadius(float explosionRadius) {
-        this.explosionRadius = Math.max(0, explosionRadius);
+        this.explosionRadius = clampExplosionRadius(explosionRadius);
     }
 
     @Override
@@ -129,7 +131,13 @@ public class EnergyCombatData implements IEnergyCombatData {
         if (Float.isNaN(damage) || Float.isInfinite(damage)) damage = 7.0f;
         if (Float.isNaN(knockback) || Float.isInfinite(knockback) || knockback < 0) knockback = 1.0f;
         if (Float.isNaN(explosionRadius) || Float.isInfinite(explosionRadius) || explosionRadius < 0) explosionRadius = 3.0f;
+        explosionRadius = clampExplosionRadius(explosionRadius);
         if (multiHitDelayTicks < 1) multiHitDelayTicks = 1;
+    }
+
+    private static float clampExplosionRadius(float explosionRadius) {
+        if (Float.isNaN(explosionRadius) || Float.isInfinite(explosionRadius)) return 0.0f;
+        return Math.max(0.0f, Math.min(MAX_EXPLOSION_RADIUS, explosionRadius));
     }
 
     public EnergyCombatData copy() {

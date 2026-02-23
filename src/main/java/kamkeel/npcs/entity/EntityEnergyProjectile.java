@@ -126,6 +126,14 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected boolean hasHit = false;
     protected final Set<Integer> hitOnceEntities = new HashSet<Integer>();
     protected final Map<Integer, Integer> lastHitTickByEntity = new HashMap<Integer, Integer>();
+    protected static final int BARRIER_IMPACT_PAUSE_TICKS = 10;
+    protected static final int BARRIER_BREAK_SPARK_TICKS = 10;
+    protected static final int DW_BARRIER_SPARK_TICKS = 21;
+    protected static final int DW_SYNC_INNER_COLOR = 22;
+    protected static final int DW_SYNC_OUTER_COLOR = 23;
+    protected int barrierImpactPauseTicks = 0;
+    protected boolean barrierImpactDestroyOnResume = false;
+    protected double pausedMotionX, pausedMotionY, pausedMotionZ;
 
     // ==================== CHARGING STATE (projectile-specific) ====================
     protected float targetSize = 1.0f;
@@ -148,6 +156,15 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.setSize(0.5f, 0.5f);
         this.yOffset = this.height / 2.0f;
         this.noClip = false;
+    }
+
+    @Override
+    protected void entityInit() {
+        super.entityInit(); // DW_CHARGING = 20
+        this.dataWatcher.addObject(DW_BARRIER_SPARK_TICKS, 0);
+        // displayData is not guaranteed to be initialized yet during Entity construction.
+        this.dataWatcher.addObject(DW_SYNC_INNER_COLOR, 0xFFFFFF);
+        this.dataWatcher.addObject(DW_SYNC_OUTER_COLOR, 0xFFFFFF);
     }
 
     /**
@@ -174,6 +191,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
         this.lightningData = lightning;
         this.trajectoryData = trajectory;
+        syncProjectileColorWatchers();
 
         // Initialize render size
         this.renderCurrentSize = size;
@@ -209,11 +227,20 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             }
         }
 
+        if (!previewMode) {
+            syncDisplayColorsFromWatchers();
+        }
+
         // Update rotation
         updateRotation();
 
         // Lerp render size toward actual size
         this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
+
+        // Server-synced visual timer used for brief barrier impact lightning.
+        if (!previewMode && !worldObj.isRemote) {
+            tickBarrierSparkTimer();
+        }
 
         // Skip lifetime/distance checks in preview mode
         if (!previewMode) {
@@ -276,10 +303,16 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             }
         }
 
+        if (!previewMode && !worldObj.isRemote && !isCharging()) {
+            if (tickBarrierImpactPause()) {
+                return;
+            }
+        }
+
         // Check barrier collisions (server-side, non-preview, non-charging)
         if (!previewMode && !worldObj.isRemote && !isCharging()) {
             if (checkBarrierCollision()) {
-                return; // Projectile was absorbed by a barrier
+                return; // Barrier interaction handled (pause + destroy/continue)
             }
         }
 
@@ -330,7 +363,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * Check for collision with energy barrier entities.
      * Barriers only block incoming projectiles from enemies.
      *
-     * @return true if projectile was absorbed (caller should stop processing)
+     * @return true if barrier interaction was handled (caller should stop processing this tick)
      */
     protected boolean checkBarrierCollision() {
         List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(worldObj);
@@ -347,15 +380,353 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
             if (barrier.isIncomingProjectile(this)) {
                 float damage = getModifiedDamage();
-                if (barrier.onProjectileHit(this, damage)) {
-                    hasHit = true;
-                    this.setDead();
+                EntityAbilityBarrier.ProjectileHitOutcome hitOutcome = barrier.onProjectileHitResolved(this, damage);
+                if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+                    continue;
+                }
+                if (handleBarrierHitOutcome(barrier, hitOutcome)) {
                     return true;
                 }
+                return false;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Handle the result of a projectile/barrier interaction.
+     *
+     * @return true if caller should stop processing this tick.
+     */
+    protected boolean handleBarrierHitOutcome(EntityAbilityBarrier barrier, EntityAbilityBarrier.ProjectileHitOutcome hitOutcome) {
+        if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+            return false;
+        }
+
+        if (hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
+            if (hitOutcome.remainingProjectileDamage <= 0.0f) {
+                setBarrierSparkTicks(Math.max(getBarrierSparkTicks(), BARRIER_BREAK_SPARK_TICKS));
+                hasHit = true;
+                return true;
+            }
+
+            setCombatDamage(hitOutcome.remainingProjectileDamage);
+            setBarrierSparkTicks(Math.max(getBarrierSparkTicks(), BARRIER_BREAK_SPARK_TICKS));
+            return false;
+        }
+
+        if (hitOutcome.shouldReflect()) {
+            if (!reflectFromBarrier(barrier, hitOutcome.reflectStrengthPct)) {
+                beginBarrierImpactPause(true, barrier);
+            }
+            return true;
+        }
+
+        beginBarrierImpactPause(true, barrier);
+        return true;
+    }
+
+    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+        if (barrier == null) {
+            return false;
+        }
+
+        double vx = motionX;
+        double vy = motionY;
+        double vz = motionZ;
+        double vLenSq = vx * vx + vy * vy + vz * vz;
+        if (vLenSq < 1.0e-8) {
+            return false;
+        }
+
+        double[] normal = getBarrierImpactNormal(barrier, vx, vy, vz);
+        if (normal == null) {
+            return false;
+        }
+
+        double dot = vx * normal[0] + vy * normal[1] + vz * normal[2];
+        if (dot > 0.0) {
+            normal[0] = -normal[0];
+            normal[1] = -normal[1];
+            normal[2] = -normal[2];
+            dot = vx * normal[0] + vy * normal[1] + vz * normal[2];
+        }
+
+        double rx = vx - 2.0 * dot * normal[0];
+        double ry = vy - 2.0 * dot * normal[1];
+        double rz = vz - 2.0 * dot * normal[2];
+        double rLenSq = rx * rx + ry * ry + rz * rz;
+        if (rLenSq < 1.0e-8) {
+            rx = -vx;
+            ry = -vy;
+            rz = -vz;
+            rLenSq = rx * rx + ry * ry + rz * rz;
+        }
+
+        // Prefer rebounding out and away from ground instead of immediately diving downward.
+        if (ry < -0.06) {
+            double speed = Math.sqrt(Math.max(rLenSq, 1.0e-8));
+            ry = Math.max(0.08, Math.abs(ry) * 0.35);
+            double newLen = Math.sqrt(rx * rx + ry * ry + rz * rz);
+            if (newLen > 1.0e-8) {
+                double scale = speed / newLen;
+                rx *= scale;
+                ry *= scale;
+                rz *= scale;
+            }
+        }
+
+        // Push slightly outside the collision boundary so the reflected motion
+        // starts cleanly from the barrier surface instead of re-colliding in place.
+        snapOutsideBarrierForPause(barrier);
+
+        motionX = rx;
+        motionY = ry;
+        motionZ = rz;
+        pausedMotionX = rx;
+        pausedMotionY = ry;
+        pausedMotionZ = rz;
+        barrierImpactPauseTicks = 0;
+        barrierImpactDestroyOnResume = false;
+
+        Entity barrierOwner = barrier.getOwnerEntity();
+        if (barrierOwner != null) {
+            setOwnerEntityId(barrierOwner.getEntityId());
+            // Ensure ownership-sensitive systems can query this projectile under the new owner.
+            trackProjectile(this);
+        }
+        // Old homing target may now be the new owner or ally; clear it after reflection.
+        setTargetEntityId(-1);
+
+        setInnerColor(barrier.getInnerColor());
+        setOuterColor(barrier.getOuterColor());
+
+        float clampedStrength = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
+        float reducedDamage = getDamage() * (1.0f - clampedStrength / 100.0f);
+        setCombatDamage(Math.max(0.0f, reducedDamage));
+
+        hitOnceEntities.clear();
+        lastHitTickByEntity.clear();
+        return true;
+    }
+
+    protected double[] getBarrierImpactNormal(EntityAbilityBarrier barrier, double velocityX, double velocityY, double velocityZ) {
+        if (barrier instanceof EntityAbilityDome) {
+            EntityAbilityDome dome = (EntityAbilityDome) barrier;
+            return normalizeVector(posX - dome.posX, posY - dome.posY, posZ - dome.posZ, velocityX, velocityY, velocityZ);
+        }
+
+        if (barrier instanceof EntityAbilityPanel) {
+            EntityAbilityPanel panel = (EntityAbilityPanel) barrier;
+            float yawRad = (float) Math.toRadians(panel.getPanelYaw());
+            double nx = -Math.sin(yawRad);
+            double nz = Math.cos(yawRad);
+            double relX = posX - panel.posX;
+            double relZ = posZ - panel.posZ;
+            double signedDist = relX * nx + relZ * nz;
+            double side = signedDist;
+            if (Math.abs(side) < 1.0e-5) {
+                side = velocityX * nx + velocityZ * nz;
+            }
+            if (side < 0.0) {
+                nx = -nx;
+                nz = -nz;
+            }
+            return normalizeVector(nx, 0.0, nz, velocityX, velocityY, velocityZ);
+        }
+
+        return normalizeVector(posX - barrier.posX, posY - barrier.posY, posZ - barrier.posZ, velocityX, velocityY, velocityZ);
+    }
+
+    protected double[] normalizeVector(double x, double y, double z, double fallbackX, double fallbackY, double fallbackZ) {
+        double lenSq = x * x + y * y + z * z;
+        if (lenSq > 1.0e-8) {
+            double invLen = 1.0 / Math.sqrt(lenSq);
+            return new double[]{x * invLen, y * invLen, z * invLen};
+        }
+
+        double fallbackLenSq = fallbackX * fallbackX + fallbackY * fallbackY + fallbackZ * fallbackZ;
+        if (fallbackLenSq > 1.0e-8) {
+            double invFallbackLen = 1.0 / Math.sqrt(fallbackLenSq);
+            return new double[]{-fallbackX * invFallbackLen, -fallbackY * invFallbackLen, -fallbackZ * invFallbackLen};
+        }
+
+        return new double[]{0.0, 1.0, 0.0};
+    }
+
+    protected void beginBarrierImpactPause(boolean destroyOnResume, EntityAbilityBarrier barrier) {
+        if (barrierImpactPauseTicks <= 0) {
+            pausedMotionX = motionX;
+            pausedMotionY = motionY;
+            pausedMotionZ = motionZ;
+        }
+
+        barrierImpactDestroyOnResume = destroyOnResume;
+        barrierImpactPauseTicks = BARRIER_IMPACT_PAUSE_TICKS;
+        motionX = 0;
+        motionY = 0;
+        motionZ = 0;
+
+        int sparkTicks = getBarrierSparkTicks();
+        if (sparkTicks < BARRIER_IMPACT_PAUSE_TICKS) {
+            setBarrierSparkTicks(BARRIER_IMPACT_PAUSE_TICKS);
+        }
+    }
+
+    protected float getBarrierPauseOutsideDistance() {
+        // Keep the paused projectile just outside the surface without a visible "fling".
+        return Math.max(0.06f, Math.min(0.22f, size * 0.18f + 0.03f));
+    }
+
+    protected void snapOutsideBarrierForPause(EntityAbilityBarrier barrier) {
+        if (barrier == null) return;
+
+        float bias = getBarrierPauseOutsideDistance();
+        if (barrier instanceof EntityAbilityDome) {
+            EntityAbilityDome dome = (EntityAbilityDome) barrier;
+            double nx = posX - dome.posX;
+            double ny = posY - dome.posY;
+            double nz = posZ - dome.posZ;
+            double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+            if (len < 1.0e-5) {
+                double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+                if (vLen > 1.0e-5) {
+                    nx = -motionX / vLen;
+                    ny = -motionY / vLen;
+                    nz = -motionZ / vLen;
+                    len = 1.0;
+                } else {
+                    nx = 0.0;
+                    ny = 1.0;
+                    nz = 0.0;
+                    len = 1.0;
+                }
+            }
+
+            double invLen = 1.0 / len;
+            double target = dome.getDomeRadius() + bias;
+            setPosition(
+                dome.posX + nx * invLen * target,
+                dome.posY + ny * invLen * target,
+                dome.posZ + nz * invLen * target
+            );
+            return;
+        }
+
+        if (barrier instanceof EntityAbilityPanel) {
+            EntityAbilityPanel panel = (EntityAbilityPanel) barrier;
+            float yawRad = (float) Math.toRadians(panel.getPanelYaw());
+            double normalX = -Math.sin(yawRad);
+            double normalZ = Math.cos(yawRad);
+            double relX = posX - panel.posX;
+            double relZ = posZ - panel.posZ;
+            double signedDist = relX * normalX + relZ * normalZ;
+            double halfThickness = 0.25;
+            double side;
+            if (Math.abs(signedDist) > 0.035) {
+                side = signedDist >= 0 ? 1.0 : -1.0;
+            } else {
+                // Near the plane, use incoming direction so we don't snap through and "fling".
+                double vDot = motionX * normalX + motionZ * normalZ;
+                if (Math.abs(vDot) > 1.0e-5) {
+                    side = vDot < 0 ? 1.0 : -1.0;
+                } else {
+                    side = signedDist >= 0 ? 1.0 : -1.0;
+                }
+            }
+            double targetDist = side * (halfThickness + bias);
+            double delta = targetDist - signedDist;
+            setPosition(posX + normalX * delta, posY, posZ + normalZ * delta);
+            return;
+        }
+
+        double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+        if (vLen > 1.0e-5) {
+            setPosition(
+                posX - (motionX / vLen) * bias,
+                posY - (motionY / vLen) * bias,
+                posZ - (motionZ / vLen) * bias
+            );
+        }
+    }
+
+    protected boolean tickBarrierImpactPause() {
+        if (barrierImpactPauseTicks <= 0) {
+            return false;
+        }
+
+        motionX = 0;
+        motionY = 0;
+        motionZ = 0;
+        barrierImpactPauseTicks--;
+
+        if (barrierImpactPauseTicks <= 0) {
+            if (barrierImpactDestroyOnResume) {
+                hasHit = true;
+                this.setDead();
+            } else {
+                motionX = pausedMotionX;
+                motionY = pausedMotionY;
+                motionZ = pausedMotionZ;
+            }
+            barrierImpactDestroyOnResume = false;
+        }
+
+        return true;
+    }
+
+    protected void tickBarrierSparkTimer() {
+        int sparkTicks = getBarrierSparkTicks();
+        if (sparkTicks > 0) {
+            setBarrierSparkTicks(sparkTicks - 1);
+        }
+    }
+
+    protected void setBarrierSparkTicks(int ticks) {
+        if (!worldObj.isRemote) {
+            this.dataWatcher.updateObject(DW_BARRIER_SPARK_TICKS, Math.max(0, ticks));
+        }
+    }
+
+    public int getBarrierSparkTicks() {
+        if (this.dataWatcher == null) {
+            return 0;
+        }
+        return Math.max(0, this.dataWatcher.getWatchableObjectInt(DW_BARRIER_SPARK_TICKS));
+    }
+
+    protected void syncProjectileColorWatchers() {
+        if (this.dataWatcher == null) {
+            return;
+        }
+        this.dataWatcher.updateObject(DW_SYNC_INNER_COLOR, this.displayData.getInnerColor());
+        this.dataWatcher.updateObject(DW_SYNC_OUTER_COLOR, this.displayData.getOuterColor());
+    }
+
+    protected void syncDisplayColorsFromWatchers() {
+        if (this.dataWatcher == null) {
+            return;
+        }
+        this.displayData.setInnerColor(this.dataWatcher.getWatchableObjectInt(DW_SYNC_INNER_COLOR));
+        this.displayData.setOuterColor(this.dataWatcher.getWatchableObjectInt(DW_SYNC_OUTER_COLOR));
+    }
+
+    @Override
+    public void setInnerColor(int color) {
+        super.setInnerColor(color);
+        if (!previewMode) {
+            syncProjectileColorWatchers();
+        }
+    }
+
+    @Override
+    public void setOuterColor(int color) {
+        super.setOuterColor(color);
+        if (!previewMode) {
+            syncProjectileColorWatchers();
+        }
     }
 
     /**
@@ -605,7 +976,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      */
     protected void spawnExplosionRenderEntity(float explosionRad) {
         if (worldObj == null || worldObj.isRemote) return;
-        float renderRad = Math.max(0.75f, Math.min(explosionRad, 12.0f));
+        float renderRad = Math.max(0.75f, Math.min(explosionRad, EnergyCombatData.MAX_EXPLOSION_RADIUS));
         EntityEnergyExplosion fx = new EntityEnergyExplosion(worldObj, this, renderRad);
         EnergyExplosionSpawnPacket.sendToTracking(getExplosionVisualInstanceId(), fx, this);
     }
@@ -620,7 +991,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected void spawnExplosionVisuals(float explosionRad) {
         if (worldObj == null) return;
 
-        float visualRad = Math.max(0.75f, Math.min(explosionRad, 12.0f));
+        float visualRad = Math.max(0.75f, Math.min(explosionRad, EnergyCombatData.MAX_EXPLOSION_RADIUS));
         int coreBursts = Math.max(1, Math.min(4, Math.round(visualRad * 0.35f)));
         int shellCount = Math.max(1, Math.min(3, Math.round(visualRad / 3.5f) + 1));
 
@@ -771,7 +1142,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (!ConfigEnergy.EnableEnergyExplosionBlockDamage) return;
         if (!worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing")) return;
 
-        float terrainRad = Math.max(0.5f, Math.min(explosionRad, 12.0f));
+        float terrainRad = Math.max(0.5f, Math.min(explosionRad, EnergyCombatData.MAX_EXPLOSION_RADIUS));
         int minX = MathHelper.floor_double(posX - terrainRad);
         int maxX = MathHelper.floor_double(posX + terrainRad);
         int minY = MathHelper.floor_double(posY - terrainRad);
@@ -1459,7 +1830,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     public float getExplosionRadius() {
-        return combatData.explosionRadius;
+        return combatData.getExplosionRadius();
     }
 
     public void setExplosionRadius(float radius) {
@@ -1686,6 +2057,11 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         return hasHit;
     }
 
+    @Override
+    public boolean hasLightningEffect() {
+        return super.hasLightningEffect() || getBarrierSparkTicks() > 0;
+    }
+
     // ==================== NBT ====================
 
     @Override
@@ -1766,6 +2142,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
         trajectoryData.readNBT(nbt);
+        syncProjectileColorWatchers();
     }
 
     /**

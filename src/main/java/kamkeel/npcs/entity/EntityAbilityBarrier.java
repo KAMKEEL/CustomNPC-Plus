@@ -24,6 +24,55 @@ import java.util.List;
  */
 public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
 
+    /**
+     * Outcome of a projectile vs barrier interaction.
+     */
+    public enum ProjectileHitResult {
+        PASS,
+        BLOCKED,
+        BROKEN;
+
+        public boolean isAbsorbed() {
+            return this == BLOCKED || this == BROKEN;
+        }
+    }
+
+    /**
+     * Full result of a projectile vs barrier hit after multiplier/event processing.
+     */
+    public static class ProjectileHitOutcome {
+        public final ProjectileHitResult result;
+        public final float barrierHealthBefore;
+        public final float barrierHealthAfter;
+        public final float appliedBarrierDamage;
+        public final float remainingProjectileDamage;
+        public final boolean reflectEnabled;
+        public final float reflectStrengthPct;
+        public final boolean useHealth;
+
+        public ProjectileHitOutcome(ProjectileHitResult result,
+                                    float barrierHealthBefore,
+                                    float barrierHealthAfter,
+                                    float appliedBarrierDamage,
+                                    float remainingProjectileDamage,
+                                    boolean reflectEnabled,
+                                    float reflectStrengthPct,
+                                    boolean useHealth) {
+            this.result = result;
+            this.barrierHealthBefore = barrierHealthBefore;
+            this.barrierHealthAfter = barrierHealthAfter;
+            this.appliedBarrierDamage = appliedBarrierDamage;
+            this.remainingProjectileDamage = remainingProjectileDamage;
+            this.reflectEnabled = reflectEnabled;
+            this.reflectStrengthPct = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
+            this.useHealth = useHealth;
+        }
+
+        public boolean shouldReflect() {
+            return reflectEnabled && useHealth && result == ProjectileHitResult.BLOCKED;
+        }
+    }
+
     // ==================== ACTIVE BARRIER REGISTRY ====================
     private static final List<WeakReference<EntityAbilityBarrier>> activeBarriers = new ArrayList<>();
     private boolean tracked = false;
@@ -164,6 +213,20 @@ public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
      * Returns true if the barrier absorbed the hit (projectile should be destroyed).
      */
     public boolean onProjectileHit(EntityEnergyProjectile projectile, float baseDamage) {
+        return onProjectileHitDetailed(projectile, baseDamage).isAbsorbed();
+    }
+
+    /**
+     * Apply damage to this barrier from a projectile and return detailed outcome.
+     */
+    public ProjectileHitResult onProjectileHitDetailed(EntityEnergyProjectile projectile, float baseDamage) {
+        return onProjectileHitResolved(projectile, baseDamage).result;
+    }
+
+    /**
+     * Apply damage to this barrier from a projectile and return full hit context.
+     */
+    public ProjectileHitOutcome onProjectileHitResolved(EntityEnergyProjectile projectile, float baseDamage) {
         // Get damage multiplier for this projectile type
         String typeId = "";
         if (projectile.getSourceAbility() != null) {
@@ -175,25 +238,67 @@ public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
         // Fire hit event (may cancel or modify damage)
         if (!worldObj.isRemote) {
             float eventDamage = EventHooks.onEnergyBarrierHit(this, ownerEntityId, projectile, damage);
-            if (eventDamage < 0) return false; // Event cancelled — don't block
+            if (eventDamage < 0) {
+                return new ProjectileHitOutcome(
+                    ProjectileHitResult.PASS,
+                    currentHealth,
+                    currentHealth,
+                    0.0f,
+                    0.0f,
+                    barrierData.reflect,
+                    barrierData.reflectStrengthPct,
+                    barrierData.useHealth
+                );
+            }
             damage = eventDamage;
         }
 
         triggerHitFlash();
 
+        float healthBefore = currentHealth;
+
         if (!barrierData.useHealth) {
-            return true; // Duration-only mode: block but don't take damage
+            return new ProjectileHitOutcome(
+                ProjectileHitResult.BLOCKED,
+                healthBefore,
+                healthBefore,
+                0.0f,
+                0.0f,
+                false,
+                barrierData.reflectStrengthPct,
+                false
+            );
         }
 
         currentHealth -= damage;
         syncHealthPercent();
 
         if (currentHealth <= 0) {
+            float remaining = Math.max(0.0f, damage - healthBefore);
             onBarrierDestroyed();
             this.setDead();
+            return new ProjectileHitOutcome(
+                ProjectileHitResult.BROKEN,
+                healthBefore,
+                0.0f,
+                damage,
+                remaining,
+                barrierData.reflect,
+                barrierData.reflectStrengthPct,
+                true
+            );
         }
 
-        return true;
+        return new ProjectileHitOutcome(
+            ProjectileHitResult.BLOCKED,
+            healthBefore,
+            currentHealth,
+            damage,
+            0.0f,
+            barrierData.reflect,
+            barrierData.reflectStrengthPct,
+            true
+        );
     }
 
     // ==================== MELEE DAMAGE ====================

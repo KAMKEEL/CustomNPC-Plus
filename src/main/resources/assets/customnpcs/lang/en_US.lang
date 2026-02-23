@@ -2053,6 +2053,8 @@ ability.solid=Solid
 ability.knockbackEnabled=Knockback
 ability.knockbackStrength=Knockback Strength
 ability.absorbing=Absorbing
+ability.reflect=Reflect
+ability.reflectStrength=Strength (%)
 ability.meleeEnabled=Allows Melee
 ability.meleeDamageMultiplier=Melee Multiplier
 
@@ -2061,6 +2063,7 @@ ability.hover.followCaster=Dome stays centered on the caster as they move
 ability.hover.solid=Entities cannot pass through the barrier boundary
 ability.hover.knockbackEnabled=Repulsion field pushing entities away from barrier surface
 ability.hover.absorbing=Damage dealt to the caster is redirected to the barrier's health
+ability.hover.reflect=Rebounds non-breaking projectiles and reduces their damage by Strength
 ability.hover.meleeEnabled=Barrier can be hit and damaged by melee attacks
 
 

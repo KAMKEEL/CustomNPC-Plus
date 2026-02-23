@@ -104,9 +104,13 @@ public class ClientEventHandler {
             int hudKeyCode = ClientProxy.AbilityHudKey.getKeyCode();
             boolean hudKeyHeld = false;
             if (hudKeyCode > 0) {
-                hudKeyHeld = org.lwjgl.input.Keyboard.isKeyDown(hudKeyCode);
+                hudKeyHeld = hudKeyCode < org.lwjgl.input.Keyboard.getKeyCount()
+                    && org.lwjgl.input.Keyboard.isKeyDown(hudKeyCode);
             } else if (hudKeyCode < 0) {
-                hudKeyHeld = org.lwjgl.input.Mouse.isButtonDown(hudKeyCode + 100);
+                int mouseButton = hudKeyCode + 100;
+                hudKeyHeld = mouseButton >= 0
+                    && mouseButton < org.lwjgl.input.Mouse.getButtonCount()
+                    && org.lwjgl.input.Mouse.isButtonDown(mouseButton);
             }
             if (hudKeyHeld) {
                 AbilityHotbarComponent comp = (AbilityHotbarComponent) ClientHudManager.getInstance()

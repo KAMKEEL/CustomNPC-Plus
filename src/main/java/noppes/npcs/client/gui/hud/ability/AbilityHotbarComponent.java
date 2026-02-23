@@ -604,7 +604,20 @@ public class AbilityHotbarComponent extends HudComponent {
     private boolean isHudKeyHeld() {
         if (ClientProxy.AbilityHudKey == null) return false;
         int keyCode = ClientProxy.AbilityHudKey.getKeyCode();
-        return keyCode != 0 && org.lwjgl.input.Keyboard.isKeyDown(keyCode);
+        if (keyCode == 0 || keyCode == -1) return false;
+
+        // Mouse bindings are encoded as negative key codes (offset by 100).
+        if (keyCode < -1) {
+            int mouseButton = keyCode + 100;
+            return mouseButton >= 0
+                && mouseButton < org.lwjgl.input.Mouse.getButtonCount()
+                && org.lwjgl.input.Mouse.isButtonDown(mouseButton);
+        }
+
+        // Guard against invalid/out-of-range keyboard codes to avoid Buffer.checkIndex crashes.
+        return keyCode > 0
+            && keyCode < org.lwjgl.input.Keyboard.getKeyCount()
+            && org.lwjgl.input.Keyboard.isKeyDown(keyCode);
     }
 
     public boolean hasAnyAbilities() {

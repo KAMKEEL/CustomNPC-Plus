@@ -265,15 +265,43 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     }
 
     private void checkEntityCollision() {
-        // Disc hitbox: wider but thinner
-        double halfWidth = discRadius * 0.5;
-        double halfHeight = discThickness * 0.5;
+        // Swept disc hitbox to avoid miss-through at high speed.
+        double nextX = posX + motionX;
+        double nextY = posY + motionY;
+        double nextZ = posZ + motionZ;
+
+        double halfRadius = Math.max(0.05, discRadius * 0.5);
+        double halfThickness = Math.max(0.03, discThickness * 0.5);
+        double halfX;
+        double halfY;
+        double halfZ;
+
+        if (vertical) {
+            // Vertical disc: thin axis follows horizontal travel direction, tall on Y.
+            double horizLen = Math.sqrt(motionX * motionX + motionZ * motionZ);
+            if (horizLen > 1.0e-5) {
+                double nx = motionX / horizLen;
+                double nz = motionZ / horizLen;
+                halfX = Math.abs(nx) * halfThickness + Math.abs(nz) * halfRadius;
+                halfZ = Math.abs(nz) * halfThickness + Math.abs(nx) * halfRadius;
+            } else {
+                halfX = halfRadius;
+                halfZ = halfRadius;
+            }
+            halfY = halfRadius;
+        } else {
+            // Horizontal disc: wide on XZ, thin on Y.
+            halfX = halfRadius;
+            halfY = halfThickness;
+            halfZ = halfRadius;
+        }
+
         AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
-            posX - halfWidth, posY - halfHeight, posZ - halfWidth,
-            posX + halfWidth, posY + halfHeight, posZ + halfWidth
+            Math.min(posX, nextX) - halfX, Math.min(posY, nextY) - halfY, Math.min(posZ, nextZ) - halfZ,
+            Math.max(posX, nextX) + halfX, Math.max(posY, nextY) + halfY, Math.max(posZ, nextZ) + halfZ
         );
 
-        processEntitiesInHitBox(hitBox, posX, posY, posZ);
+        processEntitiesInHitBox(hitBox, nextX, nextY, nextZ);
     }
 
     /**

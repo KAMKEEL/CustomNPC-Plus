@@ -651,12 +651,12 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     @Override
     public float getExplosionRadius() {
-        return combatData.explosionRadius;
+        return combatData.getExplosionRadius();
     }
 
     @Override
     public void setExplosionRadius(float explosionRadius) {
-        combatData.explosionRadius = explosionRadius;
+        combatData.setExplosionRadius(explosionRadius);
     }
 
     @Override

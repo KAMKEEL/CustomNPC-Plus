@@ -254,6 +254,23 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         barrierData.absorbing = absorbing;
     }
 
+    // Reflection data
+    public boolean isReflect() {
+        return barrierData.reflect;
+    }
+
+    public void setReflect(boolean reflect) {
+        barrierData.reflect = reflect;
+    }
+
+    public float getReflectStrengthPct() {
+        return barrierData.reflectStrengthPct;
+    }
+
+    public void setReflectStrengthPct(float strengthPct) {
+        barrierData.setReflectStrengthPct(strengthPct);
+    }
+
     // Melee data
     public boolean isMeleeEnabled() {
         return barrierData.meleeEnabled;
@@ -299,6 +316,10 @@ public abstract class AbilityBarrier extends AbilityEnergy {
             .range(0, 10).visibleWhen(this::isKnockbackEnabled));
         defs.add(FieldDef.boolField("ability.absorbing", this::isAbsorbing, this::setAbsorbing)
             .hover("ability.hover.absorbing"));
+        defs.add(FieldDef.boolField("ability.reflect", this::isReflect, this::setReflect)
+            .hover("ability.hover.reflect"));
+        defs.add(FieldDef.floatField("ability.reflectStrength", this::getReflectStrengthPct, this::setReflectStrengthPct)
+            .range(0, 100).visibleWhen(this::isReflect));
         defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled)
             .hover("ability.hover.meleeEnabled"));
         defs.add(FieldDef.floatField("ability.meleeDamageMultiplier", this::getMeleeDamageMultiplier, this::setMeleeDamageMultiplier)

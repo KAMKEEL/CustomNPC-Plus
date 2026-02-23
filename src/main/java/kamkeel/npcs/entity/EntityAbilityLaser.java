@@ -41,6 +41,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     // Lock vertical direction after firing (only update yaw, keep pitch fixed)
     private boolean lockVerticalDirection = false;
+    private int reflectedLockTicks = 0;
 
     // End point for rendering
     private double endX, endY, endZ;
@@ -120,9 +121,14 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             return;
         }
 
-        // Track owner's anchor position and rotation each tick
-        // so the laser follows the NPC's facing direction
-        updateLaserOriginAndDirection();
+        // After reflection, hold trajectory briefly so the rebound is visible.
+        if (reflectedLockTicks > 0) {
+            reflectedLockTicks--;
+        } else {
+            // Track owner's anchor position and rotation each tick
+            // so the laser follows the NPC's facing direction
+            updateLaserOriginAndDirection();
+        }
 
         if (!fullyExtended) {
             // Expand the laser
@@ -404,18 +410,23 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                 EntityAbilityDome dome = (EntityAbilityDome) barrier;
                 float intersectDist = getLineSphereIntersection(dome);
                 if (intersectDist >= 0) {
-                    // Truncate laser at dome surface
-                    currentLength = intersectDist;
-                    endX = startX + dirX * currentLength;
-                    endY = startY + dirY * currentLength;
-                    endZ = startZ + dirZ * currentLength;
-                    fullyExtended = true;
-
                     float damage = getModifiedDamage();
-                    dome.onProjectileHit(this, damage);
-                    // Block this tick so entity collision doesn't continue through the dome.
-                    // Laser remains alive and lingers at truncated length.
-                    return true;
+                    EntityAbilityBarrier.ProjectileHitOutcome hitOutcome = dome.onProjectileHitResolved(this, damage);
+                    if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+                        continue;
+                    }
+
+                    if (hitOutcome.result != EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
+                        currentLength = Math.max(0.0f, intersectDist);
+                        endX = startX + dirX * currentLength;
+                        endY = startY + dirY * currentLength;
+                        endZ = startZ + dirZ * currentLength;
+                    }
+
+                    if (handleBarrierHitOutcome(dome, hitOutcome)) {
+                        return true;
+                    }
+                    return false;
                 }
             } else {
                 // For line-based lasers, use a swept segment against generic barrier checks.
@@ -433,15 +444,111 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
                 if (incoming) {
                     float damage = getModifiedDamage();
-                    if (barrier.onProjectileHit(this, damage)) {
-                        hasHit = true;
-                        this.setDead();
+                    EntityAbilityBarrier.ProjectileHitOutcome hitOutcome = barrier.onProjectileHitResolved(this, damage);
+                    if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+                        continue;
+                    }
+
+                    if (hitOutcome.result != EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
+                        // Keep current segment length at the exact collision tick position.
+                        endX = startX + dirX * currentLength;
+                        endY = startY + dirY * currentLength;
+                        endZ = startZ + dirZ * currentLength;
+                    }
+
+                    if (handleBarrierHitOutcome(barrier, hitOutcome)) {
                         return true;
                     }
+                    return false;
                 }
             }
         }
         return false;
+    }
+
+    @Override
+    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+        if (barrier == null) {
+            return false;
+        }
+
+        double vx = dirX;
+        double vy = dirY;
+        double vz = dirZ;
+        double vLenSq = vx * vx + vy * vy + vz * vz;
+        if (vLenSq < 1.0e-8) {
+            return false;
+        }
+
+        double[] normal = getBarrierImpactNormal(barrier, vx, vy, vz);
+        if (normal == null) {
+            return false;
+        }
+
+        double dot = vx * normal[0] + vy * normal[1] + vz * normal[2];
+        if (dot > 0.0) {
+            normal[0] = -normal[0];
+            normal[1] = -normal[1];
+            normal[2] = -normal[2];
+            dot = vx * normal[0] + vy * normal[1] + vz * normal[2];
+        }
+
+        double rx = vx - 2.0 * dot * normal[0];
+        double ry = vy - 2.0 * dot * normal[1];
+        double rz = vz - 2.0 * dot * normal[2];
+        if (ry < -0.06) {
+            ry = Math.max(0.08, Math.abs(ry) * 0.35);
+        }
+        double rLen = Math.sqrt(rx * rx + ry * ry + rz * rz);
+        if (rLen < 1.0e-8) {
+            rx = -vx;
+            ry = -vy;
+            rz = -vz;
+            rLen = Math.sqrt(rx * rx + ry * ry + rz * rz);
+            if (rLen < 1.0e-8) {
+                return false;
+            }
+        }
+
+        dirX = rx / rLen;
+        dirY = ry / rLen;
+        dirZ = rz / rLen;
+
+        // Start a fresh segment at the impact edge to make the rebound visible.
+        startX = endX;
+        startY = endY;
+        startZ = endZ;
+        setPosition(startX, startY, startZ);
+        syncPositionStateToCurrent(true);
+
+        currentLength = 0.0f;
+        fullyExtended = false;
+        ticksSinceFullExtension = 0;
+        endX = startX;
+        endY = startY;
+        endZ = startZ;
+
+        reflectedLockTicks = Math.max(reflectedLockTicks, 10);
+        barrierImpactPauseTicks = 0;
+        barrierImpactDestroyOnResume = false;
+
+        Entity barrierOwner = barrier.getOwnerEntity();
+        if (barrierOwner != null) {
+            setOwnerEntityId(barrierOwner.getEntityId());
+            trackProjectile(this);
+        }
+        setTargetEntityId(-1);
+
+        setInnerColor(barrier.getInnerColor());
+        setOuterColor(barrier.getOuterColor());
+
+        float clampedStrength = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
+        float reducedDamage = getDamage() * (1.0f - clampedStrength / 100.0f);
+        setCombatDamage(Math.max(0.0f, reducedDamage));
+
+        hitOnceEntities.clear();
+        lastHitTickByEntity.clear();
+        return true;
     }
 
     /**

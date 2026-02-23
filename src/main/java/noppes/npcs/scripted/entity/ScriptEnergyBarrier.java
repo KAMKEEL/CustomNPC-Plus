@@ -121,6 +121,22 @@ public class ScriptEnergyBarrier<T extends EntityAbilityBarrier> extends ScriptE
         entity.getBarrierData().absorbing = absorbing;
     }
 
+    public boolean isReflect() {
+        return entity.getBarrierData().reflect;
+    }
+
+    public void setReflect(boolean reflect) {
+        entity.getBarrierData().reflect = reflect;
+    }
+
+    public float getReflectStrengthPct() {
+        return entity.getBarrierData().reflectStrengthPct;
+    }
+
+    public void setReflectStrengthPct(float strengthPct) {
+        entity.getBarrierData().setReflectStrengthPct(strengthPct);
+    }
+
     public int getBarrierType() {
         return entity instanceof EntityAbilityDome ? 0 : 1;
     }
