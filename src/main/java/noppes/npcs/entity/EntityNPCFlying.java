@@ -91,11 +91,13 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         this.prevLimbSwingAmount = this.limbSwingAmount;
         double distanceX = this.posX - this.prevPosX;
         double distanceZ = this.posZ - this.prevPosZ;
-        float distance = MathHelper.sqrt_double(distanceX * distanceX + distanceZ * distanceZ) * 4.0F;
+        float distance = MathHelper.sqrt_double(distanceX * distanceX + distanceZ * distanceZ);
+        float swingScale = this.getNavigator().noPath() ? 0.35F : 0.9F;
+        distance *= swingScale;
         if (distance > 1.0F) {
             distance = 1.0F;
         }
-        this.limbSwingAmount += (distance - this.limbSwingAmount) * 0.4F;
+        this.limbSwingAmount += (distance - this.limbSwingAmount) * 0.18F;
         this.limbSwing += this.limbSwingAmount;
     }
 
