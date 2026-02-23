@@ -837,7 +837,11 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      */
     protected boolean beginLookVectorLaunch(boolean resetInterpolationState) {
         setCharging(false);
-        boolean positioned = setLookVectorLaunchPosition(true);
+        Entity owner = getOwnerEntity();
+        boolean positioned = false;
+        if (owner instanceof EntityLivingBase && shouldSnapLaunchToLookVector((EntityLivingBase) owner)) {
+            positioned = setLookVectorLaunchPosition((EntityLivingBase) owner, getOwnerLookVector(), true);
+        }
         syncStartPositionToCurrent();
         if (resetInterpolationState) {
             syncPositionStateToCurrent(true);
@@ -850,12 +854,20 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      */
     protected boolean beginLookVectorLaunch(EntityLivingBase owner, Vec3 look, boolean resetInterpolationState) {
         setCharging(false);
-        boolean positioned = setLookVectorLaunchPosition(owner, look, true);
+        boolean positioned = shouldSnapLaunchToLookVector(owner) && setLookVectorLaunchPosition(owner, look, true);
         syncStartPositionToCurrent();
         if (resetInterpolationState) {
             syncPositionStateToCurrent(true);
         }
         return positioned;
+    }
+
+    /**
+     * Only player-cast projectiles should be recentered to look-vector launch origin.
+     * NPC projectiles keep their anchor charge origin so casts originate from the configured anchor.
+     */
+    protected boolean shouldSnapLaunchToLookVector(EntityLivingBase owner) {
+        return owner instanceof EntityPlayer;
     }
 
     /**

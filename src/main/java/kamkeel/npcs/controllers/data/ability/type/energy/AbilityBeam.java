@@ -36,8 +36,8 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
 
     public AbilityBeam() {
         super(
-            new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 6.0f),
-            new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f, HitType.MULTI, 5),
+            new EnergyDisplayData(0xFFFFFF, 0x00AAFF, true, 0.4f, 0.5f, 10.0f),
+            new EnergyCombatData(10.0f, 1.5f, 0.2f, false, 4.0f, 0.5f, HitType.SINGLE, 5),
             new EnergyHomingData(0.4f, true, 0.1f, 15.0f),
             new EnergyLifespanData(150.0f, 200)
         );

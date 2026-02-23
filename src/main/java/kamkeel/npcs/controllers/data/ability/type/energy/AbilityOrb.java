@@ -32,7 +32,7 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
 
     public AbilityOrb() {
         super(
-            new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f),
+            new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 10.0f),
             new EnergyCombatData(),
             new EnergyHomingData(),
             new EnergyLifespanData()

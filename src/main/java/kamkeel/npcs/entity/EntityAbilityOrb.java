@@ -72,7 +72,7 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
      * Called by ability when windup ends.
      */
     public void startMoving(EntityLivingBase target) {
-        startMovingAlongLookVectorDefault();
+        startMovingTowardTargetDefault(target);
     }
 
     @Override

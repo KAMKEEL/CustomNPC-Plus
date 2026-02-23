@@ -81,12 +81,19 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                 this.dirZ = dz / len;
             }
         } else {
-            // Fire in NPC's facing direction
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            this.dirX = -Math.sin(yaw) * Math.cos(pitch);
-            this.dirY = -Math.sin(pitch);
-            this.dirZ = Math.cos(yaw) * Math.cos(pitch);
+            // Fall back to owner look direction so launch matches visual aim.
+            Vec3 look = owner == null ? null : owner.getLookVec();
+            if (look != null) {
+                this.dirX = look.xCoord;
+                this.dirY = look.yCoord;
+                this.dirZ = look.zCoord;
+            } else {
+                float yaw = (float) Math.toRadians(owner.rotationYaw);
+                float pitch = (float) Math.toRadians(owner.rotationPitch);
+                this.dirX = -Math.sin(yaw) * Math.cos(pitch);
+                this.dirY = -Math.sin(pitch);
+                this.dirZ = Math.cos(yaw) * Math.cos(pitch);
+            }
         }
 
         // Initialize end point
@@ -134,6 +141,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             // Check for block collision along the new segment
             if (!worldObj.isRemote) {
                 checkBlockCollision();
+                // Re-evaluate barriers against the current beam segment before entity hits.
+                // This prevents first-tick pass-through where the pre-update barrier check
+                // still sees a zero-length beam.
+                if (checkBarrierCollisionForCurrentSegment()) {
+                    return;
+                }
                 checkEntityCollisionAlongLine();
             }
         } else {
@@ -163,19 +176,33 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         if (owner == null || !(owner instanceof EntityLivingBase)) return;
         EntityLivingBase livingOwner = (EntityLivingBase) owner;
 
-        // Update direction from owner's current rotation
-        float yaw = (float) Math.toRadians(owner.rotationYaw);
-        if (lockVerticalDirection) {
-            // Only update horizontal direction (yaw), keep vertical (pitch) fixed
-            double horizontalLen = Math.sqrt(dirX * dirX + dirZ * dirZ);
-            if (horizontalLen < 0.001) horizontalLen = 1.0;
-            dirX = -Math.sin(yaw) * horizontalLen;
-            dirZ = Math.cos(yaw) * horizontalLen;
-        } else {
+        // Use owner look vector (head/eye aim) for direction updates so hit logic matches visuals.
+        Vec3 look = livingOwner.getLookVec();
+        if (look == null) {
+            float yaw = (float) Math.toRadians(owner.rotationYaw);
             float pitch = (float) Math.toRadians(owner.rotationPitch);
-            dirX = -Math.sin(yaw) * Math.cos(pitch);
-            dirY = -Math.sin(pitch);
-            dirZ = Math.cos(yaw) * Math.cos(pitch);
+            look = Vec3.createVectorHelper(
+                -Math.sin(yaw) * Math.cos(pitch),
+                -Math.sin(pitch),
+                Math.cos(yaw) * Math.cos(pitch)
+            );
+        }
+
+        if (lockVerticalDirection) {
+            // Keep current vertical component, but align horizontal direction to current look.
+            double lookHorizontalLen = Math.sqrt(look.xCoord * look.xCoord + look.zCoord * look.zCoord);
+            if (lookHorizontalLen > 0.0001) {
+                double currentHorizontalLen = Math.sqrt(dirX * dirX + dirZ * dirZ);
+                if (currentHorizontalLen < 0.0001) {
+                    currentHorizontalLen = Math.sqrt(Math.max(0.0001, 1.0 - dirY * dirY));
+                }
+                dirX = (look.xCoord / lookHorizontalLen) * currentHorizontalLen;
+                dirZ = (look.zCoord / lookHorizontalLen) * currentHorizontalLen;
+            }
+        } else {
+            dirX = look.xCoord;
+            dirY = look.yCoord;
+            dirZ = look.zCoord;
         }
 
         // Keep direction normalized for consistent expansion and collision math.
@@ -188,10 +215,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                 direction.zCoord / dirLen
             );
         } else {
-            Vec3 look = livingOwner.getLookVec();
-            if (look != null) {
-                direction = look;
-            }
+            direction = look != null ? look : Vec3.createVectorHelper(1.0, 0.0, 0.0);
         }
 
         dirX = direction.xCoord;
@@ -320,49 +344,24 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     /**
      * Check if an entity's bounding box intersects with the laser line.
-     * Uses separate XZ (horizontal) and Y (vertical) checks against
-     * the entity's full bounding box rather than just its center point.
+     * Uses a swept segment vs expanded AABB intercept test for reliable hits.
      */
     private boolean isEntityOnLine(EntityLivingBase entity) {
-        double ex = entity.posX;
-        double ez = entity.posZ;
+        AxisAlignedBB bb = entity.boundingBox;
+        if (bb == null) return false;
 
-        // Project entity XZ position onto the laser line direction
-        double vx = ex - startX;
-        double vz = ez - startZ;
-        // Project using horizontal direction components only
-        double dirLenXZ = Math.sqrt(dirX * dirX + dirZ * dirZ);
-        double dot;
-        if (dirLenXZ > 0.001) {
-            dot = (vx * dirX + vz * dirZ + (entity.posY + entity.height * 0.5 - startY) * dirY);
-        } else {
-            // Laser fires nearly straight up/down - use full 3D projection
-            dot = vx * dirX + (entity.posY + entity.height * 0.5 - startY) * dirY + vz * dirZ;
-        }
-        dot = Math.max(0, Math.min(dot, currentLength));
+        // Minimum effective width keeps thin lasers from visually clipping targets without hitting.
+        double effectiveWidth = Math.max(laserWidth, 0.65);
+        double expand = effectiveWidth * 0.5;
+        AxisAlignedBB expanded = bb.expand(expand, expand, expand);
 
-        // Closest point on laser line at this parameter
-        double closestX = startX + dirX * dot;
-        double closestY = startY + dirY * dot;
-        double closestZ = startZ + dirZ * dot;
+        Vec3 segmentStart = Vec3.createVectorHelper(startX, startY, startZ);
+        Vec3 segmentEnd = Vec3.createVectorHelper(endX, endY, endZ);
+        MovingObjectPosition intercept = expanded.calculateIntercept(segmentStart, segmentEnd);
+        if (intercept != null) return true;
 
-        // XZ distance check: entity center vs laser line point
-        // Use minimum collision width so visually thin lasers still hit reliably
-        double xzDistSq = (ex - closestX) * (ex - closestX) + (ez - closestZ) * (ez - closestZ);
-        double effectiveWidth = Math.max(laserWidth, 0.5);
-        double hitRadiusXZ = effectiveWidth * 0.5 + entity.width * 0.5;
-        if (xzDistSq > hitRadiusXZ * hitRadiusXZ) return false;
-
-        // Y overlap check: laser point vs entity's full height range
-        double entityMinY = entity.boundingBox.minY;
-        double entityMaxY = entity.boundingBox.maxY;
-        double laserHalfWidth = effectiveWidth * 0.5;
-
-        // Check if laser Y is within entity's height range (expanded by laser half-width)
-        if (closestY < entityMinY - laserHalfWidth) return false;
-        if (closestY > entityMaxY + laserHalfWidth) return false;
-
-        return true;
+        // Handle edge case where the segment starts or ends already inside the target volume.
+        return expanded.isVecInside(segmentStart) || expanded.isVecInside(segmentEnd);
     }
 
     // ==================== BARRIER COLLISION ====================
@@ -375,7 +374,17 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     @Override
     @SuppressWarnings("unchecked")
     protected boolean checkBarrierCollision() {
-        if (currentLength <= 0 || fullyExtended) return false;
+        return checkBarrierCollisionInternal(false);
+    }
+
+    private boolean checkBarrierCollisionForCurrentSegment() {
+        return checkBarrierCollisionInternal(true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean checkBarrierCollisionInternal(boolean allowWhenFullyExtended) {
+        if (currentLength <= 0) return false;
+        if (fullyExtended && !allowWhenFullyExtended) return false;
 
         List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(worldObj);
         for (EntityAbilityBarrier barrier : barriers) {
@@ -404,11 +413,25 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
                     float damage = getModifiedDamage();
                     dome.onProjectileHit(this, damage);
-                    return false; // Don't kill laser — it's truncated and will linger
+                    // Block this tick so entity collision doesn't continue through the dome.
+                    // Laser remains alive and lingers at truncated length.
+                    return true;
                 }
             } else {
-                // Non-dome barriers: fall through to standard check
-                if (barrier.isIncomingProjectile(this)) {
+                // For line-based lasers, use a swept segment against generic barrier checks.
+                // Panel/Dome logic expects previous+current positions and motion; map those
+                // to [start -> end] each tick.
+                double segMotionX = endX - startX;
+                double segMotionY = endY - startY;
+                double segMotionZ = endZ - startZ;
+                boolean incoming = barrier.isIncomingGenericProjectile(
+                    endX, endY, endZ,
+                    segMotionX, segMotionY, segMotionZ,
+                    startX, startY, startZ,
+                    this.ownerEntityId
+                );
+
+                if (incoming) {
                     float damage = getModifiedDamage();
                     if (barrier.onProjectileHit(this, damage)) {
                         hasHit = true;

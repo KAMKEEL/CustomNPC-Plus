@@ -254,10 +254,11 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
     /**
      * Hook for launch target selection.
-     * Default returns null so projectiles launch along owner look vector.
+     * Players launch along their look vector (crosshair-aligned), so target is ignored.
+     * NPCs use their resolved target so launch math can track the target immediately.
      */
     protected EntityLivingBase getLaunchTarget(EntityLivingBase caster, EntityLivingBase target) {
-        return null;
+        return isPlayerCaster(caster) ? null : target;
     }
 
     /**
