@@ -25,17 +25,12 @@ public class RequestProperSpawnData extends AbstractPacket {
     public static final String packetName = "Player|SpawnData";
     private static final int BATCH_LIMIT = 5;
 
-    @SideOnly(Side.CLIENT)
     private static final Set<Integer> entitiesToFix = new HashSet<>();
-
-    @SideOnly(Side.CLIENT)
     private static long lastBatchAttemptMillis = 0L;
-
     private int entityId;
 
     public RequestProperSpawnData() {}
 
-    @SideOnly(Side.CLIENT)
     public RequestProperSpawnData(int entityId) {
         this.entityId = entityId;
     }
