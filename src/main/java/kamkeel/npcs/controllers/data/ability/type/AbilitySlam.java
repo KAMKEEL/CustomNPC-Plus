@@ -13,7 +13,9 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.api.ability.type.IAbilitySlam;
@@ -61,6 +63,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     private transient boolean hasRisen = false; // Whether entity has risen above launch position
     private transient int airTicks = 0;
     private transient int maxAirTicks = 60; // Timeout to prevent stuck in air
+    private transient boolean airSlam = false;   // True when slam initiated while already in the air
+    private transient boolean wasFlying = false;  // Saved flight state to restore after air slam
 
     public AbilitySlam() {
         this.typeId = "ability.cnpc.slam";
@@ -165,22 +169,59 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     }
 
     /**
-     * Player slam: Launch in look direction using same ballistic arc as NPC slam.
-     * AOE damage triggers wherever the player lands.
+     * Player slam: behavior depends on whether the player is on the ground or in the air.
+     * <p>
+     * On ground: Launch in look direction using ballistic arc, full damage on landing.
+     * In air: Slam straight down from current height, damage scales with fall distance.
+     * Works regardless of flying state — just checks height above ground.
      */
     private void executePlayerSlam(EntityLivingBase caster) {
-        // Calculate target position along player's look direction (horizontal only)
-        float yawRad = (float) Math.toRadians(caster.rotationYaw);
-        double dirX = -Math.sin(yawRad);
-        double dirZ = Math.cos(yawRad);
+        if (!caster.onGround) {
+            // Air slam: player is already airborne (flying, falling, jumping)
+            airSlam = true;
+            targetX = caster.posX;
+            targetY = caster.posY;
+            targetZ = caster.posZ;
 
-        double launchDist = Math.max(4.0, maxRange * 0.5);
+            // Temporarily disable flight so gravity works during descent
+            if (caster instanceof EntityPlayerMP) {
+                EntityPlayerMP mp = (EntityPlayerMP) caster;
+                wasFlying = mp.capabilities.isFlying;
+                if (wasFlying) {
+                    mp.capabilities.isFlying = false;
+                    mp.sendPlayerAbilities();
+                }
+            }
 
-        targetX = caster.posX + dirX * launchDist;
-        targetY = caster.posY;
-        targetZ = caster.posZ + dirZ * launchDist;
+            // Push downward — no horizontal movement, no upward arc
+            caster.motionX = 0;
+            caster.motionZ = 0;
+            caster.motionY = -0.5;
+            hasLaunched = true;
+            hasRisen = true; // Skip rise detection — we're already above ground
 
-        launchTowardTarget(caster);
+            if (!isPreview() && caster instanceof EntityPlayerMP) {
+                ((EntityPlayerMP) caster).playerNetServerHandler.sendPacket(
+                    new S12PacketEntityVelocity(caster));
+                caster.worldObj.playSoundAtEntity(caster, "mob.irongolem.throw", 0.8f, 0.8f);
+            }
+        } else {
+            // Ground slam: normal ballistic arc
+            airSlam = false;
+
+            // Calculate target position along player's look direction (horizontal only)
+            float yawRad = (float) Math.toRadians(caster.rotationYaw);
+            double dirX = -Math.sin(yawRad);
+            double dirZ = Math.cos(yawRad);
+
+            double launchDist = Math.max(4.0, maxRange * 0.5);
+
+            targetX = caster.posX + dirX * launchDist;
+            targetY = caster.posY;
+            targetZ = caster.posZ + dirZ * launchDist;
+
+            launchTowardTarget(caster);
+        }
     }
 
     /**
@@ -244,7 +285,12 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 ((EntityNPCInterface) caster).setNpcJumpingState(true);
             }
             if (!isPreview()) {
-                caster.velocityChanged = true;
+                if (caster instanceof EntityPlayerMP) {
+                    ((EntityPlayerMP) caster).playerNetServerHandler.sendPacket(
+                        new S12PacketEntityVelocity(caster));
+                } else {
+                    caster.velocityChanged = true;
+                }
                 caster.worldObj.playSoundAtEntity(caster, "mob.irongolem.throw", 0.8f, 0.8f);
             }
             return;
@@ -292,7 +338,14 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             ((EntityNPCInterface) caster).setNpcJumpingState(true);
         }
         if (!isPreview()) {
-            caster.velocityChanged = true;
+            // Use direct S12 packet for players to ensure velocity reaches client
+            // before flight code can override it
+            if (caster instanceof EntityPlayerMP) {
+                ((EntityPlayerMP) caster).playerNetServerHandler.sendPacket(
+                    new S12PacketEntityVelocity(caster));
+            } else {
+                caster.velocityChanged = true;
+            }
         }
 
         // Face the target
@@ -311,6 +364,15 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         // Continuously reset fall distance during slam to prevent fall damage
         if (!isPreview()) {
             caster.fallDistance = 0;
+        }
+
+        // Air slam: accelerate downward, prevent horizontal drift
+        if (airSlam && !isPreview()) {
+            caster.motionX = 0;
+            caster.motionZ = 0;
+            if (caster.motionY > -1.5) {
+                caster.motionY -= 0.15;
+            }
         }
 
         // Prevent NPC navigator from interfering with ballistic arc.
@@ -375,6 +437,13 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
 
+        // Restore flight if it was active before an air slam
+        if (airSlam && wasFlying && caster instanceof EntityPlayerMP) {
+            EntityPlayerMP mp = (EntityPlayerMP) caster;
+            mp.capabilities.isFlying = true;
+            mp.sendPlayerAbilities();
+        }
+
         // Signal that the ability has completed its active phase
         signalCompletion();
 
@@ -394,6 +463,16 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         // Play slam impact sound on landing
         world.playSoundAtEntity(caster, "random.explode", 1.0f, 1.0f);
 
+        // Scale damage based on fall distance for air slams
+        float effectiveDamage = damage;
+        if (airSlam) {
+            double fallDistance = startY - caster.posY;
+            if (fallDistance < 0) fallDistance = 0;
+            // Scale linearly: full damage at leapHeight distance, minimum 25% for tiny falls
+            float heightFactor = (float) Math.min(1.0, fallDistance / Math.max(1.0, leapHeight));
+            effectiveDamage = damage * Math.max(0.25f, heightFactor);
+        }
+
         // Find all entities in radius
         @SuppressWarnings("unchecked")
         List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(
@@ -409,7 +488,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 double dz = livingTarget.posZ - caster.posZ;
                 if (dx * dx + dz * dz <= radius * radius) {
                     // Apply damage with scripted event support
-                    boolean wasHit = applyAbilityDamage(caster, livingTarget, damage, knockbackStrength);
+                    boolean wasHit = applyAbilityDamage(caster, livingTarget, effectiveDamage, knockbackStrength);
                     if (wasHit) {
                         applyEffects(livingTarget);
                     }
@@ -462,10 +541,13 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
+        restoreFlightIfNeeded(caster);
         hasLaunched = false;
         hasLanded = false;
         hasRisen = false;
         airTicks = 0;
+        airSlam = false;
+        wasFlying = false;
     }
 
     @Override
@@ -473,10 +555,26 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
+        restoreFlightIfNeeded(caster);
         hasLaunched = false;
         hasLanded = false;
         hasRisen = false;
         airTicks = 0;
+        airSlam = false;
+        wasFlying = false;
+    }
+
+    /**
+     * Restore flight state if it was temporarily disabled for an air slam.
+     */
+    private void restoreFlightIfNeeded(EntityLivingBase caster) {
+        if (airSlam && wasFlying && caster instanceof EntityPlayerMP) {
+            EntityPlayerMP mp = (EntityPlayerMP) caster;
+            if (!mp.capabilities.isFlying) {
+                mp.capabilities.isFlying = true;
+                mp.sendPlayerAbilities();
+            }
+        }
     }
 
     @Override
@@ -485,6 +583,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         hasLanded = false;
         hasRisen = false;
         airTicks = 0;
+        airSlam = false;
+        wasFlying = false;
     }
 
     @Override
@@ -494,6 +594,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         hasLanded = false;
         hasRisen = false;
         airTicks = 0;
+        airSlam = false;
+        wasFlying = false;
     }
 
     @Override

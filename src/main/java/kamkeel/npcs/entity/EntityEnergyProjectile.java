@@ -432,9 +432,23 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      */
     protected void handleClientInterpolation() {
         if (this.interpSteps > 0) {
-            double newX = this.posX + (this.interpTargetX - this.posX) / this.interpSteps;
-            double newY = this.posY + (this.interpTargetY - this.posY) / this.interpSteps;
-            double newZ = this.posZ + (this.interpTargetZ - this.posZ) / this.interpSteps;
+            // For very slow / stationary projectiles, snap directly to avoid jitter
+            double dx = this.interpTargetX - this.posX;
+            double dy = this.interpTargetY - this.posY;
+            double dz = this.interpTargetZ - this.posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+            if (distSq < 0.04) {
+                this.setPosition(this.interpTargetX, this.interpTargetY, this.interpTargetZ);
+                this.motionX = this.interpTargetMotionX;
+                this.motionY = this.interpTargetMotionY;
+                this.motionZ = this.interpTargetMotionZ;
+                this.interpSteps = 0;
+                return;
+            }
+
+            double newX = this.posX + dx / this.interpSteps;
+            double newY = this.posY + dy / this.interpSteps;
+            double newZ = this.posZ + dz / this.interpSteps;
 
             this.motionX = this.motionX + (this.interpTargetMotionX - this.motionX) / this.interpSteps;
             this.motionY = this.motionY + (this.interpTargetMotionY - this.motionY) / this.interpSteps;
@@ -443,6 +457,11 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             this.setPosition(newX, newY, newZ);
             this.interpSteps--;
         } else {
+            // Skip motion application for nearly-stationary projectiles to prevent drift
+            double speedSq = this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ;
+            if (speedSq < 0.0001) {
+                return;
+            }
             this.posX += this.motionX;
             this.posY += this.motionY;
             this.posZ += this.motionZ;
@@ -549,10 +568,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             if (target == owner) continue;
             if (shouldIgnoreExplosionTarget(target)) continue;
 
+            // Measure distance to nearest point on entity's bounding box, not feet position.
+            // Using feet position (target.posY) causes explosions at impact height to miss
+            // entities standing below — e.g. a projectile hitting at eye height (~1.62 above feet)
+            // would measure dist=1.62, failing a radius<=1.6 check despite a direct hit.
+            double closestX = Math.max(target.boundingBox.minX, Math.min(posX, target.boundingBox.maxX));
+            double closestY = Math.max(target.boundingBox.minY, Math.min(posY, target.boundingBox.maxY));
+            double closestZ = Math.max(target.boundingBox.minZ, Math.min(posZ, target.boundingBox.maxZ));
             double dist = Math.sqrt(
-                Math.pow(target.posX - posX, 2) +
-                    Math.pow(target.posY - posY, 2) +
-                    Math.pow(target.posZ - posZ, 2)
+                (closestX - posX) * (closestX - posX) +
+                    (closestY - posY) * (closestY - posY) +
+                    (closestZ - posZ) * (closestZ - posZ)
             );
 
             if (dist <= explosionRad) {

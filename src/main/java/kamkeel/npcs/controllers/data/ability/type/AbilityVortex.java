@@ -32,8 +32,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
     private float pullStrength = 0.8f;
     private float damage = 0.0f;
     private float knockback = 0.0f;
-    private boolean aoe = false;
-    private int maxTargets = 5;
+    private boolean aoe = true;
     private boolean damageOnPull = false;
     private float pullDamage = 0.0f;
 
@@ -84,12 +83,12 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         ticksSincePullDamage = 0;
 
         if (!isPreview()) {
-            if (aoe) {
-                AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
-                @SuppressWarnings("unchecked")
-                List<EntityLivingBase> entities = caster.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, box);
+            AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+            @SuppressWarnings("unchecked")
+            List<EntityLivingBase> entities = caster.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-                int count = 0;
+            if (aoe) {
+                // ALL: pull every valid enemy in range
                 for (EntityLivingBase entity : entities) {
                     if (entity == caster) continue;
                     if (entity.isDead) continue;
@@ -98,18 +97,36 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
                     double dist = caster.getDistanceToEntity(entity);
                     if (dist <= pullRadius) {
                         getPulledEntities().add(entity.getUniqueID());
-                        count++;
-                        if (count >= maxTargets) break;
                     }
                 }
             } else {
-                // NPC single-target mode: pull the aggro target
-                // Player: single-target mode has no effect (no target to pull — use AOE mode instead)
+                // SINGULAR: pull one target
+                // NPC: pull aggro target if valid, otherwise nearest enemy
+                // Player: pull nearest enemy in range
                 if (!isPlayerCaster(caster) && target != null && !target.isDead) {
                     double dist = caster.getDistanceToEntity(target);
                     if (dist <= pullRadius) {
                         getPulledEntities().add(target.getUniqueID());
+                        return;
                     }
+                }
+
+                // Find nearest valid enemy
+                EntityLivingBase nearest = null;
+                double nearestDist = Double.MAX_VALUE;
+                for (EntityLivingBase entity : entities) {
+                    if (entity == caster) continue;
+                    if (entity.isDead) continue;
+                    if (!AbilityTargetHelper.shouldAffect(caster, entity, TargetFilter.ENEMIES, false)) continue;
+
+                    double dist = caster.getDistanceToEntity(entity);
+                    if (dist <= pullRadius && dist < nearestDist) {
+                        nearest = entity;
+                        nearestDist = dist;
+                    }
+                }
+                if (nearest != null) {
+                    getPulledEntities().add(nearest.getUniqueID());
                 }
             }
         }
@@ -229,7 +246,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
         nbt.setBoolean("aoe", aoe);
-        nbt.setInteger("maxTargets", maxTargets);
         nbt.setBoolean("damageOnPull", damageOnPull);
         nbt.setFloat("pullDamage", pullDamage);
     }
@@ -240,8 +256,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         this.pullStrength = nbt.getFloat("pullStrength");
         this.damage = nbt.getFloat("damage");
         this.knockback = nbt.getFloat("knockback");
-        this.aoe = nbt.getBoolean("aoe");
-        this.maxTargets = nbt.getInteger("maxTargets");
+        this.aoe = !nbt.hasKey("aoe") || nbt.getBoolean("aoe");
         this.damageOnPull = nbt.getBoolean("damageOnPull");
         this.pullDamage = nbt.getFloat("pullDamage");
     }
@@ -287,14 +302,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         this.aoe = aoe;
     }
 
-    public int getMaxTargets() {
-        return maxTargets;
-    }
-
-    public void setMaxTargets(int maxTargets) {
-        this.maxTargets = maxTargets;
-    }
-
     public boolean isDamageOnPull() {
         return damageOnPull;
     }
@@ -327,8 +334,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             FieldDef.section("ability.section.aoe"),
             FieldDef.boolField("gui.enabled", this::isAoe, this::setAoe)
                 .hover("ability.hover.aoe"),
-            FieldDef.intField("ability.maxTargets", this::getMaxTargets, this::setMaxTargets)
-                .visibleWhen(this::isAoe),
             FieldDef.section("ability.section.pullDamage"),
             FieldDef.boolField("gui.enabled", this::isDamageOnPull, this::setDamageOnPull)
                 .hover("ability.hover.dmgOnPull"),

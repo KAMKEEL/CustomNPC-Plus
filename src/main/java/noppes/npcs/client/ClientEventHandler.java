@@ -102,7 +102,13 @@ public class ClientEventHandler {
         // Ability Hotbar: Hold HUD key + scroll wheel to cycle
         if (event.dwheel != 0 && ClientProxy.AbilityHudKey != null) {
             int hudKeyCode = ClientProxy.AbilityHudKey.getKeyCode();
-            if (hudKeyCode != 0 && org.lwjgl.input.Keyboard.isKeyDown(hudKeyCode)) {
+            boolean hudKeyHeld = false;
+            if (hudKeyCode > 0) {
+                hudKeyHeld = org.lwjgl.input.Keyboard.isKeyDown(hudKeyCode);
+            } else if (hudKeyCode < 0) {
+                hudKeyHeld = org.lwjgl.input.Mouse.isButtonDown(hudKeyCode + 100);
+            }
+            if (hudKeyHeld) {
                 AbilityHotbarComponent comp = (AbilityHotbarComponent) ClientHudManager.getInstance()
                     .getHudComponents().get(EnumHudComponent.AbilityHotbar);
                 if (comp != null && comp.hasAnyAbilities()) {

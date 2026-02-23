@@ -291,12 +291,16 @@ public abstract class AbilityBarrier extends AbilityEnergy {
 
         // Properties section
         defs.add(FieldDef.section("ability.section.properties"));
-        defs.add(FieldDef.boolField("ability.solid", this::isSolid, this::setSolid));
-        defs.add(FieldDef.boolField("ability.knockbackEnabled", this::isKnockbackEnabled, this::setKnockbackEnabled));
+        defs.add(FieldDef.boolField("ability.solid", this::isSolid, this::setSolid)
+            .hover("ability.hover.solid"));
+        defs.add(FieldDef.boolField("ability.knockbackEnabled", this::isKnockbackEnabled, this::setKnockbackEnabled)
+            .hover("ability.hover.knockbackEnabled"));
         defs.add(FieldDef.floatField("ability.knockbackStrength", this::getKnockbackStrength, this::setKnockbackStrength)
             .range(0, 10).visibleWhen(this::isKnockbackEnabled));
-        defs.add(FieldDef.boolField("ability.absorbing", this::isAbsorbing, this::setAbsorbing));
-        defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled));
+        defs.add(FieldDef.boolField("ability.absorbing", this::isAbsorbing, this::setAbsorbing)
+            .hover("ability.hover.absorbing"));
+        defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled)
+            .hover("ability.hover.meleeEnabled"));
         defs.add(FieldDef.floatField("ability.meleeDamageMultiplier", this::getMeleeDamageMultiplier, this::setMeleeDamageMultiplier)
             .range(0, 10).visibleWhen(this::isMeleeEnabled));
 

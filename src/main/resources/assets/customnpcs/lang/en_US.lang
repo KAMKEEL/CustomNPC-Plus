@@ -2058,6 +2058,10 @@ ability.meleeDamageMultiplier=Melee Multiplier
 
 ability.followCaster=Follow Caster
 ability.hover.followCaster=Dome stays centered on the caster as they move
+ability.hover.solid=Entities cannot pass through the barrier boundary
+ability.hover.knockbackEnabled=Repulsion field pushing entities away from barrier surface
+ability.hover.absorbing=Damage dealt to the caster is redirected to the barrier's health
+ability.hover.meleeEnabled=Barrier can be hit and damaged by melee attacks
 
 
 ability.variant.small=Small
