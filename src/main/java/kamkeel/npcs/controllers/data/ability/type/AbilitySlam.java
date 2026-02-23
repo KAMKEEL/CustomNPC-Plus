@@ -64,7 +64,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     private transient int airTicks = 0;
     private transient int maxAirTicks = 60; // Timeout to prevent stuck in air
     private transient boolean airSlam = false;   // True when slam initiated while already in the air
-    private transient boolean wasFlying = false;  // Saved flight state to restore after air slam
+    private transient double groundY = 0;         // Cached ground level for air slams
 
     public AbilitySlam() {
         this.typeId = "ability.cnpc.slam";
@@ -173,7 +173,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
      * <p>
      * On ground: Launch in look direction using ballistic arc, full damage on landing.
      * In air: Slam straight down from current height, damage scales with fall distance.
-     * Works regardless of flying state — just checks height above ground.
+     * Works regardless of flying state — position is forced downward each tick.
      */
     private void executePlayerSlam(EntityLivingBase caster) {
         if (!caster.onGround) {
@@ -183,26 +183,21 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             targetY = caster.posY;
             targetZ = caster.posZ;
 
-            // Temporarily disable flight so gravity works during descent
-            if (caster instanceof EntityPlayerMP) {
-                EntityPlayerMP mp = (EntityPlayerMP) caster;
-                wasFlying = mp.capabilities.isFlying;
-                if (wasFlying) {
-                    mp.capabilities.isFlying = false;
-                    mp.sendPlayerAbilities();
+            // Find ground level below player (scan to world bottom)
+            int bx = (int) Math.floor(caster.posX);
+            int bz = (int) Math.floor(caster.posZ);
+            groundY = 0;
+            for (int by = (int) Math.floor(caster.posY) - 1; by >= 0; by--) {
+                if (caster.worldObj.getBlock(bx, by, bz).getMaterial().isSolid()) {
+                    groundY = by + 1;
+                    break;
                 }
             }
 
-            // Push downward — no horizontal movement, no upward arc
-            caster.motionX = 0;
-            caster.motionZ = 0;
-            caster.motionY = -0.5;
             hasLaunched = true;
             hasRisen = true; // Skip rise detection — we're already above ground
 
-            if (!isPreview() && caster instanceof EntityPlayerMP) {
-                ((EntityPlayerMP) caster).playerNetServerHandler.sendPacket(
-                    new S12PacketEntityVelocity(caster));
+            if (!isPreview()) {
                 caster.worldObj.playSoundAtEntity(caster, "mob.irongolem.throw", 0.8f, 0.8f);
             }
         } else {
@@ -366,12 +361,31 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             caster.fallDistance = 0;
         }
 
-        // Air slam: accelerate downward, prevent horizontal drift
-        if (airSlam && !isPreview()) {
+        // Air slam: force descent via position update (works regardless of flight state)
+        if (airSlam && !isPreview() && !hasLanded) {
+            double descentSpeed = Math.min(1.5, 0.3 + airTicks * 0.12);
+            double nextY = caster.posY - descentSpeed;
+
+            if (nextY <= groundY) {
+                // Reached ground — land
+                if (caster instanceof EntityPlayerMP) {
+                    ((EntityPlayerMP) caster).setPositionAndUpdate(caster.posX, groundY, caster.posZ);
+                } else {
+                    caster.setPosition(caster.posX, groundY, caster.posZ);
+                }
+                caster.onGround = true;
+                onLanding(caster, caster.worldObj);
+                return;
+            }
+
+            // Continue descent
             caster.motionX = 0;
             caster.motionZ = 0;
-            if (caster.motionY > -1.5) {
-                caster.motionY -= 0.15;
+            caster.motionY = -descentSpeed;
+            if (caster instanceof EntityPlayerMP) {
+                ((EntityPlayerMP) caster).setPositionAndUpdate(caster.posX, nextY, caster.posZ);
+            } else {
+                caster.setPosition(caster.posX, nextY, caster.posZ);
             }
         }
 
@@ -435,13 +449,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         hasLanded = true;
         if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
-        }
-
-        // Restore flight if it was active before an air slam
-        if (airSlam && wasFlying && caster instanceof EntityPlayerMP) {
-            EntityPlayerMP mp = (EntityPlayerMP) caster;
-            mp.capabilities.isFlying = true;
-            mp.sendPlayerAbilities();
         }
 
         // Signal that the ability has completed its active phase
@@ -541,13 +548,11 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
-        restoreFlightIfNeeded(caster);
         hasLaunched = false;
         hasLanded = false;
         hasRisen = false;
         airTicks = 0;
         airSlam = false;
-        wasFlying = false;
     }
 
     @Override
@@ -555,26 +560,11 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         if (!isPreview() && caster instanceof EntityNPCInterface) {
             ((EntityNPCInterface) caster).setNpcJumpingState(false);
         }
-        restoreFlightIfNeeded(caster);
         hasLaunched = false;
         hasLanded = false;
         hasRisen = false;
         airTicks = 0;
         airSlam = false;
-        wasFlying = false;
-    }
-
-    /**
-     * Restore flight state if it was temporarily disabled for an air slam.
-     */
-    private void restoreFlightIfNeeded(EntityLivingBase caster) {
-        if (airSlam && wasFlying && caster instanceof EntityPlayerMP) {
-            EntityPlayerMP mp = (EntityPlayerMP) caster;
-            if (!mp.capabilities.isFlying) {
-                mp.capabilities.isFlying = true;
-                mp.sendPlayerAbilities();
-            }
-        }
     }
 
     @Override
@@ -584,7 +574,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         hasRisen = false;
         airTicks = 0;
         airSlam = false;
-        wasFlying = false;
     }
 
     @Override
@@ -595,7 +584,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         hasRisen = false;
         airTicks = 0;
         airSlam = false;
-        wasFlying = false;
     }
 
     @Override
