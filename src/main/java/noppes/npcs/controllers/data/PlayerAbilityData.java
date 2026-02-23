@@ -2,10 +2,10 @@ package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityPhase;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.IAbilityAction;
-import kamkeel.npcs.controllers.data.ability.ToggleEntry;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
@@ -89,6 +89,16 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      * Last synced state flags byte for change detection (avoids spamming packets).
      */
     private transient byte lastSyncedFlags = 0;
+
+    /**
+     * World time when the last ability was activated (for double-press cancel detection).
+     */
+    private transient long lastAbilityActivationTime = -1;
+
+    /**
+     * Ticks after activation during which a second key press will cancel the ability.
+     */
+    private static final int CANCEL_WINDOW_TICKS = 10;
 
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
@@ -257,6 +267,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
         syncAbilityStateClear(playerData.player);
     }
 
@@ -272,6 +283,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
         syncAbilityStateClear(playerData.player);
     }
 
@@ -377,6 +389,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
             currentAbilityKey = key;
             currentTarget = null;
+            lastAbilityActivationTime = getWorldTime();
             return startChain((ChainedAbility) action, null);
         }
 
@@ -412,6 +425,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = ability;
         currentAbilityKey = key;
         currentTarget = null; // Players don't have auto-targets
+        lastAbilityActivationTime = getWorldTime();
         ability.start(null);
 
         if (ability.getPhase() == AbilityPhase.ACTIVE) {
@@ -661,6 +675,38 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         interruptCurrentAbility(null, 0);
     }
 
+    /**
+     * Try to cancel the current ability via double-press.
+     * Only succeeds if within the cancel window and not in DAZED phase.
+     * Also handles cancellation during chain delay (between chain entries).
+     *
+     * @return true if the ability was cancelled
+     */
+    public boolean tryCancelAbility() {
+        boolean hasExecutingAbility = currentAbility != null && currentAbility.isExecuting();
+        boolean isInChainDelay = currentChain != null && chainDelayRemaining > 0;
+
+        if (!hasExecutingAbility && !isInChainDelay) return false;
+
+        // Don't allow cancel during DAZED
+        if (hasExecutingAbility) {
+            AbilityPhase phase = currentAbility.getPhase();
+            if (phase == AbilityPhase.DAZED) return false;
+            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
+                && phase != AbilityPhase.BURST_DELAY) return false;
+        }
+
+        long worldTime = getWorldTime();
+        if (lastAbilityActivationTime < 0 || (worldTime - lastAbilityActivationTime) > CANCEL_WINDOW_TICKS) {
+            // Outside cancel window — update time so a quick follow-up press can cancel
+            lastAbilityActivationTime = worldTime;
+            return false;
+        }
+
+        cancelCurrentAbility();
+        return true;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // ENTITY RECONSTRUCTION RESET
     // ═══════════════════════════════════════════════════════════════════
@@ -700,6 +746,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         currentAbility = null;
         currentAbilityKey = null;
         currentTarget = null;
+        lastAbilityActivationTime = -1;
 
         if (clearCooldowns) {
             cooldownEndTime = 0;
@@ -758,6 +805,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public float onDamage(DamageSource source, float amount) {
         if (currentAbility == null || !currentAbility.isExecuting()) {
             return amount;
+        }
+        if (currentAbility.isInvulnerableForCurrentPhase()) {
+            return 0;
         }
 
         net.minecraft.entity.Entity sourceEntity = source.getEntity();
@@ -890,6 +940,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (wasFlyingAtLock) {
             flags |= PlayerAbilityStatePacket.FLAG_WAS_FLYING_AT_LOCK;
         }
+        if (currentAbility.getPhase() == AbilityPhase.ACTIVE) {
+            flags |= PlayerAbilityStatePacket.FLAG_ACTIVE_PHASE;
+        }
         return flags;
     }
 
@@ -947,7 +1000,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         // Active toggles (compound format with state)
         NBTTagList toggleList = new NBTTagList();
-        for (Map.Entry<String, ToggleEntry> entry : activeToggles.entrySet()) {
+        for (Map.Entry<String, AbilityToggleEntry> entry : activeToggles.entrySet()) {
             NBTTagCompound toggleNbt = new NBTTagCompound();
             toggleNbt.setString("Key", entry.getKey());
             toggleNbt.setInteger("State", entry.getValue().getState());

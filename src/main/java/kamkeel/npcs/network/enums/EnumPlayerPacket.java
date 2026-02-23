@@ -42,4 +42,7 @@ public enum EnumPlayerPacket {
     AbilityHotbarSave,
     AbilityHotbarSelect,
     AbilityToggle,
+
+    // NPC Spawn Data Fix
+    RequestSpawnData,
 }

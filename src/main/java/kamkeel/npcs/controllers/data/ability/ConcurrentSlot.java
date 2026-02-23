@@ -1,5 +1,6 @@
 package kamkeel.npcs.controllers.data.ability;
 
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import net.minecraft.entity.EntityLivingBase;
 
 /**

@@ -3,11 +3,11 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.UserType;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.entity.EntityAbilityZone;
@@ -65,7 +65,7 @@ public abstract class AbilityZone extends Ability {
         this.colorData = defaultColors;
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMode.WINDUP;
         this.cooldownTicks = 0;
         this.allowedBy = UserType.BOTH;
     }
@@ -73,6 +73,17 @@ public abstract class AbilityZone extends Ability {
     @Override
     public boolean allowBurst() {
         return false;
+    }
+
+    @Override
+    public boolean allowFreeOnCast() {
+        return true;
+    }
+
+    @Override
+    public void detach() {
+        activeEntities.clear();
+        preCalculatedPositions.clear();
     }
 
     @Override
@@ -130,6 +141,12 @@ public abstract class AbilityZone extends Ability {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        // Free on Cast: complete immediately — zones live independently
+        if (isFreeOnCast()) {
+            signalCompletion();
+            return;
+        }
+
         Iterator<EntityAbilityZone> it = activeEntities.iterator();
         while (it.hasNext()) {
             EntityAbilityZone entity = it.next();

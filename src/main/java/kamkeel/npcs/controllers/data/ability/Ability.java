@@ -3,10 +3,26 @@ package kamkeel.npcs.controllers.data.ability;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.data.AbilityIconData;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.enums.InvulnerableMode;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.preview.PreviewEntityHandler;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.enums.RotationMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.util.FileNameHelper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -20,9 +36,6 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityEnergyDome;
-import kamkeel.npcs.entity.EntityEnergyPanel;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
@@ -74,11 +87,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     // Interruption
     protected boolean interruptible = true;
+    protected InvulnerableMode invulnerableMode = InvulnerableMode.NONE;
 
     // Feedback
-    protected LockMovementType lockMovement = LockMovementType.WINDUP;
+    protected LockMode lockMovement = LockMode.WINDUP;
     protected RotationMode rotationMode = RotationMode.FREE;
-    protected LockMovementType rotationPhase = LockMovementType.WINDUP_AND_ACTIVE;
+    protected LockMode rotationPhase = LockMode.WINDUP_AND_ACTIVE;
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -113,6 +127,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Per-ability cooldown: if true, this ability has its own independent cooldown
     // instead of sharing the global cooldown with other abilities
     protected boolean perAbilityCooldown = false;
+
+    // Free on Cast: if true, ability enters cooldown immediately after entities are spawned,
+    // allowing the caster to use other abilities while summoned entities remain active
+    protected boolean freeOnCast = false;
 
     // ═══════════════════════════════════════════════════════════════════
     // BUILT-IN (set in constructor via configureAsBuiltIn, NOT persisted)
@@ -253,6 +271,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     public boolean isConcurrentCapable() {
         return false;
+    }
+
+    /**
+     * Whether this ability type supports the Free on Cast option.
+     * Override to return true for abilities that spawn persistent entities (projectiles, barriers, zones, sweeper).
+     */
+    public boolean allowFreeOnCast() {
+        return false;
+    }
+
+    /**
+     * Detach all spawned entities (let them live independently) without killing them.
+     * Called during signalCompletion() when freeOnCast is enabled.
+     * Override in subclasses to null entity references without calling setDead().
+     */
+    public void detach() {
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -431,6 +465,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
+        // Save velocity before damage to cancel vanilla knockback when ability knockback is zero
+        double prevMotionX = hitEntity.motionX;
+        double prevMotionY = hitEntity.motionY;
+        double prevMotionZ = hitEntity.motionZ;
+
         // Apply damage
         if (damage > 0) {
             // Check for ability extenders (e.g., DBC Addon damage routing)
@@ -449,9 +488,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
-        // Apply knockback if any
+        // Apply knockback if any, otherwise restore velocity to cancel vanilla knockback
         if (knockback > 0 || knockbackUp > 0) {
             applyKnockback(hitEntity, knockbackDirX, knockbackDirZ, knockback, knockbackUp);
+        } else {
+            hitEntity.motionX = prevMotionX;
+            hitEntity.motionY = prevMotionY;
+            hitEntity.motionZ = prevMotionZ;
+            hitEntity.velocityChanged = true;
         }
 
         return true;
@@ -612,11 +656,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
             FieldDef.intField("ability.cooldownTicks", this::getCooldownTicks, this::setCooldownTicks).range(0, 10000),
             FieldDef.boolField("ability.perAbilityCooldown", this::isPerAbilityCooldown, this::setPerAbilityCooldown)
         ).tab("General"));
+        if (allowFreeOnCast()) {
+            defs.add(FieldDef.boolField("ability.freeOnCast", this::isFreeOnCast, this::setFreeOnCast)
+                .tab("General").hover("ability.hover.freeOnCast"));
+        }
         defs.add(FieldDef.section("ability.section.movement").tab("General"));
-        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMovementType.getDisplayKeys(),
+        defs.add(FieldDef.stringEnumField("ability.lockMovement", LockMode.getDisplayKeys(),
                 () -> this.getLockMovement().getDisplayKey(),
                 v -> {
-                    for (LockMovementType t : LockMovementType.values()) {
+                    for (LockMode t : LockMode.values()) {
                         if (t.getDisplayKey().equals(v)) {
                             this.setLockMovement(t);
                             break;
@@ -640,7 +688,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
             FieldDef.stringEnumField("ability.rotationPhase", getRotationPhaseKeys(),
                     () -> this.getRotationPhase().getDisplayKey(),
                     v -> {
-                        for (LockMovementType t : LockMovementType.values()) {
+                        for (LockMode t : LockMode.values()) {
                             if (t.getDisplayKey().equals(v)) {
                                 this.setRotationPhase(t);
                                 break;
@@ -652,10 +700,24 @@ public abstract class Ability implements IAbility, IAbilityAction {
         ).tab("General"));
         defs.add(FieldDef.row(
             FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
-                .hover("ability.hover.interruptible"),
+                .hover("ability.hover.interruptible")
+                .enabledWhen(() -> !invulnerableMode.invulnerableDuringWindup()),
             FieldDef.intField("ability.dazedTicks", this::getDazedTicks, this::setDazedTicks)
-                .range(0, 1000).visibleWhen(this::isInterruptible)
+                .range(0, 1000)
+                .visibleWhen(() -> isInterruptible() && !invulnerableMode.invulnerableDuringWindup())
         ).tab("General"));
+        defs.add(FieldDef.stringEnumField("ability.invulnerable", InvulnerableMode.getDisplayKeys(),
+                () -> this.getInvulnerableMode().getDisplayKey(),
+                v -> {
+                    for (InvulnerableMode mode : InvulnerableMode.values()) {
+                        if (mode.getDisplayKey().equals(v)) {
+                            this.setInvulnerableMode(mode);
+                            break;
+                        }
+                    }
+                })
+            .hover("ability.hover.invulnerable")
+            .tab("General"));
 
         // ── Burst section ────────────────────────────────────────────
         if (allowBurst()) {
@@ -863,11 +925,17 @@ public abstract class Ability implements IAbility, IAbilityAction {
             // AOE_SELF abilities: telegraph follows caster during windup
             instance.setEntityIdToFollow(caster.getEntityId());
 
-            // For LINE/CONE telegraphs: track target direction during windup
+            // For LINE/CONE telegraphs: track direction during windup
             // Only track if rotation is NOT locked during windup (NPC can still turn)
-            if ((telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) && target != null) {
+            if (telegraphType == TelegraphType.LINE || telegraphType == TelegraphType.CONE) {
                 if (!isRotationLockedDuringWindup()) {
-                    instance.setTargetEntityId(target.getEntityId());
+                    if (target != null) {
+                        // Face the target entity
+                        instance.setTargetEntityId(target.getEntityId());
+                    } else {
+                        // No target (AOE_SELF etc.): track caster's own rotationYaw
+                        instance.setTrackFollowedEntityYaw(true);
+                    }
                 }
                 // If rotation is locked, yaw stays fixed at creation time
             }
@@ -1066,7 +1134,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
             // Final completion - let burst entities die naturally (don't force-kill)
             burstEntities.clear();
-            cleanup();
+            if (freeOnCast) {
+                // Free on Cast: detach entities (let them live independently) instead of killing
+                detach();
+            } else {
+                cleanup();
+            }
             phase = AbilityPhase.IDLE;
             currentTick = 0;
             return true;
@@ -1096,6 +1169,20 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     /**
+     * Cancel this ability (voluntary player action). Goes directly to IDLE, skipping DAZED.
+     * Entities are killed via cleanup(). Unlike interrupt(), this never enters DAZED phase.
+     */
+    public void cancel() {
+        cleanupBurstEntities();
+        cleanup();
+        phase = AbilityPhase.IDLE;
+        currentTick = 0;
+        burstIndex = 0;
+        currentTarget = null;
+        telegraphInstances.clear();
+    }
+
+    /**
      * Check if executing
      */
     public boolean isExecuting() {
@@ -1112,6 +1199,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     public boolean canInterrupt(DamageSource source) {
         if (!interruptible || (phase != AbilityPhase.WINDUP && phase != AbilityPhase.BURST_DELAY)) {
+            return false;
+        }
+        if (isInvulnerableForCurrentPhase()) {
             return false;
         }
 
@@ -1272,6 +1362,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setBoolean("syncWindup", syncWindupWithAnimation);
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
+        nbt.setInteger("invulnerableMode", invulnerableMode.ordinal());
         nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("rotationMode", rotationMode.ordinal());
         nbt.setInteger("rotationPhase", rotationPhase.ordinal());
@@ -1292,6 +1383,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
         nbt.setBoolean("perAbilityCooldown", perAbilityCooldown);
+        nbt.setBoolean("freeOnCast", freeOnCast);
 
         // Toggle
         nbt.setInteger("toggleStates", toggleStates);
@@ -1350,9 +1442,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
         syncWindupWithAnimation = nbt.hasKey("syncWindup") ? nbt.getBoolean("syncWindup") : true;
         dazedTicks = nbt.hasKey("recovery") ? nbt.getInteger("recovery") : 80;
         interruptible = nbt.hasKey("interruptible") ? nbt.getBoolean("interruptible") : true;
-        lockMovement = LockMovementType.fromOrdinal(nbt.getInteger("lockMovement"));
+        invulnerableMode = nbt.hasKey("invulnerableMode")
+            ? InvulnerableMode.fromOrdinal(nbt.getInteger("invulnerableMode"))
+            : InvulnerableMode.NONE;
+        lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
-        rotationPhase = LockMovementType.fromOrdinal(nbt.getInteger("rotationPhase"));
+        rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
         windUpColor = nbt.getInteger("windUpColor");
         activeColor = nbt.getInteger("activeColor");
         windUpSound = nbt.getString("windUpSound");
@@ -1374,6 +1469,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
         perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");
+        freeOnCast = nbt.getBoolean("freeOnCast");
 
         // Toggle
         toggleStates = nbt.getInteger("toggleStates");
@@ -1439,7 +1535,12 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     public void setName(String name) {
-        this.name = name;
+        if (builtIn) {
+            this.name = name != null ? name : "";
+            return;
+        }
+        String fallback = (this.name != null && !this.name.isEmpty()) ? this.name : "Ability";
+        this.name = FileNameHelper.sanitizeName(name, fallback);
     }
 
     /**
@@ -1448,7 +1549,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Converts &amp; color codes to § for rendering.
      */
     public String getDisplayName() {
-        String result = (displayName != null && !displayName.isEmpty()) ? displayName : name;
+        String result = (displayName != null && !displayName.isEmpty())
+            ? displayName
+            : FileNameHelper.toDisplayName(name);
         return result != null ? result.replaceAll("&([0-9a-fk-or])", "\u00A7$1") : "";
     }
 
@@ -1602,11 +1705,27 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.interruptible = interruptible;
     }
 
-    public LockMovementType getLockMovement() {
+    public InvulnerableMode getInvulnerableMode() {
+        return invulnerableMode;
+    }
+
+    public void setInvulnerableMode(InvulnerableMode invulnerableMode) {
+        this.invulnerableMode = invulnerableMode != null ? invulnerableMode : InvulnerableMode.NONE;
+    }
+
+    public boolean isInvulnerableDuringWindup() {
+        return invulnerableMode.invulnerableDuringWindup();
+    }
+
+    public boolean isInvulnerableDuringActive() {
+        return invulnerableMode.invulnerableDuringActive();
+    }
+
+    public LockMode getLockMovement() {
         return lockMovement;
     }
 
-    public void setLockMovement(LockMovementType lockMovement) {
+    public void setLockMovement(LockMode lockMovement) {
         this.lockMovement = lockMovement;
     }
 
@@ -1618,11 +1737,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.rotationMode = rotationMode;
     }
 
-    public LockMovementType getRotationPhase() {
+    public LockMode getRotationPhase() {
         return rotationPhase;
     }
 
-    public void setRotationPhase(LockMovementType rotationPhase) {
+    public void setRotationPhase(LockMode rotationPhase) {
         this.rotationPhase = rotationPhase;
     }
 
@@ -1643,7 +1762,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     @Override
     public void setLockMovementType(int type) {
-        this.lockMovement = LockMovementType.fromOrdinal(type);
+        this.lockMovement = LockMode.fromOrdinal(type);
     }
 
     /**
@@ -1683,7 +1802,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     @Override
     public void setRotationPhaseType(int type) {
-        this.rotationPhase = LockMovementType.fromOrdinal(type);
+        this.rotationPhase = LockMode.fromOrdinal(type);
     }
 
     /**
@@ -1732,6 +1851,20 @@ public abstract class Ability implements IAbility, IAbilityAction {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Check if this ability grants invulnerability during its current execution phase.
+     */
+    public boolean isInvulnerableForCurrentPhase() {
+        return invulnerableMode.isInvulnerableInPhase(phase);
+    }
+
+    /**
+     * Check if this ability grants invulnerability for a specific phase.
+     */
+    public boolean isInvulnerableForPhase(AbilityPhase phase) {
+        return invulnerableMode.isInvulnerableInPhase(phase);
     }
 
     /**
@@ -1970,6 +2103,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.perAbilityCooldown = perAbilityCooldown;
     }
 
+    public boolean isFreeOnCast() {
+        return freeOnCast;
+    }
+
+    public void setFreeOnCast(boolean freeOnCast) {
+        this.freeOnCast = freeOnCast;
+    }
+
     public boolean isToggleable() {
         return toggleStates > 0;
     }
@@ -2205,9 +2346,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
         double maxZ = Math.max(caster.posZ, target.posZ) + searchRange;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
-        List<EntityEnergyBarrier> barriers = world.getEntitiesWithinAABB(EntityEnergyBarrier.class, searchBox);
+        List<EntityAbilityBarrier> barriers = world.getEntitiesWithinAABB(EntityAbilityBarrier.class, searchBox);
 
-        for (EntityEnergyBarrier barrier : barriers) {
+        for (EntityAbilityBarrier barrier : barriers) {
             if (barrier.isDead) continue;
             if (barrier.isCharging()) continue;
 
@@ -2218,10 +2359,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 if (AbilityTargetHelper.isAlly(caster, (EntityLivingBase) barrierOwner)) continue;
             }
 
-            if (barrier instanceof EntityEnergyDome) {
-                if (isDomeBlocking((EntityEnergyDome) barrier, caster, target)) return true;
-            } else if (barrier instanceof EntityEnergyPanel) {
-                if (isPanelBlocking((EntityEnergyPanel) barrier, caster, target)) return true;
+            if (barrier instanceof EntityAbilityDome) {
+                if (isDomeBlocking((EntityAbilityDome) barrier, caster, target)) return true;
+            } else if (barrier instanceof EntityAbilityPanel) {
+                if (isPanelBlocking((EntityAbilityPanel) barrier, caster, target)) return true;
             }
         }
 
@@ -2232,7 +2373,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Check if a dome blocks an attack from caster to target.
      * Blocks when caster is outside and target is inside the dome.
      */
-    private static boolean isDomeBlocking(EntityEnergyDome dome, EntityLivingBase caster, EntityLivingBase target) {
+    private static boolean isDomeBlocking(EntityAbilityDome dome, EntityLivingBase caster, EntityLivingBase target) {
         float radius = dome.getDomeRadius();
 
         double cdx = caster.posX - dome.posX;
@@ -2253,7 +2394,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Check if a panel blocks an attack from caster to target.
      * Checks if the line from caster to target crosses through the panel bounds.
      */
-    private static boolean isPanelBlocking(EntityEnergyPanel panel, EntityLivingBase caster, EntityLivingBase target) {
+    private static boolean isPanelBlocking(EntityAbilityPanel panel, EntityLivingBase caster, EntityLivingBase target) {
         float halfW = panel.getPanelData().panelWidth * 0.5f;
         float halfH = panel.getPanelData().panelHeight * 0.5f;
 

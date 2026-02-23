@@ -45,14 +45,6 @@ public class ScriptEnergySlicer<T extends EntityEnergySlicer> extends ScriptEner
         entity.setSliceThickness(thickness);
     }
 
-    public boolean isPiercing() {
-        return entity.isPiercing();
-    }
-
-    public void setPiercing(boolean piercing) {
-        entity.setPiercing(piercing);
-    }
-
     // ==================== FIRE ====================
 
     @Override

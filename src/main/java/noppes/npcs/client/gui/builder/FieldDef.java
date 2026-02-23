@@ -118,10 +118,11 @@ public class FieldDef {
         return def;
     }
 
-    public static FieldDef subGuiField(String label, Supplier<SubGuiInterface> factory, Consumer<SubGuiInterface> resultHandler) {
+    @SuppressWarnings("unchecked")
+    public static <T> FieldDef subGuiField(String label, Supplier<T> factory, Consumer<T> resultHandler) {
         FieldDef def = new FieldDef(label, FieldType.SUB_GUI);
-        def.subGuiFactory = factory;
-        def.subGuiResultHandler = resultHandler;
+        def.subGuiFactory = (Supplier<SubGuiInterface>) (Supplier<?>) factory;
+        def.subGuiResultHandler = (Consumer<SubGuiInterface>) (Consumer<?>) resultHandler;
         return def;
     }
 

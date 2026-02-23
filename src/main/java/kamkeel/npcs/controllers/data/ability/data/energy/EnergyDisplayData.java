@@ -1,0 +1,150 @@
+package kamkeel.npcs.controllers.data.ability.data.energy;
+
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.ability.data.IEnergyDisplayData;
+
+/**
+ * Groups visual color properties shared by all energy abilities.
+ * Used as a parameter object for entity constructors and ability configuration.
+ */
+public class EnergyDisplayData implements IEnergyDisplayData {
+    public int innerColor = 0xFFFFFF;
+    public int outerColor = 0x8888FF;
+    public boolean outerColorEnabled = true;
+    public float outerColorWidth = 0.4f;
+    public float outerColorAlpha = 0.5f;
+    public float innerAlpha = 1.0f;
+    public float rotationSpeed = 4.0f;
+
+    // TODO: Skybox Feature
+    // public boolean skyboxEnabled = false;
+    // public String skyboxTexture = "";
+
+    public EnergyDisplayData() {
+    }
+
+    public EnergyDisplayData(int innerColor, int outerColor) {
+        this.innerColor = innerColor;
+        this.outerColor = outerColor;
+    }
+
+    public EnergyDisplayData(int innerColor, int outerColor, boolean outerColorEnabled,
+                             float outerColorWidth, float outerColorAlpha, float rotationSpeed) {
+        this.innerColor = innerColor;
+        this.outerColor = outerColor;
+        this.outerColorEnabled = outerColorEnabled;
+        this.outerColorWidth = outerColorWidth;
+        this.outerColorAlpha = outerColorAlpha;
+        this.rotationSpeed = rotationSpeed;
+    }
+
+    public EnergyDisplayData(int innerColor, int outerColor, boolean outerColorEnabled,
+                             float outerColorWidth, float outerColorAlpha, float innerAlpha, float rotationSpeed) {
+        this(innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, rotationSpeed);
+        this.innerAlpha = innerAlpha;
+    }
+
+    @Override
+    public int getInnerColor() {
+        return innerColor;
+    }
+
+    @Override
+    public void setInnerColor(int innerColor) {
+        this.innerColor = innerColor;
+    }
+
+    @Override
+    public int getOuterColor() {
+        return outerColor;
+    }
+
+    @Override
+    public void setOuterColor(int outerColor) {
+        this.outerColor = outerColor;
+    }
+
+    @Override
+    public boolean isOuterColorEnabled() {
+        return outerColorEnabled;
+    }
+
+    @Override
+    public void setOuterColorEnabled(boolean outerColorEnabled) {
+        this.outerColorEnabled = outerColorEnabled;
+    }
+
+    @Override
+    public float getOuterColorWidth() {
+        return outerColorWidth;
+    }
+
+    @Override
+    public void setOuterColorWidth(float outerColorWidth) {
+        this.outerColorWidth = outerColorWidth;
+    }
+
+    @Override
+    public float getOuterColorAlpha() {
+        return outerColorAlpha;
+    }
+
+    @Override
+    public void setOuterColorAlpha(float outerColorAlpha) {
+        this.outerColorAlpha = outerColorAlpha;
+    }
+
+    @Override
+    public float getInnerAlpha() {
+        return innerAlpha;
+    }
+
+    @Override
+    public void setInnerAlpha(float innerAlpha) {
+        this.innerAlpha = innerAlpha;
+    }
+
+    @Override
+    public float getRotationSpeed() {
+        return rotationSpeed;
+    }
+
+    @Override
+    public void setRotationSpeed(float rotationSpeed) {
+        this.rotationSpeed = rotationSpeed;
+    }
+
+    public void writeNBT(NBTTagCompound nbt) {
+        nbt.setInteger("innerColor", innerColor);
+        nbt.setInteger("outerColor", outerColor);
+        nbt.setBoolean("outerColorEnabled", outerColorEnabled);
+        nbt.setFloat("outerColorWidth", outerColorWidth);
+        nbt.setFloat("outerColorAlpha", outerColorAlpha);
+        nbt.setFloat("innerAlpha", innerAlpha);
+        nbt.setFloat("rotationSpeed", rotationSpeed);
+        // TODO: Skybox Feature
+        // nbt.setBoolean("skyboxEnabled", skyboxEnabled);
+        // nbt.setString("skyboxTexture", skyboxTexture);
+    }
+
+    public void readNBT(NBTTagCompound nbt) {
+        innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
+        outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
+        outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");
+        outerColorWidth = nbt.hasKey("outerColorWidth") ? nbt.getFloat("outerColorWidth") : 0.4f;
+        outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
+        innerAlpha = nbt.hasKey("innerAlpha") ? nbt.getFloat("innerAlpha") : 1.0f;
+        rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
+        // TODO: Skybox Feature
+        // skyboxEnabled = nbt.hasKey("skyboxEnabled") && nbt.getBoolean("skyboxEnabled");
+        // skyboxTexture = nbt.hasKey("skyboxTexture") ? nbt.getString("skyboxTexture") : "";
+    }
+
+    public EnergyDisplayData copy() {
+        EnergyDisplayData copy = new EnergyDisplayData(innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, innerAlpha, rotationSpeed);
+        // TODO: Skybox Feature
+        // copy.skyboxEnabled = skyboxEnabled;
+        // copy.skyboxTexture = skyboxTexture;
+        return copy;
+    }
+}

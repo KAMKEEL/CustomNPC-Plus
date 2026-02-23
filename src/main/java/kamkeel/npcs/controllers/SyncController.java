@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSyncAction;

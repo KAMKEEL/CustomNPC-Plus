@@ -10,8 +10,10 @@ public class SkinOverlay implements ISkinOverlay {
 
     public boolean glow = true;
     public boolean blend = true;
+
     public float alpha = 1.0F;
     public float size = 1.0F;
+    public int color = 0xFFFFFF;
 
     public float speedX = 0.0F;
     public float speedY = 0.0F;
@@ -78,6 +80,15 @@ public class SkinOverlay implements ISkinOverlay {
         return size;
     }
 
+    public void setColor(int color) {
+        this.color = Math.max(0, color);
+        this.updateClient();
+    }
+
+    public int getColor() {
+        return color;
+    }
+
     public void setTextureScale(float scaleX, float scaleY) {
         this.scaleX = scaleX;
         this.scaleY = scaleY;
@@ -131,6 +142,11 @@ public class SkinOverlay implements ISkinOverlay {
         this.blend = compound.getBoolean("SkinOverlayBlend");
         this.alpha = compound.getFloat("SkinOverlayAlpha");
         this.size = compound.getFloat("SkinOverlaySize");
+        if(compound.hasKey("SkinOverlayColor")){
+            this.color = compound.getInteger("SkinOverlayColor");
+        } else {
+            this.color = 0xFFFFFF;
+        }
         this.speedX = compound.getFloat("SkinOverlaySpeedX");
         this.speedY = compound.getFloat("SkinOverlaySpeedY");
         this.scaleX = compound.getFloat("SkinOverlayScaleX");
@@ -146,6 +162,7 @@ public class SkinOverlay implements ISkinOverlay {
         compound.setBoolean("SkinOverlayBlend", this.getBlend());
         compound.setFloat("SkinOverlayAlpha", this.getAlpha());
         compound.setFloat("SkinOverlaySize", this.getSize());
+        compound.setInteger("SkinOverlayColor", this.getColor());
         compound.setFloat("SkinOverlaySpeedX", this.getSpeedX());
         compound.setFloat("SkinOverlaySpeedY", this.getSpeedY());
         compound.setFloat("SkinOverlayScaleX", this.getTextureScaleX());

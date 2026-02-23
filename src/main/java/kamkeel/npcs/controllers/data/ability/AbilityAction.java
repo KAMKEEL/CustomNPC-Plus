@@ -1,11 +1,13 @@
 package kamkeel.npcs.controllers.data.ability;
 
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * Unified slot for storing any combat action: inline ability, ability reference, or chain reference.
- * Replaces {@link AbilitySlot} with support for all {@link IAbilityAction} types.
+ * Support for all {@link IAbilityAction} types.
  * <p>
  * References are lazy-resolved via their respective controllers and cached until
  * the controller revision changes.

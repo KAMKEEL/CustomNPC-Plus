@@ -3,13 +3,13 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyBarrierData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -22,7 +22,7 @@ import java.util.List;
  * Blocks incoming energy projectiles with configurable damage multipliers.
  * Duration and/or HP based.
  */
-public class AbilityDome extends AbilityEnergyBarrier {
+public class AbilityDome extends AbilityBarrier {
 
     private float domeRadius = 5.0f;
     private boolean followCaster = false;
@@ -37,7 +37,7 @@ public class AbilityDome extends AbilityEnergyBarrier {
         this.targetingMode = TargetingMode.SELF;
         this.cooldownTicks = 100;
         this.windUpTicks = 30;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMode.WINDUP;
         this.telegraphType = TelegraphType.RING;
         this.showTelegraph = true;
         this.windUpAnimationName = "";
@@ -47,8 +47,8 @@ public class AbilityDome extends AbilityEnergyBarrier {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
-        EntityEnergyDome dome = new EntityEnergyDome(
+    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+        EntityAbilityDome dome = new EntityAbilityDome(
             caster.worldObj, caster,
             caster.posX, caster.posY, caster.posZ,
             domeRadius, displayData.copy(), lightningData.copy(), barrierData.copy()
@@ -135,14 +135,5 @@ public class AbilityDome extends AbilityEnergyBarrier {
             .range(1.0f, 50.0f));
         defs.add(FieldDef.boolField("ability.followCaster", this::isFollowCaster, this::setFollowCaster)
             .hover("ability.hover.followCaster"));
-
-        // Jail & protection section (dome-only: only enclosures can jail)
-        defs.add(FieldDef.section("ability.section.jail"));
-        defs.add(FieldDef.boolField("ability.jailEnabled", this::isJailEnabled, this::setJailEnabled)
-            .hover("ability.hover.jailEnabled"));
-        defs.add(FieldDef.floatField("ability.jailThreshold", this::getJailThreshold, this::setJailThreshold)
-            .range(0.1f, 1.0f).visibleWhen(this::isJailEnabled));
-        defs.add(FieldDef.boolField("ability.damageProtection", this::isDamageProtection, this::setDamageProtection)
-            .hover("ability.hover.damageProtection"));
     }
 }

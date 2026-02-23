@@ -23,7 +23,6 @@ public enum EnumDataPacket {
     DELETE_NPC,
     CLONE_NPC,
     WEAPON_NPC,
-    REQUEST_SPAWN_DATA,
 
     // Data
     SCROLL_LIST,
@@ -70,4 +69,11 @@ public enum EnumDataPacket {
 
     // Auction System
     AUCTION_DATA,
+
+    // Energy Charge Preview
+    ENERGY_CHARGE_SPAWN,
+    ENERGY_CHARGE_REMOVE,
+
+    // Energy Explosion Preview
+    ENERGY_EXPLOSION_SPAWN,
 }

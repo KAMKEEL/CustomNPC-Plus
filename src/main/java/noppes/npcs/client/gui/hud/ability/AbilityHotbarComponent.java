@@ -4,11 +4,12 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.IAbilityAction;
+import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSelectPacket;
 import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.ClientAbilityState;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
@@ -30,6 +31,7 @@ public class AbilityHotbarComponent extends HudComponent {
 
     private static final int BASE_SLOT_SIZE = 24;
     private static final int BASE_SPACING = 28;
+    private static final int EDIT_HANDLE_SIZE = 10;
 
     private AbilityHotbarSlotRenderer[] slots = new AbilityHotbarSlotRenderer[TOTAL_SLOTS];
 
@@ -189,6 +191,7 @@ public class AbilityHotbarComponent extends HudComponent {
 
         int centerX = overlayWidth / 2;
         int centerY = overlayHeight / 2;
+        boolean activePhase = ClientAbilityState.activePhase;
 
         // Compute text visibility: 0=Shown, 1=Hidden, 2=Held
         boolean showText;
@@ -246,16 +249,16 @@ public class AbilityHotbarComponent extends HudComponent {
 
             if (rawSlotIndex == -1) {
                 // Deselect slot — draw empty marker
-                drawDeselectSlot(cx, cy, scaledSize, isCenter, slotAlpha);
+                drawDeselectSlot(cx, cy, scaledSize, isCenter, slotAlpha, activePhase);
             } else {
-                slots[rawSlotIndex].drawCarousel(mc, sr, slotCooldown, cx, cy, scaledSize, isCenter, slotAlpha, showText);
+                slots[rawSlotIndex].drawCarousel(mc, sr, slotCooldown, cx, cy, scaledSize, isCenter, slotAlpha, showText, activePhase);
             }
         }
 
         GL11.glPopMatrix();
     }
 
-    private void drawDeselectSlot(int cx, int cy, int size, boolean isCenter, float alpha) {
+    private void drawDeselectSlot(int cx, int cy, int size, boolean isCenter, float alpha, boolean activePhase) {
         float radius = size / 2f;
         float baseAlpha = isCenter ? 0.9f : 0.6f;
         float a = baseAlpha * alpha;
@@ -268,7 +271,13 @@ public class AbilityHotbarComponent extends HudComponent {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        if (isCenter) {
+        if (activePhase) {
+            if (isCenter) {
+                GL11.glColor4f(0.65f, 0.14f, 0.14f, a);
+            } else {
+                GL11.glColor4f(0.38f, 0.10f, 0.10f, a);
+            }
+        } else if (isCenter) {
             GL11.glColor4f(0.5f, 0.2f, 0.2f, a);
         } else {
             GL11.glColor4f(0.3f, 0.3f, 0.3f, a);
@@ -292,7 +301,13 @@ public class AbilityHotbarComponent extends HudComponent {
         }
 
         // Draw X mark
-        if (isCenter) {
+        if (activePhase) {
+            if (isCenter) {
+                GL11.glColor4f(1.0f, 0.45f, 0.35f, alpha);
+            } else {
+                GL11.glColor4f(0.75f, 0.30f, 0.30f, alpha * 0.8f);
+            }
+        } else if (isCenter) {
             GL11.glColor4f(0.8f, 0.4f, 0.4f, alpha);
         } else {
             GL11.glColor4f(0.5f, 0.5f, 0.5f, alpha * 0.8f);
@@ -416,25 +431,18 @@ public class AbilityHotbarComponent extends HudComponent {
         int modeLabelW = fr.getStringWidth(modeLabel);
         fr.drawStringWithShadow(modeLabel, overlayWidth / 2 - modeLabelW / 2, overlayHeight + 2, 0xAA888888);
 
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(0.2f, 0.8f, 0.2f, 0.8f);
-        GL11.glLineWidth(1.0f);
-        GL11.glBegin(GL11.GL_LINE_LOOP);
-        GL11.glVertex2f(0, 0);
-        GL11.glVertex2f(overlayWidth, 0);
-        GL11.glVertex2f(overlayWidth, overlayHeight);
-        GL11.glVertex2f(0, overlayHeight);
-        GL11.glEnd();
+        net.minecraft.client.gui.Gui.drawRect(0, 0, overlayWidth, overlayHeight, 0x22000000);
+        drawRectOutline(0, 0, overlayWidth, overlayHeight, 0xCC66CC66);
 
-        GL11.glColor4f(0.8f, 0.8f, 0.8f, 0.9f);
-        GL11.glBegin(GL11.GL_QUADS);
-        GL11.glVertex2f(overlayWidth - 10, overlayHeight - 10);
-        GL11.glVertex2f(overlayWidth, overlayHeight - 10);
-        GL11.glVertex2f(overlayWidth, overlayHeight);
-        GL11.glVertex2f(overlayWidth - 10, overlayHeight);
-        GL11.glEnd();
+        int handleLeft = overlayWidth - EDIT_HANDLE_SIZE;
+        int handleTop = overlayHeight - EDIT_HANDLE_SIZE;
+        net.minecraft.client.gui.Gui.drawRect(handleLeft, handleTop, overlayWidth, overlayHeight, 0xFFE0E0E0);
+        drawRectOutline(handleLeft, handleTop, overlayWidth, overlayHeight, 0xFF5A5A5A);
+        net.minecraft.client.gui.Gui.drawRect(handleLeft + 2, handleTop + 7, handleLeft + 8, handleTop + 8, 0xAA666666);
+        net.minecraft.client.gui.Gui.drawRect(handleLeft + 4, handleTop + 5, handleLeft + 8, handleTop + 6, 0xAA666666);
+        net.minecraft.client.gui.Gui.drawRect(handleLeft + 6, handleTop + 3, handleLeft + 8, handleTop + 4, 0xAA666666);
 
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -596,7 +604,20 @@ public class AbilityHotbarComponent extends HudComponent {
     private boolean isHudKeyHeld() {
         if (ClientProxy.AbilityHudKey == null) return false;
         int keyCode = ClientProxy.AbilityHudKey.getKeyCode();
-        return keyCode != 0 && org.lwjgl.input.Keyboard.isKeyDown(keyCode);
+        if (keyCode == 0 || keyCode == -1) return false;
+
+        // Mouse bindings are encoded as negative key codes (offset by 100).
+        if (keyCode < -1) {
+            int mouseButton = keyCode + 100;
+            return mouseButton >= 0
+                && mouseButton < org.lwjgl.input.Mouse.getButtonCount()
+                && org.lwjgl.input.Mouse.isButtonDown(mouseButton);
+        }
+
+        // Guard against invalid/out-of-range keyboard codes to avoid Buffer.checkIndex crashes.
+        return keyCode > 0
+            && keyCode < org.lwjgl.input.Keyboard.getKeyCount()
+            && org.lwjgl.input.Keyboard.isKeyDown(keyCode);
     }
 
     public boolean hasAnyAbilities() {
@@ -679,5 +700,12 @@ public class AbilityHotbarComponent extends HudComponent {
     public void refresh() {
         updateAbilities();
         lastUpdateTime = Minecraft.getSystemTime();
+    }
+
+    private void drawRectOutline(int left, int top, int right, int bottom, int color) {
+        net.minecraft.client.gui.Gui.drawRect(left, top, right, top + 1, color);
+        net.minecraft.client.gui.Gui.drawRect(left, bottom - 1, right, bottom, color);
+        net.minecraft.client.gui.Gui.drawRect(left, top, left + 1, bottom, color);
+        net.minecraft.client.gui.Gui.drawRect(right - 1, top, right, bottom, color);
     }
 }

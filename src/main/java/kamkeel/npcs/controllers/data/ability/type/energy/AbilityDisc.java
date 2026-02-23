@@ -3,12 +3,13 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.enums.HitType;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -37,8 +38,8 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
 
     public AbilityDisc() {
         super(
-            new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 5.0f),
-            new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f),
+            new EnergyDisplayData(0xFFFFFF, 0xFF8800, true, 0.4f, 0.5f, 10.0f),
+            new EnergyCombatData(8.0f, 1.2f, 0.15f, false, 3.0f, 0.5f, HitType.PIERCE, 5),
             new EnergyHomingData(0.6f, true, 0.12f, 18.0f),
             new EnergyLifespanData(150.0f, 200)
         );
@@ -49,7 +50,7 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 60;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMode.WINDUP;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Disc_Windup";
@@ -225,7 +226,9 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
         defs.add(FieldDef.intField("gui.delay", this::getBoomerangDelay, this::setBoomerangDelay).visibleWhen(this::isBoomerang));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
-        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));
+        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
+            .range(0.0f, EnergyCombatData.MAX_EXPLOSION_RADIUS)
+            .visibleWhen(this::isExplosive));
         defs.add(AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects));
     }
 }

@@ -2,9 +2,9 @@ package kamkeel.npcs.controllers.data.ability.gui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.AbilityCustomEffect;
-import kamkeel.npcs.controllers.data.ability.AbilityEffectActionEntry;
-import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.data.effect.AbilityCustomEffect;
+import kamkeel.npcs.controllers.data.ability.data.entry.AbilityEffectActionEntry;
+import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.builder.FieldType;
 

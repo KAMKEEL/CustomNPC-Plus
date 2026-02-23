@@ -84,8 +84,12 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface implements ISubGui
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
         if (subgui instanceof SubGuiDuplicateNameConfirm) {
-            if (((SubGuiDuplicateNameConfirm) subgui).isConfirmed()) {
+            SubGuiDuplicateNameConfirm confirm = (SubGuiDuplicateNameConfirm) subgui;
+            if (confirm.isConfirmed()) {
                 doSave();
+            } else if (confirm.isBack()) {
+                // Keep this save-confirm dialog open.
+                return;
             } else {
                 close();
             }

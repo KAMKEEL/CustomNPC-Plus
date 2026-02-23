@@ -28,14 +28,15 @@ import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityPanel;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
-import kamkeel.npcs.entity.EntityEnergyDome;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.util.BukkitUtil;
@@ -121,7 +122,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11-beta5")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11-beta7")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -291,15 +292,15 @@ public class CustomNpcs {
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
         registerNewEntity(EntityMagicProjectile.class, "magicprojectile", 64, 3, true);
-        registerNewEntity(EntityAbilityOrb.class, "abilityorb", 64, 3, true);
-        registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 3, true);
-        registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 3, true);
-        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 64, 3, true);
+        registerNewEntity(EntityAbilityOrb.class, "abilityorb", 64, 1, true);
+        registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 1, true);
+        registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 1, true);
+        registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 160, 1, true);
         registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
         registerNewEntity(EntityAbilityZone.class, "abilityzone", 64, 3, true);
-        registerNewEntity(EntityEnergyDome.class, "energydome", 64, 3, true);
-        registerNewEntity(EntityEnergyPanel.class, "energypanel", 64, 3, true);
-        registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 3, true);
+        registerNewEntity(EntityAbilityDome.class, "energydome", 64, 3, true);
+        registerNewEntity(EntityAbilityPanel.class, "energypanel", 64, 3, true);
+        registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 1, true);
 
         new RecipeController();
 
@@ -430,7 +431,7 @@ public class CustomNpcs {
         }
 
         kamkeel.npcs.entity.EntityEnergyProjectile.clearAllProjectiles();
-        kamkeel.npcs.entity.EntityEnergyBarrier.clearAllBarriers();
+        EntityAbilityBarrier.clearAllBarriers();
 
         if (FMLCommonHandler.instance().getSide().isClient())
             clientJaninoCompiler = null;

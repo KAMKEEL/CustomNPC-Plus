@@ -10,6 +10,7 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -105,7 +106,8 @@ public class ScriptPlayerEventHandler {
                 // Skip zeroing if the ability has its own movement (Charge/Dash/Slam)
                 if (playerData.abilityData.isMovementLocked()) {
                     Ability current = playerData.abilityData.getCurrentAbility();
-                    if (current == null || !current.hasAbilityMovement()) {
+                    if (current == null || !current.hasAbilityMovement()
+                        || current.getPhase() != AbilityPhase.ACTIVE) {
                         boolean sFlying = playerData.abilityData.wasFlyingAtLock()
                             || AbilityController.Instance.isPlayerFlying(player);
 
@@ -117,6 +119,17 @@ public class ScriptPlayerEventHandler {
                         }
                         player.motionZ = 0;
                         player.velocityChanged = true;
+                    }
+                }
+
+                // Zero WASD input during ability-controlled movement to prevent
+                // moveEntityWithHeading from interfering with ability velocity
+                {
+                    Ability current = playerData.abilityData.getCurrentAbility();
+                    if (current != null && current.hasAbilityMovement()
+                        && current.getPhase() == AbilityPhase.ACTIVE) {
+                        player.moveForward = 0;
+                        player.moveStrafing = 0;
                     }
                 }
 
@@ -629,7 +642,12 @@ public class ScriptPlayerEventHandler {
                 // Handle ability damage interactions (Guard counter, damage reduction)
                 PlayerData pData = PlayerData.get((EntityPlayer) event.entityLiving);
                 if (pData != null && pData.abilityData != null && pData.abilityData.isExecutingAbility()) {
-                    event.ammount = pData.abilityData.onDamage(event.source, event.ammount);
+                    if (pData.abilityData.isCurrentAbilityInvulnerable()) {
+                        event.ammount = 0;
+                        cancel = true;
+                    } else {
+                        event.ammount = pData.abilityData.onDamage(event.source, event.ammount);
+                    }
                 }
 
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);

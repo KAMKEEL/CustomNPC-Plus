@@ -482,7 +482,7 @@ public class RenderNPCInterface extends RenderLiving {
                         Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
                     }
 
-                    GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.getAlpha());
+                    glColor(overlayData.getColor(), overlayData.getAlpha());
 
                     GL11.glDepthMask(!npc.isInvisible());
 
@@ -519,6 +519,14 @@ public class RenderNPCInterface extends RenderLiving {
             }
             npc.display.overlayRenderTicks++;
         }
+    }
+
+    private static void glColor(int color, float alpha) {
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8)  & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+
+        GL11.glColor4f(r, g, b, alpha);
     }
 
     @Override

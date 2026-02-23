@@ -1,9 +1,6 @@
 package kamkeel.npcs.network.packets.player.ability;
 
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.AbilityController;
-import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -11,7 +8,6 @@ import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.AbilityHotbarData;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.io.IOException;

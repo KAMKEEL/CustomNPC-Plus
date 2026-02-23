@@ -3,9 +3,10 @@ package kamkeel.npcs.controllers.data.ability.conditions;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
-import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.LogWriter;
 import noppes.npcs.client.gui.builder.FieldDef;
 
@@ -14,22 +15,38 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public abstract class AbilityCondition {
+    public static final int MAX_CONDITIONS = 5;
+
     protected String typeId = "";
     protected String name = "";
     protected UserType userType = UserType.BOTH;
     protected ConditionFilter conditionFilter = ConditionFilter.CASTER;
 
-    /**
-     * Check if this condition is met.
-     *
-     * @param caster The entity that would use the ability (NPC or Player)
-     * @param target The current target (may be null for self-targeting abilities or players)
-     * @return true if the condition is satisfied
-     */
-    public abstract boolean check(EntityLivingBase caster, EntityLivingBase target);
+    public boolean check(EntityLivingBase caster, EntityLivingBase target) {
+        switch (getFilter()) {
+            case CASTER:
+                return checkEntity(caster);
+            case TARGET:
+                return target != null && checkEntity(target);
+            case BOTH:
+                return checkEntity(caster) && (target != null && checkEntity(target));
+            default:
+                return checkEntity(caster);
+        }
+    }
+
+    protected abstract boolean checkEntity(EntityLivingBase entity);
 
     public boolean requiresTarget() {
         return false;
+    }
+
+    /**
+     * Returns true if all required fields are filled in.
+     * Used to disable the Done button in SubGuiConditionEdit when incomplete.
+     */
+    public boolean isConfigured() {
+        return true;
     }
 
     public UserType getUserType() {
@@ -55,10 +72,19 @@ public abstract class AbilityCondition {
     @SideOnly(Side.CLIENT)
     public abstract void getConditionDefinitions(List<FieldDef> defs);
 
+    /**
+     * Returns a human-readable summary of this condition's configuration.
+     * Used for tooltips when hovering over condition buttons.
+     */
+    @SideOnly(Side.CLIENT)
+    public abstract String getConditionSummary();
+
     @SideOnly(Side.CLIENT)
     public final List<FieldDef> getAllDefinitions() {
         List<FieldDef> defs = new ArrayList<>();
 
+        defs.add(FieldDef.labelField("ability.validFor", () ->
+            "\u00A7e" + StatCollector.translateToLocal("ability.userType." + getUserType().name())));
         defs.add(FieldDef.enumField("condition.filter", ConditionFilter.class, this::getFilter, this::setFilter));
         getConditionDefinitions(defs);
         return defs;
@@ -69,7 +95,7 @@ public abstract class AbilityCondition {
         nbt.setString("typeId", getTypeId());
         nbt.setString("name", getName());
         nbt.setInteger("userType", getUserType().ordinal());
-        nbt.setInteger("filter", getUserType().ordinal());
+        nbt.setInteger("filter", getFilter().ordinal());
         writeTypeNBT(nbt);
         return nbt;
     }

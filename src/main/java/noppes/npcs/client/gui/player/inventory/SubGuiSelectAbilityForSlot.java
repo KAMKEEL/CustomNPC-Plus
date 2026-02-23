@@ -2,7 +2,7 @@ package noppes.npcs.client.gui.player.inventory;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.util.GuiCustomScroll;

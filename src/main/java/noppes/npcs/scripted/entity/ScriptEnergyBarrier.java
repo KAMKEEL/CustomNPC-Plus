@@ -1,15 +1,15 @@
 package noppes.npcs.scripted.entity;
 
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import noppes.npcs.api.entity.IEnergyBarrier;
 import noppes.npcs.scripted.constants.EntityType;
 
 /**
  * Base script wrapper for energy barrier entities (Dome, Panel).
- * All shared methods delegate directly to EntityEnergyBarrier base.
+ * All shared methods delegate directly to EntityAbilityBarrier base.
  */
-public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEnergyAbility<T> implements IEnergyBarrier {
+public class ScriptEnergyBarrier<T extends EntityAbilityBarrier> extends ScriptEnergyAbility<T> implements IEnergyBarrier {
 
     public ScriptEnergyBarrier(T entity) {
         super(entity);
@@ -89,6 +89,14 @@ public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEn
         entity.getBarrierData().defaultMultiplier = multiplier;
     }
 
+    public boolean isSolid() {
+        return entity.getBarrierData().solid;
+    }
+
+    public void setSolid(boolean solid) {
+        entity.getBarrierData().solid = solid;
+    }
+
     public boolean isKnockbackEnabled() {
         return entity.getBarrierData().knockbackEnabled;
     }
@@ -105,15 +113,31 @@ public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEn
         entity.getBarrierData().knockbackStrength = strength;
     }
 
-    public int getKnockbackTarget() {
-        return entity.getBarrierData().knockbackTarget;
+    public boolean isAbsorbing() {
+        return entity.getBarrierData().absorbing;
     }
 
-    public void setKnockbackTarget(int target) {
-        entity.getBarrierData().knockbackTarget = target;
+    public void setAbsorbing(boolean absorbing) {
+        entity.getBarrierData().absorbing = absorbing;
+    }
+
+    public boolean isReflect() {
+        return entity.getBarrierData().reflect;
+    }
+
+    public void setReflect(boolean reflect) {
+        entity.getBarrierData().reflect = reflect;
+    }
+
+    public float getReflectStrengthPct() {
+        return entity.getBarrierData().reflectStrengthPct;
+    }
+
+    public void setReflectStrengthPct(float strengthPct) {
+        entity.getBarrierData().setReflectStrengthPct(strengthPct);
     }
 
     public int getBarrierType() {
-        return entity instanceof EntityEnergyDome ? 0 : 1;
+        return entity instanceof EntityAbilityDome ? 0 : 1;
     }
 }

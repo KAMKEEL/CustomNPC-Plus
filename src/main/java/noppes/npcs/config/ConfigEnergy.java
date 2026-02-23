@@ -10,8 +10,14 @@ public class ConfigEnergy {
     public static Configuration config;
 
     public final static String DOMES = "Domes";
+    public final static String EXPLOSIONS = "Explosions";
 
     public static String[] DomeItemBlacklist;
+    /**
+     * Server-side toggle for energy projectile terrain destruction.
+     * Disabled by default to avoid block grief.
+     */
+    public static boolean EnableEnergyExplosionBlockDamage;
 
     public static void init(File configFile) {
         config = new Configuration(configFile);
@@ -24,6 +30,13 @@ public class ConfigEnergy {
                 new String[]{"minecraft:ender_pearl"},
                 "Items that cannot be used while inside an Energy Dome.\n"
                     + "Format: modid:itemname (e.g., minecraft:ender_pearl)"
+            );
+
+            EnableEnergyExplosionBlockDamage = config.getBoolean(
+                "Enable Energy Explosion Block Damage", EXPLOSIONS,
+                false,
+                "If true, explosive ENERGY projectile abilities can destroy terrain.\n"
+                    + "This is intended for server-side use and is disabled by default."
             );
 
         } catch (Exception e) {

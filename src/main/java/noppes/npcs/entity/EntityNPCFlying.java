@@ -62,26 +62,27 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         } else if (heightOffGround > this.ais.flyHeightLimit) {
             aboveLimit = true;
         }
-        if (aboveLimit && this.ais.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
+        if (aboveLimit && this.ais.hasFlyLimit) {
             this.flyLimitAllow = false;
-            if (!this.getNavigator().noPath() && this.motionY > 0) {
+            if (this.motionY > 0) {
                 this.motionY = 0;
-            } else {
-                setNpcFlyingState(false);
-                super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
-                return;
             }
+        } else if (heightOffGround < Math.ceil(this.height) && this.motionY == 0) {
+            this.flyLimitAllow = false;
+            setNpcFlyingState(false);
+            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+            return;
         }
         this.flyLimitAllow = true;
         setNpcFlyingState(true);
 
-        double d3 = this.motionY;
-        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
-        this.motionY = d3;
-
+        double desiredMotionY = this.motionY;
         if (this.getNavigator().noPath()) {
-            this.motionY = -Math.abs(this.ais.flyGravity);
+            desiredMotionY = -Math.abs(this.ais.flyGravity);
         }
+        this.motionY = desiredMotionY;
+        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+        this.motionY = desiredMotionY;
 
         this.updateLimbSwing();
     }
@@ -90,11 +91,13 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         this.prevLimbSwingAmount = this.limbSwingAmount;
         double distanceX = this.posX - this.prevPosX;
         double distanceZ = this.posZ - this.prevPosZ;
-        float distance = MathHelper.sqrt_double(distanceX * distanceX + distanceZ * distanceZ) * 4.0F;
+        float distance = MathHelper.sqrt_double(distanceX * distanceX + distanceZ * distanceZ);
+        float swingScale = this.getNavigator().noPath() ? 0.35F : 0.9F;
+        distance *= swingScale;
         if (distance > 1.0F) {
             distance = 1.0F;
         }
-        this.limbSwingAmount += (distance - this.limbSwingAmount) * 0.4F;
+        this.limbSwingAmount += (distance - this.limbSwingAmount) * 0.18F;
         this.limbSwing += this.limbSwingAmount;
     }
 
@@ -120,15 +123,16 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         } else if (heightOffGround > this.ais.flyHeightLimit) {
             aboveLimit = true;
         }
-        if (aboveLimit && this.ais.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
+        if (aboveLimit && this.ais.hasFlyLimit) {
             this.flyLimitAllow = false;
-            if (!this.getNavigator().noPath() && this.motionY > 0) {
+            if (this.motionY > 0) {
                 this.motionY = 0;
-            } else {
-                setNpcFlyingState(false);
-                super.performMountedMovement(strafe, forward, moveSpeed);
-                return;
             }
+        } else if (heightOffGround < Math.ceil(this.height) && this.motionY == 0) {
+            this.flyLimitAllow = false;
+            setNpcFlyingState(false);
+            super.performMountedMovement(strafe, forward, moveSpeed);
+            return;
         }
         this.flyLimitAllow = true;
         setNpcFlyingState(true);
@@ -138,13 +142,13 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             return;
         }
 
-        double d3 = this.motionY;
-        super.performMountedMovement(strafe, forward, moveSpeed);
-        this.motionY = d3;
-
+        double desiredMotionY = this.motionY;
         if (this.getNavigator().noPath()) {
-            this.motionY = -Math.abs(this.ais.flyGravity);
+            desiredMotionY = -Math.abs(this.ais.flyGravity);
         }
+        this.motionY = desiredMotionY;
+        super.performMountedMovement(strafe, forward, moveSpeed);
+        this.motionY = desiredMotionY;
 
         this.updateLimbSwing();
     }

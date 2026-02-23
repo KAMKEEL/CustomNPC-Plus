@@ -1,6 +1,8 @@
 package kamkeel.npcs.controllers.data.ability.data;
 
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**

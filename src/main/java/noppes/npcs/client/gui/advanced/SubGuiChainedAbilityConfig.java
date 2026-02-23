@@ -4,11 +4,11 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
-import kamkeel.npcs.controllers.data.ability.AbilityIconData;
-import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
-import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
+import kamkeel.npcs.controllers.data.ability.data.AbilityIconData;
+import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition.MAX_CONDITIONS;
 
 /**
  * SubGui for editing a {@link ChainedAbility}.
@@ -70,9 +71,9 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     // Actual ID = COND_BASE + i * COND_STRIDE + offset
     // offset 0 = name/click, 1 = edit, 2 = delete
     private static final int COND_BASE = 50;
-    private static final int COND_END = 80;
     private static final int COND_STRIDE = 10;
-    private static final int BTN_ADD_COND = 80;
+    private static final int COND_END = COND_BASE + MAX_CONDITIONS * COND_STRIDE; // 50 + N*10
+    private static final int BTN_ADD_COND = COND_END;
 
     // ── Layout constants ──────────────────────────────────────────────────────
     private static final int L_LABEL_X = 5;
@@ -427,7 +428,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         sw.addLabel(new GuiNpcLabel(labelCounter, "ability.conditions", L_LABEL_X, y + 2, 0xFFFF55));
         y += 15;
 
-        for (int i = 0; i < conditions.size() && i < 3; i++) {
+        for (int i = 0; i < conditions.size() && i < MAX_CONDITIONS; i++) {
             AbilityCondition cond = conditions.get(i);
             String condName = getConditionDisplayName(cond);
             sw.addButton(new GuiNpcButton(COND_BASE + i * COND_STRIDE, L_LABEL_X, y, 140, 20, condName));
@@ -436,7 +437,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             y += 22;
         }
 
-        if (conditions.size() < 3) {
+        if (conditions.size() < MAX_CONDITIONS) {
             sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));
             y += ROW_H;
         }
@@ -562,6 +563,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     return true;
                 case 2: // Up
                     if (entryIndex > 0) {
+                        // Commit any focused delay field before reordering
+                        GuiNpcTextField.unfocus();
                         ChainedAbilityEntry entry = entries.remove(entryIndex);
                         entries.add(entryIndex - 1, entry);
                         // Can't be concurrent at position 0
@@ -573,12 +576,16 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     return true;
                 case 3: // Down
                     if (entryIndex < entries.size() - 1) {
+                        // Commit any focused delay field before reordering
+                        GuiNpcTextField.unfocus();
                         ChainedAbilityEntry entry = entries.remove(entryIndex);
                         entries.add(entryIndex + 1, entry);
                         initGui();
                     }
                     return true;
                 case 4: // Delete
+                    // Commit any focused delay field before removing
+                    GuiNpcTextField.unfocus();
                     entries.remove(entryIndex);
                     initGui();
                     return true;
@@ -615,7 +622,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             return true;
         }
         if (id == BTN_ADD_COND) {
-            if (conditions.size() < 3) {
+            if (conditions.size() < MAX_CONDITIONS) {
                 editingConditionIndex = conditions.size();
                 setSubGui(new SubGuiConditionEdit(null));
             }

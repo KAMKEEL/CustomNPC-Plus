@@ -57,16 +57,19 @@ public final class SpecialKeyStatePacket extends AbstractPacket {
             boolean wasDown = data.isSpecialKeyDown();
             data.setSpecialKeyDown(keyDown);
 
-            // Trigger ability activation on key press (rising edge)
+            // Trigger ability activation or cancel on key press (rising edge)
             if (keyDown && !wasDown) {
-                // Don't activate if player has a GUI open (not the default inventory)
-
                 // Don't activate if player is riding an entity (mount)
                 if (player.ridingEntity != null) {
                     return;
                 }
 
-                data.abilityData.activateAbility(player);
+                // If currently executing an ability, try to cancel via double-press
+                if (data.abilityData.isExecutingAbility() || data.abilityData.isExecutingChain()) {
+                    data.abilityData.tryCancelAbility();
+                } else {
+                    data.abilityData.activateAbility(player);
+                }
             }
         }
     }

@@ -1,7 +1,5 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
-import kamkeel.npcs.controllers.data.ability.UserType;
-
 public enum ConditionFilter {
     CASTER,
     TARGET,

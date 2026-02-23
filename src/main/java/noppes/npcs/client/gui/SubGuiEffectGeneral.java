@@ -127,7 +127,7 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                     int iconWidth = effect.getWidth();
                     int iconHeight = effect.getHeight();
                     int width = data.getTotalWidth();
-                    int height = data.getTotalWidth();
+                    int height = data.getTotalHeight();
 
 
                     func_152125_a(x, y, iconX, iconY, iconWidth, iconHeight, iconRenderSize, iconRenderSize, width, height);

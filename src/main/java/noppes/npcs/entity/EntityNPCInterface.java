@@ -231,8 +231,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
     public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
 
-    @SideOnly(Side.CLIENT)
-    public int immediateSpawnDataFixAttempts = 0;
+    // For Client-Side Use Only
+    public int clientFixAttempts = 0;
 
     public EntityNPCInterface(World world) {
         super(world);
@@ -255,7 +255,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             setFaction(faction.id);
             setSize(1, 1);
             this.updateTasks();
-            this.func_110163_bv();
+            this.syncDespawnPersistence();
 
             if (!this.isRemote() && this.wrappedNPC == null) {
                 this.wrappedNPC = new ScriptNpc<>(this);
@@ -658,6 +658,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
         if (damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()) {
             reset();
+        }
+        if (this.abilities != null && this.abilities.isCurrentAbilityInvulnerable()) {
+            return false;
         }
 
         // Check for custom weapon attack speed - bypass immunity if enough time has passed
@@ -1200,7 +1203,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
 
         this.updateTasks();
-        this.func_110163_bv();
+        this.syncDespawnPersistence();
     }
 
     @Override
@@ -1399,6 +1402,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         field_20063_u += d * 0.25D;
         field_20061_w += d2 * 0.25D;
         field_20062_v += d1 * 0.25D;
+    }
+
+    @Override
+    protected void despawnEntity() {
+        syncDespawnPersistence();
+        super.despawnEntity();
+    }
+
+    public void syncDespawnPersistence() {
+        if (stats == null) {
+            if (!this.persistenceRequired) {
+                this.func_110163_bv();
+            }
+            return;
+        }
+        if (stats.canDespawn) {
+            this.persistenceRequired = false;
+        } else if (!this.persistenceRequired) {
+            this.func_110163_bv();
+        }
     }
 
     @Override
@@ -1803,6 +1826,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         compound.setBoolean("DeadBody", stats.hideKilledBody);
         compound.setInteger("StandingState", ais.standingType.ordinal());
         compound.setInteger("MovingState", ais.movingType.ordinal());
+        compound.setInteger("MovingType", ais.movementType);
+        compound.setDouble("FlySpeed", ais.flySpeed);
+        compound.setDouble("FlyGravity", ais.flyGravity);
+        compound.setBoolean("HasFlyLimit", ais.hasFlyLimit);
+        compound.setInteger("FlyHeightLimit", ais.flyHeightLimit);
         compound.setInteger("Orientation", ais.orientation);
         compound.setFloat("OffsetY", ais.bodyOffsetY);
         compound.setInteger("Role", advanced.role.ordinal());
@@ -1834,22 +1862,38 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         try {
             readSpawnData(ByteBufUtils.readNBT(buf));
         } catch (IOException e) {
-            RequestProperSpawnData.reportMissingData(this);
+            if (this.worldObj != null && this.worldObj.isRemote) {
+                RequestProperSpawnData.reportMissingData(this);
+            }
         }
     }
 
     public void readSpawnData(NBTTagCompound compound) {
-        if ((compound.hasNoTags() || !compound.hasKey("MaxHealth", Constants.NBT.TAG_DOUBLE))) {
-            RequestProperSpawnData.reportMissingData(this);
-            return;
+        if (this.worldObj != null && this.worldObj.isRemote) {
+            if(requestClientFix(compound))
+                return;
         }
 
-        immediateSpawnDataFixAttempts = 0;
         stats.maxHealth = compound.getDouble("MaxHealth");
         ais.setWalkingSpeed(compound.getInteger("Speed"));
         stats.hideKilledBody = compound.getBoolean("DeadBody");
         ais.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
         ais.movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
+        if (compound.hasKey("MovingType", Constants.NBT.TAG_INT)) {
+            ais.movementType = compound.getInteger("MovingType");
+        }
+        if (compound.hasKey("FlySpeed", Constants.NBT.TAG_DOUBLE)) {
+            ais.flySpeed = compound.getDouble("FlySpeed");
+        }
+        if (compound.hasKey("FlyGravity", Constants.NBT.TAG_DOUBLE)) {
+            ais.flyGravity = compound.getDouble("FlyGravity");
+        }
+        if (compound.hasKey("HasFlyLimit", Constants.NBT.TAG_BYTE)) {
+            ais.hasFlyLimit = compound.getBoolean("HasFlyLimit");
+        }
+        if (compound.hasKey("FlyHeightLimit", Constants.NBT.TAG_INT)) {
+            ais.flyHeightLimit = compound.getInteger("FlyHeightLimit");
+        }
         ais.orientation = compound.getInteger("Orientation");
         ais.bodyOffsetY = compound.getFloat("OffsetY");
 
@@ -1920,6 +1964,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         } else {
             return super.handleWaterMovement();
         }
+    }
+
+    public boolean requestClientFix(NBTTagCompound compound){
+        if((compound.hasNoTags() || !compound.hasKey("MaxHealth", Constants.NBT.TAG_DOUBLE))){
+            RequestProperSpawnData.reportMissingData(this);
+            return true;
+        }
+        clientFixAttempts = 0;
+        return false;
     }
 
     public boolean canBreatheUnderwater() {

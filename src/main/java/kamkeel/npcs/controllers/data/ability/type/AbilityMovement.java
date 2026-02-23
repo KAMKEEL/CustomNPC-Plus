@@ -2,6 +2,8 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.Vec3;
 
 /**
@@ -214,38 +216,61 @@ public abstract class AbilityMovement extends Ability {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
+     * Send an authoritative velocity packet to a player.
+     * <p>
+     * The ability tick runs BEFORE moveEntityWithHeading (at PlayerTickEvent.START).
+     * If we use velocityChanged, the entity tracker sends S12 AFTER friction has
+     * reduced the motion (~55% of set value). The client then moves at reduced speed,
+     * reports a short position via C04, and the server resets to the client's position.
+     * <p>
+     * By sending S12 manually here — before friction — the client receives the full
+     * velocity and moves at the correct speed.
+     */
+    protected void sendPlayerVelocity(EntityLivingBase caster) {
+        if (caster instanceof EntityPlayerMP) {
+            ((EntityPlayerMP) caster).playerNetServerHandler.sendPacket(
+                new S12PacketEntityVelocity(caster));
+        }
+    }
+
+    /**
+     * Apply horizontal momentum and sync to client.
+     */
+    protected void applyHorizontalMomentum(EntityLivingBase caster, double motionX, double motionZ) {
+        caster.motionX = motionX;
+        caster.motionZ = motionZ;
+        if (!isPreview()) {
+            if (caster instanceof EntityPlayerMP) {
+                sendPlayerVelocity(caster);
+            } else {
+                caster.velocityChanged = true;
+            }
+        }
+    }
+
+    /**
      * Apply movement velocity to the caster (horizontal only, Y unchanged).
      */
     protected void applyVelocity(EntityLivingBase caster, float speed) {
-        caster.motionX = movementDirection.xCoord * speed;
-        caster.motionZ = movementDirection.zCoord * speed;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
-        }
+        applyHorizontalMomentum(caster, movementDirection.xCoord * speed, movementDirection.zCoord * speed);
     }
 
     /**
      * Apply movement velocity with zero vertical motion.
      * Used for ground-locked movement like Charge.
+     * motionY is set BEFORE sending velocity packet to prevent client-server desync
+     * (which causes "moved too fast" kicks when used in mid-air).
      */
     protected void applyVelocityFlat(EntityLivingBase caster, float speed) {
-        caster.motionX = movementDirection.xCoord * speed;
         caster.motionY = 0;
-        caster.motionZ = movementDirection.zCoord * speed;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
-        }
+        applyHorizontalMomentum(caster, movementDirection.xCoord * speed, movementDirection.zCoord * speed);
     }
 
     /**
      * Stop all horizontal momentum.
      */
     protected void stopMomentum(EntityLivingBase caster) {
-        caster.motionX = 0;
-        caster.motionZ = 0;
-        if (!isPreview()) {
-            caster.velocityChanged = true;
-        }
+        applyHorizontalMomentum(caster, 0, 0);
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -4,13 +4,13 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityCustomEffect;
-import kamkeel.npcs.controllers.data.ability.AbilityEffectActionEntry;
-import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.data.effect.AbilityCustomEffect;
+import kamkeel.npcs.controllers.data.ability.data.entry.AbilityEffectActionEntry;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetFilter;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetFilter;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
@@ -73,7 +73,7 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
         this.typeId = "ability.cnpc.effect";
         this.name = "Effect";
         this.targetingMode = TargetingMode.SELF;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMode.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.NONE;
@@ -131,7 +131,7 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
 
             if (instantHeal) {
                 for (EntityLivingBase entity : getAffectedEntities()) {
-                    healEntity(entity);
+                    healEntity(caster, entity);
                     applyAllEffects(caster, entity);
                     spawnHealParticles(caster.worldObj, entity);
                 }
@@ -159,7 +159,9 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
                 }
 
                 if (totalTickHeal > 0) {
-                    entity.heal(totalTickHeal);
+                    if (!AbilityController.Instance.fireOnAbilityHeal(this, caster, entity, totalTickHeal)) {
+                        entity.heal(totalTickHeal);
+                    }
                 }
 
                 if (tick % 20 == 0) {
@@ -226,13 +228,15 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
         }
     }
 
-    private void healEntity(EntityLivingBase entity) {
+    private void healEntity(EntityLivingBase caster, EntityLivingBase entity) {
         float totalHeal = healAmount;
         if (healPercent > 0) {
             totalHeal += entity.getMaxHealth() * healPercent;
         }
         if (totalHeal > 0) {
-            entity.heal(totalHeal);
+            if (!AbilityController.Instance.fireOnAbilityHeal(this, caster, entity, totalHeal)) {
+                entity.heal(totalHeal);
+            }
         }
     }
 

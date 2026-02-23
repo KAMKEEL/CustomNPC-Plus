@@ -3,10 +3,10 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetFilter;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.enums.TargetFilter;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -71,7 +71,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         this.name = "Cutter";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 8.0f;
-        this.lockMovement = LockMovementType.NO;
+        this.lockMovement = LockMode.NO;
         this.cooldownTicks = 0;
         this.windUpTicks = 20;
         this.telegraphType = TelegraphType.CONE;
@@ -164,12 +164,10 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         currentRotation = -arcAngle / 2.0f;
         activeSoundPlayed = false;
 
-        // Use the telegraph's locked yaw if available, so the sweep direction
-        // matches the telegraph the player/NPC was seeing during windup.
-        // The telegraph yaw is locked when entering ACTIVE phase via lockPosition().
-        if (!telegraphInstances.isEmpty()) {
-            sweepBaseYaw = telegraphInstances.get(0).getYaw();
-        } else if (target != null) {
+        // Compute sweep direction from caster/target at execution time.
+        // Server-side telegraph instances are not ticked, so their yaw is stale
+        // from windup start — use the caster's current rotation instead.
+        if (target != null) {
             double dx = target.posX - caster.posX;
             double dz = target.posZ - caster.posZ;
             if (dx * dx + dz * dz > 0.0001) {

@@ -19,6 +19,9 @@ public class RenderAbilityDisc extends RenderEnergyAbility {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
+        if (shouldSkipInitialActiveRender(entity)) {
+            return;
+        }
         EntityAbilityDisc disc = (EntityAbilityDisc) entity;
 
         setupRenderState();

@@ -1,8 +1,10 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
-import kamkeel.npcs.controllers.data.ability.UserType;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -15,7 +17,12 @@ public class ConditionHitCount extends AbilityCondition {
     public ConditionHitCount() {
         this.typeId = "condition.cnpc.hit_count";
         this.name = "condition.hit_count";
-        this.userType = UserType.NPC_ONLY;
+    }
+
+    @Override
+    protected boolean checkEntity(EntityLivingBase entity) {
+        // Not used — this condition overrides check() directly
+        return false;
     }
 
     @Override
@@ -47,10 +54,18 @@ public class ConditionHitCount extends AbilityCondition {
         this.withinTicks = Math.max(0, withinTicks);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void getConditionDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.intField("condition.required_hits", this::getRequiredHits, this::setRequiredHits).min(1));
         defs.add(FieldDef.intField("condition.within_ticks", this::getWithinTicks, this::setWithinTicks).min(0));
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public String getConditionSummary() {
+        String filterLabel = StatCollector.translateToLocal(getFilter().toString());
+        return "[" + filterLabel + "] Hit " + requiredHits + " times in " + withinTicks + " ticks";
     }
 
     @Override

@@ -22,6 +22,7 @@ import java.io.IOException;
  * bit 1: rotation locked (freeze yaw/pitch)
  * bit 2: has ability movement (ability controls motion — suppress WASD but don't zero)
  * bit 3: position locked (freeze position)
+ * bit 5: ability is in ACTIVE phase
  */
 public final class PlayerAbilityStatePacket extends AbstractPacket {
     public static final String packetName = "Data|PlayerAbilityState";
@@ -31,6 +32,7 @@ public final class PlayerAbilityStatePacket extends AbstractPacket {
     public static final byte FLAG_HAS_ABILITY_MOVEMENT = 4;
     public static final byte FLAG_POSITION_LOCKED = 8;
     public static final byte FLAG_WAS_FLYING_AT_LOCK = 16;
+    public static final byte FLAG_ACTIVE_PHASE = 32;
 
     private byte flags;
     private float lockedYaw;

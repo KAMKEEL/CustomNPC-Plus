@@ -86,6 +86,9 @@ public abstract class MixinModelRenderer {
                 float prevAngleX = this.rotateAngleX;
                 float prevAngleY = this.rotateAngleY;
                 float prevAngleZ = this.rotateAngleZ;
+                float prevOffsetX = this.offsetX;
+                float prevOffsetY = this.offsetY;
+                float prevOffsetZ = this.offsetZ;
 
                 boolean changedAngles = false;
                 try {
@@ -149,6 +152,11 @@ public abstract class MixinModelRenderer {
                     GL11.glPopMatrix();
                 }
 
+                // Mirror vanilla ModelRenderer behavior: always undo offset translation.
+                // Without this, models that animate via offsetX/Y/Z (e.g. witch nose while drinking)
+                // leak transforms into subsequent renders.
+                GL11.glTranslatef(-this.offsetX, -this.offsetY, -this.offsetZ);
+
                 if (changedAngles) {
                     this.rotationPointX = prevPointX;
                     this.rotationPointY = prevPointY;
@@ -156,6 +164,9 @@ public abstract class MixinModelRenderer {
                     this.rotateAngleX = prevAngleX;
                     this.rotateAngleY = prevAngleY;
                     this.rotateAngleZ = prevAngleZ;
+                    this.offsetX = prevOffsetX;
+                    this.offsetY = prevOffsetY;
+                    this.offsetZ = prevOffsetZ;
                 }
             }
         }
