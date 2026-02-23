@@ -300,9 +300,14 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
                 button.drawHover(mouseX, mouseY, subGui);
             }
         }
-        // Label hover: convert screen mouse to scroll-local coords for hit testing
         int localMouseX = mouseX - xPos;
         int localMouseY = (int) (mouseY - yPos + scrollY);
+        for (GuiNpcTextField textField : textfields.values()) {
+            if (textField.hasHoverText()) {
+                textField.drawHover(localMouseX, localMouseY, mouseX, mouseY, subGui);
+            }
+        }
+        // Label hover: convert screen mouse to scroll-local coords for hit testing
         for (GuiNpcLabel label : labels.values()) {
             if (!label.hoverableText.isEmpty()) {
                 label.drawHover(localMouseX, localMouseY, mouseX, mouseY, subGui, fontRendererObj);

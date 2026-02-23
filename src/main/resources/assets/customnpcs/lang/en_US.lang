@@ -425,7 +425,37 @@ spawning.liquidSpawning=Spawns in Liquid
 spawning.airSpawning=Spawns in Air
 spawning.minHeight=Minimum Height
 spawning.maxHeight=Maximum Height
+spawning.maxAlive=Max Alive (0 = Unlimited)
+spawning.cooldownTicks=Cooldown (Ticks)
+spawning.attemptsPerCycle=Attempts Per Cycle
+spawning.playerMinDistance=Min Player Distance
+spawning.despawnMode=Despawn Mode
+spawning.despawn.forceNatural=Force Natural
+spawning.despawn.preserve=Preserve Template
+spawning.despawn.forcePersistent=Force Persistent
 spawning.naturalInfo=Add at least one spawn entry and configure spawn options for the NPC to spawn naturally
+spawning.naturalInfoPerformance=Natural Spawn Setup\nBest performance baseline:\n- maxAlive: 20-60\n- cooldownTicks: 200-600\n- attemptsPerCycle: 1-2\n- playerMinDistance: 32-48\n- despawnMode: Force Natural
+tooltip.naturalspawns.main.addProfile=Create a new natural spawn profile.\nBest performance: Keep profile count focused by biome/theme.
+tooltip.naturalspawns.main.removeProfile=Delete the selected natural spawn profile.\nBest performance: Remove unused profiles to reduce selection overhead.
+tooltip.naturalspawns.main.search=Filter spawn profiles by name.\nTip: Use biome/type prefixes for faster maintenance.
+tooltip.naturalspawns.main.biomes=Choose biomes this profile can spawn in.\nBest performance: Use only needed biomes.
+tooltip.naturalspawns.main.dimensions=Choose dimensions this profile can spawn in.\nBest performance: Limit to required dimensions.
+tooltip.naturalspawns.main.options=Open advanced spawn controls.\nBest performance: Configure cap, cooldown, attempts, and despawn mode.
+tooltip.naturalspawns.main.addEntry=Add an entry slot to this profile.\nBest performance: Keep only active entries.
+tooltip.naturalspawns.main.removeEntry=Remove selected entry slot.\nBest performance: Remove empty/duplicate entries.
+tooltip.naturalspawns.main.slot=Entry slot index.\nTip: Keep numbering organized for easier debugging.
+tooltip.naturalspawns.main.selectEntry=Select which clone/NPC this slot spawns.\nBest performance: Avoid very heavy scripted clones in high-frequency profiles.
+tooltip.naturalspawns.options.animal=Uses animal-style spawn checks for this entry.\nBest performance: Enable only for passive/ground mobs.
+tooltip.naturalspawns.options.monster=Uses monster-style spawn checks for this entry.\nBest performance: Enable only for hostile/night mobs.
+tooltip.naturalspawns.options.liquid=Allows water/liquid spawn validation.\nBest performance: Keep disabled unless required.
+tooltip.naturalspawns.options.air=Allows spawn attempts in open air blocks.\nBest performance: Keep disabled unless required.
+tooltip.naturalspawns.options.minHeight=Minimum Y for this entry.\nBest performance: Use tight vertical ranges to reduce failed attempts.
+tooltip.naturalspawns.options.maxHeight=Maximum Y for this entry.\nBest performance: Use tight vertical ranges to reduce failed attempts.
+tooltip.naturalspawns.options.maxAlive=Per-entry alive cap (loaded entities).\n0 = unlimited (not recommended).\nBest performance: 20-60.
+tooltip.naturalspawns.options.cooldownTicks=Ticks to wait after a successful spawn for this entry.\nBest performance: 200-600.
+tooltip.naturalspawns.options.attemptsPerCycle=How many positions this entry tries each spawn cycle.\nBest performance: 1-2.
+tooltip.naturalspawns.options.playerMinDistance=No-spawn radius from nearest player for this entry.\nBest performance: 32-48 to reduce pop-in and retests.
+tooltip.naturalspawns.options.despawnMode=How spawned CNPC despawn flags are applied.\nBest performance: Force Natural.\nPreserve/Force Persistent can increase long-term entity load.
 
 role.name=Role
 role.none=No Role

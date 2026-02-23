@@ -12,6 +12,7 @@ import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcTextField extends GuiTextField {
@@ -304,7 +305,8 @@ public class GuiNpcTextField extends GuiTextField {
     }
 
     public void setHoverText(String text) {
-        this.hoverableText = StatCollector.translateToLocal(text);
+        String translated = StatCollector.translateToLocal(text);
+        this.hoverableText = translated == null ? "" : translated.replace("\\n", "\n");
     }
 
     public boolean hasHoverText() {
@@ -317,10 +319,14 @@ public class GuiNpcTextField extends GuiTextField {
     }
 
     public void drawHover(int mouseX, int mouseY, boolean hasSubGui) {
+        drawHover(mouseX, mouseY, mouseX, mouseY, hasSubGui);
+    }
+
+    public void drawHover(int hitMouseX, int hitMouseY, int tooltipMouseX, int tooltipMouseY, boolean hasSubGui) {
         if (hasSubGui || !enabled || hoverableText.isEmpty())
             return;
 
-        boolean isHovered = isMouseOver(mouseX, mouseY);
+        boolean isHovered = isMouseOver(hitMouseX, hitMouseY);
         if (!isHovered) {
             wasHovered = false;
             hoverCount = 0;
@@ -338,11 +344,28 @@ public class GuiNpcTextField extends GuiTextField {
             GL11.glPushMatrix();
             Minecraft mc = Minecraft.getMinecraft();
             GL11.glColor4f(1, 1, 1, 1);
-            List<String> lines = TextSplitter.splitText(hoverableText, 30);
-            drawHoveringText(lines, mouseX, mouseY, mc);
+            List<String> lines = splitHoverText(hoverableText, 30);
+            drawHoveringText(lines, tooltipMouseX, tooltipMouseY, mc);
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glPopMatrix();
         }
+    }
+
+    private List<String> splitHoverText(String text, int maxLineLength) {
+        List<String> lines = new ArrayList<String>();
+        if (text == null || text.isEmpty())
+            return lines;
+
+        String normalized = text.replace("\\n", "\n");
+        String[] explicitLines = normalized.split("\\r?\\n", -1);
+        for (String line : explicitLines) {
+            if (line.isEmpty()) {
+                lines.add("");
+                continue;
+            }
+            lines.addAll(TextSplitter.splitText(line, maxLineLength));
+        }
+        return lines;
     }
 
     protected void drawHoveringText(List<String> textLines, int x, int y, Minecraft mc) {
