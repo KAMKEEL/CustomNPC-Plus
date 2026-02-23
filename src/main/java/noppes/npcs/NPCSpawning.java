@@ -38,6 +38,7 @@ public class NPCSpawning {
     private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();
     private static final byte CHUNK_SPAWN_RADIUS = 7;
     private static final int SPAWN_ATTEMPTS_PER_CHUNK = 3;
+    private static final int NATURAL_CAP_PER_256_CHUNKS = 70;
     private static final long RUNTIME_SPAWN_TICK_INTERVAL = 20L;
     private static final int RUNTIME_SPAWN_CYCLE_TICKS = 400;
     private static final String NATURAL_SPAWN_ID_TAG = "CNPCNaturalSpawnId";
@@ -76,8 +77,8 @@ public class NPCSpawning {
                 }
             }
         }
-        int cap = eligibleChunksForSpawning.size();
-        int npcCount = countNPCs(world);
+        int cap = getScaledNaturalCap(eligibleChunksForSpawning.size());
+        int npcCount = countNaturalSpawnedNPCs(world);
         if (npcCount >= cap) {
             return;
         }
@@ -155,15 +156,22 @@ public class NPCSpawning {
         return result;
     }
 
-    public static int countNPCs(World world) {
+    private static int countNaturalSpawnedNPCs(World world) {
         int count = 0;
         List<Entity> list = world.loadedEntityList;
         for (Entity entity : list) {
-            if (entity instanceof EntityNPCInterface) {
+            if (entity instanceof EntityNPCInterface && !entity.isDead && entity.getEntityData().hasKey(NATURAL_SPAWN_ID_TAG)) {
                 count++;
             }
         }
         return count;
+    }
+
+    private static int getScaledNaturalCap(int eligibleChunkCount) {
+        if (eligibleChunkCount <= 0) {
+            return 0;
+        }
+        return Math.max(1, NATURAL_CAP_PER_256_CHUNKS * eligibleChunkCount / 256);
     }
 
     protected static ChunkPosition getChunk(World world, int x, int z) {
@@ -188,14 +196,14 @@ public class NPCSpawning {
                 }
             }
         }
-        return chunkSet.size();
+        return getScaledNaturalCap(chunkSet.size());
     }
 
     private static HashMap<Integer, Integer> getNaturalSpawnEntryCounts(World world) {
         HashMap<Integer, Integer> counts = new HashMap<Integer, Integer>();
         List<Entity> list = world.loadedEntityList;
         for (Entity entity : list) {
-            if (entity == null || entity.isDead) {
+            if (entity == null || entity.isDead || !(entity instanceof EntityNPCInterface)) {
                 continue;
             }
             NBTTagCompound entityData = entity.getEntityData();
@@ -223,6 +231,10 @@ public class NPCSpawning {
             return false;
         }
         long tickDelta = world.getWorldInfo().getWorldTotalTime() - lastSpawnTick;
+        if (tickDelta < 0) {
+            SPAWN_COOLDOWNS.remove(key);
+            return false;
+        }
         return tickDelta < data.cooldownTicks;
     }
 
@@ -288,7 +300,7 @@ public class NPCSpawning {
 
     public static void performWorldGenSpawning(World world, int x, int z, Random rand) {
         int cap = getCap(world);
-        int npcCount = countNPCs(world);
+        int npcCount = countNaturalSpawnedNPCs(world);
         if (npcCount >= cap) {
             return;
         }
@@ -379,6 +391,7 @@ public class NPCSpawning {
                     npc.stats.canDespawn = true;
                     npc.stats.playerSetCanDespawn = true;
                 }
+                npc.syncDespawnPersistence();
                 npc.ais.returnToStart = false;
                 npc.ais.startPos = new int[]{x, y, z};
                 npc.updateAI = true;

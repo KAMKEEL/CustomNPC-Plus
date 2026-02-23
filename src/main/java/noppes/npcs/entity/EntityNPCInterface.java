@@ -255,7 +255,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             setFaction(faction.id);
             setSize(1, 1);
             this.updateTasks();
-            this.func_110163_bv();
+            this.syncDespawnPersistence();
 
             if (!this.isRemote() && this.wrappedNPC == null) {
                 this.wrappedNPC = new ScriptNpc<>(this);
@@ -1203,7 +1203,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
 
         this.updateTasks();
-        this.func_110163_bv();
+        this.syncDespawnPersistence();
     }
 
     @Override
@@ -1402,6 +1402,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         field_20063_u += d * 0.25D;
         field_20061_w += d2 * 0.25D;
         field_20062_v += d1 * 0.25D;
+    }
+
+    @Override
+    protected void despawnEntity() {
+        syncDespawnPersistence();
+        super.despawnEntity();
+    }
+
+    public void syncDespawnPersistence() {
+        if (stats == null) {
+            if (!this.persistenceRequired) {
+                this.func_110163_bv();
+            }
+            return;
+        }
+        if (stats.canDespawn) {
+            this.persistenceRequired = false;
+        } else if (!this.persistenceRequired) {
+            this.func_110163_bv();
+        }
     }
 
     @Override
