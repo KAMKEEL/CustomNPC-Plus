@@ -2337,3 +2337,33 @@ auction.bid.yourBalance=Your Balance: %s
 # Auction Buyout SubGui
 auction.buyout.title=Buy Now
 auction.buyout.confirm=Purchase this item for:
+
+# Global Auction Management GUI
+global.auction.manage.title=Global Auction Management
+global.auction.manage.listings=Listings
+global.auction.manage.create=Create
+global.auction.manage.claims=Claims
+global.auction.manage.sort=Sort
+global.auction.manage.search=Search
+global.auction.manage.page=Page
+global.auction.manage.hint.listings=Left-click: open listing details
+global.auction.manage.hint.listings2=Right-click: stop player | Shift-right: cancel to global
+global.auction.manage.hint.stop=Right-click: stop player
+global.auction.manage.hint.cancel=Shift-right-click: cancel to global
+global.auction.manage.hint.claims=Left-click twice to claim global entries
+global.auction.manage.details=Listing Details
+global.auction.manage.selectListing=Left-click a listing to view details
+global.auction.manage.seller=Seller Name
+global.auction.manage.startPrice=Start Price
+global.auction.manage.buyoutPrice=Buyout Price
+global.auction.manage.durationHours=Duration Hours
+global.auction.manage.stagedItem=Staged Item
+global.auction.manage.create.submit=Create Fake Auction
+global.auction.manage.hint.create=Use right-panel inventory to stage items
+global.auction.manage.confirm=Click again to confirm
+global.auction.manage.confirm.stop=Right-click again to confirm stop player
+global.auction.manage.confirm.cancel=Shift-right-click again to confirm cancel to global
+global.auction.manage.confirm.claim=Left-click again to confirm claim
+global.auction.manage.error.noItem=Stage an item first
+global.auction.manage.error.invalidStart=Enter a valid starting price
+global.auction.manage.error.invalidBuyout=Buyout must be zero or >= start

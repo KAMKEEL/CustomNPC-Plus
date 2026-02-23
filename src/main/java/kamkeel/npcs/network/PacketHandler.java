@@ -99,6 +99,7 @@ import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
 import kamkeel.npcs.network.packets.request.animation.BuiltInAnimationGetPacket;
+import kamkeel.npcs.network.packets.request.auction.ManageAuctionPacket;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
@@ -470,6 +471,7 @@ public class PacketHandler {
 
         // Trader Packets
         REQUEST_PACKET.registerPacket(new TraderMarketSavePacket());
+        REQUEST_PACKET.registerPacket(new ManageAuctionPacket());
 
         // Party Packets moved to player channel
 

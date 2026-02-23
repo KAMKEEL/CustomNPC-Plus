@@ -247,7 +247,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageAbilities);
         }
         if (id == 22) {
-            // NoppesUtil.requestOpenGUI(EnumGuiType.ManageAuction);
+            NoppesUtil.requestOpenGUI(EnumGuiType.ManageAuction);
         }
     }
 

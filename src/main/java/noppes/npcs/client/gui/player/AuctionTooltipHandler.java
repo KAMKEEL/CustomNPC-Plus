@@ -11,10 +11,12 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import noppes.npcs.client.AuctionClientConfig;
+import noppes.npcs.client.gui.global.GuiNpcManageAuction;
 import noppes.npcs.constants.EnumClaimType;
 import noppes.npcs.containers.ContainerAuctionListing;
 import noppes.npcs.containers.ContainerAuctionSell;
 import noppes.npcs.containers.ContainerAuctionTrades;
+import noppes.npcs.containers.ContainerManageAuction;
 import noppes.npcs.containers.SlotAuctionDisplay;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionListing;
@@ -49,6 +51,8 @@ public class AuctionTooltipHandler {
             addTradesTooltip((GuiAuctionTrades) screen, event.itemStack, event.toolTip);
         } else if (screen instanceof GuiAuctionSell) {
             addSellTooltip((GuiAuctionSell) screen, event.itemStack, event.toolTip);
+        } else if (screen instanceof GuiNpcManageAuction) {
+            addManageAuctionTooltip((GuiNpcManageAuction) screen, event.itemStack, event.toolTip);
         }
     }
 
@@ -253,6 +257,127 @@ public class AuctionTooltipHandler {
             tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.leftAdd"));
             tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.rightAddOne"));
         }
+    }
+
+    // ========== Global Manage Auction ==========
+
+    private static void addManageAuctionTooltip(GuiNpcManageAuction gui, ItemStack stack, List<String> tooltip) {
+        Slot slot = findHoveredSlot(gui, stack);
+        if (slot == null) return;
+
+        ContainerManageAuction container = gui.getManageContainer();
+        if (container == null) return;
+
+        GuiNpcManageAuction.Tab tab = gui.getActiveTab();
+
+        if (tab == GuiNpcManageAuction.Tab.LISTINGS && container.isDisplaySlot(slot.slotNumber)) {
+            int displayIndex = container.toDisplayIndex(slot.slotNumber);
+            AuctionListing listing = container.getListingAtDisplay(displayIndex);
+            if (listing == null) return;
+
+            tooltip.add("");
+            tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.seller")
+                .replace("%s", EnumChatFormatting.WHITE + listing.sellerName));
+
+            if (listing.hasBids()) {
+                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.currentBid")
+                    .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.currentBid)));
+                tooltip.add(EnumChatFormatting.GRAY + String.format(StatCollector.translateToLocal("auction.bids"), listing.bidCount));
+            } else {
+                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.startingPrice")
+                    .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.startingPrice)));
+                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.noBids"));
+            }
+
+            if (listing.hasBuyout()) {
+                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.buyout")
+                    .replace("%s", EnumChatFormatting.GREEN + AuctionFormatUtil.formatCurrencyWithName(listing.buyoutPrice)));
+            }
+
+            long timeRemaining = listing.getTimeRemaining();
+            String timeText = StatCollector.translateToLocal("auction.timeLeft")
+                .replace("%s", AuctionFormatUtil.formatTimeRemaining(timeRemaining));
+            tooltip.add((AuctionFormatUtil.isTimeUrgent(timeRemaining) ? EnumChatFormatting.RED : EnumChatFormatting.WHITE) + timeText);
+
+            tooltip.add("");
+            tooltip.add(EnumChatFormatting.AQUA + "Left-click: View details");
+            tooltip.add(EnumChatFormatting.GOLD + "Right-click: Stop player");
+            tooltip.add(EnumChatFormatting.LIGHT_PURPLE + "Shift+Right-click: Cancel to global");
+            return;
+        }
+
+        if (tab == GuiNpcManageAuction.Tab.CLAIMS && container.isDisplaySlot(slot.slotNumber)) {
+            int displayIndex = container.toDisplayIndex(slot.slotNumber);
+            AuctionClaim claim = container.getClaimAtDisplay(displayIndex);
+            if (claim != null) {
+                addGlobalClaimTooltip(claim, tooltip);
+                return;
+            }
+
+            AuctionListing listing = container.getListingAtDisplay(displayIndex);
+            if (listing != null) {
+                tooltip.add("");
+                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.seller")
+                    .replace("%s", EnumChatFormatting.WHITE + listing.sellerName));
+                if (listing.hasBids()) {
+                    tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.currentBid")
+                        .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.currentBid)));
+                } else {
+                    tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.startingPrice")
+                        .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(listing.startingPrice)));
+                }
+                if (listing.hasBuyout()) {
+                    tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.buyout")
+                        .replace("%s", EnumChatFormatting.GREEN + AuctionFormatUtil.formatCurrencyWithName(listing.buyoutPrice)));
+                }
+                tooltip.add("");
+                tooltip.add(EnumChatFormatting.GOLD + "Right-click: Stop player");
+                tooltip.add(EnumChatFormatting.LIGHT_PURPLE + "Shift+Right-click: Cancel to global");
+            }
+            return;
+        }
+
+        if (tab == GuiNpcManageAuction.Tab.CREATE) {
+            if (container.isCreateSlot(slot.slotNumber)) {
+                tooltip.add("");
+                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.sell.leftClear"));
+                tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.sell.rightRemove"));
+            } else if (container.isPlayerSlot(slot.slotNumber)) {
+                tooltip.add("");
+                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.leftAdd"));
+                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.sell.rightAddOne"));
+            }
+        }
+    }
+
+    private static void addGlobalClaimTooltip(AuctionClaim claim, List<String> tooltip) {
+        tooltip.add("");
+        if (claim.type == EnumClaimType.ITEM) {
+            tooltip.add(EnumChatFormatting.AQUA + "Global Item Claim");
+        } else if (claim.type == EnumClaimType.CURRENCY) {
+            tooltip.add(EnumChatFormatting.GOLD + "Global Currency Claim");
+            if (claim.itemName != null && !claim.itemName.isEmpty()) {
+                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.claim.soldItem")
+                    .replace("%s", EnumChatFormatting.WHITE + claim.itemName));
+            }
+            if (claim.otherPlayerName != null && !claim.otherPlayerName.isEmpty()) {
+                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.claim.buyer")
+                    .replace("%s", EnumChatFormatting.WHITE + claim.otherPlayerName));
+            }
+            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.claim.amount")
+                .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(claim.currency)));
+            tooltip.add(EnumChatFormatting.GRAY + "Claiming this does not change your balance.");
+        } else if (claim.type == EnumClaimType.REFUND) {
+            tooltip.add(EnumChatFormatting.RED + "Global Refund Claim");
+            if (claim.otherPlayerName != null && !claim.otherPlayerName.isEmpty()) {
+                tooltip.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("auction.claim.outbidBy")
+                    .replace("%s", EnumChatFormatting.WHITE + claim.otherPlayerName));
+            }
+            tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("auction.claim.amount")
+                .replace("%s", EnumChatFormatting.GOLD + AuctionFormatUtil.formatCurrencyWithName(claim.currency)));
+        }
+        tooltip.add("");
+        tooltip.add(EnumChatFormatting.GREEN + StatCollector.translateToLocal("auction.claim.clickToClaim"));
     }
 
 }

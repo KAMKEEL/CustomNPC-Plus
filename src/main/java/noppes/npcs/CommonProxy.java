@@ -25,6 +25,7 @@ import noppes.npcs.containers.ContainerCrate;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.containers.ContainerManageBanks;
+import noppes.npcs.containers.ContainerManageAuction;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.containers.ContainerMerchantAdd;
 import noppes.npcs.containers.ContainerNPCBankLarge;
@@ -135,6 +136,9 @@ public class CommonProxy implements IGuiHandler {
 
         if (gui == EnumGuiType.ManageBanks)
             return new ContainerManageBanks(player);
+
+        if (gui == EnumGuiType.ManageAuction)
+            return new ContainerManageAuction(player);
 
         if (gui == EnumGuiType.MerchantAdd)
             return new ContainerMerchantAdd(player, ServerEventsHandler.Merchant, player.worldObj);

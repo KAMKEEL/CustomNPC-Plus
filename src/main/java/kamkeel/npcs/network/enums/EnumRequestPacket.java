@@ -213,4 +213,5 @@ public enum EnumRequestPacket {
     Hammer,
 
     RecipeScript,
+    ManageAuctionAction,
 }

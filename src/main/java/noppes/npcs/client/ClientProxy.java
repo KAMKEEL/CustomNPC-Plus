@@ -117,6 +117,7 @@ import noppes.npcs.client.gui.global.GuiNPCManageQuest;
 import noppes.npcs.client.gui.global.GuiNPCManageTags;
 import noppes.npcs.client.gui.global.GuiNPCManageTransporters;
 import noppes.npcs.client.gui.global.GuiNpcManageAbilities;
+import noppes.npcs.client.gui.global.GuiNpcManageAuction;
 import noppes.npcs.client.gui.global.GuiNpcManageMagic;
 import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
 import noppes.npcs.client.gui.global.GuiNpcQuestReward;
@@ -219,6 +220,7 @@ import noppes.npcs.containers.ContainerCrate;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.containers.ContainerManageBanks;
+import noppes.npcs.containers.ContainerManageAuction;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCCompanion;
@@ -509,6 +511,9 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.ManageRecipes)
             return new GuiNpcManageRecipes(npc, (ContainerManageRecipes) container);
+
+        else if (gui == EnumGuiType.ManageAuction)
+            return new GuiNpcManageAuction(npc, (ContainerManageAuction) container);
 
         else if (gui == EnumGuiType.ManageDialogs)
             return new GuiNPCManageDialogs(npc);

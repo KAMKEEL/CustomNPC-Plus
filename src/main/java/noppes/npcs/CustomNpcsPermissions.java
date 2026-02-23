@@ -69,6 +69,7 @@ public class CustomNpcsPermissions {
     public static final Permission GLOBAL_MAGIC = new Permission("customnpcs.global.magic");
     public static final Permission GLOBAL_ABILITY = new Permission("customnpcs.global.ability");
     public static final Permission GLOBAL_EFFECT = new Permission("customnpcs.global.effect");
+    public static final Permission GLOBAL_AUCTION = new Permission("customnpcs.global.auction");
 
     public static final Permission SPAWNER_MOB = new Permission("customnpcs.spawner.mob");
     public static final Permission SPAWNER_CREATE = new Permission("customnpcs.spawner.create");

@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -63,7 +64,8 @@ public class AuctionController implements IAuctionHandler {
 
     // Main data stores - listings only, claims are stored in PlayerData
     private final Map<String, AuctionListing> listings = new ConcurrentHashMap<>();
-    // Claims are now stored in PlayerData.tradeData, not here
+    // Shared global claims for admin-managed auction actions
+    private final List<AuctionClaim> globalClaims = new CopyOnWriteArrayList<>();
 
     // =========================================
     // Player Indices for O(1) Lookups
@@ -163,9 +165,12 @@ public class AuctionController implements IAuctionHandler {
             if (listing.status != EnumAuctionStatus.ACTIVE) return;
 
             listing.status = EnumAuctionStatus.ENDED;
+            boolean isGlobalListing = listing.isGlobalListing;
 
             // Remove from seller's active listings
-            removeFromPlayerListings(listing.sellerUUID, listing.id);
+            if (!isGlobalListing && listing.sellerUUID != null) {
+                removeFromPlayerListings(listing.sellerUUID, listing.id);
+            }
 
             // Remove from bidder's active bids if any
             if (listing.highBidderUUID != null) {
@@ -188,26 +193,38 @@ public class AuctionController implements IAuctionHandler {
                 AuctionClaim currencyClaim = AuctionClaim.createCurrencyClaim(
                     listing.sellerUUID, listing.sellerName, listing.id, sellerReceives,
                     itemDisplayName, listing.highBidderName);
-                addClaimToPlayer(listing.sellerUUID, currencyClaim);
+                if (isGlobalListing) {
+                    addGlobalClaim(currencyClaim);
+                } else {
+                    addClaimToPlayer(listing.sellerUUID, currencyClaim);
+                }
 
                 // Notifications
                 sendNotificationToPlayer(listing.highBidderUUID, EnumNotificationType.AUCTION_WON, listing.id,
                     "You won the auction for " + itemDisplayName + "!");
-                sendNotificationToPlayer(listing.sellerUUID, EnumNotificationType.AUCTION_SOLD, listing.id,
-                    "Your " + itemDisplayName + " sold for " + saleAmount + " " + ConfigMarket.CurrencyName + "!");
+                if (!isGlobalListing && listing.sellerUUID != null) {
+                    sendNotificationToPlayer(listing.sellerUUID, EnumNotificationType.AUCTION_SOLD, listing.id,
+                        "Your " + itemDisplayName + " sold for " + saleAmount + " " + ConfigMarket.CurrencyName + "!");
+                }
 
                 logAuction(EnumAuctionLogAction.SOLD, listing.sellerName, itemDisplayName, saleAmount,
-                    "Winner: " + listing.highBidderName + ", Tax: " + tax);
+                    "Winner: " + listing.highBidderName + ", Tax: " + tax + (isGlobalListing ? ", Global listing" : ""));
             } else {
-                // No bids - return item to seller
+                // No bids - return item to seller/global claims
                 AuctionClaim returnClaim = AuctionClaim.createItemReturnedClaim(
                     listing.sellerUUID, listing.sellerName, listing.id, listing.item);
-                addClaimToPlayer(listing.sellerUUID, returnClaim);
+                if (isGlobalListing) {
+                    addGlobalClaim(returnClaim);
+                } else {
+                    addClaimToPlayer(listing.sellerUUID, returnClaim);
+                    if (listing.sellerUUID != null) {
+                        sendNotificationToPlayer(listing.sellerUUID, EnumNotificationType.AUCTION_EXPIRED, listing.id,
+                            "Your auction for " + itemDisplayName + " expired with no bids.");
+                    }
+                }
 
-                sendNotificationToPlayer(listing.sellerUUID, EnumNotificationType.AUCTION_EXPIRED, listing.id,
-                    "Your auction for " + itemDisplayName + " expired with no bids.");
-
-                logAuction(EnumAuctionLogAction.EXPIRED, listing.sellerName, itemDisplayName, listing.startingPrice, "No bids");
+                logAuction(EnumAuctionLogAction.EXPIRED, listing.sellerName, itemDisplayName, listing.startingPrice,
+                    "No bids" + (isGlobalListing ? ", Global listing" : ""));
             }
         }
     }
@@ -217,10 +234,12 @@ public class AuctionController implements IAuctionHandler {
     // =========================================
 
     private void addToPlayerListings(UUID playerUUID, String listingId) {
+        if (playerUUID == null || listingId == null || listingId.isEmpty()) return;
         playerListingIds.computeIfAbsent(playerUUID, k -> ConcurrentHashMap.newKeySet()).add(listingId);
     }
 
     private void removeFromPlayerListings(UUID playerUUID, String listingId) {
+        if (playerUUID == null || listingId == null || listingId.isEmpty()) return;
         Set<String> ids = playerListingIds.get(playerUUID);
         if (ids != null) {
             ids.remove(listingId);
@@ -231,10 +250,12 @@ public class AuctionController implements IAuctionHandler {
     }
 
     private void addToPlayerBids(UUID playerUUID, String listingId) {
+        if (playerUUID == null || listingId == null || listingId.isEmpty()) return;
         playerBidIds.computeIfAbsent(playerUUID, k -> ConcurrentHashMap.newKeySet()).add(listingId);
     }
 
     private void removeFromPlayerBids(UUID playerUUID, String listingId) {
+        if (playerUUID == null || listingId == null || listingId.isEmpty()) return;
         Set<String> ids = playerBidIds.get(playerUUID);
         if (ids != null) {
             ids.remove(listingId);
@@ -257,6 +278,70 @@ public class AuctionController implements IAuctionHandler {
             data.updateClient = true;
             data.save();
         }
+    }
+
+    /**
+     * Add a claim to the global admin claims pool.
+     */
+    private void addGlobalClaim(AuctionClaim claim) {
+        if (claim == null || claim.claimed) return;
+
+        // Global claims are not tied to a single player.
+        claim.playerUUID = null;
+        claim.playerName = "Global";
+        globalClaims.add(claim);
+        markDirty();
+    }
+
+    private List<AuctionClaim> getGlobalClaimsSnapshot() {
+        List<AuctionClaim> result = new ArrayList<>();
+        for (AuctionClaim claim : globalClaims) {
+            if (claim != null && !claim.claimed) {
+                result.add(claim);
+            }
+        }
+        return result;
+    }
+
+    private AuctionClaim getGlobalClaimInternal(String claimId) {
+        if (claimId == null || claimId.isEmpty()) return null;
+        for (AuctionClaim claim : globalClaims) {
+            if (claim != null && !claim.claimed && claimId.equals(claim.id)) {
+                return claim;
+            }
+        }
+        return null;
+    }
+
+    private boolean claimAndRemoveGlobal(String claimId) {
+        AuctionClaim claim = getGlobalClaimInternal(claimId);
+        if (claim == null) return false;
+        claim.claimed = true;
+        return globalClaims.remove(claim);
+    }
+
+    /**
+     * Full list of unclaimed global claims sorted newest-first.
+     */
+    public List<AuctionClaim> getAllGlobalClaims() {
+        List<AuctionClaim> snapshot = getGlobalClaimsSnapshot();
+        snapshot.sort((a, b) -> Long.compare(b.createdTime, a.createdTime));
+        return snapshot;
+    }
+
+    /**
+     * Full list of active global listings sorted newest-first.
+     */
+    public List<AuctionListing> getActiveGlobalListings() {
+        List<AuctionListing> result = new ArrayList<>();
+        for (AuctionListing listing : listings.values()) {
+            if (listing == null) continue;
+            if (!listing.isGlobalListing) continue;
+            if (!listing.isActive()) continue;
+            result.add(listing);
+        }
+        result.sort((a, b) -> Long.compare(b.createdTime, a.createdTime));
+        return result;
     }
 
     // =========================================
@@ -335,10 +420,55 @@ public class AuctionController implements IAuctionHandler {
         return null; // Success
     }
 
+    /**
+     * Create a fake/global listing managed through the global auction admin GUI.
+     * Global listings do not consume player currency and route proceeds to global claims.
+     */
+    public String createGlobalListing(EntityPlayer admin, String sellerName, ItemStack item, long startingPrice, long buyoutPrice, int durationHours) {
+        if (!ConfigMarket.AuctionEnabled) {
+            return "Auction is disabled.";
+        }
+        if (admin == null) {
+            return "Admin is missing.";
+        }
+        if (item == null) {
+            return "No item provided.";
+        }
+
+        if (startingPrice < ConfigMarket.MinimumListingPrice) {
+            return "Starting price must be at least " + ConfigMarket.MinimumListingPrice + " " + ConfigMarket.CurrencyName + ".";
+        }
+        if (buyoutPrice > 0 && buyoutPrice < startingPrice) {
+            return "Buyout price must be higher than starting price.";
+        }
+
+        String cleanSeller = sellerName != null ? sellerName.trim() : "";
+        if (cleanSeller.isEmpty()) {
+            cleanSeller = "Server";
+        }
+
+        int hours = durationHours > 0 ? durationHours : ConfigMarket.AuctionDurationHours;
+        long durationMs = hours * 60L * 60L * 1000L;
+
+        // Global listings do not belong to a player UUID, only to the global pool.
+        AuctionListing listing = new AuctionListing(null, cleanSeller, item, startingPrice, buyoutPrice, durationMs);
+        listing.isGlobalListing = true;
+        listings.put(listing.id, listing);
+        markDirty();
+
+        logAuction(EnumAuctionLogAction.CREATED, admin.getCommandSenderName(), item.getDisplayName(), startingPrice,
+            "Global listing, Seller: " + cleanSeller + ", Buyout: " + (buyoutPrice > 0 ? buyoutPrice : "None") + ", DurationHours: " + hours);
+        return null;
+    }
+
     public String cancelListing(String listingId, EntityPlayer player, boolean isAdmin) {
         AuctionListing listing = listings.get(listingId);
         if (listing == null) {
             return "Listing not found.";
+        }
+
+        if (isAdmin && listing.isGlobalListing) {
+            return adminStopListingToGlobal(listingId, player, true);
         }
 
         synchronized (listing) {
@@ -616,14 +746,22 @@ public class AuctionController implements IAuctionHandler {
             AuctionClaim currencyClaim = AuctionClaim.createCurrencyClaim(
                 listing.sellerUUID, listing.sellerName, listing.id, sellerReceives,
                 listing.item.getDisplayName(), playerName);
-            addClaimToPlayer(listing.sellerUUID, currencyClaim);
+            if (listing.isGlobalListing) {
+                addGlobalClaim(currencyClaim);
+            } else {
+                addClaimToPlayer(listing.sellerUUID, currencyClaim);
+            }
 
             // Notifications
-            sendNotificationToPlayer(listing.sellerUUID, EnumNotificationType.AUCTION_SOLD, listing.id,
-                "Your " + listing.item.getDisplayName() + " was bought out for " + saleAmount + " " + ConfigMarket.CurrencyName + "!");
+            if (!listing.isGlobalListing && listing.sellerUUID != null) {
+                sendNotificationToPlayer(listing.sellerUUID, EnumNotificationType.AUCTION_SOLD, listing.id,
+                    "Your " + listing.item.getDisplayName() + " was bought out for " + saleAmount + " " + ConfigMarket.CurrencyName + "!");
+            }
 
             // Remove from seller's active listings
-            removeFromPlayerListings(listing.sellerUUID, listing.id);
+            if (!listing.isGlobalListing && listing.sellerUUID != null) {
+                removeFromPlayerListings(listing.sellerUUID, listing.id);
+            }
 
             listing.status = EnumAuctionStatus.ENDED;
             listing.highBidderUUID = playerUUID;
@@ -633,7 +771,7 @@ public class AuctionController implements IAuctionHandler {
             markDirty();
 
             logAuction(EnumAuctionLogAction.BUYOUT, playerName, listing.item.getDisplayName(), listing.buyoutPrice,
-                "Seller: " + listing.sellerName + ", Tax: " + tax);
+                "Seller: " + listing.sellerName + ", Tax: " + tax + (listing.isGlobalListing ? ", Global listing" : ""));
         }
 
         return null; // Success
@@ -663,6 +801,77 @@ public class AuctionController implements IAuctionHandler {
             return getPlayerClaims(onlinePlayer);
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * Paginated global claims used by the global auction admin GUI.
+     */
+    public List<AuctionClaim> getGlobalClaims(int page, int pageSize) {
+        List<AuctionClaim> snapshot = getGlobalClaimsSnapshot();
+        snapshot.sort((a, b) -> Long.compare(b.createdTime, a.createdTime));
+
+        int safePage = Math.max(0, page);
+        int safePageSize = Math.max(1, pageSize);
+        int start = safePage * safePageSize;
+        if (start >= snapshot.size()) {
+            return new ArrayList<>();
+        }
+        int end = Math.min(start + safePageSize, snapshot.size());
+        return new ArrayList<>(snapshot.subList(start, end));
+    }
+
+    public int getTotalGlobalClaims() {
+        return getGlobalClaimsSnapshot().size();
+    }
+
+    public boolean hasGlobalClaims() {
+        return getTotalGlobalClaims() > 0;
+    }
+
+    public String claimGlobalItem(String claimId, EntityPlayer player) {
+        AuctionClaim claim = getGlobalClaimInternal(claimId);
+        if (claim == null) {
+            return "Global claim not found.";
+        }
+        if (!claim.type.isItem()) {
+            return "This global claim is not an item claim.";
+        }
+        if (claim.item == null) {
+            return "Item data is missing.";
+        }
+
+        if (!player.inventory.addItemStackToInventory(claim.item.copy())) {
+            return "Your inventory is full.";
+        }
+
+        claimAndRemoveGlobal(claim.id);
+        cleanupListingIfComplete(claim.listingId);
+        markDirty();
+
+        logAuction(EnumAuctionLogAction.CLAIMED, player.getCommandSenderName(), claim.item.getDisplayName(), 0,
+            "Global item claim");
+        return null;
+    }
+
+    /**
+     * Global currency claims are acknowledged/cleared and do not alter player balances.
+     */
+    public String claimGlobalCurrency(String claimId, EntityPlayer player) {
+        AuctionClaim claim = getGlobalClaimInternal(claimId);
+        if (claim == null) {
+            return "Global claim not found.";
+        }
+        if (!claim.type.isCurrency()) {
+            return "This global claim is not a currency claim.";
+        }
+
+        claimAndRemoveGlobal(claim.id);
+        cleanupListingIfComplete(claim.listingId);
+        markDirty();
+
+        logAuction(EnumAuctionLogAction.CLAIMED, player.getCommandSenderName(), ConfigMarket.CurrencyName, claim.currency,
+            "Global currency claim acknowledged (no balance change)");
+        return null;
     }
 
     public String claimItem(String claimId, EntityPlayer player) {
@@ -1119,6 +1328,30 @@ public class AuctionController implements IAuctionHandler {
 
             player.addChatMessage(new ChatComponentText(msg.toString()));
         }
+
+        // Notify admins with permission about pending global claims.
+        if (CustomNpcsPermissions.hasCustomPermission(player, "customnpcs.global.auction")) {
+            List<AuctionClaim> global = getGlobalClaimsSnapshot();
+            if (!global.isEmpty()) {
+                int itemClaims = 0;
+                int currencyClaims = 0;
+                for (AuctionClaim claim : global) {
+                    if (claim.type.isItem()) {
+                        itemClaims++;
+                    } else {
+                        currencyClaims++;
+                    }
+                }
+
+                StringBuilder msg = new StringBuilder();
+                msg.append(EnumChatFormatting.GOLD).append("[Auction] ");
+                msg.append(EnumChatFormatting.AQUA).append("Global claims available: ");
+                msg.append(EnumChatFormatting.GREEN).append(itemClaims).append(" item claim(s)");
+                msg.append(EnumChatFormatting.GRAY).append(", ");
+                msg.append(EnumChatFormatting.YELLOW).append(currencyClaims).append(" currency claim(s)");
+                player.addChatMessage(new ChatComponentText(msg.toString()));
+            }
+        }
     }
 
     public void onPlayerLogout(UUID playerUUID) {
@@ -1228,6 +1461,7 @@ public class AuctionController implements IAuctionHandler {
 
     public void load() {
         listings.clear();
+        globalClaims.clear();
         playerListingIds.clear();
         playerBidIds.clear();
 
@@ -1270,7 +1504,9 @@ public class AuctionController implements IAuctionHandler {
         // Index listings
         for (AuctionListing listing : listings.values()) {
             if (listing.status == EnumAuctionStatus.ACTIVE) {
-                addToPlayerListings(listing.sellerUUID, listing.id);
+                if (!listing.isGlobalListing && listing.sellerUUID != null) {
+                    addToPlayerListings(listing.sellerUUID, listing.id);
+                }
                 if (listing.highBidderUUID != null) {
                     addToPlayerBids(listing.highBidderUUID, listing.id);
                 }
@@ -1291,21 +1527,41 @@ public class AuctionController implements IAuctionHandler {
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        // Listings only - claims are stored in PlayerData
+        // Listings + global claims (player claims are stored in PlayerData)
         NBTTagList listingsList = new NBTTagList();
         for (AuctionListing listing : listings.values()) {
             listingsList.appendTag(listing.writeToNBT(new NBTTagCompound()));
         }
         compound.setTag("Listings", listingsList);
 
+        NBTTagList globalClaimsList = new NBTTagList();
+        for (AuctionClaim claim : globalClaims) {
+            if (claim != null && !claim.claimed) {
+                globalClaimsList.appendTag(claim.writeToNBT(new NBTTagCompound()));
+            }
+        }
+        compound.setTag("GlobalClaims", globalClaimsList);
+
         return compound;
     }
 
     public void readFromNBT(NBTTagCompound compound) {
+        globalClaims.clear();
+
         NBTTagList listingsList = compound.getTagList("Listings", 10);
         for (int i = 0; i < listingsList.tagCount(); i++) {
             AuctionListing listing = AuctionListing.fromNBT(listingsList.getCompoundTagAt(i));
             listings.put(listing.id, listing);
+        }
+
+        if (compound.hasKey("GlobalClaims")) {
+            NBTTagList claimsList = compound.getTagList("GlobalClaims", 10);
+            for (int i = 0; i < claimsList.tagCount(); i++) {
+                AuctionClaim claim = AuctionClaim.fromNBT(claimsList.getCompoundTagAt(i));
+                if (!claim.claimed) {
+                    globalClaims.add(claim);
+                }
+            }
         }
     }
 
@@ -1473,10 +1729,77 @@ public class AuctionController implements IAuctionHandler {
         return new ArrayList<>(listings.values());
     }
 
+    /**
+     * Admin management flow for listings.
+     * cancelCompletely=false: stop listing and return assets to the original owners' claim pools.
+     * cancelCompletely=true: cancel listing and route assets to global claims.
+     */
+    public String adminStopListingToGlobal(String listingId, EntityPlayer admin, boolean cancelCompletely) {
+        AuctionListing listing = listings.get(listingId);
+        if (listing == null) {
+            return "Listing not found.";
+        }
+        if (admin == null) {
+            return "Admin player is missing.";
+        }
+
+        synchronized (listing) {
+            if (!listing.status.canCancel()) {
+                return "This auction cannot be managed.";
+            }
+
+            String itemName = listing.item != null ? listing.item.getDisplayName() : "Unknown Item";
+
+            // Return active highest bid.
+            if (listing.hasBids() && listing.highBidderUUID != null) {
+                AuctionClaim refundClaim;
+                if (cancelCompletely) {
+                    refundClaim = AuctionClaim.createRefundClaim(
+                        null, "Global", listing.id, listing.currentBid, itemName,
+                        listing.highBidderName, null);
+                    addGlobalClaim(refundClaim);
+                } else {
+                    refundClaim = AuctionClaim.createRefundClaim(
+                        listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid, itemName,
+                        listing.sellerName, null);
+                    addClaimToPlayer(listing.highBidderUUID, refundClaim);
+                }
+                removeFromPlayerBids(listing.highBidderUUID, listing.id);
+            }
+
+            // Return the listed item.
+            if (listing.item != null) {
+                AuctionClaim itemClaim;
+                if (cancelCompletely || listing.sellerUUID == null) {
+                    itemClaim = AuctionClaim.createItemReturnedClaim(
+                        null, "Global", listing.id, listing.item);
+                    addGlobalClaim(itemClaim);
+                } else {
+                    itemClaim = AuctionClaim.createItemReturnedClaim(
+                        listing.sellerUUID, listing.sellerName, listing.id, listing.item);
+                    addClaimToPlayer(listing.sellerUUID, itemClaim);
+                }
+            }
+
+            if (!listing.isGlobalListing && listing.sellerUUID != null) {
+                removeFromPlayerListings(listing.sellerUUID, listing.id);
+            }
+
+            listing.status = cancelCompletely ? EnumAuctionStatus.CANCELLED : EnumAuctionStatus.ENDED;
+            markDirty();
+
+            logAuction(EnumAuctionLogAction.CANCELLED, admin.getCommandSenderName(), itemName, listing.currentBid,
+                (cancelCompletely ? "Admin cancelled to global claims" : "Admin stopped to owner claims") +
+                    ", OriginalSeller: " + listing.sellerName);
+        }
+
+        return null;
+    }
+
     public void adminCancelListing(String listingId, EntityPlayer admin, String reason) {
         AuctionListing listing = listings.get(listingId);
         String itemName = listing != null && listing.item != null ? listing.item.getDisplayName() : "Unknown";
-        cancelListing(listingId, admin, true);
+        adminStopListingToGlobal(listingId, admin, true);
         if (reason != null && !reason.isEmpty()) {
             logAuction(EnumAuctionLogAction.CANCELLED, admin.getCommandSenderName(), itemName, 0, "Admin cancel - Reason: " + reason);
         }
