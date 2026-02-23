@@ -445,17 +445,17 @@ tooltip.naturalspawns.main.addEntry=Add an entry slot to this profile.\nBest per
 tooltip.naturalspawns.main.removeEntry=Remove selected entry slot.\nBest performance: Remove empty/duplicate entries.
 tooltip.naturalspawns.main.slot=Entry slot index.\nTip: Keep numbering organized for easier debugging.
 tooltip.naturalspawns.main.selectEntry=Select which clone/NPC this slot spawns.\nBest performance: Avoid very heavy scripted clones in high-frequency profiles.
-tooltip.naturalspawns.options.animal=Uses animal-style spawn checks for this entry.\nBest performance: Enable only for passive/ground mobs.
-tooltip.naturalspawns.options.monster=Uses monster-style spawn checks for this entry.\nBest performance: Enable only for hostile/night mobs.
-tooltip.naturalspawns.options.liquid=Allows water/liquid spawn validation.\nBest performance: Keep disabled unless required.
-tooltip.naturalspawns.options.air=Allows spawn attempts in open air blocks.\nBest performance: Keep disabled unless required.
-tooltip.naturalspawns.options.minHeight=Minimum Y for this entry.\nBest performance: Use tight vertical ranges to reduce failed attempts.
-tooltip.naturalspawns.options.maxHeight=Maximum Y for this entry.\nBest performance: Use tight vertical ranges to reduce failed attempts.
-tooltip.naturalspawns.options.maxAlive=Per-entry alive cap (loaded entities).\n0 = unlimited (not recommended).\nBest performance: 20-60.
-tooltip.naturalspawns.options.cooldownTicks=Ticks to wait after a successful spawn for this entry.\nBest performance: 200-600.
-tooltip.naturalspawns.options.attemptsPerCycle=How many positions this entry tries each spawn cycle.\nBest performance: 1-2.
-tooltip.naturalspawns.options.playerMinDistance=No-spawn radius from nearest player for this entry.\nBest performance: 32-48 to reduce pop-in and retests.
-tooltip.naturalspawns.options.despawnMode=How spawned CNPC despawn flags are applied.\nBest performance: Force Natural.\nPreserve/Force Persistent can increase long-term entity load.
+tooltip.naturalspawns.options.animal=Spawn Rule: Animal\nUses animal-style spawn checks (surface + creature-valid blocks).\nUse for passive/overworld mobs.\nPerformance: Disable if not needed.
+tooltip.naturalspawns.options.monster=Spawn Rule: Monster\nUses monster-style spawn checks (surface + monster-valid blocks).\nUse for hostile/night/cave mobs.\nPerformance: Disable if not needed.
+tooltip.naturalspawns.options.liquid=Spawn Rule: Liquid\nAllows spawn validation in liquid/water spaces.\nUse only for aquatic entries.\nPerformance: Keep OFF unless required.
+tooltip.naturalspawns.options.air=Spawn Rule: Air\nAllows spawn validation in open-air columns.\nUse only for flying/airborne entries.\nPerformance: Keep OFF unless required.
+tooltip.naturalspawns.options.minHeight=Minimum Spawn Y\nLower vertical bound for this profile.\nUse with Max Height to narrow valid layers.\nPerformance: Tighter ranges = fewer failed checks.
+tooltip.naturalspawns.options.maxHeight=Maximum Spawn Y\nUpper vertical bound for this profile.\nUse with Min Height to target a specific layer.\nPerformance: Tighter ranges = fewer failed checks.
+tooltip.naturalspawns.options.maxAlive=Max Alive (Per Profile)\nCounts loaded entities tagged to this natural spawn profile.\n0 = Unlimited (not recommended).\nPerformance baseline: 20-60.
+tooltip.naturalspawns.options.cooldownTicks=Cooldown (Ticks)\nWait time after a successful spawn before this profile can spawn again.\n20 ticks = 1 second.\nPerformance baseline: 200-600 (10-30 seconds).
+tooltip.naturalspawns.options.attemptsPerCycle=Attempts Per Cycle\nHow many nearby positions this profile tests each cycle.\nHigher values increase spawn pressure and CPU checks.\nPerformance baseline: 1-2.
+tooltip.naturalspawns.options.playerMinDistance=Min Player Distance\nBlocks from nearest player where spawning is blocked.\nHigher values reduce pop-in near players.\nPerformance baseline: 32-48.
+tooltip.naturalspawns.options.despawnMode=Despawn Mode (CNPC entries)\nForce Natural: sets canDespawn=true on spawn. Recommended for natural ecosystems.\nPreserve Template: keeps clone/template despawn setting.\nForce Persistent: sets canDespawn=false (NPC stays loaded longer).\nPerformance recommendation: Force Natural.
 
 role.name=Role
 role.none=No Role

@@ -16,7 +16,7 @@ public class SubGuiSpawningOptions extends SubGuiInterface implements ITextfield
     public SubGuiSpawningOptions(SpawnData data) {
         this.data = data;
         setBackground("menubg.png");
-        xSize = 216;
+        xSize = 236;
         ySize = 216;
         closeOnEsc = true;
     }

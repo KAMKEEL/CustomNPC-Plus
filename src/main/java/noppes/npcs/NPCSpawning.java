@@ -29,7 +29,6 @@ import noppes.npcs.scripted.event.CustomNPCsEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -39,18 +38,27 @@ public class NPCSpawning {
     private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();
     private static final byte CHUNK_SPAWN_RADIUS = 7;
     private static final int SPAWN_ATTEMPTS_PER_CHUNK = 3;
+    private static final long RUNTIME_SPAWN_TICK_INTERVAL = 20L;
+    private static final int RUNTIME_SPAWN_CYCLE_TICKS = 400;
     private static final String NATURAL_SPAWN_ID_TAG = "CNPCNaturalSpawnId";
     private static final String NATURAL_SPAWN_NAME_TAG = "CNPCNaturalSpawnName";
     private static final String NATURAL_SPAWN_TIME_TAG = "CNPCNaturalSpawnTime";
     private static final Map<Long, Long> SPAWN_COOLDOWNS = new HashMap<Long, Long>();
+    private static final Map<Integer, RuntimeChunkState> RUNTIME_CHUNK_STATES = new HashMap<Integer, RuntimeChunkState>();
 
     private static boolean animalSpawn;
     private static boolean monsterSpawn;
     private static boolean airSpawn;
     private static boolean liquidSpawn;
 
+    private static class RuntimeChunkState {
+        public ArrayList<ChunkCoordIntPair> chunks = new ArrayList<ChunkCoordIntPair>();
+        public int index = 0;
+        public int signature = 0;
+    }
+
     public static void findChunksForSpawning(WorldServer world) {
-        if (SpawnController.Instance.data.isEmpty() || world.getWorldInfo().getWorldTotalTime() % 400L != 0L)
+        if (SpawnController.Instance.data.isEmpty() || world.getWorldInfo().getWorldTotalTime() % RUNTIME_SPAWN_TICK_INTERVAL != 0L)
             return;
         eligibleChunksForSpawning.clear();
         for (int i = 0; i < world.playerEntities.size(); ++i) {
@@ -74,15 +82,13 @@ public class NPCSpawning {
             return;
         }
         HashMap<Integer, Integer> spawnEntryCounts = getNaturalSpawnEntryCounts(world);
-        ArrayList<ChunkCoordIntPair> tmp = new ArrayList(eligibleChunksForSpawning);
-        Collections.shuffle(tmp);
-        Iterator<ChunkCoordIntPair> iterator = tmp.iterator();
+        int chunkBudget = getRuntimeChunkBudget(eligibleChunksForSpawning.size());
+        List<ChunkCoordIntPair> chunksToProcess = getRuntimeChunkBatch(world, chunkBudget);
 
-        while (iterator.hasNext()) {
+        for (ChunkCoordIntPair chunkcoordintpair1 : chunksToProcess) {
             if (npcCount >= cap) {
                 return;
             }
-            ChunkCoordIntPair chunkcoordintpair1 = iterator.next();
 
             ChunkPosition chunkposition = getChunk(world, chunkcoordintpair1.chunkXPos, chunkcoordintpair1.chunkZPos);
             int j1 = chunkposition.chunkPosX;
@@ -110,6 +116,43 @@ public class NPCSpawning {
                 }
             }
         }
+    }
+
+    private static int getRuntimeChunkBudget(int eligibleChunkCount) {
+        if (eligibleChunkCount <= 0) {
+            return 0;
+        }
+        int runsPerCycle = Math.max(1, (int) (RUNTIME_SPAWN_CYCLE_TICKS / RUNTIME_SPAWN_TICK_INTERVAL));
+        return Math.max(1, (int) Math.ceil((double) eligibleChunkCount / runsPerCycle));
+    }
+
+    private static List<ChunkCoordIntPair> getRuntimeChunkBatch(World world, int chunkBudget) {
+        ArrayList<ChunkCoordIntPair> result = new ArrayList<ChunkCoordIntPair>();
+        if (chunkBudget <= 0 || eligibleChunksForSpawning.isEmpty()) {
+            return result;
+        }
+
+        int dimensionId = world.provider.dimensionId;
+        RuntimeChunkState state = RUNTIME_CHUNK_STATES.get(dimensionId);
+        if (state == null) {
+            state = new RuntimeChunkState();
+            RUNTIME_CHUNK_STATES.put(dimensionId, state);
+        }
+
+        int signature = eligibleChunksForSpawning.hashCode();
+        if (state.chunks.isEmpty() || state.signature != signature || state.index >= state.chunks.size()) {
+            state.chunks = new ArrayList<ChunkCoordIntPair>(eligibleChunksForSpawning);
+            Collections.shuffle(state.chunks);
+            state.index = 0;
+            state.signature = signature;
+        }
+
+        int remaining = state.chunks.size() - state.index;
+        int count = Math.min(chunkBudget, Math.max(0, remaining));
+        for (int i = 0; i < count; i++) {
+            result.add(state.chunks.get(state.index++));
+        }
+        return result;
     }
 
     public static int countNPCs(World world) {
