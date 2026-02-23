@@ -19,7 +19,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
@@ -548,6 +547,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     protected void doExplosion() {
         if (previewMode) return; // Skip explosion in preview mode
+        if (worldObj.isRemote) return; // Explosions are server-side only
         float explosionRad = getExplosionRadius();
         if (Float.isNaN(explosionRad) || explosionRad <= 0) return;
         spawnExplosionRenderEntity(explosionRad);
@@ -592,25 +592,11 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     /**
      * Explosion safety filter.
-     * Reuses standard projectile-friendly checks and blocks passive non-player entities.
+     * Reuses standard projectile-friendly checks (owner, faction, party).
      */
     protected boolean shouldIgnoreExplosionTarget(EntityLivingBase target) {
         if (target == null) return true;
-        if (shouldIgnoreEntity(target)) return true;
-        return isPassiveNonPlayerEntity(target);
-    }
-
-    /**
-     * Passive mobs (animals/ambient/water creatures) are never damaged by energy explosions.
-     * Players and hostile mobs remain valid unless other friendly-fire checks reject them.
-     */
-    protected boolean isPassiveNonPlayerEntity(EntityLivingBase target) {
-        if (target instanceof EntityPlayer) return false;
-        if (target instanceof EntityNPCInterface) return false;
-        if (target.isCreatureType(EnumCreatureType.monster, false)) return false;
-        return target.isCreatureType(EnumCreatureType.creature, false)
-            || target.isCreatureType(EnumCreatureType.ambient, false)
-            || target.isCreatureType(EnumCreatureType.waterCreature, false);
+        return shouldIgnoreEntity(target);
     }
 
     /**

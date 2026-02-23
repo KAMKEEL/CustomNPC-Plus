@@ -82,7 +82,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         pullComplete = false;
         ticksSincePullDamage = 0;
 
-        if (!isPreview()) {
+        if (!isPreview() && !caster.worldObj.isRemote) {
             AxisAlignedBB box = caster.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
             @SuppressWarnings("unchecked")
             List<EntityLivingBase> entities = caster.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, box);
@@ -144,6 +144,8 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             signalCompletion();
             return;
         }
+
+        if (caster.worldObj.isRemote) return;
 
         double destX = caster.posX;
         double destY = caster.posY;

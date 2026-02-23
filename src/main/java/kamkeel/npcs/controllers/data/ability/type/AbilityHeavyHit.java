@@ -90,7 +90,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
             return;
         }
 
-        if (tick == hitDelayTicks) {
+        if (tick == hitDelayTicks && !caster.worldObj.isRemote) {
             // Calculate forward and right vectors from caster yaw
             float yawRad = (float) Math.toRadians(caster.rotationYaw);
             double forwardX = -Math.sin(yawRad);

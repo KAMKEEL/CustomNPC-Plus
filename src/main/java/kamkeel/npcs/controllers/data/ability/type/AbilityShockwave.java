@@ -62,7 +62,7 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
-        if (!isPreview()) {
+        if (!isPreview() && !caster.worldObj.isRemote) {
             // Shockwave is instant - apply effect immediately after windup
 
             // Get all entities in radius
