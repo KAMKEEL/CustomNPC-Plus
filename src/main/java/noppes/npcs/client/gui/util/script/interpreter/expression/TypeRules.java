@@ -3,9 +3,36 @@ package noppes.npcs.client.gui.util.script.interpreter.expression;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 public class TypeRules {
+
+    private static boolean isJsNumber(TypeInfo type) {
+        if (type == null || !type.isResolved()) return false;
+        String name = type.getSimpleName();
+        String full = type.getFullName();
+        return "number".equals(name) || "number".equals(full);
+    }
+
+    private static boolean isNumericPrimitiveOrWrapper(TypeInfo type) {
+        if (type == null || type.getJavaClass() == null) return false;
+        Class<?> cls = type.getJavaClass();
+        return cls == byte.class || cls == Byte.class ||
+                cls == short.class || cls == Short.class ||
+                cls == int.class || cls == Integer.class ||
+                cls == long.class || cls == Long.class ||
+                cls == float.class || cls == Float.class ||
+                cls == double.class || cls == Double.class ||
+                cls == char.class || cls == Character.class;
+    }
+
+    private static boolean isAny(TypeInfo type) {
+        if (type == null) return false;
+        if (type == TypeInfo.ANY) return true;
+        String full = type.getFullName();
+        return "any".equals(full);
+    }
     
     public static boolean isNumeric(TypeInfo type) {
         if (type == null || !type.isResolved()) return false;
+        if (isJsNumber(type)) return true;
         String name = type.getSimpleName();
         return "int".equals(name) || "long".equals(name) || "float".equals(name) || 
                "double".equals(name) || "byte".equals(name) || "short".equals(name) || "char".equals(name);
@@ -20,6 +47,7 @@ public class TypeRules {
     
     public static boolean isFloatingPoint(TypeInfo type) {
         if (type == null || !type.isResolved()) return false;
+        if (isJsNumber(type)) return true;
         String name = type.getSimpleName();
         return "float".equals(name) || "double".equals(name);
     }
@@ -37,6 +65,7 @@ public class TypeRules {
     }
     
     public static TypeInfo binaryNumericPromotion(TypeInfo left, TypeInfo right) {
+        if (isJsNumber(left) || isJsNumber(right)) return TypeInfo.NUMBER;
         if (left == null || right == null || !left.isResolved() || !right.isResolved()) {
             return null;
         }
@@ -50,6 +79,7 @@ public class TypeRules {
     
     public static TypeInfo unaryNumericPromotion(TypeInfo type) {
         if (type == null || !type.isResolved()) return null;
+        if (isJsNumber(type)) return TypeInfo.NUMBER;
         String name = type.getSimpleName();
         if ("double".equals(name) || "float".equals(name) || "long".equals(name)) return type;
         if ("byte".equals(name) || "short".equals(name) || "char".equals(name) || "int".equals(name)) {
@@ -66,6 +96,9 @@ public class TypeRules {
                 if (op == OperatorType.ADD && (isString(left) || isString(right))) {
                     return validateAgainstExpectedType(TypeInfo.fromClass(String.class));
                 }
+                if (isAny(left) || isAny(right)) {
+                    return validateAgainstExpectedType(TypeInfo.ANY);
+                }
                 if (isNumeric(left) && isNumeric(right)) {
                     TypeInfo promoted = binaryNumericPromotion(left, right);
                     return validateAgainstExpectedType(promoted);
@@ -74,6 +107,9 @@ public class TypeRules {
                 
             case RELATIONAL:
                 if (op == OperatorType.EQUALS || op == OperatorType.NOT_EQUALS) {
+                    return TypeInfo.fromPrimitive("boolean");
+                }
+                if (isAny(left) || isAny(right)) {
                     return TypeInfo.fromPrimitive("boolean");
                 }
                 if (isNumeric(left) && isNumeric(right)) {
@@ -166,6 +202,11 @@ public class TypeRules {
 
         if (!sourceType.isResolved())
             return false;
+
+        if ((isJsNumber(sourceType) && isNumericPrimitiveOrWrapper(targetType)) ||
+                (isJsNumber(targetType) && isNumericPrimitiveOrWrapper(sourceType))) {
+            return true;
+        }
 
         // Exact match
         if (sourceType.equals(targetType))

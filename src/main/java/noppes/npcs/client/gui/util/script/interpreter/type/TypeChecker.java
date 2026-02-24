@@ -53,6 +53,12 @@ public final class TypeChecker {
         }
         
         // Primitive widening conversions
+        if ("number".equals(expectedName) && isNumericType(actualName)) {
+            return true;
+        }
+        if ("number".equals(actualName) && isNumericType(expectedName)) {
+            return true;
+        }
         if (isNumericType(expectedName) && isNumericType(actualName)) {
             return canWiden(actualName, expectedName);
         }
@@ -91,6 +97,7 @@ public final class TypeChecker {
      */
     public static boolean isNumericType(String typeName) {
         switch (typeName) {
+            case "number":
             case "byte": case "Byte":
             case "short": case "Short":
             case "int": case "Integer":
@@ -125,6 +132,7 @@ public final class TypeChecker {
             case "int": return 3;
             case "long": return 4;
             case "float": return 5;
+            case "number":
             case "double": return 6;
             default: return 0;
         }
