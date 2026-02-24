@@ -741,7 +741,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         // Clean up any executing ability silently (no script events — already fired on old entity)
         if (currentAbility != null && currentAbility.isExecuting()) {
             removeTelegraph(currentAbility);
-            currentAbility.cleanup();
             currentAbility.interrupt();
             stopAbilityAnimation();
             releaseRotationControl();
@@ -813,7 +812,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         // Silently clean up any stale executing ability
         if (currentAbility != null && currentAbility.isExecuting()) {
             removeTelegraph(currentAbility);
-            currentAbility.cleanup();
             currentAbility.interrupt();
             stopAbilityAnimation();
             releaseRotationControl();

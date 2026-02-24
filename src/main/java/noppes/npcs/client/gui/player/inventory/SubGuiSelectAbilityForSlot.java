@@ -15,16 +15,19 @@ import noppes.npcs.controllers.data.AbilityHotbarData;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SubGui for selecting an ability to assign to a hotbar slot.
+ * Uses ability keys internally to avoid duplicate display name collisions.
  */
 public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICustomScrollListener, ITextfieldListener {
-    private HashMap<String, String> displayToKey = new HashMap<>();
+    private LinkedHashMap<String, String> keyToDisplay = new LinkedHashMap<>();
+    private List<String> scrollKeys = new ArrayList<>();
     private GuiCustomScroll scrollAbilities;
-    private String selected = null;
+    private int selectedIndex = -1;
     private String search = "";
 
     public boolean confirmed = false;
@@ -36,7 +39,6 @@ public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICust
         this.slotIndex = slotIndex;
         this.closeOnEsc = true;
         this.drawDefaultBackground = true;
-        guiLeft -= 10;
         xSize = 256 + 10;
         this.setBackground("menubg.png");
     }
@@ -44,7 +46,7 @@ public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICust
     @Override
     public void initGui() {
         super.initGui();
-        guiTop += 10;
+        guiTop = (this.height - ySize) / 2 + 10;
 
         if (scrollAbilities == null) {
             scrollAbilities = new GuiCustomScroll(this, 0, 0);
@@ -66,7 +68,7 @@ public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICust
     }
 
     private void loadAbilities() {
-        displayToKey.clear();
+        keyToDisplay.clear();
         PlayerData playerData = ClientCacheHandler.playerData;
         if (playerData == null || playerData.abilityData == null) {
             return;
@@ -85,7 +87,7 @@ public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICust
                     AbilityController.Instance.resolveAbility(key) : null;
                 displayName = ability != null ? ability.getDisplayName() : key;
             }
-            displayToKey.put(displayName, key);
+            keyToDisplay.put(key, displayName);
         }
     }
 
@@ -93,9 +95,9 @@ public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICust
     public void actionPerformed(GuiButton button) {
         int id = button.id;
 
-        if (id == 0 && selected != null) {
+        if (id == 0 && selectedIndex >= 0 && selectedIndex < scrollKeys.size()) {
             confirmed = true;
-            selectedAbilityKey = displayToKey.get(selected);
+            selectedAbilityKey = scrollKeys.get(selectedIndex);
             this.close();
         }
         if (id == 1) {
@@ -109,15 +111,16 @@ public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICust
 
     @Override
     public void customScrollClicked(int i, int i1, int i2, GuiCustomScroll guiCustomScroll) {
-        if (guiCustomScroll == scrollAbilities)
-            selected = scrollAbilities.getSelected();
+        if (guiCustomScroll == scrollAbilities) {
+            selectedIndex = scrollAbilities.selected;
+        }
     }
 
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll guiCustomScroll) {
-        if (guiCustomScroll == scrollAbilities && selection != null) {
+        if (guiCustomScroll == scrollAbilities && selectedIndex >= 0 && selectedIndex < scrollKeys.size()) {
             confirmed = true;
-            selectedAbilityKey = displayToKey.get(selection);
+            selectedAbilityKey = scrollKeys.get(selectedIndex);
             this.close();
         }
     }
@@ -135,21 +138,23 @@ public class SubGuiSelectAbilityForSlot extends SubGuiInterface implements ICust
                     return;
                 search = getTextField(55).getText().toLowerCase();
                 scrollAbilities.resetScroll();
+                selectedIndex = -1;
                 scrollAbilities.setList(getSearchList());
             }
         }
     }
 
     private List<String> getSearchList() {
-        if (search.isEmpty()) {
-            return new ArrayList<>(displayToKey.keySet());
-        }
+        scrollKeys.clear();
+        List<String> displayNames = new ArrayList<>();
 
-        List<String> list = new ArrayList<>();
-        for (String name : displayToKey.keySet()) {
-            if (name.toLowerCase().contains(search))
-                list.add(name);
+        for (Map.Entry<String, String> entry : keyToDisplay.entrySet()) {
+            String displayName = entry.getValue();
+            if (search.isEmpty() || displayName.toLowerCase().contains(search)) {
+                scrollKeys.add(entry.getKey());
+                displayNames.add(displayName);
+            }
         }
-        return list;
+        return displayNames;
     }
 }

@@ -17,6 +17,7 @@ public class ConditionHitCount extends AbilityCondition {
     public ConditionHitCount() {
         this.typeId = "condition.cnpc.hit_count";
         this.name = "condition.hit_count";
+        this.conditionFilter = ConditionFilter.CASTER;
     }
 
     @Override
@@ -64,8 +65,7 @@ public class ConditionHitCount extends AbilityCondition {
     @SideOnly(Side.CLIENT)
     @Override
     public String getConditionSummary() {
-        String filterLabel = StatCollector.translateToLocal(getFilter().toString());
-        return "[" + filterLabel + "] Hit " + requiredHits + " times in " + withinTicks + " ticks";
+        return "[Caster] Hit " + requiredHits + " times in " + withinTicks + " ticks";
     }
 
     @Override

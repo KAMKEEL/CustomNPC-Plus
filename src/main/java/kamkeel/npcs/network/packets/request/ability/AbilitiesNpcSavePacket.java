@@ -64,6 +64,7 @@ public final class AbilitiesNpcSavePacket extends AbstractPacket {
             return;
 
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
+        if (compound == null) return;
         npc.abilities.readFromNBT(compound);
     }
 }

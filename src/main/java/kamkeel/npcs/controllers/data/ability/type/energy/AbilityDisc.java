@@ -66,7 +66,7 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             discRadius, discThickness,
-            resolved, combatData, homingData, lightningData, lifespanData, trajectoryData,
+            resolved, combatData, homingData, lightningData, lifespanData,
             boomerang, boomerangDelay);
     }
 

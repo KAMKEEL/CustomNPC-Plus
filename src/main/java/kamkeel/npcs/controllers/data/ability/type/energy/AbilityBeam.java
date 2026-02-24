@@ -66,7 +66,7 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             beamWidth, headSize,
-            resolved, combatData, homingData, lightningData, lifespanData, trajectoryData,
+            resolved, combatData, homingData, lightningData, lifespanData,
             lockMovement.locksActive());
     }
 

@@ -1184,7 +1184,7 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
-        return false;
+        return null;
     }
 
     public Boolean fireCheckConditionsForPlayer(AbilityCondition condition, EntityLivingBase player) {
@@ -1249,7 +1249,7 @@ public class AbilityController implements IAbilityHandler {
     public boolean isAllowedByPlayer(String typeId) {
         if (abilityTypes.containsKey(typeId)) {
             Ability temp = abilityTypes.get(typeId).get();
-            return temp.getAllowedBy() == UserType.PLAYER_ONLY;
+            return temp.getAllowedBy().allowsPlayer();
         }
 
         return false;
@@ -1258,7 +1258,7 @@ public class AbilityController implements IAbilityHandler {
     public boolean isAllowedByNPC(String typeId) {
         if (abilityTypes.containsKey(typeId)) {
             Ability temp = abilityTypes.get(typeId).get();
-            return temp.getAllowedBy() == UserType.NPC_ONLY;
+            return temp.getAllowedBy().allowsNpc();
         }
 
         return false;

@@ -1479,8 +1479,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
         lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
-        windUpColor = nbt.getInteger("windUpColor");
-        activeColor = nbt.getInteger("activeColor");
+        windUpColor = nbt.hasKey("windUpColor") ? nbt.getInteger("windUpColor") : 0x80FF4400;
+        activeColor = nbt.hasKey("activeColor") ? nbt.getInteger("activeColor") : 0xC0FF0000;
         windUpSound = nbt.getString("windUpSound");
         activeSound = nbt.getString("activeSound");
         windUpAnimationId = nbt.getInteger("windUpAnimationId");
@@ -1496,7 +1496,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
             telegraphType = TelegraphType.CIRCLE;
         }
         telegraphHeightOffset = nbt.getFloat("telegraphHeightOffset");
-        customData = nbt.getCompoundTag("customData");
+        customData = (NBTTagCompound) nbt.getCompoundTag("customData").copy();
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
         perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");
@@ -1520,7 +1520,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         burstEnabled = nbt.getBoolean("burstEnabled");
         burstAmount = nbt.getInteger("burstAmount");
         burstDelay = nbt.getInteger("burstDelay");
-        burstReplayAnimations = nbt.getBoolean("burstReplayAnimations");
+        burstReplayAnimations = nbt.hasKey("burstReplayAnimations") ? nbt.getBoolean("burstReplayAnimations") : true;
         burstOverlap = nbt.getBoolean("burstOverlap");
 
         // Conditions

@@ -5,7 +5,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.Entity;
@@ -60,11 +59,11 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                               float laserWidth,
                               EnergyDisplayData display, EnergyCombatData combat,
                               EnergyLightningData lightning, EnergyLifespanData lifespan,
-                              EnergyTrajectoryData trajectory, float expansionSpeed, int lingerTicks) {
+                              float expansionSpeed, int lingerTicks) {
         super(world);
 
         // Initialize base properties (laser doesn't rotate)
-        initProjectile(owner, target, x, y, z, laserWidth, display, combat, lightning, lifespan, trajectory);
+        initProjectile(owner, target, x, y, z, laserWidth, display, combat, lightning, lifespan);
         this.displayData.rotationSpeed = 0.0f;
 
         // Laser-specific properties
@@ -90,12 +89,16 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                 this.dirX = look.xCoord;
                 this.dirY = look.yCoord;
                 this.dirZ = look.zCoord;
-            } else {
+            } else if (owner != null) {
                 float yaw = (float) Math.toRadians(owner.rotationYaw);
                 float pitch = (float) Math.toRadians(owner.rotationPitch);
                 this.dirX = -Math.sin(yaw) * Math.cos(pitch);
                 this.dirY = -Math.sin(pitch);
                 this.dirZ = Math.cos(yaw) * Math.cos(pitch);
+            } else {
+                this.dirX = 1.0;
+                this.dirY = 0.0;
+                this.dirZ = 0.0;
             }
         }
 

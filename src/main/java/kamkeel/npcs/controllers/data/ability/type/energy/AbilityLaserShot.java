@@ -118,7 +118,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             laserWidth,
-            resolved, combatData, lightningData, lifespanData, trajectoryData,
+            resolved, combatData, lightningData, lifespanData,
             expansionSpeed, lingerTicks);
         return laser;
     }

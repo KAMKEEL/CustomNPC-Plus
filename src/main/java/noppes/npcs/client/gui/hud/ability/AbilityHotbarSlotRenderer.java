@@ -119,8 +119,7 @@ public class AbilityHotbarSlotRenderer extends Gui {
             if (iconNaturalSize <= 0) iconNaturalSize = 16f;
             float iconScale = targetSize / iconNaturalSize;
             GL11.glScalef(iconScale, iconScale, 1);
-            GL11.glColor4f(1, 1, 1, slotAlpha);
-            icon.draw(getToggleState());
+            icon.draw(getToggleState(), slotAlpha);
             GL11.glColor4f(1, 1, 1, 1);
             GL11.glPopMatrix();
         }

@@ -159,10 +159,9 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
 
         // Update rotation
         currentAngle += sweepSpeed;
-        if (currentAngle >= 360) {
+        while (currentAngle >= 360) {
             currentAngle -= 360;
             completedRotations++;
-            // Rotation completed
         }
 
         // Server handles damage

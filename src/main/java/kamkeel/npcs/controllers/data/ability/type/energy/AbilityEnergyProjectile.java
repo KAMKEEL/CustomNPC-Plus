@@ -9,7 +9,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
@@ -44,9 +43,6 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     protected int projectileCount = 1;
     protected int fireDelay = 0;
 
-    // Trajectory data
-    protected EnergyTrajectoryData trajectoryData;
-
     // Shared combat/movement data
     protected final EnergyCombatData combatData;
     protected final EnergyHomingData homingData;
@@ -74,7 +70,6 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         this.combatData = combatData;
         this.homingData = homingData;
         this.lifespanData = lifespanData;
-        this.trajectoryData = new EnergyTrajectoryData();
         this.burstOverlap = true;
         initProjectiles(1);
     }

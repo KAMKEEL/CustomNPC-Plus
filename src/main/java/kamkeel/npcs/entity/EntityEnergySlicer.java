@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -40,10 +39,10 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
                               float sliceWidth, float sliceThickness,
                               EnergyDisplayData display, EnergyCombatData combat,
                               EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan, EnergyTrajectoryData trajectory) {
+                              EnergyLifespanData lifespan) {
         super(world);
 
-        initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan, trajectory);
+        initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan);
         this.homingData = homing;
         this.sliceWidth = sliceWidth;
         this.sliceThickness = sliceThickness;

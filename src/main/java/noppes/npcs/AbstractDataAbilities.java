@@ -434,7 +434,7 @@ public abstract class AbstractDataAbilities {
         EntityLivingBase entity = getEntity();
         List<String> toRemove = null;
 
-        for (Map.Entry<String, AbilityToggleEntry> mapEntry : activeToggles.entrySet()) {
+        for (Map.Entry<String, AbilityToggleEntry> mapEntry : new ArrayList<>(activeToggles.entrySet())) {
             AbilityToggleEntry entry = mapEntry.getValue();
             entry.incrementTick();
 

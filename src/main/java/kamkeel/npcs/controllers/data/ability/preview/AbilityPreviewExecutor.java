@@ -60,6 +60,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
 
     // ==================== NPC START POSITION ====================
     private double npcStartX, npcStartY, npcStartZ;
+    private boolean hasStartPosition = false;
 
     // ==================== PREVIEW CONTENT ====================
     private TelegraphInstance previewTelegraph;
@@ -98,6 +99,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
         this.npcStartX = npc.posX;
         this.npcStartY = npc.posY;
         this.npcStartZ = npc.posZ;
+        this.hasStartPosition = true;
 
         // Create invisible fake target NPC for targeting
         createFakeTarget(npc);
@@ -127,6 +129,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
         this.npcStartX = npc.posX;
         this.npcStartY = npc.posY;
         this.npcStartZ = npc.posZ;
+        this.hasStartPosition = true;
 
         // Resolve all entries to deep-copied abilities
         chainAbilities = new ArrayList<>();
@@ -315,7 +318,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
         previewEntities.clear();
 
         // Reset NPC position to start position (undo movement from Slam/Charge/Dash)
-        if (previewNpc != null && npcStartX != 0 && npcStartY != 0 && npcStartZ != 0) {
+        if (previewNpc != null && hasStartPosition) {
             previewNpc.posX = npcStartX;
             previewNpc.posY = npcStartY;
             previewNpc.posZ = npcStartZ;

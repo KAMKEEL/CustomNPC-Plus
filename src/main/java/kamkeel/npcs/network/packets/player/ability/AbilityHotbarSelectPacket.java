@@ -55,5 +55,6 @@ public final class AbilityHotbarSelectPacket extends AbstractPacket {
                 data.abilityData.setSelectedIndex(index);
             }
         }
+        data.save();
     }
 }

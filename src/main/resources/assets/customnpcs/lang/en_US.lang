@@ -2117,6 +2117,7 @@ ability.validFor=Valid For
 ability.userType.NPC_ONLY=NPCs
 ability.userType.PLAYER_ONLY=Players
 ability.userType.BOTH=Both
+ability.userType.NONE=NO ONE!
 ability.icon.section.uv=UV Coordinates
 ability.icon.x=Icon X
 ability.icon.y=Icon Y

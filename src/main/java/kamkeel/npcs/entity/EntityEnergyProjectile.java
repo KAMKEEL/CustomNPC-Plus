@@ -12,7 +12,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.block.Block;
@@ -114,8 +113,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     // ==================== HOMING PROPERTIES ====================
     protected EnergyHomingData homingData = new EnergyHomingData();
 
-    // ==================== TRAJECTORY PROPERTIES ====================
-    protected EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
     protected Map<Integer, Integer> pathDelays;
 
     // ==================== TRACKING ====================
@@ -174,8 +171,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
                                   double x, double y, double z, float size,
                                   EnergyDisplayData display, EnergyCombatData combat,
-                                  EnergyLightningData lightning, EnergyLifespanData lifespan,
-                                  EnergyTrajectoryData trajectory) {
+                                  EnergyLightningData lightning, EnergyLifespanData lifespan) {
         this.setPosition(x, y, z);
         this.startX = x;
         this.startY = y;
@@ -191,7 +187,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.combatData = combat;
         this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
         this.lightningData = lightning;
-        this.trajectoryData = trajectory;
         syncProjectileColorWatchers();
 
         // Initialize render size
@@ -2203,7 +2198,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
-        trajectoryData.readNBT(nbt);
         syncProjectileColorWatchers();
     }
 
@@ -2238,7 +2232,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         combatData.writeNBT(nbt);
         homingData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
-        trajectoryData.writeNBT(nbt);
     }
 
     /**

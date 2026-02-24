@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -58,12 +57,12 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
                              float discRadius, float discThickness,
                              EnergyDisplayData display, EnergyCombatData combat,
                              EnergyHomingData homing, EnergyLightningData lightning,
-                             EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
+                             EnergyLifespanData lifespan,
                              boolean boomerang, int boomerangDelay) {
         super(world);
 
         // Initialize base properties
-        initProjectile(owner, target, x, y, z, 1.0f, display, combat, lightning, lifespan, trajectory);
+        initProjectile(owner, target, x, y, z, 1.0f, display, combat, lightning, lifespan);
 
         this.homingData = homing;
 

@@ -249,10 +249,10 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.chargeSpeed = nbt.getFloat("chargeSpeed");
-        this.damage = nbt.getFloat("damage");
-        this.knockback = nbt.getFloat("knockback");
-        this.hitWidth = nbt.getFloat("hitWidth");
+        this.chargeSpeed = nbt.hasKey("chargeSpeed") ? Math.max(0.01f, nbt.getFloat("chargeSpeed")) : 0.8f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 8.0f;
+        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 3.0f;
+        this.hitWidth = nbt.hasKey("hitWidth") ? nbt.getFloat("hitWidth") : 1.5f;
     }
 
     // Getters & Setters
