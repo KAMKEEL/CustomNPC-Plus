@@ -120,10 +120,10 @@ public interface IAbilityExtender {
     }
 
     default Boolean onCheckCondition(AbilityCondition condition, EntityLivingBase caster, EntityLivingBase target) {
-        return false;
+        return null;
     }
 
     default Boolean onCheckConditionForPlayer(AbilityCondition condition, EntityLivingBase player) {
-        return false;
+        return null;
     }
 }
