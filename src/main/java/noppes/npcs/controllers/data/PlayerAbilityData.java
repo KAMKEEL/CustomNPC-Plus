@@ -92,14 +92,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     private transient byte lastSyncedFlags = 0;
 
     /**
-     * Dirty flag: set when ability data changes (unlock/lock/select/toggle).
-     * Checked by the periodic 10-tick sync handler, which sends an ability
-     * data packet and clears the flag. Avoids scattering sync calls across
-     * every mutation method.
-     */
-    public transient boolean needsSync = false;
-
-    /**
      * World time when the last ability was activated (for double-press cancel detection).
      */
     private transient long lastAbilityActivationTime = -1;
@@ -497,7 +489,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     @Override
     protected void onToggleStateChanged(String key, boolean active, int state) {
-        needsSync = true;
     }
 
     @Override
@@ -534,20 +525,17 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void setSelectedIndex(int index) {
         if (index == -1 || (index >= 0 && index < unlockedAbilities.size())) {
             this.selectedIndex = index;
-            needsSync = true;
         }
     }
 
     public void selectNext() {
         if (unlockedAbilities.isEmpty()) return;
         selectedIndex = (selectedIndex + 1) % unlockedAbilities.size();
-        needsSync = true;
     }
 
     public void selectPrevious() {
         if (unlockedAbilities.isEmpty()) return;
         selectedIndex = (selectedIndex - 1 + unlockedAbilities.size()) % unlockedAbilities.size();
-        needsSync = true;
     }
 
     public String getSelectedAbilityKey() {
@@ -576,13 +564,11 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
-        needsSync = true;
     }
 
     public void unlockAbility(String key) {
         if (key != null && !key.isEmpty() && !unlockedAbilities.contains(key)) {
             unlockedAbilities.add(key);
-            needsSync = true;
         }
     }
 
@@ -591,7 +577,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
-        needsSync = true;
     }
 
     public boolean hasUnlockedAbility(String key) {
@@ -837,7 +822,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         // Reset sync tracking so next sync sends fresh state
         lastSyncedFlags = 0;
-        needsSync = true;
     }
 
     /**

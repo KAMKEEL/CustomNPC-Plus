@@ -10,6 +10,7 @@ import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 
@@ -86,7 +87,7 @@ public final class AbilityCooldownSyncPacket extends AbstractPacket {
             perDurations.put(key, duration);
         }
 
-        PlayerData data = PlayerData.get(player);
+        PlayerData data = ClientCacheHandler.playerData;
         if (data != null && data.abilityData != null) {
             data.abilityData.applyCooldownSync(globalEndTime, globalDuration, perEndTimes, perDurations);
         }

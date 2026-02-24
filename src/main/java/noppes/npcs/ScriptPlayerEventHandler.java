@@ -147,10 +147,7 @@ public class ScriptPlayerEventHandler {
                     EntityPlayerMP mp = (EntityPlayerMP) player;
                     SyncController.syncEffects(mp);
                     SyncController.syncAbilityCooldowns(mp);
-                    if (playerData.abilityData.needsSync) {
-                        PlayerAbilitySyncPacket.sendToPlayer(mp);
-                        playerData.abilityData.needsSync = false;
-                    }
+                    PlayerAbilitySyncPacket.sendToPlayer(mp);
                     playerData.abilityData.ensureLockStateClear();
                 }
 
