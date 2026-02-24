@@ -63,6 +63,9 @@ public class GuiNpcTextField extends GuiTextField {
         if (integersOnly && getText().isEmpty() && c == '-')
             return true;
 
+        if ((floatsOnly || doublesOnly) && getText().isEmpty() && c == '-')
+            return true;
+
         for (int j : allowedSpecialChars)
             if (j == i)
                 return true;
