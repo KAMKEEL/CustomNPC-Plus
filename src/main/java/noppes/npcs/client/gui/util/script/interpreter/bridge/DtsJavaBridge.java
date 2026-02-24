@@ -215,12 +215,21 @@ public final class DtsJavaBridge {
     }
 
     private static boolean matchesPrimitive(String jsTypeName, Class<?> javaParam) {
-        switch (jsTypeName) {
+        switch (jsTypeName.toLowerCase()) {
             case "string":
+            case "char":
                 return javaParam == String.class || javaParam == char.class || javaParam == Character.class;
             case "boolean":
+            case "bool":
                 return javaParam == boolean.class || javaParam == Boolean.class;
             case "number":
+            case "byte":
+            case "short":
+            case "int":
+            case "integer":
+            case "long":
+            case "float":
+            case "double":
                 return isNumberType(javaParam);
             case "void":
                 return javaParam == void.class || javaParam == Void.class;

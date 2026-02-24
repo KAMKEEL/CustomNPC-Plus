@@ -397,6 +397,11 @@ public class TypeResolver {
             return null;
         }
 
+        // Primitives
+        if (TypeResolver.isPrimitiveType(baseName)) {
+            return TypeInfo.fromPrimitive(baseName);
+        }
+
         // Handle "Java." prefix - convert to actual Java type
         if (baseName.startsWith("Java.")) {
             baseName = baseName.substring(5);

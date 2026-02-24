@@ -53,7 +53,8 @@ public class JSTypeRegistry {
     
     // Primitive types
     private static final Set<String> PRIMITIVES = new HashSet<>(Arrays.asList(
-        "number", "string", "boolean", "void", "any", "null", "undefined", "never", "object"
+        "number", "string", "boolean", "void", "any", "null", "undefined", "never", "object",
+        "byte", "short", "int", "integer", "long", "float", "double", "char", "bool"
     ));
     
     private boolean initialized = false;
