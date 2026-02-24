@@ -84,7 +84,7 @@ public class LinkedItemController implements ILinkedItemHandler {
     }
 
     @Override
-    public ILinkedItem get(int id) {
+    public LinkedItem get(int id) {
         return (LinkedItem) this.linkedItems.get(id);
     }
 
