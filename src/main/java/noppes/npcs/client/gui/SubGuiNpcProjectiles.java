@@ -97,7 +97,13 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
             } else {
                 internalY += 30;
                 addLabel(new GuiNpcLabel(70, "stats.amplify", guiLeft + 210, internalY + 5));
-                addButton(new GuiButtonBiDirectional(10, guiLeft + 280, internalY, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.pEffAmp));
+                if (stats.pEffect == EnumPotionType.Manual) {
+                    addTextField(new GuiNpcTextField(10, this, fontRendererObj, guiLeft + 280, internalY, 52, 20, stats.pEffAmp + ""));
+                    getTextField(10).integersOnly = true;
+                    getTextField(10).setMinMaxDefault(0, 255, 0);
+                } else {
+                    addButton(new GuiButtonBiDirectional(10, guiLeft + 280, internalY, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.pEffAmp));
+                }
             }
         }
 
@@ -132,6 +138,8 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
             stats.pSpeed = textfield.getInteger();
         } else if (textfield.id == 5) {
             stats.pDur = textfield.getInteger();
+        } else if (textfield.id == 10) {
+            stats.pEffAmp = textfield.getInteger();
         } else if (textfield.id == 11) {
             stats.pManualId = textfield.getInteger();
         }
@@ -154,7 +162,11 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
             stats.pArea = button.getValue();
         }
         if (button.id == 4) {
-            stats.pEffect = EnumPotionType.fromOrdinal(button.getValue());
+            EnumPotionType newType = EnumPotionType.fromOrdinal(button.getValue());
+            if (stats.pEffect == EnumPotionType.Manual && newType != EnumPotionType.Manual) {
+                stats.pEffAmp = 0;
+            }
+            stats.pEffect = newType;
             initGui();
         }
         if (button.id == 5) {

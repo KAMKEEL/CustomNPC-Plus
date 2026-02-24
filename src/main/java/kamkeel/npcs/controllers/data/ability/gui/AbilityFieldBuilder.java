@@ -112,11 +112,22 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
             widgetId++;
 
             if (effect.getType() != EnumPotionType.Fire) {
-                GuiNpcButton ampBtn = new GuiNpcButton(widgetId, colLLabel + 158, y, 40, 20, ampValues, effect.getAmplifier());
-                sw.addButton(ampBtn);
-                buttonFieldMap.put(widgetId, def);
-                effectWidgetMeta.put(widgetId, new int[]{e, 2});
-                widgetId++;
+                if (effect.getType() == EnumPotionType.Manual) {
+                    GuiNpcTextField ampField = new GuiNpcTextField(widgetId, parent, fontRenderer,
+                        colLLabel + 158, y, 40, 20, String.valueOf(effect.getAmplifier()));
+                    ampField.setIntegersOnly();
+                    ampField.setMinMaxDefault(0, 255, 0);
+                    sw.addTextField(ampField);
+                    textFieldMap.put(widgetId, def);
+                    effectWidgetMeta.put(widgetId, new int[]{e, 2});
+                    widgetId++;
+                } else {
+                    GuiNpcButton ampBtn = new GuiNpcButton(widgetId, colLLabel + 158, y, 40, 20, ampValues, effect.getAmplifier());
+                    sw.addButton(ampBtn);
+                    buttonFieldMap.put(widgetId, def);
+                    effectWidgetMeta.put(widgetId, new int[]{e, 2});
+                    widgetId++;
+                }
             } else {
                 widgetId++;
             }
@@ -367,8 +378,14 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
                 if (effects == null) return false;
                 switch (action) {
                     case 0:
-                        if (idx < effects.size())
-                            effects.get(idx).setType(EnumPotionType.fromIndexNoNone(((GuiNpcButton) button).getValue()));
+                        if (idx < effects.size()) {
+                            EnumPotionType oldType = effects.get(idx).getType();
+                            EnumPotionType newType = EnumPotionType.fromIndexNoNone(((GuiNpcButton) button).getValue());
+                            if (oldType == EnumPotionType.Manual && newType != EnumPotionType.Manual) {
+                                effects.get(idx).setAmplifier(0);
+                            }
+                            effects.get(idx).setType(newType);
+                        }
                         return true;
                     case 2:
                         if (idx < effects.size())
@@ -471,6 +488,7 @@ public class AbilityFieldBuilder extends GuiFieldBuilder {
                 List<AbilityPotionEffect> effects = (List<AbilityPotionEffect>) def.getValue();
                 if (effects != null && idx < effects.size()) {
                     if (action == 1) effects.get(idx).setDurationTicks(field.getInteger());
+                    else if (action == 2) effects.get(idx).setAmplifier(field.getInteger());
                     else if (action == 5) effects.get(idx).setManualPotionId(field.getInteger());
                 }
                 return true;

@@ -10,6 +10,7 @@ import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSelectPacket;
 import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ClientAbilityState;
+import noppes.npcs.client.KeyPressHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
@@ -602,22 +603,7 @@ public class AbilityHotbarComponent extends HudComponent {
     }
 
     private boolean isHudKeyHeld() {
-        if (ClientProxy.AbilityHudKey == null) return false;
-        int keyCode = ClientProxy.AbilityHudKey.getKeyCode();
-        if (keyCode == 0 || keyCode == -1) return false;
-
-        // Mouse bindings are encoded as negative key codes (offset by 100).
-        if (keyCode < -1) {
-            int mouseButton = keyCode + 100;
-            return mouseButton >= 0
-                && mouseButton < org.lwjgl.input.Mouse.getButtonCount()
-                && org.lwjgl.input.Mouse.isButtonDown(mouseButton);
-        }
-
-        // Guard against invalid/out-of-range keyboard codes to avoid Buffer.checkIndex crashes.
-        return keyCode > 0
-            && keyCode < org.lwjgl.input.Keyboard.getKeyCount()
-            && org.lwjgl.input.Keyboard.isKeyDown(keyCode);
+        return KeyPressHandler.isHudKeyHeld();
     }
 
     public boolean hasAnyAbilities() {
