@@ -842,6 +842,8 @@ public class JSTypeRegistry {
         globalEngineObjects.clear();
         DtsJavaBridge.clearCache();
         initialized = false;
+        initializationAttempted = false;
+        currentSource = null;
     }
 
     private void setCurrentSource(String source) {
