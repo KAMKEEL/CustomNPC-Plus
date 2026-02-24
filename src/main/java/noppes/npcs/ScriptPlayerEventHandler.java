@@ -10,6 +10,7 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
@@ -142,8 +143,16 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
                 }
 
-                if (player.ticksExisted % 10 == 0)
-                    SyncController.syncEffects((EntityPlayerMP) player);
+                if (player.ticksExisted % 10 == 0) {
+                    EntityPlayerMP mp = (EntityPlayerMP) player;
+                    SyncController.syncEffects(mp);
+                    SyncController.syncAbilityCooldowns(mp);
+                    if (playerData.abilityData.needsSync) {
+                        PlayerAbilitySyncPacket.sendToPlayer(mp);
+                        playerData.abilityData.needsSync = false;
+                    }
+                    playerData.abilityData.ensureLockStateClear();
+                }
 
                 if (player.ticksExisted % 10 == 0)
                     CustomEffectController.Instance.runEffects(player);

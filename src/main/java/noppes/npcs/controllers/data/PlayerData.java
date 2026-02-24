@@ -117,12 +117,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         if (!controller.playerEffects.containsKey(playerID)) {
             controller.playerEffects.put(playerID, effectData.getEffects());
         }
-
-        // Sync player ability data to client
-        abilityData.syncToClient();
-
-        // Sync hotbar data to client
-        hotbarData.syncToClient(player);
     }
 
     public void onLogout() {
@@ -254,6 +248,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         factionData.saveNBTData(compound);
         mailData.saveNBTData(compound);
         tradeData.writeToNBT(compound);
+        abilityData.writeToNBT(compound);
+        hotbarData.writeToNBT(compound);
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
         DBCAddon.instance.writeToNBT(this, compound);
@@ -268,6 +264,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         factionData.loadNBTData(data);
         mailData.loadNBTData(data);
         tradeData.readFromNBT(data);
+        abilityData.readFromNBT(data);
+        hotbarData.readFromNBT(data);
         if (player != null) {
             playername = player.getCommandSenderName();
             uuid = player.getPersistentID().toString();

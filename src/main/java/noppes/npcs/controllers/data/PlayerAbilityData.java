@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
@@ -89,6 +90,14 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      * Last synced state flags byte for change detection (avoids spamming packets).
      */
     private transient byte lastSyncedFlags = 0;
+
+    /**
+     * Dirty flag: set when ability data changes (unlock/lock/select/toggle).
+     * Checked by the periodic 10-tick sync handler, which sends an ability
+     * data packet and clears the flag. Avoids scattering sync calls across
+     * every mutation method.
+     */
+    public transient boolean needsSync = false;
 
     /**
      * World time when the last ability was activated (for double-press cancel detection).
@@ -251,7 +260,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             cooldownEndTime = endTime;
             globalCooldownDuration = duration;
         }
-        syncCooldownToClient();
     }
 
     @Override
@@ -259,7 +267,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         int duration = chain.getCooldownTicks();
         cooldownEndTime = getWorldTime() + duration;
         globalCooldownDuration = duration;
-        syncCooldownToClient();
     }
 
     @Override
@@ -450,6 +457,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             playAbilityAnimation(ability.getWindUpAnimation());
         }
 
+        // Immediate sync on ability use
+        syncToClient();
         return true;
     }
 
@@ -458,31 +467,30 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Sync ability data to the client.
-     * Called when abilities change (unlock/lock/select) and on login.
+     * Full sync of all ability state to the client.
+     * Delegates to {@link SyncController#syncAbilities(EntityPlayerMP)}.
      */
     public void syncToClient() {
         EntityPlayer player = playerData.player;
         if (player instanceof EntityPlayerMP) {
-            PlayerAbilitySyncPacket.sendToPlayer((EntityPlayerMP) player);
-            syncCooldownToClient();
+            SyncController.syncAbilities((EntityPlayerMP) player);
         }
     }
 
     /**
-     * Sync cooldown state (global + per-ability) to the client.
-     * Sent as a lightweight packet separate from full ability sync.
+     * Lightweight sync of cooldown state only to the client.
+     * Delegates to {@link SyncController#syncAbilityCooldowns(EntityPlayerMP)}.
      */
     public void syncCooldownToClient() {
         EntityPlayer player = playerData.player;
         if (player instanceof EntityPlayerMP) {
-            AbilityCooldownSyncPacket.sendToPlayer((EntityPlayerMP) player);
+            SyncController.syncAbilityCooldowns((EntityPlayerMP) player);
         }
     }
 
     @Override
     protected void onToggleStateChanged(String key, boolean active, int state) {
-        syncToClient();
+        needsSync = true;
     }
 
     @Override
@@ -519,20 +527,20 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void setSelectedIndex(int index) {
         if (index == -1 || (index >= 0 && index < unlockedAbilities.size())) {
             this.selectedIndex = index;
-            syncToClient();
+            needsSync = true;
         }
     }
 
     public void selectNext() {
         if (unlockedAbilities.isEmpty()) return;
         selectedIndex = (selectedIndex + 1) % unlockedAbilities.size();
-        syncToClient();
+        needsSync = true;
     }
 
     public void selectPrevious() {
         if (unlockedAbilities.isEmpty()) return;
         selectedIndex = (selectedIndex - 1 + unlockedAbilities.size()) % unlockedAbilities.size();
-        syncToClient();
+        needsSync = true;
     }
 
     public String getSelectedAbilityKey() {
@@ -561,13 +569,13 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
-        syncToClient();
+        needsSync = true;
     }
 
     public void unlockAbility(String key) {
         if (key != null && !key.isEmpty() && !unlockedAbilities.contains(key)) {
             unlockedAbilities.add(key);
-            syncToClient();
+            needsSync = true;
         }
     }
 
@@ -576,7 +584,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
-        syncToClient();
+        needsSync = true;
     }
 
     public boolean hasUnlockedAbility(String key) {
@@ -620,7 +628,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void resetCooldown(String key) {
         resetPerAbilityCooldown(key);
         cooldownEndTime = 0;
-        syncCooldownToClient();
     }
 
     /**
@@ -629,7 +636,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void resetAllCooldowns() {
         cooldownEndTime = 0;
         resetAllPerAbilityCooldowns();
-        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -664,7 +670,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void resetCooldown() {
         cooldownEndTime = 0;
         resetAllPerAbilityCooldowns();
-        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -969,6 +974,20 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
     }
 
+    /**
+     * Periodic safety check: if no ability is executing but the client may have
+     * stale lock flags, send a clear. Prevents stuck clients from missed packets.
+     */
+    public void ensureLockStateClear() {
+        if (isExecutingAbility() || isExecutingChain()) return;
+        EntityPlayer player = playerData.player;
+        if (!(player instanceof EntityPlayerMP)) return;
+        if (lastSyncedFlags != 0) {
+            lastSyncedFlags = 0;
+            PlayerAbilityStatePacket.sendToPlayer((EntityPlayerMP) player, (byte) 0, 0, 0);
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // SCRIPT EVENTS (Player-specific: start event only, others via abstract)
     // ═══════════════════════════════════════════════════════════════════
@@ -1051,6 +1070,10 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      */
     private void validateUnlockedAbilities() {
         if (AbilityController.Instance == null) return;
+        // Only validate on the server - the client trusts server-sent data.
+        // Custom ability definitions may not have been synced to the client yet,
+        // which would cause valid abilities to be incorrectly pruned.
+        if (playerData == null || !(playerData.player instanceof EntityPlayerMP)) return;
 
         Iterator<String> it = unlockedAbilities.iterator();
         while (it.hasNext()) {
