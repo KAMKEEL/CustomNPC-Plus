@@ -92,6 +92,7 @@ public class ExpressionTypeResolver {
             ExpressionNode.MemberAccessNode ma = (ExpressionNode.MemberAccessNode) node;
             TypeInfo targetType = resolveNodeType(ma.getTarget());
             if (targetType == null || !targetType.isResolved()) return null;
+            if (targetType == TypeInfo.ANY || "any".equals(targetType.getFullName())) return TypeInfo.ANY;
             return context.resolveMemberAccess(targetType, ma.getMemberName());
         }
         
@@ -99,6 +100,7 @@ public class ExpressionTypeResolver {
             ExpressionNode.MethodCallNode mc = (ExpressionNode.MethodCallNode) node;
             TypeInfo targetType = mc.getTarget() == null ? context.resolveIdentifier("this") : resolveNodeType(mc.getTarget());
             if (targetType == null || !targetType.isResolved()) return null;
+            if (targetType == TypeInfo.ANY || "any".equals(targetType.getFullName())) return TypeInfo.ANY;
             TypeInfo[] argTypes = new TypeInfo[mc.getArguments().size()];
             for (int i = 0; i < argTypes.length; i++) argTypes[i] = resolveNodeType(mc.getArguments().get(i));
             return context.resolveMethodCall(targetType, mc.getMethodName(), argTypes);
@@ -108,6 +110,7 @@ public class ExpressionTypeResolver {
             ExpressionNode.ArrayAccessNode aa = (ExpressionNode.ArrayAccessNode) node;
             TypeInfo arrayType = resolveNodeType(aa.getArray());
             if (arrayType == null || !arrayType.isResolved()) return null;
+            if (arrayType == TypeInfo.ANY || "any".equals(arrayType.getFullName())) return TypeInfo.ANY;
             String typeName = arrayType.getFullName();
             if (typeName.endsWith("[]")) {
                 String elementTypeName = typeName.substring(0, typeName.length() - 2);

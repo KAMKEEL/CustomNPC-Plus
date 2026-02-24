@@ -118,12 +118,18 @@ public class TypeRules {
                 return null;
                 
             case LOGICAL:
+                if (isAny(left) || isAny(right)) {
+                    return TypeInfo.ANY;
+                }
                 if (isBoolean(left) && isBoolean(right)) {
                     return TypeInfo.fromPrimitive("boolean");
                 }
                 return null;
                 
             case BITWISE:
+                if (isAny(left) || isAny(right)) {
+                    return validateAgainstExpectedType(TypeInfo.ANY);
+                }
                 if (op == OperatorType.LEFT_SHIFT || op == OperatorType.RIGHT_SHIFT || 
                     op == OperatorType.UNSIGNED_RIGHT_SHIFT) {
                     if (isIntegral(left)) {
@@ -151,6 +157,13 @@ public class TypeRules {
     public static TypeInfo resolveUnaryOperatorType(OperatorType op, TypeInfo operand) {
         if (op == null || operand == null || !operand.isResolved()) {
             return null;
+        }
+
+        if (isAny(operand)) {
+            if (op == OperatorType.LOGICAL_NOT) {
+                return TypeInfo.fromPrimitive("boolean");
+            }
+            return TypeInfo.ANY;
         }
         
         switch (op) {
@@ -194,6 +207,10 @@ public class TypeRules {
             return false;
         if (!targetType.isResolved())
             return true; // Can't validate against unresolved type
+
+        if (isAny(sourceType) || isAny(targetType)) {
+            return true;
+        }
 
         // Null literal can be assigned to any reference type
         if ("<null>".equals(sourceType.getFullName())) {
