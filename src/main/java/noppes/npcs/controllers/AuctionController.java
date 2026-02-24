@@ -410,7 +410,7 @@ public class AuctionController implements IAuctionHandler {
 
         PlayerTradeData currency = playerData.tradeData;
         long fee = ConfigMarket.ListingFee;
-        if (!currency.canAfford(fee)) {
+        if (fee > 0 && !currency.canAfford(fee)) {
             return "You cannot afford the listing fee (" + fee + " " + ConfigMarket.CurrencyName + ").";
         }
 
@@ -424,7 +424,7 @@ public class AuctionController implements IAuctionHandler {
         }
 
         // Deduct fee
-        if (!currency.withdraw(fee)) {
+        if (fee > 0 && !currency.withdraw(fee)) {
             return "Failed to deduct listing fee.";
         }
 
@@ -1108,6 +1108,7 @@ public class AuctionController implements IAuctionHandler {
 
         for (AuctionListing listing : listings.values()) {
             if (listing.status != EnumAuctionStatus.ACTIVE) continue;
+            if (listing.isExpired()) continue;
 
             // Apply search filter (searches item name AND seller name)
             if (filter.hasSearchText()) {
@@ -1158,6 +1159,7 @@ public class AuctionController implements IAuctionHandler {
         int count = 0;
         for (AuctionListing listing : listings.values()) {
             if (listing.status != EnumAuctionStatus.ACTIVE) continue;
+            if (listing.isExpired()) continue;
             if (filter.hasSearchText()) {
                 String itemName = listing.item != null ? listing.item.getDisplayName() : "";
                 String sellerName = listing.sellerName != null ? listing.sellerName : "";
@@ -1844,20 +1846,12 @@ public class AuctionController implements IAuctionHandler {
 
             String itemName = listing.item != null ? listing.item.getDisplayName() : "Unknown Item";
 
-            // Return active highest bid.
+            // Return active highest bid - always refund to the actual bidder
             if (listing.hasBids() && listing.highBidderUUID != null) {
-                AuctionClaim refundClaim;
-                if (cancelCompletely) {
-                    refundClaim = AuctionClaim.createRefundClaim(
-                        null, "Global", listing.id, listing.currentBid, itemName,
-                        listing.highBidderName, null);
-                    addGlobalClaim(refundClaim);
-                } else {
-                    refundClaim = AuctionClaim.createRefundClaim(
-                        listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid, itemName,
-                        listing.sellerName, null);
-                    addClaimToPlayer(listing.highBidderUUID, refundClaim);
-                }
+                AuctionClaim refundClaim = AuctionClaim.createRefundClaim(
+                    listing.highBidderUUID, listing.highBidderName, listing.id, listing.currentBid, itemName,
+                    listing.sellerName, null);
+                addClaimToPlayer(listing.highBidderUUID, refundClaim);
                 removeFromPlayerBids(listing.highBidderUUID, listing.id);
             }
 
