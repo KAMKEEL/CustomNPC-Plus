@@ -2,7 +2,6 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import cpw.mods.fml.relauncher.Side;
@@ -12,33 +11,26 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
-import kamkeel.npcs.network.packets.player.InputDevicePacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
-import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.HudComponent;
-import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.MarkType;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.controllers.data.MarkData;
-import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleMount;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
 
 import java.util.ArrayList;
 
@@ -49,10 +41,6 @@ public class ClientTickHandler {
     private int prevWidth = 0;
     private int prevHeight = 0;
     private boolean otherContainer = false;
-    private int buttonPressed = -1;
-    private long buttonTime = 0L;
-    private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
-    private boolean lastSpecialKeyDown = false;
     private boolean wasMovementSuppressed = false;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -72,18 +60,6 @@ public class ClientTickHandler {
         if (event.phase == Phase.START) {
             EntityPlayer player = mc.thePlayer;
             if (player != null) {
-                // Only process special key when no GUI screen is open
-                boolean specialKeyDown = mc.currentScreen == null
-                    && ClientProxy.SpecialKey != null && Keyboard.isKeyDown(ClientProxy.SpecialKey.getKeyCode());
-                if (specialKeyDown != lastSpecialKeyDown) {
-                    PlayerData data = CustomNpcs.proxy.getPlayerData(player);
-                    if (data != null) {
-                        data.setSpecialKeyDown(specialKeyDown);
-                    }
-                    SpecialKeyStatePacket.send(specialKeyDown);
-                    lastSpecialKeyDown = specialKeyDown;
-                }
-
                 boolean suppressMovement = mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput();
                 if (!suppressMovement && wasMovementSuppressed) {
                     syncMovementKeyStates(mc);
@@ -257,56 +233,6 @@ public class ClientTickHandler {
         }
     }
 
-    @SubscribeEvent
-    public void onMouse(InputEvent.MouseInputEvent event) {
-        if (Mouse.getEventButton() == -1 && Mouse.getEventDWheel() == 0)
-            return;
-
-        InputDevicePacket.sendMouse(Mouse.getEventButton(), Mouse.getEventDWheel(), Mouse.isButtonDown(Mouse.getEventButton()));
-    }
-
-    @SubscribeEvent
-    public void onKey(InputEvent.KeyInputEvent event) {
-        Minecraft mc = Minecraft.getMinecraft();
-
-        if (ClientProxy.NPCButton.isPressed()) {
-            if (mc.currentScreen == null) {
-                InventoryTabCustomNpc.tabHelper();
-            } else if (mc.currentScreen instanceof GuiCNPCInventory)
-                mc.setIngameFocus();
-        }
-
-        if (!Keyboard.isRepeatEvent()) {
-            int key = Keyboard.getEventKey();
-            boolean keyDown = Keyboard.isKeyDown(key);
-
-            // Block movement keys during ability lock (only when no GUI is open and world exists).
-            // Non-movement keys (ESC, chat, inventory, etc.) always pass through.
-            if (mc.theWorld != null && mc.currentScreen == null && keyDown
-                && ClientAbilityState.shouldSuppressMovementInput() && isMovementKey(key)) {
-                // Unpress the keybind so vanilla doesn't process it
-                KeyBinding.setKeyBindState(key, false);
-                return;
-            }
-
-            InputDevicePacket.sendKeyboard(key, keyDown);
-        }
-    }
-
-    /**
-     * Check if a key code corresponds to a movement keybind (WASD, jump, sneak, sprint).
-     */
-    private boolean isMovementKey(int keyCode) {
-        Minecraft mc = Minecraft.getMinecraft();
-        return keyCode == mc.gameSettings.keyBindForward.getKeyCode()
-            || keyCode == mc.gameSettings.keyBindBack.getKeyCode()
-            || keyCode == mc.gameSettings.keyBindLeft.getKeyCode()
-            || keyCode == mc.gameSettings.keyBindRight.getKeyCode()
-            || keyCode == mc.gameSettings.keyBindJump.getKeyCode()
-            || keyCode == mc.gameSettings.keyBindSneak.getKeyCode()
-            || keyCode == mc.gameSettings.keyBindSprint.getKeyCode();
-    }
-
     private void syncMovementKeyStates(Minecraft mc) {
         syncKeyBindingState(mc.gameSettings.keyBindForward);
         syncKeyBindingState(mc.gameSettings.keyBindBack);
@@ -318,28 +244,7 @@ public class ClientTickHandler {
     }
 
     private void syncKeyBindingState(KeyBinding keyBinding) {
-        int keyCode = keyBinding.getKeyCode();
-        boolean pressed;
-        if (keyCode < 0) {
-            pressed = Mouse.isButtonDown(keyCode + 100);
-        } else {
-            pressed = Keyboard.isKeyDown(keyCode);
-        }
-        KeyBinding.setKeyBindState(keyCode, pressed);
-    }
-
-    private boolean isIgnoredKey(int key) {
-        int[] var2 = this.ignoreKeys;
-        int var3 = var2.length;
-
-        for (int var4 = 0; var4 < var3; ++var4) {
-            int i = var2[var4];
-            if (i == key) {
-                return true;
-            }
-        }
-
-        return false;
+        KeyBinding.setKeyBindState(keyBinding.getKeyCode(), KeyPressHandler.isKeyBindDown(keyBinding));
     }
 
     private final int SCAN_RANGE = 128;

@@ -58,7 +58,13 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
             if (stats.potionType != EnumPotionType.Fire) {
                 y += 30;
                 addLabel(new GuiNpcLabel(7, "stats.amplify", guiLeft + 5, y + 5));
-                addButton(new GuiButtonBiDirectional(7, guiLeft + 85, y, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.potionAmp));
+                if (stats.potionType == EnumPotionType.Manual) {
+                    addTextField(new GuiNpcTextField(7, this, fontRendererObj, guiLeft + 85, y, 52, 18, stats.potionAmp + ""));
+                    getTextField(7).integersOnly = true;
+                    getTextField(7).setMinMaxDefault(0, 255, 0);
+                } else {
+                    addButton(new GuiButtonBiDirectional(7, guiLeft + 85, y, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.potionAmp));
+                }
             }
         }
 
@@ -76,6 +82,8 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
             stats.knockback = textfield.getInteger();
         } else if (textfield.id == 6) {
             stats.potionDuration = textfield.getInteger();
+        } else if (textfield.id == 7) {
+            stats.potionAmp = textfield.getInteger();
         } else if (textfield.id == 8) {
             stats.potionManualId = textfield.getInteger();
         }
@@ -84,7 +92,11 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
     protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
         if (button.id == 5) {
-            stats.potionType = EnumPotionType.fromOrdinal(button.getValue());
+            EnumPotionType newType = EnumPotionType.fromOrdinal(button.getValue());
+            if (stats.potionType == EnumPotionType.Manual && newType != EnumPotionType.Manual) {
+                stats.potionAmp = 0;
+            }
+            stats.potionType = newType;
             initGui();
         }
         if (button.id == 7) {

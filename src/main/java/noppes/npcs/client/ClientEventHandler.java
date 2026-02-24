@@ -27,6 +27,7 @@ import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.QuestTrackingComponent;
 import noppes.npcs.client.gui.hud.ability.AbilityHotbarComponent;
 import noppes.npcs.client.gui.player.AuctionTooltipHandler;
+import noppes.npcs.client.KeyPressHandler;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -85,6 +86,14 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
+        // Always track mouse button state for KeyPressHandler FIRST.
+        // Canceled MouseEvents skip FML's MouseInputEvent entirely
+        // (Minecraft.java: if postMouseEvent() continue), so this is the
+        // only reliable place to capture mouse button press/release.
+        if (event.button >= 0) {
+            KeyPressHandler.trackMouseButton(event.button, event.buttonstate);
+        }
+
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.currentScreen != null)
             return;
@@ -100,30 +109,17 @@ public class ClientEventHandler {
         }
 
         // Ability Hotbar: Hold HUD key + scroll wheel to cycle
-        if (event.dwheel != 0 && ClientProxy.AbilityHudKey != null) {
-            int hudKeyCode = ClientProxy.AbilityHudKey.getKeyCode();
-            boolean hudKeyHeld = false;
-            if (hudKeyCode > 0) {
-                hudKeyHeld = hudKeyCode < org.lwjgl.input.Keyboard.getKeyCount()
-                    && org.lwjgl.input.Keyboard.isKeyDown(hudKeyCode);
-            } else if (hudKeyCode < 0) {
-                int mouseButton = hudKeyCode + 100;
-                hudKeyHeld = mouseButton >= 0
-                    && mouseButton < org.lwjgl.input.Mouse.getButtonCount()
-                    && org.lwjgl.input.Mouse.isButtonDown(mouseButton);
-            }
-            if (hudKeyHeld) {
-                AbilityHotbarComponent comp = (AbilityHotbarComponent) ClientHudManager.getInstance()
-                    .getHudComponents().get(EnumHudComponent.AbilityHotbar);
-                if (comp != null && comp.hasAnyAbilities()) {
-                    if (event.dwheel > 0) {
-                        comp.onCyclePrev();
-                    } else {
-                        comp.onCycleNext();
-                    }
-                    event.setCanceled(true);
-                    return;
+        if (event.dwheel != 0 && KeyPressHandler.isHudKeyHeld()) {
+            AbilityHotbarComponent comp = (AbilityHotbarComponent) ClientHudManager.getInstance()
+                .getHudComponents().get(EnumHudComponent.AbilityHotbar);
+            if (comp != null && comp.hasAnyAbilities()) {
+                if (event.dwheel > 0) {
+                    comp.onCyclePrev();
+                } else {
+                    comp.onCycleNext();
                 }
+                event.setCanceled(true);
+                return;
             }
         }
 

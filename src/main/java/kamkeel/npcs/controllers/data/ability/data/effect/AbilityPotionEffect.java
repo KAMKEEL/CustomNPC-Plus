@@ -14,7 +14,7 @@ public class AbilityPotionEffect {
     private EnumPotionType type = EnumPotionType.None;
     private int manualPotionId = 0;
     private int durationTicks = 60;
-    private int amplifier = 0;  // 0-10
+    private int amplifier = 0;  // 0-255 (Manual), 0-10 (preset)
 
     public AbilityPotionEffect() {
     }
@@ -22,7 +22,7 @@ public class AbilityPotionEffect {
     public AbilityPotionEffect(EnumPotionType type, int durationTicks, int amplifier) {
         this.type = type;
         this.durationTicks = Math.max(1, durationTicks);
-        this.amplifier = Math.max(0, Math.min(10, amplifier));
+        this.amplifier = Math.max(0, Math.min(255, amplifier));
     }
 
     /**
@@ -120,7 +120,7 @@ public class AbilityPotionEffect {
     }
 
     public void setAmplifier(int amplifier) {
-        this.amplifier = Math.max(0, Math.min(10, amplifier));
+        this.amplifier = Math.max(0, Math.min(255, amplifier));
     }
 
     /**
