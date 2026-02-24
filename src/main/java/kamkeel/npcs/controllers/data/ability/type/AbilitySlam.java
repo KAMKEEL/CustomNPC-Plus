@@ -66,6 +66,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
     private transient boolean airSlam = false;   // True when slam initiated while already in the air
     private transient double airSlamStartY = 0;   // Start height for air-slam damage scaling
     private transient boolean wasFlying = false;  // Restore player flight after air slam
+    private transient double peakY = 0;            // Maximum Y position during arc (for height scaling)
 
     public AbilitySlam() {
         this.typeId = "ability.cnpc.slam";
@@ -140,6 +141,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         hasRisen = false;
         airTicks = 0;
         startY = caster.posY;
+        peakY = caster.posY;
         caster.fallDistance = 0;
 
         if (isPlayerCaster(caster)) {
@@ -177,8 +179,20 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
      * Works regardless of flying state — position is forced downward each tick.
      */
     private void executePlayerSlam(EntityLivingBase caster) {
-        if (!caster.onGround) {
-            // Air slam: player is already airborne (flying, falling, jumping)
+        // Determine if this qualifies as an air slam (at least 3 blocks above ground)
+        boolean isAirborne = !caster.onGround;
+        boolean highEnoughForAirSlam = false;
+
+        if (isAirborne) {
+            double groundY = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ, 64);
+            highEnoughForAirSlam = (caster.posY - groundY) >= 3.0;
+            System.out.println("[Slam] AIR CHECK: posY=" + caster.posY + " groundY=" + groundY + " dist=" + (caster.posY - groundY) + " highEnough=" + highEnoughForAirSlam);
+        }
+
+        System.out.println("[Slam] EXECUTE: onGround=" + caster.onGround + " isAirborne=" + isAirborne + " highEnough=" + highEnoughForAirSlam + " -> " + (isAirborne && highEnoughForAirSlam ? "AIR SLAM" : "GROUND SLAM"));
+
+        if (isAirborne && highEnoughForAirSlam) {
+            // Air slam: player is already airborne (flying, falling, jumping) and high enough
             airSlam = true;
             airSlamStartY = caster.posY;
             targetX = caster.posX;
@@ -216,7 +230,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 caster.worldObj.playSoundAtEntity(caster, "mob.irongolem.throw", 0.8f, 0.8f);
             }
         } else {
-            // Ground slam: normal ballistic arc
+            // Ground slam: normal ballistic arc (also used when airborne but not high enough)
             airSlam = false;
             airSlamStartY = 0;
             wasFlying = false;
@@ -382,6 +396,11 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             caster.fallDistance = 0;
         }
 
+        // Track peak height for damage scaling
+        if (caster.posY > peakY) {
+            peakY = caster.posY;
+        }
+
         // Air slam: accelerate descent smoothly via velocity; landing uses normal collision.
         if (airSlam && !isPreview() && !hasLanded) {
             if (forceHorizontalControl) {
@@ -467,9 +486,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         }
         restoreFlightIfNeeded(caster);
 
-        // Signal that the ability has completed its active phase
-        signalCompletion();
-
         // Stop horizontal momentum only when movement is controlled by the ability.
         if (!isPlayerCaster(caster) || isMovementLockedDuringActive()) {
             caster.motionX = 0;
@@ -488,16 +504,31 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         // Play slam impact sound on landing
         world.playSoundAtEntity(caster, "random.explode", 1.0f, 1.0f);
 
-        // Scale damage based on fall distance for air slams
+        // Scale damage based on height for both air and ground slams
         float effectiveDamage = damage;
+        float heightMultiplier = 1.0f;
         if (airSlam) {
-            double fallStartY = airSlamStartY > 0 ? airSlamStartY : startY;
-            double fallDistance = fallStartY - caster.posY;
+            // Air slam: scale based on total fall distance
+            double fallDistance = airSlamStartY - caster.posY;
             if (fallDistance < 0) fallDistance = 0;
-            // Scale linearly: full damage at leapHeight distance, minimum 25% for tiny falls
             float heightFactor = (float) Math.min(1.0, fallDistance / Math.max(1.0, leapHeight));
-            effectiveDamage = damage * Math.max(0.25f, heightFactor);
+            heightMultiplier = Math.max(0.25f, heightFactor);
+            effectiveDamage = damage * heightMultiplier;
+            System.out.println("[Slam] LANDING AIR: airSlamStartY=" + airSlamStartY + " landY=" + caster.posY + " fallDist=" + fallDistance + " leapHeight=" + leapHeight + " heightFactor=" + heightFactor + " multiplier=" + heightMultiplier + " baseDmg=" + damage + " effectiveDmg=" + effectiveDamage);
+        } else {
+            // Ground slam: scale based on arc height reached
+            double arcHeight = peakY - startY;
+            if (arcHeight > 0) {
+                float heightFactor = (float) Math.min(1.0, arcHeight / Math.max(1.0, leapHeight));
+                heightMultiplier = Math.max(0.25f, heightFactor);
+                effectiveDamage = damage * heightMultiplier;
+            }
+            System.out.println("[Slam] LANDING GROUND: startY=" + startY + " peakY=" + peakY + " arcHeight=" + arcHeight + " leapHeight=" + leapHeight + " multiplier=" + heightMultiplier + " baseDmg=" + damage + " effectiveDmg=" + effectiveDamage);
         }
+
+        System.out.println("[Slam] DAMAGE MULTIPLIER SET: " + heightMultiplier);
+        // Set multiplier so extenders (e.g. DBC Addon) can apply height scaling to their own damage calc
+        setDamageMultiplier(heightMultiplier);
 
         // Find all entities in radius
         @SuppressWarnings("unchecked")
@@ -522,8 +553,13 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             }
         }
 
+        setDamageMultiplier(1.0f); // Reset after damage loop
+
         // Spawn particles
         spawnSlamParticles(world, caster.posX, caster.posY, caster.posZ);
+
+        // Signal completion AFTER damage — signalCompletion triggers onComplete which resets state
+        signalCompletion();
     }
 
     /**
@@ -574,6 +610,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         airTicks = 0;
         airSlam = false;
         airSlamStartY = 0;
+        peakY = 0;
         wasFlying = false;
     }
 
@@ -589,6 +626,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         airTicks = 0;
         airSlam = false;
         airSlamStartY = 0;
+        peakY = 0;
         wasFlying = false;
     }
 
@@ -601,6 +639,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         airTicks = 0;
         airSlam = false;
         airSlamStartY = 0;
+        peakY = 0;
         wasFlying = false;
     }
 
@@ -613,6 +652,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         airTicks = 0;
         airSlam = false;
         airSlamStartY = 0;
+        peakY = 0;
         wasFlying = false;
     }
 

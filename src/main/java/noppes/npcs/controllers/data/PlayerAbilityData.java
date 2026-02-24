@@ -998,7 +998,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (rotationLocked && currentAbility.isRotationLockedForCurrentPhase()) {
             flags |= PlayerAbilityStatePacket.FLAG_ROTATION_LOCKED;
         }
-        if (currentAbility.hasAbilityMovement() && currentAbility.getPhase() == AbilityPhase.ACTIVE) {
+        if (currentAbility.hasAbilityMovement()
+            && (currentAbility.getPhase() == AbilityPhase.ACTIVE || currentAbility.getPhase() == AbilityPhase.WINDUP)) {
             flags |= PlayerAbilityStatePacket.FLAG_HAS_ABILITY_MOVEMENT;
         }
         if (positionLocked) {

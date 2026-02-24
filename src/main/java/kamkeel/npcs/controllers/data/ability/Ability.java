@@ -184,6 +184,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Burst execution state
     protected transient int burstIndex = 0;
     protected transient List<Entity> burstEntities = new ArrayList<>();
+    protected transient float damageMultiplier = 1.0f; // Ability-internal damage scaling (e.g., Slam height)
 
     // ═══════════════════════════════════════════════════════════════════
     // PREVIEW STATE (client-side only, not saved)
@@ -2079,6 +2080,18 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public AbilityPhase getPhase() {
         return phase;
+    }
+
+    /**
+     * Get the damage multiplier applied by the ability itself (e.g. Slam height scaling).
+     * Extenders should apply this after their own damage calculation.
+     */
+    public float getDamageMultiplier() {
+        return damageMultiplier;
+    }
+
+    public void setDamageMultiplier(float damageMultiplier) {
+        this.damageMultiplier = damageMultiplier;
     }
 
     /**
