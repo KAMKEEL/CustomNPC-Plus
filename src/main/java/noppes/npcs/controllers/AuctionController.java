@@ -289,7 +289,15 @@ public class AuctionController implements IAuctionHandler {
         // Global claims are not tied to a single player.
         claim.playerUUID = null;
         claim.playerName = "Global";
-        globalClaims.add(claim);
+        synchronized (globalClaims) {
+            // Prevent duplicate claim IDs
+            for (AuctionClaim existing : globalClaims) {
+                if (existing.id.equals(claim.id)) {
+                    return;
+                }
+            }
+            globalClaims.add(claim);
+        }
         markDirty();
     }
 
@@ -305,19 +313,23 @@ public class AuctionController implements IAuctionHandler {
 
     private AuctionClaim getGlobalClaimInternal(String claimId) {
         if (claimId == null || claimId.isEmpty()) return null;
-        for (AuctionClaim claim : globalClaims) {
-            if (claim != null && !claim.claimed && claimId.equals(claim.id)) {
-                return claim;
+        synchronized (globalClaims) {
+            for (AuctionClaim claim : globalClaims) {
+                if (claim != null && !claim.claimed && claimId.equals(claim.id)) {
+                    return claim;
+                }
             }
         }
         return null;
     }
 
     private boolean claimAndRemoveGlobal(String claimId) {
-        AuctionClaim claim = getGlobalClaimInternal(claimId);
-        if (claim == null) return false;
-        claim.claimed = true;
-        return globalClaims.remove(claim);
+        synchronized (globalClaims) {
+            AuctionClaim claim = getGlobalClaimInternal(claimId);
+            if (claim == null) return false;
+            claim.claimed = true;
+            return globalClaims.remove(claim);
+        }
     }
 
     /**
@@ -358,14 +370,26 @@ public class AuctionController implements IAuctionHandler {
             return "This item cannot be listed on the Auction House.";
         }
 
-        // Validate minimum price
+        // Validate prices
+        if (startingPrice <= 0) {
+            return "Starting price must be positive.";
+        }
         if (startingPrice < ConfigMarket.MinimumListingPrice) {
             return "Starting price must be at least " + ConfigMarket.MinimumListingPrice + " " + ConfigMarket.CurrencyName + ".";
         }
+        if (startingPrice > ConfigMarket.MaxBalance) {
+            return "Starting price exceeds maximum allowed value.";
+        }
 
         // Validate buyout price if set
+        if (buyoutPrice < 0) {
+            return "Buyout price cannot be negative.";
+        }
         if (buyoutPrice > 0 && buyoutPrice < startingPrice) {
             return "Buyout price must be higher than starting price.";
+        }
+        if (buyoutPrice > ConfigMarket.MaxBalance) {
+            return "Buyout price exceeds maximum allowed value.";
         }
 
         UUID playerUUID = player.getUniqueID();
@@ -435,8 +459,15 @@ public class AuctionController implements IAuctionHandler {
             return "No item provided.";
         }
 
+        // Validate prices
+        if (startingPrice <= 0) {
+            return "Starting price must be positive.";
+        }
         if (startingPrice < ConfigMarket.MinimumListingPrice) {
             return "Starting price must be at least " + ConfigMarket.MinimumListingPrice + " " + ConfigMarket.CurrencyName + ".";
+        }
+        if (buyoutPrice < 0) {
+            return "Buyout price cannot be negative.";
         }
         if (buyoutPrice > 0 && buyoutPrice < startingPrice) {
             return "Buyout price must be higher than starting price.";
@@ -514,7 +545,13 @@ public class AuctionController implements IAuctionHandler {
                 if (penalty > 0) {
                     PlayerData sellerData = PlayerDataController.Instance.getData(listing.sellerUUID);
                     if (sellerData != null) {
-                        sellerData.tradeData.withdraw(penalty);
+                        if (!sellerData.tradeData.withdraw(penalty)) {
+                            // Withdraw whatever they have if they can't cover the full penalty
+                            long available = sellerData.tradeData.getBalance();
+                            if (available > 0) {
+                                sellerData.tradeData.withdraw(available);
+                            }
+                        }
                         sellerData.save();
                     }
                 }
@@ -549,6 +586,11 @@ public class AuctionController implements IAuctionHandler {
     public String placeBid(String listingId, EntityPlayer player, long bidAmount) {
         if (!ConfigMarket.AuctionEnabled) {
             return "Auction is disabled.";
+        }
+
+        // Validate bid amount
+        if (bidAmount <= 0) {
+            return "Bid amount must be positive.";
         }
 
         UUID playerUUID = player.getUniqueID();
@@ -641,13 +683,13 @@ public class AuctionController implements IAuctionHandler {
             listing.highBidderName = playerName;
             listing.currentBid = bidAmount;
             listing.bidCount++;
+
+            // Add to new bidder's active bids
+            addToPlayerBids(playerUUID, listing.id);
+
+            // Snipe protection (must be inside sync to prevent race with endAuction)
+            listing.extendForSnipeProtection(ConfigMarket.SnipeProtectionMinutes);
         }
-
-        // Add to new bidder's active bids
-        addToPlayerBids(playerUUID, listing.id);
-
-        // Snipe protection
-        listing.extendForSnipeProtection(ConfigMarket.SnipeProtectionMinutes);
 
         markDirty();
 
@@ -834,26 +876,36 @@ public class AuctionController implements IAuctionHandler {
     }
 
     public String claimGlobalItem(String claimId, EntityPlayer player) {
-        AuctionClaim claim = getGlobalClaimInternal(claimId);
-        if (claim == null) {
-            return "Global claim not found.";
-        }
-        if (!claim.type.isItem()) {
-            return "This global claim is not an item claim.";
-        }
-        if (claim.item == null) {
-            return "Item data is missing.";
-        }
+        String listingId;
+        String itemName;
+        synchronized (globalClaims) {
+            AuctionClaim claim = getGlobalClaimInternal(claimId);
+            if (claim == null) {
+                return "Global claim not found.";
+            }
+            if (!claim.type.isItem()) {
+                return "This global claim is not an item claim.";
+            }
+            if (claim.item == null) {
+                return "Item data is missing.";
+            }
 
-        if (!player.inventory.addItemStackToInventory(claim.item.copy())) {
-            return "Your inventory is full.";
-        }
+            // Check inventory space before adding (addItemStackToInventory mutates even on partial add)
+            if (!canFitInInventory(player, claim.item)) {
+                return "Not enough inventory space to claim this item.";
+            }
 
-        claimAndRemoveGlobal(claim.id);
-        cleanupListingIfComplete(claim.listingId);
+            // Add to inventory (safe - we verified space above)
+            player.inventory.addItemStackToInventory(claim.item.copy());
+
+            listingId = claim.listingId;
+            itemName = claim.item.getDisplayName();
+            claimAndRemoveGlobal(claim.id);
+        }
+        cleanupListingIfComplete(listingId);
         markDirty();
 
-        logAuction(EnumAuctionLogAction.CLAIMED, player.getCommandSenderName(), claim.item.getDisplayName(), 0,
+        logAuction(EnumAuctionLogAction.CLAIMED, player.getCommandSenderName(), itemName, 0,
             "Global item claim");
         return null;
     }
@@ -862,19 +914,25 @@ public class AuctionController implements IAuctionHandler {
      * Global currency claims are acknowledged/cleared and do not alter player balances.
      */
     public String claimGlobalCurrency(String claimId, EntityPlayer player) {
-        AuctionClaim claim = getGlobalClaimInternal(claimId);
-        if (claim == null) {
-            return "Global claim not found.";
-        }
-        if (!claim.type.isCurrency()) {
-            return "This global claim is not a currency claim.";
-        }
+        String listingId;
+        long currency;
+        synchronized (globalClaims) {
+            AuctionClaim claim = getGlobalClaimInternal(claimId);
+            if (claim == null) {
+                return "Global claim not found.";
+            }
+            if (!claim.type.isCurrency()) {
+                return "This global claim is not a currency claim.";
+            }
 
-        claimAndRemoveGlobal(claim.id);
-        cleanupListingIfComplete(claim.listingId);
+            listingId = claim.listingId;
+            currency = claim.currency;
+            claimAndRemoveGlobal(claim.id);
+        }
+        cleanupListingIfComplete(listingId);
         markDirty();
 
-        logAuction(EnumAuctionLogAction.CLAIMED, player.getCommandSenderName(), ConfigMarket.CurrencyName, claim.currency,
+        logAuction(EnumAuctionLogAction.CLAIMED, player.getCommandSenderName(), ConfigMarket.CurrencyName, currency,
             "Global currency claim acknowledged (no balance change)");
         return null;
     }
@@ -910,10 +968,13 @@ public class AuctionController implements IAuctionHandler {
             return "Claim was prevented.";
         }
 
-        // Check inventory space
-        if (!player.inventory.addItemStackToInventory(claim.item.copy())) {
-            return "Your inventory is full.";
+        // Check inventory space before adding (addItemStackToInventory mutates even on partial add)
+        if (!canFitInInventory(player, claim.item)) {
+            return "Not enough inventory space to claim this item.";
         }
+
+        // Add to inventory (safe - we verified space above)
+        player.inventory.addItemStackToInventory(claim.item.copy());
 
         // Remove claim from player's auction data
         playerData.tradeData.claimAndRemove(claimId);
@@ -971,6 +1032,34 @@ public class AuctionController implements IAuctionHandler {
             claim.type == EnumClaimType.REFUND ? "Refund claimed" : "Sale proceeds claimed");
 
         return null; // Success
+    }
+
+    /**
+     * Check if a player's inventory can fit the entire ItemStack without partial adds.
+     * Unlike addItemStackToInventory, this does NOT mutate the inventory.
+     */
+    private boolean canFitInInventory(EntityPlayer player, ItemStack stack) {
+        int remaining = stack.stackSize;
+        int maxStack = stack.getMaxStackSize();
+        ItemStack[] mainInventory = player.inventory.mainInventory;
+
+        for (int i = 0; i < mainInventory.length; i++) {
+            if (remaining <= 0) return true;
+
+            ItemStack slot = mainInventory[i];
+            if (slot == null) {
+                remaining -= Math.min(remaining, maxStack);
+            } else if (slot.getItem() == stack.getItem()
+                    && slot.getItemDamage() == stack.getItemDamage()
+                    && ItemStack.areItemStackTagsEqual(slot, stack)) {
+                int spaceInSlot = maxStack - slot.stackSize;
+                if (spaceInSlot > 0) {
+                    remaining -= Math.min(remaining, spaceInSlot);
+                }
+            }
+        }
+
+        return remaining <= 0;
     }
 
     /**

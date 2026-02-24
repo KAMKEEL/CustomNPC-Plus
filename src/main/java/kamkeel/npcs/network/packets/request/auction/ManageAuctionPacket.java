@@ -366,8 +366,9 @@ public class ManageAuctionPacket extends AbstractPacket {
         String result = controller.createGlobalListing(player, sellerName, item, startingPrice, buyoutPrice, durationHours);
         if (result != null) {
             // Failed create, return item (or drop to avoid loss).
-            if (!player.inventory.addItemStackToInventory(item.copy())) {
-                player.entityDropItem(item.copy(), 0.5f);
+            // Use same reference so partial add mutates stackSize, then drop only the remainder.
+            if (!player.inventory.addItemStackToInventory(item)) {
+                player.entityDropItem(item, 0.5f);
             }
         }
         if (result == null) {
