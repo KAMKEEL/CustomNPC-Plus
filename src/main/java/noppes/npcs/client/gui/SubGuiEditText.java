@@ -11,7 +11,7 @@ public class SubGuiEditText extends SubGuiInterface {
 
     public SubGuiEditText(String text) {
         this.text = text;
-        setBackground("extrasmallbg.png");
+        setBackground("menubg.png");
         closeOnEsc = true;
         xSize = 176;
         ySize = 71;
