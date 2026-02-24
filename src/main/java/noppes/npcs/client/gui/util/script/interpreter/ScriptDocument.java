@@ -3842,7 +3842,7 @@ public class ScriptDocument {
                 continue;
 
             // Skip class/interface/enum declarations - these look like method declarations
-            // but "class Foo(" is not a method, it's a class declaration
+            // but "class Foo(" is not a method, it's a class declaration3
             String returnType = m.group(1);
             if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum") ||returnType.equals("new")) {
                 continue;
@@ -3850,9 +3850,14 @@ public class ScriptDocument {
 
             // Find the corresponding MethodInfo created in parseMethodDeclarations
             int methodDeclStart = m.start();
+            int methodNameStart = m.start(2);
             MethodInfo methodInfo = null;
             for (MethodInfo method : getAllMethods()) {
-                if (method.getFullDeclarationOffset() == methodDeclStart) {
+                boolean matchesDeclStart = method.getTypeOffset() == methodDeclStart
+                        || method.getFullDeclarationOffset() == methodDeclStart;
+                boolean matchesNameStart = method.getNameOffset() == methodNameStart;
+
+                if (matchesDeclStart || matchesNameStart) {
                     methodInfo = method;
                     break;
                 }
