@@ -1824,21 +1824,98 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // RETURN/ENTER: special handling for /** javadoc stub and opening brace '{'
         if (i == Keyboard.KEY_RETURN) {
             int cursorPos = selection.getCursorPosition();
+
+            // JSDoc / comment Enter behavior summary:
+            // - If the caret is at (or after spaces/tabs following) "/**", Enter generates a JSDoc stub.
+            //   - If an inline closer exists ("/** */"), expand to a multi-line block without duplicating "*/".
+            //   - If already inside an existing JSDoc with "*" lines, insert a new " * " line (IDE-style).
+            // - If the caret is on a "*" line inside an unclosed JSDoc block, Enter inserts a new " * " line.
+            // - Multi-line selections are not special-cased (avoid surprising mass edits).
+
+            if (selection.hasSelection() && text != null && selection.getSelectedText(text).indexOf('\n') != -1) {
+                addText(Character.toString('\n') + getAutoIndentForEnter());
+                scrollToCursor();
+                return true;
+            }
             
             // Check for /** javadoc stub auto-generation
             String before = getSelectionBeforeText();
-            if (before.endsWith("/**")) {
-                // Find current line to get indent level
+            int beforeTrimEnd = before.length();
+            while (beforeTrimEnd > 0) {
+                char ch = before.charAt(beforeTrimEnd - 1);
+                if (ch == ' ' || ch == '\t') {
+                    beforeTrimEnd--;
+                } else {
+                    break;
+                }
+            }
+
+            if (before.substring(0, beforeTrimEnd).endsWith("/**")) {
+                // Indentation is derived from the logical source line in `text` (not container lines)
+                // to avoid soft-wrap artifacts.
                 String indent = "";
-                for (LineData ld : this.container.lines) {
-                    if (cursorPos >= ld.start && cursorPos <= ld.end) {
-                        indent = ld.text.substring(0, IndentHelper.getLineIndent(ld.text));
-                        break;
+                if (text != null) {
+                    int basePos = Math.max(0, Math.min(before.length(), text.length()));
+                    int lineStart = text.lastIndexOf('\n', Math.max(0, basePos - 1)) + 1;
+                    int p = lineStart;
+                    while (p < text.length()) {
+                        char ch = text.charAt(p);
+                        if (ch == ' ' || ch == '\t') {
+                            p++;
+                        } else {
+                            break;
+                        }
                     }
+                    indent = text.substring(lineStart, p);
                 }
                 
                 // Look ahead for a function declaration to generate smart JSDoc
                 String after = getSelectionAfterText();
+                
+                String afterTrimmed = after;
+                int wsLen = 0;
+                while (wsLen < afterTrimmed.length() && (afterTrimmed.charAt(wsLen) == ' ' || afterTrimmed.charAt(wsLen) == '\t')) {
+                    wsLen++;
+                }
+                if (wsLen < afterTrimmed.length() && afterTrimmed.charAt(wsLen) == '\n') {
+                    int idx = wsLen + 1;
+                    while (idx < afterTrimmed.length() && (afterTrimmed.charAt(idx) == ' ' || afterTrimmed.charAt(idx) == '\t')) {
+                        idx++;
+                    }
+                    if (afterTrimmed.startsWith("*/", idx)) {
+                        // Inline "/** */" -> expand to multi-line and keep the existing closer.
+                        String restAfterCloser = afterTrimmed.substring(Math.min(idx + 2, afterTrimmed.length()));
+                        String expanded = "\n" + indent + " * " + "\n" + indent + " */" + restAfterCloser;
+                        setText(before + expanded, true);
+                        int newCursorPos = before.length() + 1 + indent.length() + 3; // +1 for \n, +3 for " * "
+                        selection.reset(newCursorPos);
+                        scrollToCursor();
+                        return true;
+                    }
+                    if (idx < afterTrimmed.length() && afterTrimmed.charAt(idx) == '*') {
+                        int closerPos = afterTrimmed.indexOf("*/", idx);
+                        if (closerPos != -1) {
+                            // Already inside a multi-line JSDoc -> insert a new " * " line.
+                            addText("\n" + indent + " * ");
+                            int newCursorPos = before.length() + 1 + indent.length() + 3; // +1 for \n, +3 for " * "
+                            selection.reset(newCursorPos);
+                            scrollToCursor();
+                            return true;
+                        }
+                    }
+                }
+                if (afterTrimmed.substring(wsLen).startsWith("*/")) {
+                    // Inline "/** */" (same line) -> expand to multi-line and keep the existing closer.
+                    String restAfterCloser = afterTrimmed.substring(wsLen + 2);
+                    String expanded = "\n" + indent + " * " + "\n" + indent + " */" + restAfterCloser;
+                    setText(before + expanded, true);
+                    int newCursorPos = before.length() + 1 + indent.length() + 3; // +1 for \n, +3 for " * "
+                    selection.reset(newCursorPos);
+                    scrollToCursor();
+                    return true;
+                }
+                
+                // Look ahead for a function declaration to generate smart JSDoc
                 String javadocStub = generateJSDocStub(after, indent);
                 addText(javadocStub);
                 
@@ -1847,6 +1924,37 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 selection.reset(newCursorPos);
                 scrollToCursor();
                 return true;
+            }
+
+            if (text != null && !text.isEmpty()) {
+                int openPos = text.lastIndexOf("/**", Math.max(0, cursorPos - 1));
+                if (openPos != -1) {
+                    int closeBetween = text.indexOf("*/", openPos + 3);
+                    if (closeBetween == -1 || closeBetween >= cursorPos) {
+                        int lineStart = text.lastIndexOf('\n', Math.max(0, cursorPos - 1)) + 1;
+                        int lineEnd = text.indexOf('\n', lineStart);
+                        if (lineEnd == -1) {
+                            lineEnd = text.length();
+                        }
+                        String line = text.substring(lineStart, lineEnd);
+                        String trimmed = line.trim();
+                        if (trimmed.startsWith("*") && !trimmed.startsWith("*/")) {
+                            // Continuation line inside an unclosed JSDoc block.
+                            int openLineStart = text.lastIndexOf('\n', Math.max(0, openPos - 1)) + 1;
+                            int openLineEnd = text.indexOf('\n', openLineStart);
+                            if (openLineEnd == -1) {
+                                openLineEnd = text.length();
+                            }
+                            String openLine = text.substring(openLineStart, openLineEnd);
+                            String baseIndent = openLine.substring(0, IndentHelper.getLineIndent(openLine));
+                            addText("\n" + baseIndent + " * ");
+                            int newCursorPos = cursorPos + 1 + baseIndent.length() + 3;
+                            selection.reset(Math.min(newCursorPos, this.text.length()));
+                            scrollToCursor();
+                            return true;
+                        }
+                    }
+                }
             }
             
             int prevNonWs = cursorPos - 1;
@@ -2398,6 +2506,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     return true;
                 }
                 if (c == '[') {
+                    if (hasUnmatchedCloserAhead(after, '[', ']')) {
+                        setText(before + c + after, true);
+                        selection.reset(before.length() + 1);
+                        scrollToCursor();
+                        autocompleteManager.onCharTyped(c, text, cursorPos);
+                        return true;
+                    }
                     setText(before + "[]" + after, true);
                     selection.reset(before.length() + 1);
                     scrollToCursor();
@@ -2406,12 +2521,28 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     return true;
                 }
                 if (c == '(') {
+                    if (hasUnmatchedCloserAhead(after, '(', ')')) {
+                        setText(before + c + after, true);
+                        selection.reset(before.length() + 1);
+                        scrollToCursor();
+                        autocompleteManager.onCharTyped(c, text, cursorPos);
+                        return true;
+                    }
                     setText(before + "()" + after, true);
                     selection.reset(before.length() + 1);
                     scrollToCursor();
                     // Notify autocomplete of the character
                     autocompleteManager.onCharTyped(c, text, cursorPos);
                     return true;
+                }
+                if (c == '{') {
+                    if (hasUnmatchedCloserAhead(after, '{', '}')) {
+                        setText(before + c + after, true);
+                        selection.reset(before.length() + 1);
+                        scrollToCursor();
+                        autocompleteManager.onCharTyped(c, text, cursorPos);
+                        return true;
+                    }
                 }
             }
             // Default insertion for printable characters: insert at caret (replacing selection)
@@ -2420,6 +2551,28 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // Notify autocomplete of the character
             autocompleteManager.onCharTyped(c, text, cursorPos);
             return true;
+        }
+        return false;
+    }
+
+    private boolean hasUnmatchedCloserAhead(String after, char opener, char closer) {
+        int balance = 0;
+        int len = after.length();
+        for (int idx = 0; idx < len; idx++) {
+            char ch = after.charAt(idx);
+            if (ch == '\n') break;
+            // Bail out at string / comment boundaries to avoid false matches
+            if (ch == '"' || ch == '\'') return false;
+            if (ch == '/' && idx + 1 < len) {
+                char next = after.charAt(idx + 1);
+                if (next == '/' || next == '*') return false;
+            }
+            if (ch == opener) {
+                balance++;
+            } else if (ch == closer) {
+                if (balance == 0) return true;
+                balance--;
+            }
         }
         return false;
     }
