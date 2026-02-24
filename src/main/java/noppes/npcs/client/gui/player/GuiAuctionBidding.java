@@ -126,7 +126,7 @@ public class GuiAuctionBidding extends GuiAuctionInterface implements ISubGuiLis
     private void openBidSubGui() {
         if (listing == null) return;
         long minBid = listing.getMinimumBid(AuctionClientConfig.getMinBidIncrement());
-        setSubGui(new SubGuiAuctionBid(listing.id, minBid, playerBalance));
+        setSubGui(new SubGuiAuctionBid(listing.id, minBid, listing.buyoutPrice, playerBalance));
     }
 
     private void openBuyNowSubGui() {

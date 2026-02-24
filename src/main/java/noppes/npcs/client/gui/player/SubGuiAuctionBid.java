@@ -23,14 +23,16 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
 
     private final String listingId;
     private final long minimumBid;
+    private final long buyoutPrice;
     private final long playerBalance;
     private long bidAmount;
     private boolean successful = false;
     private String errorMessage = null;
 
-    public SubGuiAuctionBid(String listingId, long minimumBid, long playerBalance) {
+    public SubGuiAuctionBid(String listingId, long minimumBid, long buyoutPrice, long playerBalance) {
         this.listingId = listingId;
         this.minimumBid = minimumBid;
+        this.buyoutPrice = buyoutPrice;
         this.playerBalance = playerBalance;
         this.bidAmount = minimumBid;
 
@@ -125,6 +127,12 @@ public class SubGuiAuctionBid extends SubGuiInterface implements ITextfieldListe
 
         if (bidAmount > playerBalance) {
             errorMessage = StatCollector.translateToLocal("auction.error.notEnoughCurrency");
+            updateErrorLabel();
+            return;
+        }
+
+        if (buyoutPrice > 0 && bidAmount >= buyoutPrice) {
+            errorMessage = StatCollector.translateToLocal("auction.error.bidExceedsBuyout");
             updateErrorLabel();
             return;
         }
