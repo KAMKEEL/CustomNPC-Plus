@@ -6,7 +6,8 @@ package kamkeel.npcs.controllers.data.ability.enums;
 public enum UserType {
     NPC_ONLY,
     PLAYER_ONLY,
-    BOTH;
+    BOTH,
+    NONE;
 
     public boolean allowsNpc() {
         return this == NPC_ONLY || this == BOTH;

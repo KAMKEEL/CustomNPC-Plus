@@ -212,7 +212,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         if (allAllowPlayer && allAllowNpc) return UserType.BOTH;
         if (allAllowPlayer) return UserType.PLAYER_ONLY;
         if (allAllowNpc) return UserType.NPC_ONLY;
-        return UserType.NPC_ONLY;
+        return UserType.NONE;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -750,7 +750,9 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                 } else {
                     entries.add(ChainedAbilityEntry.reference(consumed.getReferenceId(), 0));
                 }
-                consumedSlotIndices.add(slotIndex);
+                if (!consumedSlotIndices.contains(slotIndex)) {
+                    consumedSlotIndices.add(slotIndex);
+                }
             }
         }
     }

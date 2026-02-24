@@ -200,7 +200,7 @@ public class NpcCommand extends CommandKamkeelBase {
         EntityCustomNpc npc = new EntityCustomNpc(pw);
         if (args.length > 0)
             npc.display.name = args[0];
-        npc.setPositionAndRotation(player.posX, player.posY, player.posZ, player.cameraYaw, player.cameraPitch);
+        npc.setPositionAndRotation(player.posX, player.posY, player.posZ, player.rotationYaw, 0);
         npc.ais.startPos = new int[]{MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posY), MathHelper.floor_double(player.posZ)};
         pw.spawnEntityInWorld(npc);
         npc.setHealth(npc.getMaxHealth());

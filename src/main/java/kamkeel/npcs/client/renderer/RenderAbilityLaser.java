@@ -23,9 +23,6 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
-        if (shouldSkipInitialActiveRender(entity)) {
-            return;
-        }
         EntityAbilityLaser laser = (EntityAbilityLaser) entity;
 
         setupRenderState();

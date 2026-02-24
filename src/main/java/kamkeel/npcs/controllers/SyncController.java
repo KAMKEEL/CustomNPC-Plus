@@ -12,6 +12,9 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.data.LoginPacket;
+import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
+import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
 import kamkeel.npcs.network.packets.data.large.SyncPacket;
 import kamkeel.npcs.network.packets.request.party.PartyInfoPacket;
@@ -863,6 +866,32 @@ public class SyncController {
 
         NBTTagCompound compound = playerData.getPlayerEffects();
         PacketHandler.Instance.sendToPlayer(new SyncEffectPacket(compound), playerMP);
+    }
+
+    /**
+     * Full sync of all player ability state to the client: unlocked abilities,
+     * selection, toggles, hotbar layout, and cooldowns.
+     * Used for entity reconstruction and other full-refresh scenarios.
+     */
+    public static void syncAbilities(EntityPlayerMP playerMP) {
+        PlayerData playerData = PlayerData.get(playerMP);
+        if (playerData == null) return;
+
+        PlayerAbilitySyncPacket.sendToPlayer(playerMP);
+        AbilityHotbarSyncPacket.sendToPlayer(playerMP);
+        AbilityCooldownSyncPacket.sendToPlayer(playerMP);
+    }
+
+    /**
+     * Lightweight sync of cooldown state only (global + per-ability).
+     * Called periodically (every 10 ticks) to keep the client's cooldown
+     * display accurate. Cooldowns are transient and not part of NBT sync.
+     */
+    public static void syncAbilityCooldowns(EntityPlayerMP playerMP) {
+        PlayerData playerData = PlayerData.get(playerMP);
+        if (playerData == null) return;
+
+        AbilityCooldownSyncPacket.sendToPlayer(playerMP);
     }
 
     @SideOnly(Side.CLIENT)

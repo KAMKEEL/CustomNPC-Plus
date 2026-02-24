@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -24,6 +23,10 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     private float sliceWidth = 3.0f;
     private float sliceThickness = 0.15f;
 
+    // Cached travel direction for smooth rendering when motion is near zero
+    private float lastTravelYaw = 0.0f;
+    private float lastTravelPitch = 0.0f;
+
     public EntityEnergySlicer(World world) {
         super(world);
     }
@@ -36,10 +39,10 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
                               float sliceWidth, float sliceThickness,
                               EnergyDisplayData display, EnergyCombatData combat,
                               EnergyHomingData homing, EnergyLightningData lightning,
-                              EnergyLifespanData lifespan, EnergyTrajectoryData trajectory) {
+                              EnergyLifespanData lifespan) {
         super(world);
 
-        initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan, trajectory);
+        initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan);
         this.homingData = homing;
         this.sliceWidth = sliceWidth;
         this.sliceThickness = sliceThickness;
@@ -166,13 +169,16 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     public float getTravelYaw() {
         if (isCharging()) {
             Entity owner = previewMode ? previewOwner : getOwnerEntity();
-            if (owner != null) return owner.rotationYaw;
+            if (owner != null) {
+                lastTravelYaw = owner.rotationYaw;
+                return lastTravelYaw;
+            }
         }
         double speed = Math.sqrt(motionX * motionX + motionZ * motionZ);
         if (speed > 0.001) {
-            return (float) (Math.atan2(-motionX, motionZ) * 180.0 / Math.PI);
+            lastTravelYaw = (float) (Math.atan2(-motionX, motionZ) * 180.0 / Math.PI);
         }
-        return 0.0f;
+        return lastTravelYaw;
     }
 
     /**
@@ -181,9 +187,9 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
     public float getTravelPitch() {
         double horizSpeed = Math.sqrt(motionX * motionX + motionZ * motionZ);
         if (horizSpeed > 0.001 || Math.abs(motionY) > 0.001) {
-            return (float) (-Math.atan2(motionY, horizSpeed) * 180.0 / Math.PI);
+            lastTravelPitch = (float) (-Math.atan2(motionY, horizSpeed) * 180.0 / Math.PI);
         }
-        return 0.0f;
+        return lastTravelPitch;
     }
 
     // ==================== GETTERS ====================

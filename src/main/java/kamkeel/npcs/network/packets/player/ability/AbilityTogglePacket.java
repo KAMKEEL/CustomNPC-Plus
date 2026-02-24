@@ -52,6 +52,7 @@ public final class AbilityTogglePacket extends AbstractPacket {
 
         PlayerData playerData = PlayerData.get(player);
         if (playerData == null || playerData.abilityData == null) return;
+        if (!playerData.abilityData.hasUnlockedAbility(key)) return;
 
         int newState = playerData.abilityData.toggleAbility(key);
 

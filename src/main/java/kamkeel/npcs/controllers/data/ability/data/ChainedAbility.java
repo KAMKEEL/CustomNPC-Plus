@@ -190,7 +190,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         if (allAllowPlayer && allAllowNpc) return UserType.BOTH;
         if (allAllowPlayer) return UserType.PLAYER_ONLY;
         if (allAllowNpc) return UserType.NPC_ONLY;
-        return UserType.NPC_ONLY;
+        return UserType.NONE;
     }
 
     public List<AbilityCondition> getConditions() {
@@ -441,6 +441,6 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         }
 
         // Custom data (for external mods)
-        customData = nbt.getCompoundTag("customData");
+        customData = (NBTTagCompound) nbt.getCompoundTag("customData").copy();
     }
 }

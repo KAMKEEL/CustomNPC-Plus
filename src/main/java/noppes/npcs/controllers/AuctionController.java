@@ -585,6 +585,11 @@ public class AuctionController implements IAuctionHandler {
                 return "Bid must be at least " + minBid + " " + ConfigMarket.CurrencyName + ".";
             }
 
+            // Prevent bidding at or above buyout price
+            if (listing.hasBuyout() && bidAmount >= listing.buyoutPrice) {
+                return "Your bid meets or exceeds the buyout price. Use Buy Now instead.";
+            }
+
             // Check currency
             PlayerData playerData = PlayerData.get(player);
             if (playerData == null) {

@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
@@ -54,6 +55,8 @@ public class PlayerAbilityHotbarData {
 
     public void validateSlots() {
         if (AbilityController.Instance == null) return;
+        // Only validate on the server - the client trusts server-sent data.
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) return;
         for (AbilityHotbarData slot : slots) {
             if (slot.isEmpty()) continue;
             boolean valid;
@@ -75,6 +78,10 @@ public class PlayerAbilityHotbarData {
         }
     }
 
+    /**
+     * Sync hotbar data only to the client.
+     * Used after server confirms a client hotbar edit.
+     */
     public void syncToClient(EntityPlayer player) {
         if (player instanceof EntityPlayerMP) {
             AbilityHotbarSyncPacket.sendToPlayer((EntityPlayerMP) player);

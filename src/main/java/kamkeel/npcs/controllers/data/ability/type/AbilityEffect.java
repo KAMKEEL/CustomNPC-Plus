@@ -173,6 +173,19 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
 
         if (tick >= durationTicks) {
             signalCompletion();
+            return;
+        }
+
+        // Early completion if all affected entities are dead
+        boolean allDead = true;
+        for (EntityLivingBase entity : getAffectedEntities()) {
+            if (!entity.isDead) {
+                allDead = false;
+                break;
+            }
+        }
+        if (!getAffectedEntities().isEmpty() && allDead) {
+            signalCompletion();
         }
     }
 

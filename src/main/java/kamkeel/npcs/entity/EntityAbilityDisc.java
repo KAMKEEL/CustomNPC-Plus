@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -39,6 +38,9 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     private int returnOwnerNullTicks = 0;
     private boolean vertical = false; // false = horizontal (flat), true = vertical (thin edge forward)
 
+    // Cached travel direction for smooth rendering when motion is near zero
+    private float lastTravelYaw = 0.0f;
+
     // Charging state (disc-specific target sizes)
     private float targetDiscRadius = 1.0f; // Full radius to grow to during charging
     private float targetDiscThickness = 0.2f; // Full thickness to grow to during charging
@@ -55,12 +57,12 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
                              float discRadius, float discThickness,
                              EnergyDisplayData display, EnergyCombatData combat,
                              EnergyHomingData homing, EnergyLightningData lightning,
-                             EnergyLifespanData lifespan, EnergyTrajectoryData trajectory,
+                             EnergyLifespanData lifespan,
                              boolean boomerang, int boomerangDelay) {
         super(world);
 
         // Initialize base properties
-        initProjectile(owner, target, x, y, z, discRadius, display, combat, lightning, lifespan, trajectory);
+        initProjectile(owner, target, x, y, z, 1.0f, display, combat, lightning, lifespan);
 
         this.homingData = homing;
 
@@ -316,7 +318,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         float progress = getChargeProgress();
         this.discRadius = targetDiscRadius * progress;
         this.discThickness = targetDiscThickness * progress;
-        this.size = this.discRadius; // Base size for interpolation
+        this.size = 1.0f; // Size acts as a scaling factor; discRadius handles actual dimensions
 
         Entity owner = getOwnerEntity();
         if (owner instanceof EntityLivingBase) {
@@ -382,14 +384,15 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         if (isCharging()) {
             Entity owner = previewMode ? previewOwner : getOwnerEntity();
             if (owner != null) {
-                return owner.rotationYaw;
+                lastTravelYaw = owner.rotationYaw;
+                return lastTravelYaw;
             }
         }
         double speed = Math.sqrt(motionX * motionX + motionZ * motionZ);
         if (speed > 0.001) {
-            return (float) (Math.atan2(-motionX, motionZ) * 180.0 / Math.PI);
+            lastTravelYaw = (float) (Math.atan2(-motionX, motionZ) * 180.0 / Math.PI);
         }
-        return 0.0f;
+        return lastTravelYaw;
     }
 
     // ==================== NBT ====================
@@ -406,6 +409,12 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         readChargingNBT(nbt);
         this.targetDiscRadius = nbt.hasKey("TargetDiscRadius") ? nbt.getFloat("TargetDiscRadius") : this.discRadius;
         this.targetDiscThickness = nbt.hasKey("TargetDiscThickness") ? nbt.getFloat("TargetDiscThickness") : this.discThickness;
+
+        // Normalize size to 1.0 (scaling factor) — discRadius handles actual dimensions.
+        // Old saves may have size = discRadius baked in from the quadratic scaling bug.
+        this.size = 1.0f;
+        this.renderCurrentSize = 1.0f;
+        this.prevRenderSize = 1.0f;
     }
 
     @Override

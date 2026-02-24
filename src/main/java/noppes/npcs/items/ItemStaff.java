@@ -7,7 +7,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -117,8 +116,6 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             EnergyLightningData lightning = new EnergyLightningData();
             EnergyLifespanData lifespan = new EnergyLifespanData(100, 72000);
             EnergyHomingData homing = new EnergyHomingData();
-            EnergyTrajectoryData trajectory = new EnergyTrajectoryData();
-
             homing.speed = 0.5f;
             homing.homingStrength = 0.35f;
             homing.homingRange = 20f;
@@ -126,7 +123,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             EntityAbilityOrb orb = new EntityAbilityOrb(
                 player.worldObj, player, null,
                 player.posX, player.posY + player.getEyeHeight(), player.posZ,
-                1.0f, colorData, combat, homing, lightning, lifespan, trajectory
+                1.0f, colorData, combat, homing, lightning, lifespan
             );
 
             orb.setupCharging(

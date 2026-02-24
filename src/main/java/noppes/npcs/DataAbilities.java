@@ -1109,7 +1109,7 @@ public class DataAbilities extends AbstractDataAbilities {
     }
 
     public void readFromNBT(NBTTagCompound compound) {
-        enabled = compound.getBoolean("AbilitiesEnabled");
+        enabled = compound.hasKey("AbilitiesEnabled") ? compound.getBoolean("AbilitiesEnabled") : true;
         minCooldown = compound.getInteger("AbilityMinCooldown");
         maxCooldown = compound.getInteger("AbilityMaxCooldown");
 

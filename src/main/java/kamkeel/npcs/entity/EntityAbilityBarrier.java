@@ -4,10 +4,12 @@ import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -440,13 +442,53 @@ public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
     }
 
     /**
+     * Client prediction only runs for the local player.
+     */
+    protected EntityPlayer getClientPredictionPlayer() {
+        return worldObj != null && worldObj.isRemote ? CustomNpcs.proxy.getPlayer() : null;
+    }
+
+    /**
+     * Shared target filter used by Dome/Panel physics loops.
+     */
+    protected boolean shouldSkipBarrierPhysicsTarget(EntityLivingBase entity, EntityPlayer clientPredictionPlayer) {
+        if (entity == null || !entity.isEntityAlive()) return true;
+        if (entity.getEntityId() == ownerEntityId) return true;
+        if (worldObj.isRemote && (clientPredictionPlayer == null || entity != clientPredictionPlayer)) return true;
+        return isAllyOfOwner(entity);
+    }
+
+    /**
      * Check if an entity is an ally of this barrier's owner.
-     * Allies are not affected by barrier physics.
+     * Server uses full relationship logic; client uses a lightweight safe approximation.
      */
     protected boolean isAllyOfOwner(EntityLivingBase entity) {
         Entity owner = getOwnerEntity();
         if (owner == null || !(owner instanceof EntityLivingBase)) return false;
+        if (worldObj != null && worldObj.isRemote) {
+            return isClientPredictedAlly((EntityLivingBase) owner, entity);
+        }
         return AbilityTargetHelper.isAlly((EntityLivingBase) owner, entity);
+    }
+
+    /**
+     * Client-safe ally approximation used only for movement prediction.
+     * Avoids PlayerData/Party/Faction point lookups that are server-owned.
+     */
+    protected boolean isClientPredictedAlly(EntityLivingBase owner, EntityLivingBase target) {
+        if (owner == null || target == null) return false;
+        if (owner == target) return true;
+
+        if (target instanceof EntityNPCInterface) {
+            EntityNPCInterface targetNpc = (EntityNPCInterface) target;
+            if (targetNpc.faction.isPassive) return true;
+            if (owner instanceof EntityNPCInterface) {
+                EntityNPCInterface ownerNpc = (EntityNPCInterface) owner;
+                return ownerNpc.faction.id == targetNpc.faction.id;
+            }
+        }
+
+        return false;
     }
 
     // ==================== CONTAINMENT & ABSORBING ====================

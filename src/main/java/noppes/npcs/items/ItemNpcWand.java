@@ -48,7 +48,7 @@ public class ItemNpcWand extends Item {
             EntityCustomNpc npc = new EntityCustomNpc(par3World);
             npc.ais.startPos = new int[]{par4, par5, par6};
 
-            npc.setLocationAndAngles((float) par4 + 0.5F, npc.getStartYPos(), (float) par6 + 0.5F, player.rotationYaw, player.rotationPitch);
+            npc.setLocationAndAngles((float) par4 + 0.5F, npc.getStartYPos(), (float) par6 + 0.5F, player.rotationYaw, 0);
 
             par3World.spawnEntityInWorld(npc);
             npc.setHealth(npc.getMaxHealth());

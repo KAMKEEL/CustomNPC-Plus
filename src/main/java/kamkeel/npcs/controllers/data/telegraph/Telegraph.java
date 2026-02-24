@@ -28,6 +28,7 @@ public class Telegraph {
     private int warningStartTick = 10;
     private boolean animated = true;
     private float heightOffset = 0.1f;
+    private int groundSearchRange = 3;
 
     // Positioning
     private boolean atTarget = true;
@@ -57,6 +58,7 @@ public class Telegraph {
         this.warningStartTick = other.warningStartTick;
         this.animated = other.animated;
         this.heightOffset = other.heightOffset;
+        this.groundSearchRange = other.groundSearchRange;
         this.atTarget = other.atTarget;
         this.followsTarget = other.followsTarget;
         this.followsCaster = other.followsCaster;
@@ -82,6 +84,7 @@ public class Telegraph {
         nbt.setInteger("warningStartTick", warningStartTick);
         nbt.setBoolean("animated", animated);
         nbt.setFloat("heightOffset", heightOffset);
+        nbt.setInteger("groundSearchRange", groundSearchRange);
         nbt.setBoolean("atTarget", atTarget);
         nbt.setBoolean("followsTarget", followsTarget);
         nbt.setBoolean("followsCaster", followsCaster);
@@ -109,6 +112,9 @@ public class Telegraph {
         this.warningStartTick = nbt.getInteger("warningStartTick");
         this.animated = nbt.getBoolean("animated");
         this.heightOffset = nbt.getFloat("heightOffset");
+        if (nbt.hasKey("groundSearchRange")) {
+            this.groundSearchRange = nbt.getInteger("groundSearchRange");
+        }
         this.atTarget = nbt.getBoolean("atTarget");
         this.followsTarget = nbt.getBoolean("followsTarget");
         this.followsCaster = nbt.getBoolean("followsCaster");
@@ -262,6 +268,14 @@ public class Telegraph {
 
     public void setHeightOffset(float heightOffset) {
         this.heightOffset = heightOffset;
+    }
+
+    public int getGroundSearchRange() {
+        return groundSearchRange;
+    }
+
+    public void setGroundSearchRange(int groundSearchRange) {
+        this.groundSearchRange = groundSearchRange;
     }
 
     public boolean isAtTarget() {

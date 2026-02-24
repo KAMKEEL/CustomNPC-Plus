@@ -60,6 +60,10 @@ public class AbilityIcon extends Gui {
     }
 
     public void draw(int state) {
+        draw(state, 1.0f);
+    }
+
+    public void draw(int state, float alpha) {
         TextureManager renderEngine = Minecraft.getMinecraft().renderEngine;
 
         ImageData imageData = null;
@@ -68,7 +72,7 @@ public class AbilityIcon extends Gui {
         }
 
         GL11.glPushMatrix();
-        GL11.glColor4f(1, 1, 1, 1);
+        GL11.glColor4f(1, 1, 1, alpha);
 
         Tessellator t;
 

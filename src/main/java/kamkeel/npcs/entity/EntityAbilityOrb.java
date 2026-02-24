@@ -6,7 +6,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
@@ -33,11 +32,11 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
                             double x, double y, double z, float orbSize,
                             EnergyDisplayData display, EnergyCombatData combat,
                             EnergyHomingData homing, EnergyLightningData lightning,
-                            EnergyLifespanData lifespan, EnergyTrajectoryData trajectory) {
+                            EnergyLifespanData lifespan) {
         super(world);
 
         // Initialize base properties
-        initProjectile(owner, target, x, y, z, orbSize, display, combat, lightning, lifespan, trajectory);
+        initProjectile(owner, target, x, y, z, orbSize, display, combat, lightning, lifespan);
 
         this.homingData = homing;
 
@@ -114,17 +113,13 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
     }
 
     private void updateMovement() {
-        if (!isTrajectoryConcluded()) {
-            updateTrajectory();
-        } else {
-            if (ticksExisted > HOMING_STARTUP_TICKS) {
-                int homingTicks = ticksExisted - HOMING_STARTUP_TICKS;
-                if (homingTicks >= HOMING_RAMP_TICKS) {
-                    updateHoming();
-                } else {
-                    float ramp = homingTicks / (float) HOMING_RAMP_TICKS;
-                    updateHomingWithRamp(ramp);
-                }
+        if (ticksExisted > HOMING_STARTUP_TICKS) {
+            int homingTicks = ticksExisted - HOMING_STARTUP_TICKS;
+            if (homingTicks >= HOMING_RAMP_TICKS) {
+                updateHoming();
+            } else {
+                float ramp = homingTicks / (float) HOMING_RAMP_TICKS;
+                updateHomingWithRamp(ramp);
             }
         }
     }
@@ -135,24 +130,6 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         homingData.homingStrength = originalStrength * ramp;
         updateHoming();
         homingData.homingStrength = originalStrength;
-    }
-
-    private void updateTrajectory() {
-        if (isTrajectoryConcluded()) return;
-        // i really fucking hate math
-
-    }
-
-    private boolean isTrajectoryConcluded() {
-        if (trajectoryData.isEmpty()) return true;
-
-        for (int i = 0; i < trajectoryData.size(); i++) {
-            if (!trajectoryData.getPath(i).isConcluded()) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private void checkBlockCollision() {

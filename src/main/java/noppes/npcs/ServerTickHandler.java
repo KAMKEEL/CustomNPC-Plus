@@ -50,6 +50,9 @@ public class ServerTickHandler {
         SyncController.syncEffects(player);
         ScriptController.Instance.syncClientScripts(player);
 
+        // Sync clean ability state to the new client (after beginLogin initializes sync state)
+        SyncController.syncAbilities(player);
+
         // Send auction notifications on login
         if (AuctionController.Instance != null) {
             AuctionController.Instance.onPlayerLogin(player);

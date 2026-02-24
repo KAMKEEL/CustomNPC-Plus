@@ -12,7 +12,6 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.block.Block;
@@ -114,8 +113,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     // ==================== HOMING PROPERTIES ====================
     protected EnergyHomingData homingData = new EnergyHomingData();
 
-    // ==================== TRAJECTORY PROPERTIES ====================
-    protected EnergyTrajectoryData trajectoryData = new EnergyTrajectoryData();
     protected Map<Integer, Integer> pathDelays;
 
     // ==================== TRACKING ====================
@@ -174,8 +171,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected void initProjectile(EntityLivingBase owner, EntityLivingBase target,
                                   double x, double y, double z, float size,
                                   EnergyDisplayData display, EnergyCombatData combat,
-                                  EnergyLightningData lightning, EnergyLifespanData lifespan,
-                                  EnergyTrajectoryData trajectory) {
+                                  EnergyLightningData lightning, EnergyLifespanData lifespan) {
         this.setPosition(x, y, z);
         this.startX = x;
         this.startY = y;
@@ -191,7 +187,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.combatData = combat;
         this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
         this.lightningData = lightning;
-        this.trajectoryData = trajectory;
         syncProjectileColorWatchers();
 
         // Initialize render size
@@ -801,19 +796,21 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     /**
      * Handle client-side position interpolation.
+     * Only moves position during active interpolation (interpSteps > 0).
+     * Does NOT predict/drift between server updates — the motion values are
+     * derived from correction deltas, not actual entity velocity, so applying
+     * them between updates causes entities to fly off in wrong directions.
+     * This matches vanilla Minecraft behavior for non-player entities.
      */
     protected void handleClientInterpolation() {
         if (this.interpSteps > 0) {
-            // For very slow / stationary projectiles, snap directly to avoid jitter
             double dx = this.interpTargetX - this.posX;
             double dy = this.interpTargetY - this.posY;
             double dz = this.interpTargetZ - this.posZ;
             double distSq = dx * dx + dy * dy + dz * dz;
-            if (distSq < 0.04) {
+
+            if (distSq < 0.0001) {
                 this.setPosition(this.interpTargetX, this.interpTargetY, this.interpTargetZ);
-                this.motionX = this.interpTargetMotionX;
-                this.motionY = this.interpTargetMotionY;
-                this.motionZ = this.interpTargetMotionZ;
                 this.interpSteps = 0;
                 return;
             }
@@ -828,16 +825,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
             this.setPosition(newX, newY, newZ);
             this.interpSteps--;
-        } else {
-            // Skip motion application for nearly-stationary projectiles to prevent drift
-            double speedSq = this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ;
-            if (speedSq < 0.0001) {
-                return;
-            }
-            this.posX += this.motionX;
-            this.posY += this.motionY;
-            this.posZ += this.motionZ;
-            this.setPosition(this.posX, this.posY, this.posZ);
         }
     }
 
@@ -1542,9 +1529,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected void setChargeOrigin(Vec3 pos) {
         if (pos == null) return;
         this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
+        syncPositionState(pos.xCoord, pos.yCoord, pos.zCoord, true);
         this.startX = pos.xCoord;
         this.startY = pos.yCoord;
         this.startZ = pos.zCoord;
@@ -2213,7 +2198,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         combatData.readNBT(nbt);
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
-        trajectoryData.readNBT(nbt);
         syncProjectileColorWatchers();
     }
 
@@ -2248,7 +2232,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         combatData.writeNBT(nbt);
         homingData.writeNBT(nbt);
         lifespanData.writeNBT(nbt);
-        trajectoryData.writeNBT(nbt);
     }
 
     /**

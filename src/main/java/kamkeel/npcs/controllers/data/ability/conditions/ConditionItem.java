@@ -99,6 +99,7 @@ public class ConditionItem extends AbilityCondition {
     private boolean checkOffhand(EntityLivingBase entity) {
         // No offhand for players
         if (entity instanceof EntityPlayer) return false;
+        if (!(entity instanceof EntityNPCInterface)) return false;
 
         ItemStack item = ((EntityNPCInterface) entity).getOffHand();
         return matchesItem(item);

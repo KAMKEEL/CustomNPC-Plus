@@ -184,6 +184,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Burst execution state
     protected transient int burstIndex = 0;
     protected transient List<Entity> burstEntities = new ArrayList<>();
+    protected transient float damageMultiplier = 1.0f; // Ability-internal damage scaling (e.g., Slam height)
 
     // ═══════════════════════════════════════════════════════════════════
     // PREVIEW STATE (client-side only, not saved)
@@ -632,7 +633,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         defs.add(FieldDef.stringField("gui.displayName", this::getRawDisplayName, this::setDisplayName)
             .tab("General"));
         defs.add(FieldDef.labelField("ability.validFor", () ->
-            "\u00A7e" + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
+                "\u00A7e" + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
             .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
@@ -961,31 +962,46 @@ public abstract class Ability implements IAbility, IAbilityAction {
     /**
      * Find the ground level at a given position.
      * Searches downward from the given Y to find a solid block.
+     * Uses default search range of 3 blocks — if no ground is found,
+     * returns slightly below the entity for airborne telegraph placement.
      *
      * @param world  The world
      * @param x      X coordinate
      * @param startY Starting Y coordinate (entity feet position)
      * @param z      Z coordinate
-     * @return The Y coordinate of the ground surface
+     * @return The Y coordinate of the ground surface, or startY - 0.5 if airborne
      */
     public static double findGroundLevel(World world, double x, double startY, double z) {
-        if (world == null) return startY;
+        return findGroundLevel(world, x, startY, z, 3);
+    }
+
+    /**
+     * Find the ground level at a given position with configurable search range.
+     * Searches downward from the given Y to find a solid block.
+     *
+     * @param world         The world
+     * @param x             X coordinate
+     * @param startY        Starting Y coordinate (entity feet position)
+     * @param z             Z coordinate
+     * @param maxSearchDown Maximum blocks to search downward
+     * @return The Y coordinate of the ground surface, or startY - 0.5 if no ground found
+     */
+    public static double findGroundLevel(World world, double x, double startY, double z, int maxSearchDown) {
+        if (world == null) return startY - 0.5;
 
         int blockX = (int) Math.floor(x);
         int blockZ = (int) Math.floor(z);
         int startBlockY = (int) Math.floor(startY);
 
-        // Search downward for solid ground (max 10 blocks down)
-        for (int checkY = startBlockY; checkY >= startBlockY - 10 && checkY >= 0; checkY--) {
+        for (int checkY = startBlockY; checkY >= startBlockY - maxSearchDown && checkY >= 0; checkY--) {
             Block block = world.getBlock(blockX, checkY, blockZ);
             if (block != null && block.getMaterial().isSolid()) {
-                // Found solid block, telegraph goes on top of it
                 return checkY + 1;
             }
         }
 
-        // No ground found, use original position
-        return startY;
+        // No ground found within range — place slightly under entity
+        return startY - 0.5;
     }
 
     /**
@@ -1154,8 +1170,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public void interrupt() {
         cleanupBurstEntities();
         cleanup();
-        if (interruptible && (phase == AbilityPhase.WINDUP || phase == AbilityPhase.BURST_DELAY)) {
-            // Interrupted during windup or burst delay - go to dazed state
+        if (interruptible && phase == AbilityPhase.WINDUP) {
+            // Interrupted during windup - go to dazed state
             phase = AbilityPhase.DAZED;
             currentTick = 0;
         } else {
@@ -1192,13 +1208,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
     /**
      * Check if can be interrupted by this damage source.
      * Only direct physical hits (not magic, fire, or other indirect damage) can interrupt.
-     * Interruption only occurs during WINDUP phase - if ability is already active, it completes.
+     * Interruption only occurs during WINDUP phase (including burst replay windups).
+     * BURST_DELAY is not interruptible - only the windup animation itself can be interrupted.
+     * For chained abilities, windUpAll controls whether subsequent entries even have a windup.
      *
      * @param source The damage source
      * @return true if the ability should be interrupted
      */
     public boolean canInterrupt(DamageSource source) {
-        if (!interruptible || (phase != AbilityPhase.WINDUP && phase != AbilityPhase.BURST_DELAY)) {
+        if (!interruptible || phase != AbilityPhase.WINDUP) {
             return false;
         }
         if (isInvulnerableForCurrentPhase()) {
@@ -1324,6 +1342,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
         for (AbilityCondition c : conditions) {
             if (!c.getUserType().allowsNpc()) continue;
+            Boolean extendedCondition = AbilityController.Instance.fireCheckConditions(c, caster, target);
+
+            if (extendedCondition != null) {
+                if (!extendedCondition) return false;
+                continue;
+            }
+
             if (!c.check(caster, target)) return false;
         }
         return true;
@@ -1336,6 +1361,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
         for (AbilityCondition c : conditions) {
             if (!c.getUserType().allowsPlayer()) continue;
             if (c.requiresTarget()) continue;
+            Boolean extendedCondition = AbilityController.Instance.fireCheckConditionsForPlayer(c, caster);
+
+            if (extendedCondition != null) {
+                if (!extendedCondition) return false;
+                continue;
+            }
+
             if (!c.check(caster, null)) return false;
         }
         return true;
@@ -1448,8 +1480,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
         lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
-        windUpColor = nbt.getInteger("windUpColor");
-        activeColor = nbt.getInteger("activeColor");
+        windUpColor = nbt.hasKey("windUpColor") ? nbt.getInteger("windUpColor") : 0x80FF4400;
+        activeColor = nbt.hasKey("activeColor") ? nbt.getInteger("activeColor") : 0xC0FF0000;
         windUpSound = nbt.getString("windUpSound");
         activeSound = nbt.getString("activeSound");
         windUpAnimationId = nbt.getInteger("windUpAnimationId");
@@ -1465,7 +1497,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
             telegraphType = TelegraphType.CIRCLE;
         }
         telegraphHeightOffset = nbt.getFloat("telegraphHeightOffset");
-        customData = nbt.getCompoundTag("customData");
+        customData = (NBTTagCompound) nbt.getCompoundTag("customData").copy();
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
         perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");
@@ -1489,7 +1521,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         burstEnabled = nbt.getBoolean("burstEnabled");
         burstAmount = nbt.getInteger("burstAmount");
         burstDelay = nbt.getInteger("burstDelay");
-        burstReplayAnimations = nbt.getBoolean("burstReplayAnimations");
+        burstReplayAnimations = nbt.hasKey("burstReplayAnimations") ? nbt.getBoolean("burstReplayAnimations") : true;
         burstOverlap = nbt.getBoolean("burstOverlap");
 
         // Conditions
@@ -2048,6 +2080,18 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public AbilityPhase getPhase() {
         return phase;
+    }
+
+    /**
+     * Get the damage multiplier applied by the ability itself (e.g. Slam height scaling).
+     * Extenders should apply this after their own damage calculation.
+     */
+    public float getDamageMultiplier() {
+        return damageMultiplier;
+    }
+
+    public void setDamageMultiplier(float damageMultiplier) {
+        this.damageMultiplier = damageMultiplier;
     }
 
     /**

@@ -123,6 +123,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
         if (tick >= durationTicks) {
             signalCompletion();
+            return;
         }
 
         // Just enough to see the counter animation
@@ -194,7 +195,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
             return AnimationController.Instance.get(counterAnimationId);
         }
 
-        if (!counterAnimationName.isEmpty()) {
+        if (counterAnimationName != null && !counterAnimationName.isEmpty()) {
             return AnimationController.Instance.get(counterAnimationName, true);
         }
 
@@ -247,8 +248,8 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.getInteger("durationTicks");
-        this.damageReduction = nbt.getFloat("damageReduction");
+        this.durationTicks = nbt.hasKey("durationTicks") ? nbt.getInteger("durationTicks") : 60;
+        this.damageReduction = nbt.hasKey("damageReduction") ? nbt.getFloat("damageReduction") : 0.5f;
         this.canCounter = nbt.getBoolean("canCounter");
         this.counterWindow = nbt.getInteger("counterWindow");
         try {
@@ -353,7 +354,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     }
 
     public void setCounterAnimationName(String name) {
-        this.counterAnimationName = name;
+        this.counterAnimationName = name != null ? name : "";
     }
 
     @SideOnly(Side.CLIENT)

@@ -410,7 +410,7 @@ public class AbilityController implements IAbilityHandler {
             customAbilities.put(name, ability);
             customAbilitiesById.put(uuid, ability);
             customAbilityRevision++;
-            LogWriter.info("Saved custom ability: " + name + " [" + uuid + "]");
+            LogWriter.script("Saved custom ability: " + name + " [" + uuid + "]");
             SyncController.syncAllCustomAbilities();
             return true;
         } catch (Exception e) {
@@ -464,7 +464,7 @@ public class AbilityController implements IAbilityHandler {
         }
 
         customAbilityRevision++;
-        LogWriter.info("Deleted custom ability: " + name);
+        LogWriter.script("Deleted custom ability: " + name);
         SyncController.syncAllCustomAbilities();
         return true;
     }
@@ -640,7 +640,7 @@ public class AbilityController implements IAbilityHandler {
             chainedAbilities.put(name, chain);
             chainedAbilitiesById.put(uuid, chain);
             chainedAbilityRevision++;
-            LogWriter.info("Saved chained ability: " + name + " [" + uuid + "]");
+            LogWriter.script("Saved chained ability: " + name + " [" + uuid + "]");
             SyncController.syncAllChainedAbilities();
             return true;
         } catch (Exception e) {
@@ -692,7 +692,7 @@ public class AbilityController implements IAbilityHandler {
         }
 
         chainedAbilityRevision++;
-        LogWriter.info("Deleted chained ability: " + name);
+        LogWriter.script("Deleted chained ability: " + name);
         SyncController.syncAllChainedAbilities();
         return true;
     }
@@ -1176,6 +1176,27 @@ public class AbilityController implements IAbilityHandler {
         return false;
     }
 
+    public Boolean fireCheckConditions(AbilityCondition condition, EntityLivingBase caster, EntityLivingBase target) {
+        for (IAbilityExtender ext : extenders) {
+            Boolean result = ext.onCheckCondition(condition, caster, target);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    public Boolean fireCheckConditionsForPlayer(AbilityCondition condition, EntityLivingBase player) {
+        for (IAbilityExtender ext : extenders) {
+            Boolean result = ext.onCheckConditionForPlayer(condition, player);
+            if (result != null) {
+                return result;
+            }
+        }
+        return null;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // IAbilityHandler
     // ═══════════════════════════════════════════════════════════════════════════
@@ -1228,7 +1249,7 @@ public class AbilityController implements IAbilityHandler {
     public boolean isAllowedByPlayer(String typeId) {
         if (abilityTypes.containsKey(typeId)) {
             Ability temp = abilityTypes.get(typeId).get();
-            return temp.getAllowedBy() == UserType.PLAYER_ONLY;
+            return temp.getAllowedBy().allowsPlayer();
         }
 
         return false;
@@ -1237,7 +1258,7 @@ public class AbilityController implements IAbilityHandler {
     public boolean isAllowedByNPC(String typeId) {
         if (abilityTypes.containsKey(typeId)) {
             Ability temp = abilityTypes.get(typeId).get();
-            return temp.getAllowedBy() == UserType.NPC_ONLY;
+            return temp.getAllowedBy().allowsNpc();
         }
 
         return false;

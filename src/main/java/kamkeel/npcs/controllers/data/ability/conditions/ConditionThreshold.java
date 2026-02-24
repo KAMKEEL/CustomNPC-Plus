@@ -31,7 +31,7 @@ public abstract class ConditionThreshold extends AbilityCondition {
         EQUAL {
             @Override
             public boolean test(float value, float threshold) {
-                return value == threshold;
+                return Math.abs(value - threshold) < 0.001f;
             }
         };
 

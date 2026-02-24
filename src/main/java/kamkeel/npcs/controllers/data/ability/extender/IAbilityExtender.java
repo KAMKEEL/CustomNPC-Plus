@@ -1,5 +1,6 @@
 package kamkeel.npcs.controllers.data.ability.extender;
 
+import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import net.minecraft.entity.EntityLivingBase;
@@ -116,5 +117,13 @@ public interface IAbilityExtender {
      */
     default boolean onAbilityHeal(Ability ability, EntityLivingBase caster, EntityLivingBase target, float healAmount) {
         return false;
+    }
+
+    default Boolean onCheckCondition(AbilityCondition condition, EntityLivingBase caster, EntityLivingBase target) {
+        return null;
+    }
+
+    default Boolean onCheckConditionForPlayer(AbilityCondition condition, EntityLivingBase player) {
+        return null;
     }
 }

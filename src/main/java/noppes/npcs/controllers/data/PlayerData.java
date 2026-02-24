@@ -94,6 +94,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     private boolean specialKeyDown = false;
 
     public void onLogin() {
+        // Clear any stale transient ability state that leaked via the PlayerData cache.
+        // Must happen before the animation check since it may clear ability animation state.
+        abilityData.resetOnLogin();
+
         // Handle animation state from previous session
         AnimationData animationData = this.animationData;
         if (animationData != null && animationData.isClientAnimating()) {
@@ -117,17 +121,12 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         if (!controller.playerEffects.containsKey(playerID)) {
             controller.playerEffects.put(playerID, effectData.getEffects());
         }
-
-        // Sync player ability data to client
-        abilityData.syncToClient();
-
-        // Sync hotbar data to client
-        hotbarData.syncToClient(player);
     }
 
     public void onLogout() {
-        // Cancel any executing ability and release all locks
-        abilityData.interruptCurrentAbility();
+        // Interrupt executing ability (fires events, rolls cooldown), then clear
+        // all transient state so nothing leaks via the PlayerData cache.
+        abilityData.resetOnDisconnect();
         this.partyInvites.clear();
         this.actionManager.clear();
     }
@@ -254,6 +253,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         factionData.saveNBTData(compound);
         mailData.saveNBTData(compound);
         tradeData.writeToNBT(compound);
+        abilityData.writeToNBT(compound);
+        hotbarData.writeToNBT(compound);
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
         DBCAddon.instance.writeToNBT(this, compound);
@@ -268,6 +269,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         factionData.loadNBTData(data);
         mailData.loadNBTData(data);
         tradeData.readFromNBT(data);
+        abilityData.readFromNBT(data);
+        hotbarData.readFromNBT(data);
         if (player != null) {
             playername = player.getCommandSenderName();
             uuid = player.getPersistentID().toString();

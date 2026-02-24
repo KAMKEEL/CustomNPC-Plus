@@ -61,7 +61,7 @@ public class AbilitySlicer extends AbilityEnergyProjectile<EntityEnergySlicer> {
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             sliceWidth, sliceThickness,
-            resolved, combatData, homingData, lightningData, lifespanData, trajectoryData
+            resolved, combatData, homingData, lightningData, lifespanData
         );
     }
 

@@ -4,8 +4,10 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetFilter;
 import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.enums.UserType;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.block.Block;
@@ -389,6 +391,7 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         for (Entity entity : entities) {
             if (!(entity instanceof EntityLivingBase)) continue;
             if (entity == caster) continue;
+            if (!AbilityTargetHelper.shouldAffect(caster, entity, TargetFilter.ENEMIES, false)) continue;
 
             EntityLivingBase living = (EntityLivingBase) entity;
             double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
@@ -435,8 +438,8 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         } catch (Exception e) {
             this.mode = TeleportMode.BLINK;
         }
-        this.blinkCount = nbt.getInteger("blinkCount");
-        this.blinkDelayTicks = nbt.getInteger("blinkDelayTicks");
+        this.blinkCount = nbt.hasKey("blinkCount") ? nbt.getInteger("blinkCount") : 3;
+        this.blinkDelayTicks = nbt.hasKey("blinkDelayTicks") ? nbt.getInteger("blinkDelayTicks") : 10;
         this.blinkRadius = nbt.getFloat("blinkRadius");
         this.behindDistance = nbt.getFloat("behindDistance");
         this.requireLineOfSight = nbt.getBoolean("requireLineOfSight");

@@ -59,7 +59,7 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
         return new EntityAbilityOrb(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord, orbSize,
-            resolved, combatData, homingData, lightningData, lifespanData, trajectoryData);
+            resolved, combatData, homingData, lightningData, lifespanData);
     }
 
     @Override

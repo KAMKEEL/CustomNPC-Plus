@@ -96,7 +96,8 @@ public class TelegraphInstance {
                 this.x = entity.posX;
                 this.z = entity.posZ;
                 // Find ground level below the entity for proper telegraph placement
-                this.y = Ability.findGroundLevel(world, entity.posX, entity.posY, entity.posZ);
+                int searchRange = (telegraph != null) ? telegraph.getGroundSearchRange() : 3;
+                this.y = Ability.findGroundLevel(world, entity.posX, entity.posY, entity.posZ, searchRange);
 
                 // Track followed entity's yaw for directional telegraphs (player casters)
                 if (trackFollowedEntityYaw && targetEntityId < 0) {

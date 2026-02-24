@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
@@ -89,6 +90,14 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      * Last synced state flags byte for change detection (avoids spamming packets).
      */
     private transient byte lastSyncedFlags = 0;
+
+    /**
+     * Dirty flag: set when ability data changes (unlock/lock/select/toggle).
+     * Checked by the periodic 10-tick sync handler, which sends an ability
+     * data packet and clears the flag. Avoids scattering sync calls across
+     * every mutation method.
+     */
+    public transient boolean needsSync = false;
 
     /**
      * World time when the last ability was activated (for double-press cancel detection).
@@ -251,7 +260,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             cooldownEndTime = endTime;
             globalCooldownDuration = duration;
         }
-        syncCooldownToClient();
     }
 
     @Override
@@ -259,7 +267,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         int duration = chain.getCooldownTicks();
         cooldownEndTime = getWorldTime() + duration;
         globalCooldownDuration = duration;
-        syncCooldownToClient();
     }
 
     @Override
@@ -278,6 +285,13 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     @Override
     protected void onInterruptComplete() {
         // Player clears state immediately (unlike NPC which ticks through DAZED)
+        // Roll cooldown before clearing state — NPC rolls during handleAbilityCompletion
+        // after ticking through DAZED, but the player skips DAZED entirely.
+        if (!interruptCooldownRolled && currentAbility != null) {
+            rollCooldown(currentAbility);
+        }
+        interruptCooldownRolled = false;
+
         // Stop the dazed animation that was started in interruptCurrentAbility()
         stopAbilityAnimation();
         currentAbility = null;
@@ -450,6 +464,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             playAbilityAnimation(ability.getWindUpAnimation());
         }
 
+        // Immediate sync on ability use
+        syncToClient();
         return true;
     }
 
@@ -458,31 +474,30 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Sync ability data to the client.
-     * Called when abilities change (unlock/lock/select) and on login.
+     * Full sync of all ability state to the client.
+     * Delegates to {@link SyncController#syncAbilities(EntityPlayerMP)}.
      */
     public void syncToClient() {
         EntityPlayer player = playerData.player;
         if (player instanceof EntityPlayerMP) {
-            PlayerAbilitySyncPacket.sendToPlayer((EntityPlayerMP) player);
-            syncCooldownToClient();
+            SyncController.syncAbilities((EntityPlayerMP) player);
         }
     }
 
     /**
-     * Sync cooldown state (global + per-ability) to the client.
-     * Sent as a lightweight packet separate from full ability sync.
+     * Lightweight sync of cooldown state only to the client.
+     * Delegates to {@link SyncController#syncAbilityCooldowns(EntityPlayerMP)}.
      */
     public void syncCooldownToClient() {
         EntityPlayer player = playerData.player;
         if (player instanceof EntityPlayerMP) {
-            AbilityCooldownSyncPacket.sendToPlayer((EntityPlayerMP) player);
+            SyncController.syncAbilityCooldowns((EntityPlayerMP) player);
         }
     }
 
     @Override
     protected void onToggleStateChanged(String key, boolean active, int state) {
-        syncToClient();
+        needsSync = true;
     }
 
     @Override
@@ -519,20 +534,20 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void setSelectedIndex(int index) {
         if (index == -1 || (index >= 0 && index < unlockedAbilities.size())) {
             this.selectedIndex = index;
-            syncToClient();
+            needsSync = true;
         }
     }
 
     public void selectNext() {
         if (unlockedAbilities.isEmpty()) return;
         selectedIndex = (selectedIndex + 1) % unlockedAbilities.size();
-        syncToClient();
+        needsSync = true;
     }
 
     public void selectPrevious() {
         if (unlockedAbilities.isEmpty()) return;
         selectedIndex = (selectedIndex - 1 + unlockedAbilities.size()) % unlockedAbilities.size();
-        syncToClient();
+        needsSync = true;
     }
 
     public String getSelectedAbilityKey() {
@@ -561,13 +576,13 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
-        syncToClient();
+        needsSync = true;
     }
 
     public void unlockAbility(String key) {
         if (key != null && !key.isEmpty() && !unlockedAbilities.contains(key)) {
             unlockedAbilities.add(key);
-            syncToClient();
+            needsSync = true;
         }
     }
 
@@ -576,7 +591,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (selectedIndex >= unlockedAbilities.size()) {
             selectedIndex = Math.max(0, unlockedAbilities.size() - 1);
         }
-        syncToClient();
+        needsSync = true;
     }
 
     public boolean hasUnlockedAbility(String key) {
@@ -620,7 +635,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void resetCooldown(String key) {
         resetPerAbilityCooldown(key);
         cooldownEndTime = 0;
-        syncCooldownToClient();
     }
 
     /**
@@ -629,7 +643,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void resetAllCooldowns() {
         cooldownEndTime = 0;
         resetAllPerAbilityCooldowns();
-        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -664,7 +677,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public void resetCooldown() {
         cooldownEndTime = 0;
         resetAllPerAbilityCooldowns();
-        syncCooldownToClient();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -729,7 +741,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         // Clean up any executing ability silently (no script events — already fired on old entity)
         if (currentAbility != null && currentAbility.isExecuting()) {
             removeTelegraph(currentAbility);
-            currentAbility.cleanup();
             currentAbility.interrupt();
             stopAbilityAnimation();
             releaseRotationControl();
@@ -782,11 +793,67 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     /**
      * Reset ability state after death/respawn.
-     * Preserves cooldowns (interrupt on death already rolled them) but clears
-     * active toggles (death should end ongoing effects).
+     * Preserves cooldowns (the death handler interrupted the ability which rolled cooldown
+     * via onInterruptComplete) but clears active toggles (death should end ongoing effects).
      */
     public void resetOnRespawn() {
         onEntityReconstructed(false, true);
+    }
+
+    /**
+     * Reset ability state on login. Clears all transient execution state (current ability,
+     * locks, chains, cooldowns) that may have leaked from a previous session via the
+     * PlayerData cache. Toggles are NOT cleared — they are restored from NBT by readFromNBT.
+     * <p>
+     * Does NOT send packets — called before the client's sync state is initialized.
+     * The caller must trigger a full ability sync afterwards (e.g. via syncToClient).
+     */
+    public void resetOnLogin() {
+        // Silently clean up any stale executing ability
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            removeTelegraph(currentAbility);
+            currentAbility.interrupt();
+            stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
+        }
+
+        // Clear chain and concurrent state
+        currentChain = null;
+        chainEntryIndex = -1;
+        chainDelayRemaining = -1;
+        interruptConcurrentSlots();
+
+        // Clear all transient state
+        currentAbility = null;
+        currentAbilityKey = null;
+        currentTarget = null;
+        lastAbilityActivationTime = -1;
+
+        // Clear cooldowns (fresh start after relog)
+        cooldownEndTime = 0;
+        resetAllPerAbilityCooldowns();
+        interruptCooldownRolled = false;
+
+        // Reset sync tracking so next sync sends fresh state
+        lastSyncedFlags = 0;
+        needsSync = true;
+    }
+
+    /**
+     * Clean up ability state on disconnect. Interrupts any executing ability (fires events,
+     * rolls cooldown) before the player entity goes away, then clears all transient state.
+     * This ensures scripts receive proper interrupt/complete events and prevents stale state
+     * from leaking into the next session via the PlayerData cache.
+     */
+    public void resetOnDisconnect() {
+        // Interrupt with events so scripts know the ability ended
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            interruptCurrentAbility(null, 0);
+        }
+        // Clear any remaining transient state (cooldowns, chains, locks)
+        // Don't clear toggles — they were already saved to NBT by this point
+        onEntityReconstructed(true, false);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -931,7 +998,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         if (rotationLocked && currentAbility.isRotationLockedForCurrentPhase()) {
             flags |= PlayerAbilityStatePacket.FLAG_ROTATION_LOCKED;
         }
-        if (currentAbility.hasAbilityMovement() && currentAbility.getPhase() == AbilityPhase.ACTIVE) {
+        if (currentAbility.hasAbilityMovement()
+            && (currentAbility.getPhase() == AbilityPhase.ACTIVE || currentAbility.getPhase() == AbilityPhase.WINDUP)) {
             flags |= PlayerAbilityStatePacket.FLAG_HAS_ABILITY_MOVEMENT;
         }
         if (positionLocked) {
@@ -962,6 +1030,20 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      * Send cleared (all-zero) state to client. Called on ability completion/interrupt.
      */
     private void syncAbilityStateClear(EntityPlayer player) {
+        if (!(player instanceof EntityPlayerMP)) return;
+        if (lastSyncedFlags != 0) {
+            lastSyncedFlags = 0;
+            PlayerAbilityStatePacket.sendToPlayer((EntityPlayerMP) player, (byte) 0, 0, 0);
+        }
+    }
+
+    /**
+     * Periodic safety check: if no ability is executing but the client may have
+     * stale lock flags, send a clear. Prevents stuck clients from missed packets.
+     */
+    public void ensureLockStateClear() {
+        if (isExecutingAbility() || isExecutingChain()) return;
+        EntityPlayer player = playerData.player;
         if (!(player instanceof EntityPlayerMP)) return;
         if (lastSyncedFlags != 0) {
             lastSyncedFlags = 0;
@@ -1051,6 +1133,10 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      */
     private void validateUnlockedAbilities() {
         if (AbilityController.Instance == null) return;
+        // Only validate on the server - the client trusts server-sent data.
+        // Custom ability definitions may not have been synced to the client yet,
+        // which would cause valid abilities to be incorrectly pruned.
+        if (playerData == null || !(playerData.player instanceof EntityPlayerMP)) return;
 
         Iterator<String> it = unlockedAbilities.iterator();
         while (it.hasNext()) {
