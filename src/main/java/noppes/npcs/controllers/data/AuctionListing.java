@@ -24,6 +24,7 @@ public class AuctionListing implements IAuctionListing {
     public long createdTime;
     public long endTime;
     public EnumAuctionStatus status;
+    public boolean isGlobalListing;
 
     public AuctionListing() {
         this.id = UUID.randomUUID().toString();
@@ -31,6 +32,7 @@ public class AuctionListing implements IAuctionListing {
         this.bidCount = 0;
         this.currentBid = 0;
         this.createdTime = System.currentTimeMillis();
+        this.isGlobalListing = false;
     }
 
     public AuctionListing(UUID sellerUUID, String sellerName, ItemStack item, long startingPrice, long buyoutPrice, long durationMs) {
@@ -228,6 +230,7 @@ public class AuctionListing implements IAuctionListing {
         compound.setLong("CreatedTime", createdTime);
         compound.setLong("EndTime", endTime);
         compound.setInteger("Status", status.ordinal());
+        compound.setBoolean("IsGlobalListing", isGlobalListing);
 
         return compound;
     }
@@ -255,6 +258,7 @@ public class AuctionListing implements IAuctionListing {
         createdTime = compound.getLong("CreatedTime");
         endTime = compound.getLong("EndTime");
         status = EnumAuctionStatus.fromOrdinal(compound.getInteger("Status"));
+        isGlobalListing = compound.getBoolean("IsGlobalListing");
     }
 
     public static AuctionListing fromNBT(NBTTagCompound compound) {

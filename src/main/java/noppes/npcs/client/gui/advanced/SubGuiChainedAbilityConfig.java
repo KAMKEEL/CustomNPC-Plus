@@ -4,11 +4,11 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
-import kamkeel.npcs.controllers.data.ability.AbilityIconData;
-import kamkeel.npcs.controllers.data.ability.IChainedAbilityFieldProvider;
-import kamkeel.npcs.controllers.data.ability.UserType;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
+import kamkeel.npcs.controllers.data.ability.data.AbilityIconData;
+import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
@@ -563,6 +563,8 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     return true;
                 case 2: // Up
                     if (entryIndex > 0) {
+                        // Commit any focused delay field before reordering
+                        GuiNpcTextField.unfocus();
                         ChainedAbilityEntry entry = entries.remove(entryIndex);
                         entries.add(entryIndex - 1, entry);
                         // Can't be concurrent at position 0
@@ -574,12 +576,16 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                     return true;
                 case 3: // Down
                     if (entryIndex < entries.size() - 1) {
+                        // Commit any focused delay field before reordering
+                        GuiNpcTextField.unfocus();
                         ChainedAbilityEntry entry = entries.remove(entryIndex);
                         entries.add(entryIndex + 1, entry);
                         initGui();
                     }
                     return true;
                 case 4: // Delete
+                    // Commit any focused delay field before removing
+                    GuiNpcTextField.unfocus();
                     entries.remove(entryIndex);
                     initGui();
                     return true;

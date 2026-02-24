@@ -3,12 +3,12 @@ package kamkeel.npcs.controllers.data.ability.type.energy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -32,7 +32,7 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
 
     public AbilityOrb() {
         super(
-            new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f),
+            new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 10.0f),
             new EnergyCombatData(),
             new EnergyHomingData(),
             new EnergyLifespanData()
@@ -44,7 +44,7 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
         this.minRange = 5.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMode.WINDUP;
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Orb_Windup";
@@ -117,7 +117,7 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
                 orb.setKnockbackUp(0.0f);
                 orb.setProjectileCount(2);
                 orb.setFireDelay(2);
-                a.setLockMovement(LockMovementType.WINDUP_AND_ACTIVE);
+                a.setLockMovement(LockMode.WINDUP_AND_ACTIVE);
                 a.setMaxRange(75.0f);
                 a.setBurstEnabled(true);
                 a.setBurstAmount(15);
@@ -187,7 +187,9 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
         defs.add(FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
-        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive));
+        defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
+            .range(0.0f, EnergyCombatData.MAX_EXPLOSION_RADIUS)
+            .visibleWhen(this::isExplosive));
         defs.add(AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects));
     }
 }

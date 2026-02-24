@@ -3,28 +3,38 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
-import kamkeel.npcs.controllers.data.ability.AbilityPotionEffect;
-import kamkeel.npcs.controllers.data.ability.AnchorPoint;
-import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
+import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
+import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
+import kamkeel.npcs.controllers.data.ability.enums.HitType;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
+import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.config.ConfigEnergy;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -35,9 +45,12 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Base class for all ability projectiles (Orb, Disc, Beam, Laser, Slicer).
@@ -47,7 +60,6 @@ import java.util.Map;
  * Design inspired by LouisXIV's energy attack system.
  */
 public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
-
     // ==================== ACTIVE PROJECTILE TRACKING ====================
     private static final Map<Integer, List<WeakReference<EntityEnergyProjectile>>> activeProjectiles = new HashMap<>();
 
@@ -112,6 +124,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== STATE ====================
     protected boolean hasHit = false;
+    protected int hitCount = 0;
+    protected final Set<Integer> hitOnceEntities = new HashSet<Integer>();
+    protected final Map<Integer, Integer> lastHitTickByEntity = new HashMap<Integer, Integer>();
+    protected static final int BARRIER_IMPACT_PAUSE_TICKS = 10;
+    protected static final int BARRIER_BREAK_SPARK_TICKS = 10;
+    protected static final int DW_BARRIER_SPARK_TICKS = 21;
+    protected static final int DW_SYNC_INNER_COLOR = 22;
+    protected static final int DW_SYNC_OUTER_COLOR = 23;
+    protected int barrierImpactPauseTicks = 0;
+    protected boolean barrierImpactDestroyOnResume = false;
+    protected double pausedMotionX, pausedMotionY, pausedMotionZ;
 
     // ==================== CHARGING STATE (projectile-specific) ====================
     protected float targetSize = 1.0f;
@@ -132,7 +155,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     public EntityEnergyProjectile(World world) {
         super(world);
         this.setSize(0.5f, 0.5f);
+        this.yOffset = this.height / 2.0f;
         this.noClip = false;
+    }
+
+    @Override
+    protected void entityInit() {
+        super.entityInit(); // DW_CHARGING = 20
+        this.dataWatcher.addObject(DW_BARRIER_SPARK_TICKS, 0);
+        // displayData is not guaranteed to be initialized yet during Entity construction.
+        this.dataWatcher.addObject(DW_SYNC_INNER_COLOR, 0xFFFFFF);
+        this.dataWatcher.addObject(DW_SYNC_OUTER_COLOR, 0xFFFFFF);
     }
 
     /**
@@ -159,6 +192,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
         this.lightningData = lightning;
         this.trajectoryData = trajectory;
+        syncProjectileColorWatchers();
 
         // Initialize render size
         this.renderCurrentSize = size;
@@ -194,11 +228,20 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             }
         }
 
+        if (!previewMode) {
+            syncDisplayColorsFromWatchers();
+        }
+
         // Update rotation
         updateRotation();
 
         // Lerp render size toward actual size
         this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
+
+        // Server-synced visual timer used for brief barrier impact lightning.
+        if (!previewMode && !worldObj.isRemote) {
+            tickBarrierSparkTimer();
+        }
 
         // Skip lifetime/distance checks in preview mode
         if (!previewMode) {
@@ -261,10 +304,16 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             }
         }
 
+        if (!previewMode && !worldObj.isRemote && !isCharging()) {
+            if (tickBarrierImpactPause()) {
+                return;
+            }
+        }
+
         // Check barrier collisions (server-side, non-preview, non-charging)
         if (!previewMode && !worldObj.isRemote && !isCharging()) {
             if (checkBarrierCollision()) {
-                return; // Projectile was absorbed by a barrier
+                return; // Barrier interaction handled (pause + destroy/continue)
             }
         }
 
@@ -315,11 +364,11 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * Check for collision with energy barrier entities.
      * Barriers only block incoming projectiles from enemies.
      *
-     * @return true if projectile was absorbed (caller should stop processing)
+     * @return true if barrier interaction was handled (caller should stop processing this tick)
      */
     protected boolean checkBarrierCollision() {
-        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
-        for (EntityEnergyBarrier barrier : barriers) {
+        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(worldObj);
+        for (EntityAbilityBarrier barrier : barriers) {
             if (barrier.isDead) continue;
 
             // Quick distance pre-filter
@@ -332,15 +381,354 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
             if (barrier.isIncomingProjectile(this)) {
                 float damage = getModifiedDamage();
-                if (barrier.onProjectileHit(this, damage)) {
-                    hasHit = true;
-                    this.setDead();
+                EntityAbilityBarrier.ProjectileHitOutcome hitOutcome = barrier.onProjectileHitResolved(this, damage);
+                if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+                    continue;
+                }
+                if (handleBarrierHitOutcome(barrier, hitOutcome)) {
                     return true;
                 }
+                return false;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Handle the result of a projectile/barrier interaction.
+     *
+     * @return true if caller should stop processing this tick.
+     */
+    protected boolean handleBarrierHitOutcome(EntityAbilityBarrier barrier, EntityAbilityBarrier.ProjectileHitOutcome hitOutcome) {
+        if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+            return false;
+        }
+
+        if (hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
+            if (hitOutcome.remainingProjectileDamage <= 0.0f) {
+                setBarrierSparkTicks(Math.max(getBarrierSparkTicks(), BARRIER_BREAK_SPARK_TICKS));
+                hasHit = true;
+                return true;
+            }
+
+            setCombatDamage(hitOutcome.remainingProjectileDamage);
+            setBarrierSparkTicks(Math.max(getBarrierSparkTicks(), BARRIER_BREAK_SPARK_TICKS));
+            return false;
+        }
+
+        if (hitOutcome.shouldReflect()) {
+            if (!reflectFromBarrier(barrier, hitOutcome.reflectStrengthPct)) {
+                beginBarrierImpactPause(true, barrier);
+            }
+            return true;
+        }
+
+        beginBarrierImpactPause(true, barrier);
+        return true;
+    }
+
+    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+        if (barrier == null) {
+            return false;
+        }
+
+        double vx = motionX;
+        double vy = motionY;
+        double vz = motionZ;
+        double vLenSq = vx * vx + vy * vy + vz * vz;
+        if (vLenSq < 1.0e-8) {
+            return false;
+        }
+
+        double[] normal = getBarrierImpactNormal(barrier, vx, vy, vz);
+        if (normal == null) {
+            return false;
+        }
+
+        double dot = vx * normal[0] + vy * normal[1] + vz * normal[2];
+        if (dot > 0.0) {
+            normal[0] = -normal[0];
+            normal[1] = -normal[1];
+            normal[2] = -normal[2];
+            dot = vx * normal[0] + vy * normal[1] + vz * normal[2];
+        }
+
+        double rx = vx - 2.0 * dot * normal[0];
+        double ry = vy - 2.0 * dot * normal[1];
+        double rz = vz - 2.0 * dot * normal[2];
+        double rLenSq = rx * rx + ry * ry + rz * rz;
+        if (rLenSq < 1.0e-8) {
+            rx = -vx;
+            ry = -vy;
+            rz = -vz;
+            rLenSq = rx * rx + ry * ry + rz * rz;
+        }
+
+        // Prefer rebounding out and away from ground instead of immediately diving downward.
+        if (ry < -0.06) {
+            double speed = Math.sqrt(Math.max(rLenSq, 1.0e-8));
+            ry = Math.max(0.08, Math.abs(ry) * 0.35);
+            double newLen = Math.sqrt(rx * rx + ry * ry + rz * rz);
+            if (newLen > 1.0e-8) {
+                double scale = speed / newLen;
+                rx *= scale;
+                ry *= scale;
+                rz *= scale;
+            }
+        }
+
+        // Push slightly outside the collision boundary so the reflected motion
+        // starts cleanly from the barrier surface instead of re-colliding in place.
+        snapOutsideBarrierForPause(barrier);
+
+        motionX = rx;
+        motionY = ry;
+        motionZ = rz;
+        pausedMotionX = rx;
+        pausedMotionY = ry;
+        pausedMotionZ = rz;
+        barrierImpactPauseTicks = 0;
+        barrierImpactDestroyOnResume = false;
+
+        Entity barrierOwner = barrier.getOwnerEntity();
+        if (barrierOwner != null) {
+            setOwnerEntityId(barrierOwner.getEntityId());
+            // Ensure ownership-sensitive systems can query this projectile under the new owner.
+            trackProjectile(this);
+        }
+        // Old homing target may now be the new owner or ally; clear it after reflection.
+        setTargetEntityId(-1);
+
+        setInnerColor(barrier.getInnerColor());
+        setOuterColor(barrier.getOuterColor());
+
+        float clampedStrength = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
+        float reducedDamage = getDamage() * (1.0f - clampedStrength / 100.0f);
+        setCombatDamage(Math.max(0.0f, reducedDamage));
+
+        hitOnceEntities.clear();
+        lastHitTickByEntity.clear();
+        hitCount = 0;
+        return true;
+    }
+
+    protected double[] getBarrierImpactNormal(EntityAbilityBarrier barrier, double velocityX, double velocityY, double velocityZ) {
+        if (barrier instanceof EntityAbilityDome) {
+            EntityAbilityDome dome = (EntityAbilityDome) barrier;
+            return normalizeVector(posX - dome.posX, posY - dome.posY, posZ - dome.posZ, velocityX, velocityY, velocityZ);
+        }
+
+        if (barrier instanceof EntityAbilityPanel) {
+            EntityAbilityPanel panel = (EntityAbilityPanel) barrier;
+            float yawRad = (float) Math.toRadians(panel.getPanelYaw());
+            double nx = -Math.sin(yawRad);
+            double nz = Math.cos(yawRad);
+            double relX = posX - panel.posX;
+            double relZ = posZ - panel.posZ;
+            double signedDist = relX * nx + relZ * nz;
+            double side = signedDist;
+            if (Math.abs(side) < 1.0e-5) {
+                side = velocityX * nx + velocityZ * nz;
+            }
+            if (side < 0.0) {
+                nx = -nx;
+                nz = -nz;
+            }
+            return normalizeVector(nx, 0.0, nz, velocityX, velocityY, velocityZ);
+        }
+
+        return normalizeVector(posX - barrier.posX, posY - barrier.posY, posZ - barrier.posZ, velocityX, velocityY, velocityZ);
+    }
+
+    protected double[] normalizeVector(double x, double y, double z, double fallbackX, double fallbackY, double fallbackZ) {
+        double lenSq = x * x + y * y + z * z;
+        if (lenSq > 1.0e-8) {
+            double invLen = 1.0 / Math.sqrt(lenSq);
+            return new double[]{x * invLen, y * invLen, z * invLen};
+        }
+
+        double fallbackLenSq = fallbackX * fallbackX + fallbackY * fallbackY + fallbackZ * fallbackZ;
+        if (fallbackLenSq > 1.0e-8) {
+            double invFallbackLen = 1.0 / Math.sqrt(fallbackLenSq);
+            return new double[]{-fallbackX * invFallbackLen, -fallbackY * invFallbackLen, -fallbackZ * invFallbackLen};
+        }
+
+        return new double[]{0.0, 1.0, 0.0};
+    }
+
+    protected void beginBarrierImpactPause(boolean destroyOnResume, EntityAbilityBarrier barrier) {
+        if (barrierImpactPauseTicks <= 0) {
+            pausedMotionX = motionX;
+            pausedMotionY = motionY;
+            pausedMotionZ = motionZ;
+        }
+
+        barrierImpactDestroyOnResume = destroyOnResume;
+        barrierImpactPauseTicks = BARRIER_IMPACT_PAUSE_TICKS;
+        motionX = 0;
+        motionY = 0;
+        motionZ = 0;
+
+        int sparkTicks = getBarrierSparkTicks();
+        if (sparkTicks < BARRIER_IMPACT_PAUSE_TICKS) {
+            setBarrierSparkTicks(BARRIER_IMPACT_PAUSE_TICKS);
+        }
+    }
+
+    protected float getBarrierPauseOutsideDistance() {
+        // Keep the paused projectile just outside the surface without a visible "fling".
+        return Math.max(0.06f, Math.min(0.22f, size * 0.18f + 0.03f));
+    }
+
+    protected void snapOutsideBarrierForPause(EntityAbilityBarrier barrier) {
+        if (barrier == null) return;
+
+        float bias = getBarrierPauseOutsideDistance();
+        if (barrier instanceof EntityAbilityDome) {
+            EntityAbilityDome dome = (EntityAbilityDome) barrier;
+            double nx = posX - dome.posX;
+            double ny = posY - dome.posY;
+            double nz = posZ - dome.posZ;
+            double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+            if (len < 1.0e-5) {
+                double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+                if (vLen > 1.0e-5) {
+                    nx = -motionX / vLen;
+                    ny = -motionY / vLen;
+                    nz = -motionZ / vLen;
+                    len = 1.0;
+                } else {
+                    nx = 0.0;
+                    ny = 1.0;
+                    nz = 0.0;
+                    len = 1.0;
+                }
+            }
+
+            double invLen = 1.0 / len;
+            double target = dome.getDomeRadius() + bias;
+            setPosition(
+                dome.posX + nx * invLen * target,
+                dome.posY + ny * invLen * target,
+                dome.posZ + nz * invLen * target
+            );
+            return;
+        }
+
+        if (barrier instanceof EntityAbilityPanel) {
+            EntityAbilityPanel panel = (EntityAbilityPanel) barrier;
+            float yawRad = (float) Math.toRadians(panel.getPanelYaw());
+            double normalX = -Math.sin(yawRad);
+            double normalZ = Math.cos(yawRad);
+            double relX = posX - panel.posX;
+            double relZ = posZ - panel.posZ;
+            double signedDist = relX * normalX + relZ * normalZ;
+            double halfThickness = 0.25;
+            double side;
+            if (Math.abs(signedDist) > 0.035) {
+                side = signedDist >= 0 ? 1.0 : -1.0;
+            } else {
+                // Near the plane, use incoming direction so we don't snap through and "fling".
+                double vDot = motionX * normalX + motionZ * normalZ;
+                if (Math.abs(vDot) > 1.0e-5) {
+                    side = vDot < 0 ? 1.0 : -1.0;
+                } else {
+                    side = signedDist >= 0 ? 1.0 : -1.0;
+                }
+            }
+            double targetDist = side * (halfThickness + bias);
+            double delta = targetDist - signedDist;
+            setPosition(posX + normalX * delta, posY, posZ + normalZ * delta);
+            return;
+        }
+
+        double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+        if (vLen > 1.0e-5) {
+            setPosition(
+                posX - (motionX / vLen) * bias,
+                posY - (motionY / vLen) * bias,
+                posZ - (motionZ / vLen) * bias
+            );
+        }
+    }
+
+    protected boolean tickBarrierImpactPause() {
+        if (barrierImpactPauseTicks <= 0) {
+            return false;
+        }
+
+        motionX = 0;
+        motionY = 0;
+        motionZ = 0;
+        barrierImpactPauseTicks--;
+
+        if (barrierImpactPauseTicks <= 0) {
+            if (barrierImpactDestroyOnResume) {
+                hasHit = true;
+                this.setDead();
+            } else {
+                motionX = pausedMotionX;
+                motionY = pausedMotionY;
+                motionZ = pausedMotionZ;
+            }
+            barrierImpactDestroyOnResume = false;
+        }
+
+        return true;
+    }
+
+    protected void tickBarrierSparkTimer() {
+        int sparkTicks = getBarrierSparkTicks();
+        if (sparkTicks > 0) {
+            setBarrierSparkTicks(sparkTicks - 1);
+        }
+    }
+
+    protected void setBarrierSparkTicks(int ticks) {
+        if (!worldObj.isRemote) {
+            this.dataWatcher.updateObject(DW_BARRIER_SPARK_TICKS, Math.max(0, ticks));
+        }
+    }
+
+    public int getBarrierSparkTicks() {
+        if (this.dataWatcher == null) {
+            return 0;
+        }
+        return Math.max(0, this.dataWatcher.getWatchableObjectInt(DW_BARRIER_SPARK_TICKS));
+    }
+
+    protected void syncProjectileColorWatchers() {
+        if (this.dataWatcher == null) {
+            return;
+        }
+        this.dataWatcher.updateObject(DW_SYNC_INNER_COLOR, this.displayData.getInnerColor());
+        this.dataWatcher.updateObject(DW_SYNC_OUTER_COLOR, this.displayData.getOuterColor());
+    }
+
+    protected void syncDisplayColorsFromWatchers() {
+        if (this.dataWatcher == null) {
+            return;
+        }
+        this.displayData.setInnerColor(this.dataWatcher.getWatchableObjectInt(DW_SYNC_INNER_COLOR));
+        this.displayData.setOuterColor(this.dataWatcher.getWatchableObjectInt(DW_SYNC_OUTER_COLOR));
+    }
+
+    @Override
+    public void setInnerColor(int color) {
+        super.setInnerColor(color);
+        if (!previewMode) {
+            syncProjectileColorWatchers();
+        }
+    }
+
+    @Override
+    public void setOuterColor(int color) {
+        super.setOuterColor(color);
+        if (!previewMode) {
+            syncProjectileColorWatchers();
+        }
     }
 
     /**
@@ -363,10 +751,42 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     @Override
     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements) {
+        int steps = Math.max(1, posRotationIncrements);
+        double dx = x - this.posX;
+        double dy = y - this.posY;
+        double dz = z - this.posZ;
+        double dotToCurrentMotion = dx * this.motionX + dy * this.motionY + dz * this.motionZ;
+
+        // Spawn-time and large correction snaps: avoid visible startup rubber-banding.
+        if (worldObj != null && worldObj.isRemote) {
+            double distSq = dx * dx + dy * dy + dz * dz;
+            // Launch-time stale tracker packets can arrive one update late and point behind
+            // an already-predicted projectile. Skipping these avoids visible backward "bounce".
+            if (ticksExisted <= 24 && distSq <= 4.0D && dotToCurrentMotion < -0.0025D) {
+                return;
+            }
+            if (ticksExisted <= 2 || distSq > 16.0D) {
+                this.setPosition(x, y, z);
+                syncPositionState(x, y, z, true);
+                return;
+            }
+        }
+
         this.interpTargetX = x;
         this.interpTargetY = y;
         this.interpTargetZ = z;
-        this.interpSteps = posRotationIncrements;
+        if (worldObj != null && worldObj.isRemote && ticksExisted <= 24 && dotToCurrentMotion < 0.0D) {
+            // Keep existing velocity when correction points opposite current travel
+            // to prevent launch-time reverse lerp.
+            this.interpTargetMotionX = this.motionX;
+            this.interpTargetMotionY = this.motionY;
+            this.interpTargetMotionZ = this.motionZ;
+        } else {
+            this.interpTargetMotionX = dx / steps;
+            this.interpTargetMotionY = dy / steps;
+            this.interpTargetMotionZ = dz / steps;
+        }
+        this.interpSteps = steps;
     }
 
     @Override
@@ -384,9 +804,23 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      */
     protected void handleClientInterpolation() {
         if (this.interpSteps > 0) {
-            double newX = this.posX + (this.interpTargetX - this.posX) / this.interpSteps;
-            double newY = this.posY + (this.interpTargetY - this.posY) / this.interpSteps;
-            double newZ = this.posZ + (this.interpTargetZ - this.posZ) / this.interpSteps;
+            // For very slow / stationary projectiles, snap directly to avoid jitter
+            double dx = this.interpTargetX - this.posX;
+            double dy = this.interpTargetY - this.posY;
+            double dz = this.interpTargetZ - this.posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+            if (distSq < 0.04) {
+                this.setPosition(this.interpTargetX, this.interpTargetY, this.interpTargetZ);
+                this.motionX = this.interpTargetMotionX;
+                this.motionY = this.interpTargetMotionY;
+                this.motionZ = this.interpTargetMotionZ;
+                this.interpSteps = 0;
+                return;
+            }
+
+            double newX = this.posX + dx / this.interpSteps;
+            double newY = this.posY + dy / this.interpSteps;
+            double newZ = this.posZ + dz / this.interpSteps;
 
             this.motionX = this.motionX + (this.interpTargetMotionX - this.motionX) / this.interpSteps;
             this.motionY = this.motionY + (this.interpTargetMotionY - this.motionY) / this.interpSteps;
@@ -395,6 +829,11 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             this.setPosition(newX, newY, newZ);
             this.interpSteps--;
         } else {
+            // Skip motion application for nearly-stationary projectiles to prevent drift
+            double speedSq = this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ;
+            if (speedSq < 0.0001) {
+                return;
+            }
             this.posX += this.motionX;
             this.posY += this.motionY;
             this.posZ += this.motionZ;
@@ -411,6 +850,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
         if (previewMode) return; // Skip damage in preview mode
+        if (target == null || shouldIgnoreEntity(target)) return;
 
         // Fire entity impact event (may cancel or modify damage)
         if (!worldObj.isRemote) {
@@ -423,6 +863,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         // Check for ability extenders (e.g., DBC Addon damage routing)
         boolean handled = false;
+        boolean defaultDamageApplied = false;
         if (sourceAbility != null && owner instanceof EntityLivingBase) {
             double dx = target.posX - posX;
             double dz = target.posZ - posZ;
@@ -435,15 +876,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (!handled) {
             // Default damage path
             if (owner instanceof EntityNPCInterface) {
-                target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+                defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
             } else if (owner instanceof EntityPlayer) {
-                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+                defaultDamageApplied = target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
             } else if (owner instanceof EntityLivingBase) {
-                target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+                defaultDamageApplied = target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
             } else {
-                target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+                defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
             }
         }
+
+        boolean allowSecondaryEffects = handled || dmg <= 0 || defaultDamageApplied;
+        if (!allowSecondaryEffects) return;
 
         if (kb > 0) {
             double dx = target.posX - posX;
@@ -476,8 +920,15 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     protected void doExplosion() {
         if (previewMode) return; // Skip explosion in preview mode
+        if (worldObj.isRemote) return; // Explosions are server-side only
         float explosionRad = getExplosionRadius();
         if (Float.isNaN(explosionRad) || explosionRad <= 0) return;
+        final double explosionRadSq = explosionRad * explosionRad;
+        final float baseDamage = getDamage();
+        final float baseKnockback = getKnockback();
+        final float damageFalloff = getExplosionDamageFalloff();
+        spawnExplosionRenderEntity(explosionRad);
+        spawnExplosionVisuals(explosionRad);
         worldObj.playSoundEffect(posX, posY, posZ, "random.explode", 1.0f, 1.0f);
 
         Entity owner = getOwnerEntity();
@@ -492,16 +943,281 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         for (EntityLivingBase target : targets) {
             if (target == owner) continue;
+            if (shouldIgnoreExplosionTarget(target)) continue;
 
-            double dist = Math.sqrt(
-                Math.pow(target.posX - posX, 2) +
-                    Math.pow(target.posY - posY, 2) +
-                    Math.pow(target.posZ - posZ, 2)
+            // Measure distance to nearest point on entity's bounding box, not feet position.
+            // Using feet position (target.posY) causes explosions at impact height to miss
+            // entities standing below — e.g. a projectile hitting at eye height (~1.62 above feet)
+            // would measure dist=1.62, failing a radius<=1.6 check despite a direct hit.
+            if (target.boundingBox == null) continue;
+            double closestX = Math.max(target.boundingBox.minX, Math.min(posX, target.boundingBox.maxX));
+            double closestY = Math.max(target.boundingBox.minY, Math.min(posY, target.boundingBox.maxY));
+            double closestZ = Math.max(target.boundingBox.minZ, Math.min(posZ, target.boundingBox.maxZ));
+            double dx = closestX - posX;
+            double dy = closestY - posY;
+            double dz = closestZ - posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+            if (distSq > explosionRadSq) continue;
+
+            float falloff = 1.0f;
+            if (damageFalloff != 0.0f && distSq > 0.0D) {
+                float dist = (float) Math.sqrt(distSq);
+                falloff = 1.0f - (dist / explosionRad) * damageFalloff;
+            }
+            applyDamage(target, baseDamage * falloff, baseKnockback * falloff);
+        }
+
+        tryDestroyTerrain(explosionRad);
+    }
+
+    /**
+     * Explosion safety filter.
+     * Reuses standard projectile-friendly checks (owner, faction, party).
+     */
+    protected boolean shouldIgnoreExplosionTarget(EntityLivingBase target) {
+        if (target == null) return true;
+        return shouldIgnoreEntity(target);
+    }
+
+    /**
+     * Clamp a point to the nearest point inside the provided AABB.
+     */
+    protected Vec3 closestPointOnBoundingBox(AxisAlignedBB box, double x, double y, double z) {
+        if (box == null) return null;
+        double closestX = Math.max(box.minX, Math.min(x, box.maxX));
+        double closestY = Math.max(box.minY, Math.min(y, box.maxY));
+        double closestZ = Math.max(box.minZ, Math.min(z, box.maxZ));
+        return Vec3.createVectorHelper(closestX, closestY, closestZ);
+    }
+
+    /**
+     * Spawn a packet-driven client preview so explosions are visible as geometry,
+     * not only as particles.
+     */
+    protected void spawnExplosionRenderEntity(float explosionRad) {
+        if (worldObj == null || worldObj.isRemote) return;
+        float renderRad = Math.max(0.75f, Math.min(explosionRad, EnergyCombatData.MAX_EXPLOSION_RADIUS));
+        EntityEnergyExplosion fx = new EntityEnergyExplosion(worldObj, this, renderRad);
+        EnergyExplosionSpawnPacket.sendToTracking(getExplosionVisualInstanceId(), fx, this);
+    }
+
+    protected String getExplosionVisualInstanceId() {
+        return "energy_explosion_" + UUID.randomUUID();
+    }
+
+    /**
+     * Shared voxel-style explosion VFX for all energy projectile abilities.
+     */
+    protected void spawnExplosionVisuals(float explosionRad) {
+        if (worldObj == null) return;
+
+        float visualRad = Math.max(0.75f, Math.min(explosionRad, EnergyCombatData.MAX_EXPLOSION_RADIUS));
+        int coreBursts = Math.max(1, Math.min(4, Math.round(visualRad * 0.35f)));
+        int shellCount = Math.max(1, Math.min(3, Math.round(visualRad / 3.5f) + 1));
+
+        // Core flash.
+        emitRandomBurstParticle("largeexplode", coreBursts, visualRad * 0.10, visualRad * 0.08, visualRad * 0.10, 0.01);
+
+        // Expanding voxel shells.
+        for (int i = 1; i <= shellCount; i++) {
+            double frac = i / (double) shellCount;
+            double shellRadius = visualRad * (0.35D + 0.65D * frac);
+            spawnVoxelShell(shellRadius, i, visualRad);
+        }
+
+        // Residual smoke volume.
+        int smokeCount = Math.max(6, Math.min(40, Math.round(visualRad * 4.5f)));
+        emitRandomBurstParticle("smoke", smokeCount, visualRad * 0.45, visualRad * 0.30, visualRad * 0.45, 0.01);
+
+        // Pull block fragments for stronger voxel feel.
+        spawnVoxelDebris(visualRad);
+    }
+
+    /**
+     * Emit random burst particles centered around this explosion.
+     */
+    protected void emitRandomBurstParticle(String particle, int count,
+                                           double spreadX, double spreadY, double spreadZ,
+                                           double speed) {
+        if (worldObj == null || count <= 0 || particle == null || particle.isEmpty()) return;
+
+        if (worldObj.isRemote) {
+            for (int i = 0; i < count; i++) {
+                double px = posX + (rand.nextDouble() - 0.5D) * 2.0D * spreadX;
+                double py = posY + (rand.nextDouble() - 0.5D) * 2.0D * spreadY;
+                double pz = posZ + (rand.nextDouble() - 0.5D) * 2.0D * spreadZ;
+                double mx = rand.nextGaussian() * speed;
+                double my = rand.nextGaussian() * speed;
+                double mz = rand.nextGaussian() * speed;
+                worldObj.spawnParticle(particle, px, py, pz, mx, my, mz);
+            }
+            return;
+        }
+
+        if (worldObj instanceof WorldServer) {
+            ((WorldServer) worldObj).func_147487_a(particle, posX, posY, posZ, count, spreadX, spreadY, spreadZ, speed);
+        }
+    }
+
+    /**
+     * Emits a single directed voxel particle.
+     * Uses count=0 packet mode on server so motion values are preserved.
+     */
+    protected void emitVoxelParticle(String particle, double x, double y, double z,
+                                     double motionX, double motionY, double motionZ) {
+        if (worldObj == null || particle == null || particle.isEmpty()) return;
+
+        if (worldObj.isRemote) {
+            worldObj.spawnParticle(particle, x, y, z, motionX, motionY, motionZ);
+            return;
+        }
+
+        if (worldObj instanceof WorldServer) {
+            ((WorldServer) worldObj).func_147487_a(particle, x, y, z, 0, motionX, motionY, motionZ, 1.0D);
+        }
+    }
+
+    /**
+     * Spawn one cubic shell of explosion particles to get a blocky/voxel silhouette.
+     */
+    protected void spawnVoxelShell(double shellRadius, int shellIndex, float visualRad) {
+        int steps = Math.max(2, Math.min(4, (int) Math.ceil(shellRadius * 0.55D)));
+        double cell = shellRadius / steps;
+        double jitter = Math.min(0.15D, cell * 0.20D);
+        double shellSpeed = 0.03D + (shellRadius / Math.max(1.0D, visualRad)) * 0.05D;
+
+        for (int ix = -steps; ix <= steps; ix++) {
+            for (int iy = -steps; iy <= steps; iy++) {
+                for (int iz = -steps; iz <= steps; iz++) {
+                    int edge = Math.max(Math.abs(ix), Math.max(Math.abs(iy), Math.abs(iz)));
+                    if (edge != steps) continue;
+                    if (((ix + iy + iz + shellIndex) & 1) != 0) continue;
+
+                    double px = posX + ix * cell + (rand.nextDouble() - 0.5D) * jitter;
+                    double py = posY + iy * cell + (rand.nextDouble() - 0.5D) * jitter;
+                    double pz = posZ + iz * cell + (rand.nextDouble() - 0.5D) * jitter;
+
+                    double nx = ix;
+                    double ny = iy;
+                    double nz = iz;
+                    double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    if (len < 0.001D) {
+                        ny = 1.0D;
+                        len = 1.0D;
+                    }
+                    nx /= len;
+                    ny /= len;
+                    nz /= len;
+
+                    emitVoxelParticle("explode", px, py, pz, nx * shellSpeed, ny * shellSpeed, nz * shellSpeed);
+
+                    if (((ix + iy + iz + shellIndex) % 3) == 0) {
+                        emitVoxelParticle("smoke", px, py, pz, nx * shellSpeed * 0.35D, ny * shellSpeed * 0.35D, nz * shellSpeed * 0.35D);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Spawn debris particles using nearby block textures.
+     */
+    protected void spawnVoxelDebris(float visualRad) {
+        if (worldObj == null) return;
+
+        int count = Math.max(4, Math.min(24, Math.round(visualRad * 2.5f)));
+        for (int i = 0; i < count; i++) {
+            double ox = (rand.nextDouble() - 0.5D) * visualRad * 1.2D;
+            double oy = (rand.nextDouble() - 0.35D) * visualRad * 0.9D;
+            double oz = (rand.nextDouble() - 0.5D) * visualRad * 1.2D;
+
+            int bx = MathHelper.floor_double(posX + ox);
+            int by = MathHelper.floor_double(posY + oy);
+            int bz = MathHelper.floor_double(posZ + oz);
+
+            Block block = worldObj.getBlock(bx, by, bz);
+            if (block == null || block == Blocks.air) continue;
+
+            int blockId = Block.getIdFromBlock(block);
+            if (blockId <= 0) continue;
+            int meta = worldObj.getBlockMetadata(bx, by, bz);
+
+            String particle = "blockcrack_" + blockId + "_" + Math.max(0, meta);
+            emitVoxelParticle(
+                particle,
+                posX + ox * 0.55D,
+                posY + oy * 0.55D,
+                posZ + oz * 0.55D,
+                ox * 0.03D, oy * 0.03D, oz * 0.03D
             );
+        }
+    }
 
-            if (dist <= explosionRad) {
-                float falloff = 1.0f - (float) (dist / explosionRad) * getExplosionDamageFalloff();
-                applyDamage(target, getDamage() * falloff, getKnockback() * falloff);
+    /**
+     * Optional terrain damage for energy explosions.
+     * Controlled server-side by ConfigEnergy.EnableEnergyExplosionBlockDamage.
+     */
+    protected void tryDestroyTerrain(float explosionRad) {
+        if (worldObj == null || worldObj.isRemote) return;
+        if (!ConfigEnergy.EnableEnergyExplosionBlockDamage) return;
+        if (!worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing")) return;
+
+        float terrainRad = Math.max(0.5f, Math.min(explosionRad, EnergyCombatData.MAX_EXPLOSION_RADIUS));
+        int minX = MathHelper.floor_double(posX - terrainRad);
+        int maxX = MathHelper.floor_double(posX + terrainRad);
+        int minY = MathHelper.floor_double(posY - terrainRad);
+        int maxY = MathHelper.floor_double(posY + terrainRad);
+        int minZ = MathHelper.floor_double(posZ - terrainRad);
+        int maxZ = MathHelper.floor_double(posZ + terrainRad);
+        int worldMaxY = Math.max(0, worldObj.getActualHeight() - 1);
+        if (maxY < 0 || minY > worldMaxY) return;
+        float resistanceCutoff = Math.max(4.0f, terrainRad * 6.0f);
+
+        Explosion context = new Explosion(worldObj, this, posX, posY, posZ, terrainRad);
+        context.isFlaming = false;
+        context.isSmoking = true;
+        int lastChunkX = Integer.MIN_VALUE;
+        int lastChunkZ = Integer.MIN_VALUE;
+        boolean lastChunkLoaded = false;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    double cx = x + 0.5D - posX;
+                    double cy = y + 0.5D - posY;
+                    double cz = z + 0.5D - posZ;
+
+                    // Chebyshev metric yields a voxel/cubic blast shape.
+                    double chebyshev = Math.max(Math.abs(cx), Math.max(Math.abs(cy), Math.abs(cz)));
+                    if (chebyshev > terrainRad) continue;
+
+                    // Soften cube corners a bit for a less artificial crater edge.
+                    double normalized = chebyshev / terrainRad;
+                    if (normalized > 0.72D && rand.nextDouble() < (normalized - 0.72D) * 1.4D) continue;
+                    if (y < 0 || y > worldMaxY) continue;
+
+                    int chunkX = x >> 4;
+                    int chunkZ = z >> 4;
+                    if (chunkX != lastChunkX || chunkZ != lastChunkZ) {
+                        lastChunkX = chunkX;
+                        lastChunkZ = chunkZ;
+                        lastChunkLoaded = worldObj.getChunkProvider().chunkExists(chunkX, chunkZ);
+                    }
+                    if (!lastChunkLoaded) continue;
+
+                    Block block = worldObj.getBlock(x, y, z);
+                    if (block == null || block == Blocks.air || block == Blocks.bedrock) continue;
+                    Material material = block.getMaterial();
+                    if (material == null || material == Material.air) continue;
+
+                    float resistance = block.getExplosionResistance(this, worldObj, x, y, z, posX, posY, posZ);
+                    if (resistance > resistanceCutoff) continue;
+
+                    try {
+                        block.onBlockExploded(worldObj, x, y, z, context);
+                    } catch (Exception ignored) {
+                    }
+                }
             }
         }
     }
@@ -509,30 +1225,355 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     // ==================== LAUNCH HELPERS ====================
 
     /**
-     * For player casters, snap the projectile to a position along the player's look vector.
-     * This ensures projectiles launch aligned with the crosshair rather than from the hand anchor.
-     * Only affects player casters; NPC projectiles launch from their anchor position as configured.
+     * Snaps the projectile position to the owner's look vector on launch.
+     * This ensures projectiles launch aligned with the owner's facing direction
+     * rather than from the last anchor point position.
      * Should be called in startMoving/startFiring BEFORE setting startX/Y/Z.
      */
-    protected void snapToPlayerLookVector() {
+    protected void snapToLookVector() {
+        setLookVectorLaunchPosition(true);
+    }
+
+    /**
+     * Shared launch transition: exit charging, snap to look-vector launch origin,
+     * sync start position, and optionally reset interpolation state.
+     *
+     * @param resetInterpolationState true to reset prev/lastTick/interp state to launch origin.
+     * @return true when look-vector launch origin was resolved from owner/look data.
+     */
+    protected boolean beginLookVectorLaunch(boolean resetInterpolationState) {
+        setCharging(false);
         Entity owner = getOwnerEntity();
-        if (!(owner instanceof EntityPlayer)) return;
+        boolean positioned = false;
+        if (owner instanceof EntityLivingBase && shouldSnapLaunchToLookVector((EntityLivingBase) owner)) {
+            positioned = setLookVectorLaunchPosition((EntityLivingBase) owner, getOwnerLookVector(), true);
+        }
+        syncStartPositionToCurrent();
+        if (resetInterpolationState) {
+            syncPositionStateToCurrent(true);
+        }
+        return positioned;
+    }
+
+    /**
+     * Shared launch transition with explicit owner/look vector data.
+     */
+    protected boolean beginLookVectorLaunch(EntityLivingBase owner, Vec3 look, boolean resetInterpolationState) {
+        setCharging(false);
+        boolean positioned = shouldSnapLaunchToLookVector(owner) && setLookVectorLaunchPosition(owner, look, true);
+        syncStartPositionToCurrent();
+        if (resetInterpolationState) {
+            syncPositionStateToCurrent(true);
+        }
+        return positioned;
+    }
+
+    /**
+     * Only player-cast projectiles should be recentered to look-vector launch origin.
+     * NPC projectiles keep their anchor charge origin so casts originate from the configured anchor.
+     */
+    protected boolean shouldSnapLaunchToLookVector(EntityLivingBase owner) {
+        return owner instanceof EntityPlayer;
+    }
+
+    /**
+     * Default preview launch: snap to look-vector origin and fire along look.
+     */
+    protected void startPreviewFiringDefault() {
+        beginLookVectorLaunch(true);
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
+     * Default active launch: snap to look-vector origin and fire toward target when available.
+     */
+    protected void startMovingTowardTargetDefault(EntityLivingBase target) {
+        beginLookVectorLaunch(false);
+        setMotionTowardTargetOrLookVector(target, posX, posY, posZ, getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
+     * Default active launch from fixed origin fields (used by beam-like projectiles).
+     */
+    protected void startMovingTowardTargetFromStartDefault(EntityLivingBase target) {
+        beginLookVectorLaunch(false);
+        setMotionTowardTargetOrLookVector(target, startX, startY, startZ, getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
+     * Default active launch strictly along look vector.
+     */
+    protected void startMovingAlongLookVectorDefault() {
+        beginLookVectorLaunch(false);
+        setMotionAlongLookVectorOrFallback(getSpeed(), getSpeed(), 0, 0);
+    }
+
+    /**
+     * Resolve the owner's look vector.
+     * Falls back to yaw/pitch math if look vector is unavailable.
+     */
+    protected Vec3 getOwnerLookVector() {
+        Entity owner = getOwnerEntity();
+        if (!(owner instanceof EntityLivingBase)) return null;
 
         Vec3 look = owner.getLookVec();
-        double eyeY = owner.posY + owner.getEyeHeight();
-        float frontDist = Math.max(0.5f, size * 0.5f);
+        if (look != null) return look;
 
-        double newX = owner.posX + look.xCoord * frontDist;
-        double newY = eyeY + look.yCoord * frontDist;
-        double newZ = owner.posZ + look.zCoord * frontDist;
+        float yaw = (float) Math.toRadians(owner.rotationYaw);
+        float pitch = (float) Math.toRadians(owner.rotationPitch);
+        return Vec3.createVectorHelper(
+            -Math.sin(yaw) * Math.cos(pitch),
+            -Math.sin(pitch),
+            Math.cos(yaw) * Math.cos(pitch)
+        );
+    }
+
+    /**
+     * Shared launch origin: owner eye position + look-vector offset.
+     *
+     * @param syncPositionState When true, sync prev/lastTick/interp targets to this position.
+     */
+    protected boolean setLookVectorLaunchPosition(boolean syncPositionState) {
+        Entity owner = getOwnerEntity();
+        if (!(owner instanceof EntityLivingBase)) return false;
+        Vec3 look = getOwnerLookVector();
+        if (look == null) return false;
+        return setLookVectorLaunchPosition((EntityLivingBase) owner, look, syncPositionState);
+    }
+
+    /**
+     * Shared launch origin using provided owner/look data.
+     */
+    protected boolean setLookVectorLaunchPosition(EntityLivingBase owner, Vec3 look, boolean syncPositionState) {
+        if (owner == null || look == null) return false;
+
+        double originX = owner.posX;
+        double originY = owner.posY + owner.getEyeHeight();
+        double originZ = owner.posZ;
+
+        float frontDist = computeLaunchFrontDistance(owner, look, originX, originY, originZ);
+        double newX = originX + look.xCoord * frontDist;
+        double newY = originY + look.yCoord * frontDist;
+        double newZ = originZ + look.zCoord * frontDist;
 
         setPosition(newX, newY, newZ);
-        prevPosX = newX;
-        prevPosY = newY;
-        prevPosZ = newZ;
+        if (syncPositionState) {
+            syncPositionState(newX, newY, newZ, true);
+        }
+        return true;
+    }
+
+    /**
+     * Radius used to clear the caster hitbox on launch.
+     * Subclasses may override if their effective launch footprint differs from {@code size}.
+     */
+    protected float getLaunchClearanceRadius() {
+        return Math.max(0.1f, size * 0.5f);
+    }
+
+    private float computeLaunchFrontDistance(EntityLivingBase owner, Vec3 look, double originX, double originY, double originZ) {
+        // Legacy baseline offset retained as lower bound.
+        float baseline = size * 0.4f;
+        float clearance = getLaunchClearanceRadius() + 0.05f;
+
+        AxisAlignedBB bb = owner.boundingBox;
+        if (bb == null) {
+            return Math.max(baseline, owner.width * 0.5f + clearance);
+        }
+
+        double dx = look.xCoord;
+        double dy = look.yCoord;
+        double dz = look.zCoord;
+
+        double tx = computeRayExitT(originX, dx, bb.minX, bb.maxX);
+        double ty = computeRayExitT(originY, dy, bb.minY, bb.maxY);
+        double tz = computeRayExitT(originZ, dz, bb.minZ, bb.maxZ);
+
+        double tExit = Math.min(tx, Math.min(ty, tz));
+        if (Double.isInfinite(tExit) || tExit < 0) {
+            return Math.max(baseline, owner.width * 0.5f + clearance);
+        }
+
+        return (float) Math.max(baseline, tExit + clearance);
+    }
+
+    private double computeRayExitT(double origin, double dir, double min, double max) {
+        final double EPS = 1.0e-6;
+        if (dir > EPS) {
+            return (max - origin) / dir;
+        } else if (dir < -EPS) {
+            return (min - origin) / dir;
+        }
+        return Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * Set projectile motion along owner look vector.
+     *
+     * @return true if owner/look were available.
+     */
+    protected boolean setMotionAlongLookVector(float speed) {
+        Vec3 look = getOwnerLookVector();
+        if (look == null) return false;
+
+        motionX = look.xCoord * speed;
+        motionY = look.yCoord * speed;
+        motionZ = look.zCoord * speed;
+        return true;
+    }
+
+    /**
+     * Set motion along owner look vector or apply explicit fallback values.
+     */
+    protected void setMotionAlongLookVectorOrFallback(float speed, double fallbackX, double fallbackY, double fallbackZ) {
+        if (!setMotionAlongLookVector(speed)) {
+            motionX = fallbackX;
+            motionY = fallbackY;
+            motionZ = fallbackZ;
+        }
+    }
+
+    /**
+     * Set projectile motion toward a target from a given source point.
+     *
+     * @return true if target was valid and motion was updated.
+     */
+    protected boolean setMotionTowardTarget(EntityLivingBase target, double sourceX, double sourceY, double sourceZ, float speed) {
+        if (target == null) return false;
+
+        double dx = target.posX - sourceX;
+        double dy = (target.posY + target.getEyeHeight()) - sourceY;
+        double dz = target.posZ - sourceZ;
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len <= 0.0001) return false;
+
+        motionX = (dx / len) * speed;
+        motionY = (dy / len) * speed;
+        motionZ = (dz / len) * speed;
+        return true;
+    }
+
+    /**
+     * Set motion toward target from source point; when target is unavailable,
+     * fall back to owner look vector, then explicit fallback values.
+     */
+    protected void setMotionTowardTargetOrLookVector(EntityLivingBase target, double sourceX, double sourceY, double sourceZ, float speed,
+                                                     double fallbackX, double fallbackY, double fallbackZ) {
+        if (!setMotionTowardTarget(target, sourceX, sourceY, sourceZ, speed)) {
+            setMotionAlongLookVectorOrFallback(speed, fallbackX, fallbackY, fallbackZ);
+        }
+    }
+
+    /**
+     * Sync start position (distance origin) to the current entity position.
+     */
+    protected void syncStartPositionToCurrent() {
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+    }
+
+    /**
+     * Sync prev/lastTick and optional interpolation state to an explicit position.
+     */
+    protected void syncPositionState(double x, double y, double z, boolean resetInterpolation) {
+        prevPosX = x;
+        prevPosY = y;
+        prevPosZ = z;
+        lastTickPosX = x;
+        lastTickPosY = y;
+        lastTickPosZ = z;
+
+        if (resetInterpolation) {
+            interpTargetX = x;
+            interpTargetY = y;
+            interpTargetZ = z;
+            interpTargetMotionX = motionX;
+            interpTargetMotionY = motionY;
+            interpTargetMotionZ = motionZ;
+            interpSteps = 0;
+        }
+    }
+
+    /**
+     * Sync prev/lastTick and optional interpolation state to current entity position.
+     */
+    protected void syncPositionStateToCurrent(boolean resetInterpolation) {
+        syncPositionState(posX, posY, posZ, resetInterpolation);
     }
 
     // ==================== CHARGING METHODS (projectile-specific) ====================
+
+    /**
+     * Shared charging-state bootstrap used by both world and preview setup paths.
+     */
+    protected void setupChargingState(EnergyAnchorData anchor, int chargeDuration) {
+        setCharging(true);
+        this.chargeDuration = chargeDuration;
+        this.chargeTick = 0;
+        this.anchorData = anchor;
+    }
+
+    /**
+     * Shared preview bootstrap used by projectile preview setup methods.
+     */
+    protected void setupPreviewState(EntityLivingBase owner, EnergyDisplayData display,
+                                     EnergyLightningData lightning, EnergyAnchorData anchor,
+                                     int chargeDuration) {
+        this.setPreviewMode(true);
+        this.setPreviewOwner(owner);
+        this.displayData = display;
+        this.lightningData = lightning;
+        setupChargingState(anchor, chargeDuration);
+    }
+
+    /**
+     * Set size and render-size state to a single value.
+     */
+    protected void setVisualSize(float value) {
+        this.size = value;
+        this.renderCurrentSize = value;
+        this.prevRenderSize = value;
+    }
+
+    /**
+     * Set entity/start state to a fixed position used as charging/launch origin.
+     */
+    protected void setChargeOrigin(Vec3 pos) {
+        if (pos == null) return;
+        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+        this.prevPosX = pos.xCoord;
+        this.prevPosY = pos.yCoord;
+        this.prevPosZ = pos.zCoord;
+        this.startX = pos.xCoord;
+        this.startY = pos.yCoord;
+        this.startZ = pos.zCoord;
+    }
+
+    /**
+     * Resolve and apply charging/launch origin from anchor position.
+     */
+    protected void setChargeOriginFromAnchor(EntityLivingBase owner, EnergyAnchorData anchor) {
+        if (owner == null || anchor == null) return;
+        setChargeOrigin(AnchorPointHelper.calculateAnchorPosition(owner, anchor));
+    }
+
+    /**
+     * Resolve and apply charging/launch origin from anchor position with forward offset.
+     */
+    protected void setChargeOriginFromAnchor(EntityLivingBase owner, EnergyAnchorData anchor, float offsetDistance) {
+        if (owner == null || anchor == null) return;
+        setChargeOrigin(AnchorPointHelper.calculateAnchorPosition(owner, anchor, offsetDistance));
+    }
+
+    /**
+     * Zero current motion.
+     */
+    protected void clearMotion() {
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
+    }
 
     /**
      * Setup this entity in charging mode (for windup phase).
@@ -540,17 +1581,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * Subclasses with different charging behavior should override or use their own method.
      */
     public void setupCharging(EnergyAnchorData anchor, int chargeDuration) {
-        setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
+        setupChargingState(anchor, chargeDuration);
         this.targetSize = this.size;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        setVisualSize(0.01f);
+        clearMotion();
     }
 
     /**
@@ -831,7 +1865,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     public float getExplosionRadius() {
-        return combatData.explosionRadius;
+        return combatData.getExplosionRadius();
     }
 
     public void setExplosionRadius(float radius) {
@@ -844,6 +1878,179 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     public void setExplosionDamageFalloff(float falloff) {
         combatData.setExplosionDamageFalloff(falloff);
+    }
+
+    public int getHitType() {
+        return combatData.hitType.ordinal();
+    }
+
+    public void setHitType(int hitType) {
+        combatData.hitType = HitType.fromOrdinal(hitType);
+    }
+
+    public int getMultiHitDelayTicks() {
+        return combatData.multiHitDelayTicks;
+    }
+
+    public void setMultiHitDelayTicks(int delayTicks) {
+        combatData.multiHitDelayTicks = Math.max(1, delayTicks);
+    }
+
+    public int getMaxHits() {
+        return combatData.getMaxHits();
+    }
+
+    public void setMaxHits(int maxHits) {
+        combatData.setMaxHits(maxHits);
+    }
+
+    protected boolean canHitEntityNow(EntityLivingBase entity) {
+        if (entity == null) return false;
+        if (combatData.hitType != HitType.SINGLE && hasReachedMaxHits()) return false;
+
+        int entityId = entity.getEntityId();
+        switch (combatData.hitType) {
+            case PIERCE:
+                return !hitOnceEntities.contains(entityId);
+            case MULTI:
+                Integer lastHitTick = lastHitTickByEntity.get(entityId);
+                if (lastHitTick == null) return true;
+                int delay = Math.max(1, combatData.multiHitDelayTicks);
+                return ticksExisted - lastHitTick >= delay;
+            case SINGLE:
+            default:
+                return !hasHit;
+        }
+    }
+
+    protected void recordEntityHit(EntityLivingBase entity) {
+        if (entity == null) return;
+        int entityId = entity.getEntityId();
+        hitOnceEntities.add(entityId);
+        lastHitTickByEntity.put(entityId, ticksExisted);
+        hitCount++;
+    }
+
+    protected boolean hasReachedMaxHits() {
+        if (combatData.hitType == HitType.SINGLE) return false;
+        return hitCount >= combatData.getMaxHits();
+    }
+
+    protected boolean shouldTerminateAfterHit() {
+        if (combatData.hitType == HitType.SINGLE) return true;
+        return hasReachedMaxHits();
+    }
+
+    /**
+     * Shared block raytrace helper used by most projectile types.
+     */
+    protected MovingObjectPosition rayTraceBlocks(double fromX, double fromY, double fromZ, double toX, double toY, double toZ) {
+        Vec3 currentPos = Vec3.createVectorHelper(fromX, fromY, fromZ);
+        Vec3 nextPos = Vec3.createVectorHelper(toX, toY, toZ);
+        return worldObj.func_147447_a(currentPos, nextPos, false, true, false);
+    }
+
+    /**
+     * Shared block-hit handling: fires block impact hook, optional explosion, and kills projectile.
+     */
+    protected boolean handleBlockImpact(MovingObjectPosition blockHit, boolean explodeAtHitPoint) {
+        if (blockHit == null || blockHit.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+
+        if (!worldObj.isRemote) {
+            EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
+        }
+        hasHit = true;
+
+        if (isExplosive()) {
+            if (explodeAtHitPoint && blockHit.hitVec != null) {
+                posX = blockHit.hitVec.xCoord;
+                posY = blockHit.hitVec.yCoord;
+                posZ = blockHit.hitVec.zCoord;
+            }
+            doExplosion();
+        }
+
+        this.setDead();
+        return true;
+    }
+
+    /**
+     * Apply projectile hit behavior to a target and return true if the projectile terminated.
+     */
+    protected boolean processEntityHit(EntityLivingBase entity, double impactX, double impactY, double impactZ) {
+        if (entity == null || shouldIgnoreEntity(entity) || !canHitEntityNow(entity)) return false;
+
+        recordEntityHit(entity);
+        if (isExplosive()) {
+            Vec3 impactPoint = resolveEntityImpactPoint(entity, impactX, impactY, impactZ);
+            double oldX = posX;
+            double oldY = posY;
+            double oldZ = posZ;
+            posX = impactPoint.xCoord;
+            posY = impactPoint.yCoord;
+            posZ = impactPoint.zCoord;
+            doExplosion();
+            posX = oldX;
+            posY = oldY;
+            posZ = oldZ;
+        } else {
+            applyDamage(entity);
+        }
+
+        if (shouldTerminateAfterHit()) {
+            hasHit = true;
+            this.setDead();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Resolve a stable impact point on the target so explosive collisions use actual contact.
+     */
+    protected Vec3 resolveEntityImpactPoint(EntityLivingBase entity, double impactX, double impactY, double impactZ) {
+        if (entity == null || entity.boundingBox == null) {
+            return Vec3.createVectorHelper(impactX, impactY, impactZ);
+        }
+
+        Vec3 segmentStart = Vec3.createVectorHelper(posX, posY, posZ);
+        Vec3 segmentEnd = Vec3.createVectorHelper(impactX, impactY, impactZ);
+        AxisAlignedBB expandedBox = entity.boundingBox.expand(1.0e-4, 1.0e-4, 1.0e-4);
+        MovingObjectPosition intercept = expandedBox.calculateIntercept(segmentStart, segmentEnd);
+        if (intercept != null && intercept.hitVec != null) {
+            return intercept.hitVec;
+        }
+
+        Vec3 closest = closestPointOnBoundingBox(entity.boundingBox, impactX, impactY, impactZ);
+        return closest != null ? closest : Vec3.createVectorHelper(impactX, impactY, impactZ);
+    }
+
+    /**
+     * Scan entities in a hitbox and process the first/each valid hit based on hit mode.
+     */
+    protected boolean processEntitiesInHitBox(AxisAlignedBB hitBox, double impactX, double impactY, double impactZ) {
+        @SuppressWarnings("unchecked")
+        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+        for (EntityLivingBase entity : entities) {
+            if (processEntityHit(entity, impactX, impactY, impactZ)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean handleSolidCollisionTermination() {
+        if (!this.isCollidedHorizontally && !this.isCollidedVertically) return false;
+
+        if (!worldObj.isRemote) {
+            hasHit = true;
+            if (isExplosive()) {
+                doExplosion();
+            }
+        }
+        this.setDead();
+        return true;
     }
 
     // ==================== HOMING GETTERS & SETTERS ====================
@@ -922,18 +2129,33 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         return hasHit;
     }
 
+    @Override
+    public boolean hasLightningEffect() {
+        return super.hasLightningEffect() || getBarrierSparkTicks() > 0;
+    }
+
     // ==================== NBT ====================
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
-        readBaseNBT(nbt);
-        readProjectileNBT(nbt);
+        // Intentionally empty — ability entities are transient (not saved to world)
     }
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound nbt) {
+        // Intentionally empty — ability entities are transient (not saved to world)
+    }
+
+    @Override
+    protected void writeSpawnNBT(NBTTagCompound nbt) {
         writeBaseNBT(nbt);
         writeProjectileNBT(nbt);
+    }
+
+    @Override
+    protected void readSpawnNBT(NBTTagCompound nbt) {
+        readBaseNBT(nbt);
+        readProjectileNBT(nbt);
     }
 
     /**
@@ -965,6 +2187,23 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.motionY = nbt.getDouble("MotionY");
         this.motionZ = nbt.getDouble("MotionZ");
 
+        // Authoritative launch origin comes from spawn NBT (set during fire/startMoving).
+        // Sync full client position state to this origin to avoid first-tick spawn/interp pops.
+        this.setPosition(this.startX, this.startY, this.startZ);
+        this.prevPosX = this.startX;
+        this.prevPosY = this.startY;
+        this.prevPosZ = this.startZ;
+        this.lastTickPosX = this.startX;
+        this.lastTickPosY = this.startY;
+        this.lastTickPosZ = this.startZ;
+        this.interpTargetX = this.startX;
+        this.interpTargetY = this.startY;
+        this.interpTargetZ = this.startZ;
+        this.interpTargetMotionX = this.motionX;
+        this.interpTargetMotionY = this.motionY;
+        this.interpTargetMotionZ = this.motionZ;
+        this.interpSteps = 0;
+
         // Always initialize render size from NBT size so entities
         // loading in from outside render distance render correctly
         this.renderCurrentSize = this.size;
@@ -975,6 +2214,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         homingData.readNBT(nbt);
         lifespanData.readNBT(nbt);
         trajectoryData.readNBT(nbt);
+        syncProjectileColorWatchers();
     }
 
     /**

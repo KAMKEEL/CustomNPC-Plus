@@ -1,13 +1,14 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
-import kamkeel.npcs.controllers.data.ability.UserType;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.select.GuiQuestSelection;
-import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
@@ -32,11 +33,12 @@ public class ConditionQuestCompleted extends AbilityCondition {
         return PlayerData.get(player).questData.hasFinishedQuest(questId);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void getConditionDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.subGuiField("condition.select_quest",
             () -> new GuiQuestSelection(questId),
-            (SubGuiInterface gui) -> {
+            gui -> {
                 GuiQuestSelection sel = (GuiQuestSelection) gui;
                 if (sel.selectedQuest != null) {
                     questId = sel.selectedQuest.id;
@@ -50,9 +52,10 @@ public class ConditionQuestCompleted extends AbilityCondition {
             .clearable(() -> questId = -1));
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public String getConditionSummary() {
-        String filterLabel = StatCollector.translateToLocal("condition.filter." + getFilter().name().toLowerCase());
+        String filterLabel = StatCollector.translateToLocal(getFilter().toString());
         String questName = "None";
         if (questId >= 0) {
             Quest q = QuestController.Instance.quests.get(questId);

@@ -1,23 +1,19 @@
 package kamkeel.npcs.entity;
 
-import kamkeel.npcs.controllers.data.ability.data.EnergyAnchorData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyCombatData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLifespanData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyTrajectoryData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.EventHooks;
-
-import java.util.List;
 
 /**
  * Disc projectile - flat spinning disc with optional boomerang behavior.
@@ -98,18 +94,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
      * Can be fired when transitioning to active phase.
      */
     public void setupPreview(EntityLivingBase owner, float discRadius, float discThickness, EnergyDisplayData display, EnergyLightningData lightning, EnergyAnchorData anchor, int chargeDuration, boolean vertical) {
-        this.setPreviewMode(true);
-        this.setPreviewOwner(owner);
-
-        // Set visual properties
-        this.displayData = display;
-        this.lightningData = lightning;
-
-        // Set charging state
-        this.setCharging(true);
-        this.chargeDuration = chargeDuration;
-        this.chargeTick = 0;
-        this.anchorData = anchor;
+        setupPreviewState(owner, display, lightning, anchor, chargeDuration);
         this.vertical = vertical;
 
         // Store target size and start at 0 for grow effect
@@ -117,55 +102,16 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         this.targetDiscThickness = discThickness;
         this.discRadius = 0.01f;
         this.discThickness = 0.01f;
-        this.size = 0.01f;
-        this.renderCurrentSize = 0.01f;
-        this.prevRenderSize = 0.01f;
-
-        // Initial position at anchor point
-        Vec3 pos = AnchorPointHelper.calculateAnchorPosition(owner, anchorData);
-        this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
-        this.prevPosX = pos.xCoord;
-        this.prevPosY = pos.yCoord;
-        this.prevPosZ = pos.zCoord;
-        this.startX = pos.xCoord;
-        this.startY = pos.yCoord;
-        this.startZ = pos.zCoord;
-
-        // Clear motion
-        this.motionX = 0;
-        this.motionY = 0;
-        this.motionZ = 0;
+        setVisualSize(0.01f);
+        setChargeOriginFromAnchor(owner, anchorData);
+        clearMotion();
     }
 
     /**
      * Start preview firing (simulates firing toward a point in front of NPC).
      */
     public void startPreviewFiring() {
-        setCharging(false);
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Sync prev position to prevent visual jump on first frame
-        prevPosX = posX;
-        prevPosY = posY;
-        prevPosZ = posZ;
-
-        // Fire forward based on owner facing direction
-        Entity owner = getOwnerEntity();
-        if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = 0; // Fire horizontally
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        } else {
-            motionX = getSpeed();
-            motionY = 0;
-            motionZ = 0;
-        }
+        startPreviewFiringDefault();
     }
 
     /**
@@ -173,36 +119,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
      * Called by ability when windup ends.
      */
     public void startMoving(EntityLivingBase target) {
-        setCharging(false);
-
-        // For player casters, snap to look vector for crosshair-aligned launch
-        snapToPlayerLookVector();
-
-        // Update start position to current position
-        startX = posX;
-        startY = posY;
-        startZ = posZ;
-
-        // Calculate velocity toward target
-        Entity owner = getOwnerEntity();
-
-        if (target != null) {
-            double dx = target.posX - posX;
-            double dy = (target.posY + target.getEyeHeight()) - posY;
-            double dz = target.posZ - posZ;
-            double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (len > 0) {
-                motionX = (dx / len) * getSpeed();
-                motionY = (dy / len) * getSpeed();
-                motionZ = (dz / len) * getSpeed();
-            }
-        } else if (owner != null) {
-            float yaw = (float) Math.toRadians(owner.rotationYaw);
-            float pitch = (float) Math.toRadians(owner.rotationPitch);
-            motionX = -Math.sin(yaw) * Math.cos(pitch) * getSpeed();
-            motionY = -Math.sin(pitch) * getSpeed();
-            motionZ = Math.cos(yaw) * Math.cos(pitch) * getSpeed();
-        }
+        startMovingTowardTargetDefault(target);
     }
 
     @Override
@@ -248,15 +165,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         }
 
         // Check wall collision
-        if (this.isCollidedHorizontally || this.isCollidedVertically) {
-            if (!worldObj.isRemote) {
-                hasHit = true;
-                if (isExplosive()) {
-                    doExplosion();
-                }
-            }
-            this.setDead();
-        }
+        handleSolidCollisionTermination();
     }
 
     @Override
@@ -352,52 +261,47 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     }
 
     private void checkBlockCollision() {
-        Vec3 currentPos = Vec3.createVectorHelper(posX, posY, posZ);
-        Vec3 nextPos = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
-        // Use full raytrace that doesn't stop at liquids and checks all blocks
-        MovingObjectPosition blockHit = worldObj.func_147447_a(currentPos, nextPos, false, true, false);
-
-        if (blockHit != null && blockHit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            if (!worldObj.isRemote) {
-                EventHooks.onEnergyProjectileBlockImpact(this, blockHit.blockX, blockHit.blockY, blockHit.blockZ);
-            }
-            hasHit = true;
-            if (isExplosive()) {
-                posX = blockHit.hitVec.xCoord;
-                posY = blockHit.hitVec.yCoord;
-                posZ = blockHit.hitVec.zCoord;
-                doExplosion();
-            }
-            this.setDead();
-        }
+        handleBlockImpact(rayTraceBlocks(posX, posY, posZ, posX + motionX, posY + motionY, posZ + motionZ), true);
     }
 
     private void checkEntityCollision() {
-        // Disc hitbox: wider but thinner
-        double halfWidth = discRadius * 0.5;
-        double halfHeight = discThickness * 0.5;
+        // Swept disc hitbox to avoid miss-through at high speed.
+        double nextX = posX + motionX;
+        double nextY = posY + motionY;
+        double nextZ = posZ + motionZ;
+
+        double halfRadius = Math.max(0.05, discRadius * 0.5);
+        double halfThickness = Math.max(0.03, discThickness * 0.5);
+        double halfX;
+        double halfY;
+        double halfZ;
+
+        if (vertical) {
+            // Vertical disc: thin axis follows horizontal travel direction, tall on Y.
+            double horizLen = Math.sqrt(motionX * motionX + motionZ * motionZ);
+            if (horizLen > 1.0e-5) {
+                double nx = motionX / horizLen;
+                double nz = motionZ / horizLen;
+                halfX = Math.abs(nx) * halfThickness + Math.abs(nz) * halfRadius;
+                halfZ = Math.abs(nz) * halfThickness + Math.abs(nx) * halfRadius;
+            } else {
+                halfX = halfRadius;
+                halfZ = halfRadius;
+            }
+            halfY = halfRadius;
+        } else {
+            // Horizontal disc: wide on XZ, thin on Y.
+            halfX = halfRadius;
+            halfY = halfThickness;
+            halfZ = halfRadius;
+        }
+
         AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
-            posX - halfWidth, posY - halfHeight, posZ - halfWidth,
-            posX + halfWidth, posY + halfHeight, posZ + halfWidth
+            Math.min(posX, nextX) - halfX, Math.min(posY, nextY) - halfY, Math.min(posZ, nextZ) - halfZ,
+            Math.max(posX, nextX) + halfX, Math.max(posY, nextY) + halfY, Math.max(posZ, nextZ) + halfZ
         );
 
-        @SuppressWarnings("unchecked")
-        List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
-
-        for (EntityLivingBase entity : entities) {
-            if (shouldIgnoreEntity(entity)) continue;
-
-            hasHit = true;
-
-            if (isExplosive()) {
-                doExplosion();
-            } else {
-                applyDamage(entity);
-            }
-
-            this.setDead();
-            return;
-        }
+        processEntitiesInHitBox(hitBox, nextX, nextY, nextZ);
     }
 
     /**

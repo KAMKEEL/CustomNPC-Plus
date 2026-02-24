@@ -4,6 +4,8 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
@@ -30,7 +32,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -157,7 +158,7 @@ public class ServerEventsHandler {
         if (event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving.worldObj.isRemote)
             return;
 
-        EntityEnergyBarrier barrier = EntityEnergyBarrier.getAbsorbingBarrier(event.entityLiving);
+        EntityAbilityBarrier barrier = EntityAbilityBarrier.getAbsorbingBarrier(event.entityLiving);
         if (barrier != null) {
             // Redirect the caster's damage to their barrier
             barrier.absorbDamage(event.ammount);
@@ -189,9 +190,9 @@ public class ServerEventsHandler {
         }
         if (!blacklisted) return;
 
-        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(player.worldObj);
-        for (EntityEnergyBarrier barrier : barriers) {
-            if (barrier instanceof kamkeel.npcs.entity.EntityEnergyDome && barrier.isEntityInside(player)) {
+        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(player.worldObj);
+        for (EntityAbilityBarrier barrier : barriers) {
+            if (barrier instanceof EntityAbilityDome && barrier.isEntityInside(player)) {
                 event.setCanceled(true);
                 return;
             }
@@ -529,7 +530,7 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void populateChunk(PopulateChunkEvent.Post event) {
-        NPCSpawning.performWorldGenSpawning(event.world, event.chunkX, event.chunkZ, event.rand);
+        NPCSpawning.performWorldGenSpawning(event.world, event.chunkX << 4, event.chunkZ << 4, event.rand);
     }
 
     @SubscribeEvent

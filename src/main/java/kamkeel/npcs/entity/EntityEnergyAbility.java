@@ -5,8 +5,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.EnergyLightningData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -80,6 +81,10 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         if (!worldObj.isRemote) {
             this.dataWatcher.updateObject(DW_CHARGING, (byte) (value ? 1 : 0));
         }
+    }
+
+    public void setChargeDuration(int duration) {
+        this.chargeDuration = duration;
     }
 
     public float getChargeProgress() {
@@ -314,12 +319,48 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
 
     // ==================== SPAWN DATA ====================
 
+    /**
+     * Write entity data for client sync. Subclasses override this
+     * to serialize their fields. Separate from writeEntityToNBT
+     * which is intentionally empty (entities are transient, not saved to world).
+     */
+    protected void writeSpawnNBT(NBTTagCompound nbt) {
+        writeEnergyBaseNBT(nbt);
+    }
+
+    /**
+     * Read entity data from client sync. Subclasses override this
+     * to deserialize their fields. Separate from readEntityFromNBT
+     * which is intentionally empty (entities are transient, not saved to world).
+     */
+    protected void readSpawnNBT(NBTTagCompound nbt) {
+        readEnergyBaseNBT(nbt);
+    }
+
+    /**
+     * Export spawn NBT for non-world preview rendering sync.
+     */
+    public final NBTTagCompound exportSpawnNBT() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        writeSpawnNBT(nbt);
+        return nbt;
+    }
+
+    /**
+     * Import spawn NBT for non-world preview rendering sync.
+     */
+    public final void importSpawnNBT(NBTTagCompound nbt) {
+        if (nbt != null) {
+            readSpawnNBT(nbt);
+        }
+    }
+
     @Override
     public void writeSpawnData(ByteBuf buffer) {
         try {
             NBTTagCompound compound = new NBTTagCompound();
-            this.writeEntityToNBT(compound);
-            cpw.mods.fml.common.network.ByteBufUtils.writeTag(buffer, compound);
+            this.writeSpawnNBT(compound);
+            ByteBufUtils.writeNBT(buffer, compound);
         } catch (Exception e) {
             noppes.npcs.LogWriter.error("Error writing energy ability spawn data", e);
         }
@@ -328,9 +369,9 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     @Override
     public void readSpawnData(ByteBuf buffer) {
         try {
-            NBTTagCompound compound = cpw.mods.fml.common.network.ByteBufUtils.readTag(buffer);
+            NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
             if (compound != null) {
-                this.readEntityFromNBT(compound);
+                this.readSpawnNBT(compound);
             }
         } catch (Exception e) {
             noppes.npcs.LogWriter.error("Error reading energy ability spawn data", e);

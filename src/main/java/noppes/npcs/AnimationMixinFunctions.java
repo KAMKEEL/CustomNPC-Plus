@@ -209,21 +209,31 @@ public class AnimationMixinFunctions {
         return null;
     }
 
-    public static void playerFullModel_head(Entity p_78088_1_, CallbackInfo callbackInfo) {
-        if (!DBCAddon.IsAvailable() && ClientCacheHandler.playerAnimations.containsKey(p_78088_1_.getUniqueID())) {
-            AnimationData animData = ClientCacheHandler.playerAnimations.get(p_78088_1_.getUniqueID());
-            if (animData != null && animData.isActive()) {
-                Frame frame = (Frame) animData.animation.currentFrame();
-                if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
-                    FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
-                    part.interpolateOffset();
-                    part.interpolateAngles();
-                    float pi = 180 / (float) Math.PI;
-                    GL11.glTranslatef(part.prevPivots[0], -part.prevPivots[1], part.prevPivots[2]);
-                    GL11.glRotatef(part.prevRotations[0] * pi, 1, 0, 0);
-                    GL11.glRotatef(part.prevRotations[1] * pi, 0, 1, 0);
-                    GL11.glRotatef(part.prevRotations[2] * pi, 0, 0, 1);
-                }
+    public static void playerFullModel_head(Entity entity, CallbackInfo callbackInfo) {
+        if (!ClientCacheHandler.playerAnimations.containsKey(entity.getUniqueID())) return;
+
+        AnimationData animData = ClientCacheHandler.playerAnimations.get(entity.getUniqueID());
+        if (animData == null || !animData.isActive()) return;
+
+        // Snap body rotation to head so animations face the look direction
+        if (entity instanceof EntityLivingBase) {
+            EntityLivingBase living = (EntityLivingBase) entity;
+            living.renderYawOffset = living.rotationYaw;
+            living.prevRenderYawOffset = living.prevRotationYaw;
+        }
+
+        // FULL_MODEL GL transforms (non-DBC only)
+        if (!DBCAddon.IsAvailable()) {
+            Frame frame = (Frame) animData.animation.currentFrame();
+            if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+                FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+                part.interpolateOffset();
+                part.interpolateAngles();
+                float pi = 180 / (float) Math.PI;
+                GL11.glTranslatef(part.prevPivots[0], -part.prevPivots[1], part.prevPivots[2]);
+                GL11.glRotatef(part.prevRotations[0] * pi, 1, 0, 0);
+                GL11.glRotatef(part.prevRotations[1] * pi, 0, 1, 0);
+                GL11.glRotatef(part.prevRotations[2] * pi, 0, 0, 1);
             }
         }
     }

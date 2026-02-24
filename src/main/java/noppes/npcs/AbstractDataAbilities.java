@@ -2,11 +2,11 @@ package noppes.npcs;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityPhase;
-import kamkeel.npcs.controllers.data.ability.ChainedAbility;
-import kamkeel.npcs.controllers.data.ability.ChainedAbilityEntry;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.ConcurrentSlot;
-import kamkeel.npcs.controllers.data.ability.ToggleEntry;
+import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
@@ -269,6 +269,15 @@ public abstract class AbstractDataAbilities {
     }
 
     /**
+     * True when an executing ability grants invulnerability for its current phase.
+     */
+    public boolean isCurrentAbilityInvulnerable() {
+        return currentAbility != null
+            && currentAbility.isExecuting()
+            && currentAbility.isInvulnerableForCurrentPhase();
+    }
+
+    /**
      * Get the currently executing ability.
      */
     public Ability getCurrentAbility() {
@@ -296,7 +305,7 @@ public abstract class AbstractDataAbilities {
     /**
      * Currently active toggles. Key = ability key, Value = toggle entry with state and tick counter.
      */
-    protected Map<String, ToggleEntry> activeToggles = new LinkedHashMap<>();
+    protected Map<String, AbilityToggleEntry> activeToggles = new LinkedHashMap<>();
 
     /**
      * Cycle a toggle ability to its next state.
@@ -306,7 +315,7 @@ public abstract class AbstractDataAbilities {
      * @return The new state (0 = off, 1+ = active state number)
      */
     public int toggleAbility(String key) {
-        ToggleEntry existing = activeToggles.get(key);
+        AbilityToggleEntry existing = activeToggles.get(key);
         if (existing != null) {
             int currentState = existing.getState();
             int maxStates = existing.getAbility().getToggleStates();
@@ -326,7 +335,7 @@ public abstract class AbstractDataAbilities {
      * @return 0 if not active, 1+ for active state
      */
     public int getToggleState(String key) {
-        ToggleEntry entry = activeToggles.get(key);
+        AbilityToggleEntry entry = activeToggles.get(key);
         return entry != null ? entry.getState() : 0;
     }
 
@@ -340,7 +349,7 @@ public abstract class AbstractDataAbilities {
             }
             return;
         }
-        ToggleEntry existing = activeToggles.get(key);
+        AbilityToggleEntry existing = activeToggles.get(key);
         if (existing != null) {
             int currentState = existing.getState();
             if (currentState != state) {
@@ -373,7 +382,7 @@ public abstract class AbstractDataAbilities {
 
         if (fireToggleEvent(ability, 0, state)) return false;
 
-        ToggleEntry entry = new ToggleEntry(ability, state);
+        AbilityToggleEntry entry = new AbilityToggleEntry(ability, state);
         activeToggles.put(key, entry);
         ability.onToggleOn(getEntity());
         ability.onToggleStateChanged(getEntity(), 0, state);
@@ -381,7 +390,7 @@ public abstract class AbstractDataAbilities {
         return true;
     }
 
-    private int cycleToggleState(String key, ToggleEntry entry, int oldState, int newState) {
+    private int cycleToggleState(String key, AbilityToggleEntry entry, int oldState, int newState) {
         Ability ability = entry.getAbility();
         if (newState < 1 || newState > ability.getToggleStates()) return oldState;
 
@@ -394,7 +403,7 @@ public abstract class AbstractDataAbilities {
     }
 
     private void deactivateToggle(String key) {
-        ToggleEntry entry = activeToggles.get(key);
+        AbilityToggleEntry entry = activeToggles.get(key);
         if (entry == null) return;
         int oldState = entry.getState();
 
@@ -418,8 +427,8 @@ public abstract class AbstractDataAbilities {
         EntityLivingBase entity = getEntity();
         List<String> toRemove = null;
 
-        for (Map.Entry<String, ToggleEntry> mapEntry : activeToggles.entrySet()) {
-            ToggleEntry entry = mapEntry.getValue();
+        for (Map.Entry<String, AbilityToggleEntry> mapEntry : activeToggles.entrySet()) {
+            AbilityToggleEntry entry = mapEntry.getValue();
             entry.incrementTick();
 
             if (entry.getAbility().hasActiveToggle()) {
@@ -441,7 +450,7 @@ public abstract class AbstractDataAbilities {
 
         if (toRemove != null) {
             for (String key : toRemove) {
-                ToggleEntry entry = activeToggles.remove(key);
+                AbilityToggleEntry entry = activeToggles.remove(key);
                 if (entry != null) {
                     int oldState = entry.getState();
                     entry.getAbility().onToggleOff(entity);
@@ -483,8 +492,8 @@ public abstract class AbstractDataAbilities {
     protected void clearActiveToggles() {
         if (activeToggles.isEmpty()) return;
         EntityLivingBase entity = getEntity();
-        for (Map.Entry<String, ToggleEntry> mapEntry : activeToggles.entrySet()) {
-            ToggleEntry entry = mapEntry.getValue();
+        for (Map.Entry<String, AbilityToggleEntry> mapEntry : activeToggles.entrySet()) {
+            AbilityToggleEntry entry = mapEntry.getValue();
             entry.getAbility().onToggleOff(entity);
             entry.getAbility().onToggleStateChanged(entity, entry.getState(), 0);
         }
@@ -502,7 +511,7 @@ public abstract class AbstractDataAbilities {
             Ability ability = AbilityController.Instance != null
                 ? AbilityController.Instance.resolveAbility(key) : null;
             if (ability != null && ability.isToggleable()) {
-                activeToggles.put(key, new ToggleEntry(ability, state));
+                activeToggles.put(key, new AbilityToggleEntry(ability, state));
             }
         } else {
             activeToggles.remove(key);
@@ -1032,6 +1041,62 @@ public abstract class AbstractDataAbilities {
      * NPC: keeps currentAbility (ticks through DAZED). Player: clears immediately.
      */
     protected void onInterruptComplete() {
+    }
+
+    /**
+     * Cancel the currently executing ability (voluntary player action).
+     * Unlike interrupt, this always goes directly to IDLE (never DAZED),
+     * immediately rolls cooldown, and clears state.
+     * Also handles cancellation during chain delay (between chain entries).
+     */
+    public void cancelCurrentAbility() {
+        boolean hasExecutingAbility = currentAbility != null && currentAbility.isExecuting();
+        boolean isInChainDelay = currentChain != null && chainDelayRemaining > 0;
+
+        if (!hasExecutingAbility && !isInChainDelay) return;
+
+        if (hasExecutingAbility) {
+            AbilityPhase phase = currentAbility.getPhase();
+            // Cannot cancel during DAZED (already interrupted)
+            if (phase == AbilityPhase.DAZED) return;
+            // Only allow cancel during active phases
+            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
+                && phase != AbilityPhase.BURST_DELAY) return;
+
+            // Remove telegraph
+            removeTelegraph(currentAbility);
+
+            // Fire extender complete hook (cancelled = interrupted)
+            AbilityController.Instance.fireOnAbilityComplete(currentAbility, getEntity(), getTarget(), true);
+
+            // Fire interrupt event (source=null, damage=0 for voluntary cancel)
+            fireInterruptEvent(currentAbility, getTarget(), null, 0);
+
+            // Cancel the ability (cleanup + go directly to IDLE, no DAZED)
+            currentAbility.onInterrupt(getEntity(), null, 0);
+            currentAbility.cancel();
+
+            // Release locks and stop animation
+            stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
+        }
+
+        // Roll cooldown
+        if (currentChain != null) {
+            rollChainCooldown(currentChain);
+            currentChain = null;
+            chainEntryIndex = -1;
+            chainDelayRemaining = -1;
+        } else if (currentAbility != null) {
+            rollCooldown(currentAbility);
+        }
+
+        // Interrupt all concurrent slots
+        interruptConcurrentSlots();
+
+        // Clear state via the normal completion path
+        onAbilityComplete();
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -416,6 +416,12 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 tf.drawHover(i, j, subGui);
         }
 
+        for(GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+            if (guiScrollableComponent.isMouseOver(mouseX, mouseY)) {
+                guiScrollableComponent.drawHoverTexts(mouseX, mouseY);
+            }
+        }
+
         for (GuiScreen gui : extra.values())
             gui.drawScreen(i, j, f);
 

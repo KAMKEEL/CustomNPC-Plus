@@ -238,7 +238,7 @@ public class AttributeItemUtil {
         NBTTagCompound attrTag = rpgCore.hasKey(TAG_ATTRIBUTES) ? rpgCore.getCompoundTag(TAG_ATTRIBUTES) : new NBTTagCompound();
         if (Keyboard.isKeyDown(ClientProxy.NPCButton.getKeyCode()) || override) {
             List<String> newTooltips = new ArrayList<>();
-            if (!tooltip.isEmpty()) {
+            if (!tooltip.isEmpty() && !override) {
                 newTooltips.add(tooltip.get(0));
             }
 
@@ -326,7 +326,11 @@ public class AttributeItemUtil {
                 newTooltips.addAll(buildSection(reqEntries));
             }
 
-            tooltip = newTooltips;
+            if(override){
+                tooltip.addAll(newTooltips);
+            } else {
+                tooltip = newTooltips;
+            }
         } else {
             String keyName = Keyboard.getKeyName(ClientProxy.NPCButton.getKeyCode());
             tooltip.add(EnumChatFormatting.YELLOW + "" + EnumChatFormatting.ITALIC +

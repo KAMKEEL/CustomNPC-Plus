@@ -12,11 +12,14 @@ import kamkeel.npcs.client.renderer.RenderAbilityLaser;
 import kamkeel.npcs.client.renderer.RenderAbilityOrb;
 import kamkeel.npcs.client.renderer.RenderAbilitySweeper;
 import kamkeel.npcs.client.renderer.RenderAbilityZone;
-import kamkeel.npcs.client.renderer.RenderEnergyDome;
-import kamkeel.npcs.client.renderer.RenderEnergyPanel;
+import kamkeel.npcs.client.renderer.RenderAbilityDome;
+import kamkeel.npcs.client.renderer.RenderAbilityPanel;
+import kamkeel.npcs.client.renderer.EnergyChargePreviewRenderer;
+import kamkeel.npcs.client.renderer.RenderEnergyExplosion;
 import kamkeel.npcs.client.renderer.RenderEnergySlicer;
 import kamkeel.npcs.client.renderer.TelegraphRenderer;
 import kamkeel.npcs.client.renderer.lightning.LightningHandler;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
@@ -24,8 +27,9 @@ import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
-import kamkeel.npcs.entity.EntityEnergyDome;
-import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyExplosion;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -113,6 +117,7 @@ import noppes.npcs.client.gui.global.GuiNPCManageQuest;
 import noppes.npcs.client.gui.global.GuiNPCManageTags;
 import noppes.npcs.client.gui.global.GuiNPCManageTransporters;
 import noppes.npcs.client.gui.global.GuiNpcManageAbilities;
+import noppes.npcs.client.gui.global.GuiNpcManageAuction;
 import noppes.npcs.client.gui.global.GuiNpcManageMagic;
 import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
 import noppes.npcs.client.gui.global.GuiNpcQuestReward;
@@ -217,6 +222,7 @@ import noppes.npcs.containers.ContainerCrate;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.containers.ContainerManageBanks;
+import noppes.npcs.containers.ContainerManageAuction;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCCompanion;
@@ -280,9 +286,10 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityBeam.class, new RenderAbilityBeam());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilitySweeper.class, new RenderAbilitySweeper());
         RenderingRegistry.registerEntityRenderingHandler(EntityAbilityZone.class, new RenderAbilityZone());
-        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyDome.class, new RenderEnergyDome());
-        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyPanel.class, new RenderEnergyPanel());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityDome.class, new RenderAbilityDome());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityPanel.class, new RenderAbilityPanel());
         RenderingRegistry.registerEntityRenderingHandler(EntityEnergySlicer.class, new RenderEnergySlicer());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyExplosion.class, new RenderEnergyExplosion());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 
@@ -357,6 +364,10 @@ public class ClientProxy extends CommonProxy {
         // Telegraph rendering system
         TelegraphManager.initClient();
         MinecraftForge.EVENT_BUS.register(new TelegraphRenderer());
+
+        // Energy charge preview rendering system
+        EnergyChargePreviewManager.initClient();
+        MinecraftForge.EVENT_BUS.register(new EnergyChargePreviewRenderer());
 
         // Lightning effect rendering system
         MinecraftForge.EVENT_BUS.register(new LightningHandler());
@@ -502,6 +513,9 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.ManageRecipes)
             return new GuiNpcManageRecipes(npc, (ContainerManageRecipes) container);
+
+        else if (gui == EnumGuiType.ManageAuction)
+            return new GuiNpcManageAuction(npc, (ContainerManageAuction) container);
 
         else if (gui == EnumGuiType.ManageDialogs)
             return new GuiNPCManageDialogs(npc);

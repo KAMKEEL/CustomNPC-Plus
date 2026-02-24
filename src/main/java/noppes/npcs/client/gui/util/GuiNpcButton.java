@@ -82,7 +82,8 @@ public class GuiNpcButton extends GuiButton {
     }
 
     public void setHoverText(String text) {
-        this.hoverableText = StatCollector.translateToLocal(text);
+        String translated = StatCollector.translateToLocal(text);
+        this.hoverableText = translated == null ? "" : translated.replace("\\n", "\n");
     }
 
     public int getValue() {
@@ -201,11 +202,28 @@ public class GuiNpcButton extends GuiButton {
             Minecraft mc = Minecraft.getMinecraft();
             String displayString = StatCollector.translateToLocal(hoverableText);
             GL11.glColor4f(1, 1, 1, 1);
-            List<String> lines = TextSplitter.splitText(displayString, 30);
+            List<String> lines = splitHoverText(displayString, 30);
             drawHoveringText(lines, i, j, mc);
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glPopMatrix();
         }
+    }
+
+    private List<String> splitHoverText(String text, int maxLineLength) {
+        List<String> lines = new ArrayList<String>();
+        if (text == null || text.isEmpty())
+            return lines;
+
+        String normalized = text.replace("\\n", "\n");
+        String[] explicitLines = normalized.split("\\r?\\n", -1);
+        for (String line : explicitLines) {
+            if (line.isEmpty()) {
+                lines.add("");
+                continue;
+            }
+            lines.addAll(TextSplitter.splitText(line, maxLineLength));
+        }
+        return lines;
     }
 
     protected void drawHoveringText(List textLines, int x, int y, Minecraft mc) {

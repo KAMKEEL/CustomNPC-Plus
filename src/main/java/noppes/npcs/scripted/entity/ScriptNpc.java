@@ -1109,6 +1109,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     public void setNaturallyDespawns(boolean canDespawn) {
         npc.stats.canDespawn = canDespawn;
         npc.stats.playerSetCanDespawn = canDespawn;
+        npc.syncDespawnPersistence();
     }
 
     public boolean spawnedFromSoulStone() {

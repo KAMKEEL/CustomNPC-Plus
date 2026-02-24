@@ -3,10 +3,10 @@ package kamkeel.npcs.controllers.data.ability.type;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityTargetHelper;
-import kamkeel.npcs.controllers.data.ability.LockMovementType;
-import kamkeel.npcs.controllers.data.ability.TargetFilter;
-import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.enums.TargetFilter;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
@@ -38,7 +38,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 5.0f;
         this.minRange = 0.0f;
-        this.lockMovement = LockMovementType.WINDUP;
+        this.lockMovement = LockMode.WINDUP;
         this.cooldownTicks = 0;
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.LINE;
@@ -90,7 +90,7 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
             return;
         }
 
-        if (tick == hitDelayTicks) {
+        if (tick == hitDelayTicks && !caster.worldObj.isRemote) {
             // Calculate forward and right vectors from caster yaw
             float yawRad = (float) Math.toRadians(caster.rotationYaw);
             double forwardX = -Math.sin(yawRad);

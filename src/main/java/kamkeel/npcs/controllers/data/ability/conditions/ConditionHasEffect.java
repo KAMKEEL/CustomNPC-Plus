@@ -1,13 +1,14 @@
 package kamkeel.npcs.controllers.data.ability.conditions;
 
-import kamkeel.npcs.controllers.data.ability.UserType;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.advanced.SubGuiCustomEffectSelect;
 import noppes.npcs.client.gui.builder.FieldDef;
-import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 
@@ -33,11 +34,12 @@ public class ConditionHasEffect extends AbilityCondition {
         return CustomEffectController.getInstance().hasEffect(player, effectId, effectIndex);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void getConditionDefinitions(List<FieldDef> defs) {
         defs.add(FieldDef.subGuiField("condition.select_effect",
             () -> new SubGuiCustomEffectSelect(effectId, effectIndex),
-            (SubGuiInterface gui) -> {
+            gui -> {
                 SubGuiCustomEffectSelect sel = (SubGuiCustomEffectSelect) gui;
                 if (sel.getSelectedEffectId() >= 0) {
                     effectId = sel.getSelectedEffectId();
@@ -55,9 +57,10 @@ public class ConditionHasEffect extends AbilityCondition {
             }));
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public String getConditionSummary() {
-        String filterLabel = StatCollector.translateToLocal("condition.filter." + getFilter().name().toLowerCase());
+        String filterLabel = StatCollector.translateToLocal(getFilter().toString());
         String effectName = "None";
         if (effectId >= 0) {
             CustomEffect effect = getEffect();

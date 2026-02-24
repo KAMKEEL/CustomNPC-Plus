@@ -2,7 +2,7 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.data.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -10,7 +10,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.LogWriter;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;
@@ -366,6 +365,36 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbt) {
+        // Intentionally empty — ability entities are transient (not saved to world)
+    }
+
+    @Override
+    protected void writeEntityToNBT(NBTTagCompound nbt) {
+        // Intentionally empty — ability entities are transient (not saved to world)
+    }
+
+    @Override
+    protected void writeSpawnNBT(NBTTagCompound nbt) {
+        writeEnergyBaseNBT(nbt);
+        nbt.setFloat("BeamLength", beamLength);
+        nbt.setFloat("BeamWidth", beamWidth);
+        nbt.setFloat("BeamHeight", beamHeight);
+        nbt.setFloat("SweepSpeed", sweepSpeed);
+        nbt.setInteger("NumRotations", numberOfRotations);
+        nbt.setInteger("CompletedRotations", completedRotations);
+        nbt.setInteger("MaxTicks", maxTicks);
+        nbt.setInteger("TargetId", targetEntityId);
+        nbt.setFloat("CurrentAngle", currentAngle);
+        nbt.setFloat("BaseYaw", baseYaw);
+        nbt.setLong("DeathWorldTime", deathWorldTime);
+        nbt.setFloat("Damage", damage);
+        nbt.setInteger("DamageInterval", damageInterval);
+        nbt.setBoolean("Piercing", piercing);
+        nbt.setBoolean("LockOnTarget", lockOnTarget);
+    }
+
+    @Override
+    protected void readSpawnNBT(NBTTagCompound nbt) {
         readEnergyBaseNBT(nbt);
         this.beamLength = sanitize(nbt.getFloat("BeamLength"), 10.0f, MAX_ENTITY_SIZE);
         this.beamWidth = sanitize(nbt.getFloat("BeamWidth"), 0.3f, MAX_ENTITY_SIZE);
@@ -388,25 +417,5 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         if (damageInterval <= 0) damageInterval = 1;
         this.piercing = !nbt.hasKey("Piercing") || nbt.getBoolean("Piercing");
         this.lockOnTarget = nbt.getBoolean("LockOnTarget");
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        writeEnergyBaseNBT(nbt);
-        nbt.setFloat("BeamLength", beamLength);
-        nbt.setFloat("BeamWidth", beamWidth);
-        nbt.setFloat("BeamHeight", beamHeight);
-        nbt.setFloat("SweepSpeed", sweepSpeed);
-        nbt.setInteger("NumRotations", numberOfRotations);
-        nbt.setInteger("CompletedRotations", completedRotations);
-        nbt.setInteger("MaxTicks", maxTicks);
-        nbt.setInteger("TargetId", targetEntityId);
-        nbt.setFloat("CurrentAngle", currentAngle);
-        nbt.setFloat("BaseYaw", baseYaw);
-        nbt.setLong("DeathWorldTime", deathWorldTime);
-        nbt.setFloat("Damage", damage);
-        nbt.setInteger("DamageInterval", damageInterval);
-        nbt.setBoolean("Piercing", piercing);
-        nbt.setBoolean("LockOnTarget", lockOnTarget);
     }
 }
