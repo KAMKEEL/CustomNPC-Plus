@@ -538,7 +538,8 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
         telegraph.setHeightOffset(telegraphHeightOffset);
 
-        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, target.posY, target.posZ, caster.rotationYaw);
+        double groundY = findGroundLevel(caster.worldObj, target.posX, target.posY, target.posZ);
+        TelegraphInstance instance = new TelegraphInstance(telegraph, target.posX, groundY, target.posZ, caster.rotationYaw);
         instance.setCasterEntityId(caster.getEntityId());
         instance.setEntityIdToFollow(target.getEntityId());
 

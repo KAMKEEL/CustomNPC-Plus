@@ -157,8 +157,9 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
         telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
         telegraph.setHeightOffset(telegraphHeightOffset);
 
-        // Position at caster, not target
-        TelegraphInstance instance = new TelegraphInstance(telegraph, caster.posX, caster.posY, caster.posZ, caster.rotationYaw);
+        // Position at caster ground level, not target
+        double groundY = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+        TelegraphInstance instance = new TelegraphInstance(telegraph, caster.posX, groundY, caster.posZ, caster.rotationYaw);
         instance.setCasterEntityId(caster.getEntityId());
         instance.setEntityIdToFollow(caster.getEntityId());  // Follow caster
 

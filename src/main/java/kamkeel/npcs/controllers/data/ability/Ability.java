@@ -961,31 +961,46 @@ public abstract class Ability implements IAbility, IAbilityAction {
     /**
      * Find the ground level at a given position.
      * Searches downward from the given Y to find a solid block.
+     * Uses default search range of 3 blocks — if no ground is found,
+     * returns slightly below the entity for airborne telegraph placement.
      *
      * @param world  The world
      * @param x      X coordinate
      * @param startY Starting Y coordinate (entity feet position)
      * @param z      Z coordinate
-     * @return The Y coordinate of the ground surface
+     * @return The Y coordinate of the ground surface, or startY - 0.5 if airborne
      */
     public static double findGroundLevel(World world, double x, double startY, double z) {
-        if (world == null) return startY;
+        return findGroundLevel(world, x, startY, z, 3);
+    }
+
+    /**
+     * Find the ground level at a given position with configurable search range.
+     * Searches downward from the given Y to find a solid block.
+     *
+     * @param world         The world
+     * @param x             X coordinate
+     * @param startY        Starting Y coordinate (entity feet position)
+     * @param z             Z coordinate
+     * @param maxSearchDown Maximum blocks to search downward
+     * @return The Y coordinate of the ground surface, or startY - 0.5 if no ground found
+     */
+    public static double findGroundLevel(World world, double x, double startY, double z, int maxSearchDown) {
+        if (world == null) return startY - 0.5;
 
         int blockX = (int) Math.floor(x);
         int blockZ = (int) Math.floor(z);
         int startBlockY = (int) Math.floor(startY);
 
-        // Search downward for solid ground (max 10 blocks down)
-        for (int checkY = startBlockY; checkY >= startBlockY - 10 && checkY >= 0; checkY--) {
+        for (int checkY = startBlockY; checkY >= startBlockY - maxSearchDown && checkY >= 0; checkY--) {
             Block block = world.getBlock(blockX, checkY, blockZ);
             if (block != null && block.getMaterial().isSolid()) {
-                // Found solid block, telegraph goes on top of it
                 return checkY + 1;
             }
         }
 
-        // No ground found, use original position
-        return startY;
+        // No ground found within range — place slightly under entity
+        return startY - 0.5;
     }
 
     /**

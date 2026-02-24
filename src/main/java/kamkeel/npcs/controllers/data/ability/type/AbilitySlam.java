@@ -659,8 +659,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             targetZ = caster.posZ;
         }
 
-        // Create telegraph at the appropriate position
-        double groundY = findGroundLevel(caster.worldObj, targetX, targetY, targetZ);
+        // Create telegraph at the appropriate position — always project to actual ground for landing zone
+        double groundY = findGroundLevel(caster.worldObj, targetX, targetY, targetZ, 64);
 
         Telegraph telegraph = Telegraph.circle(radius);
         telegraph.setDurationTicks(windUpTicks);
@@ -668,6 +668,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         telegraph.setWarningColor(activeColor);
         telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
         telegraph.setHeightOffset(telegraphHeightOffset);
+        telegraph.setGroundSearchRange(64); // Slam always projects to actual ground (landing zone)
 
         TelegraphInstance instance = new TelegraphInstance(telegraph, targetX, groundY, targetZ, caster.rotationYaw);
         instance.setCasterEntityId(caster.getEntityId());
