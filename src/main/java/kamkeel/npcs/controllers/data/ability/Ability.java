@@ -632,7 +632,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         defs.add(FieldDef.stringField("gui.displayName", this::getRawDisplayName, this::setDisplayName)
             .tab("General"));
         defs.add(FieldDef.labelField("ability.validFor", () ->
-            "\u00A7e" + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
+                "\u00A7e" + StatCollector.translateToLocal("ability.userType." + getAllowedBy().name()))
             .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.intField("ability.weight", this::getWeight, this::setWeight).range(1, 1000),
@@ -1324,6 +1324,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
         for (AbilityCondition c : conditions) {
             if (!c.getUserType().allowsNpc()) continue;
+            Boolean extendedCondition = AbilityController.Instance.fireCheckConditions(c, caster, target);
+
+            if (extendedCondition != null) {
+                if (!extendedCondition) return false;
+                continue;
+            }
+
             if (!c.check(caster, target)) return false;
         }
         return true;
@@ -1336,6 +1343,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
         for (AbilityCondition c : conditions) {
             if (!c.getUserType().allowsPlayer()) continue;
             if (c.requiresTarget()) continue;
+            Boolean extendedCondition = AbilityController.Instance.fireCheckConditionsForPlayer(c, caster);
+
+            if (extendedCondition != null) {
+                if (!extendedCondition) return false;
+                continue;
+            }
+
             if (!c.check(caster, null)) return false;
         }
         return true;

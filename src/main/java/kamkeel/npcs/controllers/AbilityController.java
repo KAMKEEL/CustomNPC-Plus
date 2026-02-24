@@ -1176,6 +1176,27 @@ public class AbilityController implements IAbilityHandler {
         return false;
     }
 
+    public Boolean fireCheckConditions(AbilityCondition condition, EntityLivingBase caster, EntityLivingBase target) {
+        for (IAbilityExtender ext : extenders) {
+            Boolean result = ext.onCheckCondition(condition, caster, target);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return false;
+    }
+
+    public Boolean fireCheckConditionsForPlayer(AbilityCondition condition, EntityLivingBase player) {
+        for (IAbilityExtender ext : extenders) {
+            Boolean result = ext.onCheckConditionForPlayer(condition, player);
+            if (result != null) {
+                return result;
+            }
+        }
+        return null;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // IAbilityHandler
     // ═══════════════════════════════════════════════════════════════════════════
