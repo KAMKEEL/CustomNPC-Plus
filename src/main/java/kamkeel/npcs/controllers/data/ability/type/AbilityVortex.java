@@ -153,6 +153,10 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
 
         boolean anyStillPulling = false;
         ticksSincePullDamage++;
+        boolean shouldDealPullDamage = damageOnPull && pullDamage > 0 && ticksSincePullDamage >= 10;
+        if (shouldDealPullDamage) {
+            ticksSincePullDamage = 0;
+        }
 
         for (UUID uuid : new HashSet<>(getPulledEntities())) {
             EntityLivingBase entity = findEntity(caster, caster.worldObj, uuid);
@@ -193,8 +197,7 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             entity.motionZ = nextZ;
             entity.velocityChanged = true;
 
-            if (damageOnPull && pullDamage > 0 && ticksSincePullDamage >= 10) {
-                ticksSincePullDamage = 0;
+            if (shouldDealPullDamage) {
                 entity.hurtResistantTime = 0;
                 applyAbilityDamage(caster, entity, pullDamage * 0.5f, 0);
             }

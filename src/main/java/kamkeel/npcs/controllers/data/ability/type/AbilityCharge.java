@@ -97,6 +97,7 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         }
 
         if (movementDirection == null) {
+            stopMomentum(caster);
             signalCompletion();
             return;
         }

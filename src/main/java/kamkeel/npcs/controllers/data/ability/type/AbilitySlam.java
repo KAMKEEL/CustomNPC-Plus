@@ -514,7 +514,6 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             float heightFactor = (float) Math.min(1.0, fallDistance / Math.max(1.0, leapHeight));
             heightMultiplier = Math.max(0.25f, heightFactor);
             effectiveDamage = damage * heightMultiplier;
-            System.out.println("[Slam] LANDING AIR: airSlamStartY=" + airSlamStartY + " landY=" + caster.posY + " fallDist=" + fallDistance + " leapHeight=" + leapHeight + " heightFactor=" + heightFactor + " multiplier=" + heightMultiplier + " baseDmg=" + damage + " effectiveDmg=" + effectiveDamage);
         } else {
             // Ground slam: scale based on arc height reached
             double arcHeight = peakY - startY;
@@ -523,10 +522,8 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 heightMultiplier = Math.max(0.25f, heightFactor);
                 effectiveDamage = damage * heightMultiplier;
             }
-            System.out.println("[Slam] LANDING GROUND: startY=" + startY + " peakY=" + peakY + " arcHeight=" + arcHeight + " leapHeight=" + leapHeight + " multiplier=" + heightMultiplier + " baseDmg=" + damage + " effectiveDmg=" + effectiveDamage);
         }
 
-        System.out.println("[Slam] DAMAGE MULTIPLIER SET: " + heightMultiplier);
         // Set multiplier so extenders (e.g. DBC Addon) can apply height scaling to their own damage calc
         setDamageMultiplier(heightMultiplier);
 

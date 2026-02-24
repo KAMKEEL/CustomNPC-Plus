@@ -123,6 +123,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
         if (tick >= durationTicks) {
             signalCompletion();
+            return;
         }
 
         // Just enough to see the counter animation
