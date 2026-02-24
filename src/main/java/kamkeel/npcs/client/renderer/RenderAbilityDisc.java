@@ -59,12 +59,17 @@ public class RenderAbilityDisc extends RenderEnergyAbility {
         double motionX = entity.motionX;
         double motionY = entity.motionY;
         double motionZ = entity.motionZ;
-        Vec3 motionVec = Vec3.createVectorHelper(motionX, motionY, motionZ);
+        double speedSq = motionX * motionX + motionY * motionY + motionZ * motionZ;
 
-        float motionYaw = MathUtil.getYaw(motionVec);
-        float motionPitch = MathUtil.getPitch(motionVec);
-        GL11.glRotatef(motionYaw, 0, 1, 0);
-        GL11.glRotatef(motionPitch, 1, 0, 0);
+        // Only apply motion-based facing when speed is meaningful.
+        // Near-zero motion makes atan2 unstable, producing jittery angles.
+        if (speedSq > 0.0001) {
+            Vec3 motionVec = Vec3.createVectorHelper(motionX, motionY, motionZ);
+            float motionYaw = MathUtil.getYaw(motionVec);
+            float motionPitch = MathUtil.getPitch(motionVec);
+            GL11.glRotatef(motionYaw, 0, 1, 0);
+            GL11.glRotatef(motionPitch, 1, 0, 0);
+        }
 
         // Apply Y-axis rotation for spin
         GL11.glRotatef(disc.getInterpolatedRotationY(partialTicks), 0.0f, 1.0f, 0.0f);

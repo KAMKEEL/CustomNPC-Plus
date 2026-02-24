@@ -6,6 +6,8 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyTrajectoryData;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -104,6 +106,13 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
+    public boolean isInRangeToRenderDist(double distance) {
+        double range = Math.max(128.0D, currentLength * 2.0D + 64.0D);
+        return distance < range * range;
+    }
+
+    @Override
     protected void updateRotation() {
         // Laser doesn't rotate
     }
@@ -179,7 +188,13 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
      */
     private void updateLaserOriginAndDirection() {
         Entity owner = getOwnerEntity();
-        if (owner == null || !(owner instanceof EntityLivingBase)) return;
+        if (owner == null || !(owner instanceof EntityLivingBase)) {
+            // On client, fall back to entity tracker interpolation when owner not loaded
+            if (worldObj != null && worldObj.isRemote) {
+                handleClientInterpolation();
+            }
+            return;
+        }
         EntityLivingBase livingOwner = (EntityLivingBase) owner;
 
         // Use owner look vector (head/eye aim) for direction updates so hit logic matches visuals.
