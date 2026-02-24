@@ -258,18 +258,11 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
             posX + r + knockbackMargin, posY + r + knockbackMargin, posZ + r + knockbackMargin
         );
 
-        // On client, identify local player for client-side solid prediction
-        EntityPlayer localPlayer = worldObj.isRemote ? CustomNpcs.proxy.getPlayer() : null;
+        EntityPlayer localPlayer = getClientPredictionPlayer();
 
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
         for (EntityLivingBase ent : entities) {
-            if (ent.getEntityId() == ownerEntityId) continue;
-
-            // Client-side: only process local player for solid prediction
-            // Must be checked before isAllyOfOwner which uses server-only PlayerData
-            if (worldObj.isRemote && (localPlayer == null || ent != localPlayer)) continue;
-
-            if (isAllyOfOwner(ent)) continue;
+            if (shouldSkipBarrierPhysicsTarget(ent, localPlayer)) continue;
 
             // Current position relative to dome center
             double dx = ent.posX - posX;

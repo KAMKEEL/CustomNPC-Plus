@@ -27,7 +27,10 @@ public class AbilityTargetHelper {
      * </ul>
      */
     public static boolean isAlly(EntityLivingBase caster, Entity target) {
+        if (caster == null || target == null) return false;
         if (target == caster) return true;
+        // Ally resolution relies on server-owned player/party/faction state.
+        if (caster.worldObj == null || caster.worldObj.isRemote) return false;
 
         // NPC target checks
         if (target instanceof EntityNPCInterface) {
@@ -44,7 +47,9 @@ public class AbilityTargetHelper {
 
             // Player caster: friendly faction = ally
             if (caster instanceof EntityPlayer) {
-                if (targetNpc.faction.isFriendlyToPlayer((EntityPlayer) caster)) return true;
+                EntityPlayer casterPlayer = (EntityPlayer) caster;
+                if (PlayerData.get(casterPlayer) == null) return false;
+                if (targetNpc.faction.isFriendlyToPlayer(casterPlayer)) return true;
             }
 
             return false;
@@ -54,7 +59,9 @@ public class AbilityTargetHelper {
         if (target instanceof EntityPlayer && caster instanceof EntityNPCInterface) {
             // NPC caster vs Player target: faction friendly to player = ally
             EntityNPCInterface casterNpc = (EntityNPCInterface) caster;
-            return casterNpc.faction.isFriendlyToPlayer((EntityPlayer) target);
+            EntityPlayer targetPlayer = (EntityPlayer) target;
+            if (PlayerData.get(targetPlayer) == null) return false;
+            return casterNpc.faction.isFriendlyToPlayer(targetPlayer);
         }
 
         if (target instanceof EntityPlayer && caster instanceof EntityPlayer) {
@@ -63,6 +70,7 @@ public class AbilityTargetHelper {
             EntityPlayer targetPlayer = (EntityPlayer) target;
             PlayerData casterData = PlayerData.get(casterPlayer);
             PlayerData targetData = PlayerData.get(targetPlayer);
+            if (casterData == null || targetData == null) return false;
             if (casterData.partyUUID != null && casterData.partyUUID.equals(targetData.partyUUID)) {
                 Party party = PartyController.Instance().getParty(casterData.partyUUID);
                 if (party != null && !party.friendlyFire()) return true;
@@ -86,6 +94,8 @@ public class AbilityTargetHelper {
      */
     public static boolean shouldAffect(EntityLivingBase caster, Entity target,
                                        TargetFilter filter, boolean includeSelf) {
+        if (caster == null || target == null || filter == null) return false;
+        if (caster.worldObj == null || caster.worldObj.isRemote) return false;
         if (target == caster) return includeSelf;
         if (!(target instanceof EntityLivingBase)) return false;
         if (!target.isEntityAlive()) return false;

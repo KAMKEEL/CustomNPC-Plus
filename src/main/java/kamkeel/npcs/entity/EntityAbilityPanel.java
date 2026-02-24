@@ -13,7 +13,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -203,10 +202,8 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
             Entity owner = getOwnerEntity();
 
             for (EntityLivingBase target : entities) {
-                if (target == owner) continue;
-                if (owner instanceof EntityNPCInterface && target instanceof EntityNPCInterface) {
-                    if (((EntityNPCInterface) owner).faction.id == ((EntityNPCInterface) target).faction.id) continue;
-                }
+                if (target.getEntityId() == ownerEntityId) continue;
+                if (isAllyOfOwner(target)) continue;
 
                 // Apply damage
                 if (panelData.launchDamage > 0) {
@@ -411,8 +408,7 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
             posX + halfW + searchExtension, posY + halfH + searchExtension, posZ + halfW + searchExtension
         );
 
-        // On client, identify local player for client-side solid prediction
-        EntityPlayer localPlayer = worldObj.isRemote ? CustomNpcs.proxy.getPlayer() : null;
+        EntityPlayer localPlayer = getClientPredictionPlayer();
 
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
         float yawRad = (float) Math.toRadians(panelYaw);
@@ -420,13 +416,7 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         float normalZ = (float) Math.cos(yawRad);
 
         for (EntityLivingBase ent : entities) {
-            if (ent.getEntityId() == ownerEntityId) continue;
-
-            // Client-side: only process local player for solid prediction
-            // Must be checked before isAllyOfOwner which uses server-only PlayerData
-            if (worldObj.isRemote && (localPlayer == null || ent != localPlayer)) continue;
-
-            if (isAllyOfOwner(ent)) continue;
+            if (shouldSkipBarrierPhysicsTarget(ent, localPlayer)) continue;
 
             // Current position relative to panel center
             double dx = ent.posX - posX;
