@@ -1169,8 +1169,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public void interrupt() {
         cleanupBurstEntities();
         cleanup();
-        if (interruptible && (phase == AbilityPhase.WINDUP || phase == AbilityPhase.BURST_DELAY)) {
-            // Interrupted during windup or burst delay - go to dazed state
+        if (interruptible && phase == AbilityPhase.WINDUP) {
+            // Interrupted during windup - go to dazed state
             phase = AbilityPhase.DAZED;
             currentTick = 0;
         } else {
@@ -1207,13 +1207,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
     /**
      * Check if can be interrupted by this damage source.
      * Only direct physical hits (not magic, fire, or other indirect damage) can interrupt.
-     * Interruption only occurs during WINDUP phase - if ability is already active, it completes.
+     * Interruption only occurs during WINDUP phase (including burst replay windups).
+     * BURST_DELAY is not interruptible - only the windup animation itself can be interrupted.
+     * For chained abilities, windUpAll controls whether subsequent entries even have a windup.
      *
      * @param source The damage source
      * @return true if the ability should be interrupted
      */
     public boolean canInterrupt(DamageSource source) {
-        if (!interruptible || (phase != AbilityPhase.WINDUP && phase != AbilityPhase.BURST_DELAY)) {
+        if (!interruptible || phase != AbilityPhase.WINDUP) {
             return false;
         }
         if (isInvulnerableForCurrentPhase()) {

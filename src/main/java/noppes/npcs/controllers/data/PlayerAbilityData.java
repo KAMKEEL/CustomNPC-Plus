@@ -285,6 +285,13 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     @Override
     protected void onInterruptComplete() {
         // Player clears state immediately (unlike NPC which ticks through DAZED)
+        // Roll cooldown before clearing state — NPC rolls during handleAbilityCompletion
+        // after ticking through DAZED, but the player skips DAZED entirely.
+        if (!interruptCooldownRolled && currentAbility != null) {
+            rollCooldown(currentAbility);
+        }
+        interruptCooldownRolled = false;
+
         // Stop the dazed animation that was started in interruptCurrentAbility()
         stopAbilityAnimation();
         currentAbility = null;
@@ -787,11 +794,68 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     /**
      * Reset ability state after death/respawn.
-     * Preserves cooldowns (interrupt on death already rolled them) but clears
-     * active toggles (death should end ongoing effects).
+     * Preserves cooldowns (the death handler interrupted the ability which rolled cooldown
+     * via onInterruptComplete) but clears active toggles (death should end ongoing effects).
      */
     public void resetOnRespawn() {
         onEntityReconstructed(false, true);
+    }
+
+    /**
+     * Reset ability state on login. Clears all transient execution state (current ability,
+     * locks, chains, cooldowns) that may have leaked from a previous session via the
+     * PlayerData cache. Toggles are NOT cleared — they are restored from NBT by readFromNBT.
+     * <p>
+     * Does NOT send packets — called before the client's sync state is initialized.
+     * The caller must trigger a full ability sync afterwards (e.g. via syncToClient).
+     */
+    public void resetOnLogin() {
+        // Silently clean up any stale executing ability
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            removeTelegraph(currentAbility);
+            currentAbility.cleanup();
+            currentAbility.interrupt();
+            stopAbilityAnimation();
+            releaseRotationControl();
+            releaseLockedPosition();
+        }
+
+        // Clear chain and concurrent state
+        currentChain = null;
+        chainEntryIndex = -1;
+        chainDelayRemaining = -1;
+        interruptConcurrentSlots();
+
+        // Clear all transient state
+        currentAbility = null;
+        currentAbilityKey = null;
+        currentTarget = null;
+        lastAbilityActivationTime = -1;
+
+        // Clear cooldowns (fresh start after relog)
+        cooldownEndTime = 0;
+        resetAllPerAbilityCooldowns();
+        interruptCooldownRolled = false;
+
+        // Reset sync tracking so next sync sends fresh state
+        lastSyncedFlags = 0;
+        needsSync = true;
+    }
+
+    /**
+     * Clean up ability state on disconnect. Interrupts any executing ability (fires events,
+     * rolls cooldown) before the player entity goes away, then clears all transient state.
+     * This ensures scripts receive proper interrupt/complete events and prevents stale state
+     * from leaking into the next session via the PlayerData cache.
+     */
+    public void resetOnDisconnect() {
+        // Interrupt with events so scripts know the ability ended
+        if (currentAbility != null && currentAbility.isExecuting()) {
+            interruptCurrentAbility(null, 0);
+        }
+        // Clear any remaining transient state (cooldowns, chains, locks)
+        // Don't clear toggles — they were already saved to NBT by this point
+        onEntityReconstructed(true, false);
     }
 
     // ═══════════════════════════════════════════════════════════════════

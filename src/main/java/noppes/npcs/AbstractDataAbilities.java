@@ -35,6 +35,13 @@ import java.util.Set;
  */
 public abstract class AbstractDataAbilities {
 
+    /**
+     * Safety timeout (ticks) for abilities stuck in ACTIVE phase.
+     * If an ability stays in ACTIVE for longer than this without calling signalCompletion(),
+     * it is force-completed to prevent permanent stuck state. 30 seconds at 20 TPS.
+     */
+    protected static final int MAX_ACTIVE_PHASE_TICKS = 600;
+
     // ═══════════════════════════════════════════════════════════════════
     // SHARED RUNTIME STATE (not saved to NBT)
     // ═══════════════════════════════════════════════════════════════════
@@ -863,6 +870,16 @@ public abstract class AbstractDataAbilities {
                     if (rotationLocked) releaseRotationControl();
                     if (positionLocked) releaseLockedPosition();
                     onBurstDelayReleaseLocks();
+                }
+
+                // Safety timeout: force-complete if stuck in ACTIVE too long.
+                // Individual ability types should have their own timeouts well below this;
+                // this is a last-resort failsafe to prevent permanent stuck state.
+                if (currentAbility != null && currentAbility.getPhase() == AbilityPhase.ACTIVE
+                    && currentAbility.getCurrentTick() > MAX_ACTIVE_PHASE_TICKS) {
+                    currentAbility.cancel();
+                    handleAbilityCompletion(target);
+                    return;
                 }
                 break;
 
