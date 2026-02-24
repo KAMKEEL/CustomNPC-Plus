@@ -129,6 +129,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     // ==================== SEARCH/REPLACE ====================
     public static final SearchReplaceBar searchBar = new SearchReplaceBar();
+
+    // ==================== PASTE SETTINGS ====================
+    private static final int PASTE_TRAILING_WS_TRIM_THRESHOLD = 16;
     
     // ==================== GO TO LINE ====================
     private final GoToLineDialog goToLineDialog = new GoToLineDialog();
@@ -1311,9 +1314,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (!e.isPress() || !isActive.get())
                 return;
 
-            String clipboard = NoppesStringUtils.getClipboardContents();
-            if (clipboard == null)
-                clipboard = "";
+            String clipboardRaw = NoppesStringUtils.getClipboardContents();
+            if (clipboardRaw == null)
+                clipboardRaw = "";
+
+            boolean isLinePaste = lastCopyWasLine && lastCopiedLineText != null && clipboardRaw.equals(lastCopiedLineText);
+            String clipboard = FormatHelper.sanitizeClipboard(clipboardRaw, PASTE_TRAILING_WS_TRIM_THRESHOLD);
 
             if (selection.hasSelection()) {
                 addText(clipboard);
@@ -1323,7 +1329,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return;
             }
 
-            boolean isLinePaste = lastCopyWasLine && lastCopiedLineText != null && clipboard.equals(lastCopiedLineText);
             if (isLinePaste && container != null && container.lines != null) {
                 LineData currentLine = selection.findCurrentLine(container.lines);
                 if (currentLine != null) {

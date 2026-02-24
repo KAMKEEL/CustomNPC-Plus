@@ -894,6 +894,63 @@ public class FormatHelper {
         return new FormatHelper(settings).format(code);
     }
 
+    /**
+     * Sanitize clipboard text for paste into the script editor.
+     * <p>
+     * This is a <b>paste-only</b> cleanup intended to prevent large trailing
+     * whitespace runs from causing misleading soft-wrap splits in the editor.
+     * <p>
+     * Processing:
+     * <ul>
+     *   <li>Normalizes line separators ({@code \r\n} and bare {@code \r}) to {@code \n}.</li>
+     *   <li>For each line, strips trailing spaces/tabs <b>only</b> when the trailing
+     *       whitespace run length is &ge; {@code trimThreshold}.</li>
+     *   <li>Preserves all leading whitespace, interior spacing, and newline structure
+     *       (trailing empty lines are kept).</li>
+     * </ul>
+     * The threshold avoids clobbering intentional minor trailing spaces while still
+     * removing the large padding blocks that confuse soft-wrap layout.
+     *
+     * @param clipboard     the raw clipboard text (may be {@code null} or empty)
+     * @param trimThreshold minimum trailing whitespace run length to trigger trimming;
+     *                      runs shorter than this are left intact
+     * @return sanitized text, or the original reference if {@code null}/empty
+     */
+    public static String sanitizeClipboard(String clipboard, int trimThreshold) {
+        if (clipboard == null || clipboard.isEmpty()) {
+            return clipboard;
+        }
+
+        // Normalize line separators: \r\n -> \n, then bare \r -> \n
+        String normalized = clipboard.replace("\r\n", "\n").replace("\r", "\n");
+
+        String[] lines = normalized.split("\n", -1);
+        StringBuilder result = new StringBuilder(normalized.length());
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            // Measure trailing whitespace run length
+            int end = line.length();
+            while (end > 0 && (line.charAt(end - 1) == ' ' || line.charAt(end - 1) == '\t')) {
+                end--;
+            }
+            int trailingLen = line.length() - end;
+
+            if (trailingLen >= trimThreshold) {
+                result.append(line, 0, end);
+            } else {
+                result.append(line);
+            }
+
+            if (i < lines.length - 1) {
+                result.append('\n');
+            }
+        }
+
+        return result.toString();
+    }
+
     // ==================== LINE WRAPPING ====================
 
     /**
