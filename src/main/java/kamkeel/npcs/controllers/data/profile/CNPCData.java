@@ -63,6 +63,9 @@ public class CNPCData implements IProfileData {
         if (playerData.partyUUID != null)
             return ProfileOperation.error("Cannot switch while in Party");
 
+        if (playerData.abilityData.isExecutingAbility())
+            return ProfileOperation.error("Cannot switch while performing an Ability");
+
         return ProfileOperation.success("");
     }
 
