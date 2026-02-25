@@ -13,10 +13,13 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.Quest;
 
 import java.io.IOException;
 
@@ -80,6 +83,13 @@ public final class DialogSavePacket extends AbstractPacket {
             } else {
                 NoppesUtilServer.sendDialogData((EntityPlayerMP) player, dialog.category);
             }
+
+            // Send full dialog data back so the client doesn't need a second round-trip
+            NBTTagCompound dialogData = dialog.writeToNBT(new NBTTagCompound());
+            Quest quest = QuestController.Instance.quests.get(dialog.quest);
+            if (quest != null)
+                dialogData.setString("DialogQuestName", quest.title);
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, dialogData);
         }
     }
 }
