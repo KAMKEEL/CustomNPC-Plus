@@ -135,8 +135,8 @@ public class ConfigScript {
             ClearActionsOnDeath = ClearActionsOnDeathProperty.getBoolean(true);
 
             ShowImplementationFieldsInAutocompleteProperty = config.get(CUSTOMIZATION, "Autocomplete Implementation Fields", false,
-                "If true, TypeScript (.d.ts) interface fields that come from implementation classes (not the API contract)\n" +
-                    "will be shown directly in JS autocomplete. These fields are still parsed and type-resolved either way.");
+                "If true, shows fields from implementation classes in autocomplete menu like 'event.npc'.\n"+
+                    " This can be useful for advanced scripters who want to use fields from implementation classes.");
             ShowImplementationFieldsInAutocomplete = ShowImplementationFieldsInAutocompleteProperty.getBoolean(false);
 
             // Convert to Legacy
