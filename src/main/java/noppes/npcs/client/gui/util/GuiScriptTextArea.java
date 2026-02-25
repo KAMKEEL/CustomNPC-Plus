@@ -1851,23 +1851,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
 
             if (before.substring(0, beforeTrimEnd).endsWith("/**")) {
-                // Indentation is derived from the logical source line in `text` (not container lines)
-                // to avoid soft-wrap artifacts.
-                String indent = "";
-                if (text != null) {
-                    int basePos = Math.max(0, Math.min(before.length(), text.length()));
-                    int lineStart = text.lastIndexOf('\n', Math.max(0, basePos - 1)) + 1;
-                    int p = lineStart;
-                    while (p < text.length()) {
-                        char ch = text.charAt(p);
-                        if (ch == ' ' || ch == '\t') {
-                            p++;
-                        } else {
-                            break;
-                        }
-                    }
-                    indent = text.substring(lineStart, p);
-                }
+                // Derive indentation from the logical source line (not soft-wrapped LineData).
+                String indent = getLogicalLineIndentAt(Math.max(0, Math.min(cursorPos, text != null ? text.length() : 0)));
                 
                 // Look ahead for a function declaration to generate smart JSDoc
                 String after = getSelectionAfterText();
@@ -1964,15 +1949,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
 
             if (prevNonWs >= 0 && cursorPos <= (text != null ? text.length() : 0) && text.charAt(prevNonWs) == '{') {
-                String indent = "";
-                for (LineData ld : this.container.lines) {
-                    if (prevNonWs >= ld.start && prevNonWs < ld.end) {
-                        indent = ld.text.substring(0, IndentHelper.getLineIndent(ld.text));
-                        break;
-                    }
-                }
-                if (indent == null)
-                    indent = "";
+                String indent = getLogicalLineIndentAt(prevNonWs);
                 String childIndent = indent + "    ";
                 String after = getSelectionAfterText();
 
@@ -2483,15 +2460,43 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             String after = getSelectionAfterText();
             int cursorPos = selection.getCursorPosition();
 
-            // If the user types a closing character and that same closer is
-            // already immediately after the caret, move caret past it instead
-            // of inserting another closer. This prevents duplicate closers
-            // when the editor auto-inserts pairs.
-            if ((c == ')' || c == ']' || c == '"' || c == '\'' ) && after.length() > 0 && after.charAt(0) == c) {
-                // Move caret forward by one (skip over existing closer)
+            if ((c == ')' || c == ']' || c == '}') && after.length() > 0 && after.charAt(0) == c) {
                 selection.reset(before.length() + 1);
                 scrollToCursor();
-                // Notify autocomplete of the character
+                autocompleteManager.onCharTyped(c, text, cursorPos);
+                return true;
+            }
+
+            if (c == '"' || c == '\'') {
+                if (after.length() > 0 && after.charAt(0) == c) {
+                    // Move caret forward by one (skip over existing closer)
+                    selection.reset(before.length() + 1);
+                    scrollToCursor();
+                    // Notify autocomplete of the character
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
+
+                // Auto-pair only when it looks like we're starting a new string. If the current
+                // logical line already has an unclosed quote of this type, treat the typed quote
+                // as a closer to avoid producing triple quotes.
+                boolean allowAutoPair = !container.getDocument().isExcludedInclusive(cursorPos)
+                        && !isLikelyClosingQuote(before, c);
+
+                if (allowAutoPair) {
+                    if (c == '"') {
+                        setText(before + "\"\"" + after, true);
+                    } else {
+                        setText(before + "''" + after, true);
+                    }
+                    selection.reset(before.length() + 1);
+                    scrollToCursor();
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
+
+                addText(Character.toString(c));
+                scrollToCursor();
                 autocompleteManager.onCharTyped(c, text, cursorPos);
                 return true;
             }
@@ -2500,22 +2505,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // insert a matching closer and place caret between the pair.
             // But only if the current position is not excluded (e.g., inside a comment or string)
             if (!container.getDocument().isExcludedInclusive(cursorPos)) {
-                if (c == '"') {
-                    setText(before + "\"\"" + after, true);
-                    selection.reset(before.length() + 1);
-                    scrollToCursor();
-                    // Notify autocomplete of the character
-                    autocompleteManager.onCharTyped(c, text, cursorPos);
-                    return true;
-                }
-                if (c == '\'') {
-                    setText(before + "''" + after, true);
-                    selection.reset(before.length() + 1);
-                    scrollToCursor();
-                    // Notify autocomplete of the character
-                    autocompleteManager.onCharTyped(c, text, cursorPos);
-                    return true;
-                }
                 if (c == '[') {
                     if (hasUnmatchedCloserAhead(after, '[', ']')) {
                         setText(before + c + after, true);
@@ -2566,6 +2555,29 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return false;
     }
 
+    private boolean isLikelyClosingQuote(String before, char quote) {
+        if (before == null || before.isEmpty()) {
+            return false;
+        }
+        int lineStart = before.lastIndexOf('\n');
+        int start = lineStart == -1 ? 0 : lineStart + 1;
+        int count = 0;
+        for (int i = start; i < before.length(); i++) {
+            if (before.charAt(i) == quote && !isEscaped(before, i)) {
+                count++;
+            }
+        }
+        return (count % 2) == 1;
+    }
+
+    private boolean isEscaped(String s, int index) {
+        int backslashes = 0;
+        for (int i = index - 1; i >= 0 && s.charAt(i) == '\\'; i--) {
+            backslashes++;
+        }
+        return (backslashes % 2) == 1;
+    }
+
     private boolean hasUnmatchedCloserAhead(String after, char opener, char closer) {
         int balance = 0;
         int len = after.length();
@@ -2586,6 +2598,24 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
         return false;
+    }
+
+    private String getLogicalLineIndentAt(int pos) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        int safePos = Math.max(0, Math.min(pos, text.length()));
+        int lineStart = text.lastIndexOf('\n', Math.max(0, safePos - 1)) + 1;
+        int p = lineStart;
+        while (p < text.length()) {
+            char ch = text.charAt(p);
+            if (ch == ' ' || ch == '\t') {
+                p++;
+            } else {
+                break;
+            }
+        }
+        return text.substring(lineStart, p);
     }
 
     private boolean isShiftKeyDown() {
