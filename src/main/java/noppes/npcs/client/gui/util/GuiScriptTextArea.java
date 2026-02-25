@@ -1976,6 +1976,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String childIndent = indent + "    ";
                 String after = getSelectionAfterText();
 
+                // If the next non-whitespace char is '}', don't insert another closer.
+                int nextNonWs = 0;
+                while (nextNonWs < after.length() && Character.isWhitespace(after.charAt(nextNonWs))) {
+                    nextNonWs++;
+                }
+                if (nextNonWs < after.length() && after.charAt(nextNonWs) == '}') {
+                    addText("\n" + childIndent);
+                    scrollToCursor();
+                    return true;
+                }
+
                 int firstNewline = after.indexOf('\n');
                 String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
                 if (leadingSegment.trim().length() > 0) {
