@@ -122,6 +122,8 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         if (worldObj.isRemote && barrierData.meleeEnabled && !isCharging()) {
             adjustMeleeBoundingBox();
         }
+
+        debugLogBarrierTick();
     }
 
     // ==================== INCOMING CHECK ====================
@@ -546,6 +548,14 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
 
         double surfaceDist = Math.abs(centerDist - domeRadius);
         return surfaceDist * surfaceDist;
+    }
+
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogBarrierExtra() {
+        return String.format("radius=%.2f targetRadius=%.2f follow=%b",
+            domeRadius, targetDomeRadius, followCaster);
     }
 
     // ==================== GETTERS ====================

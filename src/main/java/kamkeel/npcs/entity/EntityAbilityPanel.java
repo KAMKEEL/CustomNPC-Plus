@@ -143,6 +143,8 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
                 // Stationary, no update needed
                 break;
         }
+
+        debugLogBarrierTick();
     }
 
     private void updateHeld() {
@@ -546,6 +548,14 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         double du = localUp - clampedUp;
 
         return df * df + dr * dr + du * du;
+    }
+
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogBarrierExtra() {
+        return String.format("mode=%s yaw=%.1f w=%.2f h=%.2f",
+            mode.name(), panelYaw, panelData.panelWidth, panelData.panelHeight);
     }
 
     // ==================== GETTERS ====================

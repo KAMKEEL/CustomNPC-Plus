@@ -150,6 +150,16 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         processEntitiesInHitBox(hitBox, nextX, nextY, nextZ);
     }
 
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        return String.format("motion=(%.3f,%.3f,%.3f) homing=%b start=(%.2f,%.2f,%.2f)",
+            motionX, motionY, motionZ,
+            homingData != null && homingData.isHoming(),
+            startX, startY, startZ);
+    }
+
     // ==================== GETTERS ====================
 
     // Legacy getter for renderer compatibility

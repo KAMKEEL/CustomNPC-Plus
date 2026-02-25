@@ -192,6 +192,14 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         return lastTravelPitch;
     }
 
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        return String.format("motion=(%.3f,%.3f,%.3f) sliceW=%.2f sliceT=%.2f",
+            motionX, motionY, motionZ, sliceWidth, sliceThickness);
+    }
+
     // ==================== GETTERS ====================
 
     public float getSliceWidth() {

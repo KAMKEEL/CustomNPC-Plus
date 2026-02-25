@@ -330,6 +330,17 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         updateRotation();
     }
 
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        return String.format("motion=(%.3f,%.3f,%.3f) radius=%.2f thickness=%.2f " +
+                "boomerang=%b returning=%b vertical=%b ticksSinceMiss=%d",
+            motionX, motionY, motionZ,
+            discRadius, discThickness,
+            boomerang, returning, vertical, ticksSinceMiss);
+    }
+
     // ==================== GETTERS ====================
 
     public float getDiscRadius() {

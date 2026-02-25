@@ -624,6 +624,17 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         return -1;
     }
 
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        return String.format("dir=(%.3f,%.3f,%.3f) desired=%.2f current=%.2f max=%.2f " +
+                "fullyExtended=%b end=(%.2f,%.2f,%.2f) width=%.2f expSpd=%.2f origin=(%.2f,%.2f,%.2f)",
+            dirX, dirY, dirZ, desiredLength, currentLength, maxLength,
+            fullyExtended, endX, endY, endZ, laserWidth, expansionSpeed,
+            startX, startY, startZ);
+    }
+
     // ==================== GETTERS / SETTERS ====================
 
     public float getLaserWidth() {

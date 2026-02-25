@@ -6,6 +6,7 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.client.command.CommandCNPCDebugger;
 import kamkeel.npcs.client.renderer.RenderAbilityBeam;
 import kamkeel.npcs.client.renderer.RenderAbilityDisc;
 import kamkeel.npcs.client.renderer.RenderAbilityLaser;
@@ -53,6 +54,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
@@ -359,6 +361,9 @@ public class ClientProxy extends CommonProxy {
         ClientCloneController.Instance = new ClientCloneController();
         ClientTagMapController.Instance = new ClientTagMapController();
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
+
+        // Debug commands
+        ClientCommandHandler.instance.registerCommand(new CommandCNPCDebugger());
 
         // Telegraph rendering system
         TelegraphManager.initClient();

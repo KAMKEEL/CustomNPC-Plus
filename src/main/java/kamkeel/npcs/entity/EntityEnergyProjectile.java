@@ -16,6 +16,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.network.packets.data.energy.ProjectileReflectPacket;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
+import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
@@ -334,6 +335,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (!previewMode && !worldObj.isRemote) {
             EventHooks.onEnergyProjectileTick(this);
         }
+
+        debugLogTick();
     }
 
     /**
@@ -347,6 +350,53 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (this.rotationValX > 360.0f) this.rotationValX -= 360.0f;
         if (this.rotationValY > 360.0f) this.rotationValY -= 360.0f;
         if (this.rotationValZ > 360.0f) this.rotationValZ -= 360.0f;
+    }
+
+    // ==================== DEBUG LOGGING ====================
+
+    /**
+     * Debug log called every tick. Logs position/size/charging state.
+     * Subclasses override debugLogExtra() for type-specific data.
+     */
+    protected void debugLogTick() {
+        boolean isClient = worldObj.isRemote;
+        if (isClient ? !CNPCDebug.isClientEnabled("energy") : !CNPCDebug.isServerEnabled("energy"))
+            return;
+
+        String className = getClass().getSimpleName();
+        boolean dwCharging = isCharging();   // DataWatcher value (what client sees)
+        boolean localCharging = this.charging; // Local field (server truth)
+
+        String base = String.format("[%s id=%d tick=%d] pos=(%.2f,%.2f,%.2f) prev=(%.2f,%.2f,%.2f) " +
+                "size=%.3f renderSize=%.3f prevRenderSize=%.3f " +
+                "charging(dw)=%b charging(local)=%b chargeTick=%d/%d chargeProgress=%.3f",
+            className, getEntityId(), ticksExisted,
+            posX, posY, posZ, prevPosX, prevPosY, prevPosZ,
+            size, renderCurrentSize, prevRenderSize,
+            dwCharging, localCharging, chargeTick, chargeDuration, getChargeProgress());
+
+        // Flag mismatch between DataWatcher and local field
+        if (dwCharging != localCharging) {
+            base += " !!CHARGE_MISMATCH!!";
+        }
+
+        // Client interpolation state (only meaningful on client)
+        if (isClient) {
+            base += String.format(" interp(steps=%d target=(%.2f,%.2f,%.2f))",
+                interpSteps, interpTargetX, interpTargetY, interpTargetZ);
+        }
+
+        String extra = debugLogExtra();
+        String full = extra.isEmpty() ? base : base + " " + extra;
+        CNPCDebug.log("energy", isClient, full);
+    }
+
+    /**
+     * Subclass hook for type-specific debug data.
+     * Return empty string if nothing extra to log.
+     */
+    protected String debugLogExtra() {
+        return "";
     }
 
     /**
