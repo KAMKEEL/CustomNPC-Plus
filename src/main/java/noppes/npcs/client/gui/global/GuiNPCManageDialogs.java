@@ -411,6 +411,9 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
         }
         if (subgui instanceof SubGuiNpcDialog) {
             saveType(true);
+            if (dialog != null && dialog.id >= 0) {
+                setPrevDialogName(dialog.title);
+            }
         }
     }
 
