@@ -26,6 +26,7 @@ import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.TelegraphController;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargeTracker;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.entity.EntityAbilityBarrier;
@@ -37,6 +38,7 @@ import kamkeel.npcs.entity.EntityAbilityPanel;
 import kamkeel.npcs.entity.EntityAbilitySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.util.BukkitUtil;
@@ -430,8 +432,9 @@ public class CustomNpcs {
             AuctionController.Instance.save();
         }
 
-        kamkeel.npcs.entity.EntityEnergyProjectile.clearAllProjectiles();
+        EntityEnergyProjectile.clearAllProjectiles();
         EntityAbilityBarrier.clearAllBarriers();
+        EnergyChargeTracker.Instance.clear();
 
         if (FMLCommonHandler.instance().getSide().isClient())
             clientJaninoCompiler = null;
