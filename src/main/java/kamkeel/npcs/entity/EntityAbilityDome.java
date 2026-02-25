@@ -299,6 +299,14 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
                     double surfaceX = posX + nx * pushDist;
                     double surfaceY = posY + ny * pushDist - ent.height * 0.5;
                     double surfaceZ = posZ + nz * pushDist;
+
+                    // Prevent grounded entities from being teleported below the floor.
+                    // The spherical surface calculation can produce a Y below ground level
+                    // near the dome's equator, and setPosition bypasses collision detection.
+                    if (ent.onGround && surfaceY < ent.posY) {
+                        surfaceY = ent.posY;
+                    }
+
                     teleportEntity(ent, surfaceX, surfaceY, surfaceZ);
 
                     // Cancel radial velocity and add corrective push
