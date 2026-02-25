@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class FlyPathFinder extends PathFinder {
-    private static final float STRAIGHT_COST = 1.0F;
-    private static final float DIAGONAL_2D_COST = 1.4142135F;
-    private static final float DIAGONAL_3D_COST = 1.7320508F;
     /**
      * Used to find obstacles
      */
@@ -144,7 +141,7 @@ public class FlyPathFinder extends PathFinder {
 
     private NPCPath addToPath(Entity p_75861_1_, NPCPathPoint p_75861_2_, NPCPathPoint p_75861_3_, NPCPathPoint p_75861_4_, float p_75861_5_) {
         p_75861_2_.totalPathDistance = 0.0F;
-        p_75861_2_.distanceToNext = this.estimateCostToTarget(p_75861_2_, p_75861_3_);
+        p_75861_2_.distanceToNext = p_75861_2_.distanceToSquared(p_75861_3_);
         p_75861_2_.distanceToTarget = p_75861_2_.distanceToNext;
         this.path.clearPath();
         this.path.addPoint(p_75861_2_);
@@ -164,7 +161,7 @@ public class FlyPathFinder extends PathFinder {
                 return this.createEntityPath(p_75861_2_, p_75861_3_);
             }
 
-            if (this.estimateCostToTarget(pathpoint4, p_75861_3_) < this.estimateCostToTarget(pathpoint3, p_75861_3_)) {
+            if (pathpoint4.distanceToSquared(p_75861_3_) < pathpoint3.distanceToSquared(p_75861_3_)) {
                 pathpoint3 = pathpoint4;
             }
 
@@ -173,12 +170,12 @@ public class FlyPathFinder extends PathFinder {
 
             for (int j = 0; j < i; ++j) {
                 NPCPathPoint pathpoint5 = this.pathOptions[j];
-                float f1 = pathpoint4.totalPathDistance + this.getTraversalCost(pathpoint4, pathpoint5);
+                float f1 = pathpoint4.totalPathDistance + pathpoint4.distanceToSquared(pathpoint5);
 
                 if (!pathpoint5.isAssigned() || f1 < pathpoint5.totalPathDistance) {
                     pathpoint5.previous = pathpoint4;
                     pathpoint5.totalPathDistance = f1;
-                    pathpoint5.distanceToNext = this.estimateCostToTarget(pathpoint5, p_75861_3_);
+                    pathpoint5.distanceToNext = pathpoint5.distanceToSquared(p_75861_3_);
 
                     if (pathpoint5.isAssigned()) {
                         this.path.changeDistance(pathpoint5, pathpoint5.totalPathDistance + pathpoint5.distanceToNext);
@@ -195,32 +192,6 @@ public class FlyPathFinder extends PathFinder {
         } else {
             return this.createEntityPath(p_75861_2_, pathpoint3);
         }
-    }
-
-    private float getTraversalCost(NPCPathPoint from, NPCPathPoint to) {
-        int dx = Math.abs(to.xCoord - from.xCoord);
-        int dy = Math.abs(to.yCoord - from.yCoord);
-        int dz = Math.abs(to.zCoord - from.zCoord);
-        int changedAxes = dx + dy + dz;
-        if (changedAxes <= 1) {
-            return STRAIGHT_COST;
-        }
-        if (changedAxes == 2) {
-            return DIAGONAL_2D_COST;
-        }
-        return DIAGONAL_3D_COST;
-    }
-
-    private float estimateCostToTarget(NPCPathPoint from, NPCPathPoint to) {
-        float dx = Math.abs(to.xCoord - from.xCoord);
-        float dy = Math.abs(to.yCoord - from.yCoord);
-        float dz = Math.abs(to.zCoord - from.zCoord);
-
-        float max = Math.max(dx, Math.max(dy, dz));
-        float min = Math.min(dx, Math.min(dy, dz));
-        float mid = dx + dy + dz - max - min;
-
-        return DIAGONAL_3D_COST * min + DIAGONAL_2D_COST * (mid - min) + STRAIGHT_COST * (max - mid);
     }
 
     /**
