@@ -64,11 +64,17 @@ sourceSets.main.java {
 // TypeScript plugin is applied above in the main plugins block
 
 tasks.named("generateTypeScriptDefinitions").configure {
-    sourceDirectories = ['src/api/java']
+    sourceDirectories = ['src/api/java', 'src/main/java']
     outputDirectory = "src/main/resources/assets/${project.property("modId")}/api"
     apiPackages = ['noppes.npcs.api', 'net.minecraft'] as Set
     cleanOutputFirst = true  // Clean old generated files before regenerating
+    implementationPackages = [
+        'noppes.npcs.scripted',
+        'noppes.npcs.controllers.data',
+        'noppes.npcs.entity.data',
+        'noppes.npcs.quests',
+        'kamkeel.npcs.controllers.data'
+    ] as Set
 }
 processResources.dependsOn generateTypeScriptDefinitions
 sourcesJar.dependsOn generateTypeScriptDefinitions
-
