@@ -1132,10 +1132,11 @@ public class AbilityController implements IAbilityHandler {
      */
     public boolean fireOnAbilityDamage(Ability ability, EntityLivingBase caster, EntityLivingBase target,
                                        float damage, float knockback, float knockbackUp,
-                                       double knockbackDirX, double knockbackDirZ) {
+                                       double knockbackDirX, double knockbackDirZ,
+                                       float damageRatio) {
         for (IAbilityExtender ext : extenders) {
             if (ext.onAbilityDamage(ability, caster, target, damage, knockback, knockbackUp,
-                knockbackDirX, knockbackDirZ)) {
+                knockbackDirX, knockbackDirZ, damageRatio)) {
                 return true;
             }
         }

@@ -395,7 +395,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                 if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
                     continue;
                 }
-                if (handleBarrierHitOutcome(barrier, hitOutcome)) {
+                if (handleBarrierHitOutcome(barrier, hitOutcome, damage)) {
                     return true;
                 }
                 return false;
@@ -408,18 +408,27 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     /**
      * Handle the result of a projectile/barrier interaction.
      *
+     * @param fullDamage The DBC-scaled damage that was passed to the barrier (from getModifiedDamage).
      * @return true if caller should stop processing this tick.
      */
-    protected boolean handleBarrierHitOutcome(EntityAbilityBarrier barrier, EntityAbilityBarrier.ProjectileHitOutcome hitOutcome) {
+    protected boolean handleBarrierHitOutcome(EntityAbilityBarrier barrier, EntityAbilityBarrier.ProjectileHitOutcome hitOutcome, float fullDamage) {
         if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
             return false;
         }
 
         if (hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
             if (hitOutcome.remainingProjectileDamage <= 0.0f) {
+                barrierDamageRatio = 0.0f;
                 setBarrierSparkTicks(Math.max(getBarrierSparkTicks(), BARRIER_BREAK_SPARK_TICKS));
                 hasHit = true;
                 return true;
+            }
+
+            // Accumulate barrier pass-through ratio for extender damage scaling.
+            // fullDamage is the DBC-scaled damage the barrier saw; remainingProjectileDamage
+            // is what survived. Multiply into the running ratio so multiple barriers stack.
+            if (fullDamage > 0.0f) {
+                barrierDamageRatio *= (hitOutcome.remainingProjectileDamage / fullDamage);
             }
 
             setCombatDamage(hitOutcome.remainingProjectileDamage);
@@ -524,8 +533,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         setOuterColor(barrier.getOuterColor());
 
         float clampedStrength = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
-        float reducedDamage = getDamage() * (1.0f - clampedStrength / 100.0f);
+        float reductionFactor = 1.0f - clampedStrength / 100.0f;
+        float reducedDamage = getDamage() * reductionFactor;
         setCombatDamage(Math.max(0.0f, reducedDamage));
+        barrierDamageRatio *= reductionFactor;
 
         hitOnceEntities.clear();
         lastHitTickByEntity.clear();
@@ -948,7 +959,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             float kbUp = getKnockbackUp() > 0 ? getKnockbackUp() : 0.1f;
             handled = AbilityController.Instance.fireOnAbilityDamage(
                 sourceAbility, (EntityLivingBase) owner, target,
-                dmg, kb, kbUp, dx, dz);
+                dmg, kb, kbUp, dx, dz, barrierDamageRatio);
         }
 
         if (!handled) {
@@ -1915,6 +1926,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     // ==================== COMBAT GETTERS & SETTERS ====================
+
+    /**
+     * Proportional damage factor from barrier interactions (0.0-1.0).
+     * Accumulates multiplicatively when the projectile breaks through barriers or is reflected.
+     * Used by ability extenders to scale recalculated damage proportionally.
+     */
+    private float barrierDamageRatio = 1.0f;
+
+    public float getBarrierDamageRatio() {
+        return barrierDamageRatio;
+    }
 
     public float getDamage() {
         return combatData.getDamage();

@@ -476,7 +476,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
             // Check for ability extenders (e.g., DBC Addon damage routing)
             boolean handled = AbilityController.Instance.fireOnAbilityDamage(
                 this, caster, hitEntity, damage, knockback, knockbackUp,
-                knockbackDirX, knockbackDirZ);
+                knockbackDirX, knockbackDirZ, 1.0f);
             if (!handled) {
                 // Default damage path
                 if (caster instanceof EntityNPCInterface) {

@@ -442,7 +442,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                         endZ = startZ + dirZ * currentLength;
                     }
 
-                    if (handleBarrierHitOutcome(dome, hitOutcome)) {
+                    if (handleBarrierHitOutcome(dome, hitOutcome, damage)) {
                         return true;
                     }
                     return false;
@@ -475,7 +475,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                         endZ = startZ + dirZ * currentLength;
                     }
 
-                    if (handleBarrierHitOutcome(barrier, hitOutcome)) {
+                    if (handleBarrierHitOutcome(barrier, hitOutcome, damage)) {
                         return true;
                     }
                     return false;
