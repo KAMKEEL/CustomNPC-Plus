@@ -26,10 +26,12 @@ public class ProjectileData {
      * If colorOverride is true, returns a copy with overridden inner/outer colors.
      */
     public EnergyDisplayData resolveDisplay(EnergyDisplayData primary) {
-        if (!colorOverride) return primary;
+        // Always return a copy so entity mutations never bleed back into the ability template.
         EnergyDisplayData resolved = primary.copy();
-        resolved.innerColor = this.innerColor;
-        resolved.outerColor = this.outerColor;
+        if (colorOverride) {
+            resolved.innerColor = this.innerColor;
+            resolved.outerColor = this.outerColor;
+        }
         return resolved;
     }
 

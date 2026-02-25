@@ -43,7 +43,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         super(world);
 
         initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan);
-        this.homingData = homing;
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
         this.sliceWidth = sliceWidth;
         this.sliceThickness = sliceThickness;
 

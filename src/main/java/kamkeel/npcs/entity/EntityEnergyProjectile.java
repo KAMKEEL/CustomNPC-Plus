@@ -183,10 +183,13 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         // Visual
         this.size = size;
 
-        this.displayData = display;
-        this.combatData = combat;
-        this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
-        this.lightningData = lightning;
+        // Defensive copy: entities must never share data objects with the source ability.
+        // Without copies, runtime mutations (e.g. barrier reflection changing colors/damage)
+        // bleed back into the ability template and corrupt future projectiles.
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.combatData = combat != null ? combat.copy() : new EnergyCombatData();
+        this.lifespanData = lifespan != null ? lifespan.copy() : new EnergyLifespanData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
         syncProjectileColorWatchers();
 
         // Initialize render size
@@ -911,7 +914,15 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * Set the effects list from the ability's configured effects.
      */
     public void setEffects(List<AbilityPotionEffect> effects) {
-        this.effects = effects != null ? effects : new ArrayList<>();
+        if (effects == null || effects.isEmpty()) {
+            this.effects = new ArrayList<>();
+        } else {
+            // Deep copy: entity must not share the ability's effects list or its entries.
+            this.effects = new ArrayList<>(effects.size());
+            for (AbilityPotionEffect effect : effects) {
+                this.effects.add(effect.copy());
+            }
+        }
     }
 
     protected void doExplosion() {
@@ -1518,8 +1529,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                                      int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
-        this.displayData = display;
-        this.lightningData = lightning;
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
         setupChargingState(anchor, chargeDuration);
     }
 

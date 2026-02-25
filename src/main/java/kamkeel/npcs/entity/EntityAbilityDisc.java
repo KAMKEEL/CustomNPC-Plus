@@ -64,7 +64,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         // Initialize base properties
         initProjectile(owner, target, x, y, z, 1.0f, display, combat, lightning, lifespan);
 
-        this.homingData = homing;
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
 
         this.boomerang = boomerang;
         this.boomerangDelay = boomerangDelay;

@@ -56,11 +56,12 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         this.panelYaw = yaw;
         this.prevPanelYaw = yaw;
         this.mode = mode;
-        this.displayData = display;
-        this.lightningData = lightning;
-        this.barrierData = barrier;
-        this.panelData = panel;
-        this.currentHealth = barrier.maxHealth;
+        // Defensive copy: entities must never share data objects with the source ability.
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
+        this.barrierData = barrier != null ? barrier.copy() : new EnergyBarrierData();
+        this.panelData = panel != null ? panel.copy() : new EnergyPanelData();
+        this.currentHealth = this.barrierData.maxHealth;
 
         // For launched panels, set initial velocity
         if (mode == PanelMode.LAUNCHED) {

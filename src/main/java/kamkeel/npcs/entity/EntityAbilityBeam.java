@@ -147,7 +147,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
         // Beam-specific properties from homing data
 
-        this.homingData = homing;
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
         this.beamWidth = beamWidth;
         this.headSize = headSize;
 

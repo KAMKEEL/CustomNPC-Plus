@@ -79,7 +79,7 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         this.beamLength = beamLength;
         this.beamWidth = beamWidth;
         this.beamHeight = beamHeight;
-        this.displayData = displayData;
+        this.displayData = displayData != null ? displayData.copy() : new EnergyDisplayData();
         this.sweepSpeed = sweepSpeed;
         this.numberOfRotations = numberOfRotations;
         this.damage = damage;

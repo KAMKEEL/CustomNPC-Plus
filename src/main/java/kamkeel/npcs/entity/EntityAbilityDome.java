@@ -50,10 +50,11 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         this.stepHeight = 0.0F;
         this.ownerEntityId = owner.getEntityId();
         this.setDomeRadius(domeRadius);
-        this.displayData = display;
-        this.lightningData = lightning;
-        this.barrierData = barrier;
-        this.currentHealth = barrier.maxHealth;
+        // Defensive copy: entities must never share data objects with the source ability.
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
+        this.barrierData = barrier != null ? barrier.copy() : new EnergyBarrierData();
+        this.currentHealth = this.barrierData.maxHealth;
         this.setPosition(x, y, z);
     }
 
