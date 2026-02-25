@@ -56,11 +56,12 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         this.panelYaw = yaw;
         this.prevPanelYaw = yaw;
         this.mode = mode;
-        this.displayData = display;
-        this.lightningData = lightning;
-        this.barrierData = barrier;
-        this.panelData = panel;
-        this.currentHealth = barrier.maxHealth;
+        // Defensive copy: entities must never share data objects with the source ability.
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
+        this.barrierData = barrier != null ? barrier.copy() : new EnergyBarrierData();
+        this.panelData = panel != null ? panel.copy() : new EnergyPanelData();
+        this.currentHealth = this.barrierData.maxHealth;
 
         // For launched panels, set initial velocity
         if (mode == PanelMode.LAUNCHED) {
@@ -142,6 +143,8 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
                 // Stationary, no update needed
                 break;
         }
+
+        debugLogBarrierTick();
     }
 
     private void updateHeld() {
@@ -175,7 +178,10 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         if (worldObj != null && worldObj.isRemote && mode == PanelMode.HELD && getOwnerEntity() != null) {
             return;
         }
-        super.setPositionAndRotation2(x, y, z, yaw, pitch, posRotationIncrements);
+        // Bypass vanilla's lerp + push-out-of-blocks logic which causes
+        // large-BB entities (PLACED/LAUNCHED panels) to shift into the sky.
+        this.setPosition(x, y, z);
+        this.setRotation(yaw, pitch);
     }
 
     private void updateLaunched() {
@@ -542,6 +548,14 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         double du = localUp - clampedUp;
 
         return df * df + dr * dr + du * du;
+    }
+
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogBarrierExtra() {
+        return String.format("mode=%s yaw=%.1f w=%.2f h=%.2f",
+            mode.name(), panelYaw, panelData.panelWidth, panelData.panelHeight);
     }
 
     // ==================== GETTERS ====================

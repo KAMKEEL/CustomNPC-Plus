@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -79,7 +80,7 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         this.beamLength = beamLength;
         this.beamWidth = beamWidth;
         this.beamHeight = beamHeight;
-        this.displayData = displayData;
+        this.displayData = displayData != null ? displayData.copy() : new EnergyDisplayData();
         this.sweepSpeed = sweepSpeed;
         this.numberOfRotations = numberOfRotations;
         this.damage = damage;
@@ -167,6 +168,19 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
         // Server handles damage
         if (!worldObj.isRemote) {
             handleDamage(owner);
+        }
+
+        // Debug logging
+        {
+            boolean isClient = worldObj.isRemote;
+            if (isClient ? CNPCDebug.isClientEnabled("energy") : CNPCDebug.isServerEnabled("energy")) {
+                CNPCDebug.log("energy", isClient, String.format(
+                    "[Sweeper id=%d tick=%d] pos=(%.2f,%.2f,%.2f) angle=%.1f prevAngle=%.1f " +
+                    "speed=%.1f rotations=%d/%d length=%.2f width=%.2f",
+                    getEntityId(), ticksExisted, posX, posY, posZ,
+                    currentAngle, prevAngle, sweepSpeed,
+                    completedRotations, numberOfRotations, beamLength, beamWidth));
+            }
         }
     }
 

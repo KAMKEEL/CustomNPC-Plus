@@ -11,6 +11,7 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 
@@ -53,7 +54,7 @@ public final class PlayerAbilitySyncPacket extends AbstractPacket {
         NBTTagCompound nbt = ByteBufUtils.readNBT(in);
         if (nbt == null) return;
 
-        PlayerData data = PlayerData.get(player);
+        PlayerData data = ClientCacheHandler.playerData;
         if (data != null) {
             data.abilityData.readFromNBT(nbt);
         }

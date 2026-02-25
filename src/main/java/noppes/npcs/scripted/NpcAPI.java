@@ -71,24 +71,7 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
-import noppes.npcs.api.handler.IAbilityHandler;
-import noppes.npcs.api.handler.IActionManager;
-import noppes.npcs.api.handler.IAnimationHandler;
-import noppes.npcs.api.handler.IAttributeHandler;
-import noppes.npcs.api.handler.IAuctionHandler;
-import noppes.npcs.api.handler.ICloneHandler;
-import noppes.npcs.api.handler.ICustomEffectHandler;
-import noppes.npcs.api.handler.IDialogHandler;
-import noppes.npcs.api.handler.IFactionHandler;
-import noppes.npcs.api.handler.IMagicHandler;
-import noppes.npcs.api.handler.INaturalSpawnsHandler;
-import noppes.npcs.api.handler.IPartyHandler;
-import noppes.npcs.api.handler.IProfileHandler;
-import noppes.npcs.api.handler.IQuestHandler;
-import noppes.npcs.api.handler.IRecipeHandler;
-import noppes.npcs.api.handler.IScriptHookHandler;
-import noppes.npcs.api.handler.ITelegraphHandler;
-import noppes.npcs.api.handler.ITransportHandler;
+import noppes.npcs.api.handler.*;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
@@ -99,22 +82,7 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
-import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.AuctionController;
-import noppes.npcs.controllers.ChunkController;
-import noppes.npcs.controllers.CustomEffectController;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ScriptEntityData;
-import noppes.npcs.controllers.ScriptHookController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.SpawnController;
-import noppes.npcs.controllers.TransportController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
@@ -381,6 +349,10 @@ public class NpcAPI extends AbstractNpcAPI {
     public IAnimationHandler getAnimations() {
         this.checkWorld();
         return AnimationController.Instance;
+    }
+
+    public ILinkedItemHandler getLinkedItems() {
+        return LinkedItemController.getInstance();
     }
 
     public IScriptHookHandler getScriptHooks() {

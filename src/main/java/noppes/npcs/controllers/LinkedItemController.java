@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.handler.ILinkedItemHandler;
 import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.data.IScriptHandler;
@@ -21,7 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
-public class LinkedItemController {
+public class LinkedItemController implements ILinkedItemHandler {
     private static LinkedItemController Instance;
     private int lastUsedID = 0;
 
@@ -40,25 +41,28 @@ public class LinkedItemController {
         return Instance;
     }
 
-    public LinkedItem createItem(String name) {
+    @Override
+    public ILinkedItem createItem(String name) {
         return new LinkedItem(name);
     }
 
+    @Override
     public IItemStack createItemStack(int id) {
-        LinkedItem linkedItem = this.get(id);
+        LinkedItem linkedItem = (LinkedItem) this.get(id);
         if (linkedItem != null) {
             return linkedItem.createStack();
         }
         return null;
     }
 
-    public void add(LinkedItem linkedItem) {
+    @Override
+    public void add(ILinkedItem linkedItem) {
         if (linkedItem != null) {
             String name = linkedItem.getName();
             if (name != null && !name.isEmpty()) {
                 int linkedItemId = linkedItem.getId();
                 int id = this.linkedItems.containsKey(linkedItemId) ? linkedItemId : this.getUnusedId();
-                this.linkedItems.put(id, linkedItem);
+                this.linkedItems.put(id, (LinkedItem) linkedItem);
                 linkedItem.setId(id);
                 this.addScript(id);
             }
@@ -69,6 +73,7 @@ public class LinkedItemController {
         this.linkedItemsScripts.put(id, new LinkedItemScript());
     }
 
+    @Override
     public LinkedItem remove(int id) {
         this.removeScript(id);
         return this.linkedItems.remove(id);
@@ -78,16 +83,19 @@ public class LinkedItemController {
         this.linkedItemsScripts.remove(id);
     }
 
+    @Override
     public LinkedItem get(int id) {
-        return this.linkedItems.get(id);
+        return (LinkedItem) this.linkedItems.get(id);
     }
 
+    @Override
     public boolean contains(int id) {
         return this.linkedItems.containsKey(id);
     }
 
-    public boolean contains(LinkedItem linkedItem) {
-        return this.linkedItems.containsValue(linkedItem);
+    @Override
+    public boolean contains(ILinkedItem linkedItem) {
+        return this.linkedItems.containsValue((LinkedItem) linkedItem);
     }
 
     public IScriptHandler getScriptHandler(int id) {
@@ -219,7 +227,7 @@ public class LinkedItemController {
     }
 
     public void delete(int id) {
-        LinkedItem linkedItem = get(id);
+        LinkedItem linkedItem = (LinkedItem) get(id);
         if (linkedItem != null) {
             LinkedItem foundItem = remove(id);
             if (foundItem != null && foundItem.name != null) {

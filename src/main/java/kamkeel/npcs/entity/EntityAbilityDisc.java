@@ -64,7 +64,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         // Initialize base properties
         initProjectile(owner, target, x, y, z, 1.0f, display, combat, lightning, lifespan);
 
-        this.homingData = homing;
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
 
         this.boomerang = boomerang;
         this.boomerangDelay = boomerangDelay;
@@ -330,6 +330,17 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         updateRotation();
     }
 
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        return String.format("motion=(%.3f,%.3f,%.3f) radius=%.2f thickness=%.2f " +
+                "boomerang=%b returning=%b vertical=%b ticksSinceMiss=%d",
+            motionX, motionY, motionZ,
+            discRadius, discThickness,
+            boomerang, returning, vertical, ticksSinceMiss);
+    }
+
     // ==================== GETTERS ====================
 
     public float getDiscRadius() {
@@ -393,6 +404,32 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
             lastTravelYaw = (float) (Math.atan2(-motionX, motionZ) * 180.0 / Math.PI);
         }
         return lastTravelYaw;
+    }
+
+    // ==================== REFLECTION ====================
+
+    @Override
+    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+        boolean reflected = super.reflectFromBarrier(barrier, reflectStrengthPct);
+        if (reflected) {
+            // Disable boomerang on reflected discs — the original owner is no longer
+            // relevant and the return-to-owner logic causes erratic flight paths.
+            this.boomerang = false;
+            this.returning = false;
+        }
+        return reflected;
+    }
+
+    @Override
+    protected void writeProjectileReflectionData(NBTTagCompound nbt) {
+        nbt.setBoolean("Boomerang", boomerang);
+        nbt.setBoolean("Returning", returning);
+    }
+
+    @Override
+    protected void applyProjectileReflectionData(NBTTagCompound nbt) {
+        boomerang = nbt.getBoolean("Boomerang");
+        returning = nbt.getBoolean("Returning");
     }
 
     // ==================== NBT ====================

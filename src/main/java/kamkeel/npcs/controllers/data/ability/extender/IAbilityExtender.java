@@ -69,11 +69,15 @@ public interface IAbilityExtender {
      * @param knockbackUp   The vertical knockback
      * @param knockbackDirX The X component of knockback direction
      * @param knockbackDirZ The Z component of knockback direction
+     * @param damageMultiplier Accumulated proportional damage multiplier (0.0-1.0).
+     *                        1.0 means full damage (no reduction). Extenders that recalculate
+     *                        damage from stats should multiply by this value.
      * @return true if damage was handled (skip default), false to pass to next extender or default
      */
     default boolean onAbilityDamage(Ability ability, EntityLivingBase caster, EntityLivingBase target,
                                     float damage, float knockback, float knockbackUp,
-                                    double knockbackDirX, double knockbackDirZ) {
+                                    double knockbackDirX, double knockbackDirZ,
+                                    float damageMultiplier) {
         return false;
     }
 

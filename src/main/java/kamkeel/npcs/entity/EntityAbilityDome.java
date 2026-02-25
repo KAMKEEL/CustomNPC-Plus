@@ -50,10 +50,11 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         this.stepHeight = 0.0F;
         this.ownerEntityId = owner.getEntityId();
         this.setDomeRadius(domeRadius);
-        this.displayData = display;
-        this.lightningData = lightning;
-        this.barrierData = barrier;
-        this.currentHealth = barrier.maxHealth;
+        // Defensive copy: entities must never share data objects with the source ability.
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
+        this.barrierData = barrier != null ? barrier.copy() : new EnergyBarrierData();
+        this.currentHealth = this.barrierData.maxHealth;
         this.setPosition(x, y, z);
     }
 
@@ -121,6 +122,8 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         if (worldObj.isRemote && barrierData.meleeEnabled && !isCharging()) {
             adjustMeleeBoundingBox();
         }
+
+        debugLogBarrierTick();
     }
 
     // ==================== INCOMING CHECK ====================
@@ -296,6 +299,14 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
                     double surfaceX = posX + nx * pushDist;
                     double surfaceY = posY + ny * pushDist - ent.height * 0.5;
                     double surfaceZ = posZ + nz * pushDist;
+
+                    // Prevent grounded entities from being teleported below the floor.
+                    // The spherical surface calculation can produce a Y below ground level
+                    // near the dome's equator, and setPosition bypasses collision detection.
+                    if (ent.onGround && surfaceY < ent.posY) {
+                        surfaceY = ent.posY;
+                    }
+
                     teleportEntity(ent, surfaceX, surfaceY, surfaceZ);
 
                     // Cancel radial velocity and add corrective push
@@ -545,6 +556,14 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
 
         double surfaceDist = Math.abs(centerDist - domeRadius);
         return surfaceDist * surfaceDist;
+    }
+
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogBarrierExtra() {
+        return String.format("radius=%.2f targetRadius=%.2f follow=%b",
+            domeRadius, targetDomeRadius, followCaster);
     }
 
     // ==================== GETTERS ====================

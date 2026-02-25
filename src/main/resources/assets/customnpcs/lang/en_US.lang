@@ -1693,7 +1693,7 @@ ability.cnpc.effect=Effect
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
 ability.cnpc.disc=Disc
-ability.cnpc.laser_shot=Laser Shot
+ability.cnpc.laser_shot=Laser
 ability.cnpc.sweeper=Sweeper
 
 # ═══════════════════════════════════════════════════════════════
@@ -1822,6 +1822,7 @@ ability.multiHitDelay=Multi-Hit Delay
 ability.maxHits=Max Hits
 ability.distance=Distance
 ability.maxDistance=Max Distance
+ability.maxLength=Max Length
 ability.lifetime=Lifetime
 ability.stunTicks=Stun Ticks
 ability.hitWidth=Hit Width
@@ -1829,7 +1830,6 @@ ability.hitLength=Hit Length
 ability.effects=Effects
 ability.effect.burn=Burn
 ability.mode=Mode
-ability.duration=Duration
 ability.anchorPoint=Anchor Point
 ability.anchor.offsetX=Offset X
 ability.anchor.offsetY=Offset Y

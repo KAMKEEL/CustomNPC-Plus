@@ -38,7 +38,7 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
         // Initialize base properties
         initProjectile(owner, target, x, y, z, orbSize, display, combat, lightning, lifespan);
 
-        this.homingData = homing;
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
 
         // Calculate initial velocity toward target
         calculateInitialVelocity(owner, target, x, y, z);
@@ -148,6 +148,16 @@ public class EntityAbilityOrb extends EntityEnergyProjectile {
             Math.max(posX, nextX) + hitSize, Math.max(posY, nextY) + hitSize, Math.max(posZ, nextZ) + hitSize
         );
         processEntitiesInHitBox(hitBox, nextX, nextY, nextZ);
+    }
+
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        return String.format("motion=(%.3f,%.3f,%.3f) homing=%b start=(%.2f,%.2f,%.2f)",
+            motionX, motionY, motionZ,
+            homingData != null && homingData.isHoming(),
+            startX, startY, startZ);
     }
 
     // ==================== GETTERS ====================

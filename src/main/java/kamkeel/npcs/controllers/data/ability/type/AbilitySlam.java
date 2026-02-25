@@ -128,7 +128,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
                 targetZ = caster.posZ;
             } else if (targetingMode == TargetingMode.AOE_TARGET && target != null && !target.isDead) {
                 targetX = target.posX;
-                targetY = target.posY;
+                targetY = findGroundLevel(caster.worldObj, target.posX, target.posY, target.posZ, 64);
                 targetZ = target.posZ;
             }
         }
@@ -161,7 +161,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             targetZ = caster.posZ;
         } else if (targetingMode == TargetingMode.AOE_TARGET && target != null && !target.isDead) {
             targetX = target.posX;
-            targetY = target.posY;
+            targetY = findGroundLevel(caster.worldObj, target.posX, target.posY, target.posZ, 64);
             targetZ = target.posZ;
         } else {
             targetX = caster.posX;
@@ -186,10 +186,7 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         if (isAirborne) {
             double groundY = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ, 64);
             highEnoughForAirSlam = (caster.posY - groundY) >= 3.0;
-            System.out.println("[Slam] AIR CHECK: posY=" + caster.posY + " groundY=" + groundY + " dist=" + (caster.posY - groundY) + " highEnough=" + highEnoughForAirSlam);
         }
-
-        System.out.println("[Slam] EXECUTE: onGround=" + caster.onGround + " isAirborne=" + isAirborne + " highEnough=" + highEnoughForAirSlam + " -> " + (isAirborne && highEnoughForAirSlam ? "AIR SLAM" : "GROUND SLAM"));
 
         if (isAirborne && highEnoughForAirSlam) {
             // Air slam: player is already airborne (flying, falling, jumping) and high enough

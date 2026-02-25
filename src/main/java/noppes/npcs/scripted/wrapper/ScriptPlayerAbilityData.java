@@ -85,7 +85,8 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
 
     @Override
     public IAbility getCurrentAbility() {
-        return data.getCurrentAbility();
+        Ability a = data.getCurrentAbility();
+        return a != null ? a.deepCopy() : null;
     }
 
     @Override
