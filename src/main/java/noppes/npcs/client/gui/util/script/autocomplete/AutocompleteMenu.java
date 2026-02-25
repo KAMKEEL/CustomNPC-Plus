@@ -72,6 +72,22 @@ public class AutocompleteMenu extends Gui {
     
     public AutocompleteMenu() {
         this.font = Minecraft.getMinecraft().fontRenderer;
+        this.visibleItemsCount = MAX_VISIBLE_ITEMS;
+    }
+
+    private int getVisibleItemCapacity() {
+        if (items == null || items.isEmpty())
+            return 0;
+        int cap = visibleItemsCount > 0 ? visibleItemsCount : MAX_VISIBLE_ITEMS;
+        cap = Math.min(cap, MAX_VISIBLE_ITEMS);
+        return Math.max(1, Math.min(cap, items.size()));
+    }
+
+    private int getMaxScrollOffset() {
+        int cap = getVisibleItemCapacity();
+        if (cap <= 0)
+            return 0;
+        return Math.max(0, items.size() - cap);
     }
     
     public void setCallback(AutocompleteCallback callback) {
@@ -107,7 +123,7 @@ public class AutocompleteMenu extends Gui {
         }
         
         // Clamp scroll
-        int maxScroll = Math.max(0, items.size() - MAX_VISIBLE_ITEMS);
+        int maxScroll = getMaxScrollOffset();
         if (scrollOffset > maxScroll) {
             scrollOffset = maxScroll;
         }
@@ -232,11 +248,11 @@ public class AutocompleteMenu extends Gui {
      */
     public void selectPrevious() {
         if (items.isEmpty()) return;
-        
+
         selectedIndex--;
         if (selectedIndex < 0) {
             selectedIndex = items.size() - 1;
-            scrollOffset = Math.max(0, items.size() - MAX_VISIBLE_ITEMS);
+            scrollOffset = getMaxScrollOffset();
         } else if (selectedIndex < scrollOffset) {
             scrollOffset = selectedIndex;
         }
@@ -247,13 +263,16 @@ public class AutocompleteMenu extends Gui {
      */
     public void selectNext() {
         if (items.isEmpty()) return;
-        
+
         selectedIndex++;
         if (selectedIndex >= items.size()) {
             selectedIndex = 0;
             scrollOffset = 0;
-        } else if (selectedIndex >= scrollOffset + MAX_VISIBLE_ITEMS) {
-            scrollOffset = selectedIndex - MAX_VISIBLE_ITEMS + 1;
+        } else {
+            int cap = getVisibleItemCapacity();
+            if (cap > 0 && selectedIndex >= scrollOffset + cap) {
+                scrollOffset = selectedIndex - cap + 1;
+            }
         }
     }
     
@@ -309,8 +328,9 @@ public class AutocompleteMenu extends Gui {
         
         // Draw items
         int itemY = y + PADDING;
-        
-        for (int i = 0; i < visibleItemsCount; i++) {
+
+        int visibleCount = getVisibleItemCapacity();
+        for (int i = 0; i < visibleCount; i++) {
             int itemIndex = scrollOffset + i;
             if (itemIndex >= items.size()) break;
             
@@ -323,7 +343,7 @@ public class AutocompleteMenu extends Gui {
         }
         
         // Draw scrollbar if needed
-        if (items.size() > visibleItemsCount) {
+        if (items.size() > visibleCount) {
             drawScrollbar(mouseX, mouseY);
         }
         
@@ -573,15 +593,18 @@ public class AutocompleteMenu extends Gui {
     private void drawScrollbar(int mouseX, int mouseY) {
         int scrollbarX = x + width - 8;
         int scrollbarY = y + PADDING;
-        int scrollbarHeight = MAX_VISIBLE_ITEMS * ITEM_HEIGHT;
+        int visibleCount = getVisibleItemCapacity();
+        if (visibleCount <= 0)
+            return;
+        int scrollbarHeight = visibleCount * ITEM_HEIGHT;
         
         // Background
         drawRect(scrollbarX, scrollbarY, scrollbarX + 6, scrollbarY + scrollbarHeight, SCROLLBAR_BG);
         
         // Thumb
-        float thumbRatio = (float) MAX_VISIBLE_ITEMS / items.size();
+        float thumbRatio = (float) visibleCount / items.size();
         int thumbHeight = Math.max(20, (int) (scrollbarHeight * thumbRatio));
-        float thumbPosRatio = (float) scrollOffset / Math.max(1, items.size() - MAX_VISIBLE_ITEMS);
+        float thumbPosRatio = (float) scrollOffset / Math.max(1, items.size() - visibleCount);
         int thumbY = scrollbarY + (int) ((scrollbarHeight - thumbHeight) * thumbPosRatio);
         
         // Check if mouse is above the scrollbar thumb
@@ -645,8 +668,9 @@ public class AutocompleteMenu extends Gui {
         if (!isMouseInBounds(mouseX, mouseY)) return;
         
         int itemY = y + PADDING;
-        int visibleItems = Math.min(items.size(), MAX_VISIBLE_ITEMS);
-        
+
+        int visibleItems = getVisibleItemCapacity();
+
         for (int i = 0; i < visibleItems; i++) {
             if (mouseY >= itemY && mouseY < itemY + ITEM_HEIGHT) {
                 hoveredIndex = scrollOffset + i;
@@ -670,7 +694,7 @@ public class AutocompleteMenu extends Gui {
         }
 
         // Check if clicking on scrollbar
-        if (button == 0 && items.size() > MAX_VISIBLE_ITEMS) {
+        if (button == 0 && items.size() > getVisibleItemCapacity()) {
             int scrollbarX = x + width - 8;
             if (mouseX >= scrollbarX && mouseX <= scrollbarX + 6) {
                 // Clicked on scrollbar area - start drag
@@ -712,13 +736,16 @@ public class AutocompleteMenu extends Gui {
             return false;
 
         // Calculate scroll area height
-        int listHeight = MAX_VISIBLE_ITEMS * ITEM_HEIGHT;
-        int scrollbarHeight = Math.max(20, (listHeight * MAX_VISIBLE_ITEMS) / items.size());
+        int visibleCount = getVisibleItemCapacity();
+        if (visibleCount <= 0)
+            return false;
+        int listHeight = visibleCount * ITEM_HEIGHT;
+        int scrollbarHeight = Math.max(20, (listHeight * visibleCount) / items.size());
         int scrollTrackHeight = listHeight - scrollbarHeight;
 
         // Calculate new scroll offset based on drag
         int deltaY = mouseY - dragStartY;
-        int maxScroll = items.size() - MAX_VISIBLE_ITEMS;
+        int maxScroll = items.size() - visibleCount;
 
         if (scrollTrackHeight > 0) {
             int scrollDelta = (deltaY * maxScroll) / scrollTrackHeight;
@@ -734,12 +761,13 @@ public class AutocompleteMenu extends Gui {
      */
     public boolean mouseScrolled(int mouseX, int mouseY, int delta) {
         if (!visible || !isMouseInBounds(mouseX, mouseY)) return false;
-        
-        if (items.size() > MAX_VISIBLE_ITEMS) {
+
+        int visibleCount = getVisibleItemCapacity();
+        if (items.size() > visibleCount) {
             if (delta > 0) {
                 scrollOffset = Math.max(0, scrollOffset - 1);
             } else {
-                scrollOffset = Math.min(items.size() - MAX_VISIBLE_ITEMS, scrollOffset + 1);
+                scrollOffset = Math.min(items.size() - visibleCount, scrollOffset + 1);
             }
             return true;
         }
@@ -757,12 +785,12 @@ public class AutocompleteMenu extends Gui {
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int scaleFactor = sr.getScaleFactor();
-        
+
         int scissorX = x * scaleFactor;
-        int scissorY = (sr.getScaledHeight() - y - height) * scaleFactor;
+        int scissorY = mc.displayHeight - (y + height) * scaleFactor;
         int scissorW = width * scaleFactor;
         int scissorH = height * scaleFactor;
-        
+
         GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
     }
     
