@@ -220,7 +220,7 @@ public class GuiFieldBuilder {
                 float fVal = def.getValue() instanceof Number ? ((Number) def.getValue()).floatValue() : 0f;
                 GuiNpcTextField tf = new GuiNpcTextField(widgetId, parent, fontRenderer, fieldX, y, fieldW, 20, String.valueOf(fVal));
                 tf.setFloatsOnly();
-                if (def.hasRange()) tf.setMinMaxDefaultFloat(def.getMin(), def.getMax(), fVal);
+                tf.setMinMaxDefaultFloat(def.getMin(), def.getMax(), fVal);
                 if (!def.isEnabled()) tf.setEnabled(false);
                 if (hover != null) tf.setHoverText(hover);
                 sw.addTextField(tf);
@@ -233,7 +233,7 @@ public class GuiFieldBuilder {
                 int iVal = def.getValue() instanceof Number ? ((Number) def.getValue()).intValue() : 0;
                 GuiNpcTextField tf = new GuiNpcTextField(widgetId, parent, fontRenderer, fieldX, y, fieldW, 20, String.valueOf(iVal));
                 tf.setIntegersOnly();
-                if (def.hasRange()) tf.setMinMaxDefault((int) def.getMin(), (int) def.getMax(), iVal);
+                tf.setMinMaxDefault((int) def.getMin(), (int) def.getMax(), iVal);
                 if (!def.isEnabled()) tf.setEnabled(false);
                 if (hover != null) tf.setHoverText(hover);
                 sw.addTextField(tf);
