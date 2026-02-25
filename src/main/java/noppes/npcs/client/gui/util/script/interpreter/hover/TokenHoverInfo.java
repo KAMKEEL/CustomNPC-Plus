@@ -1125,7 +1125,7 @@ public class TokenHoverInfo {
         
         // Return type
         TypeInfo returnType = methodInfo.getReturnType();
-        if (ScriptDocument.INSTANCE.isJavaScript())
+        if (ScriptDocument.INSTANCE.isJavaScript() && methodInfo.isDeclaration())
             addSegment("function ", TokenType.KEYWORD.getHexColor());
         else if (returnType != null) {
             addTypeSegments(returnType);
