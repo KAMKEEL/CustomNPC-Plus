@@ -66,6 +66,9 @@ public class ConfigScript {
     public static Property ClearActionsOnDeathProperty;
     public static boolean ClearActionsOnDeath = true;
 
+    public static Property ShowImplementationFieldsInAutocompleteProperty;
+    public static boolean ShowImplementationFieldsInAutocomplete = false;
+
     public static boolean IndividualPlayerScripts = false;
 
     public static void init(File configFile) {
@@ -130,6 +133,11 @@ public class ConfigScript {
             ActionManagerTickDefault = config.get(CUSTOMIZATION, "Action Manager Tick Default", ActionManagerTickDefault, "How frequent to update the action manager ticking tasks").getInt(ActionManagerTickDefault);
             ClearActionsOnDeathProperty = config.get(CUSTOMIZATION, "Clear Actions On Death", true, "If true, clears the Action Manager for players and NPCs when they die");
             ClearActionsOnDeath = ClearActionsOnDeathProperty.getBoolean(true);
+
+            ShowImplementationFieldsInAutocompleteProperty = config.get(CUSTOMIZATION, "Autocomplete Implementation Fields", false,
+                "If true, TypeScript (.d.ts) interface fields that come from implementation classes (not the API contract)\n" +
+                    "will be shown directly in JS autocomplete. These fields are still parsed and type-resolved either way.");
+            ShowImplementationFieldsInAutocomplete = ShowImplementationFieldsInAutocompleteProperty.getBoolean(false);
 
             // Convert to Legacy
             if (CustomNpcs.legacyExist) {

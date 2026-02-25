@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.*;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.config.ConfigScript;
 
 import java.util.*;
 
@@ -66,7 +67,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         if (jsTypeInfo != null) {
             // Pass both: jsTypeInfo (current type in hierarchy) and receiverType (context for type params)
             addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), context.methodsOnly);
-            if (!context.methodsOnly) {
+            if (!context.methodsOnly && ConfigScript.ShowImplementationFieldsInAutocomplete) {
                 addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
             }
         }
