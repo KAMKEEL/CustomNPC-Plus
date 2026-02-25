@@ -1,5 +1,6 @@
 package kamkeel.npcs.entity;
 
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityEnergyProjectile;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
@@ -551,6 +552,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         barrierImpactPauseTicks = 0;
         barrierImpactDestroyOnResume = false;
 
+        // Detach from source ability so the caster is freed from active-phase locks.
+        if (sourceAbility instanceof AbilityEnergyProjectile) {
+            ((AbilityEnergyProjectile<?>) sourceAbility).detachEntity(this);
+        }
+        sourceAbility = null;
+
         Entity barrierOwner = barrier.getOwnerEntity();
         if (barrierOwner != null) {
             setOwnerEntityId(barrierOwner.getEntityId());
@@ -567,6 +574,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
         hitOnceEntities.clear();
         lastHitTickByEntity.clear();
+        reflected = true;
         return true;
     }
 
