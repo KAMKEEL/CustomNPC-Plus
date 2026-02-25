@@ -587,13 +587,16 @@ public class TypeScriptDefinitionParser {
         // Parse fields (that aren't method signatures)
         Matcher fieldMatcher = FIELD_PATTERN.matcher(body);
         while (fieldMatcher.find()) {
-            String fieldText = fieldMatcher.group(0);
-            // Skip if this looks like a method (has parentheses in the match)
-            if (fieldText.contains("(")) continue;
-            
-            boolean readonly = fieldMatcher.group(1) != null;
             String fieldName = fieldMatcher.group(2);
+
+            // CNPC+ base event implementation CustomNPCsEvent exposes a public "API" field that 
+            // ends up polluting autocomplete on every event via ICustomNPCsEvent inheritance. 
+            // Keep parsing other fields, but skip this one.
+            if ("ICustomNPCsEvent".equals(typeInfo.getSimpleName()) && "API".equals(fieldName))
+                continue;
+            
             String fieldType = cleanType(fieldMatcher.group(3));
+            boolean readonly = fieldMatcher.group(1) != null;
             
             JSFieldInfo field = new JSFieldInfo(fieldName, fieldType, readonly);
             

@@ -202,9 +202,11 @@ public final class FieldInfo {
      */
     public static FieldInfo fromJSField(JSFieldInfo jsField, TypeInfo containingType) {
         String name = jsField.getName();
-        
-        // Resolve the type from the JS type registry
-        TypeInfo type = resolveJSType(jsField.getType());
+
+        TypeInfo type = jsField.getResolvedType(containingType);
+        if (type == null || !type.isResolved()) {
+            type = resolveJSType(jsField.getType());
+        }
         
         // JS fields are public by default, readonly maps to final
         int modifiers = Modifier.PUBLIC;
