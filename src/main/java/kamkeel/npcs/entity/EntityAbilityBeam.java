@@ -637,6 +637,50 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         return trailFadeTime;
     }
 
+    // ==================== REFLECTION ====================
+
+    @Override
+    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+        boolean reflected = super.reflectFromBarrier(barrier, reflectStrengthPct);
+        if (reflected) {
+            // Switch to FREE_TRAIL: detach from caster (tail-less), trail fades out.
+            setBeamMode(BeamMode.FREE_TRAIL);
+
+            // Reset origin to the reflection point (current head position).
+            startX = posX;
+            startY = posY;
+            startZ = posZ;
+            resetHeadOffsets();
+            resetTrailStorage();
+
+            // Disable homing — reflected beams fly straight.
+            homingData.setHoming(false);
+            setTargetEntityId(-1);
+        }
+        return reflected;
+    }
+
+    @Override
+    protected void writeProjectileReflectionData(NBTTagCompound nbt) {
+        nbt.setByte("BeamMode", (byte) beamMode.ordinal());
+        nbt.setDouble("StartX", startX);
+        nbt.setDouble("StartY", startY);
+        nbt.setDouble("StartZ", startZ);
+    }
+
+    @Override
+    protected void applyProjectileReflectionData(NBTTagCompound nbt) {
+        int mode = nbt.getByte("BeamMode");
+        setBeamMode(mode >= 0 && mode < BeamMode.values().length ? BeamMode.values()[mode] : BeamMode.FREE_TRAIL);
+        startX = nbt.getDouble("StartX");
+        startY = nbt.getDouble("StartY");
+        startZ = nbt.getDouble("StartZ");
+        resetHeadOffsets();
+        resetTrailStorage();
+        homingData.setHoming(false);
+        setTargetEntityId(-1);
+    }
+
     // ==================== NBT ====================
 
     @Override

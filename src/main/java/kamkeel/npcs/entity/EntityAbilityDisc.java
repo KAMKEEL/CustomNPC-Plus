@@ -395,6 +395,32 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         return lastTravelYaw;
     }
 
+    // ==================== REFLECTION ====================
+
+    @Override
+    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+        boolean reflected = super.reflectFromBarrier(barrier, reflectStrengthPct);
+        if (reflected) {
+            // Disable boomerang on reflected discs — the original owner is no longer
+            // relevant and the return-to-owner logic causes erratic flight paths.
+            this.boomerang = false;
+            this.returning = false;
+        }
+        return reflected;
+    }
+
+    @Override
+    protected void writeProjectileReflectionData(NBTTagCompound nbt) {
+        nbt.setBoolean("Boomerang", boomerang);
+        nbt.setBoolean("Returning", returning);
+    }
+
+    @Override
+    protected void applyProjectileReflectionData(NBTTagCompound nbt) {
+        boomerang = nbt.getBoolean("Boomerang");
+        returning = nbt.getBoolean("Returning");
+    }
+
     // ==================== NBT ====================
 
     @Override

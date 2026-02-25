@@ -39,6 +39,7 @@ import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.data.energycharge.EnergyChargeRemovePacket;
 import kamkeel.npcs.network.packets.data.energycharge.EnergyChargeSpawnPacket;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
+import kamkeel.npcs.network.packets.data.energy.ProjectileReflectPacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
 import kamkeel.npcs.network.packets.player.AuctionActionPacket;
@@ -592,6 +593,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new EnergyChargeSpawnPacket());
         DATA_PACKET.registerPacket(new EnergyChargeRemovePacket());
         DATA_PACKET.registerPacket(new EnergyExplosionSpawnPacket());
+        DATA_PACKET.registerPacket(new ProjectileReflectPacket());
         DATA_PACKET.registerPacket(new PlayerAbilitySyncPacket());
         DATA_PACKET.registerPacket(new PlayerAbilityStatePacket());
         DATA_PACKET.registerPacket(new AbilityHotbarSyncPacket());

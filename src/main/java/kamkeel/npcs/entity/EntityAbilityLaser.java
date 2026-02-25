@@ -134,9 +134,10 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         }
 
         // After reflection, hold trajectory briefly so the rebound is visible.
+        // Once reflected, never resume owner-tracking — the laser flies in a fixed direction.
         if (reflectedLockTicks > 0) {
             reflectedLockTicks--;
-        } else {
+        } else if (!reflected) {
             // Track owner's anchor position and rotation each tick
             // so the laser follows the NPC's facing direction
             updateLaserOriginAndDirection();
@@ -715,6 +716,41 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.endX = posX;
         this.endY = posY;
         this.endZ = posZ;
+    }
+
+    // ==================== REFLECTION SYNC ====================
+
+    @Override
+    protected void writeProjectileReflectionData(NBTTagCompound nbt) {
+        nbt.setDouble("DirX", dirX);
+        nbt.setDouble("DirY", dirY);
+        nbt.setDouble("DirZ", dirZ);
+        nbt.setDouble("StartX", startX);
+        nbt.setDouble("StartY", startY);
+        nbt.setDouble("StartZ", startZ);
+        nbt.setFloat("CurrentLength", currentLength);
+        nbt.setDouble("EndX", endX);
+        nbt.setDouble("EndY", endY);
+        nbt.setDouble("EndZ", endZ);
+        nbt.setInteger("ReflectedLockTicks", reflectedLockTicks);
+        nbt.setBoolean("FullyExtended", fullyExtended);
+    }
+
+    @Override
+    protected void applyProjectileReflectionData(NBTTagCompound nbt) {
+        dirX = nbt.getDouble("DirX");
+        dirY = nbt.getDouble("DirY");
+        dirZ = nbt.getDouble("DirZ");
+        startX = nbt.getDouble("StartX");
+        startY = nbt.getDouble("StartY");
+        startZ = nbt.getDouble("StartZ");
+        currentLength = nbt.getFloat("CurrentLength");
+        endX = nbt.getDouble("EndX");
+        endY = nbt.getDouble("EndY");
+        endZ = nbt.getDouble("EndZ");
+        reflectedLockTicks = nbt.getInteger("ReflectedLockTicks");
+        fullyExtended = nbt.getBoolean("FullyExtended");
+        ticksSinceFullExtension = 0;
     }
 
     // ==================== NBT ====================

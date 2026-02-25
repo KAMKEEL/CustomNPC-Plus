@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityEnergyProjectile;
 import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.enums.HitType;
@@ -12,6 +13,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.network.packets.data.energy.ProjectileReflectPacket;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.block.Block;
@@ -120,6 +122,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected int targetEntityId = -1;
 
     // ==================== STATE ====================
+    protected boolean reflected = false;  // Set after barrier reflection; prevents owner-tracking on reflected projectiles
     protected boolean hasHit = false;
     protected int hitCount = 0;
     protected final Set<Integer> hitOnceEntities = new HashSet<Integer>();
@@ -427,6 +430,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (hitOutcome.shouldReflect()) {
             if (!reflectFromBarrier(barrier, hitOutcome.reflectStrengthPct)) {
                 beginBarrierImpactPause(true, barrier);
+            } else {
+                sendReflectionSync();
             }
             return true;
         }
@@ -498,6 +503,14 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         barrierImpactPauseTicks = 0;
         barrierImpactDestroyOnResume = false;
 
+        // Detach from source ability BEFORE changing ownership.
+        // This lets the ability see the projectile as gone and free the caster
+        // (e.g., release movement/rotation locks on the player).
+        if (sourceAbility instanceof AbilityEnergyProjectile) {
+            ((AbilityEnergyProjectile<?>) sourceAbility).detachEntity(this);
+        }
+        sourceAbility = null;
+
         Entity barrierOwner = barrier.getOwnerEntity();
         if (barrierOwner != null) {
             setOwnerEntityId(barrierOwner.getEntityId());
@@ -517,7 +530,73 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         hitOnceEntities.clear();
         lastHitTickByEntity.clear();
         hitCount = 0;
+        reflected = true;
         return true;
+    }
+
+    // ==================== REFLECTION SYNC ====================
+
+    /**
+     * Write reflection state for client sync.
+     * Subclasses should override writeProjectileReflectionData for type-specific fields.
+     */
+    public NBTTagCompound writeReflectionData() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setInteger("OwnerId", ownerEntityId);
+        nbt.setDouble("PosX", posX);
+        nbt.setDouble("PosY", posY);
+        nbt.setDouble("PosZ", posZ);
+        nbt.setDouble("MotionX", motionX);
+        nbt.setDouble("MotionY", motionY);
+        nbt.setDouble("MotionZ", motionZ);
+        nbt.setInteger("InnerColor", getInnerColor());
+        nbt.setInteger("OuterColor", getOuterColor());
+        nbt.setBoolean("Reflected", reflected);
+        writeProjectileReflectionData(nbt);
+        return nbt;
+    }
+
+    /**
+     * Apply reflection state from server sync.
+     * Subclasses should override applyProjectileReflectionData for type-specific fields.
+     */
+    public void applyReflectionData(NBTTagCompound nbt) {
+        ownerEntityId = nbt.getInteger("OwnerId");
+        double px = nbt.getDouble("PosX");
+        double py = nbt.getDouble("PosY");
+        double pz = nbt.getDouble("PosZ");
+        setPosition(px, py, pz);
+        motionX = nbt.getDouble("MotionX");
+        motionY = nbt.getDouble("MotionY");
+        motionZ = nbt.getDouble("MotionZ");
+        setInnerColor(nbt.getInteger("InnerColor"));
+        setOuterColor(nbt.getInteger("OuterColor"));
+        reflected = nbt.getBoolean("Reflected");
+        syncPositionStateToCurrent(true);
+        hitOnceEntities.clear();
+        lastHitTickByEntity.clear();
+        hitCount = 0;
+        applyProjectileReflectionData(nbt);
+    }
+
+    /**
+     * Subclass hook: write type-specific reflection data.
+     */
+    protected void writeProjectileReflectionData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Subclass hook: apply type-specific reflection data on client.
+     */
+    protected void applyProjectileReflectionData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Send reflection state to all tracking clients.
+     */
+    protected void sendReflectionSync() {
+        if (worldObj == null || worldObj.isRemote) return;
+        ProjectileReflectPacket.sendToTracking(this, writeReflectionData());
     }
 
     protected double[] getBarrierImpactNormal(EntityAbilityBarrier barrier, double velocityX, double velocityY, double velocityZ) {
@@ -2187,6 +2266,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.startZ = nbt.getDouble("StartZ");
 
         this.targetEntityId = nbt.getInteger("TargetId");
+        this.reflected = nbt.getBoolean("Reflected");
 
         this.motionX = nbt.getDouble("MotionX");
         this.motionY = nbt.getDouble("MotionY");
@@ -2243,6 +2323,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         nbt.setDouble("StartZ", startZ);
 
         nbt.setInteger("TargetId", targetEntityId);
+        nbt.setBoolean("Reflected", reflected);
 
         nbt.setDouble("MotionX", motionX);
         nbt.setDouble("MotionY", motionY);
