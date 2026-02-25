@@ -173,8 +173,7 @@ public class FlyPathFinder extends PathFinder {
 
             for (int j = 0; j < i; ++j) {
                 NPCPathPoint pathpoint5 = this.pathOptions[j];
-                float f1 = pathpoint4.totalPathDistance + this.getTraversalCost(pathpoint4, pathpoint5)
-                    + this.getDirectionalPenalty(pathpoint4, pathpoint5, p_75861_3_);
+                float f1 = pathpoint4.totalPathDistance + this.getTraversalCost(pathpoint4, pathpoint5);
 
                 if (!pathpoint5.isAssigned() || f1 < pathpoint5.totalPathDistance) {
                     pathpoint5.previous = pathpoint4;
@@ -210,24 +209,6 @@ public class FlyPathFinder extends PathFinder {
             return DIAGONAL_2D_COST;
         }
         return DIAGONAL_3D_COST;
-    }
-
-    private float getDirectionalPenalty(NPCPathPoint from, NPCPathPoint to, NPCPathPoint goal) {
-        int stepX = to.xCoord - from.xCoord;
-        int stepY = to.yCoord - from.yCoord;
-        int stepZ = to.zCoord - from.zCoord;
-        int goalX = goal.xCoord - from.xCoord;
-        int goalY = goal.yCoord - from.yCoord;
-        int goalZ = goal.zCoord - from.zCoord;
-        int stepLen = Math.abs(stepX) + Math.abs(stepY) + Math.abs(stepZ);
-        int goalLen = Math.abs(goalX) + Math.abs(goalY) + Math.abs(goalZ);
-
-        if (stepLen == 0 || goalLen == 0) {
-            return 0.0F;
-        }
-
-        float alignment = (float) (stepX * goalX + stepY * goalY + stepZ * goalZ) / (float) (stepLen * goalLen);
-        return (1.0F - alignment) * 0.04F;
     }
 
     private float estimateCostToTarget(NPCPathPoint from, NPCPathPoint to) {
