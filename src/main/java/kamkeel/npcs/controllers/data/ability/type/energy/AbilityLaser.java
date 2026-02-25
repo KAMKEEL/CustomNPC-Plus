@@ -16,39 +16,39 @@ import kamkeel.npcs.entity.EntityAbilityLaser;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
-import noppes.npcs.api.ability.type.IAbilityLaserShot;
+import noppes.npcs.api.ability.type.IAbilityLaser;
 import noppes.npcs.client.gui.builder.FieldDef;
 
 import java.util.List;
 
 /**
- * Laser Shot ability: Fast expanding thin line.
- * Travels in a straight line from origin.
+ * Laser ability: Sweeping beam that follows the caster's look vector.
+ * Expands from origin to maxLength, then stays active until maxLifetime expires.
  * Single-projectile only (always projectileCount=1).
  */
-public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser> implements IAbilityLaserShot {
+public class AbilityLaser extends AbilityEnergyProjectile<EntityAbilityLaser> implements IAbilityLaser {
 
     private float laserWidth = 0.3f;
     private float expansionSpeed = 3.0f;
-    private int lingerTicks = 8;
+    private float maxLength = 32.0f;
 
-    public AbilityLaserShot() {
+    public AbilityLaser() {
         super(
-            new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 0.0f),
-            new EnergyCombatData(6.0f, 0.5f, 0.05f, false, 2.0f, 0.5f, HitType.PIERCE, 5),
+            new EnergyDisplayData(0xFFFFFF, 0xFF0000, true, 0.4f, 0.5f, 4.0f),
+            new EnergyCombatData(4.0f, 0.5f, 0.05f, false, 2.0f, 0.5f, HitType.MULTI, 5),
             new EnergyHomingData(),
             new EnergyLifespanData(150.0f, 100)
         );
         this.typeId = "ability.cnpc.laser_shot";
-        this.name = "Laser Shot";
+        this.name = "Laser";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
-        this.maxRange = 35.0f;
+        this.maxRange = 30.0f;
         this.minRange = 3.0f;
         this.cooldownTicks = 0;
         this.windUpTicks = 15;
         this.lockMovement = LockMode.WINDUP_AND_ACTIVE;
         this.rotationMode = RotationMode.TRACK;
-        this.rotationPhase = LockMode.WINDUP;
+        this.rotationPhase = LockMode.WINDUP_AND_ACTIVE;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Laser_Windup";
@@ -69,7 +69,8 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     @Override
     public int getMaxPreviewDuration() {
-        return lifespanData.maxLifetime > 0 ? Math.min(lifespanData.maxLifetime, 60) : 60;
+        int lifetime = lifespanData.maxLifetime;
+        return lifetime > 0 ? Math.min(lifetime, 60) : 60;
     }
 
     /**
@@ -101,7 +102,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
 
     @Override
     public float getTelegraphLength() {
-        return lifespanData.maxDistance;
+        return maxLength;
     }
 
     @Override
@@ -119,13 +120,12 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             laserWidth,
             resolved, combatData, lightningData, lifespanData,
-            expansionSpeed, lingerTicks);
+            expansionSpeed, maxLength);
         return laser;
     }
 
     @Override
     protected void fireEntity(EntityAbilityLaser laser, EntityLivingBase target) {
-        laser.setLockVerticalDirection(true);
         laser.startMoving(target);
     }
 
@@ -137,7 +137,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     @Override
     protected void setupEntityPreview(EntityAbilityLaser laser, EntityLivingBase caster,
                                       EnergyDisplayData resolved, ProjectileData projData, int index) {
-        laser.setupPreview(caster, laserWidth, resolved, lightningData, projData.anchor, windUpTicks, expansionSpeed, lifespanData.maxDistance);
+        laser.setupPreview(caster, laserWidth, resolved, lightningData, projData.anchor, windUpTicks, expansionSpeed, maxLength);
     }
 
     @Override
@@ -156,14 +156,14 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
     protected void writeTypeSpecificNBT(NBTTagCompound nbt) {
         nbt.setFloat("laserWidth", laserWidth);
         nbt.setFloat("expansionSpeed", expansionSpeed);
-        nbt.setInteger("lingerTicks", lingerTicks);
+        nbt.setFloat("maxLength", maxLength);
     }
 
     @Override
     protected void readTypeSpecificNBT(NBTTagCompound nbt) {
         this.laserWidth = nbt.getFloat("laserWidth");
         this.expansionSpeed = nbt.getFloat("expansionSpeed");
-        this.lingerTicks = nbt.getInteger("lingerTicks");
+        this.maxLength = nbt.hasKey("maxLength") ? nbt.getFloat("maxLength") : 32.0f;
     }
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
@@ -184,12 +184,12 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
         this.expansionSpeed = expansionSpeed;
     }
 
-    public int getLingerTicks() {
-        return lingerTicks;
+    public float getMaxLength() {
+        return maxLength;
     }
 
-    public void setLingerTicks(int lingerTicks) {
-        this.lingerTicks = lingerTicks;
+    public void setMaxLength(float maxLength) {
+        this.maxLength = maxLength;
     }
 
     // ==================== TYPE-SPECIFIC GUI ====================
@@ -207,11 +207,7 @@ public class AbilityLaserShot extends AbilityEnergyProjectile<EntityAbilityLaser
             FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth).range(0.1f, 100.0f),
             FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed).range(0.1f, 50.0f)
         ));
-        defs.add(FieldDef.row(
-            FieldDef.intField("ability.lingerTicks", this::getLingerTicks, this::setLingerTicks).range(1, 200),
-            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200)
-        ));
-        defs.add(FieldDef.floatField("ability.maxDistance", this::getMaxDistance, this::setMaxDistance).range(1.0f, 500.0f));
+        defs.add(FieldDef.floatField("ability.maxLength", this::getMaxLength, this::setMaxLength).range(1.0f, 500.0f));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
         defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)
