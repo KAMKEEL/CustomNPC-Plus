@@ -419,7 +419,8 @@ public class ClientProxy extends CommonProxy {
 
     @Override
     public PlayerData getPlayerData(EntityPlayer player) {
-        if (player.getUniqueID() == Minecraft.getMinecraft().thePlayer.getUniqueID()) {
+        EntityPlayer local = Minecraft.getMinecraft().thePlayer;
+        if (local != null && player.getUniqueID().equals(local.getUniqueID())) {
             if (ClientCacheHandler.playerData != null) {
                 if (ClientCacheHandler.playerData.player != player) {
                     ClientCacheHandler.playerData.player = player;

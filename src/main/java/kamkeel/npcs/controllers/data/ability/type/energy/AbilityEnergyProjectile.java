@@ -10,6 +10,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.ProjectileData;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargeTracker;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
@@ -287,6 +288,15 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         chargeVisualIds[index] = id;
         chargeVisualCaster = caster;
         EnergyChargeSpawnPacket.sendToTracking(id, previewEntity, caster);
+
+        // Register with server-side tracker for late-join support
+        EnergyChargeTracker.Instance.add(new EnergyChargeTracker.ChargeEntry(
+            id,
+            previewEntity.getClass().getName(),
+            previewEntity.exportSpawnNBT(),
+            caster.getEntityId(),
+            (int) caster.worldObj.getTotalWorldTime()
+        ));
     }
 
     protected void removeChargeVisual(EntityLivingBase caster, int index) {
@@ -296,6 +306,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         String id = chargeVisualIds[index];
         if (id != null && !id.isEmpty()) {
             EnergyChargeRemovePacket.sendToTracking(id, caster);
+            EnergyChargeTracker.Instance.remove(id, caster.getEntityId());
             chargeVisualIds[index] = null;
         }
     }
@@ -304,6 +315,10 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         if (chargeVisualIds == null || caster == null) return;
         for (int i = 0; i < chargeVisualIds.length; i++) {
             removeChargeVisual(caster, i);
+        }
+        // Safety net: ensure tracker is fully cleaned for this caster
+        if (!isPreview() && caster.worldObj != null && !caster.worldObj.isRemote) {
+            EnergyChargeTracker.Instance.removeAllForCaster(caster.getEntityId());
         }
     }
 

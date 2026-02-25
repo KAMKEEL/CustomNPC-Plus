@@ -15,7 +15,7 @@ public class SubGuiNpcCooldownPicker extends SubGuiInterface implements ITextfie
     public SubGuiNpcCooldownPicker(boolean isMCCustom, long currentCooldown) {
         this.isMCCustom = isMCCustom;
         this.cooldownValue = currentCooldown;
-        setBackground("smallbg.png");
+        setBackground("menubg.png");
         xSize = 220;
         ySize = 222;
         closeOnEsc = true;

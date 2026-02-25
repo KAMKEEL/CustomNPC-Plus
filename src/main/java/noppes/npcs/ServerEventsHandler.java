@@ -4,6 +4,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargeTracker;
 import kamkeel.npcs.entity.EntityAbilityBarrier;
 import kamkeel.npcs.entity.EntityAbilityDome;
 import kamkeel.npcs.network.PacketHandler;
@@ -300,6 +301,7 @@ public class ServerEventsHandler {
     public void invoke(LivingDeathEvent event) {
         if (event.entityLiving.worldObj.isRemote)
             return;
+        EnergyChargeTracker.Instance.removeAllForCaster(event.entityLiving.getEntityId());
         if (event.source.getEntity() != null) {
             if (event.source.getEntity() instanceof EntityPlayer) {
                 doExcalibur((EntityPlayer) event.source.getEntity(), event.entityLiving);
@@ -535,7 +537,19 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void playerTracking(PlayerEvent.StartTracking event) {
-        if (!(event.target instanceof EntityPlayerMP || event.target instanceof EntityNPCInterface) || event.target.worldObj.isRemote)
+        if (event.target.worldObj.isRemote) return;
+
+        // Energy charge visuals: send active charges for newly tracked entity
+        if (event.target instanceof EntityLivingBase
+                && event.entityPlayer instanceof EntityPlayerMP) {
+            EnergyChargeTracker.Instance.sendToPlayer(
+                event.target.getEntityId(),
+                (EntityPlayerMP) event.entityPlayer,
+                (int) event.target.worldObj.getTotalWorldTime()
+            );
+        }
+
+        if (!(event.target instanceof EntityPlayerMP || event.target instanceof EntityNPCInterface))
             return;
 
         AnimationData animationData = AnimationData.getData(event.target);

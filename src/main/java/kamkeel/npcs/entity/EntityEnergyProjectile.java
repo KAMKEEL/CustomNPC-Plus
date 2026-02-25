@@ -221,6 +221,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             if (ticksExisted == 1 && !worldObj.isRemote) {
                 trackProjectile(this);
             }
+        } else {
+            // Preview entities skip super.onUpdate() but still need ticksExisted
+            // for renderer pulsing effects (e.g., sin(ticksExisted + partialTicks)).
+            this.ticksExisted++;
         }
 
         if (!previewMode) {
@@ -230,8 +234,13 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         // Update rotation
         updateRotation();
 
-        // Lerp render size toward actual size
-        this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
+        // Update render size: during charging, track directly (size already grows smoothly).
+        // Post-charging, lerp for smooth visual transitions.
+        if (isCharging()) {
+            this.renderCurrentSize = this.size;
+        } else {
+            this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
+        }
 
         // Server-synced visual timer used for brief barrier impact lightning.
         if (!previewMode && !worldObj.isRemote) {

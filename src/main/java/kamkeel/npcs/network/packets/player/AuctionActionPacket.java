@@ -311,6 +311,10 @@ public class AuctionActionPacket extends AbstractPacket {
         ItemStack item = ItemStack.loadItemStackFromNBT(itemNBT);
         if (item == null) return "Invalid item data.";
 
+        // Validate stack size
+        if (item.stackSize <= 0) return "Invalid item amount.";
+        if (item.stackSize > item.getMaxStackSize()) return "Stack size exceeds item maximum.";
+
         // Remove item from inventory first
         if (!removeItemFromInventory(player, item)) {
             return "Item not found in inventory.";

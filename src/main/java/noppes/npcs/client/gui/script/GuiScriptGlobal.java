@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.HashMap;
 
 public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
-    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
+    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/menubg.png");
     private HashMap<Integer, Class<?>> scriptGuiClasses = new HashMap<>();
 
     public GuiScriptGlobal() {

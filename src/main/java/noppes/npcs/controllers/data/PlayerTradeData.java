@@ -245,8 +245,14 @@ public class PlayerTradeData implements IPlayerTradeData {
      * Add a claim to this player's pending claims.
      * Thread-safe - can be called from any thread.
      */
-    public void addClaim(AuctionClaim claim) {
+    public synchronized void addClaim(AuctionClaim claim) {
         if (claim != null && !claim.claimed) {
+            // Prevent duplicate claim IDs
+            for (AuctionClaim existing : claims) {
+                if (existing.id.equals(claim.id)) {
+                    return;
+                }
+            }
             claims.add(claim);
         }
     }
@@ -276,8 +282,9 @@ public class PlayerTradeData implements IPlayerTradeData {
 
     /**
      * Get a specific claim by ID (internal use).
+     * Synchronized to pair with claimAndRemove for thread safety.
      */
-    public AuctionClaim getClaimInternal(String claimId) {
+    public synchronized AuctionClaim getClaimInternal(String claimId) {
         for (AuctionClaim claim : claims) {
             if (claim.id.equals(claimId) && !claim.claimed) {
                 return claim;
@@ -296,8 +303,9 @@ public class PlayerTradeData implements IPlayerTradeData {
 
     /**
      * Mark a claim as claimed and remove it.
+     * Synchronized to prevent double-claim from concurrent threads.
      */
-    public boolean claimAndRemove(String claimId) {
+    public synchronized boolean claimAndRemove(String claimId) {
         for (AuctionClaim claim : claims) {
             if (claim.id.equals(claimId) && !claim.claimed) {
                 claim.claimed = true;
