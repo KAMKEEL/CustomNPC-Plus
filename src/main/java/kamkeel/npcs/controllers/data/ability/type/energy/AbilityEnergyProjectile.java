@@ -18,6 +18,7 @@ import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.network.packets.data.energycharge.EnergyChargeRemovePacket;
 import kamkeel.npcs.network.packets.data.energycharge.EnergyChargeSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -339,6 +340,21 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         entities = null;
         projectileSpawned = null;
         spawnedCount = 0;
+    }
+
+    /**
+     * Remove a specific entity from this ability's tracking.
+     * Used when a projectile is reflected — it no longer belongs to this ability,
+     * so the ability should stop waiting for it and free the caster.
+     */
+    public void detachEntity(Entity entity) {
+        if (entities == null || entity == null) return;
+        for (int i = 0; i < entities.length; i++) {
+            if (entities[i] == entity) {
+                entities[i] = null;
+                break;
+            }
+        }
     }
 
     @Override

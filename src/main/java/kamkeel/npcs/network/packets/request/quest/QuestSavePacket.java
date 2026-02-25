@@ -13,7 +13,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.QuestController;
@@ -80,12 +79,6 @@ public final class QuestSavePacket extends AbstractPacket {
             } else {
                 NoppesUtilServer.sendQuestData((EntityPlayerMP) player, quest.category);
             }
-
-            // Send full quest data back so the client doesn't need a second round-trip
-            NBTTagCompound questData = new NBTTagCompound();
-            if (quest.hasNewQuest())
-                questData.setString("NextQuestTitle", quest.getNextQuest().title);
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, quest.writeToNBT(questData));
         }
     }
 }

@@ -52,6 +52,7 @@ public class CommandKamkeel extends CommandBase {
             registerCommand(new AuctionCommand());
         if (ConfigMain.AttributesEnabled)
             registerCommand(new AttributeCommand());
+        registerCommand(new DebugCommand());
     }
 
     public void registerCommand(CommandKamkeelBase command) {

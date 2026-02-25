@@ -21,10 +21,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 import javax.annotation.Nullable;
 
 public class PathNavigateFlying extends PathNavigate {
-    private static final long MIN_REPATH_INTERVAL_TICKS = 8L;
-    private static final long MAX_REPATH_INTERVAL_TICKS = 30L;
-    private static final int PATH_REUSE_TARGET_DELTA_SQ = 2;
-    private static final int FINAL_NODE_REUSE_DELTA_SQ = 3;
 
     private EntityNPCInterface theEntity;
     private World worldObj;
@@ -87,21 +83,16 @@ public class PathNavigateFlying extends PathNavigate {
     }
 
     public void updatePath() {
-        if (this.targetPos == null) {
-            this.tryUpdatePath = false;
-            return;
-        }
-
-        long now = this.worldObj.getTotalWorldTime();
-        if (now - this.lastTimeUpdated < this.getAdaptiveRepathInterval()) {
+        if (this.worldObj.getTotalWorldTime() - this.lastTimeUpdated > 20L) {
+            if (this.targetPos != null) {
+                this.currentPath = null;
+                this.currentPath = this.getPathToXYZ(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ());
+                this.lastTimeUpdated = this.worldObj.getTotalWorldTime();
+                this.tryUpdatePath = false;
+            }
+        } else {
             this.tryUpdatePath = true;
-            return;
         }
-
-        this.currentPath = null;
-        this.currentPath = this.getPathToXYZ(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ());
-        this.lastTimeUpdated = now;
-        this.tryUpdatePath = false;
     }
 
     public void setAvoidsWater(boolean p_75491_1_) {
@@ -165,8 +156,7 @@ public class PathNavigateFlying extends PathNavigate {
         BlockPos pos = new BlockPos(x, y, z);
         if (!this.canNavigate()) {
             return null;
-        } else if (this.canReuseCurrentPath(pos)) {
-            this.targetPos = pos;
+        } else if (this.currentPath != null && !this.currentPath.isFinished() && pos.equals(this.targetPos)) {
             return this.currentPath;
         } else {
             this.targetPos = pos;
@@ -190,8 +180,7 @@ public class PathNavigateFlying extends PathNavigate {
             return null;
         } else {
             BlockPos blockpos = new BlockPos(entity);
-            if (this.canReuseCurrentPath(blockpos)) {
-                this.targetPos = blockpos;
+            if (this.currentPath != null && !this.currentPath.isFinished() && blockpos.equals(this.targetPos)) {
                 return this.currentPath;
             } else {
                 this.targetPos = blockpos;
@@ -226,8 +215,6 @@ public class PathNavigateFlying extends PathNavigate {
                 this.removeSunnyPath();
             }
 
-            this.smoothCurrentPath();
-
             if (this.currentPath.getCurrentPathLength() == 0) {
                 return false;
             } else {
@@ -253,72 +240,6 @@ public class PathNavigateFlying extends PathNavigate {
 
     private boolean canNavigate() {
         return !this.isInLiquid() || (this.canSwim && this.isInLiquid());
-    }
-
-    private long getAdaptiveRepathInterval() {
-        if (this.targetPos == null) {
-            return MAX_REPATH_INTERVAL_TICKS;
-        }
-        double distance = this.theEntity.getDistance(this.targetPos.getX() + 0.5D, this.targetPos.getY(), this.targetPos.getZ() + 0.5D);
-        return (long) MathHelper.clamp_double(distance * 0.6D, MIN_REPATH_INTERVAL_TICKS, MAX_REPATH_INTERVAL_TICKS);
-    }
-
-    private boolean canReuseCurrentPath(BlockPos newTarget) {
-        if (this.currentPath == null || this.currentPath.isFinished() || this.targetPos == null) {
-            return false;
-        }
-
-        if (this.getBlockDistanceSq(this.targetPos, newTarget) <= PATH_REUSE_TARGET_DELTA_SQ) {
-            return true;
-        }
-
-        NPCPathPoint finalPoint = this.currentPath.getFinalPathPoint();
-        return finalPoint != null && this.getPointDistanceSq(finalPoint, newTarget) <= FINAL_NODE_REUSE_DELTA_SQ;
-    }
-
-    private int getBlockDistanceSq(BlockPos a, BlockPos b) {
-        int dx = a.getX() - b.getX();
-        int dy = a.getY() - b.getY();
-        int dz = a.getZ() - b.getZ();
-        return dx * dx + dy * dy + dz * dz;
-    }
-
-    private int getPointDistanceSq(NPCPathPoint point, BlockPos blockPos) {
-        int dx = point.xCoord - blockPos.getX();
-        int dy = point.yCoord - blockPos.getY();
-        int dz = point.zCoord - blockPos.getZ();
-        return dx * dx + dy * dy + dz * dz;
-    }
-
-    private void smoothCurrentPath() {
-        if (this.currentPath == null) {
-            return;
-        }
-        int pathLength = this.currentPath.getCurrentPathLength();
-        if (pathLength < 3) {
-            return;
-        }
-
-        int width = MathHelper.ceiling_double_int(this.theEntity.width);
-        int height = MathHelper.ceiling_double_int(this.theEntity.height + 1.0F);
-        NPCPathPoint[] points = this.currentPath.points;
-        int writeIndex = 1;
-        int anchorIndex = 0;
-
-        for (int readIndex = 2; readIndex < pathLength; readIndex++) {
-            Vec3 anchor = this.currentPath.getVectorFromIndex(this.theEntity, anchorIndex);
-            Vec3 probe = this.currentPath.getVectorFromIndex(this.theEntity, readIndex);
-            if (!this.isDirectPathBetweenPoints(anchor, probe, width, height)) {
-                points[writeIndex++] = points[readIndex - 1];
-                anchorIndex = readIndex - 1;
-            }
-        }
-
-        points[writeIndex++] = points[pathLength - 1];
-        this.currentPath.setCurrentPathLength(writeIndex);
-        if (this.currentPath.getCurrentPathIndex() >= writeIndex) {
-            this.currentPath.setCurrentPathIndex(Math.max(0, writeIndex - 1));
-        }
     }
 
     public void onUpdateNavigation() {

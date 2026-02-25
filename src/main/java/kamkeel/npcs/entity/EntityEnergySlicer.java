@@ -43,7 +43,7 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         super(world);
 
         initProjectile(owner, target, x, y, z, sliceWidth, display, combat, lightning, lifespan);
-        this.homingData = homing;
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
         this.sliceWidth = sliceWidth;
         this.sliceThickness = sliceThickness;
 
@@ -190,6 +190,14 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
             lastTravelPitch = (float) (-Math.atan2(motionY, horizSpeed) * 180.0 / Math.PI);
         }
         return lastTravelPitch;
+    }
+
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        return String.format("motion=(%.3f,%.3f,%.3f) sliceW=%.2f sliceT=%.2f",
+            motionX, motionY, motionZ, sliceWidth, sliceThickness);
     }
 
     // ==================== GETTERS ====================

@@ -16,7 +16,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.LogWriter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,9 +59,6 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     private float chargeOffsetDistance = 1.0f;
     private int trailFadeTime = 20; // Ticks for trail to fully fade
     private List<Integer> trailPointAges = new ArrayList<>();
-
-    // Debug logging
-    private static final boolean DEBUG_LOGGING = false;
 
     public EntityAbilityBeam(World world) {
         super(world);
@@ -147,7 +143,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
         // Beam-specific properties from homing data
 
-        this.homingData = homing;
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
         this.beamWidth = beamWidth;
         this.headSize = headSize;
 
@@ -159,10 +155,6 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
         // Add initial trail point at origin (relative 0,0,0)
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
-
-        if (DEBUG_LOGGING && !world.isRemote) {
-            LogWriter.info("[Beam] Created at origin " + x + ", " + y + ", " + z + " maxDist=" + lifespan.maxDistance);
-        }
 
         // Calculate initial velocity toward target
         calculateInitialVelocity(owner, target, x, y, z);
@@ -222,11 +214,6 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         trailPoints.add(Vec3.createVectorHelper(0, 0, 0));
         if (isFadingMode()) trailPointAges.add(0);
 
-        if (DEBUG_LOGGING && !worldObj.isRemote) {
-            LogWriter.info("[Beam] startFiring: origin=(" + startX + "," + startY + "," + startZ +
-                ") headOffset=(" + headOffsetX + "," + headOffsetY + "," + headOffsetZ +
-                ") motion=(" + motionX + "," + motionY + "," + motionZ + ")");
-        }
     }
 
     @Override
@@ -237,11 +224,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
                 headOffsetY * headOffsetY +
                 headOffsetZ * headOffsetZ
         );
-        boolean exceeded = distFromOrigin >= getMaxDistance();
-        if (exceeded && !worldObj.isRemote && DEBUG_LOGGING) {
-            LogWriter.info("[Beam] DEAD: Max distance exceeded. dist=" + distFromOrigin + " max=" + getMaxDistance());
-        }
-        return exceeded;
+        return distFromOrigin >= getMaxDistance();
     }
 
     @Override
@@ -311,17 +294,6 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
             // Add trail point
             addTrailPoint();
-
-            // Debug log periodically
-            if (DEBUG_LOGGING && ticksExisted % 20 == 0) {
-                LogWriter.info("[Beam] Server tick=" + ticksExisted + " headOffset=(" +
-                    String.format("%.2f", headOffsetX) + "," +
-                    String.format("%.2f", headOffsetY) + "," +
-                    String.format("%.2f", headOffsetZ) + ") origin=(" +
-                    String.format("%.2f", startX) + "," +
-                    String.format("%.2f", startY) + "," +
-                    String.format("%.2f", startZ) + ") trail=" + getActiveTrailSize());
-            }
 
             // Skip collision checks on first few ticks
             if (ticksExisted > 2) {
@@ -528,9 +500,27 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
             Math.max(prevHeadWorldZ, headZ) + hitSize
         );
 
-        if (processEntitiesInHitBox(hitBox, headX, headY, headZ) && DEBUG_LOGGING) {
-            LogWriter.info("[Beam] DEAD: Entity collision at tick " + ticksExisted);
-        }
+        processEntitiesInHitBox(hitBox, headX, headY, headZ);
+    }
+
+    // ==================== DEBUG ====================
+
+    @Override
+    protected String debugLogExtra() {
+        double headWorldX = startX + headOffsetX;
+        double headWorldY = startY + headOffsetY;
+        double headWorldZ = startZ + headOffsetZ;
+        return String.format("headOff=(%.2f,%.2f,%.2f) prevHead=(%.2f,%.2f,%.2f) " +
+                "origin=(%.2f,%.2f,%.2f) headWorld=(%.2f,%.2f,%.2f) " +
+                "trail=%d mode=%s anchored=%b beamW=%.2f headSz=%.2f " +
+                "motion=(%.3f,%.3f,%.3f)",
+            headOffsetX, headOffsetY, headOffsetZ,
+            prevHeadOffsetX, prevHeadOffsetY, prevHeadOffsetZ,
+            startX, startY, startZ,
+            headWorldX, headWorldY, headWorldZ,
+            getActiveTrailSize(),
+            beamMode.name(), isAnchoredMode(), beamWidth, headSize,
+            motionX, motionY, motionZ);
     }
 
     // ==================== GETTERS FOR RENDERER ====================
@@ -635,6 +625,50 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
      */
     public int getTrailFadeTime() {
         return trailFadeTime;
+    }
+
+    // ==================== REFLECTION ====================
+
+    @Override
+    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+        boolean reflected = super.reflectFromBarrier(barrier, reflectStrengthPct);
+        if (reflected) {
+            // Switch to FREE_TRAIL: detach from caster (tail-less), trail fades out.
+            setBeamMode(BeamMode.FREE_TRAIL);
+
+            // Reset origin to the reflection point (current head position).
+            startX = posX;
+            startY = posY;
+            startZ = posZ;
+            resetHeadOffsets();
+            resetTrailStorage();
+
+            // Disable homing — reflected beams fly straight.
+            homingData.setHoming(false);
+            setTargetEntityId(-1);
+        }
+        return reflected;
+    }
+
+    @Override
+    protected void writeProjectileReflectionData(NBTTagCompound nbt) {
+        nbt.setByte("BeamMode", (byte) beamMode.ordinal());
+        nbt.setDouble("StartX", startX);
+        nbt.setDouble("StartY", startY);
+        nbt.setDouble("StartZ", startZ);
+    }
+
+    @Override
+    protected void applyProjectileReflectionData(NBTTagCompound nbt) {
+        int mode = nbt.getByte("BeamMode");
+        setBeamMode(mode >= 0 && mode < BeamMode.values().length ? BeamMode.values()[mode] : BeamMode.FREE_TRAIL);
+        startX = nbt.getDouble("StartX");
+        startY = nbt.getDouble("StartY");
+        startZ = nbt.getDouble("StartZ");
+        resetHeadOffsets();
+        resetTrailStorage();
+        homingData.setHoming(false);
+        setTargetEntityId(-1);
     }
 
     // ==================== NBT ====================

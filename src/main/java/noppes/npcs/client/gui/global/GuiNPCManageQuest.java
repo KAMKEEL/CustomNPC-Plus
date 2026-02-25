@@ -401,6 +401,9 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
         }
         if (subgui instanceof SubGuiNpcQuest) {
             saveType(true);
+            if (quest != null && quest.id >= 0) {
+                setPrevQuestName(quest.title);
+            }
         }
     }
 
