@@ -176,7 +176,10 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         if (worldObj != null && worldObj.isRemote && mode == PanelMode.HELD && getOwnerEntity() != null) {
             return;
         }
-        super.setPositionAndRotation2(x, y, z, yaw, pitch, posRotationIncrements);
+        // Bypass vanilla's lerp + push-out-of-blocks logic which causes
+        // large-BB entities (PLACED/LAUNCHED panels) to shift into the sky.
+        this.setPosition(x, y, z);
+        this.setRotation(yaw, pitch);
     }
 
     private void updateLaunched() {
