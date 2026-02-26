@@ -112,9 +112,12 @@ public class AnchorPointHelper {
                 break;
         }
 
-        // Rotate offsets relative to entity's body yaw
+        // Rotate offsets relative to entity's yaw
+        // EYE anchor uses head yaw so offsets follow the look direction
+        // All other anchors use body yaw
         // +X = entity's right, +Y = up, +Z = entity's forward
-        Vec3 rotatedOffset = rotateOffsetByYaw(anchorX * scale, anchorY * scale, anchorZ * scale, bodyYaw);
+        float offsetYaw = (anchor == AnchorPoint.EYE) ? headYaw : bodyYaw;
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchorX * scale, anchorY * scale, anchorZ * scale, offsetYaw);
         x += rotatedOffset.xCoord;
         y += rotatedOffset.yCoord;
         z += rotatedOffset.zCoord;
