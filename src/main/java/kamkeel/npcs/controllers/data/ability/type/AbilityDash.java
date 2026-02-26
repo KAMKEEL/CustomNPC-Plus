@@ -162,6 +162,11 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
     }
 
     @Override
+    public boolean isConcurrentCapable() {
+        return true;
+    }
+
+    @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
         preDashMotionX = caster.motionX;
         preDashMotionZ = caster.motionZ;
