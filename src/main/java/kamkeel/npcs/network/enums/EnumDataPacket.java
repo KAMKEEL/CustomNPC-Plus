@@ -76,4 +76,7 @@ public enum EnumDataPacket {
 
     // Energy Explosion Preview
     ENERGY_EXPLOSION_SPAWN,
+
+    // Energy Projectile Reflection Sync
+    PROJECTILE_REFLECT,
 }

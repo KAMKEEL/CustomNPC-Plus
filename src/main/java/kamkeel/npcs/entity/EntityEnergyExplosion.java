@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -56,6 +57,17 @@ public class EntityEnergyExplosion extends EntityEnergyAbility {
         float progress = getLifeProgress(0.0f);
         float eased = 1.0f - (1.0f - progress) * (1.0f - progress);
         this.renderRadius = maxRadius * eased;
+
+        // Debug logging
+        {
+            boolean isClient = worldObj.isRemote;
+            if (isClient ? CNPCDebug.isClientEnabled("energy") : CNPCDebug.isServerEnabled("energy")) {
+                CNPCDebug.log("energy", isClient, String.format(
+                    "[Explosion id=%d tick=%d] pos=(%.2f,%.2f,%.2f) renderRadius=%.2f maxRadius=%.2f progress=%.2f",
+                    getEntityId(), ticksExisted, posX, posY, posZ,
+                    renderRadius, maxRadius, getLifeProgress(0f)));
+            }
+        }
 
         if (ticksExisted >= durationTicks) {
             setDead();

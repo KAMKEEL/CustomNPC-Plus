@@ -7,8 +7,6 @@ import noppes.npcs.entity.EntityNPCFlying;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class FlyingMoveHelper extends EntityMoveHelper {
-    private static final double CLOSE_ENOUGH_SQ = 0.01D;
-    private static final float MAX_TURN_PER_TICK = 35.0F;
     private final EntityNPCInterface entity;
 
     private double posX;
@@ -40,24 +38,22 @@ public class FlyingMoveHelper extends EntityMoveHelper {
             double d5 = MathHelper.sqrt_double(d4);
             speed = Math.min(d5 / 5.0D, speed);
 
-            if (d4 > CLOSE_ENOUGH_SQ && d5 > 1.0E-4D) {
-                double targetMotionX = speed * (d0 / d5);
-                double targetMotionZ = speed * (d2 / d5);
-                double horizontalLerp = Math.min(1.0D, Math.max(0.12D, speed * 0.6D));
-                this.entity.motionX += (targetMotionX - this.entity.motionX) * horizontalLerp;
-                this.entity.motionZ += (targetMotionZ - this.entity.motionZ) * horizontalLerp;
+            // its here louis!
+            // This is the hurt time that stuns the NPC!!!!!!
+            // if (this.entity.hurtTime == 0 && d4 > 0.5D) {
+            if (d4 >= 0.5D) {
+                this.entity.motionX += (speed * (d0 / d5) - this.entity.motionX) * speed;
+                this.entity.motionZ += (speed * (d2 / d5) - this.entity.motionZ) * speed;
 
                 if (((EntityNPCFlying) this.entity).flyLimitAllow || !this.entity.ais.hasFlyLimit) {
-                    double targetMotionY = verticalSpeed * (d1 / d5);
-                    if (targetMotionY > 0.0D) {
-                        targetMotionY += 0.05D;
+                    this.entity.motionY = verticalSpeed * (d1 / d5);
+                    if (this.entity.motionY > 0) {
+                        this.entity.motionY += 0.1D;
                     }
-                    double verticalLerp = Math.min(1.0D, Math.max(0.15D, verticalSpeed * 0.85D));
-                    this.entity.motionY += (targetMotionY - this.entity.motionY) * verticalLerp;
                 }
 
                 this.entity.velocityChanged = true;
-                this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw, (float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)), MAX_TURN_PER_TICK);
+                this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw, (float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)), 20.0F);
             }
         }
     }

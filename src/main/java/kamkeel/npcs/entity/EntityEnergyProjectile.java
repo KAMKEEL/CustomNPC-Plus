@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityEnergyProjectile;
 import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.enums.HitType;
@@ -12,8 +13,10 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.network.packets.data.energy.ProjectileReflectPacket;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
+import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
@@ -120,6 +123,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected int targetEntityId = -1;
 
     // ==================== STATE ====================
+    protected boolean reflected = false;  // Set after barrier reflection; prevents owner-tracking on reflected projectiles
     protected boolean hasHit = false;
     protected int hitCount = 0;
     protected final Set<Integer> hitOnceEntities = new HashSet<Integer>();
@@ -183,10 +187,13 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         // Visual
         this.size = size;
 
-        this.displayData = display;
-        this.combatData = combat;
-        this.lifespanData = lifespan; // deathWorldTime will be set on first tick when world is available
-        this.lightningData = lightning;
+        // Defensive copy: entities must never share data objects with the source ability.
+        // Without copies, runtime mutations (e.g. barrier reflection changing colors/damage)
+        // bleed back into the ability template and corrupt future projectiles.
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.combatData = combat != null ? combat.copy() : new EnergyCombatData();
+        this.lifespanData = lifespan != null ? lifespan.copy() : new EnergyLifespanData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
         syncProjectileColorWatchers();
 
         // Initialize render size
@@ -221,6 +228,22 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             if (ticksExisted == 1 && !worldObj.isRemote) {
                 trackProjectile(this);
             }
+        } else {
+            // Preview entities skip super.onUpdate() but still need ticksExisted
+            // for renderer pulsing effects (e.g., sin(ticksExisted + partialTicks)).
+            this.ticksExisted++;
+
+            // Preview-specific safety: self-destruct if charging has exceeded duration + grace
+            if (isCharging() && chargeDuration > 0 && chargeTick > chargeDuration + PREVIEW_CHARGE_GRACE) {
+                this.setDead();
+                return;
+            }
+
+            // Preview hard lifetime cap (mirrors real entity HARD_LIFETIME_CAP)
+            if (ticksExisted > HARD_LIFETIME_CAP) {
+                this.setDead();
+                return;
+            }
         }
 
         if (!previewMode) {
@@ -230,8 +253,13 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         // Update rotation
         updateRotation();
 
-        // Lerp render size toward actual size
-        this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
+        // Update render size: during charging, track directly (size already grows smoothly).
+        // Post-charging, lerp for smooth visual transitions.
+        if (isCharging()) {
+            this.renderCurrentSize = this.size;
+        } else {
+            this.renderCurrentSize = this.renderCurrentSize + (this.size - this.renderCurrentSize) * 0.15f;
+        }
 
         // Server-synced visual timer used for brief barrier impact lightning.
         if (!previewMode && !worldObj.isRemote) {
@@ -319,6 +347,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (!previewMode && !worldObj.isRemote) {
             EventHooks.onEnergyProjectileTick(this);
         }
+
+        debugLogTick();
     }
 
     /**
@@ -332,6 +362,53 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (this.rotationValX > 360.0f) this.rotationValX -= 360.0f;
         if (this.rotationValY > 360.0f) this.rotationValY -= 360.0f;
         if (this.rotationValZ > 360.0f) this.rotationValZ -= 360.0f;
+    }
+
+    // ==================== DEBUG LOGGING ====================
+
+    /**
+     * Debug log called every tick. Logs position/size/charging state.
+     * Subclasses override debugLogExtra() for type-specific data.
+     */
+    protected void debugLogTick() {
+        boolean isClient = worldObj.isRemote;
+        if (isClient ? !CNPCDebug.isClientEnabled("energy") : !CNPCDebug.isServerEnabled("energy"))
+            return;
+
+        String className = getClass().getSimpleName();
+        boolean dwCharging = isCharging();   // DataWatcher value (what client sees)
+        boolean localCharging = this.charging; // Local field (server truth)
+
+        String base = String.format("[%s id=%d tick=%d] pos=(%.2f,%.2f,%.2f) prev=(%.2f,%.2f,%.2f) " +
+                "size=%.3f renderSize=%.3f prevRenderSize=%.3f " +
+                "charging(dw)=%b charging(local)=%b chargeTick=%d/%d chargeProgress=%.3f",
+            className, getEntityId(), ticksExisted,
+            posX, posY, posZ, prevPosX, prevPosY, prevPosZ,
+            size, renderCurrentSize, prevRenderSize,
+            dwCharging, localCharging, chargeTick, chargeDuration, getChargeProgress());
+
+        // Flag mismatch between DataWatcher and local field
+        if (dwCharging != localCharging) {
+            base += " !!CHARGE_MISMATCH!!";
+        }
+
+        // Client interpolation state (only meaningful on client)
+        if (isClient) {
+            base += String.format(" interp(steps=%d target=(%.2f,%.2f,%.2f))",
+                interpSteps, interpTargetX, interpTargetY, interpTargetZ);
+        }
+
+        String extra = debugLogExtra();
+        String full = extra.isEmpty() ? base : base + " " + extra;
+        CNPCDebug.log("energy", isClient, full);
+    }
+
+    /**
+     * Subclass hook for type-specific debug data.
+     * Return empty string if nothing extra to log.
+     */
+    protected String debugLogExtra() {
+        return "";
     }
 
     /**
@@ -380,7 +457,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                 if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
                     continue;
                 }
-                if (handleBarrierHitOutcome(barrier, hitOutcome)) {
+                if (handleBarrierHitOutcome(barrier, hitOutcome, damage)) {
                     return true;
                 }
                 return false;
@@ -393,18 +470,27 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     /**
      * Handle the result of a projectile/barrier interaction.
      *
+     * @param fullDamage The DBC-scaled damage that was passed to the barrier (from getModifiedDamage).
      * @return true if caller should stop processing this tick.
      */
-    protected boolean handleBarrierHitOutcome(EntityAbilityBarrier barrier, EntityAbilityBarrier.ProjectileHitOutcome hitOutcome) {
+    protected boolean handleBarrierHitOutcome(EntityAbilityBarrier barrier, EntityAbilityBarrier.ProjectileHitOutcome hitOutcome, float fullDamage) {
         if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
             return false;
         }
 
         if (hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
             if (hitOutcome.remainingProjectileDamage <= 0.0f) {
+                damageMultiplier = 0.0f;
                 setBarrierSparkTicks(Math.max(getBarrierSparkTicks(), BARRIER_BREAK_SPARK_TICKS));
                 hasHit = true;
                 return true;
+            }
+
+            // Accumulate barrier pass-through ratio for extender damage scaling.
+            // fullDamage is the DBC-scaled damage the barrier saw; remainingProjectileDamage
+            // is what survived. Multiply into the running ratio so multiple barriers stack.
+            if (fullDamage > 0.0f) {
+                damageMultiplier *= (hitOutcome.remainingProjectileDamage / fullDamage);
             }
 
             setCombatDamage(hitOutcome.remainingProjectileDamage);
@@ -415,6 +501,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (hitOutcome.shouldReflect()) {
             if (!reflectFromBarrier(barrier, hitOutcome.reflectStrengthPct)) {
                 beginBarrierImpactPause(true, barrier);
+            } else {
+                sendReflectionSync();
             }
             return true;
         }
@@ -486,6 +574,14 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         barrierImpactPauseTicks = 0;
         barrierImpactDestroyOnResume = false;
 
+        // Detach from source ability BEFORE changing ownership.
+        // This lets the ability see the projectile as gone and free the caster
+        // (e.g., release movement/rotation locks on the player).
+        if (sourceAbility instanceof AbilityEnergyProjectile) {
+            ((AbilityEnergyProjectile<?>) sourceAbility).detachEntity(this);
+        }
+        sourceAbility = null;
+
         Entity barrierOwner = barrier.getOwnerEntity();
         if (barrierOwner != null) {
             setOwnerEntityId(barrierOwner.getEntityId());
@@ -499,13 +595,81 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         setOuterColor(barrier.getOuterColor());
 
         float clampedStrength = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
-        float reducedDamage = getDamage() * (1.0f - clampedStrength / 100.0f);
+        float reductionFactor = 1.0f - clampedStrength / 100.0f;
+        float reducedDamage = getDamage() * reductionFactor;
         setCombatDamage(Math.max(0.0f, reducedDamage));
+        damageMultiplier *= reductionFactor;
 
         hitOnceEntities.clear();
         lastHitTickByEntity.clear();
         hitCount = 0;
+        reflected = true;
         return true;
+    }
+
+    // ==================== REFLECTION SYNC ====================
+
+    /**
+     * Write reflection state for client sync.
+     * Subclasses should override writeProjectileReflectionData for type-specific fields.
+     */
+    public NBTTagCompound writeReflectionData() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setInteger("OwnerId", ownerEntityId);
+        nbt.setDouble("PosX", posX);
+        nbt.setDouble("PosY", posY);
+        nbt.setDouble("PosZ", posZ);
+        nbt.setDouble("MotionX", motionX);
+        nbt.setDouble("MotionY", motionY);
+        nbt.setDouble("MotionZ", motionZ);
+        nbt.setInteger("InnerColor", getInnerColor());
+        nbt.setInteger("OuterColor", getOuterColor());
+        nbt.setBoolean("Reflected", reflected);
+        writeProjectileReflectionData(nbt);
+        return nbt;
+    }
+
+    /**
+     * Apply reflection state from server sync.
+     * Subclasses should override applyProjectileReflectionData for type-specific fields.
+     */
+    public void applyReflectionData(NBTTagCompound nbt) {
+        ownerEntityId = nbt.getInteger("OwnerId");
+        double px = nbt.getDouble("PosX");
+        double py = nbt.getDouble("PosY");
+        double pz = nbt.getDouble("PosZ");
+        setPosition(px, py, pz);
+        motionX = nbt.getDouble("MotionX");
+        motionY = nbt.getDouble("MotionY");
+        motionZ = nbt.getDouble("MotionZ");
+        setInnerColor(nbt.getInteger("InnerColor"));
+        setOuterColor(nbt.getInteger("OuterColor"));
+        reflected = nbt.getBoolean("Reflected");
+        syncPositionStateToCurrent(true);
+        hitOnceEntities.clear();
+        lastHitTickByEntity.clear();
+        hitCount = 0;
+        applyProjectileReflectionData(nbt);
+    }
+
+    /**
+     * Subclass hook: write type-specific reflection data.
+     */
+    protected void writeProjectileReflectionData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Subclass hook: apply type-specific reflection data on client.
+     */
+    protected void applyProjectileReflectionData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Send reflection state to all tracking clients.
+     */
+    protected void sendReflectionSync() {
+        if (worldObj == null || worldObj.isRemote) return;
+        ProjectileReflectPacket.sendToTracking(this, writeReflectionData());
     }
 
     protected double[] getBarrierImpactNormal(EntityAbilityBarrier barrier, double velocityX, double velocityY, double velocityZ) {
@@ -857,7 +1021,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             float kbUp = getKnockbackUp() > 0 ? getKnockbackUp() : 0.1f;
             handled = AbilityController.Instance.fireOnAbilityDamage(
                 sourceAbility, (EntityLivingBase) owner, target,
-                dmg, kb, kbUp, dx, dz);
+                dmg, kb, kbUp, dx, dz, damageMultiplier);
         }
 
         if (!handled) {
@@ -902,7 +1066,15 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * Set the effects list from the ability's configured effects.
      */
     public void setEffects(List<AbilityPotionEffect> effects) {
-        this.effects = effects != null ? effects : new ArrayList<>();
+        if (effects == null || effects.isEmpty()) {
+            this.effects = new ArrayList<>();
+        } else {
+            // Deep copy: entity must not share the ability's effects list or its entries.
+            this.effects = new ArrayList<>(effects.size());
+            for (AbilityPotionEffect effect : effects) {
+                this.effects.add(effect.copy());
+            }
+        }
     }
 
     protected void doExplosion() {
@@ -1509,8 +1681,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                                      int chargeDuration) {
         this.setPreviewMode(true);
         this.setPreviewOwner(owner);
-        this.displayData = display;
-        this.lightningData = lightning;
+        this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
         setupChargingState(anchor, chargeDuration);
     }
 
@@ -1816,6 +1988,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     // ==================== COMBAT GETTERS & SETTERS ====================
+
+    /**
+     * Accumulated proportional damage multiplier (0.0-1.0).
+     * Accumulates multiplicatively when the projectile breaks through barriers, is reflected,
+     * or any other system reduces its effective damage. Used by ability extenders to scale
+     * recalculated damage proportionally.
+     */
+    private float damageMultiplier = 1.0f;
+
+    public float getDamageMultiplier() {
+        return damageMultiplier;
+    }
 
     public float getDamage() {
         return combatData.getDamage();
@@ -2167,6 +2351,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.startZ = nbt.getDouble("StartZ");
 
         this.targetEntityId = nbt.getInteger("TargetId");
+        this.reflected = nbt.getBoolean("Reflected");
 
         this.motionX = nbt.getDouble("MotionX");
         this.motionY = nbt.getDouble("MotionY");
@@ -2223,6 +2408,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         nbt.setDouble("StartZ", startZ);
 
         nbt.setInteger("TargetId", targetEntityId);
+        nbt.setBoolean("Reflected", reflected);
 
         nbt.setDouble("MotionX", motionX);
         nbt.setDouble("MotionY", motionY);

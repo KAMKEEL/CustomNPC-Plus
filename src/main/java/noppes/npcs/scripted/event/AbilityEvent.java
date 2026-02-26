@@ -18,6 +18,7 @@ import noppes.npcs.scripted.NpcAPI;
 public class AbilityEvent extends NpcEvent implements IAbilityEvent {
     protected final Ability ability;
     protected final IEntityLivingBase target;
+    private transient IAbility abilityCopy;
 
     public AbilityEvent(ICustomNpc npc, Ability ability, EntityLivingBase target) {
         super(npc);
@@ -27,7 +28,10 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
 
     @Override
     public IAbility getAbility() {
-        return ability;
+        if (abilityCopy == null && ability != null) {
+            abilityCopy = ability.deepCopy();
+        }
+        return abilityCopy;
     }
 
     @Override

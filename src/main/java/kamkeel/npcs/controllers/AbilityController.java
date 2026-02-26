@@ -32,7 +32,7 @@ import kamkeel.npcs.controllers.data.ability.type.AbilityVortex;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityBeam;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDisc;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDome;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityLaserShot;
+import kamkeel.npcs.controllers.data.ability.type.energy.AbilityLaser;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityOrb;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityShield;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySweeper;
@@ -143,7 +143,7 @@ public class AbilityController implements IAbilityHandler {
         registerType("cnpc:sweeper", AbilitySweeper::new);
         registerType("cnpc:orb", AbilityOrb::new);
         registerType("cnpc:disc", AbilityDisc::new);
-        registerType("cnpc:laser_shot", AbilityLaserShot::new);
+        registerType("cnpc:laser_shot", AbilityLaser::new);
         registerType("cnpc:beam", AbilityBeam::new);
         // registerType("cnpc:slicer", AbilitySlicer::new);
 
@@ -1132,10 +1132,11 @@ public class AbilityController implements IAbilityHandler {
      */
     public boolean fireOnAbilityDamage(Ability ability, EntityLivingBase caster, EntityLivingBase target,
                                        float damage, float knockback, float knockbackUp,
-                                       double knockbackDirX, double knockbackDirZ) {
+                                       double knockbackDirX, double knockbackDirZ,
+                                       float damageMultiplier) {
         for (IAbilityExtender ext : extenders) {
             if (ext.onAbilityDamage(ability, caster, target, damage, knockback, knockbackUp,
-                knockbackDirX, knockbackDirZ)) {
+                knockbackDirX, knockbackDirZ, damageMultiplier)) {
                 return true;
             }
         }

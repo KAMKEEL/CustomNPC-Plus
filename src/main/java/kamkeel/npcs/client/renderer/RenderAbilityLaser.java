@@ -41,7 +41,7 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
         double endY = laser.getEndY();
         double endZ = laser.getEndZ();
         float width = laser.getLaserWidth();
-        float alpha = laser.getLingerAlpha();
+        float alpha = 1.0f;
 
         // Calculate render offset (entity position is used as reference)
         double offsetX = x - laser.posX;
@@ -95,6 +95,25 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
         double vertY = dz * horzX - dx * horzZ;
         double vertZ = dx * horzY - dy * horzX;
 
+        // Rotate perpendicular vectors around beam axis (Rodrigues' rotation)
+        float rotationSpeed = laser.getRotationSpeed();
+        if (rotationSpeed != 0.0f) {
+            double angle = (laser.ticksExisted + partialTicks) * rotationSpeed * Math.PI / 180.0;
+            double cosA = Math.cos(angle);
+            double sinA = Math.sin(angle);
+
+            double rHorzX = horzX * cosA + vertX * sinA;
+            double rHorzY = horzY * cosA + vertY * sinA;
+            double rHorzZ = horzZ * cosA + vertZ * sinA;
+
+            double rVertX = -horzX * sinA + vertX * cosA;
+            double rVertY = -horzY * sinA + vertY * cosA;
+            double rVertZ = -horzZ * sinA + vertZ * cosA;
+
+            horzX = rHorzX; horzY = rHorzY; horzZ = rHorzZ;
+            vertX = rVertX; vertY = rVertY; vertZ = rVertZ;
+        }
+
         // Inner scale defines the core width
         float innerScale = 0.6f;
         float innerWidth = width * innerScale;
@@ -134,7 +153,7 @@ public class RenderAbilityLaser extends RenderEnergyAbility {
     }
 
     private void renderChargingOrb(EntityAbilityLaser laser, double x, double y, double z, float partialTicks) {
-        float headSize = laser.getLaserWidth() * 1.5f;
+        float headSize = laser.getLaserWidth() * 0.5f;
         float chargeProgress = laser.getInterpolatedChargeProgress(partialTicks);
         float size = headSize * chargeProgress;
 

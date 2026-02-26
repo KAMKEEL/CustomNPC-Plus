@@ -45,12 +45,12 @@ public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnerg
         entity.setExpansionSpeed(speed);
     }
 
-    public int getLingerTicks() {
-        return entity.getLingerTicks();
+    public float getMaxLength() {
+        return entity.getMaxLength();
     }
 
-    public void setLingerTicks(int ticks) {
-        entity.setLingerTicks(ticks);
+    public void setMaxLength(float maxLength) {
+        entity.setMaxLength(maxLength);
     }
 
     public float getCurrentLength() {
@@ -87,18 +87,6 @@ public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnerg
 
     public double getEndZ() {
         return entity.getEndZ();
-    }
-
-    public float getLingerAlpha() {
-        return entity.getLingerAlpha();
-    }
-
-    public boolean isLockVerticalDirection() {
-        return entity.isLockVerticalDirection();
-    }
-
-    public void setLockVerticalDirection(boolean lock) {
-        entity.setLockVerticalDirection(lock);
     }
 
     // ==================== FIRE ====================

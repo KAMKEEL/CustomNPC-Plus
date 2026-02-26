@@ -36,7 +36,12 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public IAbility[] getAbilities() {
-        return data.getAbilities().toArray(new IAbility[0]);
+        List<Ability> live = data.getAbilities();
+        IAbility[] copies = new IAbility[live.size()];
+        for (int i = 0; i < live.size(); i++) {
+            copies[i] = live.get(i).deepCopy();
+        }
+        return copies;
     }
 
     @Override
@@ -73,7 +78,8 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public IAbility getAbility(String abilityId) {
-        return data.getAbility(abilityId);
+        Ability a = data.getAbility(abilityId);
+        return a != null ? a.deepCopy() : null;
     }
 
     @Override
@@ -115,6 +121,17 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public IAbility getCurrentAbility() {
+        Ability a = data.getCurrentAbility();
+        return a != null ? a.deepCopy() : null;
+    }
+
+    @Override
+    public IAbility getSourceAbility(String abilityId) {
+        return data.getAbility(abilityId);
+    }
+
+    @Override
+    public IAbility getSourceCurrentAbility() {
         return data.getCurrentAbility();
     }
 

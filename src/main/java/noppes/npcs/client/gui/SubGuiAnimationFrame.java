@@ -13,7 +13,7 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
 
     public SubGuiAnimationFrame(Frame editingFrame) {
         this.editingFrame = editingFrame;
-        setBackground("smallbg.png");
+        setBackground("menubg.png");
     }
 
     @Override

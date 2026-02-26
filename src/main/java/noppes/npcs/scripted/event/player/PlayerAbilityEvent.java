@@ -18,6 +18,7 @@ import noppes.npcs.scripted.NpcAPI;
 public class PlayerAbilityEvent extends PlayerEvent implements IPlayerAbilityEvent {
     protected final Ability ability;
     protected final IEntityLivingBase target;
+    private transient IAbility abilityCopy;
 
     public PlayerAbilityEvent(IPlayer player, Ability ability, EntityLivingBase target) {
         super(player);
@@ -27,7 +28,10 @@ public class PlayerAbilityEvent extends PlayerEvent implements IPlayerAbilityEve
 
     @Override
     public IAbility getAbility() {
-        return ability;
+        if (abilityCopy == null && ability != null) {
+            abilityCopy = ability.deepCopy();
+        }
+        return abilityCopy;
     }
 
     @Override

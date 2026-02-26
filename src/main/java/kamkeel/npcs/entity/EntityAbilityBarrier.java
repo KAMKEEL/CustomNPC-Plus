@@ -2,6 +2,7 @@ package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
+import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -616,5 +617,32 @@ public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
         this.chargeDuration = nbt.getInteger("ChargeDuration");
         this.dataWatcher.updateObject(DW_CHARGING, (byte) (charging ? 1 : 0));
         barrierData.readNBT(nbt);
+    }
+
+    // ==================== DEBUG LOGGING ====================
+
+    /**
+     * Debug log called every tick for barriers. Subclasses override debugLogBarrierExtra().
+     */
+    protected void debugLogBarrierTick() {
+        boolean isClient = worldObj.isRemote;
+        if (isClient ? !CNPCDebug.isClientEnabled("energy") : !CNPCDebug.isServerEnabled("energy"))
+            return;
+
+        String className = getClass().getSimpleName();
+        String base = String.format("[%s id=%d tick=%d] pos=(%.2f,%.2f,%.2f) charging=%b health=%.1f",
+            className, getEntityId(), ticksAlive,
+            posX, posY, posZ, isCharging(), currentHealth);
+
+        String extra = debugLogBarrierExtra();
+        String full = extra.isEmpty() ? base : base + " " + extra;
+        CNPCDebug.log("energy", isClient, full);
+    }
+
+    /**
+     * Subclass hook for barrier-specific debug data.
+     */
+    protected String debugLogBarrierExtra() {
+        return "";
     }
 }

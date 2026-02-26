@@ -65,6 +65,11 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
 
         EntityAbilityOrb orb = (EntityAbilityOrb) entity;
 
+        if (orb.getChargeProgress() < 1.0f) {
+            orb.setDead();
+            return;
+        }
+
         orb.startMoving(null);
 
         world.playSoundAtEntity(
@@ -127,7 +132,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             );
 
             orb.setupCharging(
-                new EnergyAnchorData(AnchorPoint.FRONT, 0, -1, 0),
+                new EnergyAnchorData(AnchorPoint.EYE, 0, 0, 1),
                 chargeTime
             );
 
