@@ -75,7 +75,9 @@ public class AnchorPointHelper {
         float anchorZ = anchorData.anchorOffsetZ;
 
         double x = entity.posX;
-        double y = entity.posY + getClientPlayerYCorrection(entity);
+        // EYE uses getEyeHeight() which already gives the correct offset from posY,
+        // so the client player correction would double-subtract and place it at feet level
+        double y = entity.posY + (anchor == AnchorPoint.EYE ? 0 : getClientPlayerYCorrection(entity));
         double z = entity.posZ;
 
         float headYaw = (float) Math.toRadians(entity.rotationYawHead);
