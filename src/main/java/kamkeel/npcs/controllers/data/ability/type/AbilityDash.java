@@ -144,7 +144,6 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
         this.windUpSound = "mob.bat.takeoff";
-        this.activeSound = "mob.endermen.portal";
     }
 
     @Override
