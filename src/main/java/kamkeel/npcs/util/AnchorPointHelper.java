@@ -54,6 +54,9 @@ public class AnchorPointHelper {
     private static final float FALLBACK_FORWARD = 0.1f;    // Slight forward offset
     private static final float FALLBACK_ARM_HEIGHT = 0.45f; // Hand height when arms hang down (near hip)
 
+    // Default arm scale (no scaling)
+    private static final ModelScalePart DEFAULT_ARM_SCALE = new ModelScalePart();
+
     /**
      * Calculate world position for an anchor point on an entity.
      */
@@ -80,7 +83,6 @@ public class AnchorPointHelper {
         double y = entity.posY + (anchor == AnchorPoint.EYE ? 0 : getClientPlayerYCorrection(entity));
         double z = entity.posZ;
 
-        float headYaw = (float) Math.toRadians(entity.rotationYawHead);
         float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
 
         switch (anchor) {
@@ -110,16 +112,12 @@ public class AnchorPointHelper {
                 break;
 
             case EYE:
-                y += entity.getEyeHeight();
-                break;
+                return calculateEyePosition(entity, anchorData, scale);
         }
 
-        // Rotate offsets relative to entity's yaw
-        // EYE anchor uses head yaw so offsets follow the look direction
-        // All other anchors use body yaw
+        // Rotate offsets relative to entity's body yaw
         // +X = entity's right, +Y = up, +Z = entity's forward
-        float offsetYaw = (anchor == AnchorPoint.EYE) ? headYaw : bodyYaw;
-        Vec3 rotatedOffset = rotateOffsetByYaw(anchorX * scale, anchorY * scale, anchorZ * scale, offsetYaw);
+        Vec3 rotatedOffset = rotateOffsetByYaw(anchorX * scale, anchorY * scale, anchorZ * scale, bodyYaw);
         x += rotatedOffset.xCoord;
         y += rotatedOffset.yCoord;
         z += rotatedOffset.zCoord;
@@ -139,6 +137,88 @@ public class AnchorPointHelper {
         }
 
         return Vec3.createVectorHelper(x, y, z);
+    }
+
+    private static Vec3 calculateEyePosition(EntityLivingBase entity, EnergyAnchorData anchorData, float scale) {
+        double pivotWorldX = entity.posX;
+        double pivotWorldY = entity.posY + entity.getEyeHeight();
+        double pivotWorldZ = entity.posZ;
+
+        float bodyYaw = (float) Math.toRadians(entity.renderYawOffset);
+
+        float[] rotations = getHeadBoneRotations(entity);
+
+        double ox = -anchorData.anchorOffsetX * scale;
+        double oy = -anchorData.anchorOffsetY * scale;
+        double oz = -anchorData.anchorOffsetZ * scale;
+
+        // X rotation
+        double cosX = Math.cos(rotations[0]);
+        double sinX = Math.sin(rotations[0]);
+        double ry = oy * cosX - oz * sinX;
+        double rz = oy * sinX + oz * cosX;
+        double rx = ox;
+        oy = ry; oz = rz;
+
+        // Y rotation
+        double cosY = Math.cos(rotations[1]);
+        double sinY = Math.sin(rotations[1]);
+        double rx2 = rx * cosY + oz * sinY;
+        double rz2 = -rx * sinY + oz * cosY;
+        rx = rx2; oz = rz2;
+
+        // Z rotation
+        double cosZ = Math.cos(rotations[2]);
+        double sinZ = Math.sin(rotations[2]);
+        double rx3 = rx * cosZ - oy * sinZ;
+        double ry3 = rx * sinZ + oy * cosZ;
+        rx = rx3; oy = ry3;
+
+        double cosYaw = Math.cos(bodyYaw);
+        double sinYaw = Math.sin(bodyYaw);
+
+        double worldOffsetX = rx * cosYaw + oz * sinYaw;
+        double worldOffsetZ = rx * sinYaw - oz * cosYaw;
+        double worldOffsetY = -oy;   // model Y-down → world Y-up
+
+        double x = pivotWorldX + worldOffsetX;
+        double y = pivotWorldY + worldOffsetY;
+        double z = pivotWorldZ + worldOffsetZ;
+
+        FramePart fullModel = getFullModelPart(entity);
+        if (fullModel != null) {
+            double dx = x - entity.posX;
+            double dy = y - entity.posY;
+            double dz = z - entity.posZ;
+            Vec3 rotatedFull = applyFullModelToWorldOffset(fullModel, entity, dx, dy, dz, bodyYaw, scale);
+            return Vec3.createVectorHelper(
+                entity.posX + rotatedFull.xCoord,
+                entity.posY + rotatedFull.yCoord,
+                entity.posZ + rotatedFull.zCoord
+            );
+        }
+
+        return Vec3.createVectorHelper(x, y, z);
+    }
+
+    private static float[] getHeadBoneRotations(EntityLivingBase entity) {
+        // Try animated HEAD part first
+        AnimationData animData = AnimationData.getData(entity);
+        if (animData != null && animData.isActive() && animData.animation != null) {
+            Frame frame = (Frame) animData.animation.currentFrame();
+            if (frame != null) {
+                FramePart headPart = frame.frameParts.get(EnumAnimationPart.HEAD);
+                if (headPart != null) {
+                    return getRotations(headPart, entity);
+                }
+            }
+        }
+
+        // Fallback: live head angles
+        float pitch = (float) Math.toRadians(entity.rotationPitch);
+        float yawDelta = (float) Math.toRadians(entity.rotationYawHead - entity.renderYawOffset);
+
+        return new float[]{ pitch, yawDelta, 0f };
     }
 
     /**
@@ -164,9 +244,6 @@ public class AnchorPointHelper {
         }
         return 0.0;
     }
-
-    // Default arm scale (no scaling)
-    private static final ModelScalePart DEFAULT_ARM_SCALE = new ModelScalePart();
 
     /**
      * Get arm scale for an entity.
