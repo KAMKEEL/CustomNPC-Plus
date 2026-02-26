@@ -349,13 +349,25 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         this.dashAngle = dashAngle;
     }
 
-    public DashDirection getDashDirection() {
+    public DashDirection getDashDirectionEnum() {
         return dashDirection;
     }
 
-    public void setDashDirection(DashDirection dashDirection) {
+    public void setDashDirectionEnum(DashDirection dashDirection) {
         this.dashDirection = dashDirection;
     }
+
+    @Override
+    public int getDashDirection() {
+        return dashDirection.ordinal();
+    }
+
+    @Override
+    public void setDashDirection(int mode) {
+        DashDirection[] values = DashDirection.values();
+        this.dashDirection = mode >= 0 && mode < values.length ? values[mode] : DashDirection.FORWARD;
+    }
+
 
     public DashDirection getChosenDirection() {
         return chosenDirection;
@@ -380,9 +392,9 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
                 FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
             ),
             FieldDef.row(
-                FieldDef.enumField("ability.dashDirection", DashDirection.class, this::getDashDirection, this::setDashDirection),
+                FieldDef.enumField("ability.dashDirection", DashDirection.class, this::getDashDirectionEnum, this::setDashDirectionEnum),
                 FieldDef.floatField("ability.dashAngle", this::getDashAngle, this::setDashAngle)
-                    .visibleWhen(() -> getDashDirection() == DashDirection.CUSTOM)
+                    .visibleWhen(() -> getDashDirectionEnum() == DashDirection.CUSTOM)
             ).visibleWhen(() -> this.getDashModeEnum() == DashMode.DIRECTIONAL)
         ));
     }
