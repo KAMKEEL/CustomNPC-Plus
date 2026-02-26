@@ -55,7 +55,8 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         RIGHT(-90),
         DIAGONAL_BACK_LEFT(135),
         DIAGONAL_BACK_RIGHT(-135),
-        BACK(180);
+        BACK(180),
+        CUSTOM(0);
 
         private final float angleOffset;
 
@@ -65,6 +66,40 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
         public float getAngleOffset() {
             return angleOffset;
+        }
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case FORWARD:
+                    return "ability.dash.forward";
+                case DIAGONAL_FORWARD_LEFT:
+                    return "ability.dash.diagonalForwardLeft";
+                case DIAGONAL_FORWARD_RIGHT:
+                    return "ability.dash.diagonalForwardRight";
+                case LEFT:
+                    return "ability.dash.left";
+                case RIGHT:
+                    return "ability.dash.right";
+                case DIAGONAL_BACK_LEFT:
+                    return "ability.dash.diagonalBackLeft";
+                case DIAGONAL_BACK_RIGHT:
+                    return "ability.dash.diagonalBackRight";
+                case BACK:
+                    return "ability.dash.back";
+                case CUSTOM:
+                    return "ability.dash.custom";
+                default:
+                    return name();
+            }
+        }
+
+        public static DashDirection fromOrdinal(int ordinal) {
+            DashDirection[] values = values();
+            if (ordinal >= 0 && ordinal < values.length) {
+                return values[ordinal];
+            }
+            return DashDirection.FORWARD;
         }
     }
 
@@ -86,8 +121,10 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
     // Type-specific parameters
     private DashMode dashMode = DashMode.DEFENSIVE;
+    private DashDirection dashDirection = DashDirection.FORWARD;
     private float dashDistance = 4.0f;
     private float dashSpeed = 0.5f;
+    private float dashAngle = 0.0f;
 
     // Type-specific runtime state
     private transient DashDirection chosenDirection;
@@ -133,8 +170,11 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
         if (dashMode == DashMode.DIRECTIONAL) {
             // Dash straight in the caster's look direction
-            chosenDirection = DashDirection.FORWARD;
-            setDirectionFromYaw(caster.rotationYaw);
+            chosenDirection = dashDirection;
+            float baseYaw = getBaseYaw(caster, target);
+            float angleOffset = chosenDirection == DashDirection.CUSTOM ? dashAngle : chosenDirection.getAngleOffset();
+            float dashYaw = baseYaw + angleOffset;
+            setDirectionFromYaw(dashYaw);
         } else {
             // Choose random direction based on mode
             DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
@@ -241,8 +281,10 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setString("dashMode", dashMode.name());
+        nbt.setString("dashDirection", dashDirection.name());
         nbt.setFloat("dashDistance", dashDistance);
         nbt.setFloat("dashSpeed", dashSpeed);
+        nbt.setFloat("dashAngle", dashAngle);
     }
 
     @Override
@@ -252,8 +294,16 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         } catch (Exception e) {
             this.dashMode = DashMode.DEFENSIVE;
         }
+
+        try {
+            this.dashDirection = DashDirection.valueOf(nbt.getString("dashDirection"));
+        } catch (Exception e) {
+            this.dashDirection = DashDirection.FORWARD;
+        }
+
         this.dashDistance = nbt.hasKey("dashDistance") ? nbt.getFloat("dashDistance") : 4.0f;
         this.dashSpeed = nbt.hasKey("dashSpeed") ? Math.max(0.01f, nbt.getFloat("dashSpeed")) : 0.5f;
+        this.dashAngle = nbt.hasKey("dashAngle") ? Math.max(0.01f, nbt.getFloat("dashAngle")) : 0.0f;
     }
 
     // Getters & Setters
@@ -292,6 +342,22 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         this.dashSpeed = dashSpeed;
     }
 
+    public float getDashAngle() {
+        return dashAngle;
+    }
+
+    public void setDashAngle(float dashAngle) {
+        this.dashAngle = dashAngle;
+    }
+
+    public DashDirection getDashDirection() {
+        return dashDirection;
+    }
+
+    public void setDashDirection(DashDirection dashDirection) {
+        this.dashDirection = dashDirection;
+    }
+
     public DashDirection getChosenDirection() {
         return chosenDirection;
     }
@@ -313,7 +379,12 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
             FieldDef.row(
                 FieldDef.floatField("ability.dashDistance", this::getDashDistance, this::setDashDistance),
                 FieldDef.floatField("ability.dashSpeed", this::getDashSpeed, this::setDashSpeed)
-            )
+            ),
+            FieldDef.row(
+                FieldDef.enumField("ability.dashDirection", DashDirection.class, this::getDashDirection, this::setDashDirection),
+                FieldDef.floatField("ability.dashAngle", this::getDashAngle, this::setDashAngle)
+                    .visibleWhen(() -> getDashDirection() == DashDirection.CUSTOM)
+            ).visibleWhen(() -> this.getDashModeEnum() == DashMode.DIRECTIONAL)
         ));
     }
 }
