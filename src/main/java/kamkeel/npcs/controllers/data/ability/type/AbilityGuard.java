@@ -191,7 +191,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
     private IAnimation getCounterAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        if (counterAnimationId > 0) {
+        if (counterAnimationId >= 0) {
             return AnimationController.Instance.get(counterAnimationId);
         }
 
@@ -243,7 +243,7 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
         nbt.setFloat("counterValue", counterValue);
         nbt.setString("counterSound", counterSound);
         nbt.setInteger("counterAnimationId", counterAnimationId);
-        nbt.setString("counterAnimationName", counterAnimationName);
+        nbt.setString("counterAnimationName", resolveAnimationName(counterAnimationId, counterAnimationName));
     }
 
     @Override

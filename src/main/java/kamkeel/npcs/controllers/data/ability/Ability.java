@@ -1378,9 +1378,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("windUpAnimationId", windUpAnimationId);
         nbt.setInteger("activeAnimationId", activeAnimationId);
         nbt.setInteger("dazedAnimationId", dazedAnimationId);
-        nbt.setString("windUpAnimationName", windUpAnimationName);
-        nbt.setString("activeAnimationName", activeAnimationName);
-        nbt.setString("dazedAnimationName", dazedAnimationName);
+        // Resolve current animation names from controller before writing
+        nbt.setString("windUpAnimationName", resolveAnimationName(windUpAnimationId, windUpAnimationName));
+        nbt.setString("activeAnimationName", resolveAnimationName(activeAnimationId, activeAnimationName));
+        nbt.setString("dazedAnimationName", resolveAnimationName(dazedAnimationId, dazedAnimationName));
         nbt.setBoolean("showTelegraph", showTelegraph);
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
@@ -1994,16 +1995,31 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.activeSound = activeSound;
     }
 
+    /**
+     * Resolves the current animation name for a custom animation ID.
+     * If the ID refers to a custom animation, looks up the current name from the controller.
+     * For built-in animations (id == -1), returns the stored name as-is.
+     */
+    protected String resolveAnimationName(int animId, String storedName) {
+        if (animId >= 0 && AnimationController.Instance != null) {
+            Animation anim = (Animation) AnimationController.Instance.get(animId);
+            if (anim != null && anim.name != null && !anim.name.isEmpty()) {
+                return anim.name;
+            }
+        }
+        return storedName;
+    }
+
     public Animation getWindUpAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        // Built-in animation by name takes priority
-        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
-            return (Animation) AnimationController.Instance.get(windUpAnimationName, true);
-        }
-        // Fall back to user animation by ID
+        // Custom animation by ID (most reliable, survives renames)
         if (windUpAnimationId >= 0) {
             return (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+        // Built-in animation by name
+        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(windUpAnimationName, true);
         }
         return null;
     }
@@ -2027,13 +2043,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public Animation getActiveAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        // Built-in animation by name takes priority
-        if (activeAnimationName != null && !activeAnimationName.isEmpty()) {
-            return (Animation) AnimationController.Instance.get(activeAnimationName, true);
-        }
-        // Fall back to user animation by ID
+        // Custom animation by ID (most reliable, survives renames)
         if (activeAnimationId >= 0) {
             return (Animation) AnimationController.Instance.get(activeAnimationId);
+        }
+        // Built-in animation by name
+        if (activeAnimationName != null && !activeAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(activeAnimationName, true);
         }
         return null;
     }
@@ -2057,13 +2073,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public Animation getDazedAnimation() {
         if (AnimationController.Instance == null) return null;
 
-        // Built-in animation by name takes priority
-        if (dazedAnimationName != null && !dazedAnimationName.isEmpty()) {
-            return (Animation) AnimationController.Instance.get(dazedAnimationName, true);
-        }
-        // Fall back to user animation by ID
+        // Custom animation by ID (most reliable, survives renames)
         if (dazedAnimationId >= 0) {
             return (Animation) AnimationController.Instance.get(dazedAnimationId);
+        }
+        // Built-in animation by name
+        if (dazedAnimationName != null && !dazedAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(dazedAnimationName, true);
         }
         return null;
     }
@@ -2314,13 +2330,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
 
         Animation animation = null;
-        // Check for built-in animation (by name) first
-        if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
-            animation = (Animation) AnimationController.Instance.get(windUpAnimationName, true);
-        }
-        // Fall back to user animation (by ID)
-        else if (windUpAnimationId >= 0) {
+        // Custom animation by ID (most reliable, survives renames)
+        if (windUpAnimationId >= 0) {
             animation = (Animation) AnimationController.Instance.get(windUpAnimationId);
+        }
+        // Built-in animation by name
+        else if (windUpAnimationName != null && !windUpAnimationName.isEmpty()) {
+            animation = (Animation) AnimationController.Instance.get(windUpAnimationName, true);
         }
 
         if (animation == null || animation.frames.isEmpty()) {
