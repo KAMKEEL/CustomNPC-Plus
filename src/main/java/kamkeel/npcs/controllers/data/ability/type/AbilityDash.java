@@ -302,7 +302,7 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
 
         this.dashDistance = nbt.hasKey("dashDistance") ? nbt.getFloat("dashDistance") : 4.0f;
         this.dashSpeed = nbt.hasKey("dashSpeed") ? Math.max(0.01f, nbt.getFloat("dashSpeed")) : 0.5f;
-        this.dashAngle = nbt.hasKey("dashAngle") ? Math.max(0.01f, nbt.getFloat("dashAngle")) : 0.0f;
+        this.dashAngle = nbt.hasKey("dashAngle") ? nbt.getFloat("dashAngle") : 0.0f;
     }
 
     // Getters & Setters
@@ -394,7 +394,7 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
             FieldDef.row(
                 FieldDef.enumField("ability.dashDirection", DashDirection.class, this::getDashDirectionEnum, this::setDashDirectionEnum),
                 FieldDef.floatField("ability.dashAngle", this::getDashAngle, this::setDashAngle)
-                    .visibleWhen(() -> getDashDirectionEnum() == DashDirection.CUSTOM)
+                    .min(Float.NEGATIVE_INFINITY).visibleWhen(() -> getDashDirectionEnum() == DashDirection.CUSTOM)
             ).visibleWhen(() -> this.getDashModeEnum() == DashMode.DIRECTIONAL)
         ));
     }
