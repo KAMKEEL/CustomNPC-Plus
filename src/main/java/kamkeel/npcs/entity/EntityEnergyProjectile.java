@@ -232,6 +232,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             // Preview entities skip super.onUpdate() but still need ticksExisted
             // for renderer pulsing effects (e.g., sin(ticksExisted + partialTicks)).
             this.ticksExisted++;
+
+            // Preview-specific safety: self-destruct if charging has exceeded duration + grace
+            if (isCharging() && chargeDuration > 0 && chargeTick > chargeDuration + PREVIEW_CHARGE_GRACE) {
+                this.setDead();
+                return;
+            }
+
+            // Preview hard lifetime cap (mirrors real entity HARD_LIFETIME_CAP)
+            if (ticksExisted > HARD_LIFETIME_CAP) {
+                this.setDead();
+                return;
+            }
         }
 
         if (!previewMode) {

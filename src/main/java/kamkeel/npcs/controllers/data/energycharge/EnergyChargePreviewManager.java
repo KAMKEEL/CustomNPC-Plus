@@ -13,6 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class EnergyChargePreviewManager {
 
+    /** Hard age cap for preview entities — last-resort safety net (60 seconds). */
+    private static final int MAX_PREVIEW_AGE = 1200;
+
     public static EnergyChargePreviewManager ClientInstance;
 
     private final ConcurrentHashMap<String, EntityEnergyProjectile> previews = new ConcurrentHashMap<String, EntityEnergyProjectile>();
@@ -59,6 +62,14 @@ public class EnergyChargePreviewManager {
                 iterator.remove();
                 continue;
             }
+
+            // Hard age cap: remove previews that have existed far too long
+            if (entity.ticksExisted > MAX_PREVIEW_AGE) {
+                entity.setDead();
+                iterator.remove();
+                continue;
+            }
+
             entity.onUpdate();
             if (entity.isDead) {
                 iterator.remove();

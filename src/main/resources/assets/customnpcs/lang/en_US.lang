@@ -1595,6 +1595,17 @@ ability.dash.aggressive=Aggressive
 ability.dash.defensive=Defensive
 ability.dash.directional=Directional
 
+# Dash Direction
+ability.dash.forward=Forward
+ability.dash.diagonalForwardLeft=Diagonal Forward Left
+ability.dash.diagonalForwardRight=Diagonal Forward Right
+ability.dash.left=Left
+ability.dash.right=Right
+ability.dash.diagonalBackLeft=Diagonal Back Left
+ability.dash.diagonalBackRight=Diagonal Back Right
+ability.dash.back=Back
+ability.dash.custom=Custom
+
 # Counter Type
 ability.counter.flat=Flat
 ability.counter.percent=Percent
@@ -1867,8 +1878,10 @@ ability.chargeSpeed=Charge Speed
 
 # Dash
 ability.dashMode=Dash Mode
-ability.dashDistance=Dash Distance
-ability.dashSpeed=Dash Speed
+ability.dashDistance=Distance
+ability.dashDirection=Direction
+ability.dashSpeed=Speed
+ability.dashAngle=Angle
 
 # Teleport
 ability.blinkRadius=Blink Radius
