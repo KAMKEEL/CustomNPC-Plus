@@ -21,6 +21,11 @@ public abstract class AbilityBarrier extends AbilityEnergy {
 
     protected final EnergyBarrierData barrierData;
 
+    // Spawn position offsets (relative to caster)
+    protected float offsetX = 0.0f;
+    protected float offsetY = 0.0f;
+    protected float offsetZ = 0.0f;
+
     // Runtime entity tracking
     protected transient EntityAbilityBarrier barrierEntity;
 
@@ -157,10 +162,16 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         writeBarrierTypeNBT(nbt);
         writeEnergyNBT(nbt);
         barrierData.writeNBT(nbt);
+        nbt.setFloat("barrierOffsetX", offsetX);
+        nbt.setFloat("barrierOffsetY", offsetY);
+        nbt.setFloat("barrierOffsetZ", offsetZ);
     }
 
     @Override
     public final void readTypeNBT(NBTTagCompound nbt) {
+        offsetX = nbt.hasKey("barrierOffsetX") ? nbt.getFloat("barrierOffsetX") : 0.0f;
+        offsetY = nbt.hasKey("barrierOffsetY") ? nbt.getFloat("barrierOffsetY") : 0.0f;
+        offsetZ = nbt.hasKey("barrierOffsetZ") ? nbt.getFloat("barrierOffsetZ") : 0.0f;
         readBarrierTypeNBT(nbt);
         readEnergyNBT(nbt);
         barrierData.readNBT(nbt);
@@ -288,6 +299,31 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         barrierData.meleeDamageMultiplier = mult;
     }
 
+    // Offset data
+    public float getOffsetX() {
+        return offsetX;
+    }
+
+    public void setOffsetX(float offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    public float getOffsetY() {
+        return offsetY;
+    }
+
+    public void setOffsetY(float offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    public float getOffsetZ() {
+        return offsetZ;
+    }
+
+    public void setOffsetZ(float offsetZ) {
+        this.offsetZ = offsetZ;
+    }
+
     // ==================== GUI ====================
 
     @SideOnly(Side.CLIENT)
@@ -295,6 +331,14 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     public final void getAbilityDefinitions(List<FieldDef> defs) {
         // Type-specific fields first
         addBarrierTypeDefinitions(defs);
+
+        // Offset section
+        defs.add(FieldDef.section("ability.section.offset"));
+        defs.add(FieldDef.row(
+            FieldDef.floatField("ability.offsetX", this::getOffsetX, this::setOffsetX).min(Float.NEGATIVE_INFINITY),
+            FieldDef.floatField("ability.offsetY", this::getOffsetY, this::setOffsetY).min(Float.NEGATIVE_INFINITY)
+        ));
+        defs.add(FieldDef.floatField("ability.offsetZ", this::getOffsetZ, this::setOffsetZ).min(Float.NEGATIVE_INFINITY));
 
         // Barrier section
         defs.add(FieldDef.section("ability.section.barrier"));

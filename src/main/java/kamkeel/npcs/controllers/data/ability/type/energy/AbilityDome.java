@@ -50,10 +50,11 @@ public class AbilityDome extends AbilityBarrier {
     protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         EntityAbilityDome dome = new EntityAbilityDome(
             caster.worldObj, caster,
-            caster.posX, caster.posY, caster.posZ,
+            caster.posX + offsetX, caster.posY + offsetY, caster.posZ + offsetZ,
             domeRadius, displayData.copy(), lightningData.copy(), barrierData.copy()
         );
         dome.setFollowCaster(followCaster);
+        dome.setOffsets(offsetX, offsetY, offsetZ);
         dome.setSourceAbility(this);
         return dome;
     }

@@ -51,13 +51,15 @@ public class AbilityShield extends AbilityBarrier {
 
     @Override
     protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
-        EnergyPanelData panelData = new EnergyPanelData(shieldWidth, shieldHeight, 0.0f);
+        EnergyPanelData panelData = new EnergyPanelData(shieldWidth, shieldHeight, offsetY);
+        panelData.offsetX = offsetX;
+        panelData.offsetZ = offsetZ;
 
         float frontDist = 1.5f;
         float yawRad = (float) Math.toRadians(caster.rotationYaw);
-        double spawnX = caster.posX + (-Math.sin(yawRad) * frontDist);
+        double spawnX = caster.posX + (-Math.sin(yawRad) * frontDist) + offsetX;
         double spawnY = caster.posY + (caster.height * 0.5f);
-        double spawnZ = caster.posZ + (Math.cos(yawRad) * frontDist);
+        double spawnZ = caster.posZ + (Math.cos(yawRad) * frontDist) + offsetZ;
 
         EntityAbilityPanel panel = new EntityAbilityPanel(
             caster.worldObj, caster,

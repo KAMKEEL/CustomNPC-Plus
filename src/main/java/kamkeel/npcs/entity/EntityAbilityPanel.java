@@ -157,17 +157,17 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         // Follow owner position
         float frontDist = 1.5f;
         float yawRad = (float) Math.toRadians(panelYaw);
-        double newX = owner.posX + (-Math.sin(yawRad) * frontDist);
+        double newX = owner.posX + (-Math.sin(yawRad) * frontDist) + panelData.offsetX;
         double newY = owner.posY + panelData.heightOffset + (owner.height * 0.5f);
-        double newZ = owner.posZ + (Math.cos(yawRad) * frontDist);
+        double newZ = owner.posZ + (Math.cos(yawRad) * frontDist) + panelData.offsetZ;
 
         this.setPosition(newX, newY, newZ);
 
         // Sync prevPos with owner's prevPos for smooth interpolation
         float prevYawRad = (float) Math.toRadians(owner.prevRotationYaw);
-        this.prevPosX = owner.prevPosX + (-Math.sin(prevYawRad) * frontDist);
+        this.prevPosX = owner.prevPosX + (-Math.sin(prevYawRad) * frontDist) + panelData.offsetX;
         this.prevPosY = owner.prevPosY + panelData.heightOffset + (owner.height * 0.5f);
-        this.prevPosZ = owner.prevPosZ + (Math.cos(prevYawRad) * frontDist);
+        this.prevPosZ = owner.prevPosZ + (Math.cos(prevYawRad) * frontDist) + panelData.offsetZ;
     }
 
     @Override

@@ -2090,9 +2090,14 @@ ability.domeRadius=Dome Radius
 ability.useHealth=Use Health
 ability.maxHealth=Max Health
 ability.useDuration=Use Duration
+ability.duration=Duration
 ability.defaultMultiplier=Default Multiplier
 ability.innerAlpha=Inner Alpha
 ability.heightOffset=Height Offset
+ability.section.offset=Offset
+ability.offsetX=X Offset
+ability.offsetY=Y Offset
+ability.offsetZ=Z Offset
 
 ability.solid=Solid
 ability.knockbackEnabled=Knockback
