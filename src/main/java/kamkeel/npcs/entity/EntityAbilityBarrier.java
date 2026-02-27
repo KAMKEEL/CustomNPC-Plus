@@ -72,7 +72,7 @@ public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
         }
 
         public boolean shouldReflect() {
-            return reflectEnabled && useHealth && result == ProjectileHitResult.BLOCKED;
+            return reflectEnabled && result == ProjectileHitResult.BLOCKED;
         }
     }
 
@@ -267,7 +267,7 @@ public abstract class EntityAbilityBarrier extends EntityEnergyAbility {
                 healthBefore,
                 0.0f,
                 0.0f,
-                false,
+                barrierData.reflect,
                 barrierData.reflectStrengthPct,
                 false
             );

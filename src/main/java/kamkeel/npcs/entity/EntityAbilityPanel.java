@@ -340,13 +340,15 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
             }
         }
 
-        double prevX = projectile.posX - projectile.motionX;
-        double prevY = projectile.posY - projectile.motionY;
-        double prevZ = projectile.posZ - projectile.motionZ;
+        // Test the UPCOMING movement so the barrier intercepts before entity
+        // collision runs in updateProjectile().
+        double nextX = projectile.posX + projectile.motionX;
+        double nextY = projectile.posY + projectile.motionY;
+        double nextZ = projectile.posZ + projectile.motionZ;
 
         return isIncomingRay(
+            nextX, nextY, nextZ,
             projectile.posX, projectile.posY, projectile.posZ,
-            prevX, prevY, prevZ,
             projectile.getOwnerEntityId());
     }
 
