@@ -28,8 +28,8 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
 
     @Override
     public void unlockAbility(String key) {
-        // Validate ability exists and allows players
-        Ability ability = AbilityController.Instance.resolveAbility(key);
+        // Validate ability exists and allows players (peek avoids deep copy)
+        Ability ability = AbilityController.Instance.peekAbility(key);
         if (ability == null) {
             return; // Ability doesn't exist
         }
@@ -92,6 +92,11 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
     @Override
     public void interruptCurrentAbility() {
         data.interruptCurrentAbility();
+    }
+
+    @Override
+    public void completeCurrentAbility() {
+        data.completeCurrentAbility();
     }
 
     @Override
@@ -162,7 +167,7 @@ public class ScriptPlayerAbilityData implements IPlayerAbilityData {
      * Uses the same resolution as unlockAbility: registry key for built-in, UUID for custom.
      */
     private String resolveCanonicalKey(String key) {
-        Ability ability = AbilityController.Instance.resolveAbility(key);
+        Ability ability = AbilityController.Instance.peekAbility(key);
         if (ability != null && ability.getId() != null) {
             return ability.getId();
         }

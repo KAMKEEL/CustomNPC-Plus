@@ -36,23 +36,20 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.controllers.data.AbilityScript;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.EventHooks;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
-import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -138,6 +135,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     protected transient boolean builtIn = false;
     protected transient String registryKey;
+
+    // Default icon (set in subclass constructors, NOT persisted)
+    protected transient String defaultIconTexture = "";
+    protected transient java.util.function.IntSupplier defaultIconColorSource = null;
+    protected transient int defaultIconWidth = 48;
+    protected transient int defaultIconHeight = 48;
+    protected transient String[] defaultIconStateTextures = null;
 
     // ═══════════════════════════════════════════════════════════════════
     // TOGGLE CONFIGURATION (saved to NBT for custom abilities)
@@ -295,28 +299,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // ═══════════════════════════════════════════════════════════════════
 
     /**
-     * Called when this toggle ability is first activated (state goes from 0 to any active state).
-     * Override to apply effects (e.g., set a DBC flag, apply a buff).
-     */
-    public void onToggleOn(EntityLivingBase caster) {
-    }
-
-    /**
-     * Called when this toggle ability is fully deactivated (state goes to 0).
-     * Override to remove effects (e.g., clear a DBC flag, remove a buff).
-     */
-    public void onToggleOff(EntityLivingBase caster) {
-    }
-
-    /**
-     * Called whenever the toggle state changes (including on/off transitions and mid-cycling).
-     * For multi-state toggles, this fires on every state transition.
+     * Called whenever the toggle state changes (activation, deactivation, or mid-cycling).
+     * Override to apply/remove effects based on state transitions.
      *
      * @param caster   The entity
      * @param oldState Previous state (0 = was off)
      * @param newState New state (0 = now off, 1+ = active state)
      */
-    public void onToggleStateChanged(EntityLivingBase caster, int oldState, int newState) {
+    public void onToggle(EntityLivingBase caster, int oldState, int newState) {
     }
 
     /**
@@ -432,39 +422,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
     private boolean applyAbilityDamageInternal(EntityLivingBase caster, EntityLivingBase hitEntity,
                                                float damage, float knockback, float knockbackUp,
                                                double knockbackDirX, double knockbackDirZ) {
-        // Fire hit event for NPC casters (NPC event system)
-        if (caster instanceof EntityNPCInterface) {
-            EntityNPCInterface npc = (EntityNPCInterface) caster;
-            DataAbilities dataAbilities = npc.abilities;
-            AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
-                this, currentTarget, hitEntity, damage, knockback, knockbackUp);
-
-            if (event == null) {
-                return false; // Cancelled
-            }
-
-            damage = event.getDamage();
-            knockback = event.getKnockback();
-            knockbackUp = event.getKnockbackUp();
+        // Fire hit event (unified — works for both NPC and Player casters)
+        AbilityEvent.HitEvent hitEvent = new AbilityEvent.HitEvent(
+            caster, this, currentTarget, hitEntity, damage, knockback, knockbackUp);
+        if (EventHooks.onAbilityHit(this, hitEvent)) {
+            return false; // Cancelled
         }
-        // Fire hit event for Player casters (Player event system)
-        else if (caster instanceof EntityPlayer && ScriptController.Instance != null) {
-            EntityPlayer player = (EntityPlayer) caster;
-            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-            if (handler != null) {
-                IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-                PlayerAbilityEvent.HitEvent event = new PlayerAbilityEvent.HitEvent(
-                    iPlayer, this, currentTarget, hitEntity, damage, knockback, knockbackUp);
-
-                if (noppes.npcs.EventHooks.onPlayerAbilityHit(handler, event)) {
-                    return false; // Cancelled
-                }
-
-                damage = event.getDamage();
-                knockback = event.getKnockback();
-                knockbackUp = event.getKnockbackUp();
-            }
-        }
+        damage = hitEvent.getDamage();
+        knockback = hitEvent.getKnockback();
+        knockbackUp = hitEvent.getKnockbackUp();
 
         // Save velocity before damage to cancel vanilla knockback when ability knockback is zero
         double prevMotionX = hitEntity.motionX;
@@ -809,23 +775,30 @@ public abstract class Ability implements IAbility, IAbilityAction {
             }
         }
 
-        // ── Icon tab (native) ─────────────────────────────────────
+        // ── Icon section (Effects tab) ───────────────────────────
         if (!isNpcInlineEdit()) {
             AbilityIconData icon = AbilityIconData.fromAbility(this);
+            defs.add(FieldDef.section("ability.section.icon").tab("Effects"));
+            defs.add(FieldDef.boolField("ability.hasIcon", icon::isEnabled, icon::setEnabled)
+                .tab("Effects"));
             defs.add(FieldDef.stringField("gui.texture", icon::getTexture, icon::setTexture)
-                .tab("Icon"));
-            defs.add(FieldDef.section("ability.icon.section.uv").tab("Icon"));
+                .tab("Effects").visibleWhen(icon::isEnabled));
+            defs.add(FieldDef.section("ability.icon.section.uv").tab("Effects")
+                .visibleWhen(icon::isEnabled));
             defs.add(FieldDef.intField("ability.icon.x", icon::getIconX, icon::setIconX)
-                .tab("Icon").range(0, 4096));
+                .tab("Effects").range(0, 4096).visibleWhen(icon::isEnabled));
             defs.add(FieldDef.intField("ability.icon.y", icon::getIconY, icon::setIconY)
-                .tab("Icon").range(0, 4096));
-            defs.add(FieldDef.section("gui.size").tab("Icon"));
+                .tab("Effects").range(0, 4096).visibleWhen(icon::isEnabled));
+            defs.add(FieldDef.section("gui.size").tab("Effects")
+                .visibleWhen(icon::isEnabled));
             defs.add(FieldDef.intField("gui.width", icon::getWidth, icon::setWidth)
-                .tab("Icon").range(1, 256));
+                .tab("Effects").range(1, 256).visibleWhen(icon::isEnabled));
             defs.add(FieldDef.intField("gui.height", icon::getHeight, icon::setHeight)
-                .tab("Icon").range(1, 256));
+                .tab("Effects").range(1, 256).visibleWhen(icon::isEnabled));
             defs.add(FieldDef.floatField("gui.scale", icon::getScale, icon::setScale)
-                .tab("Icon").range(0.1f, 10.0f));
+                .tab("Effects").range(0.1f, 10.0f).visibleWhen(icon::isEnabled));
+            defs.add(FieldDef.colorSubGui("ability.icon.tint", icon::getTintColor, icon::setTintColor)
+                .tab("Effects").visibleWhen(icon::isEnabled));
         }
 
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)
@@ -1378,7 +1351,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // NBT (config only, execution state is transient)
     // ═══════════════════════════════════════════════════════════════════
 
-    public NBTTagCompound writeNBT() {
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("id", id);
         nbt.setString("name", name);
@@ -1451,6 +1424,16 @@ public abstract class Ability implements IAbility, IAbilityAction {
         NBTTagCompound typeNBT = new NBTTagCompound();
         writeTypeNBT(typeNBT);
         nbt.setTag("typeData", typeNBT);
+
+        // Script handler data (matching CustomEffect.writeToNBT pattern)
+        if (saveScripts) {
+            AbilityScript handler = getScriptHandler();
+            if (handler != null) {
+                NBTTagCompound scriptData = new NBTTagCompound();
+                handler.writeToNBT(scriptData);
+                nbt.setTag("ScriptData", scriptData);
+            }
+        }
 
         return nbt;
     }
@@ -1548,6 +1531,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
         if (nbt.hasKey("typeData")) {
             readTypeNBT(nbt.getCompoundTag("typeData"));
         }
+
+        // Script handler data (matching CustomEffect.readFromNBT pattern)
+        if (nbt.hasKey("ScriptData", 10)) {
+            AbilityScript handler = new AbilityScript(this.id);
+            handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
+            setScriptHandler(handler);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1627,8 +1617,48 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.typeId = "ability." + registryKey.replace(':', '.');
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // DEFAULT ICON
+    // ═══════════════════════════════════════════════════════════════════
+
+    public String getDefaultIconTexture() {
+        return defaultIconTexture;
+    }
+
+    /**
+     * Returns the default icon texture for a specific toggle state.
+     * Falls back to the base defaultIconTexture if no state-specific texture exists.
+     * @param state 1-indexed toggle state (0 = off/default)
+     */
+    public String getDefaultIconTextureForState(int state) {
+        if (state > 0 && defaultIconStateTextures != null && state - 1 < defaultIconStateTextures.length) {
+            return defaultIconStateTextures[state - 1];
+        }
+        return defaultIconTexture;
+    }
+
+    public int getDefaultIconColor() {
+        return defaultIconColorSource != null ? defaultIconColorSource.getAsInt() : 0xFFFFFF;
+    }
+
+    public int getDefaultIconWidth() {
+        return defaultIconWidth;
+    }
+
+    public int getDefaultIconHeight() {
+        return defaultIconHeight;
+    }
+
+    public String[] getDefaultIconStateTextures() {
+        return defaultIconStateTextures;
+    }
+
+    public boolean hasDefaultIcon() {
+        return defaultIconTexture != null && !defaultIconTexture.isEmpty();
+    }
+
     public Ability deepCopy() {
-        return AbilityController.Instance.fromNBT(this.writeNBT());
+        return AbilityController.Instance.fromNBT(this.writeNBT(true));
     }
 
     @Override
@@ -2497,11 +2527,35 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     @Override
     public INbt getNbt() {
-        return NpcAPI.Instance().getINbt(writeNBT());
+        return NpcAPI.Instance().getINbt(writeNBT(false));
     }
 
     @Override
     public void setNbt(INbt nbt) {
         readNBT(nbt.getMCNBT());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SCRIPT HANDLER
+    // ═══════════════════════════════════════════════════════════════════
+
+    public AbilityScript getScriptHandler() {
+        if (this.id == null || this.id.isEmpty()) return null;
+        return AbilityController.Instance.abilityScriptHandlers.get(this.id);
+    }
+
+    public void setScriptHandler(AbilityScript handler) {
+        if (this.id == null || this.id.isEmpty()) return;
+        AbilityController.Instance.abilityScriptHandlers.put(this.id, handler);
+    }
+
+    public AbilityScript getOrCreateScriptHandler() {
+        if (this.id == null || this.id.isEmpty()) return null;
+        AbilityScript handler = getScriptHandler();
+        if (handler == null) {
+            handler = new AbilityScript(this.id);
+            AbilityController.Instance.abilityScriptHandlers.put(this.id, handler);
+        }
+        return handler;
     }
 }

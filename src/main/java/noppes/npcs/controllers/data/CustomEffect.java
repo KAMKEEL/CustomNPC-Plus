@@ -26,12 +26,6 @@ public class CustomEffect implements ICustomEffect {
     public String icon = "";
     public int iconX = 0, iconY = 0;
 
-    /**
-     * Experimental script stuff.
-     */
-    public Consumer<PlayerEvent.EffectEvent.Added> onAddedConsumer;
-    public Consumer<PlayerEvent.EffectEvent.Ticked> onTickConsumer;
-    public Consumer<PlayerEvent.EffectEvent.Removed> onRemovedConsumer;
     public String menuName = "§aNEW EFFECT";
     public int width = 16, height = 16;
 
@@ -169,26 +163,10 @@ public class CustomEffect implements ICustomEffect {
     }
 
 
-    public void onAdded(Consumer<PlayerEvent.EffectEvent.Added> function) {
-        onAddedConsumer = function;
-    }
-
-    public void onTick(Consumer<PlayerEvent.EffectEvent.Ticked> function) {
-        onTickConsumer = function;
-    }
-
-    public void onRemoved(Consumer<PlayerEvent.EffectEvent.Removed> function) {
-        onRemovedConsumer = function;
-    }
-
     public void onAdded(EntityPlayer player, PlayerEffect playerEffect) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
         if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(iPlayer, playerEffect);
-
-            if (onAddedConsumer != null)
-                onAddedConsumer.accept(event);
-
             EffectScript script = getScriptHandler();
             if (script == null) {
                 return;
@@ -204,11 +182,6 @@ public class CustomEffect implements ICustomEffect {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
         if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(iPlayer, playerEffect);
-
-            if (onTickConsumer != null) {
-                onTickConsumer.accept(event);
-            }
-
             EffectScript script = getScriptHandler();
             if (script == null) {
                 return;
@@ -225,11 +198,6 @@ public class CustomEffect implements ICustomEffect {
 
         if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(iPlayer, playerEffect, type);
-
-            if (onRemovedConsumer != null) {
-                onRemovedConsumer.accept(event);
-            }
-
             EffectScript script = getScriptHandler();
             if (script == null) {
                 return;

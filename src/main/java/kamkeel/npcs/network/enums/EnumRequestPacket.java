@@ -214,4 +214,6 @@ public enum EnumRequestPacket {
 
     RecipeScript,
     ManageAuctionAction,
+    AbilityScript,
+    ChainedAbilityScript,
 }

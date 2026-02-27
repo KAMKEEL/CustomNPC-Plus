@@ -16,10 +16,6 @@ public class EnergyDisplayData implements IEnergyDisplayData {
     public float innerAlpha = 1.0f;
     public float rotationSpeed = 4.0f;
 
-    // TODO: Skybox Feature
-    // public boolean skyboxEnabled = false;
-    // public String skyboxTexture = "";
-
     public EnergyDisplayData() {
     }
 
@@ -122,9 +118,6 @@ public class EnergyDisplayData implements IEnergyDisplayData {
         nbt.setFloat("outerColorAlpha", outerColorAlpha);
         nbt.setFloat("innerAlpha", innerAlpha);
         nbt.setFloat("rotationSpeed", rotationSpeed);
-        // TODO: Skybox Feature
-        // nbt.setBoolean("skyboxEnabled", skyboxEnabled);
-        // nbt.setString("skyboxTexture", skyboxTexture);
     }
 
     public void readNBT(NBTTagCompound nbt) {
@@ -135,16 +128,10 @@ public class EnergyDisplayData implements IEnergyDisplayData {
         outerColorAlpha = nbt.hasKey("outerColorAlpha") ? nbt.getFloat("outerColorAlpha") : 0.5f;
         innerAlpha = nbt.hasKey("innerAlpha") ? nbt.getFloat("innerAlpha") : 1.0f;
         rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 4.0f;
-        // TODO: Skybox Feature
-        // skyboxEnabled = nbt.hasKey("skyboxEnabled") && nbt.getBoolean("skyboxEnabled");
-        // skyboxTexture = nbt.hasKey("skyboxTexture") ? nbt.getString("skyboxTexture") : "";
     }
 
     public EnergyDisplayData copy() {
         EnergyDisplayData copy = new EnergyDisplayData(innerColor, outerColor, outerColorEnabled, outerColorWidth, outerColorAlpha, innerAlpha, rotationSpeed);
-        // TODO: Skybox Feature
-        // copy.skyboxEnabled = skyboxEnabled;
-        // copy.skyboxTexture = skyboxTexture;
         return copy;
     }
 }

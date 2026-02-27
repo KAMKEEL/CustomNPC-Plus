@@ -49,6 +49,9 @@ public class AbilityOrb extends AbilityEnergyProjectile<EntityAbilityOrb> implem
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Orb_Windup";
         this.activeAnimationName = "Ability_Orb_Active";
+
+        this.defaultIconTexture = "customnpcs:textures/gui/ability/orb.png";
+        this.defaultIconColorSource = () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor();
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================

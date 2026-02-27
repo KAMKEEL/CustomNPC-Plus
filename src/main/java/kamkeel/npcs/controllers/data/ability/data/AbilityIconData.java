@@ -21,6 +21,12 @@ public class AbilityIconData {
     public int height = 32;
     public float scale = 1.0f;
 
+    /** Whether a custom icon override is active. Default false = use type's default icon. */
+    private boolean enabled = false;
+
+    /** Manual tint color for the custom icon (0xRRGGBB). Default white = no tint. */
+    private int tintColor = 0xFFFFFF;
+
     /** Per-state icon UV overrides (0-indexed, maps to toggle states 1, 2, ...). */
     private int[][] stateIcons = null;
 
@@ -64,12 +70,14 @@ public class AbilityIconData {
     }
 
     public void writeToNBT(NBTTagCompound nbt) {
+        nbt.setBoolean("Enabled", enabled);
         nbt.setString("Texture", texture);
         nbt.setInteger("IconX", iconX);
         nbt.setInteger("IconY", iconY);
         nbt.setInteger("Width", width);
         nbt.setInteger("Height", height);
         nbt.setFloat("Scale", scale);
+        nbt.setInteger("TintColor", tintColor);
         if (stateIcons != null && stateIcons.length > 0) {
             NBTTagList list = new NBTTagList();
             for (int[] pair : stateIcons) {
@@ -83,7 +91,9 @@ public class AbilityIconData {
     }
 
     public void readFromNBT(NBTTagCompound nbt) {
+        enabled = nbt.getBoolean("Enabled");
         texture = nbt.getString("Texture");
+        tintColor = nbt.hasKey("TintColor") ? nbt.getInteger("TintColor") : 0xFFFFFF;
         iconX = nbt.getInteger("IconX");
         iconY = nbt.getInteger("IconY");
         width = nbt.getInteger("Width");
@@ -113,6 +123,24 @@ public class AbilityIconData {
     // ═══════════════════════════════════════════════════════════════════
     // GETTERS AND SETTERS (with auto-save)
     // ═══════════════════════════════════════════════════════════════════
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        save();
+    }
+
+    public int getTintColor() {
+        return tintColor;
+    }
+
+    public void setTintColor(int tintColor) {
+        this.tintColor = tintColor & 0xFFFFFF;
+        save();
+    }
 
     public String getTexture() {
         return texture;

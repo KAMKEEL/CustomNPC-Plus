@@ -5,6 +5,8 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.controllers.data.ChainedAbilityScript;
 import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.data.AbilityIconData;
 import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
@@ -57,6 +59,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private static final int BTN_TAB_ENTRIES = 91;
     private static final int BTN_TAB_TARGET = 92;
     private static final int BTN_TAB_EXTRA_BASE = 93;
+    private static final int BTN_SCRIPT = -999;
     private static final int BTN_CLOSE = -1000;
 
     // ── Entries tab: per-entry ID encoding ─────────────────────────────────────
@@ -257,6 +260,9 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         GuiMenuTopButton closeBtn = new GuiMenuTopButton(BTN_CLOSE, guiLeft + xSize - 22, guiTop - 17, "X");
         addTopButton(closeBtn);
+
+        GuiMenuTopButton scriptBtn = new GuiMenuTopButton(BTN_SCRIPT, "script.scripts", closeBtn);
+        addTopButton(scriptBtn);
 
         // Scroll window dimensions
         int swX = guiLeft + 4;
@@ -485,6 +491,10 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         if (id == BTN_TAB_TARGET) {
             activeTab = TAB_TARGET;
             initGui();
+            return;
+        }
+        if (id == BTN_SCRIPT) {
+            GuiScriptInterface.open(parent, new ChainedAbilityScript(chain.getId()));
             return;
         }
         if (id == BTN_CLOSE) {
@@ -853,7 +863,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     public void onAbilitySaved(Ability ability) {
         if (editingParentAbility) {
             // Persist the global parent ability to the server
-            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT(false)));
             editingParentAbility = false;
             return;
         }

@@ -127,7 +127,12 @@ public enum EnumScriptType {
     ABILITY_HIT("abilityHit"),
     ABILITY_TICK("abilityTick"),
     ABILITY_TOGGLE("abilityToggle"),
-    ABILITY_TOGGLE_UPDATE("abilityToggleUpdate"),
+    ABILITY_TOGGLE_TICK("abilityToggleTick"),
+
+    CHAIN_START("chainStart"),
+    CHAIN_NEXT("chainNext"),
+    CHAIN_COMPLETE("chainComplete"),
+    CHAIN_INTERRUPT("chainInterrupt"),
 
     ENERGY_PROJECTILE_FIRED("energyProjectileFired"),
     ENERGY_PROJECTILE_TICK("energyProjectileTick"),

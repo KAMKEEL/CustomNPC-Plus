@@ -192,20 +192,6 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         this.fireDelay = Math.max(0, delay);
     }
 
-    /**
-     * @deprecated Use {@link #getFireDelay()}
-     */
-    public int getDualFireDelay() {
-        return fireDelay;
-    }
-
-    /**
-     * @deprecated Use {@link #setFireDelay(int)}
-     */
-    public void setDualFireDelay(int delay) {
-        setFireDelay(delay);
-    }
-
     protected int clampIndex(int index) {
         return Math.max(0, Math.min(index, projectileCount - 1));
     }

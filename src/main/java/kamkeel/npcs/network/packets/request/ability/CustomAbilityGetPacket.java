@@ -61,7 +61,7 @@ public final class CustomAbilityGetPacket extends AbstractPacket {
         String abilityName = ByteBufUtils.readString(in);
         Ability ability = AbilityController.Instance.getCustomAbility(abilityName);
         if (ability != null) {
-            NBTTagCompound compound = ability.writeNBT();
+            NBTTagCompound compound = ability.writeNBT(false);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }
     }

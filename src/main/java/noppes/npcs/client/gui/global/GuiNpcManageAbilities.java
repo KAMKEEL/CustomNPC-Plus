@@ -495,7 +495,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     private void handleChainConfigClosed() {
         if (pendingSaveChain != null) {
-            PacketClient.sendClient(new ChainedAbilitySavePacket(pendingSaveChain.writeNBT()));
+            PacketClient.sendClient(new ChainedAbilitySavePacket(pendingSaveChain.writeNBT(false)));
             selected = pendingSaveChain.getName();
             pendingSaveChain = null;
         }
@@ -550,7 +550,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (pendingSaveAbility == null) return false;
 
         if (gui.isConfirmed()) {
-            PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+            PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT(false)));
             pendingSaveAbility = null;
             return false;
         }
@@ -574,7 +574,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             setSubGui(new SubGuiDuplicateNameConfirm());
             return true;
         }
-        PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+        PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT(false)));
         pendingSaveAbility = null;
         return false;
     }

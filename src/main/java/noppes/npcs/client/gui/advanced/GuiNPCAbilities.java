@@ -649,9 +649,9 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             // Search matches either the display name or the typeId (strip color codes for matching)
             String stripped = displayName.replaceAll("\u00A7.", "");
             if (search.isEmpty() || stripped.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
-                // Yellow for concurrent-capable types, gray for other built-in types
+                // Lime green for concurrent-capable types, gray for other built-in types
                 if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
-                    displayName = "\u00A7e" + displayName;
+                    displayName = "\u00A7a" + displayName;
                 } else if (AbilityController.Instance.isBuiltInType(typeId)) {
                     displayName = "\u00A77" + displayName;
                 }
@@ -787,7 +787,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
         NBTTagList actionList = new NBTTagList();
         for (AbilityAction slot : npcSlots) {
-            actionList.appendTag(slot.writeNBT());
+            actionList.appendTag(slot.writeNBT(false));
         }
         compound.setTag("AbilityActions", actionList);
 
@@ -1105,7 +1105,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     public void onAbilitySaved(Ability ability) {
         // Editing a global parent ability via "Modify Parent" on a chain entry
         if (editingChainEntryParent) {
-            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT(false)));
             return;
         }
 
@@ -1119,7 +1119,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             AbilityAction slot = npcSlots.get(selectedAbilityIndex);
             if (slot.isReference()) {
                 // Modify Parent on standalone reference — save to global preset
-                PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+                PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT(false)));
             } else {
                 // Inline ability — update slot data
                 npcSlots.set(selectedAbilityIndex, AbilityAction.inline(ability));

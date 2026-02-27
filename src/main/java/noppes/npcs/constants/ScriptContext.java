@@ -13,7 +13,7 @@ import noppes.npcs.api.event.IForgeEvent;
 import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.event.INpcEvent;
 import noppes.npcs.api.event.IPartyEvent;
-import noppes.npcs.api.event.IPlayerAbilityEvent;
+import noppes.npcs.api.event.IChainEvent;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.event.IProjectileEvent;
 import noppes.npcs.api.event.IQuestEvent;
@@ -61,6 +61,7 @@ public class ScriptContext {
         IEnergyProjectileEvent.class,
         IEnergyBarrierEvent.class,
         IAbilityEvent.class,
+        IChainEvent.class,
         IAnimationEvent.class
     );
 
@@ -74,7 +75,8 @@ public class ScriptContext {
         ICustomGuiEvent.class,
         IEnergyProjectileEvent.class,
         IEnergyBarrierEvent.class,
-        IPlayerAbilityEvent.class,
+        IAbilityEvent.class,
+        IChainEvent.class,
         IAuctionEvent.class
     );
 
@@ -100,6 +102,14 @@ public class ScriptContext {
 
     public static final ScriptContext EFFECT = register("EFFECT", "effect",
         "Effect"
+    );
+
+    public static final ScriptContext ABILITY = register("ABILITY", "ability",
+        "Ability"
+    );
+
+    public static final ScriptContext CHAINED_ABILITY = register("CHAINED_ABILITY", "chained_ability",
+        "ChainedAbility"
     );
 
     public static final ScriptContext GLOBAL = register("GLOBAL", "",

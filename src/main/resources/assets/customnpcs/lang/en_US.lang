@@ -1678,6 +1678,8 @@ telegraph.ring=Ring
 telegraph.line=Line
 telegraph.cone=Cone
 telegraph.point=Point
+telegraph.square=Square
+telegraph.none=None
 
 ability.tab.timing=Timing
 ability.tab.effects=Effects
@@ -1688,6 +1690,13 @@ ability.telegraphSizeNote=Size is based on ability parameters
 
 # Ability Effects Tab
 
+ability.cnpc.custom=Custom
+ability.telegraphShape=Telegraph Shape
+ability.toggleEnabled=Toggle
+ability.toggleStates=Toggle States
+ability.hasActiveToggle=Active Toggle Tick
+ability.section.toggle=Toggle
+ability.section.execution=Execution
 ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
 ability.cnpc.cutter=Cutter
@@ -1915,6 +1924,7 @@ ability.targetFilter.all=All
 ability.includeSelf=Include Self
 ability.section.targeting=Targeting
 ability.concurrent=Concurrent
+ability.customScriptInfo=This ability is for scripting purposes
 ability.concurrentInfo=This ability allows Concurrency in Chains
 ability.hover.concurrent=When enabled, this ability fires at the same time as the ability above it in the chain
 ability.customEffects=Custom Effects
@@ -1961,7 +1971,6 @@ ability.lightningRadius=Radius
 
 # Projectile Count / Settings
 ability.projectileCount=Count
-ability.dualFireDelay=Fire Delay
 ability.fireDelay=Fire Delay
 ability.colorOverride=Color Override
 
@@ -2085,6 +2094,9 @@ ability.section.properties=Properties
 ability.section.panel=Panel
 ability.section.launch=Launch
 ability.section.slicer=Slicer
+ability.section.icon=Icon
+ability.hasIcon=Custom Icon
+ability.icon.tint=Tint Color
 
 ability.domeRadius=Dome Radius
 ability.useHealth=Use Health
@@ -2197,6 +2209,9 @@ condition.hover.hitCount=Activates after receiving X hits within the time window
 condition.hover.hits=Number of hits required to trigger condition
 condition.hover.within=Time window in ticks (20 ticks = 1 second)
 condition.hover.threshold=Health percentage threshold (1-99%)
+condition.hover.armor_slots=Equipment in specific armor slots
+condition.hover.item_name=Filter by item name or identifier
+condition.hover.required_count=Number of matching items required
 
 # Effect Hover Tooltips
 effect.hover.type=Potion effect type to apply to targets

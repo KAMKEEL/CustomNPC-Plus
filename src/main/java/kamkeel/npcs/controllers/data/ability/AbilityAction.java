@@ -218,7 +218,7 @@ public class AbilityAction {
             Ability resolved = getAbility();
             if (resolved == null) return false;
 
-            inlineAbility = AbilityController.Instance.fromNBT(resolved.writeNBT());
+            inlineAbility = AbilityController.Instance.fromNBT(resolved.writeNBT(true));
             slotType = SlotType.INLINE_ABILITY;
             referenceId = null;
             cachedAction = null;
@@ -245,12 +245,12 @@ public class AbilityAction {
     // NBT
     // ═══════════════════════════════════════════════════════════════════
 
-    public NBTTagCompound writeNBT() {
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         switch (slotType) {
             case INLINE_CHAIN: {
                 NBTTagCompound nbt = new NBTTagCompound();
                 if (inlineChain != null) {
-                    nbt.setTag("InlineChain", inlineChain.writeNBT());
+                    nbt.setTag("InlineChain", inlineChain.writeNBT(saveScripts));
                 }
                 return nbt;
             }
@@ -275,7 +275,7 @@ public class AbilityAction {
 
             case INLINE_ABILITY:
             default:
-                return inlineAbility != null ? inlineAbility.writeNBT() : new NBTTagCompound();
+                return inlineAbility != null ? inlineAbility.writeNBT(saveScripts) : new NBTTagCompound();
         }
     }
 

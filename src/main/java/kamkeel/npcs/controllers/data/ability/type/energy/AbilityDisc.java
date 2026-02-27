@@ -55,6 +55,9 @@ public class AbilityDisc extends AbilityEnergyProjectile<EntityAbilityDisc> impl
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Disc_Windup";
         this.activeAnimationName = "Ability_Disc_Active";
+
+        this.defaultIconTexture = "customnpcs:textures/gui/ability/disc.png";
+        this.defaultIconColorSource = () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor();
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================

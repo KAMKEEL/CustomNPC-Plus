@@ -25,10 +25,6 @@ import noppes.npcs.AbstractDataAbilities;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.ability.IPlayerAbilityData;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.player.PlayerAbilityEvent;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -127,53 +123,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     protected long getWorldTime() {
         EntityPlayer player = playerData.player;
         return player != null ? player.worldObj.getTotalWorldTime() : 0;
-    }
-
-    @Override
-    protected void fireTickEvent(Ability ability, EntityLivingBase target) {
-        EntityPlayer player = playerData.player;
-        if (ScriptController.Instance == null || player == null) return;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.TickEvent event = new PlayerAbilityEvent.TickEvent(
-            iPlayer, ability, target, ability.getPhase().ordinal(), ability.getCurrentTick());
-        EventHooks.onPlayerAbilityTick(handler, event);
-    }
-
-    @Override
-    protected boolean fireExecuteEvent(Ability ability, EntityLivingBase target) {
-        EntityPlayer player = playerData.player;
-        if (ScriptController.Instance == null || player == null) return false;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return false;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.ExecuteEvent event = new PlayerAbilityEvent.ExecuteEvent(iPlayer, ability, target);
-        return EventHooks.onPlayerAbilityExecute(handler, event);
-    }
-
-    @Override
-    protected void fireCompleteEvent(Ability ability, EntityLivingBase target) {
-        EntityPlayer player = playerData.player;
-        if (ScriptController.Instance == null || player == null) return;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.CompleteEvent event = new PlayerAbilityEvent.CompleteEvent(iPlayer, ability, target);
-        EventHooks.onPlayerAbilityComplete(handler, event);
-    }
-
-    @Override
-    protected void fireInterruptEvent(Ability ability, EntityLivingBase target,
-                                      DamageSource source, float damage) {
-        EntityPlayer player = playerData.player;
-        if (ScriptController.Instance == null || player == null) return;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.InterruptEvent event = new PlayerAbilityEvent.InterruptEvent(
-            iPlayer, ability, target, source, damage);
-        EventHooks.onPlayerAbilityInterrupt(handler, event);
     }
 
     @Override
@@ -423,7 +372,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
 
         // Fire start event (cancelable)
-        if (firePlayerStartEvent(player, ability)) {
+        if (EventHooks.onAbilityStart(ability, player, null)) {
             return false; // Cancelled
         }
 
@@ -489,29 +438,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     @Override
     protected void onToggleStateChanged(String key, boolean active, int state) {
-    }
-
-    @Override
-    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
-        EntityPlayer player = playerData.player;
-        if (ScriptController.Instance == null || player == null) return false;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return false;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.ToggleEvent event = new PlayerAbilityEvent.ToggleEvent(iPlayer, ability, oldState, newState);
-        return EventHooks.onPlayerAbilityToggle(handler, event);
-    }
-
-    @Override
-    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
-        EntityPlayer player = playerData.player;
-        if (ScriptController.Instance == null || player == null) return true;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return true;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.ToggleUpdateEvent event = new PlayerAbilityEvent.ToggleUpdateEvent(iPlayer, ability, tick, state);
-        EventHooks.onPlayerAbilityToggleUpdate(handler, event);
-        return event.isEnabled();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1036,22 +962,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // SCRIPT EVENTS (Player-specific: start event only, others via abstract)
-    // ═══════════════════════════════════════════════════════════════════
-
-    /**
-     * Fire the ability start event. Returns true if cancelled.
-     */
-    private boolean firePlayerStartEvent(EntityPlayer player, Ability ability) {
-        if (ScriptController.Instance == null) return false;
-        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
-        if (handler == null) return false;
-        IPlayer iPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
-        PlayerAbilityEvent.StartEvent event = new PlayerAbilityEvent.StartEvent(iPlayer, ability, null);
-        return EventHooks.onPlayerAbilityStart(handler, event);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
     // NBT SERIALIZATION
     // ═══════════════════════════════════════════════════════════════════
 
@@ -1096,7 +1006,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
         playingAbilityAnimation = compound.getBoolean("AbilityAnimating");
 
-        // Active toggles - restore state directly (no onToggleOn callback during load)
+        // Active toggles - restore state directly (no onToggle callback during load)
         activeToggles.clear();
         if (compound.hasKey("ActiveToggles")) {
             NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 10); // 10 = TAG_COMPOUND

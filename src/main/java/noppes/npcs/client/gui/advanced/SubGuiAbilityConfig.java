@@ -3,6 +3,8 @@ package noppes.npcs.client.gui.advanced;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldBuilder;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.controllers.data.AbilityScript;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -143,6 +145,9 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         GuiMenuTopButton closeBtn = new GuiMenuTopButton(-1000, guiLeft + xSize - 22, guiTop - 17, "X");
         addTopButton(closeBtn);
 
+        GuiMenuTopButton scriptBtn = new GuiMenuTopButton(-999, "script.scripts", closeBtn);
+        addTopButton(scriptBtn);
+
         // Build scroll window dimensions
         int swX = guiLeft + 4;
         int swY = guiTop + 5;
@@ -152,9 +157,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         int y = 5;
         int labelCounter = LABEL_ID_START;
 
-        // General tab: type label + optional concurrent label at top — reserve space
+        // General tab: type label + optional info labels at top — reserve space
         if (activeTab == TAB_GENERAL) {
             y += ROW_H;
+            if ("ability.cnpc.custom".equals(ability.getTypeId())) {
+                y += 15;
+            }
             if (ability.isConcurrentCapable()) {
                 y += 15;
             }
@@ -168,14 +176,20 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         GuiScrollWindow sw = builder.buildScrollWindow(tabFields, swX, swY, swW, swH);
 
-        // General tab: add type label + optional concurrent label at top of scroll window
+        // General tab: add type label + optional info labels at top of scroll window
         if (activeTab == TAB_GENERAL) {
             int baseId = builder.getNextLabelId();
+            int infoY = 25;
             sw.addLabel(new GuiNpcLabel(baseId, "gui.type", 5, 10, 0xFFFFFF));
             sw.addLabel(new GuiNpcLabel(baseId + 1, ability.getTypeId(), 55, 10, 0xFFFFFF));
-            if (ability.isConcurrentCapable()) {
+            if ("ability.cnpc.custom".equals(ability.getTypeId())) {
                 sw.addLabel(new GuiNpcLabel(baseId + 2,
-                    StatCollector.translateToLocal("ability.concurrentInfo"), 5, 25, 0x55FF55));
+                    StatCollector.translateToLocal("ability.customScriptInfo"), 5, infoY, 0xFF55FF));
+                infoY += 15;
+            }
+            if (ability.isConcurrentCapable()) {
+                sw.addLabel(new GuiNpcLabel(baseId + 3,
+                    StatCollector.translateToLocal("ability.concurrentInfo"), 5, infoY, 0x55FF55));
             }
         }
 
@@ -302,6 +316,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             initGui();
             return;
         }
+        if (id == -999) {
+            GuiNpcTextField.unfocus();
+            applyToAbility();
+            callback.onAbilitySaved(ability);
+            GuiScriptInterface.open(parent, new AbilityScript(ability.getId()));
+            return;
+        }
         if (id == -1000) {
             close();
             return;
@@ -405,7 +426,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     public void loadAbility(Ability loadedAbility) {
         if (loadedAbility == null) return;
-        NBTTagCompound nbt = loadedAbility.writeNBT();
+        NBTTagCompound nbt = loadedAbility.writeNBT(false);
         nbt.setString("typeId", ability.getTypeId());
         ability.readNBT(nbt);
 

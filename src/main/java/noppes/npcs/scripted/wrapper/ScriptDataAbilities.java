@@ -58,8 +58,8 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public void addAbilityReference(String key) {
-        // Validate ability exists and allows NPCs
-        Ability ability = AbilityController.Instance.resolveAbility(key);
+        // Validate ability exists and allows NPCs (peek avoids deep copy)
+        Ability ability = AbilityController.Instance.peekAbility(key);
         if (ability == null) {
             return; // Ability doesn't exist
         }
@@ -146,6 +146,11 @@ public class ScriptDataAbilities implements IDataAbilities {
     }
 
     @Override
+    public void completeCurrentAbility() {
+        data.completeCurrentAbility();
+    }
+
+    @Override
     public int getGlobalCooldown() {
         return (int) data.getRemainingCooldown();
     }
@@ -191,8 +196,8 @@ public class ScriptDataAbilities implements IDataAbilities {
 
     @Override
     public boolean executeAbility(String key, Object target) {
-        // Validate ability exists and allows NPCs
-        Ability ability = AbilityController.Instance.resolveAbility(key);
+        // Validate ability exists and allows NPCs (peek avoids deep copy)
+        Ability ability = AbilityController.Instance.peekAbility(key);
         if (ability == null) {
             return false; // Ability doesn't exist
         }
