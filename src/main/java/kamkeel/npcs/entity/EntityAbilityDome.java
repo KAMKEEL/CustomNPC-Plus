@@ -186,13 +186,17 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
             }
         }
 
-        double prevX = projectile.posX - projectile.motionX;
-        double prevY = projectile.posY - projectile.motionY;
-        double prevZ = projectile.posZ - projectile.motionZ;
+        // Test the UPCOMING movement (this tick) so the barrier intercepts before
+        // entity collision runs in updateProjectile(). Using the previous tick's
+        // segment caused small domes to miss fast projectiles that could cross the
+        // dome and hit the player in a single tick.
+        double nextX = projectile.posX + projectile.motionX;
+        double nextY = projectile.posY + projectile.motionY;
+        double nextZ = projectile.posZ + projectile.motionZ;
 
         return isIncomingRay(
+            nextX, nextY, nextZ,
             projectile.posX, projectile.posY, projectile.posZ,
-            prevX, prevY, prevZ,
             projectile.getOwnerEntityId());
     }
 
