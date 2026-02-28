@@ -157,6 +157,7 @@ public class ConfigClient {
     public static boolean LegacyTallLamp = false;
     public static boolean LegacyPedestal = false;
     public static boolean LegacyMailbox = false;
+    public static boolean ImprovedImageDownloadConnection = true;
 
     public static void init(File configFile) {
         config = new Configuration(configFile);
@@ -303,6 +304,7 @@ public class ConfigClient {
             BannerAlerts = BannerAlertsProperty.getBoolean(true);
 
             WoodTextures = config.get(TEXTURE, "Wood Textures", false, "Models like Chairs and Stools will use default MC Wood Textures").getBoolean(false);
+            ImprovedImageDownloadConnection = config.get(TEXTURE, "DEBUG: Better handling of image downloads: ", true).getBoolean(true);
 
             LegacyCampfire = config.get(MODEL, "Legacy Campfire Model", false).getBoolean(false);
             LegacyBanner = config.get(MODEL, "Legacy Banner Model", false).getBoolean(false);
@@ -333,6 +335,7 @@ public class ConfigClient {
                 FontSize = LegacyConfig.FontSize;
                 FontSizeProperty.set(FontSize);
             }
+
         } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its client configuration");
         } finally {
