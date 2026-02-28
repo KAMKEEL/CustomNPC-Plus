@@ -29,6 +29,11 @@ public class CustomEffect implements ICustomEffect {
     public String menuName = "§aNEW EFFECT";
     public int width = 16, height = 16;
 
+    // Animation
+    public boolean animated = false;
+    public int frameCount = 1;
+    public int frametime = 2;
+
     public int index = 0;
 
     public CustomEffect() {
@@ -138,6 +143,36 @@ public class CustomEffect implements ICustomEffect {
     }
 
     @Override
+    public boolean isAnimated() {
+        return animated;
+    }
+
+    @Override
+    public void setAnimated(boolean animated) {
+        this.animated = animated;
+    }
+
+    @Override
+    public int getFrameCount() {
+        return frameCount;
+    }
+
+    @Override
+    public void setFrameCount(int frameCount) {
+        this.frameCount = Math.max(1, frameCount);
+    }
+
+    @Override
+    public int getFrameTime() {
+        return frametime;
+    }
+
+    @Override
+    public void setFrameTime(int frametime) {
+        this.frametime = Math.max(1, frametime);
+    }
+
+    @Override
     public boolean isLossOnDeath() {
         return lossOnDeath;
     }
@@ -222,6 +257,9 @@ public class CustomEffect implements ICustomEffect {
         compound.setInteger("iconHeight", height);
         compound.setString("icon", icon);
         compound.setBoolean("lossOnDeath", lossOnDeath);
+        compound.setBoolean("iconAnimated", animated);
+        compound.setInteger("iconFrameCount", frameCount);
+        compound.setInteger("iconFrameTime", frametime);
 
         if (saveScripts) {
             NBTTagCompound scriptData = new NBTTagCompound();
@@ -263,6 +301,13 @@ public class CustomEffect implements ICustomEffect {
 
         icon = compound.getString("icon");
         lossOnDeath = compound.getBoolean("lossOnDeath");
+
+        if (compound.hasKey("iconAnimated"))
+            animated = compound.getBoolean("iconAnimated");
+        if (compound.hasKey("iconFrameCount"))
+            frameCount = Math.max(1, compound.getInteger("iconFrameCount"));
+        if (compound.hasKey("iconFrameTime"))
+            frametime = Math.max(1, compound.getInteger("iconFrameTime"));
 
         if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
             EffectScript handler = new EffectScript();

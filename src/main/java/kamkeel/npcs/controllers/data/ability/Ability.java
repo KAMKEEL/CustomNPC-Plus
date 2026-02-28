@@ -830,6 +830,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
             addIconLayerFields(defs, icon, 0, isCustom);
             addIconLayerFields(defs, icon, 1, () -> isCustom.getAsBoolean() && icon.getLayerCount() >= 2);
             addIconLayerFields(defs, icon, 2, () -> isCustom.getAsBoolean() && icon.getLayerCount() >= 3);
+
+            // Animation
+            defs.add(FieldDef.section("Animation").tab("Effects").visibleWhen(isCustom));
+            defs.add(FieldDef.boolField("gui.animated", icon::isAnimated, icon::setAnimated)
+                .tab("Effects").visibleWhen(isCustom).hover("gui.animated.hover"));
+            defs.add(FieldDef.intField("gui.frameCount", icon::getFrameCount, icon::setFrameCount)
+                .tab("Effects").range(1, 256).visibleWhen(() -> isCustom.getAsBoolean() && icon.isAnimated()));
+            defs.add(FieldDef.intField("gui.frameTime", icon::getFrameTime, icon::setFrameTime)
+                .tab("Effects").range(1, 100).visibleWhen(() -> isCustom.getAsBoolean() && icon.isAnimated()));
         }
 
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)

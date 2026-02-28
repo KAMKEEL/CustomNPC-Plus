@@ -32,6 +32,11 @@ public class AbilityIconData {
     /** Per-state icon UV overrides for layer 0 (0-indexed, maps to toggle states 1, 2, ...). */
     private int[][] stateIcons = null;
 
+    // Animation
+    private boolean animated = false;
+    private int frameCount = 1;
+    private int frametime = 2;
+
     // ═══════════════════════════════════════════════════════════════════
     // LAYER INNER CLASS
     // ═══════════════════════════════════════════════════════════════════
@@ -125,6 +130,10 @@ public class AbilityIconData {
         }
         nbt.setTag("Layers", layerList);
 
+        nbt.setBoolean("Animated", animated);
+        nbt.setInteger("FrameCount", frameCount);
+        nbt.setInteger("FrameTime", frametime);
+
         if (stateIcons != null && stateIcons.length > 0) {
             NBTTagList list = new NBTTagList();
             for (int[] pair : stateIcons) {
@@ -149,6 +158,13 @@ public class AbilityIconData {
         layerCount = nbt.getInteger("LayerCount");
         if (layerCount < 1) layerCount = 1;
         if (layerCount > MAX_LAYERS) layerCount = MAX_LAYERS;
+
+        if (nbt.hasKey("Animated"))
+            animated = nbt.getBoolean("Animated");
+        if (nbt.hasKey("FrameCount"))
+            frameCount = Math.max(1, nbt.getInteger("FrameCount"));
+        if (nbt.hasKey("FrameTime"))
+            frametime = Math.max(1, nbt.getInteger("FrameTime"));
 
         if (nbt.hasKey("Layers")) {
             NBTTagList layerList = nbt.getTagList("Layers", 10);
@@ -253,6 +269,37 @@ public class AbilityIconData {
 
     public void setScale(float scale) {
         this.scale = Math.max(0.1f, scale);
+        save();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ANIMATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    public boolean isAnimated() {
+        return animated;
+    }
+
+    public void setAnimated(boolean animated) {
+        this.animated = animated;
+        save();
+    }
+
+    public int getFrameCount() {
+        return frameCount;
+    }
+
+    public void setFrameCount(int frameCount) {
+        this.frameCount = Math.max(1, frameCount);
+        save();
+    }
+
+    public int getFrameTime() {
+        return frametime;
+    }
+
+    public void setFrameTime(int frametime) {
+        this.frametime = Math.max(1, frametime);
         save();
     }
 

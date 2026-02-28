@@ -193,6 +193,14 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
                 .tab("Icon").visibleWhen(layerVisible));
         }
 
+        // Animation
+        fieldDefs.add(FieldDef.section("Animation").tab("Icon"));
+        fieldDefs.add(FieldDef.boolField("gui.animated", chainIcon::isAnimated, chainIcon::setAnimated).tab("Icon").hover("gui.animated.hover"));
+        fieldDefs.add(FieldDef.intField("gui.frameCount", chainIcon::getFrameCount, chainIcon::setFrameCount)
+            .tab("Icon").range(1, 256).visibleWhen(chainIcon::isAnimated));
+        fieldDefs.add(FieldDef.intField("gui.frameTime", chainIcon::getFrameTime, chainIcon::setFrameTime)
+            .tab("Icon").range(1, 100).visibleWhen(chainIcon::isAnimated));
+
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)
         if (AbilityController.Instance != null) {
             for (IChainedAbilityFieldProvider provider : AbilityController.Instance.getChainedFieldProviders()) {

@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.renderer.ImageData;
 import org.lwjgl.opengl.GL11;
 
@@ -145,10 +146,18 @@ public class AbilityIcon extends Gui {
         int ix = (state > 0) ? data.getIconXForState(state) : layer.iconX;
         int iy = (state > 0) ? data.getIconYForState(state) : layer.iconY;
 
+        // Animation V offset
+        float vOff = 0f;
+        if (imageData.isAnimated()) {
+            vOff = imageData.getCurrentFrameVOffset();
+        } else if (data.isAnimated()) {
+            vOff = AnimationHelper.getFrameVOffset((int) texH, data.getFrameCount(), data.getFrameTime());
+        }
+
         float u1 = ix / texW;
-        float v1 = iy / texH;
+        float v1 = vOff + iy / texH;
         float u2 = (ix + data.width) / texW;
-        float v2 = (iy + data.height) / texH;
+        float v2 = vOff + (iy + data.height) / texH;
 
         Tessellator t = Tessellator.instance;
         t.startDrawingQuads();

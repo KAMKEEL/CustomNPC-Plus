@@ -147,6 +147,33 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack implements 
         return this.itemDisplay.translateZ != null ? this.itemDisplay.translateZ : 0;
     }
 
+    public Boolean isTextureAnimated() {
+        return this.itemDisplay.animated != null ? this.itemDisplay.animated : false;
+    }
+
+    public void setTextureAnimated(Boolean animated) {
+        this.itemDisplay.animated = animated;
+        saveItemData();
+    }
+
+    public Integer getFrameCount() {
+        return this.itemDisplay.frameCount != null ? this.itemDisplay.frameCount : 1;
+    }
+
+    public void setFrameCount(Integer frameCount) {
+        this.itemDisplay.frameCount = frameCount != null ? Math.max(1, frameCount) : 1;
+        saveItemData();
+    }
+
+    public Integer getFrameTime() {
+        return this.itemDisplay.frametime != null ? this.itemDisplay.frametime : 2;
+    }
+
+    public void setFrameTime(Integer frametime) {
+        this.itemDisplay.frametime = frametime != null ? Math.max(1, frametime) : 2;
+        saveItemData();
+    }
+
     public NBTTagCompound getMCNbt() {
         NBTTagCompound compound = super.getMCNbt();
         compound.setTag("ItemData", this.getItemNBT(new NBTTagCompound()));
