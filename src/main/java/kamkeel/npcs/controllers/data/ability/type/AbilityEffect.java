@@ -78,6 +78,11 @@ public class AbilityEffect extends Ability implements IAbilityEffect {
         this.windUpTicks = 30;
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/effect.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/effect_overlay.png",
+                this::getActiveColor)
+        };
     }
 
     // ==================== ABILITY TYPE OVERRIDES ====================

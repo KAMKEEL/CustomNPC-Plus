@@ -72,6 +72,10 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
         this.telegraphType = TelegraphType.CIRCLE;
         this.windUpSound = "mob.ghast.charge";
         this.activeSound = "mob.ghast.fireball";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/vortex.png",
+                this::getActiveColor)
+        };
     }
 
     @Override

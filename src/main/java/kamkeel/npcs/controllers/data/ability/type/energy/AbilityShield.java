@@ -45,6 +45,11 @@ public class AbilityShield extends AbilityBarrier {
         this.windUpAnimationName = "";
         this.activeAnimationName = "";
         this.allowedBy = UserType.BOTH;
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/shield.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================

@@ -64,6 +64,9 @@ public class AbilityGuard extends Ability implements IAbilityGuard {
 
         this.activeAnimationName = "Ability_Guard_Active";
         this.counterAnimationName = "Ability_Guard_Counter";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/guard.png")
+        };
     }
 
     @Override

@@ -136,12 +136,33 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected transient boolean builtIn = false;
     protected transient String registryKey;
 
-    // Default icon (set in subclass constructors, NOT persisted)
-    protected transient String defaultIconTexture = "";
-    protected transient java.util.function.IntSupplier defaultIconColorSource = null;
+    // Default icon layers (set in subclass constructors, NOT persisted)
+    protected transient DefaultIconLayer[] defaultIconLayers = null;
     protected transient int defaultIconWidth = 48;
     protected transient int defaultIconHeight = 48;
-    protected transient String[] defaultIconStateTextures = null;
+
+    /**
+     * A single layer of a default ability icon. Each layer has a texture and
+     * an optional dynamic color source derived from the ability's properties.
+     */
+    public static class DefaultIconLayer {
+        public final String texture;
+        public final java.util.function.IntSupplier colorSource;
+
+        public DefaultIconLayer(String texture, java.util.function.IntSupplier colorSource) {
+            this.texture = texture;
+            this.colorSource = colorSource;
+        }
+
+        /** Layer with no color tinting (renders as white). */
+        public DefaultIconLayer(String texture) {
+            this(texture, null);
+        }
+
+        public int getColor() {
+            return colorSource != null ? colorSource.getAsInt() : 0xFFFFFF;
+        }
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // TOGGLE CONFIGURATION (saved to NBT for custom abilities)
@@ -778,27 +799,23 @@ public abstract class Ability implements IAbility, IAbilityAction {
         // ── Icon section (Effects tab) ───────────────────────────
         if (!isNpcInlineEdit()) {
             AbilityIconData icon = AbilityIconData.fromAbility(this);
+            java.util.function.BooleanSupplier isCustom = icon::isEnabled;
+
             defs.add(FieldDef.section("ability.section.icon").tab("Effects"));
             defs.add(FieldDef.boolField("ability.hasIcon", icon::isEnabled, icon::setEnabled)
                 .tab("Effects"));
-            defs.add(FieldDef.stringField("gui.texture", icon::getTexture, icon::setTexture)
-                .tab("Effects").visibleWhen(icon::isEnabled));
-            defs.add(FieldDef.section("ability.icon.section.uv").tab("Effects")
-                .visibleWhen(icon::isEnabled));
-            defs.add(FieldDef.intField("ability.icon.x", icon::getIconX, icon::setIconX)
-                .tab("Effects").range(0, 4096).visibleWhen(icon::isEnabled));
-            defs.add(FieldDef.intField("ability.icon.y", icon::getIconY, icon::setIconY)
-                .tab("Effects").range(0, 4096).visibleWhen(icon::isEnabled));
-            defs.add(FieldDef.section("gui.size").tab("Effects")
-                .visibleWhen(icon::isEnabled));
-            defs.add(FieldDef.intField("gui.width", icon::getWidth, icon::setWidth)
-                .tab("Effects").range(1, 256).visibleWhen(icon::isEnabled));
-            defs.add(FieldDef.intField("gui.height", icon::getHeight, icon::setHeight)
-                .tab("Effects").range(1, 256).visibleWhen(icon::isEnabled));
+            defs.add(FieldDef.row(
+                FieldDef.intField("gui.width", icon::getWidth, icon::setWidth).range(1, 256),
+                FieldDef.intField("gui.height", icon::getHeight, icon::setHeight).range(1, 256)
+            ).tab("Effects").visibleWhen(isCustom));
             defs.add(FieldDef.floatField("gui.scale", icon::getScale, icon::setScale)
-                .tab("Effects").range(0.1f, 10.0f).visibleWhen(icon::isEnabled));
-            defs.add(FieldDef.colorSubGui("ability.icon.tint", icon::getTintColor, icon::setTintColor)
-                .tab("Effects").visibleWhen(icon::isEnabled));
+                .tab("Effects").range(0.1f, 10.0f).visibleWhen(isCustom));
+            defs.add(FieldDef.intField("ability.icon.layers", icon::getLayerCount, icon::setLayerCount)
+                .tab("Effects").range(1, AbilityIconData.MAX_LAYERS).visibleWhen(isCustom));
+
+            addIconLayerFields(defs, icon, 0, isCustom);
+            addIconLayerFields(defs, icon, 1, () -> isCustom.getAsBoolean() && icon.getLayerCount() >= 2);
+            addIconLayerFields(defs, icon, 2, () -> isCustom.getAsBoolean() && icon.getLayerCount() >= 3);
         }
 
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)
@@ -807,6 +824,28 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
 
         return defs;
+    }
+
+    private void addIconLayerFields(List<FieldDef> defs, AbilityIconData icon, int layerIndex,
+                                     java.util.function.BooleanSupplier visible) {
+        String sectionLabel = StatCollector.translateToLocal("ability.icon.layer") + " " + (layerIndex + 1);
+        defs.add(FieldDef.section(sectionLabel).tab("Effects").visibleWhen(visible));
+        defs.add(FieldDef.stringField("gui.texture",
+                () -> icon.getLayer(layerIndex).texture,
+                t -> icon.setLayerTexture(layerIndex, t))
+            .tab("Effects").visibleWhen(visible));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.icon.x",
+                () -> icon.getLayer(layerIndex).iconX,
+                x -> icon.setLayerIconX(layerIndex, x)).range(0, 4096),
+            FieldDef.intField("ability.icon.y",
+                () -> icon.getLayer(layerIndex).iconY,
+                y -> icon.setLayerIconY(layerIndex, y)).range(0, 4096)
+        ).tab("Effects").visibleWhen(visible));
+        defs.add(FieldDef.colorSubGui("ability.icon.tint",
+                () -> icon.getLayer(layerIndex).tintColor,
+                c -> icon.setLayerTintColor(layerIndex, c))
+            .tab("Effects").visibleWhen(visible));
     }
 
     /**
@@ -1622,24 +1661,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // DEFAULT ICON
     // ═══════════════════════════════════════════════════════════════════
 
-    public String getDefaultIconTexture() {
-        return defaultIconTexture;
-    }
-
-    /**
-     * Returns the default icon texture for a specific toggle state.
-     * Falls back to the base defaultIconTexture if no state-specific texture exists.
-     * @param state 1-indexed toggle state (0 = off/default)
-     */
-    public String getDefaultIconTextureForState(int state) {
-        if (state > 0 && defaultIconStateTextures != null && state - 1 < defaultIconStateTextures.length) {
-            return defaultIconStateTextures[state - 1];
-        }
-        return defaultIconTexture;
-    }
-
-    public int getDefaultIconColor() {
-        return defaultIconColorSource != null ? defaultIconColorSource.getAsInt() : 0xFFFFFF;
+    public DefaultIconLayer[] getDefaultIconLayers() {
+        return defaultIconLayers;
     }
 
     public int getDefaultIconWidth() {
@@ -1650,12 +1673,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return defaultIconHeight;
     }
 
-    public String[] getDefaultIconStateTextures() {
-        return defaultIconStateTextures;
-    }
-
     public boolean hasDefaultIcon() {
-        return defaultIconTexture != null && !defaultIconTexture.isEmpty();
+        return defaultIconLayers != null && defaultIconLayers.length > 0
+            && defaultIconLayers[0].texture != null && !defaultIconLayers[0].texture.isEmpty();
     }
 
     public Ability deepCopy() {

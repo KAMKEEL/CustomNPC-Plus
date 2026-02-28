@@ -45,6 +45,12 @@ public class AbilityWall extends AbilityBarrier {
         this.showTelegraph = true;
         this.windUpAnimationName = "";
         this.activeAnimationName = "";
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/wall.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/wall_overlay.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     @Override

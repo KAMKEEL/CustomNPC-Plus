@@ -53,6 +53,9 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         this.activeSound = "mob.zombie.attack";
         this.windUpAnimationName = "Ability_Charge_Windup";
         this.activeAnimationName = "Ability_Charge_Active";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/charge.png")
+        };
     }
 
     @Override

@@ -56,8 +56,10 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
         this.windUpAnimationName = "Ability_Beam_Windup";
         this.activeAnimationName = "Ability_Beam_Active";
 
-        this.defaultIconTexture = "customnpcs:textures/gui/ability/beam.png";
-        this.defaultIconColorSource = () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor();
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/beam.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================

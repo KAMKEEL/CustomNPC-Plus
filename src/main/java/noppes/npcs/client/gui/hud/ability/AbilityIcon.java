@@ -25,12 +25,10 @@ public class AbilityIcon extends Gui {
     public int width;
     public int height;
 
-    // Default icon info (extracted from ability)
-    private String defaultTexture = "";
-    private String[] defaultStateTextures = null;
+    // Default icon layers (extracted from ability)
+    private Ability.DefaultIconLayer[] defaultLayers = null;
     private int defaultIconWidth = 48;
     private int defaultIconHeight = 48;
-    private Ability sourceAbility = null;
 
     private AbilityIcon(AbilityIconData data) {
         this.data = data;
@@ -41,11 +39,9 @@ public class AbilityIcon extends Gui {
     public static AbilityIcon fromAbility(Ability ability) {
         if (ability != null) {
             AbilityIcon icon = new AbilityIcon(AbilityIconData.fromAbility(ability));
-            icon.defaultTexture = ability.getDefaultIconTexture();
-            icon.defaultStateTextures = ability.getDefaultIconStateTextures();
+            icon.defaultLayers = ability.getDefaultIconLayers();
             icon.defaultIconWidth = ability.getDefaultIconWidth();
             icon.defaultIconHeight = ability.getDefaultIconHeight();
-            icon.sourceAbility = ability;
             return icon;
         }
         return fromDefaults();
@@ -83,90 +79,70 @@ public class AbilityIcon extends Gui {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        Tessellator t;
-
-        if (data.isEnabled() && data.hasTexture()) {
-            // Path 1: Custom icon enabled with texture — draw with manual tintColor
-            ImageData imageData = ClientCacheHandler.getImageData(data.texture);
-            if (imageData != null && imageData.imageLoaded()) {
-                int tint = data.getTintColor();
-                float r = ((tint >> 16) & 0xFF) / 255f;
-                float g = ((tint >> 8) & 0xFF) / 255f;
-                float b = (tint & 0xFF) / 255f;
-                GL11.glColor4f(r, g, b, alpha);
-                GL11.glScalef(data.scale, data.scale, 1);
-                renderEngine.bindTexture(imageData.getLocation());
-                t = getTessellator(imageData, state);
-                t.draw();
-            } else {
+        if (data.isEnabled()) {
+            // Path 1: Custom icon — draw each active layer bottom-to-top
+            GL11.glScalef(data.scale, data.scale, 1);
+            boolean drewAny = false;
+            for (int i = 0; i < data.getLayerCount(); i++) {
+                AbilityIconData.Layer layer = data.getLayer(i);
+                if (!layer.hasTexture()) continue;
+                ImageData imageData = ClientCacheHandler.getImageData(layer.texture);
+                if (imageData != null && imageData.imageLoaded()) {
+                    int tint = layer.tintColor;
+                    float r = ((tint >> 16) & 0xFF) / 255f;
+                    float g = ((tint >> 8) & 0xFF) / 255f;
+                    float b = (tint & 0xFF) / 255f;
+                    GL11.glColor4f(r, g, b, alpha);
+                    renderEngine.bindTexture(imageData.getLocation());
+                    Tessellator t = getLayerTessellator(imageData, layer, i == 0 ? state : 0);
+                    t.draw();
+                    drewAny = true;
+                }
+            }
+            if (!drewAny) {
                 GL11.glColor4f(1, 1, 1, alpha);
                 renderEngine.bindTexture(FALLBACK_TEXTURE);
-                t = getFallbackTessellator();
-                t.draw();
+                getFallbackTessellator().draw();
             }
-        } else if (hasDefaultTexture()) {
-            // Path 2: No custom icon, but type has a default icon — draw with auto-color tint
-            String texturePath = resolveDefaultTexture(state);
-            ImageData defaultImageData = ClientCacheHandler.getImageData(texturePath);
-            if (defaultImageData != null && defaultImageData.imageLoaded()) {
-                int autoColor = sourceAbility != null ? sourceAbility.getDefaultIconColor() : 0xFFFFFF;
-                float r = ((autoColor >> 16) & 0xFF) / 255f;
-                float g = ((autoColor >> 8) & 0xFF) / 255f;
-                float b = (autoColor & 0xFF) / 255f;
-                GL11.glColor4f(r, g, b, alpha);
-                renderEngine.bindTexture(defaultImageData.getLocation());
-                t = getDefaultIconTessellator();
-                t.draw();
-            } else {
-                // Default texture not found — use fallback at default icon dimensions with auto-color tint
-                int autoColor = sourceAbility != null ? sourceAbility.getDefaultIconColor() : 0xFFFFFF;
-                float r = ((autoColor >> 16) & 0xFF) / 255f;
-                float g = ((autoColor >> 8) & 0xFF) / 255f;
-                float b = (autoColor & 0xFF) / 255f;
-                GL11.glColor4f(r, g, b, alpha);
-                renderEngine.bindTexture(FALLBACK_TEXTURE);
-                t = getDefaultIconTessellator();
-                t.draw();
+        } else if (hasDefaultLayers()) {
+            // Path 2: Default layers — draw each layer with its dynamic color
+            for (Ability.DefaultIconLayer defLayer : defaultLayers) {
+                if (defLayer.texture == null || defLayer.texture.isEmpty()) continue;
+                ImageData imageData = ClientCacheHandler.getImageData(defLayer.texture);
+                if (imageData != null && imageData.imageLoaded()) {
+                    int color = defLayer.getColor();
+                    float r = ((color >> 16) & 0xFF) / 255f;
+                    float g = ((color >> 8) & 0xFF) / 255f;
+                    float b = (color & 0xFF) / 255f;
+                    GL11.glColor4f(r, g, b, alpha);
+                    renderEngine.bindTexture(imageData.getLocation());
+                    getDefaultIconTessellator().draw();
+                }
             }
         } else {
-            // Path 3: No custom icon, no default icon — generic fallback with auto-color tint if available
-            int autoColor = sourceAbility != null ? sourceAbility.getDefaultIconColor() : 0xFFFFFF;
-            float r = ((autoColor >> 16) & 0xFF) / 255f;
-            float g = ((autoColor >> 8) & 0xFF) / 255f;
-            float b = (autoColor & 0xFF) / 255f;
-            GL11.glColor4f(r, g, b, alpha);
+            // Path 3: No custom icon, no default layers — generic fallback
+            GL11.glColor4f(1, 1, 1, alpha);
             renderEngine.bindTexture(FALLBACK_TEXTURE);
-            t = getFallbackTessellator();
-            t.draw();
+            getFallbackTessellator().draw();
         }
 
         GL11.glPopMatrix();
     }
 
-    /**
-     * Resolve the default texture path for a given toggle state.
-     * Falls back to the base defaultTexture if no state-specific texture exists.
-     */
-    private String resolveDefaultTexture(int state) {
-        if (state > 0 && defaultStateTextures != null && state - 1 < defaultStateTextures.length) {
-            return defaultStateTextures[state - 1];
-        }
-        return defaultTexture;
+    private boolean hasDefaultLayers() {
+        return defaultLayers != null && defaultLayers.length > 0;
     }
 
-    private boolean hasDefaultTexture() {
-        return defaultTexture != null && !defaultTexture.isEmpty();
-    }
-
-    private Tessellator getTessellator(ImageData imageData, int state) {
+    private Tessellator getLayerTessellator(ImageData imageData, AbilityIconData.Layer layer, int state) {
         float hw = data.width / 2f;
         float hh = data.height / 2f;
 
         float texW = imageData.getTotalWidth();
         float texH = imageData.getTotalHeight();
 
-        int ix = data.getIconXForState(state);
-        int iy = data.getIconYForState(state);
+        // State UV overrides only apply to layer 0
+        int ix = (state > 0) ? data.getIconXForState(state) : layer.iconX;
+        int iy = (state > 0) ? data.getIconYForState(state) : layer.iconY;
 
         float u1 = ix / texW;
         float v1 = iy / texH;
@@ -209,7 +185,7 @@ public class AbilityIcon extends Gui {
     }
 
     public boolean hasTexture() {
-        return (data.isEnabled() && data.hasTexture()) || hasDefaultTexture();
+        return data.isEnabled() || hasDefaultLayers();
     }
 
     /**
@@ -217,10 +193,10 @@ public class AbilityIcon extends Gui {
      * Custom icon: max(width,height) * scale. Default icon: max(defaultW,defaultH). Fallback: 32.
      */
     public float getDrawSize() {
-        if (data.isEnabled() && data.hasTexture()) {
+        if (data.isEnabled()) {
             return Math.max(width, height) * data.scale;
         }
-        if (hasDefaultTexture()) {
+        if (hasDefaultLayers()) {
             return Math.max(defaultIconWidth, defaultIconHeight);
         }
         return 32f;

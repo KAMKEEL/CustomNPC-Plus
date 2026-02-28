@@ -54,8 +54,11 @@ public class AbilityLaser extends AbilityEnergyProjectile<EntityAbilityLaser> im
         this.windUpAnimationName = "Ability_Laser_Windup";
         this.activeAnimationName = "Ability_Laser_Active";
 
-        this.defaultIconTexture = "customnpcs:textures/gui/ability/laser.png";
-        this.defaultIconColorSource = () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor();
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/laser_shot.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/laser_shot_overlay.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     // ==================== OVERRIDES ====================

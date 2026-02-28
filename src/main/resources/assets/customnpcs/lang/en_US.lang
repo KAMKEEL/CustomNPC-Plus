@@ -2151,6 +2151,8 @@ ability.userType.NONE=NO ONE!
 ability.icon.section.uv=UV Coordinates
 ability.icon.x=Icon X
 ability.icon.y=Icon Y
+ability.icon.layers=Layers
+ability.icon.layer=Layer
 
 gui.both=Both
 gui.players=Players

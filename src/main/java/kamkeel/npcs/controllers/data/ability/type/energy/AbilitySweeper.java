@@ -55,6 +55,12 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
         // Circle telegraph to show range
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/sweeper.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/sweeper_overlay.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     @Override

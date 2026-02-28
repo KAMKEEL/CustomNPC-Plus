@@ -42,6 +42,11 @@ public class AbilityDome extends AbilityBarrier {
         this.showTelegraph = true;
         this.windUpAnimationName = "";
         this.activeAnimationName = "";
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/dome.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================

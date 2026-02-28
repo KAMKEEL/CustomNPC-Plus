@@ -6,17 +6,16 @@ import net.minecraft.nbt.NBTTagList;
 
 /**
  * Icon data for abilities, stored in the ability's customData NBT under "AbilityIcon".
- * Used to render ability icons in the Ability Hotbar, Wheel, and Abilities Tab.
+ * Supports up to 3 layers, each with its own texture, UV coordinates, and tint color.
+ * Width, height, and scale are shared across all layers.
  */
 public class AbilityIconData {
     public static final String NBT_KEY = "AbilityIcon";
+    public static final int MAX_LAYERS = 3;
 
     private final NBTTagCompound customData;
 
-    // Icon properties
-    public String texture = "";
-    public int iconX = 0;
-    public int iconY = 0;
+    // Shared across all layers
     public int width = 32;
     public int height = 32;
     public float scale = 1.0f;
@@ -24,11 +23,49 @@ public class AbilityIconData {
     /** Whether a custom icon override is active. Default false = use type's default icon. */
     private boolean enabled = false;
 
-    /** Manual tint color for the custom icon (0xRRGGBB). Default white = no tint. */
-    private int tintColor = 0xFFFFFF;
+    /** Number of active layers (1-3). */
+    private int layerCount = 1;
 
-    /** Per-state icon UV overrides (0-indexed, maps to toggle states 1, 2, ...). */
+    /** Layer data (always 3 slots allocated). */
+    private Layer[] layers = { new Layer(), new Layer(), new Layer() };
+
+    /** Per-state icon UV overrides for layer 0 (0-indexed, maps to toggle states 1, 2, ...). */
     private int[][] stateIcons = null;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LAYER INNER CLASS
+    // ═══════════════════════════════════════════════════════════════════
+
+    public static class Layer {
+        public String texture = "";
+        public int iconX = 0;
+        public int iconY = 0;
+        public int tintColor = 0xFFFFFF;
+
+        public Layer() {}
+
+        public boolean hasTexture() {
+            return texture != null && !texture.isEmpty();
+        }
+
+        public void writeToNBT(NBTTagCompound nbt) {
+            nbt.setString("Texture", texture);
+            nbt.setInteger("IconX", iconX);
+            nbt.setInteger("IconY", iconY);
+            nbt.setInteger("TintColor", tintColor);
+        }
+
+        public void readFromNBT(NBTTagCompound nbt) {
+            texture = nbt.getString("Texture");
+            iconX = nbt.getInteger("IconX");
+            iconY = nbt.getInteger("IconY");
+            tintColor = nbt.hasKey("TintColor") ? nbt.getInteger("TintColor") : 0xFFFFFF;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CONSTRUCTION
+    // ═══════════════════════════════════════════════════════════════════
 
     private AbilityIconData(NBTTagCompound customData) {
         this.customData = customData;
@@ -60,6 +97,10 @@ public class AbilityIconData {
         return fromCustomData(chain.getCustomData());
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // NBT SERIALIZATION
+    // ═══════════════════════════════════════════════════════════════════
+
     /**
      * Write current state back to the customData NBT.
      */
@@ -71,13 +112,19 @@ public class AbilityIconData {
 
     public void writeToNBT(NBTTagCompound nbt) {
         nbt.setBoolean("Enabled", enabled);
-        nbt.setString("Texture", texture);
-        nbt.setInteger("IconX", iconX);
-        nbt.setInteger("IconY", iconY);
         nbt.setInteger("Width", width);
         nbt.setInteger("Height", height);
         nbt.setFloat("Scale", scale);
-        nbt.setInteger("TintColor", tintColor);
+        nbt.setInteger("LayerCount", layerCount);
+
+        NBTTagList layerList = new NBTTagList();
+        for (int i = 0; i < MAX_LAYERS; i++) {
+            NBTTagCompound layerNBT = new NBTTagCompound();
+            layers[i].writeToNBT(layerNBT);
+            layerList.appendTag(layerNBT);
+        }
+        nbt.setTag("Layers", layerList);
+
         if (stateIcons != null && stateIcons.length > 0) {
             NBTTagList list = new NBTTagList();
             for (int[] pair : stateIcons) {
@@ -92,16 +139,27 @@ public class AbilityIconData {
 
     public void readFromNBT(NBTTagCompound nbt) {
         enabled = nbt.getBoolean("Enabled");
-        texture = nbt.getString("Texture");
-        tintColor = nbt.hasKey("TintColor") ? nbt.getInteger("TintColor") : 0xFFFFFF;
-        iconX = nbt.getInteger("IconX");
-        iconY = nbt.getInteger("IconY");
         width = nbt.getInteger("Width");
         if (width <= 0) width = 32;
         height = nbt.getInteger("Height");
         if (height <= 0) height = 32;
         scale = nbt.getFloat("Scale");
         if (scale <= 0) scale = 1.0f;
+
+        layerCount = nbt.getInteger("LayerCount");
+        if (layerCount < 1) layerCount = 1;
+        if (layerCount > MAX_LAYERS) layerCount = MAX_LAYERS;
+
+        if (nbt.hasKey("Layers")) {
+            NBTTagList layerList = nbt.getTagList("Layers", 10);
+            for (int i = 0; i < MAX_LAYERS; i++) {
+                layers[i] = new Layer();
+                if (i < layerList.tagCount()) {
+                    layers[i].readFromNBT(layerList.getCompoundTagAt(i));
+                }
+            }
+        }
+
         if (nbt.hasKey("StateIcons")) {
             NBTTagList list = nbt.getTagList("StateIcons", 10);
             stateIcons = new int[list.tagCount()][2];
@@ -113,15 +171,53 @@ public class AbilityIconData {
         }
     }
 
-    /**
-     * Check if this icon has a valid texture configured.
-     */
-    public boolean hasTexture() {
-        return texture != null && !texture.isEmpty();
+    // ═══════════════════════════════════════════════════════════════════
+    // LAYER API
+    // ═══════════════════════════════════════════════════════════════════
+
+    public int getLayerCount() {
+        return layerCount;
+    }
+
+    public void setLayerCount(int count) {
+        this.layerCount = Math.max(1, Math.min(MAX_LAYERS, count));
+        save();
+    }
+
+    public Layer getLayer(int index) {
+        return (index >= 0 && index < MAX_LAYERS) ? layers[index] : layers[0];
+    }
+
+    public void setLayerTexture(int index, String tex) {
+        if (index >= 0 && index < MAX_LAYERS) {
+            layers[index].texture = tex != null ? tex : "";
+            save();
+        }
+    }
+
+    public void setLayerIconX(int index, int x) {
+        if (index >= 0 && index < MAX_LAYERS) {
+            layers[index].iconX = Math.max(0, x);
+            save();
+        }
+    }
+
+    public void setLayerIconY(int index, int y) {
+        if (index >= 0 && index < MAX_LAYERS) {
+            layers[index].iconY = Math.max(0, y);
+            save();
+        }
+    }
+
+    public void setLayerTintColor(int index, int color) {
+        if (index >= 0 && index < MAX_LAYERS) {
+            layers[index].tintColor = color & 0xFFFFFF;
+            save();
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // GETTERS AND SETTERS (with auto-save)
+    // SHARED PROPERTY GETTERS/SETTERS (with auto-save)
     // ═══════════════════════════════════════════════════════════════════
 
     public boolean isEnabled() {
@@ -130,42 +226,6 @@ public class AbilityIconData {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-        save();
-    }
-
-    public int getTintColor() {
-        return tintColor;
-    }
-
-    public void setTintColor(int tintColor) {
-        this.tintColor = tintColor & 0xFFFFFF;
-        save();
-    }
-
-    public String getTexture() {
-        return texture;
-    }
-
-    public void setTexture(String texture) {
-        this.texture = texture != null ? texture : "";
-        save();
-    }
-
-    public int getIconX() {
-        return iconX;
-    }
-
-    public void setIconX(int iconX) {
-        this.iconX = Math.max(0, iconX);
-        save();
-    }
-
-    public int getIconY() {
-        return iconY;
-    }
-
-    public void setIconY(int iconY) {
-        this.iconY = Math.max(0, iconY);
         save();
     }
 
@@ -197,7 +257,7 @@ public class AbilityIconData {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // PER-STATE ICON OVERRIDES
+    // PER-STATE ICON OVERRIDES (applies to layer 0)
     // ═══════════════════════════════════════════════════════════════════
 
     public void setStateIcons(int[][] stateIcons) {
@@ -206,26 +266,26 @@ public class AbilityIconData {
     }
 
     /**
-     * Get iconX for a specific toggle state.
-     * Falls back to default iconX if no state override exists.
+     * Get iconX for a specific toggle state (layer 0).
+     * Falls back to layer 0 iconX if no state override exists.
      * @param state 1-indexed toggle state (0 = off/default)
      */
     public int getIconXForState(int state) {
         if (state > 0 && stateIcons != null && state - 1 < stateIcons.length) {
             return stateIcons[state - 1][0];
         }
-        return iconX;
+        return layers[0].iconX;
     }
 
     /**
-     * Get iconY for a specific toggle state.
-     * Falls back to default iconY if no state override exists.
+     * Get iconY for a specific toggle state (layer 0).
+     * Falls back to layer 0 iconY if no state override exists.
      * @param state 1-indexed toggle state (0 = off/default)
      */
     public int getIconYForState(int state) {
         if (state > 0 && stateIcons != null && state - 1 < stateIcons.length) {
             return stateIcons[state - 1][1];
         }
-        return iconY;
+        return layers[0].iconY;
     }
 }

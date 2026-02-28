@@ -144,6 +144,9 @@ public class AbilityDash extends AbilityMovement implements IAbilityDash {
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
         this.windUpSound = "mob.bat.takeoff";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/dash.png")
+        };
     }
 
     @Override

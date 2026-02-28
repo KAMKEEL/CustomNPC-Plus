@@ -36,6 +36,11 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         this.windUpTicks = 30;
         this.windUpAnimationName = "Ability_Zone_Windup";
         this.activeAnimationName = "Ability_Zone_Active";
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/trap.png",
+                this::getActiveColor)
+        };
     }
 
     @Override

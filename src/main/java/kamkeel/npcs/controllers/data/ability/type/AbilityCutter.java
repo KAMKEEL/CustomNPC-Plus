@@ -79,6 +79,10 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         this.activeSound = "random.break";
         this.windUpAnimationName = "Ability_Cutter_Windup";
         this.activeAnimationName = "Ability_Cutter_Active";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/cutter.png",
+                this::getActiveColor)
+        };
     }
 
     @Override
