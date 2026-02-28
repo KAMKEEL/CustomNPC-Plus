@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.profile;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IProfile;
@@ -15,6 +16,7 @@ public class Profile implements IProfile {
     public EntityPlayer player;
     public int currentSlotId;
     private final Map<Integer, ISlot> slots = new HashMap<>();
+    public Map<Integer, Long> sharedQuestTimestamps = new HashMap<>();
     private boolean locked = false;
 
     public Profile(EntityPlayer player, NBTTagCompound compound) {
@@ -37,6 +39,14 @@ public class Profile implements IProfile {
                 } catch (NumberFormatException e) {
                     // Skip keys that are not valid slot IDs.
                 }
+            }
+        }
+
+        if (compound.hasKey("SharedQuestTimestamps")) {
+            NBTTagList list = compound.getTagList("SharedQuestTimestamps", 10);
+            for (int i = 0; i < list.tagCount(); i++) {
+                NBTTagCompound entry = list.getCompoundTagAt(i);
+                sharedQuestTimestamps.put(entry.getInteger("Quest"), entry.getLong("Date"));
             }
         }
     }
@@ -88,6 +98,16 @@ public class Profile implements IProfile {
             slotsCompound.setTag(String.valueOf(entry.getKey()), entry.getValue().toNBT());
         }
         compound.setTag("Slots", slotsCompound);
+
+        NBTTagList questList = new NBTTagList();
+        for (Map.Entry<Integer, Long> entry : sharedQuestTimestamps.entrySet()) {
+            NBTTagCompound questEntry = new NBTTagCompound();
+            questEntry.setInteger("Quest", entry.getKey());
+            questEntry.setLong("Date", entry.getValue());
+            questList.appendTag(questEntry);
+        }
+        compound.setTag("SharedQuestTimestamps", questList);
+
         return compound;
     }
 }

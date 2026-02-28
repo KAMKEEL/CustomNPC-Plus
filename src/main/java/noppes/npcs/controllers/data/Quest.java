@@ -178,17 +178,48 @@ public class Quest implements ICompatibilty, IQuest {
     public long getTimeUntilRepeat(EntityPlayer player) {
         if (ConfigMain.ProfilesEnabled && profileOptions.enableOptions && profileOptions.cooldownControl == EnumProfileSync.Shared) {
             Profile profile = ProfileController.Instance.getProfile(player);
-            IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
-            long timeRemaining = 0L;
-            for (ISlot slot : profile.getSlots().values()) {
-                IPlayerData playerData = ProfileController.Instance.getSlotPlayerData(iPlayer, slot.getId());
-                IPlayerQuestData iPlayerQuestData = playerData.getQuestData();
-                timeRemaining = Math.max(timeRemaining, getTimeUntilRepeatQuestData(player, iPlayerQuestData));
+            if (profile != null) {
+                Long questTime = profile.sharedQuestTimestamps.get(this.id);
+                if (questTime == null) return 0L;
+                return calculateRemainingCooldown(player, questTime);
             }
-            return timeRemaining;
         }
         IPlayerQuestData questData = PlayerData.get(player).getQuestData();
         return getTimeUntilRepeatQuestData(player, questData);
+    }
+
+    public long calculateRemainingCooldown(EntityPlayer player, long questTime) {
+        switch (repeat) {
+            case MCDAILY: {
+                long now = player.worldObj.getTotalWorldTime();
+                long remainingTicks = questTime + 24000 - now;
+                return Math.max(0, remainingTicks * 50);
+            }
+            case MCWEEKLY: {
+                long now = player.worldObj.getTotalWorldTime();
+                long remainingTicks = questTime + 168000 - now;
+                return Math.max(0, remainingTicks * 50);
+            }
+            case MCCUSTOM: {
+                long now = player.worldObj.getTotalWorldTime();
+                long remainingTicks = questTime + this.customCooldown - now;
+                return Math.max(0, remainingTicks * 50);
+            }
+            case RLDAILY: {
+                long remainingMillis = questTime + 86400000 - System.currentTimeMillis();
+                return Math.max(0, remainingMillis);
+            }
+            case RLWEEKLY: {
+                long remainingMillis = questTime + 604800000 - System.currentTimeMillis();
+                return Math.max(0, remainingMillis);
+            }
+            case RLCUSTOM: {
+                long remainingMillis = questTime + this.customCooldown - System.currentTimeMillis();
+                return Math.max(0, remainingMillis);
+            }
+            default:
+                return 0L;
+        }
     }
 
     public long getTimeUntilRepeatQuestData(EntityPlayer player, IPlayerQuestData questData) {
