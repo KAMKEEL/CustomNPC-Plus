@@ -142,21 +142,35 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected transient int defaultIconHeight = 48;
 
     /**
-     * A single layer of a default ability icon. Each layer has a texture and
-     * an optional dynamic color source derived from the ability's properties.
+     * A single layer of a default ability icon. Each layer has a texture,
+     * an optional dynamic color source, and optional per-state texture variants.
      */
     public static class DefaultIconLayer {
         public final String texture;
+        public final String[] stateTextures;
         public final java.util.function.IntSupplier colorSource;
 
-        public DefaultIconLayer(String texture, java.util.function.IntSupplier colorSource) {
+        public DefaultIconLayer(String texture, String[] stateTextures, java.util.function.IntSupplier colorSource) {
             this.texture = texture;
+            this.stateTextures = stateTextures;
             this.colorSource = colorSource;
+        }
+
+        public DefaultIconLayer(String texture, java.util.function.IntSupplier colorSource) {
+            this(texture, null, colorSource);
         }
 
         /** Layer with no color tinting (renders as white). */
         public DefaultIconLayer(String texture) {
-            this(texture, null);
+            this(texture, null, null);
+        }
+
+        /** Resolve texture for a given toggle state. Falls back to base texture. */
+        public String getTextureForState(int state) {
+            if (state > 0 && stateTextures != null && state - 1 < stateTextures.length) {
+                return stateTextures[state - 1];
+            }
+            return texture;
         }
 
         public int getColor() {

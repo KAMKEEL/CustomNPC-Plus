@@ -107,8 +107,9 @@ public class AbilityIcon extends Gui {
         } else if (hasDefaultLayers()) {
             // Path 2: Default layers — draw each layer with its dynamic color
             for (Ability.DefaultIconLayer defLayer : defaultLayers) {
-                if (defLayer.texture == null || defLayer.texture.isEmpty()) continue;
-                ImageData imageData = ClientCacheHandler.getImageData(defLayer.texture);
+                String texPath = defLayer.getTextureForState(state);
+                if (texPath == null || texPath.isEmpty()) continue;
+                ImageData imageData = ClientCacheHandler.getImageData(texPath);
                 if (imageData != null && imageData.imageLoaded()) {
                     int color = defLayer.getColor();
                     float r = ((color >> 16) & 0xFF) / 255f;
