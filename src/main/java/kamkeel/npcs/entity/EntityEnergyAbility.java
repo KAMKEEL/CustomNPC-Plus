@@ -88,6 +88,15 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         this.chargeDuration = duration;
     }
 
+    /**
+     * Reset chargeTick back to chargeDuration so the charging timeout
+     * grace period restarts.  Used by items that let the player hold
+     * a fully-charged orb indefinitely.
+     */
+    public void resetChargeTick() {
+        this.chargeTick = this.chargeDuration;
+    }
+
     public float getChargeProgress() {
         if (chargeDuration <= 0) return 1.0f;
         return Math.min(1.0f, (float) chargeTick / chargeDuration);
