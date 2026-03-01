@@ -869,6 +869,24 @@ public abstract class AbstractDataAbilities {
 
                 currentAbility.onActiveTick(entity, target, currentAbility.getCurrentTick());
 
+                // Play pending defend reaction animation + sound (counter strike, dodge roll, etc.)
+                if (currentAbility instanceof AbilityDefend) {
+                    AbilityDefend defend = (AbilityDefend) currentAbility;
+                    Animation defendAnim = defend.consumeDefendAnimation();
+                    if (defendAnim != null) {
+                        playAbilityAnimation(defendAnim);
+                        playAbilitySound(currentAbility.getActiveSound());
+                        defend.scheduleReturnToActive(currentAbility.getCurrentTick(), defendAnim);
+                    }
+                    // Return to active animation after defend animation finishes (Counter → guard stance)
+                    if (defend.shouldReturnToActiveAnimation(currentAbility.getCurrentTick())) {
+                        Animation activeAnim = currentAbility.getActiveAnimation();
+                        if (activeAnim != null) {
+                            playAbilityAnimation(activeAnim);
+                        }
+                    }
+                }
+
                 // Check if ability completed during onActiveTick
                 if (currentAbility.getPhase() == AbilityPhase.IDLE) {
                     handleAbilityCompletion(target);

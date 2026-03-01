@@ -2,12 +2,17 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.addon.DBCAddon;
+import noppes.npcs.controllers.AnimationController;
 import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.NpcDamageSource;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.api.ability.type.IAbilityCounter;
 import noppes.npcs.client.gui.builder.FieldDef;
 
@@ -55,38 +60,35 @@ public class AbilityCounter extends AbilityDefend implements IAbilityCounter {
         }
     }
 
-    private transient boolean counterTriggered;
-
     // ═══════════════════════════════════════════════════════════════════
     // DEFEND HOOKS
     // ═══════════════════════════════════════════════════════════════════
 
     @Override
-    protected void onDefendTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        if (counterTriggered && lastAttacker != null && lastAttacker.isEntityAlive()) {
-            counterTriggered = false;
-
-            // Calculate counter damage
-            float damage;
-            if (counterType == CounterType.FLAT) {
-                damage = counterValue;
-            } else {
-                damage = lastDamageTaken * (counterValue / 100.0f);
-            }
-
-            // Hit back
-            DamageSource counterSource = caster instanceof EntityPlayer
-                ? DamageSource.causePlayerDamage((EntityPlayer) caster)
-                : DamageSource.causeMobDamage(caster);
-            lastAttacker.attackEntityFrom(counterSource, damage);
-
-            signalCompletion();
+    protected float performDefend(EntityLivingBase attacker, float amount) {
+        // Calculate counter damage
+        float damage;
+        if (counterType == CounterType.FLAT) {
+            damage = counterValue;
+        } else {
+            damage = amount * (counterValue / 100.0f);
         }
-    }
 
-    @Override
-    protected float performDefend(float amount) {
-        counterTriggered = true;
+        // Hit back
+        if (caster != null && attacker.isEntityAlive()) {
+            if (caster instanceof EntityNPCInterface && DBCAddon.instance.canDBCAttack((EntityNPCInterface) caster, damage, attacker)) {
+                // NPC with DBC: dummy hit for events/knockback, then apply DBC damage with NPC's stats
+                attacker.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), 0.001f);
+                DBCAddon.instance.doDBCDamage((EntityNPCInterface) caster, damage, attacker);
+            } else {
+                // Player or non-DBC NPC: normal damage
+                DamageSource counterSource = caster instanceof EntityPlayer
+                    ? DamageSource.causePlayerDamage((EntityPlayer) caster)
+                    : DamageSource.causeMobDamage(caster);
+                attacker.attackEntityFrom(counterSource, damage);
+            }
+        }
+
         return 0;
     }
 
@@ -97,6 +99,22 @@ public class AbilityCounter extends AbilityDefend implements IAbilityCounter {
     @Override
     public boolean hasDamage() {
         return true;
+    }
+
+    @Override
+    protected Animation getDefendAnimation() {
+        return getCounterAnimation();
+    }
+
+    public Animation getCounterAnimation() {
+        if (AnimationController.Instance == null) return null;
+        if (counterAnimationId >= 0) {
+            return (Animation) AnimationController.Instance.get(counterAnimationId);
+        }
+        if (counterAnimationName != null && !counterAnimationName.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(counterAnimationName, true);
+        }
+        return null;
     }
 
     // ═══════════════════════════════════════════════════════════════════

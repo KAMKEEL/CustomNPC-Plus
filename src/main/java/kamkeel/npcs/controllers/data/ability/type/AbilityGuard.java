@@ -34,11 +34,7 @@ public class AbilityGuard extends AbilityDefend implements IAbilityGuard {
     // ═══════════════════════════════════════════════════════════════════
 
     @Override
-    protected void onDefendTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-    }
-
-    @Override
-    protected float performDefend(float amount) {
+    protected float performDefend(EntityLivingBase attacker, float amount) {
         return Math.max(0, amount * (1.0f - damageReduction));
     }
 

@@ -12,6 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.api.ability.type.IAbilityDefend;
 import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.controllers.data.Animation;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
  * Abstract base class for defensive abilities (Guard, Counter, Dodge).
  * <p>
  * {@link #onDefend} handles shared checks (physical melee only) then delegates
- * to {@link #performDefend(float)} which subclasses override for their specific behavior.
+ * to {@link #performDefend(EntityLivingBase, float)} which subclasses override for their specific behavior.
  */
 public abstract class AbilityDefend extends Ability implements IAbilityDefend {
 
@@ -34,9 +35,12 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
     // TRANSIENT RUNTIME STATE
     // ═══════════════════════════════════════════════════════════════════
 
+    protected transient EntityLivingBase caster;
     protected transient int hitCount;
     protected transient EntityLivingBase lastAttacker;
     protected transient float lastDamageTaken;
+    protected transient Animation pendingDefendAnimation;
+    protected transient int defendAnimEndTick = -1;
 
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR DEFAULTS
@@ -57,16 +61,14 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
 
     @Override
     public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        this.caster = caster;
         hitCount = 0;
         lastAttacker = null;
         lastDamageTaken = 0.0f;
-        onDefendStart(caster);
     }
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        onDefendTick(caster, target, tick);
-
         if (tick >= durationTicks) {
             signalCompletion();
         }
@@ -75,9 +77,12 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
     @Override
     public void reset() {
         super.reset();
+        caster = null;
         hitCount = 0;
         lastAttacker = null;
         lastDamageTaken = 0.0f;
+        pendingDefendAnimation = null;
+        defendAnimEndTick = -1;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -107,7 +112,10 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
         lastDamageTaken = amount;
         hitCount++;
 
-        float result = performDefend(amount);
+        float result = performDefend(attacker, amount);
+
+        // Queue defend reaction animation (played on next tick by AbstractDataAbilities)
+        pendingDefendAnimation = getDefendAnimation();
 
         // Auto-complete after max hits
         if (maxHitAmount > 0 && hitCount >= maxHitAmount) {
@@ -120,18 +128,15 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
     /**
      * Subclass-specific defend behavior. Called only for physical melee hits while defending.
      *
-     * @param amount The incoming damage
+     * @param attacker The entity that hit the caster
+     * @param amount   The incoming damage
      * @return The modified damage the caster should take
      */
-    protected abstract float performDefend(float amount);
+    protected abstract float performDefend(EntityLivingBase attacker, float amount);
 
     // ═══════════════════════════════════════════════════════════════════
     // SUBCLASS HOOKS
     // ═══════════════════════════════════════════════════════════════════
-
-    protected void onDefendStart(EntityLivingBase caster) {}
-
-    protected abstract void onDefendTick(EntityLivingBase caster, EntityLivingBase target, int tick);
 
     /**
      * Subclass-specific NBT persistence.
@@ -141,6 +146,49 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
 
     @SideOnly(Side.CLIENT)
     protected abstract void getTypeDefinitions(List<FieldDef> defs);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DEFEND ANIMATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Returns the animation to play when this defend ability reacts to a hit.
+     * Subclasses override to provide their specific animation (counter strike, dodge roll, etc).
+     * Guard returns null (no reaction animation).
+     */
+    protected Animation getDefendAnimation() {
+        return null;
+    }
+
+    /**
+     * Consume and return the pending defend animation (set during onDefend).
+     * Called by AbstractDataAbilities to play the animation on the next tick.
+     */
+    public Animation consumeDefendAnimation() {
+        Animation anim = pendingDefendAnimation;
+        pendingDefendAnimation = null;
+        return anim;
+    }
+
+    /**
+     * Schedule return to active animation after the defend animation finishes.
+     */
+    public void scheduleReturnToActive(int currentTick, Animation defendAnim) {
+        if (defendAnim != null) {
+            defendAnimEndTick = currentTick + (int) defendAnim.getTotalTime();
+        }
+    }
+
+    /**
+     * Check if the defend animation has finished and we should return to the active animation.
+     */
+    public boolean shouldReturnToActiveAnimation(int currentTick) {
+        if (defendAnimEndTick >= 0 && currentTick >= defendAnimEndTick) {
+            defendAnimEndTick = -1;
+            return true;
+        }
+        return false;
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // STATE QUERIES

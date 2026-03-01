@@ -2,12 +2,15 @@ package kamkeel.npcs.controllers.data.ability.type;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import noppes.npcs.controllers.AnimationController;
 import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.api.ability.type.IAbilityDodge;
 import noppes.npcs.client.gui.builder.FieldDef;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,12 +43,41 @@ public class AbilityDodge extends AbilityDefend implements IAbilityDodge {
     // ═══════════════════════════════════════════════════════════════════
 
     @Override
-    protected void onDefendTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+    protected float performDefend(EntityLivingBase attacker, float amount) {
+        return 0;
     }
 
     @Override
-    protected float performDefend(float amount) {
-        return 0;
+    protected Animation getDefendAnimation() {
+        return getRandomDodgeAnimation();
+    }
+
+    /**
+     * Returns a random dodge animation from the configured slots (non-empty only).
+     */
+    public Animation getRandomDodgeAnimation() {
+        if (AnimationController.Instance == null) return null;
+
+        List<Animation> available = new ArrayList<>();
+        Animation a1 = getDodgeAnimation(dodgeAnimation1Id, dodgeAnimation1Name);
+        Animation a2 = getDodgeAnimation(dodgeAnimation2Id, dodgeAnimation2Name);
+        Animation a3 = getDodgeAnimation(dodgeAnimation3Id, dodgeAnimation3Name);
+        if (a1 != null) available.add(a1);
+        if (a2 != null) available.add(a2);
+        if (a3 != null) available.add(a3);
+
+        if (available.isEmpty()) return null;
+        return available.get((int) (Math.random() * available.size()));
+    }
+
+    private Animation getDodgeAnimation(int id, String name) {
+        if (id >= 0) {
+            return (Animation) AnimationController.Instance.get(id);
+        }
+        if (name != null && !name.isEmpty()) {
+            return (Animation) AnimationController.Instance.get(name, true);
+        }
+        return null;
     }
 
     // ═══════════════════════════════════════════════════════════════════
