@@ -681,47 +681,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     protected double[] getBarrierImpactNormal(EntityEnergyBarrier barrier, double velocityX, double velocityY, double velocityZ) {
-        if (barrier instanceof EntityEnergyDome) {
-            EntityEnergyDome dome = (EntityEnergyDome) barrier;
-            return normalizeVector(posX - dome.posX, posY - dome.posY, posZ - dome.posZ, velocityX, velocityY, velocityZ);
-        }
-
-        if (barrier instanceof EntityEnergyPanel) {
-            EntityEnergyPanel panel = (EntityEnergyPanel) barrier;
-            float yawRad = (float) Math.toRadians(panel.getPanelYaw());
-            double nx = -Math.sin(yawRad);
-            double nz = Math.cos(yawRad);
-            double relX = posX - panel.posX;
-            double relZ = posZ - panel.posZ;
-            double signedDist = relX * nx + relZ * nz;
-            double side = signedDist;
-            if (Math.abs(side) < 1.0e-5) {
-                side = velocityX * nx + velocityZ * nz;
-            }
-            if (side < 0.0) {
-                nx = -nx;
-                nz = -nz;
-            }
-            return normalizeVector(nx, 0.0, nz, velocityX, velocityY, velocityZ);
-        }
-
-        return normalizeVector(posX - barrier.posX, posY - barrier.posY, posZ - barrier.posZ, velocityX, velocityY, velocityZ);
-    }
-
-    protected double[] normalizeVector(double x, double y, double z, double fallbackX, double fallbackY, double fallbackZ) {
-        double lenSq = x * x + y * y + z * z;
-        if (lenSq > 1.0e-8) {
-            double invLen = 1.0 / Math.sqrt(lenSq);
-            return new double[]{x * invLen, y * invLen, z * invLen};
-        }
-
-        double fallbackLenSq = fallbackX * fallbackX + fallbackY * fallbackY + fallbackZ * fallbackZ;
-        if (fallbackLenSq > 1.0e-8) {
-            double invFallbackLen = 1.0 / Math.sqrt(fallbackLenSq);
-            return new double[]{-fallbackX * invFallbackLen, -fallbackY * invFallbackLen, -fallbackZ * invFallbackLen};
-        }
-
-        return new double[]{0.0, 1.0, 0.0};
+        return barrier.getSurfaceNormal(posX, posY, posZ, velocityX, velocityY, velocityZ);
     }
 
     protected void beginBarrierImpactPause(boolean destroyOnResume, EntityEnergyBarrier barrier) {
@@ -752,73 +712,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         if (barrier == null) return;
 
         float bias = getBarrierPauseOutsideDistance();
-        if (barrier instanceof EntityEnergyDome) {
-            EntityEnergyDome dome = (EntityEnergyDome) barrier;
-            double nx = posX - dome.posX;
-            double ny = posY - dome.posY;
-            double nz = posZ - dome.posZ;
-            double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-            if (len < 1.0e-5) {
-                double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
-                if (vLen > 1.0e-5) {
-                    nx = -motionX / vLen;
-                    ny = -motionY / vLen;
-                    nz = -motionZ / vLen;
-                    len = 1.0;
-                } else {
-                    nx = 0.0;
-                    ny = 1.0;
-                    nz = 0.0;
-                    len = 1.0;
-                }
-            }
-
-            double invLen = 1.0 / len;
-            double target = dome.getDomeRadius() + bias;
-            setPosition(
-                dome.posX + nx * invLen * target,
-                dome.posY + ny * invLen * target,
-                dome.posZ + nz * invLen * target
-            );
-            return;
-        }
-
-        if (barrier instanceof EntityEnergyPanel) {
-            EntityEnergyPanel panel = (EntityEnergyPanel) barrier;
-            float yawRad = (float) Math.toRadians(panel.getPanelYaw());
-            double normalX = -Math.sin(yawRad);
-            double normalZ = Math.cos(yawRad);
-            double relX = posX - panel.posX;
-            double relZ = posZ - panel.posZ;
-            double signedDist = relX * normalX + relZ * normalZ;
-            double halfThickness = 0.25;
-            double side;
-            if (Math.abs(signedDist) > 0.035) {
-                side = signedDist >= 0 ? 1.0 : -1.0;
-            } else {
-                // Near the plane, use incoming direction so we don't snap through and "fling".
-                double vDot = motionX * normalX + motionZ * normalZ;
-                if (Math.abs(vDot) > 1.0e-5) {
-                    side = vDot < 0 ? 1.0 : -1.0;
-                } else {
-                    side = signedDist >= 0 ? 1.0 : -1.0;
-                }
-            }
-            double targetDist = side * (halfThickness + bias);
-            double delta = targetDist - signedDist;
-            setPosition(posX + normalX * delta, posY, posZ + normalZ * delta);
-            return;
-        }
-
-        double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
-        if (vLen > 1.0e-5) {
-            setPosition(
-                posX - (motionX / vLen) * bias,
-                posY - (motionY / vLen) * bias,
-                posZ - (motionZ / vLen) * bias
-            );
-        }
+        double[] point = barrier.getOutsideSurfacePoint(posX, posY, posZ, motionX, motionY, motionZ, bias);
+        setPosition(point[0], point[1], point[2]);
     }
 
     protected boolean tickBarrierImpactPause() {

@@ -171,6 +171,32 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         double prevPosX, double prevPosY, double prevPosZ,
         int ownerEntityId);
 
+    /**
+     * Compute the outward surface normal at a given hit point on this barrier.
+     * Used by external systems (e.g., mixin-based projectile reflection) that cannot
+     * access barrier-subtype internals.
+     *
+     * @param hitX, hitY, hitZ    Position near the barrier surface
+     * @param velX, velY, velZ    Incoming velocity (used as fallback direction)
+     * @return double[3] normalized surface normal pointing outward from the barrier
+     */
+    public abstract double[] getSurfaceNormal(double hitX, double hitY, double hitZ,
+                                               double velX, double velY, double velZ);
+
+    /**
+     * Compute a position just outside the barrier surface, along the outward normal
+     * from the given position. Used to snap paused/reflected projectiles outside
+     * the collision zone.
+     *
+     * @param px, py, pz              Current projectile position
+     * @param velX, velY, velZ        Current velocity (used as fallback for direction)
+     * @param bias                    Distance outside the surface to snap to
+     * @return double[3] position outside the barrier surface
+     */
+    public abstract double[] getOutsideSurfacePoint(double px, double py, double pz,
+                                                     double velX, double velY, double velZ,
+                                                     float bias);
+
     // ==================== GENERIC PROJECTILE HIT ====================
 
     /**
@@ -207,6 +233,71 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         }
 
         return true;
+    }
+
+    /**
+     * Apply damage from a generic (non-CNPC+) projectile and return full hit context.
+     * Same logic as onProjectileHitResolved() but for raw Entity + typeId.
+     *
+     * @param projectileEntity The entity that hit the barrier (for event context)
+     * @param damage           Base damage to apply
+     * @param typeId           Type identifier for damage multiplier lookup (e.g., "dbc.ki_attack")
+     * @return Full ProjectileHitOutcome with result, reflect data, remaining damage
+     */
+    public ProjectileHitOutcome onGenericProjectileHitResolved(Entity projectileEntity, float damage, String typeId) {
+        float multiplier = barrierData.getMultiplier(typeId);
+        float finalDamage = damage * multiplier;
+
+        if (!worldObj.isRemote) {
+            float eventDamage = EventHooks.onEnergyBarrierHit(this, ownerEntityId, null, finalDamage);
+            if (eventDamage < 0) {
+                return new ProjectileHitOutcome(
+                    ProjectileHitResult.PASS,
+                    currentHealth, currentHealth,
+                    0.0f, 0.0f,
+                    barrierData.reflect, barrierData.reflectStrengthPct,
+                    barrierData.useHealth
+                );
+            }
+            finalDamage = eventDamage;
+        }
+
+        triggerHitFlash();
+        float healthBefore = currentHealth;
+
+        if (!barrierData.useHealth) {
+            return new ProjectileHitOutcome(
+                ProjectileHitResult.BLOCKED,
+                healthBefore, healthBefore,
+                0.0f, 0.0f,
+                barrierData.reflect, barrierData.reflectStrengthPct,
+                false
+            );
+        }
+
+        currentHealth -= finalDamage;
+        syncHealthPercent();
+
+        if (currentHealth <= 0) {
+            float remaining = Math.max(0.0f, finalDamage - healthBefore);
+            onBarrierDestroyed();
+            this.setDead();
+            return new ProjectileHitOutcome(
+                ProjectileHitResult.BROKEN,
+                healthBefore, 0.0f,
+                finalDamage, remaining,
+                barrierData.reflect, barrierData.reflectStrengthPct,
+                true
+            );
+        }
+
+        return new ProjectileHitOutcome(
+            ProjectileHitResult.BLOCKED,
+            healthBefore, currentHealth,
+            finalDamage, 0.0f,
+            barrierData.reflect, barrierData.reflectStrengthPct,
+            true
+        );
     }
 
     // ==================== PROJECTILE HIT ====================
