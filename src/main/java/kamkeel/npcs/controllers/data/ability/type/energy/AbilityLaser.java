@@ -213,7 +213,10 @@ public class AbilityLaser extends AbilityEnergyProjectile<EntityAbilityLaser> im
             FieldDef.floatField("ability.laserWidth", this::getLaserWidth, this::setLaserWidth).range(0.1f, 100.0f),
             FieldDef.floatField("ability.expansionSpeed", this::getExpansionSpeed, this::setExpansionSpeed).range(0.1f, 50.0f)
         ));
-        defs.add(FieldDef.floatField("ability.maxLength", this::getMaxLength, this::setMaxLength).range(1.0f, 500.0f));
+        defs.add(FieldDef.row(
+            FieldDef.floatField("ability.maxLength", this::getMaxLength, this::setMaxLength).range(1.0f, 500.0f),
+            FieldDef.intField("ability.lifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200)
+        ));
         defs.add(FieldDef.section("ability.section.explosive"));
         defs.add(FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"));
         defs.add(FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius)

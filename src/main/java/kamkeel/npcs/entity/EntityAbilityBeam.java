@@ -11,6 +11,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.util.AnchorPointHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
@@ -54,6 +55,10 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     // Beam behavior mode (single source of truth).
     private BeamMode beamMode = BeamMode.ANCHORED;
+
+    // Free Aim (players only) - steers beam toward player's look direction
+    private boolean freeAim = false;
+    private static final float FREE_AIM_STRENGTH = 0.15f;
 
     // Charging state (beam-specific)
     private float chargeOffsetDistance = 1.0f;
@@ -433,8 +438,64 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         addTrailPoint();
     }
 
+    /**
+     * Steer beam toward player's look direction (Free Aim mode).
+     * Target point is projected along look vector at the current head distance from origin.
+     */
+    private void updateFreeAim() {
+        Entity owner = getOwnerEntity();
+        if (!(owner instanceof EntityPlayer)) return;
+
+        Vec3 look = getOwnerLookVector();
+        if (look == null) return;
+
+        double headDist = Math.sqrt(headOffsetX * headOffsetX + headOffsetY * headOffsetY + headOffsetZ * headOffsetZ);
+        if (headDist < 0.1) return;
+
+        // Target point along look vector at current head distance
+        double targetX = startX + look.xCoord * headDist;
+        double targetY = startY + look.yCoord * headDist;
+        double targetZ = startZ + look.zCoord * headDist;
+
+        // Current head world position
+        double headWorldX = startX + headOffsetX;
+        double headWorldY = startY + headOffsetY;
+        double headWorldZ = startZ + headOffsetZ;
+
+        double dx = targetX - headWorldX;
+        double dy = targetY - headWorldY;
+        double dz = targetZ - headWorldZ;
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (dist < 0.01) return;
+
+        double desiredVX = (dx / dist) * getSpeed();
+        double desiredVY = (dy / dist) * getSpeed();
+        double desiredVZ = (dz / dist) * getSpeed();
+
+        motionX += (desiredVX - motionX) * FREE_AIM_STRENGTH;
+        motionY += (desiredVY - motionY) * FREE_AIM_STRENGTH;
+        motionZ += (desiredVZ - motionZ) * FREE_AIM_STRENGTH;
+
+        double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+        if (vLen > 0) {
+            motionX = (motionX / vLen) * getSpeed();
+            motionY = (motionY / vLen) * getSpeed();
+            motionZ = (motionZ / vLen) * getSpeed();
+        }
+    }
+
     @Override
     protected void updateHoming() {
+        if (freeAim) {
+            Entity owner = getOwnerEntity();
+            if (owner instanceof EntityPlayer) {
+                updateFreeAim();
+                return;
+            }
+            // NPCs fall through to normal homing
+        }
+
         if (!isHoming()) return;
 
         Entity target = getTargetEntity();
@@ -545,6 +606,14 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         setBeamMode(modeFromAnchored(attached));
     }
 
+    public boolean isFreeAim() {
+        return freeAim;
+    }
+
+    public void setFreeAim(boolean freeAim) {
+        this.freeAim = freeAim;
+    }
+
     /**
      * Get interpolated head offset for smooth rendering.
      * Returns offset RELATIVE to origin.
@@ -643,8 +712,9 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
             resetHeadOffsets();
             resetTrailStorage();
 
-            // Disable homing — reflected beams fly straight.
+            // Disable homing and free aim — reflected beams fly straight.
             homingData.setHoming(false);
+            freeAim = false;
             setTargetEntityId(-1);
         }
         return reflected;
@@ -668,6 +738,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         resetHeadOffsets();
         resetTrailStorage();
         homingData.setHoming(false);
+        freeAim = false;
         setTargetEntityId(-1);
     }
 
@@ -686,6 +757,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         readChargingNBT(nbt);
         this.chargeOffsetDistance = nbt.hasKey("ChargeOffsetDistance") ? nbt.getFloat("ChargeOffsetDistance") : 1.0f;
         this.trailFadeTime = nbt.hasKey("TrailFadeTime") ? nbt.getInteger("TrailFadeTime") : 20;
+        this.freeAim = nbt.getBoolean("FreeAim");
 
         boolean attachedLegacy = !nbt.hasKey("AttachedToOwner") || nbt.getBoolean("AttachedToOwner");
         BeamMode loadedMode = modeFromAnchored(attachedLegacy);
@@ -737,6 +809,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         nbt.setString("BeamMode", beamMode.name());
         writeChargingNBT(nbt);
         nbt.setFloat("ChargeOffsetDistance", chargeOffsetDistance);
+        nbt.setBoolean("FreeAim", freeAim);
         nbt.setBoolean("FadeTrail", isFadingMode());
         nbt.setInteger("TrailFadeTime", trailFadeTime);
 
