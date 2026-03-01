@@ -21,6 +21,8 @@ import kamkeel.npcs.controllers.data.ability.CustomAbility;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCharge;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCutter;
 import kamkeel.npcs.controllers.data.ability.type.AbilityDash;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCounter;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDodge;
 import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.ability.type.AbilityHazard;
 import kamkeel.npcs.controllers.data.ability.type.AbilityEffect;
@@ -156,6 +158,8 @@ public class AbilityController implements IAbilityHandler {
         registerType(AbilityShockwave::new);
 
         registerType(AbilityGuard::new);
+        registerType(AbilityCounter::new);
+        registerType(AbilityDodge::new);
         registerType(AbilityEffect::new);
 
         registerType(AbilityHazard::new);

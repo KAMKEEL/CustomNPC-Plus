@@ -7,7 +7,6 @@ import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
-import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
@@ -787,32 +786,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             return 0;
         }
 
-        net.minecraft.entity.Entity sourceEntity = source.getEntity();
-        EntityLivingBase attacker = sourceEntity instanceof EntityLivingBase ? (EntityLivingBase) sourceEntity : null;
-
-        // Track counter state before calling onDamageTaken
-        boolean wasCounterTriggered = false;
-        if (currentAbility instanceof AbilityGuard) {
-            wasCounterTriggered = ((AbilityGuard) currentAbility).isCounterTriggered();
-        }
-
-        currentAbility.onDamageTaken(playerData.player, attacker, source, amount);
-
-        // Guard: handle damage reduction and counter absorption
-        if (currentAbility instanceof AbilityGuard) {
-            AbilityGuard guard = (AbilityGuard) currentAbility;
-            if (guard.isGuarding()) {
-                // Counter just triggered — absorb full damage
-                if (!wasCounterTriggered && guard.isCounterTriggered()) {
-                    return 0;
-                }
-                // Normal guard — apply flat damage reduction
-                float reduction = guard.getDamageReductionFactor();
-                return Math.max(0, amount - reduction);
-            }
-        }
-
-        // Check for ability interruption
         if (currentAbility != null && currentAbility.canInterrupt(source)) {
             interruptCurrentAbility(source, amount);
         }
@@ -1027,9 +1000,6 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      */
     private void validateUnlockedAbilities() {
         if (AbilityController.Instance == null) return;
-        // Only validate on the server - the client trusts server-sent data.
-        // Custom ability definitions may not have been synced to the client yet,
-        // which would cause valid abilities to be incorrectly pruned.
         if (playerData == null || !(playerData.player instanceof EntityPlayerMP)) return;
 
         Iterator<String> it = unlockedAbilities.iterator();

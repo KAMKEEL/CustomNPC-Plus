@@ -596,6 +596,7 @@ public class ScriptPlayerEventHandler {
         if (event.entityLiving.worldObj instanceof WorldServer) {
             boolean cancel = event.isCanceled();
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
+
             if (event.entityLiving instanceof EntityPlayerMP) {
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);
                 noppes.npcs.scripted.event.player.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.player.PlayerEvent.AttackedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
@@ -645,20 +646,21 @@ public class ScriptPlayerEventHandler {
             }
 
             if (event.entityLiving instanceof EntityPlayerMP) {
-                // Handle ability damage interactions (Guard counter, damage reduction)
+                // Handle ability damage interactions
                 PlayerData pData = PlayerData.get((EntityPlayer) event.entityLiving);
                 if (pData != null && pData.abilityData != null && pData.abilityData.isExecutingAbility()) {
                     if (pData.abilityData.isCurrentAbilityInvulnerable()) {
                         event.ammount = 0;
                         cancel = true;
                     } else {
-                        event.ammount = pData.abilityData.onDamage(event.source, event.ammount);
+                        float modified = pData.abilityData.onDamage(event.source, event.ammount);
+                        event.ammount = modified;
                     }
                 }
 
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);
                 noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
-                cancel = EventHooks.onPlayerDamaged(handler, pevent);
+                cancel = cancel || EventHooks.onPlayerDamaged(handler, pevent);
                 event.ammount = pevent.damage;
             }
 

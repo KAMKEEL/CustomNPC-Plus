@@ -7,10 +7,11 @@ import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
-import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDefend;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -516,29 +517,12 @@ public class DataAbilities extends AbstractDataAbilities {
 
         // Track hit for hit count condition
         recordHit();
-
-        net.minecraft.entity.Entity sourceEntity = source.getEntity();
-        EntityLivingBase attacker = sourceEntity instanceof EntityLivingBase ? (EntityLivingBase) sourceEntity : null;
-        currentAbility.onDamageTaken(npc, attacker, source, amount);
-
         if (currentAbility.canInterrupt(source)) {
             interruptCurrentAbility(source, amount);
             return true;
         }
 
         return false;
-    }
-
-    /**
-     * Get the damage reduction factor if a Guard ability is currently active.
-     *
-     * @return The damage reduction factor (0.0 = no reduction, 1.0 = full immunity), or 0 if not guarding
-     */
-    public float getGuardDamageReduction() {
-        if (currentAbility instanceof AbilityGuard) {
-            return ((AbilityGuard) currentAbility).getDamageReductionFactor();
-        }
-        return 0.0f;
     }
 
     /**
@@ -649,20 +633,6 @@ public class DataAbilities extends AbstractDataAbilities {
     // ═══════════════════════════════════════════════════════════════════
     // SCRIPT EVENTS
     // ═══════════════════════════════════════════════════════════════════
-
-    /**
-     * Fire an ability hit event. Called by abilities when they hit an entity.
-     * Returns null if the event was cancelled, otherwise returns the (possibly modified) event.
-     *
-     * @param ability     The ability doing the hit
-     * @param target      The original target of the ability
-     * @param hitEntity   The entity being hit
-     * @param event The mutable hit event to fire
-     * @return true if the event was cancelled
-     */
-    public boolean fireHitEvent(Ability ability, AbilityEvent.HitEvent event) {
-        return EventHooks.onAbilityHit(ability, event);
-    }
 
     /**
      * Get the NPC this DataAbilities belongs to.

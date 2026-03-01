@@ -390,11 +390,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
      * Unlike {@link #cleanup()}, this does NOT kill spawned entities (they may
      * still be in flight for overlap mode).
      */
-    public void resetForBurst() {
-    }
-
-    public void onDamageTaken(EntityLivingBase caster, EntityLivingBase attacker, DamageSource source, float damage) {
-    }
+    public void resetForBurst() {}
 
     /**
      * Apply damage to an entity with ability hit event support.
