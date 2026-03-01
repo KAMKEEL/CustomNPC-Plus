@@ -226,6 +226,8 @@ import kamkeel.npcs.network.packets.request.role.RoleCompanionUpdatePacket;
 import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import kamkeel.npcs.network.packets.request.script.BlockScriptPacket;
+import kamkeel.npcs.network.packets.request.script.AbilityScriptPacket;
+import kamkeel.npcs.network.packets.request.script.ChainedAbilityScriptPacket;
 import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
 import kamkeel.npcs.network.packets.request.script.ForgeScriptPacket;
@@ -316,6 +318,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ScriptInfoPacket());
         REQUEST_PACKET.registerPacket(new ScriptFilesPacket());
         REQUEST_PACKET.registerPacket(new EffectScriptPacket());
+        REQUEST_PACKET.registerPacket(new AbilityScriptPacket());
+        REQUEST_PACKET.registerPacket(new ChainedAbilityScriptPacket());
 
         // Cloner Packets
         REQUEST_PACKET.registerPacket(new CloneListPacket());

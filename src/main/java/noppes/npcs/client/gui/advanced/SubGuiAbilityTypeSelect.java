@@ -83,8 +83,10 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
                 continue;
 
             String displayName = I18n.format(typeId);
-            if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
-                displayName = "\u00A7e" + displayName;
+            if (typeId.equals("ability.cnpc.custom")) {
+                displayName = "\u00A7d" + displayName;
+            } else if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
+                displayName = "\u00A7a" + displayName;
             }
             allDisplayNameToTypeId.put(displayName, typeId);
         }
@@ -122,6 +124,21 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
         }
         Collections.sort(list, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
             a.replaceAll("\u00A7.", ""), b.replaceAll("\u00A7.", "")));
+
+        // Pin Custom Ability to top of list
+        String customEntry = null;
+        for (String name : list) {
+            String tid = displayNameToTypeId.get(name);
+            if (tid != null && tid.equals("ability.cnpc.custom")) {
+                customEntry = name;
+                break;
+            }
+        }
+        if (customEntry != null) {
+            list.remove(customEntry);
+            list.add(0, customEntry);
+        }
+
         return list;
     }
 

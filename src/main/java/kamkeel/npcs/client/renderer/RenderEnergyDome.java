@@ -2,7 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityEnergyDome;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -10,17 +10,16 @@ import org.lwjgl.opengl.GL11;
 /**
  * Renders the Dome entity as a translucent sphere.
  * Inner layer solid, outer layer translucent glow.
- * Optional skybox texture rendered on the interior surface.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityDome extends RenderEnergyBarrier {
+public class RenderEnergyDome extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         if (shouldSkipInitialActiveRender(entity)) {
             return;
         }
-        EntityAbilityDome dome = (EntityAbilityDome) entity;
+        EntityEnergyDome dome = (EntityEnergyDome) entity;
         float radius = dome.getDomeRadius();
         float healthPercent = dome.getHealthPercent();
 
@@ -44,13 +43,8 @@ public class RenderAbilityDome extends RenderEnergyBarrier {
             float outerScale = 1.0f + dome.getOuterColorWidth() * 0.1f;
             float outerAlpha = dome.getOuterColorAlpha() * healthPercent;
             GL11.glDepthMask(false);
-            renderSphere(dome.getOuterColor(), outerAlpha + flashAlpha, radius * outerScale, 8);
+            renderSphere(dome.getOuterColor(), outerAlpha + (dome.getOuterColorAlpha() > 0 ? flashAlpha : 0), radius * outerScale, 8);
         }
-
-        // TODO: Skybox Feature
-        // if (dome.isSkyboxEnabled() && !dome.getSkyboxTexture().isEmpty()) {
-        //     renderSkyboxSphere(dome.getSkyboxTexture(), radius, radius * 0.94f, 32, x, y, z);
-        // }
 
         GL11.glDepthMask(true);
         // Render inner dome (depth write enabled so inner sphere properly occludes)
@@ -114,5 +108,4 @@ public class RenderAbilityDome extends RenderEnergyBarrier {
         tess.draw();
     }
 
-    // TODO: Skybox Feature — renderSkyboxSphere method removed
 }

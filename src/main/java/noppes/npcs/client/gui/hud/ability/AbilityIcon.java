@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.renderer.ImageData;
 import org.lwjgl.opengl.GL11;
 
@@ -25,6 +26,11 @@ public class AbilityIcon extends Gui {
     public int width;
     public int height;
 
+    // Default icon layers (extracted from ability)
+    private Ability.DefaultIconLayer[] defaultLayers = null;
+    private int defaultIconWidth = 48;
+    private int defaultIconHeight = 48;
+
     private AbilityIcon(AbilityIconData data) {
         this.data = data;
         this.width = data.width;
@@ -33,7 +39,11 @@ public class AbilityIcon extends Gui {
 
     public static AbilityIcon fromAbility(Ability ability) {
         if (ability != null) {
-            return new AbilityIcon(AbilityIconData.fromAbility(ability));
+            AbilityIcon icon = new AbilityIcon(AbilityIconData.fromAbility(ability));
+            icon.defaultLayers = ability.getDefaultIconLayers();
+            icon.defaultIconWidth = ability.getDefaultIconWidth();
+            icon.defaultIconHeight = ability.getDefaultIconHeight();
+            return icon;
         }
         return fromDefaults();
     }
@@ -66,44 +76,88 @@ public class AbilityIcon extends Gui {
     public void draw(int state, float alpha) {
         TextureManager renderEngine = Minecraft.getMinecraft().renderEngine;
 
-        ImageData imageData = null;
-        if (data.hasTexture()) {
-            imageData = ClientCacheHandler.getImageData(data.texture);
-        }
-
         GL11.glPushMatrix();
-        GL11.glColor4f(1, 1, 1, alpha);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        Tessellator t;
-
-        if (imageData == null || !imageData.imageLoaded()) {
-            GL11.glScalef(1.0f, 1.0f, 1);
-            renderEngine.bindTexture(FALLBACK_TEXTURE);
-            t = getFallbackTessellator();
-        } else {
+        if (data.isEnabled()) {
+            // Path 1: Custom icon — draw each active layer bottom-to-top
             GL11.glScalef(data.scale, data.scale, 1);
-            renderEngine.bindTexture(imageData.getLocation());
-            t = getTessellator(imageData, state);
+            boolean drewAny = false;
+            for (int i = 0; i < data.getLayerCount(); i++) {
+                AbilityIconData.Layer layer = data.getLayer(i);
+                if (!layer.hasTexture()) continue;
+                ImageData imageData = ClientCacheHandler.getImageData(layer.texture);
+                if (imageData != null && imageData.imageLoaded()) {
+                    int tint = layer.tintColor;
+                    float r = ((tint >> 16) & 0xFF) / 255f;
+                    float g = ((tint >> 8) & 0xFF) / 255f;
+                    float b = (tint & 0xFF) / 255f;
+                    GL11.glColor4f(r, g, b, alpha);
+                    renderEngine.bindTexture(imageData.getLocation());
+                    Tessellator t = getLayerTessellator(imageData, layer, i == 0 ? state : 0);
+                    t.draw();
+                    drewAny = true;
+                }
+            }
+            if (!drewAny) {
+                GL11.glColor4f(1, 1, 1, alpha);
+                renderEngine.bindTexture(FALLBACK_TEXTURE);
+                getFallbackTessellator().draw();
+            }
+        } else if (hasDefaultLayers()) {
+            // Path 2: Default layers — draw each layer with its dynamic color
+            for (Ability.DefaultIconLayer defLayer : defaultLayers) {
+                String texPath = defLayer.getTextureForState(state);
+                if (texPath == null || texPath.isEmpty()) continue;
+                ImageData imageData = ClientCacheHandler.getImageData(texPath);
+                if (imageData != null && imageData.imageLoaded()) {
+                    int color = defLayer.getColor();
+                    float r = ((color >> 16) & 0xFF) / 255f;
+                    float g = ((color >> 8) & 0xFF) / 255f;
+                    float b = (color & 0xFF) / 255f;
+                    GL11.glColor4f(r, g, b, alpha);
+                    renderEngine.bindTexture(imageData.getLocation());
+                    getDefaultIconTessellator().draw();
+                }
+            }
+        } else {
+            // Path 3: No custom icon, no default layers — generic fallback
+            GL11.glColor4f(1, 1, 1, alpha);
+            renderEngine.bindTexture(FALLBACK_TEXTURE);
+            getFallbackTessellator().draw();
         }
 
-        t.draw();
         GL11.glPopMatrix();
     }
 
-    private Tessellator getTessellator(ImageData imageData, int state) {
+    private boolean hasDefaultLayers() {
+        return defaultLayers != null && defaultLayers.length > 0;
+    }
+
+    private Tessellator getLayerTessellator(ImageData imageData, AbilityIconData.Layer layer, int state) {
         float hw = data.width / 2f;
         float hh = data.height / 2f;
 
         float texW = imageData.getTotalWidth();
         float texH = imageData.getTotalHeight();
 
-        int ix = data.getIconXForState(state);
-        int iy = data.getIconYForState(state);
+        // State UV overrides only apply to layer 0
+        int ix = (state > 0) ? data.getIconXForState(state) : layer.iconX;
+        int iy = (state > 0) ? data.getIconYForState(state) : layer.iconY;
+
+        // Animation V offset
+        float vOff = 0f;
+        if (imageData.isAnimated()) {
+            vOff = imageData.getCurrentFrameVOffset();
+        } else if (data.isAnimated()) {
+            vOff = AnimationHelper.getFrameVOffset((int) texH, data.getFrameCount(), data.getFrameTime());
+        }
 
         float u1 = ix / texW;
-        float v1 = iy / texH;
+        float v1 = vOff + iy / texH;
         float u2 = (ix + data.width) / texW;
-        float v2 = (iy + data.height) / texH;
+        float v2 = vOff + (iy + data.height) / texH;
 
         Tessellator t = Tessellator.instance;
         t.startDrawingQuads();
@@ -111,6 +165,19 @@ public class AbilityIcon extends Gui {
         t.addVertexWithUV(hw, hh, zLevel, u2, v2);
         t.addVertexWithUV(hw, -hh, zLevel, u2, v1);
         t.addVertexWithUV(-hw, -hh, zLevel, u1, v1);
+        return t;
+    }
+
+    private Tessellator getDefaultIconTessellator() {
+        float hw = defaultIconWidth / 2f;
+        float hh = defaultIconHeight / 2f;
+
+        Tessellator t = Tessellator.instance;
+        t.startDrawingQuads();
+        t.addVertexWithUV(-hw, hh, zLevel, 0, 1);
+        t.addVertexWithUV(hw, hh, zLevel, 1, 1);
+        t.addVertexWithUV(hw, -hh, zLevel, 1, 0);
+        t.addVertexWithUV(-hw, -hh, zLevel, 0, 0);
         return t;
     }
 
@@ -128,16 +195,19 @@ public class AbilityIcon extends Gui {
     }
 
     public boolean hasTexture() {
-        return data.hasTexture();
+        return data.isEnabled() || hasDefaultLayers();
     }
 
     /**
      * Returns the approximate visual size (max dimension) that draw() produces.
-     * Textured: max(width,height) * scale. Fallback: 32.
+     * Custom icon: max(width,height) * scale. Default icon: max(defaultW,defaultH). Fallback: 32.
      */
     public float getDrawSize() {
-        if (data.hasTexture()) {
+        if (data.isEnabled()) {
             return Math.max(width, height) * data.scale;
+        }
+        if (hasDefaultLayers()) {
+            return Math.max(defaultIconWidth, defaultIconHeight);
         }
         return 32f;
     }

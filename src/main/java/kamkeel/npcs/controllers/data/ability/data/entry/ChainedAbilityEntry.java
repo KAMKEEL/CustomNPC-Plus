@@ -155,7 +155,7 @@ public class ChainedAbilityEntry {
         Ability resolved = ctrl.resolveAbility(abilityReference);
         if (resolved == null) return false;
 
-        inlineAbility = ctrl.fromNBT(resolved.writeNBT());
+        inlineAbility = ctrl.fromNBT(resolved.writeNBT(true));
         entryType = EntryType.INLINE;
         abilityReference = "";
         return true;
@@ -175,22 +175,22 @@ public class ChainedAbilityEntry {
         copy.delayTicks = this.delayTicks;
         copy.concurrentEnabled = this.concurrentEnabled;
         if (this.inlineAbility != null) {
-            copy.inlineAbility = AbilityController.Instance.fromNBT(this.inlineAbility.writeNBT());
+            copy.inlineAbility = AbilityController.Instance.fromNBT(this.inlineAbility.writeNBT(true));
         }
         return copy;
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // NBT (backwards compatible)
+    // NBT
     // ═══════════════════════════════════════════════════════════════════
 
-    public NBTTagCompound writeNBT() {
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setInteger("Delay", delayTicks);
         nbt.setBoolean("Concurrent", concurrentEnabled);
 
         if (entryType == EntryType.INLINE && inlineAbility != null) {
-            nbt.setTag("InlineAbility", inlineAbility.writeNBT());
+            nbt.setTag("InlineAbility", inlineAbility.writeNBT(saveScripts));
         } else {
             nbt.setString("Reference", abilityReference);
         }
@@ -204,14 +204,12 @@ public class ChainedAbilityEntry {
         entry.delayTicks = Math.max(0, nbt.getInteger("Delay"));
         entry.concurrentEnabled = nbt.hasKey("Concurrent") ? nbt.getBoolean("Concurrent") : true;
 
-        // Inline entry (new format)
         if (nbt.hasKey("InlineAbility")) {
             NBTTagCompound abilityNBT = nbt.getCompoundTag("InlineAbility");
             entry.entryType = EntryType.INLINE;
             entry.inlineAbility = AbilityController.Instance != null
                 ? AbilityController.Instance.fromNBT(abilityNBT) : null;
         } else {
-            // Reference entry (old + new format)
             entry.entryType = EntryType.REFERENCE;
             entry.abilityReference = nbt.getString("Reference");
         }

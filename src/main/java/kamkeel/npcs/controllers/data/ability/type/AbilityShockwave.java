@@ -43,6 +43,11 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.activeSound = "random.explode";
         this.windUpAnimationName = "Ability_Shockwave_Windup";
         this.activeAnimationName = "Ability_Shockwave_Active";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/shockwave.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/shockwave_overlay.png",
+                this::getActiveColor)
+        };
     }
 
     @Override

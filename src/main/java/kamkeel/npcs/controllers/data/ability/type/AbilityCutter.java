@@ -79,6 +79,10 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         this.activeSound = "random.break";
         this.windUpAnimationName = "Ability_Cutter_Windup";
         this.activeAnimationName = "Ability_Cutter_Active";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/cutter.png",
+                this::getActiveColor)
+        };
     }
 
     @Override
@@ -292,12 +296,6 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
         double entityRelative = normalizeAngle(angleToEntity - casterYaw);
         return entityRelative >= minAngle && entityRelative <= maxAngle;
-    }
-
-    private boolean isInArc(double dx, double dz, float casterYaw, float arcWidth) {
-        double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
-        double angleDiff = normalizeAngle(angleToEntity - casterYaw);
-        return Math.abs(angleDiff) <= arcWidth / 2.0;
     }
 
     private double normalizeAngle(double angle) {

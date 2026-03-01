@@ -439,8 +439,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * @return true if barrier interaction was handled (caller should stop processing this tick)
      */
     protected boolean checkBarrierCollision() {
-        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(worldObj);
-        for (EntityAbilityBarrier barrier : barriers) {
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
             if (barrier.isDead) continue;
 
             // Quick distance pre-filter
@@ -453,8 +453,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
             if (barrier.isIncomingProjectile(this)) {
                 float damage = getModifiedDamage();
-                EntityAbilityBarrier.ProjectileHitOutcome hitOutcome = barrier.onProjectileHitResolved(this, damage);
-                if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+                EntityEnergyBarrier.ProjectileHitOutcome hitOutcome = barrier.onProjectileHitResolved(this, damage);
+                if (hitOutcome == null || hitOutcome.result == EntityEnergyBarrier.ProjectileHitResult.PASS) {
                     continue;
                 }
                 if (handleBarrierHitOutcome(barrier, hitOutcome, damage)) {
@@ -473,12 +473,12 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
      * @param fullDamage The DBC-scaled damage that was passed to the barrier (from getModifiedDamage).
      * @return true if caller should stop processing this tick.
      */
-    protected boolean handleBarrierHitOutcome(EntityAbilityBarrier barrier, EntityAbilityBarrier.ProjectileHitOutcome hitOutcome, float fullDamage) {
-        if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+    protected boolean handleBarrierHitOutcome(EntityEnergyBarrier barrier, EntityEnergyBarrier.ProjectileHitOutcome hitOutcome, float fullDamage) {
+        if (hitOutcome == null || hitOutcome.result == EntityEnergyBarrier.ProjectileHitResult.PASS) {
             return false;
         }
 
-        if (hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
+        if (hitOutcome.result == EntityEnergyBarrier.ProjectileHitResult.BROKEN) {
             if (hitOutcome.remainingProjectileDamage <= 0.0f) {
                 damageMultiplier = 0.0f;
                 setBarrierSparkTicks(Math.max(getBarrierSparkTicks(), BARRIER_BREAK_SPARK_TICKS));
@@ -511,7 +511,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         return true;
     }
 
-    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+    protected boolean reflectFromBarrier(EntityEnergyBarrier barrier, float reflectStrengthPct) {
         if (barrier == null) {
             return false;
         }
@@ -582,14 +582,22 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         }
         sourceAbility = null;
 
+        // Save original owner before transfer for potential target retargeting
+        int originalOwnerId = ownerEntityId;
+
         Entity barrierOwner = barrier.getOwnerEntity();
         if (barrierOwner != null) {
             setOwnerEntityId(barrierOwner.getEntityId());
             // Ensure ownership-sensitive systems can query this projectile under the new owner.
             trackProjectile(this);
         }
-        // Old homing target may now be the new owner or ally; clear it after reflection.
-        setTargetEntityId(-1);
+
+        // Target Owner: set the reflected projectile's target to the original caster
+        if (barrier.getBarrierData().isTargetOwner() && originalOwnerId != -1) {
+            setTargetEntityId(originalOwnerId);
+        } else {
+            setTargetEntityId(-1);
+        }
 
         setInnerColor(barrier.getInnerColor());
         setOuterColor(barrier.getOuterColor());
@@ -672,14 +680,14 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         ProjectileReflectPacket.sendToTracking(this, writeReflectionData());
     }
 
-    protected double[] getBarrierImpactNormal(EntityAbilityBarrier barrier, double velocityX, double velocityY, double velocityZ) {
-        if (barrier instanceof EntityAbilityDome) {
-            EntityAbilityDome dome = (EntityAbilityDome) barrier;
+    protected double[] getBarrierImpactNormal(EntityEnergyBarrier barrier, double velocityX, double velocityY, double velocityZ) {
+        if (barrier instanceof EntityEnergyDome) {
+            EntityEnergyDome dome = (EntityEnergyDome) barrier;
             return normalizeVector(posX - dome.posX, posY - dome.posY, posZ - dome.posZ, velocityX, velocityY, velocityZ);
         }
 
-        if (barrier instanceof EntityAbilityPanel) {
-            EntityAbilityPanel panel = (EntityAbilityPanel) barrier;
+        if (barrier instanceof EntityEnergyPanel) {
+            EntityEnergyPanel panel = (EntityEnergyPanel) barrier;
             float yawRad = (float) Math.toRadians(panel.getPanelYaw());
             double nx = -Math.sin(yawRad);
             double nz = Math.cos(yawRad);
@@ -716,7 +724,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         return new double[]{0.0, 1.0, 0.0};
     }
 
-    protected void beginBarrierImpactPause(boolean destroyOnResume, EntityAbilityBarrier barrier) {
+    protected void beginBarrierImpactPause(boolean destroyOnResume, EntityEnergyBarrier barrier) {
         if (barrierImpactPauseTicks <= 0) {
             pausedMotionX = motionX;
             pausedMotionY = motionY;
@@ -740,12 +748,12 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         return Math.max(0.06f, Math.min(0.22f, size * 0.18f + 0.03f));
     }
 
-    protected void snapOutsideBarrierForPause(EntityAbilityBarrier barrier) {
+    protected void snapOutsideBarrierForPause(EntityEnergyBarrier barrier) {
         if (barrier == null) return;
 
         float bias = getBarrierPauseOutsideDistance();
-        if (barrier instanceof EntityAbilityDome) {
-            EntityAbilityDome dome = (EntityAbilityDome) barrier;
+        if (barrier instanceof EntityEnergyDome) {
+            EntityEnergyDome dome = (EntityEnergyDome) barrier;
             double nx = posX - dome.posX;
             double ny = posY - dome.posY;
             double nz = posZ - dome.posZ;
@@ -776,8 +784,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             return;
         }
 
-        if (barrier instanceof EntityAbilityPanel) {
-            EntityAbilityPanel panel = (EntityAbilityPanel) barrier;
+        if (barrier instanceof EntityEnergyPanel) {
+            EntityEnergyPanel panel = (EntityEnergyPanel) barrier;
             float yawRad = (float) Math.toRadians(panel.getPanelYaw());
             double normalX = -Math.sin(yawRad);
             double normalZ = Math.cos(yawRad);

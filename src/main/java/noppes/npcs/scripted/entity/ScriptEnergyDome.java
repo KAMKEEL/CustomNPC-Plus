@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.entity;
 
-import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityEnergyDome;
 import noppes.npcs.api.entity.IEnergyDome;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptEnergyDome<T extends EntityAbilityDome> extends ScriptEnergyBarrier<T> implements IEnergyDome {
+public class ScriptEnergyDome<T extends EntityEnergyDome> extends ScriptEnergyBarrier<T> implements IEnergyDome {
 
     public ScriptEnergyDome(T entity) {
         super(entity);

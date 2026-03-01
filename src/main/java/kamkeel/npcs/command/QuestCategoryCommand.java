@@ -99,7 +99,9 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
                     playerdata.questData.finishedQuests.put(quest.id, completeTime);
                 }
 
-                if (ConfigMain.ProfilesEnabled && playerdata.player != null && quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared)
+                if (ConfigMain.ProfilesEnabled && playerdata.player != null && quest.profileOptions.enableOptions
+                        && (quest.profileOptions.completeControl == EnumProfileSync.Shared
+                            || quest.profileOptions.cooldownControl == EnumProfileSync.Shared))
                     ProfileController.Instance.shareQuestCompletion(playerdata.player, quest.id, completeTime);
                 ;
 

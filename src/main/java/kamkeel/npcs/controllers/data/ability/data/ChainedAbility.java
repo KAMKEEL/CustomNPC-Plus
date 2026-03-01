@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.ability.data;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.controllers.data.ChainedAbilityScript;
 import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition;
@@ -358,7 +359,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      */
     public ChainedAbility deepCopy() {
         ChainedAbility copy = new ChainedAbility();
-        copy.readNBT(this.writeNBT());
+        copy.readNBT(this.writeNBT(true));
         return copy;
     }
 
@@ -376,7 +377,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     // NBT SERIALIZATION
     // ═══════════════════════════════════════════════════════════════════
 
-    public NBTTagCompound writeNBT() {
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("Id", id);
         nbt.setString("Name", name);
@@ -398,12 +399,22 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         // Entries
         NBTTagList entryList = new NBTTagList();
         for (ChainedAbilityEntry entry : entries) {
-            entryList.appendTag(entry.writeNBT());
+            entryList.appendTag(entry.writeNBT(saveScripts));
         }
         nbt.setTag("Entries", entryList);
 
         // Custom data (for external mods)
         nbt.setTag("customData", (NBTTagCompound) customData.copy());
+
+        // Script handler data (matching CustomEffect.writeToNBT pattern)
+        if (saveScripts) {
+            ChainedAbilityScript handler = getScriptHandler();
+            if (handler != null) {
+                NBTTagCompound scriptData = new NBTTagCompound();
+                handler.writeToNBT(scriptData);
+                nbt.setTag("ScriptData", scriptData);
+            }
+        }
 
         return nbt;
     }
@@ -418,7 +429,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         cooldownTicks = nbt.hasKey("CooldownTicks") ? nbt.getInteger("CooldownTicks") : 100;
         minRange = nbt.getFloat("MinRange");
         maxRange = nbt.hasKey("MaxRange") ? nbt.getFloat("MaxRange") : 20;
-        // AllowedBy is computed from child abilities — old NBT data silently ignored
+        // AllowedBy is computed from child abilities
 
         // Conditions
         conditions.clear();
@@ -442,5 +453,33 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
         // Custom data (for external mods)
         customData = (NBTTagCompound) nbt.getCompoundTag("customData").copy();
+
+        // Script handler data (matching CustomEffect.readFromNBT pattern)
+        if (nbt.hasKey("ScriptData", 10)) {
+            ChainedAbilityScript handler = new ChainedAbilityScript(this.id);
+            handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
+            setScriptHandler(handler);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SCRIPT HANDLER
+    // ═══════════════════════════════════════════════════════════════════
+
+    public ChainedAbilityScript getScriptHandler() {
+        return AbilityController.Instance.chainedAbilityScriptHandlers.get(this.id);
+    }
+
+    public void setScriptHandler(ChainedAbilityScript handler) {
+        AbilityController.Instance.chainedAbilityScriptHandlers.put(this.id, handler);
+    }
+
+    public ChainedAbilityScript getOrCreateScriptHandler() {
+        ChainedAbilityScript handler = getScriptHandler();
+        if (handler == null) {
+            handler = new ChainedAbilityScript(this.id);
+            AbilityController.Instance.chainedAbilityScriptHandlers.put(this.id, handler);
+        }
+        return handler;
     }
 }

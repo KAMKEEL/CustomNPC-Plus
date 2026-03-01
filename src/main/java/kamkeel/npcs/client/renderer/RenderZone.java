@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Random;
 
 @SideOnly(Side.CLIENT)
-public class RenderAbilityZone extends Render {
+public class RenderZone extends Render {
 
     private static final int CIRCLE_SEGMENTS = 32;
     private static final int ACCENT_LINE_COUNT = 12;

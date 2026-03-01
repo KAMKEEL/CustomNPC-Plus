@@ -50,5 +50,5 @@ public interface IAbilityAction {
      */
     IAbilityAction deepCopyAction();
 
-    NBTTagCompound writeNBT();
+    NBTTagCompound writeNBT(boolean saveScripts);
 }

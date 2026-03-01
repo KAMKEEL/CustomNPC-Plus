@@ -187,19 +187,27 @@ public class FieldDef {
                     idSetter.accept(-1);
                 } else {
                     idSetter.accept(sel.selectedAnimationId);
-                    nameSetter.accept("");
+                    String customName = sel.getSelectedName();
+                    nameSetter.accept(customName != null ? customName : "");
                 }
             })
             .buttonLabel(() -> {
                 String name = nameGetter.get();
-                if (name != null && !name.isEmpty()) return name;
                 int id = idGetter.get();
+                if (id < 0 && name != null && !name.isEmpty()) {
+                    // Built-in animation: show just the name
+                    return name;
+                }
                 if (id >= 0) {
+                    // Custom animation: show (X) Name
+                    if (name != null && !name.isEmpty()) {
+                        return "(" + id + ") " + name;
+                    }
                     Animation anim = AnimationController.Instance != null
                         ? (Animation) AnimationController.Instance.get(id) : null;
                     String animName = anim != null ? anim.getName() : "";
                     return animName != null && !animName.isEmpty()
-                        ? "(ID: " + id + ") " + animName : "ID: " + id;
+                        ? "(" + id + ") " + animName : String.valueOf(id);
                 }
                 return "gui.none";
             })

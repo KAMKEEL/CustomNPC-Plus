@@ -1,5 +1,8 @@
 package noppes.npcs.client.renderer;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
@@ -11,6 +14,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class ImageData {
     private final ResourceLocation location;
@@ -22,6 +26,14 @@ public class ImageData {
     private int totalWidth, totalHeight;
     private boolean gotWidthHeight;
     private boolean invalid;
+
+    // Animation fields
+    private boolean animated = false;
+    private int frameCount = 1;
+    private int frametime = 2;
+    private int[] frames = null;
+    private boolean interpolate = false;
+    private boolean mcmetaChecked = false;
 
     public ImageData(String directory) {
         this.location = new ResourceLocation(directory);
@@ -141,6 +153,11 @@ public class ImageData {
     private void correctWidthHeight() {
         this.totalWidth = Math.max(this.totalWidth, 1);
         this.totalHeight = Math.max(this.totalHeight, 1);
+
+        if (!this.isUrl && !this.mcmetaChecked) {
+            this.mcmetaChecked = true;
+            tryLoadMcmeta();
+        }
     }
 
     public int getTotalWidth() {
@@ -149,5 +166,113 @@ public class ImageData {
 
     public int getTotalHeight() {
         return this.gotWidthHeight ? this.totalHeight : -1;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ANIMATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    private void tryLoadMcmeta() {
+        try {
+            ResourceLocation mcmetaLoc = new ResourceLocation(
+                location.getResourceDomain(),
+                location.getResourcePath() + ".mcmeta"
+            );
+            IResource resource = Minecraft.getMinecraft().getResourceManager().getResource(mcmetaLoc);
+            InputStream stream = resource.getInputStream();
+            try {
+                InputStreamReader reader = new InputStreamReader(stream);
+                JsonObject root = new JsonParser().parse(reader).getAsJsonObject();
+                if (root.has("animation")) {
+                    JsonObject anim = root.getAsJsonObject("animation");
+                    this.animated = true;
+
+                    if (anim.has("frametime")) {
+                        this.frametime = Math.max(1, anim.get("frametime").getAsInt());
+                    }
+                    if (anim.has("interpolate")) {
+                        this.interpolate = anim.get("interpolate").getAsBoolean();
+                    }
+                    if (anim.has("frames")) {
+                        JsonArray framesArray = anim.getAsJsonArray("frames");
+                        this.frames = new int[framesArray.size()];
+                        int maxFrame = 0;
+                        for (int i = 0; i < framesArray.size(); i++) {
+                            this.frames[i] = framesArray.get(i).getAsInt();
+                            if (this.frames[i] > maxFrame) {
+                                maxFrame = this.frames[i];
+                            }
+                        }
+                        this.frameCount = maxFrame + 1;
+                    } else if (this.totalWidth > 0) {
+                        this.frameCount = Math.max(1, this.totalHeight / this.totalWidth);
+                    }
+                }
+            } finally {
+                stream.close();
+            }
+        } catch (Exception ignored) {
+            // No .mcmeta found or parse error — not animated
+        }
+    }
+
+    /**
+     * Programmatically enable animation on this ImageData.
+     * Used when animation settings come from data class fields rather than .mcmeta files.
+     */
+    public void setAnimation(int frameCount, int frametime) {
+        if (frameCount > 1) {
+            this.animated = true;
+            this.frameCount = Math.max(1, frameCount);
+            this.frametime = Math.max(1, frametime);
+        }
+    }
+
+    public boolean isAnimated() {
+        return this.animated && this.frameCount > 1;
+    }
+
+    public int getFrameCount() {
+        return this.frameCount;
+    }
+
+    public int getFrameTime() {
+        return this.frametime;
+    }
+
+    /**
+     * Returns the pixel height of a single animation frame.
+     * For non-animated textures, returns the total height.
+     */
+    public int getFrameHeight() {
+        if (this.animated && this.frameCount > 1) {
+            return Math.max(1, this.totalHeight / this.frameCount);
+        }
+        return this.gotWidthHeight ? this.totalHeight : -1;
+    }
+
+    /**
+     * Returns the V-coordinate offset (0.0-1.0) for the current animation frame.
+     * Based on system time so all instances of the same texture animate in sync.
+     * Returns 0.0 for non-animated textures.
+     */
+    public float getCurrentFrameVOffset() {
+        if (!this.animated || this.frameCount <= 1 || this.totalHeight <= 0) {
+            return 0f;
+        }
+
+        long millis = Minecraft.getSystemTime();
+        int tick = (int) (millis / 50L);
+        int frameIdx;
+
+        if (this.frames != null && this.frames.length > 0) {
+            frameIdx = (tick / this.frametime) % this.frames.length;
+            frameIdx = this.frames[frameIdx];
+        } else {
+            frameIdx = (tick / this.frametime) % this.frameCount;
+        }
+
+        int frameHeight = this.totalHeight / this.frameCount;
+        return (float) (frameIdx * frameHeight) / (float) this.totalHeight;
     }
 }

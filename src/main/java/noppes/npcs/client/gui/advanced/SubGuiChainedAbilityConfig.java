@@ -5,6 +5,8 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.controllers.data.ChainedAbilityScript;
 import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
 import kamkeel.npcs.controllers.data.ability.data.AbilityIconData;
 import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
@@ -57,6 +59,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     private static final int BTN_TAB_ENTRIES = 91;
     private static final int BTN_TAB_TARGET = 92;
     private static final int BTN_TAB_EXTRA_BASE = 93;
+    private static final int BTN_SCRIPT = -999;
     private static final int BTN_CLOSE = -1000;
 
     // ── Entries tab: per-entry ID encoding ─────────────────────────────────────
@@ -160,14 +163,43 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         // ── Icon tab ──────────────────────────────────────────────
         AbilityIconData chainIcon = AbilityIconData.fromChainedAbility(chain);
-        fieldDefs.add(FieldDef.stringField("gui.texture", chainIcon::getTexture, chainIcon::setTexture).tab("Icon"));
-        fieldDefs.add(FieldDef.section("ability.icon.section.uv").tab("Icon"));
-        fieldDefs.add(FieldDef.intField("ability.icon.x", chainIcon::getIconX, chainIcon::setIconX).tab("Icon").range(0, 4096));
-        fieldDefs.add(FieldDef.intField("ability.icon.y", chainIcon::getIconY, chainIcon::setIconY).tab("Icon").range(0, 4096));
-        fieldDefs.add(FieldDef.section("gui.size").tab("Icon"));
-        fieldDefs.add(FieldDef.intField("gui.width", chainIcon::getWidth, chainIcon::setWidth).tab("Icon").range(1, 256));
-        fieldDefs.add(FieldDef.intField("gui.height", chainIcon::getHeight, chainIcon::setHeight).tab("Icon").range(1, 256));
+        fieldDefs.add(FieldDef.row(
+            FieldDef.intField("gui.width", chainIcon::getWidth, chainIcon::setWidth).range(1, 256),
+            FieldDef.intField("gui.height", chainIcon::getHeight, chainIcon::setHeight).range(1, 256)
+        ).tab("Icon"));
         fieldDefs.add(FieldDef.floatField("gui.scale", chainIcon::getScale, chainIcon::setScale).tab("Icon").range(0.1f, 10.0f));
+        fieldDefs.add(FieldDef.intField("ability.icon.layers", chainIcon::getLayerCount, chainIcon::setLayerCount)
+            .tab("Icon").range(1, AbilityIconData.MAX_LAYERS));
+        for (int i = 0; i < AbilityIconData.MAX_LAYERS; i++) {
+            final int idx = i;
+            java.util.function.BooleanSupplier layerVisible = () -> chainIcon.getLayerCount() > idx;
+            String sectionLabel = net.minecraft.util.StatCollector.translateToLocal("ability.icon.layer") + " " + (idx + 1);
+            fieldDefs.add(FieldDef.section(sectionLabel).tab("Icon").visibleWhen(layerVisible));
+            fieldDefs.add(FieldDef.stringField("gui.texture",
+                    () -> chainIcon.getLayer(idx).texture,
+                    t -> chainIcon.setLayerTexture(idx, t))
+                .tab("Icon").visibleWhen(layerVisible));
+            fieldDefs.add(FieldDef.row(
+                FieldDef.intField("ability.icon.x",
+                    () -> chainIcon.getLayer(idx).iconX,
+                    x -> chainIcon.setLayerIconX(idx, x)).range(0, 4096),
+                FieldDef.intField("ability.icon.y",
+                    () -> chainIcon.getLayer(idx).iconY,
+                    y -> chainIcon.setLayerIconY(idx, y)).range(0, 4096)
+            ).tab("Icon").visibleWhen(layerVisible));
+            fieldDefs.add(FieldDef.colorSubGui("ability.icon.tint",
+                    () -> chainIcon.getLayer(idx).tintColor,
+                    c -> chainIcon.setLayerTintColor(idx, c))
+                .tab("Icon").visibleWhen(layerVisible));
+        }
+
+        // Animation
+        fieldDefs.add(FieldDef.section("Animation").tab("Icon"));
+        fieldDefs.add(FieldDef.boolField("gui.animated", chainIcon::isAnimated, chainIcon::setAnimated).tab("Icon").hover("gui.animated.hover"));
+        fieldDefs.add(FieldDef.intField("gui.frameCount", chainIcon::getFrameCount, chainIcon::setFrameCount)
+            .tab("Icon").range(1, 256).visibleWhen(chainIcon::isAnimated));
+        fieldDefs.add(FieldDef.intField("gui.frameTime", chainIcon::getFrameTime, chainIcon::setFrameTime)
+            .tab("Icon").range(1, 100).visibleWhen(chainIcon::isAnimated));
 
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)
         if (AbilityController.Instance != null) {
@@ -257,6 +289,9 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         GuiMenuTopButton closeBtn = new GuiMenuTopButton(BTN_CLOSE, guiLeft + xSize - 22, guiTop - 17, "X");
         addTopButton(closeBtn);
+
+        GuiMenuTopButton scriptBtn = new GuiMenuTopButton(BTN_SCRIPT, "script.scripts", closeBtn);
+        addTopButton(scriptBtn);
 
         // Scroll window dimensions
         int swX = guiLeft + 4;
@@ -485,6 +520,10 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         if (id == BTN_TAB_TARGET) {
             activeTab = TAB_TARGET;
             initGui();
+            return;
+        }
+        if (id == BTN_SCRIPT) {
+            GuiScriptInterface.open(parent, new ChainedAbilityScript(chain.getId()));
             return;
         }
         if (id == BTN_CLOSE) {
@@ -853,7 +892,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
     public void onAbilitySaved(Ability ability) {
         if (editingParentAbility) {
             // Persist the global parent ability to the server
-            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+            PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT(false)));
             editingParentAbility = false;
             return;
         }

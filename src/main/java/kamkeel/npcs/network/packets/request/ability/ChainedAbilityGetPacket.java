@@ -61,7 +61,7 @@ public final class ChainedAbilityGetPacket extends AbstractPacket {
         String chainName = ByteBufUtils.readString(in);
         ChainedAbility chain = AbilityController.Instance.getChainedAbility(chainName);
         if (chain != null) {
-            NBTTagCompound compound = chain.writeNBT();
+            NBTTagCompound compound = chain.writeNBT(false);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }
     }

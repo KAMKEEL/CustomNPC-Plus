@@ -337,7 +337,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (Map.Entry<String, Ability> entry : AbilityController.Instance.getCustomAbilities().entrySet()) {
-            NBTTagCompound abilityNBT = entry.getValue().writeNBT();
+            NBTTagCompound abilityNBT = entry.getValue().writeNBT(false);
             abilityNBT.setString("CustomAbilityId", entry.getKey());
             list.appendTag(abilityNBT);
         }
@@ -358,7 +358,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (Map.Entry<String, ChainedAbility> entry : AbilityController.Instance.getChainedAbilities().entrySet()) {
-            NBTTagCompound chainNBT = entry.getValue().writeNBT();
+            NBTTagCompound chainNBT = entry.getValue().writeNBT(false);
             chainNBT.setString("ChainedAbilityId", entry.getKey());
             list.appendTag(chainNBT);
         }

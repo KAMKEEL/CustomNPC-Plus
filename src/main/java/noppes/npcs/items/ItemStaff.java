@@ -91,6 +91,19 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
 
         int chargeTime = 20 + material.getHarvestLevel() * 8;
 
+        // Keep a fully-charged orb alive while the player is still holding
+        if (tick > chargeTime && stack.stackTagCompound != null) {
+            Entity existing = ((WorldServer) player.worldObj)
+                .getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
+            if (existing instanceof EntityAbilityOrb) {
+                EntityAbilityOrb orb = (EntityAbilityOrb) existing;
+                if (orb.isCharging()) {
+                    orb.resetChargeTick();
+                }
+            }
+            return;
+        }
+
         if (tick == chargeTime) {
 
             if (!player.capabilities.isCreativeMode && !hasInfinite(stack)) {

@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
@@ -286,6 +287,31 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         scrollWindow.addLabel(new GuiNpcLabel(70, "display.durabilityShow", x, localY + 5, 0xFFFFFF));
         GuiNpcButtonYesNo durabilityButton = new GuiNpcButtonYesNo(26, x + 120, localY, linkedItem.display.durabilityShow);
         scrollWindow.addButton(durabilityButton);
+        localY += 30;
+
+        // Animation controls
+        scrollWindow.addLabel(new GuiNpcLabel(80, "gui.animated", x, localY + 5, 0xFFFFFF));
+        boolean isAnim = linkedItem.display.animated != null && linkedItem.display.animated;
+        GuiNpcButtonYesNo animBtn = new GuiNpcButtonYesNo(29, x + 120, localY, isAnim);
+        animBtn.setHoverText("gui.animated.hover");
+        scrollWindow.addButton(animBtn);
+        localY += 25;
+
+        if (isAnim) {
+            scrollWindow.addLabel(new GuiNpcLabel(81, "gui.frameCount", x, localY + 5, 0xFFFFFF));
+            GuiNpcTextField fcField = new GuiNpcTextField(71, this, x + 120, localY, 60, 20,
+                "" + (linkedItem.display.frameCount != null ? linkedItem.display.frameCount : 1));
+            fcField.setIntegersOnly().setMinMaxDefault(1, 256, 1);
+            scrollWindow.addTextField(fcField);
+            localY += 25;
+
+            scrollWindow.addLabel(new GuiNpcLabel(82, "gui.frameTime", x, localY + 5, 0xFFFFFF));
+            GuiNpcTextField ftField = new GuiNpcTextField(72, this, x + 120, localY, 60, 20,
+                "" + (linkedItem.display.frametime != null ? linkedItem.display.frametime : 2));
+            ftField.setIntegersOnly().setMinMaxDefault(1, 100, 2);
+            scrollWindow.addTextField(ftField);
+            localY += 25;
+        }
 
         scrollWindow.scrollY = 0;
         scrollWindow.maxScrollY = Math.max(localY - scrollWindow.clipHeight, 0);
@@ -381,6 +407,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             linkedItem.isNormalItem = ((GuiNpcButtonYesNo) guibutton).getBoolean();
         } else if (id == 26 && guibutton instanceof GuiNpcButtonYesNo) {
             linkedItem.display.durabilityShow = ((GuiNpcButtonYesNo) guibutton).getBoolean();
+        } else if (id == 29 && guibutton instanceof GuiNpcButtonYesNo) {
+            linkedItem.display.animated = ((GuiNpcButtonYesNo) guibutton).getBoolean();
+            initGui();
         }
     }
 
@@ -429,6 +458,10 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             linkedItem.display.translateY = textField.getFloat();
         } else if (id == 63) {
             linkedItem.display.translateZ = textField.getFloat();
+        } else if (id == 71) {
+            linkedItem.display.frameCount = Math.max(1, textField.getInteger());
+        } else if (id == 72) {
+            linkedItem.display.frametime = Math.max(1, textField.getInteger());
         }
     }
 
@@ -472,7 +505,20 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             int iconWidth = data.getTotalWidth();
             int iconHeight = data.getTotalWidth();
             int width = data.getTotalWidth();
-            int height = data.getTotalWidth();
+            int height = data.getTotalHeight();
+
+            // Animation V offset for preview
+            if (data.isAnimated()) {
+                iconY += (int) (data.getCurrentFrameVOffset() * height);
+                iconHeight = data.getFrameHeight();
+            } else if (linkedItem.display.animated != null && linkedItem.display.animated
+                    && linkedItem.display.frameCount != null && linkedItem.display.frameCount > 1) {
+                iconY += (int) (AnimationHelper.getFrameVOffset(height, linkedItem.display.frameCount, linkedItem.display.frametime) * height);
+                iconHeight = height / linkedItem.display.frameCount;
+            } else {
+                iconHeight = data.getTotalWidth();
+                height = data.getTotalWidth();
+            }
 
             float[] colors = ColorUtil.hexToRGB(linkedItem.display.itemColor);
             GL11.glColor3f(colors[0], colors[1], colors[2]);

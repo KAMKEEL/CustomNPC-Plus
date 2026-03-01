@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11;
  * Inner solid core with outer translucent glow.
  */
 @SideOnly(Side.CLIENT)
-public class RenderEnergySlicer extends RenderEnergyAbility {
+public class RenderEnergySlicer extends RenderEnergy {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {

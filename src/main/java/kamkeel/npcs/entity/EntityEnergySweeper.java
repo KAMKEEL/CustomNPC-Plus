@@ -29,7 +29,7 @@ import java.util.Set;
  * <p>
  * Design: Similar to Beam trail visuals but rotating around origin.
  */
-public class EntityAbilitySweeper extends EntityEnergyAbility {
+public class EntityEnergySweeper extends EntityEnergyAbility {
 
     // Beam properties
     private float beamLength = 10.0f;
@@ -61,18 +61,18 @@ public class EntityAbilitySweeper extends EntityEnergyAbility {
     private transient int ticksSinceDamage = 0;
     private transient Set<Integer> hitThisTick = new HashSet<>();
 
-    public EntityAbilitySweeper(World world) {
+    public EntityEnergySweeper(World world) {
         super(world);
         this.setSize(0.1f, 0.1f);
         this.noClip = true;
     }
 
-    public EntityAbilitySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
-                                float beamLength, float beamWidth, float beamHeight,
-                                EnergyDisplayData displayData,
-                                float sweepSpeed, int numberOfRotations,
-                                float damage, int damageInterval, boolean piercing,
-                                boolean lockOnTarget) {
+    public EntityEnergySweeper(World world, EntityLivingBase owner, EntityLivingBase target,
+                               float beamLength, float beamWidth, float beamHeight,
+                               EnergyDisplayData displayData,
+                               float sweepSpeed, int numberOfRotations,
+                               float damage, int damageInterval, boolean piercing,
+                               boolean lockOnTarget) {
         this(world);
 
         this.ownerEntityId = owner.getEntityId();

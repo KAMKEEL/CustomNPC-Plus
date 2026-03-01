@@ -1,6 +1,7 @@
 package noppes.npcs.controllers;
 
 import noppes.npcs.api.event.IAbilityEvent;
+import noppes.npcs.api.event.IChainEvent;
 import noppes.npcs.api.event.IAnimationEvent;
 import noppes.npcs.api.event.IAuctionEvent;
 import noppes.npcs.api.event.IBlockEvent;
@@ -15,7 +16,6 @@ import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.event.ILinkedItemEvent;
 import noppes.npcs.api.event.INpcEvent;
 import noppes.npcs.api.event.IPartyEvent;
-import noppes.npcs.api.event.IPlayerAbilityEvent;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.event.IProjectileEvent;
 import noppes.npcs.api.event.IQuestEvent;
@@ -41,6 +41,8 @@ import static noppes.npcs.constants.ScriptContext.ITEM;
 import static noppes.npcs.constants.ScriptContext.LINKED_ITEM;
 import static noppes.npcs.constants.ScriptContext.NPC;
 import static noppes.npcs.constants.ScriptContext.PLAYER;
+import static noppes.npcs.constants.ScriptContext.ABILITY;
+import static noppes.npcs.constants.ScriptContext.CHAINED_ABILITY;
 import static noppes.npcs.constants.ScriptContext.RECIPE;
 
 /**
@@ -81,6 +83,7 @@ public class ScriptHookController implements IScriptHookHandler {
         initializeLinkedItemHooks();
         initializeRecipeHooks();
         initializeEffectHooks();
+        initializeAbilityHooks();
         initializeForgeHooks();
     }
 
@@ -124,6 +127,14 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(NPC, ABILITY_TICK, IAbilityEvent.TickEvent.class);
         hook(NPC, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
         hook(NPC, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
+        hook(NPC, ABILITY_TOGGLE, IAbilityEvent.ToggleEvent.class);
+        hook(NPC, ABILITY_TOGGLE_TICK, IAbilityEvent.ToggleUpdateEvent.class);
+
+        // Chain
+        hook(NPC, CHAIN_START, IChainEvent.StartEvent.class);
+        hook(NPC, CHAIN_NEXT, IChainEvent.NextEvent.class);
+        hook(NPC, CHAIN_COMPLETE, IChainEvent.CompleteEvent.class);
+        hook(NPC, CHAIN_INTERRUPT, IChainEvent.InterruptEvent.class);
 
         // Energy Barrier
         hook(NPC, ENERGY_BARRIER_SPAWNED, IEnergyBarrierEvent.SpawnedEvent.class);
@@ -245,12 +256,20 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(PLAYER, ENERGY_BARRIER_DESTROYED, IEnergyBarrierEvent.DestroyedEvent.class);
 
         // Ability
-        hook(PLAYER, ABILITY_START, IPlayerAbilityEvent.StartEvent.class);
-        hook(PLAYER, ABILITY_EXECUTE, IPlayerAbilityEvent.ExecuteEvent.class);
-        hook(PLAYER, ABILITY_HIT, IPlayerAbilityEvent.HitEvent.class);
-        hook(PLAYER, ABILITY_TICK, IPlayerAbilityEvent.TickEvent.class);
-        hook(PLAYER, ABILITY_INTERRUPT, IPlayerAbilityEvent.InterruptEvent.class);
-        hook(PLAYER, ABILITY_COMPLETE, IPlayerAbilityEvent.CompleteEvent.class);
+        hook(PLAYER, ABILITY_START, IAbilityEvent.StartEvent.class);
+        hook(PLAYER, ABILITY_EXECUTE, IAbilityEvent.ExecuteEvent.class);
+        hook(PLAYER, ABILITY_HIT, IAbilityEvent.HitEvent.class);
+        hook(PLAYER, ABILITY_TICK, IAbilityEvent.TickEvent.class);
+        hook(PLAYER, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
+        hook(PLAYER, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
+        hook(PLAYER, ABILITY_TOGGLE, IAbilityEvent.ToggleEvent.class);
+        hook(PLAYER, ABILITY_TOGGLE_TICK, IAbilityEvent.ToggleUpdateEvent.class);
+
+        // Chain
+        hook(PLAYER, CHAIN_START, IChainEvent.StartEvent.class);
+        hook(PLAYER, CHAIN_NEXT, IChainEvent.NextEvent.class);
+        hook(PLAYER, CHAIN_COMPLETE, IChainEvent.CompleteEvent.class);
+        hook(PLAYER, CHAIN_INTERRUPT, IChainEvent.InterruptEvent.class);
 
         // Auction
         hook(PLAYER, AUCTION_CREATE, IAuctionEvent.CreateEvent.class);
@@ -331,6 +350,24 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(EFFECT, ON_EFFECT_ADD, IPlayerEvent.EffectEvent.Added.class);
         hook(EFFECT, ON_EFFECT_TICK, IPlayerEvent.EffectEvent.Ticked.class);
         hook(EFFECT, ON_EFFECT_REMOVE, IPlayerEvent.EffectEvent.Removed.class);
+    }
+
+    private void initializeAbilityHooks() {
+        // Ability context (internal per-ability scripts)
+        hook(ABILITY, ABILITY_START, IAbilityEvent.StartEvent.class);
+        hook(ABILITY, ABILITY_EXECUTE, IAbilityEvent.ExecuteEvent.class);
+        hook(ABILITY, ABILITY_HIT, IAbilityEvent.HitEvent.class);
+        hook(ABILITY, ABILITY_TICK, IAbilityEvent.TickEvent.class);
+        hook(ABILITY, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
+        hook(ABILITY, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
+        hook(ABILITY, ABILITY_TOGGLE, IAbilityEvent.ToggleEvent.class);
+        hook(ABILITY, ABILITY_TOGGLE_TICK, IAbilityEvent.ToggleUpdateEvent.class);
+
+        // Chained ability context (chain-level lifecycle hooks)
+        hook(CHAINED_ABILITY, CHAIN_START, IChainEvent.StartEvent.class);
+        hook(CHAINED_ABILITY, CHAIN_NEXT, IChainEvent.NextEvent.class);
+        hook(CHAINED_ABILITY, CHAIN_COMPLETE, IChainEvent.CompleteEvent.class);
+        hook(CHAINED_ABILITY, CHAIN_INTERRUPT, IChainEvent.InterruptEvent.class);
     }
 
     private void initializeForgeHooks() {

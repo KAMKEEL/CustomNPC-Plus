@@ -137,7 +137,7 @@ public class AbilityPreviewExecutor implements PreviewEntityHandler {
         for (ChainedAbilityEntry entry : chain.getEntries()) {
             Ability resolved = entry.resolve();
             if (resolved != null && AbilityController.Instance != null) {
-                Ability copy = AbilityController.Instance.fromNBT(resolved.writeNBT());
+                Ability copy = AbilityController.Instance.fromNBT(resolved.writeNBT(true));
                 if (copy != null) {
                     chainAbilities.add(copy);
                     chainDelays.add(entry.getDelayTicks());

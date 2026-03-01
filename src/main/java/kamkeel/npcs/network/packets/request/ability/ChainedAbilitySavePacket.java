@@ -73,7 +73,7 @@ public final class ChainedAbilitySavePacket extends AbstractPacket {
         if (chain.getName() != null && !chain.getName().isEmpty()) {
             AbilityController.Instance.saveChainedAbility(chain);
             NoppesUtilServer.sendChainedAbilitiesData((EntityPlayerMP) player);
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, chain.writeNBT());
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, chain.writeNBT(false));
         }
     }
 }

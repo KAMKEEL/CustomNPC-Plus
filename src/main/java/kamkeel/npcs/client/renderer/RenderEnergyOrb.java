@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11;
  * Minecraft-style blocky appearance using Tessellator.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityOrb extends RenderEnergyAbility {
+public class RenderEnergyOrb extends RenderEnergy {
 
     private static final int LIGHTNING_FADE_TICKS = 6;
 

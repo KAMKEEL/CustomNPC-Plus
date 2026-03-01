@@ -17,7 +17,7 @@ import java.util.Map;
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityLaser extends RenderEnergyAbility {
+public class RenderEnergyLaser extends RenderEnergy {
 
     private final Map<Integer, AttachedLightningRenderer.LightningState> tipLightningStates = new HashMap<>();
 

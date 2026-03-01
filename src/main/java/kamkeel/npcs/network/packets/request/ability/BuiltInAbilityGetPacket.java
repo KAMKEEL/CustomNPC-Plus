@@ -62,7 +62,7 @@ public final class BuiltInAbilityGetPacket extends AbstractPacket {
         String name = ByteBufUtils.readString(in);
         Ability ability = AbilityController.Instance.getAbilityByDisplayName(name);
         if (ability != null) {
-            NBTTagCompound compound = ability.writeNBT();
+            NBTTagCompound compound = ability.writeNBT(false);
             compound.setBoolean("BuiltIn", true);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }
