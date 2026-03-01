@@ -610,12 +610,10 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         if (!hasExecutingAbility && !isInChainDelay) return false;
 
-        // Don't allow cancel during DAZED
+        // Only allow cancel during WINDUP phase
         if (hasExecutingAbility) {
             AbilityPhase phase = currentAbility.getPhase();
-            if (phase == AbilityPhase.DAZED) return false;
-            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
-                && phase != AbilityPhase.BURST_DELAY) return false;
+            if (phase != AbilityPhase.WINDUP) return false;
         }
 
         long worldTime = getWorldTime();
