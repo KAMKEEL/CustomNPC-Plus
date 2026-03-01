@@ -96,6 +96,21 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      */
     private static final int CANCEL_WINDOW_TICKS = 10;
 
+    /**
+     * Position tracking for teleport detection during ability execution.
+     * If the player moves more than {@link #TELEPORT_THRESHOLD_SQ} in a single tick,
+     * the ability is interrupted as if the player changed dimensions.
+     */
+    private transient double lastAbilityTickX, lastAbilityTickY, lastAbilityTickZ;
+    private transient boolean trackingAbilityPosition = false;
+
+    /**
+     * Squared distance threshold for teleport detection (48 blocks).
+     * Normal sprint speed is ~5.6 blocks/tick; this threshold is well above
+     * any legitimate per-tick movement including ability-driven dashes.
+     */
+    private static final double TELEPORT_THRESHOLD_SQ = 48.0 * 48.0;
+
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR
     // ═══════════════════════════════════════════════════════════════════
@@ -257,7 +272,30 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         // Tick active toggles (independent of currentAbility)
         tickActiveToggles();
 
-        if (chainDelayRemaining > 0 || (currentAbility != null && currentAbility.isExecuting())) {
+        boolean hasActiveAbility = chainDelayRemaining > 0 || (currentAbility != null && currentAbility.isExecuting());
+
+        if (hasActiveAbility) {
+            // Detect large position jump (teleport) while ability is executing.
+            // Must run BEFORE tickCurrentAbility / applyPositionLock so the raw
+            // teleported position is visible before any lock snaps it back.
+            if (trackingAbilityPosition) {
+                double dx = player.posX - lastAbilityTickX;
+                double dy = player.posY - lastAbilityTickY;
+                double dz = player.posZ - lastAbilityTickZ;
+                if (dx * dx + dy * dy + dz * dz > TELEPORT_THRESHOLD_SQ) {
+                    // Player was teleported — clear ability state (same as dimension change)
+                    trackingAbilityPosition = false;
+                    resetOnTeleport();
+                    return;
+                }
+            }
+
+            // Update tracked position for next tick's comparison
+            lastAbilityTickX = player.posX;
+            lastAbilityTickY = player.posY;
+            lastAbilityTickZ = player.posZ;
+            trackingAbilityPosition = true;
+
             tickCurrentAbility();
 
             // Apply rotation and position locks after ability tick
@@ -267,6 +305,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
             // Sync lock state to client (only sends when flags change)
             syncAbilityStateIfNeeded(player);
         } else {
+            trackingAbilityPosition = false;
+
             // Safety: release orphaned locks if no ability is executing
             if (rotationLocked || positionLocked) {
                 releaseRotationControl();
@@ -696,6 +736,15 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      * Keeps active toggles (dimension change shouldn't reset ongoing effects).
      */
     public void resetOnDimensionChange() {
+        trackingAbilityPosition = false;
+        onEntityReconstructed(true, false);
+    }
+
+    /**
+     * Reset ability state when a large-distance teleport is detected during execution.
+     * Same behavior as dimension change — silent cleanup, clear cooldowns, keep toggles.
+     */
+    public void resetOnTeleport() {
         onEntityReconstructed(true, false);
     }
 
@@ -717,6 +766,8 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
      * The caller must trigger a full ability sync afterwards (e.g. via syncToClient).
      */
     public void resetOnLogin() {
+        trackingAbilityPosition = false;
+
         // Silently clean up any stale executing ability
         if (currentAbility != null && currentAbility.isExecuting()) {
             removeTelegraph(currentAbility);
