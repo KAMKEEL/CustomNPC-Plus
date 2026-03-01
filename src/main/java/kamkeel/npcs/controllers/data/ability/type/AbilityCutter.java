@@ -298,12 +298,6 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
         return entityRelative >= minAngle && entityRelative <= maxAngle;
     }
 
-    private boolean isInArc(double dx, double dz, float casterYaw, float arcWidth) {
-        double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
-        double angleDiff = normalizeAngle(angleToEntity - casterYaw);
-        return Math.abs(angleDiff) <= arcWidth / 2.0;
-    }
-
     private double normalizeAngle(double angle) {
         while (angle > 180) angle -= 360;
         while (angle < -180) angle += 360;

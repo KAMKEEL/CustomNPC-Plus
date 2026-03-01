@@ -10,7 +10,6 @@ import org.lwjgl.opengl.GL11;
 /**
  * Renders the Dome entity as a translucent sphere.
  * Inner layer solid, outer layer translucent glow.
- * Optional skybox texture rendered on the interior surface.
  */
 @SideOnly(Side.CLIENT)
 public class RenderAbilityDome extends RenderEnergyBarrier {
@@ -46,11 +45,6 @@ public class RenderAbilityDome extends RenderEnergyBarrier {
             GL11.glDepthMask(false);
             renderSphere(dome.getOuterColor(), outerAlpha + (dome.getOuterColorAlpha() > 0 ? flashAlpha : 0), radius * outerScale, 8);
         }
-
-        // TODO: Skybox Feature
-        // if (dome.isSkyboxEnabled() && !dome.getSkyboxTexture().isEmpty()) {
-        //     renderSkyboxSphere(dome.getSkyboxTexture(), radius, radius * 0.94f, 32, x, y, z);
-        // }
 
         GL11.glDepthMask(true);
         // Render inner dome (depth write enabled so inner sphere properly occludes)
@@ -114,5 +108,4 @@ public class RenderAbilityDome extends RenderEnergyBarrier {
         tess.draw();
     }
 
-    // TODO: Skybox Feature — renderSkyboxSphere method removed
 }
