@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL11;
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityDisc extends RenderEnergyAbility {
+public class RenderEnergyDisc extends RenderEnergy {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {

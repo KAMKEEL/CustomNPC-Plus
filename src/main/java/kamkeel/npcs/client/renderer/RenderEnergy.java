@@ -20,12 +20,12 @@ import org.lwjgl.opengl.GL12;
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
-public abstract class RenderEnergyAbility extends Render {
+public abstract class RenderEnergy extends Render {
 
     protected static final ResourceLocation WHITE_TEXTURE = new ResourceLocation("customnpcs", "textures/entity/white.png");
     protected static final int HIDE_INITIAL_ACTIVE_TICKS = 1;
 
-    public RenderEnergyAbility() {
+    public RenderEnergy() {
         this.shadowSize = 0.0f;
     }
 

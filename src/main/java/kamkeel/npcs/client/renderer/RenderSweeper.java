@@ -2,7 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.entity.EntityAbilitySweeper;
+import kamkeel.npcs.entity.EntityEnergySweeper;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
@@ -15,11 +15,11 @@ import org.lwjgl.opengl.GL11;
  * Uses similar rendering style to the Beam trail for visual consistency.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilitySweeper extends Render {
+public class RenderSweeper extends Render {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
-        EntityAbilitySweeper sweeper = (EntityAbilitySweeper) entity;
+        EntityEnergySweeper sweeper = (EntityEnergySweeper) entity;
 
         setupRenderState();
 
@@ -114,7 +114,7 @@ public class RenderAbilitySweeper extends Render {
 
     /**
      * Render a beam segment as a 3D rectangular prism with independent width and height.
-     * Uses the same approach as RenderAbilityBeam.renderBeamRectangle.
+     * Uses the same approach as RenderEnergyBeam.renderBeamRectangle.
      */
     private void renderBeamSegment(double x1, double y1, double z1,
                                    double x2, double y2, double z2,

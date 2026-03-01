@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
  * Draws expanding cubic shells with a short fade-out.
  */
 @SideOnly(Side.CLIENT)
-public class RenderEnergyExplosion extends RenderEnergyAbility {
+public class RenderEnergyExplosion extends RenderEnergy {
 
     private static final float MAX_OUTER_ALPHA = 0.85f;
     private static final float MAX_INNER_ALPHA = 1.0f;

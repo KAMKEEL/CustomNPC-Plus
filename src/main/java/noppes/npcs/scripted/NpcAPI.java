@@ -9,11 +9,11 @@ import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
-import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityEnergyDome;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
-import kamkeel.npcs.entity.EntityAbilityPanel;
-import kamkeel.npcs.entity.EntityAbilitySweeper;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityEnergySweeper;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.block.Block;
@@ -456,12 +456,12 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptEnergySlicer<>((EntityEnergySlicer) entity));
                 else if (entity instanceof EntityEnergyProjectile)
                     data = new ScriptEntityData(new ScriptEnergyProjectile((EntityEnergyProjectile) entity));
-                else if (entity instanceof EntityAbilityDome)
-                    data = new ScriptEntityData(new ScriptEnergyDome<>((EntityAbilityDome) entity));
-                else if (entity instanceof EntityAbilityPanel)
-                    data = new ScriptEntityData(new ScriptEnergyPanel<>((EntityAbilityPanel) entity));
-                else if (entity instanceof EntityAbilitySweeper)
-                    data = new ScriptEntityData(new ScriptEnergySweeper<>((EntityAbilitySweeper) entity));
+                else if (entity instanceof EntityEnergyDome)
+                    data = new ScriptEntityData(new ScriptEnergyDome<>((EntityEnergyDome) entity));
+                else if (entity instanceof EntityEnergyPanel)
+                    data = new ScriptEntityData(new ScriptEnergyPanel<>((EntityEnergyPanel) entity));
+                else if (entity instanceof EntityEnergySweeper)
+                    data = new ScriptEntityData(new ScriptEnergySweeper<>((EntityEnergySweeper) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);

@@ -9,8 +9,8 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
-import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -61,7 +61,7 @@ public class AbilityWall extends AbilityBarrier {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         // Place wall between caster and target
         double placeX, placeY, placeZ;
         float yaw;
@@ -97,14 +97,14 @@ public class AbilityWall extends AbilityBarrier {
         placeY += offsetY;
         placeZ += offsetZ;
 
-        EntityAbilityPanel.PanelMode mode = panelData.launching
-            ? EntityAbilityPanel.PanelMode.LAUNCHED
-            : EntityAbilityPanel.PanelMode.PLACED;
+        EntityEnergyPanel.PanelMode mode = panelData.launching
+            ? EntityEnergyPanel.PanelMode.LAUNCHED
+            : EntityEnergyPanel.PanelMode.PLACED;
 
         EnergyPanelData data = panelData.copy();
         data.heightOffset = 0.0f; // Y offset now handled by base class via placeY
 
-        EntityAbilityPanel panel = new EntityAbilityPanel(
+        EntityEnergyPanel panel = new EntityEnergyPanel(
             caster.worldObj, caster,
             placeX, placeY, placeZ, yaw, mode,
             displayData.copy(), lightningData.copy(), barrierData.copy(), data

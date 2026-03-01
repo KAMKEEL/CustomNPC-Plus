@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -27,7 +27,7 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     protected float offsetZ = 0.0f;
 
     // Runtime entity tracking
-    protected transient EntityAbilityBarrier barrierEntity;
+    protected transient EntityEnergyBarrier barrierEntity;
 
     protected AbilityBarrier(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
         super(displayData);
@@ -39,7 +39,7 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     /**
      * Create and spawn the barrier entity during execution.
      */
-    protected abstract EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
+    protected abstract EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
 
     /**
      * Add type-specific GUI field definitions.

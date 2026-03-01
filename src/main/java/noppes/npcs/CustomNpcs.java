@@ -29,15 +29,15 @@ import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.controllers.data.energycharge.EnergyChargeTracker;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
-import kamkeel.npcs.entity.EntityAbilityPanel;
-import kamkeel.npcs.entity.EntityAbilitySweeper;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityEnergySweeper;
 import kamkeel.npcs.entity.EntityAbilityZone;
-import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityEnergyDome;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import kamkeel.npcs.network.PacketHandler;
@@ -298,10 +298,10 @@ public class CustomNpcs {
         registerNewEntity(EntityAbilityDisc.class, "abilitydisc", 64, 1, true);
         registerNewEntity(EntityAbilityLaser.class, "abilitylaser", 64, 1, true);
         registerNewEntity(EntityAbilityBeam.class, "abilitybeam", 160, 1, true);
-        registerNewEntity(EntityAbilitySweeper.class, "abilitysweeper", 64, 3, true);
+        registerNewEntity(EntityEnergySweeper.class, "abilitysweeper", 64, 3, true);
         registerNewEntity(EntityAbilityZone.class, "abilityzone", 64, 3, true);
-        registerNewEntity(EntityAbilityDome.class, "energydome", 64, 3, true);
-        registerNewEntity(EntityAbilityPanel.class, "energypanel", 64, 3, true);
+        registerNewEntity(EntityEnergyDome.class, "energydome", 64, 3, true);
+        registerNewEntity(EntityEnergyPanel.class, "energypanel", 64, 3, true);
         registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 1, true);
 
         new RecipeController();
@@ -433,7 +433,7 @@ public class CustomNpcs {
         }
 
         EntityEnergyProjectile.clearAllProjectiles();
-        EntityAbilityBarrier.clearAllBarriers();
+        EntityEnergyBarrier.clearAllBarriers();
         EnergyChargeTracker.Instance.clear();
 
         if (FMLCommonHandler.instance().getSide().isClient())

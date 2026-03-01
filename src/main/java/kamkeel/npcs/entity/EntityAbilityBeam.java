@@ -699,7 +699,7 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     // ==================== REFLECTION ====================
 
     @Override
-    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+    protected boolean reflectFromBarrier(EntityEnergyBarrier barrier, float reflectStrengthPct) {
         boolean reflected = super.reflectFromBarrier(barrier, reflectStrengthPct);
         if (reflected) {
             // Switch to FREE_TRAIL: detach from caster (tail-less), trail fades out.

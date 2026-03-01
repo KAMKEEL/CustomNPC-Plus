@@ -419,8 +419,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     private boolean checkLaserBarrierCollision() {
         if (currentLength <= 0) return false;
 
-        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(worldObj);
-        for (EntityAbilityBarrier barrier : barriers) {
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
             if (barrier.isDead || barrier.isCharging()) continue;
             if (barrier.getOwnerEntityId() == this.ownerEntityId) continue;
 
@@ -433,17 +433,17 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
                 }
             }
 
-            if (barrier instanceof EntityAbilityDome) {
-                EntityAbilityDome dome = (EntityAbilityDome) barrier;
+            if (barrier instanceof EntityEnergyDome) {
+                EntityEnergyDome dome = (EntityEnergyDome) barrier;
                 float intersectDist = getLineSphereIntersection(dome);
                 if (intersectDist >= 0) {
                     float damage = getModifiedDamage();
-                    EntityAbilityBarrier.ProjectileHitOutcome hitOutcome = dome.onProjectileHitResolved(this, damage);
-                    if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+                    EntityEnergyBarrier.ProjectileHitOutcome hitOutcome = dome.onProjectileHitResolved(this, damage);
+                    if (hitOutcome == null || hitOutcome.result == EntityEnergyBarrier.ProjectileHitResult.PASS) {
                         continue;
                     }
 
-                    if (hitOutcome.result != EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
+                    if (hitOutcome.result != EntityEnergyBarrier.ProjectileHitResult.BROKEN) {
                         currentLength = Math.max(0.0f, intersectDist);
                         endX = startX + dirX * currentLength;
                         endY = startY + dirY * currentLength;
@@ -469,12 +469,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
                 if (incoming) {
                     float damage = getModifiedDamage();
-                    EntityAbilityBarrier.ProjectileHitOutcome hitOutcome = barrier.onProjectileHitResolved(this, damage);
-                    if (hitOutcome == null || hitOutcome.result == EntityAbilityBarrier.ProjectileHitResult.PASS) {
+                    EntityEnergyBarrier.ProjectileHitOutcome hitOutcome = barrier.onProjectileHitResolved(this, damage);
+                    if (hitOutcome == null || hitOutcome.result == EntityEnergyBarrier.ProjectileHitResult.PASS) {
                         continue;
                     }
 
-                    if (hitOutcome.result != EntityAbilityBarrier.ProjectileHitResult.BROKEN) {
+                    if (hitOutcome.result != EntityEnergyBarrier.ProjectileHitResult.BROKEN) {
                         endX = startX + dirX * currentLength;
                         endY = startY + dirY * currentLength;
                         endZ = startZ + dirZ * currentLength;
@@ -491,7 +491,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     }
 
     @Override
-    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+    protected boolean reflectFromBarrier(EntityEnergyBarrier barrier, float reflectStrengthPct) {
         if (barrier == null) {
             return false;
         }
@@ -602,7 +602,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
      * Returns the distance along the laser direction to the first entry point,
      * or -1 if no intersection from outside.
      */
-    private float getLineSphereIntersection(EntityAbilityDome dome) {
+    private float getLineSphereIntersection(EntityEnergyDome dome) {
         double cx = dome.posX;
         double cy = dome.posY;
         double cz = dome.posZ;

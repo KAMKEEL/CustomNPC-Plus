@@ -10,8 +10,8 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
-import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -55,7 +55,7 @@ public class AbilityShield extends AbilityBarrier {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         EnergyPanelData panelData = new EnergyPanelData(shieldWidth, shieldHeight, offsetY);
         panelData.offsetX = offsetX;
         panelData.offsetZ = offsetZ;
@@ -66,10 +66,10 @@ public class AbilityShield extends AbilityBarrier {
         double spawnY = caster.posY + (caster.height * 0.5f);
         double spawnZ = caster.posZ + (Math.cos(yawRad) * frontDist) + offsetZ;
 
-        EntityAbilityPanel panel = new EntityAbilityPanel(
+        EntityEnergyPanel panel = new EntityEnergyPanel(
             caster.worldObj, caster,
             spawnX, spawnY, spawnZ, caster.rotationYaw,
-            EntityAbilityPanel.PanelMode.HELD,
+            EntityEnergyPanel.PanelMode.HELD,
             displayData.copy(), lightningData.copy(), barrierData.copy(), panelData
         );
         panel.setSourceAbility(this);

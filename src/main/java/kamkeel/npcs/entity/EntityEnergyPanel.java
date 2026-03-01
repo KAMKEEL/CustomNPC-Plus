@@ -21,9 +21,9 @@ import java.util.List;
 /**
  * Energy Panel entity - a flat rectangular barrier used by Wall and Shield abilities.
  * Supports three modes: PLACED (stationary), HELD (tracks caster), LAUNCHED (moves forward).
- * Extends EntityAbilityBarrier for shared barrier logic.
+ * Extends EntityEnergyBarrier for shared barrier logic.
  */
-public class EntityAbilityPanel extends EntityAbilityBarrier {
+public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     public enum PanelMode {
         PLACED,     // Stationary wall
@@ -41,15 +41,15 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
     protected float targetPanelWidth;
     protected float targetPanelHeight;
 
-    public EntityAbilityPanel(World world) {
+    public EntityEnergyPanel(World world) {
         super(world);
         this.setSize(0.5f, 0.5f);
     }
 
-    public EntityAbilityPanel(World world, EntityLivingBase owner, double x, double y, double z,
-                              float yaw, PanelMode mode,
-                              EnergyDisplayData display, EnergyLightningData lightning,
-                              EnergyBarrierData barrier, EnergyPanelData panel) {
+    public EntityEnergyPanel(World world, EntityLivingBase owner, double x, double y, double z,
+                             float yaw, PanelMode mode,
+                             EnergyDisplayData display, EnergyLightningData lightning,
+                             EnergyBarrierData barrier, EnergyPanelData panel) {
         this(world);
         this.setPosition(x, y + panel.heightOffset, z);
         this.ownerEntityId = owner.getEntityId();

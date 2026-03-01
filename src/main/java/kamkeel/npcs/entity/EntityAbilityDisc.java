@@ -409,7 +409,7 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     // ==================== REFLECTION ====================
 
     @Override
-    protected boolean reflectFromBarrier(EntityAbilityBarrier barrier, float reflectStrengthPct) {
+    protected boolean reflectFromBarrier(EntityEnergyBarrier barrier, float reflectStrengthPct) {
         boolean reflected = super.reflectFromBarrier(barrier, reflectStrengthPct);
         if (reflected) {
             // Disable boomerang on reflected discs — the original owner is no longer
