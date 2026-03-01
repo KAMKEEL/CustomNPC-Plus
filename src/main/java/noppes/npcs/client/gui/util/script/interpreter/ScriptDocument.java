@@ -4616,6 +4616,17 @@ public class ScriptDocument {
         return significantDigits > maxDigits;
     }
 
+    private TypeInfo narrowIntLiteral(String literalText) {
+        TypeInfo expectedType = ExpressionTypeResolver.CURRENT_EXPECTED_TYPE;
+        if (expectedType != null) {
+            TypeInfo narrowed = TypeChecker.narrowLiteralToExpectedType(literalText, expectedType);
+            if (narrowed != null) {
+                return narrowed;
+            }
+        }
+        return TypeInfo.fromPrimitive("int");
+    }
+
     /**
      * Comprehensive expression type resolver that handles:
      * - Literals (strings, numbers, booleans, null)
@@ -4692,9 +4703,17 @@ public class ScriptDocument {
         if (expr.matches("-?\\d+[lL]")) {
             return TypeInfo.fromPrimitive("long");
         }
+        // Hex integer literals: 0x7F, -0x80, 0X1A
+        if (expr.matches("[-+]?0[xX][0-9a-fA-F][0-9a-fA-F_]*")) {
+            return narrowIntLiteral(expr);
+        }
+        // Binary integer literals: 0b1010, -0b1100, 0B1111
+        if (expr.matches("[-+]?0[bB][01][01_]*")) {
+            return narrowIntLiteral(expr);
+        }
         // Int: plain integers without suffix
-        if (expr.matches("-?\\d+")) {
-            return TypeInfo.fromPrimitive("int");
+        if (expr.matches("[-+]?\\d[\\d_]*")) {
+            return narrowIntLiteral(expr);
         }
         
         // "this" keyword
@@ -5459,8 +5478,16 @@ public class ScriptDocument {
         if (expr.matches("-?\\d+[lL]")) {
             return TypeInfo.fromPrimitive("long");
         }
-        if (expr.matches("-?\\d+")) {
-            return TypeInfo.fromPrimitive("int");
+        // Hex integer literals: 0x7F, -0x80, 0X1A
+        if (expr.matches("[-+]?0[xX][0-9a-fA-F][0-9a-fA-F_]*")) {
+            return narrowIntLiteral(expr);
+        }
+        // Binary integer literals: 0b1010, -0b1100, 0B1111
+        if (expr.matches("[-+]?0[bB][01][01_]*")) {
+            return narrowIntLiteral(expr);
+        }
+        if (expr.matches("[-+]?\\d[\\d_]*")) {
+            return narrowIntLiteral(expr);
         }
         
         // "this" keyword

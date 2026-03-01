@@ -75,7 +75,14 @@ public class ExpressionTypeResolver {
     private TypeInfo resolveNodeType(ExpressionNode node) {
         if (node == null) return null;
         
-        if (node instanceof ExpressionNode.IntLiteralNode) return TypeInfo.fromPrimitive("int");
+        if (node instanceof ExpressionNode.IntLiteralNode) {
+            if (CURRENT_EXPECTED_TYPE != null) {
+                TypeInfo narrowed = TypeChecker.narrowLiteralToExpectedType(
+                        ((ExpressionNode.IntLiteralNode) node).getValue(), CURRENT_EXPECTED_TYPE);
+                if (narrowed != null) return narrowed;
+            }
+            return TypeInfo.fromPrimitive("int");
+        }
         if (node instanceof ExpressionNode.LongLiteralNode) return TypeInfo.fromPrimitive("long");
         if (node instanceof ExpressionNode.FloatLiteralNode) return TypeInfo.fromPrimitive("float");
         if (node instanceof ExpressionNode.DoubleLiteralNode) return TypeInfo.fromPrimitive("double");
@@ -132,6 +139,14 @@ public class ExpressionTypeResolver {
         
         if (node instanceof ExpressionNode.UnaryOpNode) {
             ExpressionNode.UnaryOpNode un = (ExpressionNode.UnaryOpNode) node;
+            // Special case: negation of an IntLiteralNode can narrow to byte/short
+            if (un.getOperator() == OperatorType.UNARY_MINUS
+                    && un.getOperand() instanceof ExpressionNode.IntLiteralNode
+                    && CURRENT_EXPECTED_TYPE != null) {
+                String negatedText = "-" + ((ExpressionNode.IntLiteralNode) un.getOperand()).getValue();
+                TypeInfo narrowed = TypeChecker.narrowLiteralToExpectedType(negatedText, CURRENT_EXPECTED_TYPE);
+                if (narrowed != null) return narrowed;
+            }
             TypeInfo operandType = resolveNodeType(un.getOperand());
             return TypeRules.resolveUnaryOperatorType(un.getOperator(), operandType);
         }

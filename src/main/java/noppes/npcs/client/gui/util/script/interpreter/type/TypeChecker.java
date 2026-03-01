@@ -332,6 +332,136 @@ public final class TypeChecker {
         return null;
     }
 
+    /**
+     * Attempt to narrow an integer literal to byte, short, or char when the
+     * expected type requires it. The expression resolver normally infers integer
+     * literals as {@code int}; this helper allows callers to re-type a literal
+     * when {@code ExpressionTypeResolver.CURRENT_EXPECTED_TYPE} is set (e.g.
+     * method-argument second pass or assignment RHS).
+     *
+     * <p>Supported literal formats:</p>
+     * <ul>
+     *   <li>Decimal: {@code 42}, {@code -128}, {@code +127}</li>
+     *   <li>Hexadecimal: {@code 0xFF}, {@code 0XAB}</li>
+     *   <li>Binary: {@code 0b1010}, {@code 0B1111_0000}</li>
+     *   <li>Underscores as digit separators: {@code 1_000}</li>
+     *   <li>Optional trailing {@code l}/{@code L} suffix (stripped before parsing)</li>
+     * </ul>
+     *
+     * <p>Range checks:</p>
+     * <ul>
+     *   <li>byte: [-128 .. 127]</li>
+     *   <li>short: [-32768 .. 32767]</li>
+     *   <li>char: [0 .. 65535]</li>
+     * </ul>
+     *
+     * @param literalText  the raw text of the integer literal (e.g. {@code "0xFF"})
+     * @param expectedType the target type at the call/assignment site
+     * @return a {@link TypeInfo} for the narrowed primitive type, or {@code null}
+     *         if the expected type is not byte/short/char, the literal is not a
+     *         valid integer, or the value falls outside the target range
+     */
+    public static TypeInfo narrowLiteralToExpectedType(String literalText, TypeInfo expectedType) {
+        if (literalText == null || literalText.isEmpty() || expectedType == null) {
+            return null;
+        }
+
+        // Determine the narrowing target from the expected type
+        String expectedSimple = expectedType.getSimpleName();
+        if (expectedSimple == null) {
+            return null;
+        }
+        String unboxed = getUnboxedName(expectedSimple);
+        if (!"byte".equals(unboxed) && !"short".equals(unboxed) && !"char".equals(unboxed)) {
+            return null; // Only narrow to byte, short, or char
+        }
+
+        // Parse the literal value
+        Long value = parseIntegerLiteral(literalText);
+        if (value == null) {
+            return null;
+        }
+
+        // Range check for the target type
+        long v = value;
+        switch (unboxed) {
+            case "byte":
+                if (v < -128 || v > 127) return null;
+                break;
+            case "short":
+                if (v < -32768 || v > 32767) return null;
+                break;
+            case "char":
+                if (v < 0 || v > 65535) return null;
+                break;
+            default:
+                return null;
+        }
+
+        return TypeInfo.fromPrimitive(unboxed);
+    }
+
+    /**
+     * Parse an integer literal string into a {@code Long} value.
+     * Supports decimal, hexadecimal (0x/0X), and binary (0b/0B) formats,
+     * optional leading sign (+/-), underscores as digit separators,
+     * and an optional trailing l/L suffix.
+     *
+     * @param text the raw literal text
+     * @return the parsed value, or {@code null} on parse failure
+     */
+    private static Long parseIntegerLiteral(String text) {
+        String s = text.trim();
+        if (s.isEmpty()) {
+            return null;
+        }
+
+        // Determine sign
+        boolean negative = false;
+        if (s.charAt(0) == '-') {
+            negative = true;
+            s = s.substring(1);
+        } else if (s.charAt(0) == '+') {
+            s = s.substring(1);
+        }
+
+        if (s.isEmpty()) {
+            return null;
+        }
+
+        // Strip optional trailing l/L suffix
+        if (s.charAt(s.length() - 1) == 'l' || s.charAt(s.length() - 1) == 'L') {
+            s = s.substring(0, s.length() - 1);
+        }
+
+        if (s.isEmpty()) {
+            return null;
+        }
+
+        // Remove underscores (Java digit separators)
+        s = s.replace("_", "");
+        if (s.isEmpty()) {
+            return null;
+        }
+
+        try {
+            long value;
+            if (s.length() > 2 && s.charAt(0) == '0' && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) {
+                // Hexadecimal
+                value = Long.parseUnsignedLong(s.substring(2), 16);
+            } else if (s.length() > 2 && s.charAt(0) == '0' && (s.charAt(1) == 'b' || s.charAt(1) == 'B')) {
+                // Binary
+                value = Long.parseUnsignedLong(s.substring(2), 2);
+            } else {
+                // Decimal
+                value = Long.parseLong(s);
+            }
+            return negative ? -value : value;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     public static String[] getJavaKeywords() {
         String[] keywords = {
                 "if", "else", "for", "while", "do", "switch", "case", "break", "continue",
