@@ -214,6 +214,56 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
     }
 
     @Override
+    public double[] getSurfaceNormal(double hitX, double hitY, double hitZ,
+                                      double velX, double velY, double velZ) {
+        double nx = hitX - this.posX;
+        double ny = hitY - this.posY;
+        double nz = hitZ - this.posZ;
+        double lenSq = nx * nx + ny * ny + nz * nz;
+        if (lenSq > 1.0e-8) {
+            double invLen = 1.0 / Math.sqrt(lenSq);
+            return new double[]{nx * invLen, ny * invLen, nz * invLen};
+        }
+        // Fallback: use negative velocity direction
+        double vLenSq = velX * velX + velY * velY + velZ * velZ;
+        if (vLenSq > 1.0e-8) {
+            double invVLen = 1.0 / Math.sqrt(vLenSq);
+            return new double[]{-velX * invVLen, -velY * invVLen, -velZ * invVLen};
+        }
+        return new double[]{0.0, 1.0, 0.0};
+    }
+
+    @Override
+    public double[] getOutsideSurfacePoint(double px, double py, double pz,
+                                            double velX, double velY, double velZ,
+                                            float bias) {
+        double nx = px - this.posX;
+        double ny = py - this.posY;
+        double nz = pz - this.posZ;
+        double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+        if (len < 1.0e-5) {
+            double vLen = Math.sqrt(velX * velX + velY * velY + velZ * velZ);
+            if (vLen > 1.0e-5) {
+                nx = -velX / vLen;
+                ny = -velY / vLen;
+                nz = -velZ / vLen;
+            } else {
+                nx = 0.0; ny = 1.0; nz = 0.0;
+            }
+            len = 1.0;
+        }
+
+        double invLen = 1.0 / len;
+        double target = domeRadius + bias;
+        return new double[]{
+            this.posX + nx * invLen * target,
+            this.posY + ny * invLen * target,
+            this.posZ + nz * invLen * target
+        };
+    }
+
+    @Override
     public float getMaxExtent() {
         return domeRadius;
     }

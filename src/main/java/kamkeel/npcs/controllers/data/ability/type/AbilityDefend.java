@@ -41,6 +41,10 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
     protected transient float lastDamageTaken;
     protected transient Animation pendingDefendAnimation;
     protected transient int defendAnimEndTick = -1;
+    /** Prevents double-counting hits when multiple damage paths call onDefend for the same hit in a single tick. */
+    protected transient long lastDefendTick = -1;
+    /** Defers signalCompletion to the next tick so all damage paths for the last hit still see isDefending()=true. */
+    protected transient boolean pendingCompletion;
 
     // ═══════════════════════════════════════════════════════════════════
     // CONSTRUCTOR DEFAULTS
@@ -69,7 +73,7 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
 
     @Override
     public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-        if (tick >= durationTicks) {
+        if (pendingCompletion || tick >= durationTicks) {
             signalCompletion();
         }
     }
@@ -83,6 +87,8 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
         lastDamageTaken = 0.0f;
         pendingDefendAnimation = null;
         defendAnimEndTick = -1;
+        lastDefendTick = -1;
+        pendingCompletion = false;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -99,30 +105,47 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
      * @return The modified damage to apply (unchanged if not physical melee)
      */
     public final float onDefend(EntityLivingBase attacker, DamageSource source, float amount) {
-        if (!isDefending())
+        if (!isDefending()) {
             return amount;
-        if (attacker == null || source == null)
+        }
+        if (attacker == null || source == null) {
             return amount;
-
-        // Only react to physical melee damage
-        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion() || source.isProjectile())
-            return amount;
-
-        lastAttacker = attacker;
-        lastDamageTaken = amount;
-        hitCount++;
-
-        float result = performDefend(attacker, amount);
-
-        // Queue defend reaction animation (played on next tick by AbstractDataAbilities)
-        pendingDefendAnimation = getDefendAnimation();
-
-        // Auto-complete after max hits
-        if (maxHitAmount > 0 && hitCount >= maxHitAmount) {
-            signalCompletion();
         }
 
-        return result;
+        // Only react to physical melee damage
+        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion() || source.isProjectile()) {
+            return amount;
+        }
+
+        // Deduplicate per tick: when multiple damage paths (e.g. vanilla + DBC) call onDefend
+        // for the same hit, only count it once for hitCount / signalCompletion / animation.
+        long currentTick = (caster != null && caster.worldObj != null)
+            ? caster.worldObj.getTotalWorldTime() : -1;
+        boolean firstCallThisTick = (currentTick < 0 || currentTick != lastDefendTick);
+
+        // If max hits reached on a previous tick and this is a NEW hit, reject it
+        if (pendingCompletion && firstCallThisTick) {
+            return amount;
+        }
+
+        if (firstCallThisTick) {
+            lastDefendTick = currentTick;
+            lastAttacker = attacker;
+            lastDamageTaken = amount;
+            hitCount++;
+
+            // Queue defend reaction animation (played on next tick by AbstractDataAbilities)
+            pendingDefendAnimation = getDefendAnimation();
+
+            // Defer completion to next tick so all damage paths in this tick
+            // still see isDefending()=true and apply guard reduction.
+            if (maxHitAmount > 0 && hitCount >= maxHitAmount) {
+                pendingCompletion = true;
+            }
+        }
+
+        // Always calculate the correct reduction for the caller's damage amount
+        return performDefend(attacker, amount);
     }
 
     /**

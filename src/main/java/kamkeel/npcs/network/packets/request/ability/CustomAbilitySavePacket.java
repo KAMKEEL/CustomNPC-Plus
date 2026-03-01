@@ -66,6 +66,7 @@ public final class CustomAbilitySavePacket extends AbstractPacket {
             return;
 
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
+        if (compound == null) return;
         Ability ability = AbilityController.Instance.fromNBT(compound);
         if (ability != null) {
             AbilityController.Instance.saveCustomAbility(ability);

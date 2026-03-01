@@ -395,7 +395,8 @@ public class AbilityController implements IAbilityHandler {
 
         // Clean up online players' unlocked ability lists
         if (PlayerDataController.Instance != null) {
-            for (PlayerData pData : PlayerDataController.Instance.getAllPlayerData()) {
+            List<PlayerData> snapshot = new ArrayList<>(PlayerDataController.Instance.getAllPlayerData());
+            for (PlayerData pData : snapshot) {
                 if (pData.abilityData != null) {
                     boolean changed = false;
                     if (uuid != null && !uuid.isEmpty() && pData.abilityData.hasUnlockedAbility(uuid)) {
@@ -437,7 +438,7 @@ public class AbilityController implements IAbilityHandler {
         return customAbilities;
     }
 
-    public void setCustomAbilities(Map<String, Ability> synced) {
+    public synchronized void setCustomAbilities(Map<String, Ability> synced) {
         customAbilities.clear();
         customAbilitiesById.clear();
         customAbilities.putAll(synced);
@@ -613,7 +614,8 @@ public class AbilityController implements IAbilityHandler {
 
         // Clean up online players' unlocked ability lists (chain keys use "chain:" prefix)
         if (PlayerDataController.Instance != null) {
-            for (PlayerData pData : PlayerDataController.Instance.getAllPlayerData()) {
+            List<PlayerData> snapshot = new ArrayList<>(PlayerDataController.Instance.getAllPlayerData());
+            for (PlayerData pData : snapshot) {
                 if (pData.abilityData != null) {
                     String chainKey = "chain:" + (uuid != null && !uuid.isEmpty() ? uuid : name);
                     if (pData.abilityData.hasUnlockedAbility(chainKey)) {
@@ -722,7 +724,7 @@ public class AbilityController implements IAbilityHandler {
         return chainedAbilityRevision;
     }
 
-    public void setChainedAbilities(Map<String, ChainedAbility> synced) {
+    public synchronized void setChainedAbilities(Map<String, ChainedAbility> synced) {
         chainedAbilities.clear();
         chainedAbilitiesById.clear();
         chainedAbilities.putAll(synced);

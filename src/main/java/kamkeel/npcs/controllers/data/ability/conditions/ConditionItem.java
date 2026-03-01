@@ -174,7 +174,7 @@ public class ConditionItem extends AbilityCondition {
         itemName = nbt.getString("itemName");
         usageType = UsageType.fromOrdinal(nbt.getInteger("usageType"));
         armorSlot = ArmorSlot.fromOrdinal(nbt.getInteger("armorSlot"));
-        requiredCount = nbt.getInteger("requiredCount");
+        requiredCount = Math.max(1, nbt.getInteger("requiredCount"));
     }
 
 

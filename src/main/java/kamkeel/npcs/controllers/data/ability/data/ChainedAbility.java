@@ -289,9 +289,15 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      */
     public boolean checkConditions(EntityLivingBase caster, EntityLivingBase target) {
         for (AbilityCondition c : conditions) {
-            if (!c.check(caster, target)) {
-                return false;
+            if (!c.getUserType().allowsNpc()) continue;
+            Boolean extendedCondition = AbilityController.Instance.fireCheckConditions(c, caster, target);
+
+            if (extendedCondition != null) {
+                if (!extendedCondition) return false;
+                continue;
             }
+
+            if (!c.check(caster, target)) return false;
         }
         return true;
     }
@@ -301,10 +307,16 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      */
     public boolean checkConditionsForPlayer(EntityLivingBase caster) {
         for (AbilityCondition c : conditions) {
+            if (!c.getUserType().allowsPlayer()) continue;
             if (c.requiresTarget()) continue;
-            if (!c.check(caster, null)) {
-                return false;
+            Boolean extendedCondition = AbilityController.Instance.fireCheckConditionsForPlayer(c, caster);
+
+            if (extendedCondition != null) {
+                if (!extendedCondition) return false;
+                continue;
             }
+
+            if (!c.check(caster, null)) return false;
         }
         return true;
     }

@@ -1,6 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import kamkeel.npcs.entity.EntityEnergyProjectile;
+import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
@@ -11,7 +12,9 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.entity.data.IHitboxData;
 import noppes.npcs.api.entity.data.IModelData;
+import noppes.npcs.api.entity.data.ITintData;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.data.IAnimationData;
@@ -419,6 +422,62 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
     public ILines getKillLines() {
         return this.npc.advanced.killLines;
+    }
+
+    public boolean getOrderedLines() {
+        return npc.advanced.orderedLines;
+    }
+
+    public void setOrderedLines(boolean ordered) {
+        npc.advanced.orderedLines = ordered;
+    }
+
+    public String getIdleSound() {
+        return npc.advanced.idleSound;
+    }
+
+    public void setIdleSound(String sound) {
+        npc.advanced.idleSound = sound;
+    }
+
+    public String getAngrySound() {
+        return npc.advanced.angrySound;
+    }
+
+    public void setAngrySound(String sound) {
+        npc.advanced.angrySound = sound;
+    }
+
+    public String getHurtSound() {
+        return npc.advanced.hurtSound;
+    }
+
+    public void setHurtSound(String sound) {
+        npc.advanced.hurtSound = sound;
+    }
+
+    public String getDeathSound() {
+        return npc.advanced.deathSound;
+    }
+
+    public void setDeathSound(String sound) {
+        npc.advanced.deathSound = sound;
+    }
+
+    public String getStepSound() {
+        return npc.advanced.stepSound;
+    }
+
+    public void setStepSound(String sound) {
+        npc.advanced.stepSound = sound;
+    }
+
+    public boolean getDisablePitch() {
+        return npc.advanced.disablePitch;
+    }
+
+    public void setDisablePitch(boolean disablePitch) {
+        npc.advanced.disablePitch = disablePitch;
     }
 
     /**
@@ -848,6 +907,171 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
         return npc.ais.tacticalRadius;
     }
 
+    public int getTacticalChance() {
+        return npc.ais.tacticalChance;
+    }
+
+    public void setTacticalChance(int chance) {
+        npc.ais.tacticalChance = chance;
+    }
+
+    public boolean getCanSwim() {
+        return npc.ais.canSwim;
+    }
+
+    public void setCanSwim(boolean canSwim) {
+        npc.ais.canSwim = canSwim;
+    }
+
+    public boolean getReactsToFire() {
+        return npc.ais.reactsToFire;
+    }
+
+    public void setReactsToFire(boolean reactsToFire) {
+        npc.ais.reactsToFire = reactsToFire;
+    }
+
+    public boolean getAvoidsWater() {
+        return npc.ais.avoidsWater;
+    }
+
+    public void setAvoidsWater(boolean avoidsWater) {
+        npc.ais.avoidsWater = avoidsWater;
+    }
+
+    public boolean getAvoidsSun() {
+        return npc.ais.avoidsSun;
+    }
+
+    public void setAvoidsSun(boolean avoidsSun) {
+        npc.ais.avoidsSun = avoidsSun;
+    }
+
+    public boolean getDirectLOS() {
+        return npc.ais.directLOS;
+    }
+
+    public void setDirectLOS(boolean directLOS) {
+        npc.ais.directLOS = directLOS;
+    }
+
+    public int getLeapType() {
+        return npc.ais.leapType;
+    }
+
+    public void setLeapType(int leapType) {
+        npc.ais.leapType = leapType;
+    }
+
+    public boolean getCanSprint() {
+        return npc.ais.canSprint;
+    }
+
+    public void setCanSprint(boolean canSprint) {
+        npc.ais.canSprint = canSprint;
+    }
+
+    public boolean getStopAndInteract() {
+        return npc.ais.stopAndInteract;
+    }
+
+    public void setStopAndInteract(boolean stopAndInteract) {
+        npc.ais.stopAndInteract = stopAndInteract;
+    }
+
+    public int getDoorInteract() {
+        return npc.ais.doorInteract;
+    }
+
+    public void setDoorInteract(int doorInteract) {
+        npc.ais.doorInteract = doorInteract;
+    }
+
+    public int getWalkingRange() {
+        return npc.ais.walkingRange;
+    }
+
+    public void setWalkingRange(int range) {
+        npc.ais.walkingRange = range;
+    }
+
+    public boolean getNpcInteracting() {
+        return npc.ais.npcInteracting;
+    }
+
+    public void setNpcInteracting(boolean npcInteracting) {
+        npc.ais.npcInteracting = npcInteracting;
+    }
+
+    public boolean getMovingPause() {
+        return npc.ais.movingPause;
+    }
+
+    public void setMovingPause(boolean movingPause) {
+        npc.ais.movingPause = movingPause;
+    }
+
+    public int getMovingPattern() {
+        return npc.ais.movingPattern;
+    }
+
+    public void setMovingPattern(int pattern) {
+        if (pattern < 0) pattern = 0;
+        if (pattern > 1) pattern = 1;
+        npc.ais.movingPattern = pattern;
+    }
+
+    public int getCanFireIndirect() {
+        return npc.ais.canFireIndirect;
+    }
+
+    public void setCanFireIndirect(int canFireIndirect) {
+        npc.ais.canFireIndirect = canFireIndirect;
+    }
+
+    public int getUseRangeMelee() {
+        return npc.ais.useRangeMelee;
+    }
+
+    public void setUseRangeMelee(int useRangeMelee) {
+        npc.ais.useRangeMelee = useRangeMelee;
+    }
+
+    public int getDistanceToMelee() {
+        return npc.ais.distanceToMelee;
+    }
+
+    public void setDistanceToMelee(int distance) {
+        npc.ais.distanceToMelee = distance;
+    }
+
+    public float getBodyOffsetX() {
+        return npc.ais.bodyOffsetX;
+    }
+
+    public void setBodyOffsetX(float offsetX) {
+        npc.ais.bodyOffsetX = offsetX;
+        npc.script.clientNeedsUpdate = true;
+    }
+
+    public float getBodyOffsetY() {
+        return npc.ais.bodyOffsetY;
+    }
+
+    public void setBodyOffsetY(float offsetY) {
+        npc.ais.bodyOffsetY = offsetY;
+        npc.script.clientNeedsUpdate = true;
+    }
+
+    public float getBodyOffsetZ() {
+        return npc.ais.bodyOffsetZ;
+    }
+
+    public void setBodyOffsetZ(float offsetZ) {
+        npc.ais.bodyOffsetZ = offsetZ;
+        npc.script.clientNeedsUpdate = true;
+    }
+
     public void setIgnoreCobweb(boolean ignore) {
         npc.stats.ignoreCobweb = ignore;
     }
@@ -1152,6 +1376,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
         return npc instanceof EntityCustomNpc ? ((EntityCustomNpc) npc).modelData : null;
     }
 
+    public IHitboxData getHitboxData() {
+        return npc.display.hitboxData;
+    }
+
+    public ITintData getTintData() {
+        return npc.display.tintData;
+    }
+
     public void setHeadScale(float x, float y, float z) {
         if (npc instanceof EntityCustomNpc) {
             ((EntityCustomNpc) this.npc).modelData.modelScale.head.scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
@@ -1248,6 +1480,66 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
      */
     public double getKnockbackResistance() {
         return npc.stats.resistances.knockback;
+    }
+
+    public boolean getDamageDisabled() {
+        return npc.stats.resistances.disableDamage;
+    }
+
+    public void setDamageDisabled(boolean disabled) {
+        npc.stats.resistances.disableDamage = disabled;
+    }
+
+    public boolean getNoFallDamage() {
+        return npc.stats.noFallDamage;
+    }
+
+    public void setNoFallDamage(boolean noFallDamage) {
+        npc.stats.noFallDamage = noFallDamage;
+    }
+
+    public boolean getImmuneToFire() {
+        return npc.stats.immuneToFire;
+    }
+
+    public void setImmuneToFire(boolean immuneToFire) {
+        npc.stats.immuneToFire = immuneToFire;
+        npc.setImmuneToFire(immuneToFire);
+    }
+
+    public boolean getPotionImmune() {
+        return npc.stats.potionImmune;
+    }
+
+    public void setPotionImmune(boolean potionImmune) {
+        npc.stats.potionImmune = potionImmune;
+    }
+
+    public boolean getBurnInSun() {
+        return npc.stats.burnInSun;
+    }
+
+    public void setBurnInSun(boolean burnInSun) {
+        npc.stats.burnInSun = burnInSun;
+    }
+
+    public boolean getAttackInvisible() {
+        return npc.stats.attackInvisible;
+    }
+
+    public void setAttackInvisible(boolean attackInvisible) {
+        npc.stats.attackInvisible = attackInvisible;
+    }
+
+    public int getCreatureType() {
+        return npc.stats.creatureType.ordinal();
+    }
+
+    public void setCreatureType(int type) {
+        EnumCreatureAttribute[] values = EnumCreatureAttribute.values();
+        if (type >= 0 && type < values.length) {
+            npc.stats.creatureType = values[type];
+        }
     }
 
     /**
@@ -1430,6 +1722,15 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
             return "";
 
         return npc.display.skinOverlayData.overlayList.get(0).getTexture();
+    }
+
+    public String getGlowTexture() {
+        return npc.display.glowTexture;
+    }
+
+    public void setGlowTexture(String texture) {
+        npc.display.glowTexture = texture;
+        npc.script.clientNeedsUpdate = true;
     }
 
     public IOverlayHandler getOverlays() {

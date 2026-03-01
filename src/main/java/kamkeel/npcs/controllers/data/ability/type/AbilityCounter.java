@@ -9,10 +9,7 @@ import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
-import noppes.npcs.NpcDamageSource;
 import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.api.ability.type.IAbilityCounter;
 import noppes.npcs.client.gui.builder.FieldDef;
 
@@ -66,27 +63,24 @@ public class AbilityCounter extends AbilityDefend implements IAbilityCounter {
 
     @Override
     protected float performDefend(EntityLivingBase attacker, float amount) {
+        // For PERCENT mode with DBC, use the full DBC-calculated damage, not vanilla base
+        float incomingDamage = amount;
+        if (DBCAddon.IsAvailable() && attacker instanceof EntityPlayer) {
+            incomingDamage = DBCAddon.instance.getAttackerDBCDamage(amount);
+        }
+
         // Calculate counter damage
         float damage;
         if (counterType == CounterType.FLAT) {
             damage = counterValue;
         } else {
-            damage = amount * (counterValue / 100.0f);
+            damage = incomingDamage * (counterValue / 100.0f);
         }
 
-        // Hit back
-        if (caster != null && attacker.isEntityAlive()) {
-            if (caster instanceof EntityNPCInterface && DBCAddon.instance.canDBCAttack((EntityNPCInterface) caster, damage, attacker)) {
-                // NPC with DBC: dummy hit for events/knockback, then apply DBC damage with NPC's stats
-                attacker.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), 0.001f);
-                DBCAddon.instance.doDBCDamage((EntityNPCInterface) caster, damage, attacker);
-            } else {
-                // Player or non-DBC NPC: normal damage
-                DamageSource counterSource = caster instanceof EntityPlayer
-                    ? DamageSource.causePlayerDamage((EntityPlayer) caster)
-                    : DamageSource.causeMobDamage(caster);
-                attacker.attackEntityFrom(counterSource, damage);
-            }
+        // Counter-attack through the standard ability damage pipeline.
+        // DBCAbilityExtender handles DBC stat routing (ignore flags, scaling, etc.) automatically.
+        if (caster != null && attacker.isEntityAlive() && damage > 0) {
+            applyAbilityDamage(caster, attacker, damage, 0);
         }
 
         return 0;

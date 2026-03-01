@@ -363,6 +363,63 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
     }
 
     @Override
+    public double[] getSurfaceNormal(double hitX, double hitY, double hitZ,
+                                      double velX, double velY, double velZ) {
+        float yawRad = (float) Math.toRadians(panelYaw);
+        double nx = -Math.sin(yawRad);
+        double nz = Math.cos(yawRad);
+
+        // Determine which side the hit is on
+        double relX = hitX - this.posX;
+        double relZ = hitZ - this.posZ;
+        double side = relX * nx + relZ * nz;
+        if (Math.abs(side) < 1.0e-5) {
+            // Near the plane: use incoming velocity to determine side
+            side = velX * nx + velZ * nz;
+        }
+        if (side < 0.0) {
+            nx = -nx;
+            nz = -nz;
+        }
+
+        return new double[]{nx, 0.0, nz};
+    }
+
+    @Override
+    public double[] getOutsideSurfacePoint(double px, double py, double pz,
+                                            double velX, double velY, double velZ,
+                                            float bias) {
+        float yawRad = (float) Math.toRadians(panelYaw);
+        double normalX = -Math.sin(yawRad);
+        double normalZ = Math.cos(yawRad);
+
+        double relX = px - this.posX;
+        double relZ = pz - this.posZ;
+        double signedDist = relX * normalX + relZ * normalZ;
+
+        double halfThickness = 0.25;
+        double side;
+        if (Math.abs(signedDist) > 0.035) {
+            side = signedDist >= 0 ? 1.0 : -1.0;
+        } else {
+            double vDot = velX * normalX + velZ * normalZ;
+            if (Math.abs(vDot) > 1.0e-5) {
+                side = vDot < 0 ? 1.0 : -1.0;
+            } else {
+                side = signedDist >= 0 ? 1.0 : -1.0;
+            }
+        }
+
+        double targetDist = side * (halfThickness + bias);
+        double delta = targetDist - signedDist;
+        return new double[]{
+            px + normalX * delta,
+            py,
+            pz + normalZ * delta
+        };
+    }
+
+    @Override
     public float getMaxExtent() {
         return Math.max(panelData.panelWidth, panelData.panelHeight) * 0.5f + 1.0f;
     }

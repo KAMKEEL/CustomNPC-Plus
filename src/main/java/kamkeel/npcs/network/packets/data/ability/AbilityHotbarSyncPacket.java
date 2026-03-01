@@ -81,6 +81,10 @@ public final class AbilityHotbarSyncPacket extends AbstractPacket {
 
                 if (valid && data.abilityData != null) {
                     valid = data.abilityData.hasUnlockedAbility(slot.abilityKey);
+                    // For chains, also check with resolved key in case key format differs
+                    if (!valid && slot.isChainKey()) {
+                        valid = data.abilityData.hasUnlockedAbility("chain:" + slot.getResolveKey());
+                    }
                 }
 
                 if (!valid) {

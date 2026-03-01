@@ -1531,7 +1531,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         dazedAnimationId = nbt.hasKey("dazedAnimationId") ? nbt.getInteger("dazedAnimationId") : -1;
         windUpAnimationName = nbt.getString("windUpAnimationName");
         activeAnimationName = nbt.getString("activeAnimationName");
-        dazedAnimationName = nbt.getString("dazedAnimationName");
+        dazedAnimationName = nbt.hasKey("dazedAnimationName") ? nbt.getString("dazedAnimationName") : "Ability_Generic_Dazed";
         showTelegraph = nbt.hasKey("showTelegraph") ? nbt.getBoolean("showTelegraph") : true;
         try {
             telegraphType = TelegraphType.valueOf(nbt.getString("telegraphType"));
@@ -2356,7 +2356,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // SHIT FROM THE ASS
+    // WINDUP DURATION CALCULATION
     // ═══════════════════════════════════════════════════════════════════
 
     private int calculateWindupFromAnimation() {

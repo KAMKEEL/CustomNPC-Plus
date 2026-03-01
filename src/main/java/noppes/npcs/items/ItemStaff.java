@@ -84,12 +84,26 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
     public void onUsingTick(ItemStack stack, EntityPlayer player, int count) {
         int tick = getMaxItemUseDuration(stack) - count;
 
+        int chargeTime = 20 + material.getHarvestLevel() * 8;
+
         if (player.worldObj.isRemote) {
             spawnParticle(stack, player);
+
+            // Reset charge tick on client to prevent client-side timeout
+            // (resetChargeTick is not synced via DataWatcher, so the client's
+            // chargeTick would keep climbing and falsely trigger CHARGE_TIMEOUT_GRACE)
+            if (tick > chargeTime && stack.stackTagCompound != null) {
+                Entity existing = player.worldObj
+                    .getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
+                if (existing instanceof EntityAbilityOrb) {
+                    EntityAbilityOrb orb = (EntityAbilityOrb) existing;
+                    if (orb.isCharging()) {
+                        orb.resetChargeTick();
+                    }
+                }
+            }
             return;
         }
-
-        int chargeTime = 20 + material.getHarvestLevel() * 8;
 
         // Keep a fully-charged orb alive while the player is still holding
         if (tick > chargeTime && stack.stackTagCompound != null) {

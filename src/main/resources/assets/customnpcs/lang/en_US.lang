@@ -1866,6 +1866,8 @@ ability.anchorPoint=Anchor Point
 ability.anchor.offsetX=Offset X
 ability.anchor.offsetY=Offset Y
 ability.anchor.offsetZ=Offset Z
+ability.launchFromAnchor=Launch From Anchor
+ability.hover.launchFromAnchor=When enabled, the projectile launches from its anchor position instead of snapping to the default eye/look-vector position.
 ability.vertical=Vertical
 ability.rotationSpeed=Rotation Speed
 

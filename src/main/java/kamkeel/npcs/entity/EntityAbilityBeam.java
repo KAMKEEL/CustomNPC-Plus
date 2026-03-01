@@ -809,7 +809,6 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         nbt.setDouble("HeadOffsetY", headOffsetY);
         nbt.setDouble("HeadOffsetZ", headOffsetZ);
         nbt.setBoolean("AttachedToOwner", isAnchoredMode());
-        nbt.setBoolean("RenderTailOrb", isAnchoredMode());
         nbt.setString("BeamMode", beamMode.name());
         writeChargingNBT(nbt);
         nbt.setFloat("ChargeOffsetDistance", chargeOffsetDistance);

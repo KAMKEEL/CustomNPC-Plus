@@ -308,6 +308,7 @@ public class AbilityAction {
         }
 
         // Inline ability
+        if (AbilityController.Instance == null) return null;
         Ability ability = AbilityController.Instance.fromNBT(nbt);
         if (ability == null) return null;
         return inline(ability);

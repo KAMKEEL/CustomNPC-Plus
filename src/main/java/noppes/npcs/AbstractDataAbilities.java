@@ -1113,11 +1113,8 @@ public abstract class AbstractDataAbilities {
 
         if (hasExecutingAbility) {
             AbilityPhase phase = currentAbility.getPhase();
-            // Cannot cancel during DAZED (already interrupted)
-            if (phase == AbilityPhase.DAZED) return;
-            // Only allow cancel during active phases
-            if (phase != AbilityPhase.WINDUP && phase != AbilityPhase.ACTIVE
-                && phase != AbilityPhase.BURST_DELAY) return;
+            // Only allow cancel during WINDUP phase
+            if (phase != AbilityPhase.WINDUP) return;
 
             // Remove telegraph
             removeTelegraph(currentAbility);

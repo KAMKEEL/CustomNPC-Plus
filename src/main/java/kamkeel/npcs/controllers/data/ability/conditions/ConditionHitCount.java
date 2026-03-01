@@ -76,7 +76,7 @@ public class ConditionHitCount extends AbilityCondition {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        requiredHits = nbt.getInteger("requiredHits");
-        withinTicks = nbt.getInteger("withinTicks");
+        requiredHits = Math.max(0, nbt.getInteger("requiredHits"));
+        withinTicks = Math.max(0, nbt.getInteger("withinTicks"));
     }
 }

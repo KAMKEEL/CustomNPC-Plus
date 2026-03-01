@@ -1,9 +1,10 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.entity.data.IHitboxData;
 import noppes.npcs.config.ConfigMain;
 
-public class HitboxData {
+public class HitboxData implements IHitboxData {
 
     private float widthScale = 1f;
     private float heightScale = 1f;

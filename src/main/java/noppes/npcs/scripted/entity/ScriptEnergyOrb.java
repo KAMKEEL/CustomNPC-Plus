@@ -49,5 +49,6 @@ public class ScriptEnergyOrb<T extends EntityAbilityOrb> extends ScriptEnergyPro
             entity.motionY = (dy / len) * entity.getSpeed();
             entity.motionZ = (dz / len) * entity.getSpeed();
         }
+        entity.startMoving(null);
     }
 }
