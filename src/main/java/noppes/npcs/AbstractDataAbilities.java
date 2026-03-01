@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDefend;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
@@ -315,6 +316,19 @@ public abstract class AbstractDataAbilities {
      */
     public Ability getCurrentAbility() {
         return currentAbility;
+    }
+
+    /**
+     * Get the active defend ability if one is currently defending.
+     */
+    public AbilityDefend getActiveDefend() {
+        if (currentAbility instanceof AbilityDefend) {
+            AbilityDefend defend = (AbilityDefend) currentAbility;
+            if (defend.isDefending()) {
+                return defend;
+            }
+        }
+        return null;
     }
 
     /**

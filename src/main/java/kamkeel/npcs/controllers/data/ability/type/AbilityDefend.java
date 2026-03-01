@@ -103,7 +103,18 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
         if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion() || source.isProjectile())
             return amount;
 
-        return performDefend(amount);
+        lastAttacker = attacker;
+        lastDamageTaken = amount;
+        hitCount++;
+
+        float result = performDefend(amount);
+
+        // Auto-complete after max hits
+        if (maxHitAmount > 0 && hitCount >= maxHitAmount) {
+            signalCompletion();
+        }
+
+        return result;
     }
 
     /**

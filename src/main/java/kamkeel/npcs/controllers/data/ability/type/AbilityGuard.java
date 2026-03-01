@@ -39,7 +39,7 @@ public class AbilityGuard extends AbilityDefend implements IAbilityGuard {
 
     @Override
     protected float performDefend(float amount) {
-        return amount;
+        return Math.max(0, amount * (1.0f - damageReduction));
     }
 
     // ═══════════════════════════════════════════════════════════════════

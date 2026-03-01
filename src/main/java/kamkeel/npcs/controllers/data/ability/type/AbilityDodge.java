@@ -45,7 +45,7 @@ public class AbilityDodge extends AbilityDefend implements IAbilityDodge {
 
     @Override
     protected float performDefend(float amount) {
-        return amount;
+        return 0;
     }
 
     // ═══════════════════════════════════════════════════════════════════

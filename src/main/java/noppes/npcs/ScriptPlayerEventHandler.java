@@ -10,10 +10,15 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCounter;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDefend;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDodge;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
@@ -624,6 +629,22 @@ public class ScriptPlayerEventHandler {
                 noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.source.getEntity()), event.entityLiving, attackAmount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
             }
+
+            // Dodge & Counter: cancel attack entirely
+            if (!cancel && event.entityLiving instanceof EntityPlayerMP) {
+                PlayerData pData = PlayerData.get((EntityPlayer) event.entityLiving);
+                if (pData != null && pData.abilityData != null) {
+                    AbilityDefend defend = pData.abilityData.getActiveDefend();
+                    if (defend instanceof AbilityDodge || defend instanceof AbilityCounter) {
+                        EntityLivingBase attacker = source instanceof EntityLivingBase ? (EntityLivingBase) source : null;
+                        float result = defend.onDefend(attacker, event.source, event.ammount);
+                        if (result != event.ammount) {
+                            cancel = true;
+                        }
+                    }
+                }
+            }
+
             event.setCanceled(cancel);
         }
     }
@@ -653,6 +674,13 @@ public class ScriptPlayerEventHandler {
                         event.ammount = 0;
                         cancel = true;
                     } else {
+                        // Guard: reduce damage
+                        AbilityDefend defend = pData.abilityData.getActiveDefend();
+                        if (defend instanceof AbilityGuard) {
+                            EntityLivingBase attacker = source instanceof EntityLivingBase ? (EntityLivingBase) source : null;
+                            event.ammount = defend.onDefend(attacker, event.source, event.ammount);
+                        }
+
                         float modified = pData.abilityData.onDamage(event.source, event.ammount);
                         event.ammount = modified;
                     }

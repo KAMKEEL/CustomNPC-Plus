@@ -5,7 +5,9 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
 import noppes.npcs.api.ability.type.IAbilityCounter;
 import noppes.npcs.client.gui.builder.FieldDef;
 
@@ -53,17 +55,39 @@ public class AbilityCounter extends AbilityDefend implements IAbilityCounter {
         }
     }
 
+    private transient boolean counterTriggered;
+
     // ═══════════════════════════════════════════════════════════════════
     // DEFEND HOOKS
     // ═══════════════════════════════════════════════════════════════════
 
     @Override
     protected void onDefendTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (counterTriggered && lastAttacker != null && lastAttacker.isEntityAlive()) {
+            counterTriggered = false;
+
+            // Calculate counter damage
+            float damage;
+            if (counterType == CounterType.FLAT) {
+                damage = counterValue;
+            } else {
+                damage = lastDamageTaken * (counterValue / 100.0f);
+            }
+
+            // Hit back
+            DamageSource counterSource = caster instanceof EntityPlayer
+                ? DamageSource.causePlayerDamage((EntityPlayer) caster)
+                : DamageSource.causeMobDamage(caster);
+            lastAttacker.attackEntityFrom(counterSource, damage);
+
+            signalCompletion();
+        }
     }
 
     @Override
     protected float performDefend(float amount) {
-        return amount;
+        counterTriggered = true;
+        return 0;
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -6,6 +6,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCounter;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDefend;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDodge;
 import kamkeel.npcs.addon.client.DBCClient;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
@@ -708,6 +711,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         //  Resistances
         i = stats.resistances.applyResistance(damagesource, i);
+
+        // Defend abilities
+        AbilityDefend defend = this.abilities != null ? this.abilities.getActiveDefend() : null;
+        if (defend != null) {
+            // Dodge & Counter: cancel attack entirely
+            if (defend instanceof AbilityDodge || defend instanceof AbilityCounter) {
+                float result = defend.onDefend(attackingEntity, damagesource, i);
+                if (result != i) {
+                    return false;
+                }
+            } else {
+                // Guard: reduce damage
+                i = defend.onDefend(attackingEntity, damagesource, i);
+            }
+        }
 
         NpcEvent.DamagedEvent event = new NpcEvent.DamagedEvent(this.wrappedNPC, attackingEntity, i, damagesource);
         if (EventHooks.onNPCDamaged(this, event) || isKilled())
