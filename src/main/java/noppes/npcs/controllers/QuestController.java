@@ -80,7 +80,9 @@ public class QuestController implements IQuestHandler {
                         ite.remove();
                     } else {
                         quests.put(id, quest);
-                        if (quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared) {
+                        if (quest.profileOptions.enableOptions
+                                && (quest.profileOptions.completeControl == EnumProfileSync.Shared
+                                    || quest.profileOptions.cooldownControl == EnumProfileSync.Shared)) {
                             sharedQuests.put(id, quest);
                         }
                     }
@@ -225,7 +227,9 @@ public class QuestController implements IQuestHandler {
         category.quests.put(quest.id, quest);
 
         sharedQuests.remove(quest.id);
-        if (quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared) {
+        if (quest.profileOptions.enableOptions
+                && (quest.profileOptions.completeControl == EnumProfileSync.Shared
+                    || quest.profileOptions.cooldownControl == EnumProfileSync.Shared)) {
             sharedQuests.put(quest.id, quest);
         }
 

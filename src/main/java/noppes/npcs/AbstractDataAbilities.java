@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDefend;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
@@ -11,6 +12,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.scripted.event.AbilityEvent;
 import noppes.npcs.controllers.data.Animation;
 
 import java.util.ArrayList;
@@ -124,28 +126,53 @@ public abstract class AbstractDataAbilities {
      */
     protected abstract long getWorldTime();
 
-    // -- Event Firing --
+    // -- Event Firing (unified via EventHooks) --
 
-    /**
-     * Fire tick event. Implementation differs between NPC (NpcAPI) and Player (ScriptController).
-     */
-    protected abstract void fireTickEvent(Ability ability, EntityLivingBase target);
+    protected void fireTickEvent(Ability ability, EntityLivingBase target) {
+        EventHooks.onAbilityTick(ability, getEntity(), target, ability.getPhase().ordinal(), ability.getCurrentTick());
+    }
 
-    /**
-     * Fire execute event. Returns true if cancelled.
-     */
-    protected abstract boolean fireExecuteEvent(Ability ability, EntityLivingBase target);
+    protected boolean fireExecuteEvent(Ability ability, EntityLivingBase target) {
+        return EventHooks.onAbilityExecute(ability, getEntity(), target);
+    }
 
-    /**
-     * Fire complete event.
-     */
-    protected abstract void fireCompleteEvent(Ability ability, EntityLivingBase target);
+    protected void fireCompleteEvent(Ability ability, EntityLivingBase target) {
+        EventHooks.onAbilityComplete(ability, getEntity(), target);
+    }
 
-    /**
-     * Fire interrupt event.
-     */
-    protected abstract void fireInterruptEvent(Ability ability, EntityLivingBase target,
-                                               DamageSource source, float damage);
+    protected void fireInterruptEvent(Ability ability, EntityLivingBase target,
+                                       DamageSource source, float damage) {
+        EventHooks.onAbilityInterrupt(ability, getEntity(), target, source, damage);
+    }
+
+    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
+        return EventHooks.onAbilityToggle(ability, getEntity(), oldState, newState);
+    }
+
+    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
+        AbilityEvent.ToggleUpdateEvent event = new AbilityEvent.ToggleUpdateEvent(getEntity(), ability, tick, state);
+        EventHooks.onAbilityToggleUpdate(ability, event);
+        return event.isEnabled();
+    }
+
+    // -- Chain Events (unified via EventHooks) --
+
+    protected void fireChainStartEvent(ChainedAbility chain, int entryIndex, EntityLivingBase target) {
+        EventHooks.onChainStart(chain, getEntity(), entryIndex, target);
+    }
+
+    protected void fireChainNextEvent(ChainedAbility chain, int entryIndex, EntityLivingBase target) {
+        EventHooks.onChainNext(chain, getEntity(), entryIndex, target);
+    }
+
+    protected void fireChainCompleteEvent(ChainedAbility chain, int entryIndex, EntityLivingBase target) {
+        EventHooks.onChainComplete(chain, getEntity(), entryIndex, target);
+    }
+
+    protected void fireChainInterruptEvent(ChainedAbility chain, int entryIndex, EntityLivingBase target,
+                                            DamageSource source, float damage) {
+        EventHooks.onChainInterrupt(chain, getEntity(), entryIndex, target, source, damage);
+    }
 
     // -- Telegraph --
 
@@ -292,6 +319,19 @@ public abstract class AbstractDataAbilities {
     }
 
     /**
+     * Get the active defend ability if one is currently defending.
+     */
+    public AbilityDefend getActiveDefend() {
+        if (currentAbility instanceof AbilityDefend) {
+            AbilityDefend defend = (AbilityDefend) currentAbility;
+            if (defend.isDefending()) {
+                return defend;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Check if a chained ability is currently executing.
      */
     public boolean isExecutingChain() {
@@ -391,8 +431,7 @@ public abstract class AbstractDataAbilities {
 
         AbilityToggleEntry entry = new AbilityToggleEntry(ability, state);
         activeToggles.put(key, entry);
-        ability.onToggleOn(getEntity());
-        ability.onToggleStateChanged(getEntity(), 0, state);
+        ability.onToggle(getEntity(), 0, state);
         onToggleStateChanged(key, true, state);
         return true;
     }
@@ -404,7 +443,7 @@ public abstract class AbstractDataAbilities {
         if (fireToggleEvent(ability, oldState, newState)) return oldState;
 
         entry.setState(newState);
-        ability.onToggleStateChanged(getEntity(), oldState, newState);
+        ability.onToggle(getEntity(), oldState, newState);
         onToggleStateChanged(key, true, newState);
         return newState;
     }
@@ -417,8 +456,7 @@ public abstract class AbstractDataAbilities {
         if (fireToggleEvent(entry.getAbility(), oldState, 0)) return;
 
         activeToggles.remove(key);
-        entry.getAbility().onToggleOff(getEntity());
-        entry.getAbility().onToggleStateChanged(getEntity(), oldState, 0);
+        entry.getAbility().onToggle(getEntity(), oldState, 0);
         onToggleStateChanged(key, false, 0);
     }
 
@@ -460,8 +498,7 @@ public abstract class AbstractDataAbilities {
                 AbilityToggleEntry entry = activeToggles.remove(key);
                 if (entry != null) {
                     int oldState = entry.getState();
-                    entry.getAbility().onToggleOff(entity);
-                    entry.getAbility().onToggleStateChanged(entity, oldState, 0);
+                    entry.getAbility().onToggle(entity, oldState, 0);
                     onToggleStateChanged(key, false, 0);
                 }
             }
@@ -474,41 +511,23 @@ public abstract class AbstractDataAbilities {
     protected void onToggleStateChanged(String key, boolean active, int state) {
     }
 
-    /**
-     * Fire a toggle event before state change.
-     * @param oldState Previous state (0 = off)
-     * @param newState Target state (0 = off)
-     * @return true if the event was canceled
-     */
-    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
-        return false;
-    }
-
-    /**
-     * Fire a toggle update event every 10 ticks.
-     * @return true if the toggle should remain active, false to force-deactivate
-     */
-    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
-        return true;
-    }
 
     /**
      * Clear all active toggles (e.g., on death/reset).
-     * Calls onToggleOff and onToggleStateChanged for each active toggle.
+     * Calls onToggle for each active toggle to signal deactivation.
      */
     protected void clearActiveToggles() {
         if (activeToggles.isEmpty()) return;
         EntityLivingBase entity = getEntity();
         for (Map.Entry<String, AbilityToggleEntry> mapEntry : activeToggles.entrySet()) {
             AbilityToggleEntry entry = mapEntry.getValue();
-            entry.getAbility().onToggleOff(entity);
-            entry.getAbility().onToggleStateChanged(entity, entry.getState(), 0);
+            entry.getAbility().onToggle(entity, entry.getState(), 0);
         }
         activeToggles.clear();
     }
 
     /**
-     * Add a toggle entry directly without calling onToggleOn.
+     * Add a toggle entry directly without calling onToggle.
      * Used for client-side sync and NBT restoration.
      * @param key   The ability key
      * @param state The toggle state (0 = remove, 1+ = set at state)
@@ -747,6 +766,7 @@ public abstract class AbstractDataAbilities {
                     }
                 }
                 if (startChainEntry(chainTarget)) {
+                    fireChainNextEvent(currentChain, chainEntryIndex, chainTarget);
                     launchConsecutiveConcurrentEntries(chainTarget);
                 }
             }
@@ -848,6 +868,24 @@ public abstract class AbstractDataAbilities {
                 }
 
                 currentAbility.onActiveTick(entity, target, currentAbility.getCurrentTick());
+
+                // Play pending defend reaction animation + sound (counter strike, dodge roll, etc.)
+                if (currentAbility instanceof AbilityDefend) {
+                    AbilityDefend defend = (AbilityDefend) currentAbility;
+                    Animation defendAnim = defend.consumeDefendAnimation();
+                    if (defendAnim != null) {
+                        playAbilityAnimation(defendAnim);
+                        playAbilitySound(currentAbility.getActiveSound());
+                        defend.scheduleReturnToActive(currentAbility.getCurrentTick(), defendAnim);
+                    }
+                    // Return to active animation after defend animation finishes (Counter → guard stance)
+                    if (defend.shouldReturnToActiveAnimation(currentAbility.getCurrentTick())) {
+                        Animation activeAnim = currentAbility.getActiveAnimation();
+                        if (activeAnim != null) {
+                            playAbilityAnimation(activeAnim);
+                        }
+                    }
+                }
 
                 // Check if ability completed during onActiveTick
                 if (currentAbility.getPhase() == AbilityPhase.IDLE) {
@@ -1036,10 +1074,11 @@ public abstract class AbstractDataAbilities {
             releaseRotationControl();
             releaseLockedPosition();
 
-            // If chain was active, roll chain cooldown and clear chain state
+            // If chain was active, fire interrupt event, roll cooldown and clear chain state
             if (currentChain != null) {
                 rollChainCooldown(currentChain);
                 interruptCooldownRolled = true;
+                fireChainInterruptEvent(currentChain, chainEntryIndex, getTarget(), source, damage);
                 currentChain = null;
                 chainEntryIndex = -1;
                 chainDelayRemaining = -1;
@@ -1116,6 +1155,25 @@ public abstract class AbstractDataAbilities {
         onAbilityComplete();
     }
 
+    /**
+     * Cleanly complete the currently executing ability.
+     * Unlike cancel/interrupt, this triggers the normal completion path
+     * (fires abilityComplete event, rolls cooldown, advances chains).
+     * Only works during the ACTIVE phase.
+     */
+    public void completeCurrentAbility() {
+        if (currentAbility == null || !currentAbility.isExecuting()) return;
+        if (currentAbility.getPhase() != AbilityPhase.ACTIVE) return;
+
+        // Signal completion on the ability (handles cleanup, detach/freeOnCast, burst logic)
+        if (!currentAbility.signalCompletion()) return;
+
+        // If signalCompletion moved to IDLE, handle the clean completion path
+        if (currentAbility.getPhase() == AbilityPhase.IDLE) {
+            handleAbilityCompletion(getTarget());
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // CHAINED ABILITY EXECUTION
     // ═══════════════════════════════════════════════════════════════════
@@ -1137,6 +1195,7 @@ public abstract class AbstractDataAbilities {
         // AFTER semantics: no delay before first entry (delay applies after each entry completes)
         boolean started = startChainEntry(target);
         if (started) {
+            fireChainStartEvent(currentChain, 0, target);
             launchConsecutiveConcurrentEntries(target);
         }
         return started;
@@ -1253,7 +1312,7 @@ public abstract class AbstractDataAbilities {
             chainEntryIndex++;
 
             // Deep copy the ability so it has its own state
-            Ability concurrentCopy = AbilityController.Instance.fromNBT(resolved.writeNBT());
+            Ability concurrentCopy = AbilityController.Instance.fromNBT(resolved.writeNBT(true));
             if (concurrentCopy == null) continue;
 
             ConcurrentSlot slot = new ConcurrentSlot(concurrentCopy);
@@ -1279,6 +1338,7 @@ public abstract class AbstractDataAbilities {
     protected void completeChain() {
         if (currentChain != null) {
             rollChainCooldown(currentChain);
+            fireChainCompleteEvent(currentChain, chainEntryIndex, getTarget());
         }
         currentChain = null;
         chainEntryIndex = -1;

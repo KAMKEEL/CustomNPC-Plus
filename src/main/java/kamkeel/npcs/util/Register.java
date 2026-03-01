@@ -93,7 +93,7 @@ public class Register<T> {
 
         public void register() {
             for (Map.Entry<String, Supplier<Ability>> entry : entries.entrySet()) {
-                AbilityController.Instance.registerType(entry.getKey(), entry.getValue());
+                AbilityController.Instance.registerType(entry.getValue());
                 if (!typeOnly.contains(entry.getKey())) {
                     AbilityController.Instance.registerAbility(uniqueNames.get(entry.getKey()), entry.getValue().get());
                 }

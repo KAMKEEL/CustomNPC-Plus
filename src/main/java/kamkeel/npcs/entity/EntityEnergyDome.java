@@ -22,29 +22,32 @@ import java.util.List;
  * Energy Dome entity - a spherical barrier that blocks incoming energy projectiles.
  * Centered on the caster's position at time of casting.
  * Only blocks incoming attacks (not outgoing from allies inside).
- * Extends EntityAbilityBarrier for shared barrier logic.
+ * Extends EntityEnergyBarrier for shared barrier logic.
  */
-public class EntityAbilityDome extends EntityAbilityBarrier {
+public class EntityEnergyDome extends EntityEnergyBarrier {
 
     // ==================== DOME-SPECIFIC PROPERTIES ====================
     protected float domeRadius = 5.0f;
     protected float targetDomeRadius = 5.0f;
     protected boolean followCaster = false;
+    protected float offsetX = 0.0f;
+    protected float offsetY = 0.0f;
+    protected float offsetZ = 0.0f;
 
     // Server-side melee detection state
     private boolean inTickMelee = false;
     private final HashSet<Integer> processedMeleeSwings = new HashSet<>();
 
-    public EntityAbilityDome(World world) {
+    public EntityEnergyDome(World world) {
         super(world);
         this.noClip = true;
         this.stepHeight = 0.0F;
         this.setSize(1.0f, 1.0f);
     }
 
-    public EntityAbilityDome(World world, EntityLivingBase owner, double x, double y, double z,
-                             float domeRadius, EnergyDisplayData display, EnergyLightningData lightning,
-                             EnergyBarrierData barrier) {
+    public EntityEnergyDome(World world, EntityLivingBase owner, double x, double y, double z,
+                            float domeRadius, EnergyDisplayData display, EnergyLightningData lightning,
+                            EnergyBarrierData barrier) {
         this(world);
         this.noClip = true;
         this.stepHeight = 0.0F;
@@ -81,11 +84,11 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         if (followCaster) {
             Entity owner = ownerEntityId >= 0 ? worldObj.getEntityByID(ownerEntityId) : null;
             if (owner != null) {
-                this.setPosition(owner.posX, owner.posY, owner.posZ);
+                this.setPosition(owner.posX + offsetX, owner.posY + offsetY, owner.posZ + offsetZ);
                 // Sync prevPos with owner's prevPos for smooth interpolation
-                this.prevPosX = owner.prevPosX;
-                this.prevPosY = owner.prevPosY;
-                this.prevPosZ = owner.prevPosZ;
+                this.prevPosX = owner.prevPosX + offsetX;
+                this.prevPosY = owner.prevPosY + offsetY;
+                this.prevPosZ = owner.prevPosZ + offsetZ;
             }
         }
 
@@ -186,13 +189,17 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
             }
         }
 
-        double prevX = projectile.posX - projectile.motionX;
-        double prevY = projectile.posY - projectile.motionY;
-        double prevZ = projectile.posZ - projectile.motionZ;
+        // Test the UPCOMING movement (this tick) so the barrier intercepts before
+        // entity collision runs in updateProjectile(). Using the previous tick's
+        // segment caused small domes to miss fast projectiles that could cross the
+        // dome and hit the player in a single tick.
+        double nextX = projectile.posX + projectile.motionX;
+        double nextY = projectile.posY + projectile.motionY;
+        double nextZ = projectile.posZ + projectile.motionZ;
 
         return isIncomingRay(
+            nextX, nextY, nextZ,
             projectile.posX, projectile.posY, projectile.posZ,
-            prevX, prevY, prevZ,
             projectile.getOwnerEntityId());
     }
 
@@ -585,6 +592,12 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         this.followCaster = follow;
     }
 
+    public void setOffsets(float x, float y, float z) {
+        this.offsetX = x;
+        this.offsetY = y;
+        this.offsetZ = z;
+    }
+
     @Override
     @SideOnly(Side.CLIENT)
     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int increments) {
@@ -627,6 +640,9 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         nbt.setFloat("DomeRadius", domeRadius);
         nbt.setFloat("TargetDomeRadius", targetDomeRadius);
         nbt.setBoolean("FollowCaster", followCaster);
+        nbt.setFloat("OffsetX", offsetX);
+        nbt.setFloat("OffsetY", offsetY);
+        nbt.setFloat("OffsetZ", offsetZ);
     }
 
     @Override
@@ -635,5 +651,8 @@ public class EntityAbilityDome extends EntityAbilityBarrier {
         this.setDomeRadius(sanitize(nbt.getFloat("DomeRadius"), 5.0f, MAX_ENTITY_RADIUS));
         this.targetDomeRadius = sanitize(nbt.hasKey("TargetDomeRadius") ? nbt.getFloat("TargetDomeRadius") : domeRadius, 5.0f, MAX_ENTITY_RADIUS);
         this.followCaster = nbt.hasKey("FollowCaster") && nbt.getBoolean("FollowCaster");
+        this.offsetX = nbt.hasKey("OffsetX") ? nbt.getFloat("OffsetX") : 0.0f;
+        this.offsetY = nbt.hasKey("OffsetY") ? nbt.getFloat("OffsetY") : 0.0f;
+        this.offsetZ = nbt.hasKey("OffsetZ") ? nbt.getFloat("OffsetZ") : 0.0f;
     }
 }

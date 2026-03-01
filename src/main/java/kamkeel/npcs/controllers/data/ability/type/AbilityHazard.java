@@ -30,6 +30,12 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         this.windUpTicks = 30;
         this.windUpAnimationName = "Ability_Zone_Windup";
         this.activeAnimationName = "Ability_Zone_Active";
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/hazard.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/hazard_overlay.png",
+                this::getActiveColor)
+        };
     }
 
     @Override

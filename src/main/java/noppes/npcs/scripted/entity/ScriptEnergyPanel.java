@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.entity;
 
-import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyPanel;
 import noppes.npcs.api.entity.IEnergyPanel;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptEnergyPanel<T extends EntityAbilityPanel> extends ScriptEnergyBarrier<T> implements IEnergyPanel {
+public class ScriptEnergyPanel<T extends EntityEnergyPanel> extends ScriptEnergyBarrier<T> implements IEnergyPanel {
 
     public ScriptEnergyPanel(T entity) {
         super(entity);
@@ -52,6 +52,6 @@ public class ScriptEnergyPanel<T extends EntityAbilityPanel> extends ScriptEnerg
     }
 
     public boolean isLaunched() {
-        return entity.getMode() == EntityAbilityPanel.PanelMode.LAUNCHED;
+        return entity.getMode() == EntityEnergyPanel.PanelMode.LAUNCHED;
     }
 }

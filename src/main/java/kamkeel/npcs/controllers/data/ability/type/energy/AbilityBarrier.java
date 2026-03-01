@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -21,8 +21,13 @@ public abstract class AbilityBarrier extends AbilityEnergy {
 
     protected final EnergyBarrierData barrierData;
 
+    // Spawn position offsets (relative to caster)
+    protected float offsetX = 0.0f;
+    protected float offsetY = 0.0f;
+    protected float offsetZ = 0.0f;
+
     // Runtime entity tracking
-    protected transient EntityAbilityBarrier barrierEntity;
+    protected transient EntityEnergyBarrier barrierEntity;
 
     protected AbilityBarrier(EnergyDisplayData displayData, EnergyBarrierData barrierData) {
         super(displayData);
@@ -34,7 +39,7 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     /**
      * Create and spawn the barrier entity during execution.
      */
-    protected abstract EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
+    protected abstract EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target);
 
     /**
      * Add type-specific GUI field definitions.
@@ -157,10 +162,16 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         writeBarrierTypeNBT(nbt);
         writeEnergyNBT(nbt);
         barrierData.writeNBT(nbt);
+        nbt.setFloat("barrierOffsetX", offsetX);
+        nbt.setFloat("barrierOffsetY", offsetY);
+        nbt.setFloat("barrierOffsetZ", offsetZ);
     }
 
     @Override
     public final void readTypeNBT(NBTTagCompound nbt) {
+        offsetX = nbt.hasKey("barrierOffsetX") ? nbt.getFloat("barrierOffsetX") : 0.0f;
+        offsetY = nbt.hasKey("barrierOffsetY") ? nbt.getFloat("barrierOffsetY") : 0.0f;
+        offsetZ = nbt.hasKey("barrierOffsetZ") ? nbt.getFloat("barrierOffsetZ") : 0.0f;
         readBarrierTypeNBT(nbt);
         readEnergyNBT(nbt);
         barrierData.readNBT(nbt);
@@ -271,6 +282,14 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         barrierData.setReflectStrengthPct(strengthPct);
     }
 
+    public boolean isTargetOwner() {
+        return barrierData.targetOwner;
+    }
+
+    public void setTargetOwner(boolean targetOwner) {
+        barrierData.targetOwner = targetOwner;
+    }
+
     // Melee data
     public boolean isMeleeEnabled() {
         return barrierData.meleeEnabled;
@@ -288,6 +307,31 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         barrierData.meleeDamageMultiplier = mult;
     }
 
+    // Offset data
+    public float getOffsetX() {
+        return offsetX;
+    }
+
+    public void setOffsetX(float offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    public float getOffsetY() {
+        return offsetY;
+    }
+
+    public void setOffsetY(float offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    public float getOffsetZ() {
+        return offsetZ;
+    }
+
+    public void setOffsetZ(float offsetZ) {
+        this.offsetZ = offsetZ;
+    }
+
     // ==================== GUI ====================
 
     @SideOnly(Side.CLIENT)
@@ -295,6 +339,14 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     public final void getAbilityDefinitions(List<FieldDef> defs) {
         // Type-specific fields first
         addBarrierTypeDefinitions(defs);
+
+        // Offset section
+        defs.add(FieldDef.section("ability.section.offset"));
+        defs.add(FieldDef.row(
+            FieldDef.floatField("ability.offsetX", this::getOffsetX, this::setOffsetX).min(Float.NEGATIVE_INFINITY),
+            FieldDef.floatField("ability.offsetY", this::getOffsetY, this::setOffsetY).min(Float.NEGATIVE_INFINITY)
+        ));
+        defs.add(FieldDef.floatField("ability.offsetZ", this::getOffsetZ, this::setOffsetZ).min(Float.NEGATIVE_INFINITY));
 
         // Barrier section
         defs.add(FieldDef.section("ability.section.barrier"));
@@ -320,6 +372,9 @@ public abstract class AbilityBarrier extends AbilityEnergy {
             .hover("ability.hover.reflect"));
         defs.add(FieldDef.floatField("ability.reflectStrength", this::getReflectStrengthPct, this::setReflectStrengthPct)
             .range(0, 100).visibleWhen(this::isReflect));
+        defs.add(FieldDef.boolField("ability.targetOwner", this::isTargetOwner, this::setTargetOwner)
+            .hover("ability.hover.targetOwner")
+            .visibleWhen(this::isReflect));
         defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled)
             .hover("ability.hover.meleeEnabled"));
         defs.add(FieldDef.floatField("ability.meleeDamageMultiplier", this::getMeleeDamageMultiplier, this::setMeleeDamageMultiplier)

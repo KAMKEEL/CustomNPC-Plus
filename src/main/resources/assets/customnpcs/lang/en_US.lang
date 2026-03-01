@@ -182,6 +182,10 @@ gui.lineColor3=Lower line color
 gui.slotColour=Slots color
 gui.buttonAcceptColour=Accept button color
 gui.buttonRejectColour=Reject button color
+gui.animated=Animated
+gui.animated.hover=Textures with a .mcmeta file animate automatically.\nEnable this for manual animation of sprite sheet textures.
+gui.frameCount=Frame Count
+gui.frameTime=Frame Time
 questgui.doyouaccept=Do you accept the quest?
 questgui.bringitems=Bring items
 questgui.readdialog=Read dialog
@@ -1595,6 +1599,17 @@ ability.dash.aggressive=Aggressive
 ability.dash.defensive=Defensive
 ability.dash.directional=Directional
 
+# Dash Direction
+ability.dash.forward=Forward
+ability.dash.diagonalForwardLeft=Diagonal Forward Left
+ability.dash.diagonalForwardRight=Diagonal Forward Right
+ability.dash.left=Left
+ability.dash.right=Right
+ability.dash.diagonalBackLeft=Diagonal Back Left
+ability.dash.diagonalBackRight=Diagonal Back Right
+ability.dash.back=Back
+ability.dash.custom=Custom
+
 # Counter Type
 ability.counter.flat=Flat
 ability.counter.percent=Percent
@@ -1667,6 +1682,8 @@ telegraph.ring=Ring
 telegraph.line=Line
 telegraph.cone=Cone
 telegraph.point=Point
+telegraph.square=Square
+telegraph.none=None
 
 ability.tab.timing=Timing
 ability.tab.effects=Effects
@@ -1677,6 +1694,13 @@ ability.telegraphSizeNote=Size is based on ability parameters
 
 # Ability Effects Tab
 
+ability.cnpc.custom=Custom
+ability.telegraphShape=Telegraph Shape
+ability.toggleEnabled=Toggle
+ability.toggleStates=Toggle States
+ability.hasActiveToggle=Active Toggle Tick
+ability.section.toggle=Toggle
+ability.section.execution=Execution
 ability.cnpc.slam=Slam
 ability.cnpc.heavy_hit=Heavy Hit
 ability.cnpc.cutter=Cutter
@@ -1689,6 +1713,8 @@ ability.cnpc.teleport=Teleport
 ability.cnpc.vortex=Vortex
 ability.cnpc.shockwave=Shockwave
 ability.cnpc.guard=Guard
+ability.cnpc.counter=Counter
+ability.cnpc.dodge=Dodge
 ability.cnpc.effect=Effect
 ability.cnpc.hazard=Hazard
 ability.cnpc.trap=Trap
@@ -1707,6 +1733,8 @@ ability.cooldownTicks=Cooldown
 ability.perAbilityCooldown=Per-Ability
 ability.freeOnCast=Free on Cast
 ability.hover.freeOnCast=Ability enters cooldown immediately after entities are spawned, allowing the caster to use other abilities while summoned entities remain active
+ability.freeAim=Free Aim
+ability.hover.freeAim=Players Only. Allows the player to steer the beam direction with their mouse during the active phase. Requires: Lock Movement set to Active or Both, Rotation Mode set to Free, Free on Cast disabled.
 ability.lockMovement=Lock Movement
 ability.rotationMode=Rotation
 ability.rotationPhase=Phase
@@ -1737,6 +1765,9 @@ ability.windUpAnimation=Wind Up Animation
 ability.activeAnimation=Active Animation
 ability.dazedAnimation=Dazed Animation
 ability.counterAnimation=Counter Animation
+ability.dodgeAnimation1=Dodge Animation 1
+ability.dodgeAnimation2=Dodge Animation 2
+ability.dodgeAnimation3=Dodge Animation 3
 ability.showTelegraph=Show Telegraph
 ability.windUpColor=Wind Up Color
 ability.activeColor=Active Color
@@ -1759,6 +1790,7 @@ ability.section.explosive=Explosive
 ability.section.colors=Colors
 ability.section.effects=Effects
 ability.section.burst=Burst
+ability.section.dodgeAnimations=Dodge Animations
 ability.section.visual=Visual
 ability.section.projectile1=Projectile 1
 ability.section.projectile2=Projectile 2
@@ -1867,8 +1899,10 @@ ability.chargeSpeed=Charge Speed
 
 # Dash
 ability.dashMode=Dash Mode
-ability.dashDistance=Dash Distance
-ability.dashSpeed=Dash Speed
+ability.dashDistance=Distance
+ability.dashDirection=Direction
+ability.dashSpeed=Speed
+ability.dashAngle=Angle
 
 # Teleport
 ability.blinkRadius=Blink Radius
@@ -1887,9 +1921,9 @@ ability.maxTargets=Max Targets
 # Shockwave
 ability.pushStrength=Push Strength
 
-# Guard
+# Defend (Guard / Counter / Dodge)
+ability.maxHitAmount=Max Hit Amount
 ability.damageReduction=Damage Reduction
-ability.counterWindow=Counter Ticks
 
 # Effect
 ability.instantHeal=Instant
@@ -1902,6 +1936,7 @@ ability.targetFilter.all=All
 ability.includeSelf=Include Self
 ability.section.targeting=Targeting
 ability.concurrent=Concurrent
+ability.customScriptInfo=This ability is for scripting purposes
 ability.concurrentInfo=This ability allows Concurrency in Chains
 ability.hover.concurrent=When enabled, this ability fires at the same time as the ability above it in the chain
 ability.customEffects=Custom Effects
@@ -1948,7 +1983,6 @@ ability.lightningRadius=Radius
 
 # Projectile Count / Settings
 ability.projectileCount=Count
-ability.dualFireDelay=Fire Delay
 ability.fireDelay=Fire Delay
 ability.colorOverride=Color Override
 
@@ -2033,6 +2067,8 @@ ability.hover.multiHitDelay=Ticks between repeat hits on the same entity when Hi
 ability.hover.maxHits=Maximum total hits before projectile ends in Pierce/Multi modes. Lower values reduce repeated hit spam and improve performance.
 ability.hover.explosive=Creates explosion on impact
 ability.hover.explosionRad=Size of explosion radius
+ability.hover.maxHitAmount=Maximum hits absorbed before defend ability ends (0 = unlimited)
+ability.hover.counterType=Flat: fixed damage counter-attack. Percent: counter-attack deals a percentage of the absorbed damage.
 ability.hover.piercing=Hits multiple targets instead of stopping on first hit
 ability.hover.lightning=Add electrical effect to visuals
 ability.hover.outerGlow=Enable outer glow layer around projectile
@@ -2072,14 +2108,22 @@ ability.section.properties=Properties
 ability.section.panel=Panel
 ability.section.launch=Launch
 ability.section.slicer=Slicer
+ability.section.icon=Icon
+ability.hasIcon=Custom Icon
+ability.icon.tint=Tint Color
 
 ability.domeRadius=Dome Radius
 ability.useHealth=Use Health
 ability.maxHealth=Max Health
 ability.useDuration=Use Duration
+ability.duration=Duration
 ability.defaultMultiplier=Default Multiplier
 ability.innerAlpha=Inner Alpha
 ability.heightOffset=Height Offset
+ability.section.offset=Offset
+ability.offsetX=X Offset
+ability.offsetY=Y Offset
+ability.offsetZ=Z Offset
 
 ability.solid=Solid
 ability.knockbackEnabled=Knockback
@@ -2096,6 +2140,8 @@ ability.hover.solid=Entities cannot pass through the barrier boundary
 ability.hover.knockbackEnabled=Repulsion field pushing entities away from barrier surface
 ability.hover.absorbing=Damage dealt to the caster is redirected to the barrier's health
 ability.hover.reflect=Rebounds non-breaking projectiles and reduces their damage by Strength
+ability.targetOwner=Target Owner
+ability.hover.targetOwner=Sets the reflected projectile's target to the original caster. With homing enabled, the projectile will home toward its former caster.
 ability.hover.meleeEnabled=Barrier can be hit and damaged by melee attacks
 
 
@@ -2121,6 +2167,8 @@ ability.userType.NONE=NO ONE!
 ability.icon.section.uv=UV Coordinates
 ability.icon.x=Icon X
 ability.icon.y=Icon Y
+ability.icon.layers=Layers
+ability.icon.layer=Layer
 
 gui.both=Both
 gui.players=Players
@@ -2179,6 +2227,9 @@ condition.hover.hitCount=Activates after receiving X hits within the time window
 condition.hover.hits=Number of hits required to trigger condition
 condition.hover.within=Time window in ticks (20 ticks = 1 second)
 condition.hover.threshold=Health percentage threshold (1-99%)
+condition.hover.armor_slots=Equipment in specific armor slots
+condition.hover.item_name=Filter by item name or identifier
+condition.hover.required_count=Number of matching items required
 
 # Effect Hover Tooltips
 effect.hover.type=Potion effect type to apply to targets

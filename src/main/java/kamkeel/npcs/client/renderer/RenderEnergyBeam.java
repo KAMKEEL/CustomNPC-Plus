@@ -23,7 +23,7 @@ import java.util.List;
  * Design inspired by LouisXIV's energy rendering system.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityBeam extends RenderEnergyAbility {
+public class RenderEnergyBeam extends RenderEnergy {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {

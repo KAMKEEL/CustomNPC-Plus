@@ -10,8 +10,8 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
-import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -45,24 +45,31 @@ public class AbilityShield extends AbilityBarrier {
         this.windUpAnimationName = "";
         this.activeAnimationName = "";
         this.allowedBy = UserType.BOTH;
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/shield.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
-        EnergyPanelData panelData = new EnergyPanelData(shieldWidth, shieldHeight, 0.0f);
+    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+        EnergyPanelData panelData = new EnergyPanelData(shieldWidth, shieldHeight, offsetY);
+        panelData.offsetX = offsetX;
+        panelData.offsetZ = offsetZ;
 
         float frontDist = 1.5f;
         float yawRad = (float) Math.toRadians(caster.rotationYaw);
-        double spawnX = caster.posX + (-Math.sin(yawRad) * frontDist);
+        double spawnX = caster.posX + (-Math.sin(yawRad) * frontDist) + offsetX;
         double spawnY = caster.posY + (caster.height * 0.5f);
-        double spawnZ = caster.posZ + (Math.cos(yawRad) * frontDist);
+        double spawnZ = caster.posZ + (Math.cos(yawRad) * frontDist) + offsetZ;
 
-        EntityAbilityPanel panel = new EntityAbilityPanel(
+        EntityEnergyPanel panel = new EntityEnergyPanel(
             caster.worldObj, caster,
             spawnX, spawnY, spawnZ, caster.rotationYaw,
-            EntityAbilityPanel.PanelMode.HELD,
+            EntityEnergyPanel.PanelMode.HELD,
             displayData.copy(), lightningData.copy(), barrierData.copy(), panelData
         );
         panel.setSourceAbility(this);

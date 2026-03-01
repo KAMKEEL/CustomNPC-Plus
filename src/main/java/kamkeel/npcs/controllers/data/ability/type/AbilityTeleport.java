@@ -86,6 +86,9 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         this.showTelegraph = false;
         this.windUpSound = "mob.endermen.portal";
         this.activeSound = "mob.endermen.portal";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/teleport.png")
+        };
     }
 
     @Override

@@ -5,8 +5,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.energycharge.EnergyChargeTracker;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
-import kamkeel.npcs.entity.EntityAbilityDome;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyDome;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
@@ -159,7 +159,7 @@ public class ServerEventsHandler {
         if (event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving.worldObj.isRemote)
             return;
 
-        EntityAbilityBarrier barrier = EntityAbilityBarrier.getAbsorbingBarrier(event.entityLiving);
+        EntityEnergyBarrier barrier = EntityEnergyBarrier.getAbsorbingBarrier(event.entityLiving);
         if (barrier != null) {
             // Redirect the caster's damage to their barrier
             barrier.absorbDamage(event.ammount);
@@ -191,9 +191,9 @@ public class ServerEventsHandler {
         }
         if (!blacklisted) return;
 
-        List<EntityAbilityBarrier> barriers = EntityAbilityBarrier.getActiveBarriers(player.worldObj);
-        for (EntityAbilityBarrier barrier : barriers) {
-            if (barrier instanceof EntityAbilityDome && barrier.isEntityInside(player)) {
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(player.worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier instanceof EntityEnergyDome && barrier.isEntityInside(player)) {
                 event.setCanceled(true);
                 return;
             }

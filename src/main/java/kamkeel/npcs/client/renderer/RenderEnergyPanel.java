@@ -2,7 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
@@ -13,14 +13,14 @@ import org.lwjgl.opengl.GL11;
  * Voxel-blocky style with inner/outer layers.
  */
 @SideOnly(Side.CLIENT)
-public class RenderAbilityPanel extends RenderEnergyBarrier {
+public class RenderEnergyPanel extends RenderEnergyBarrier {
 
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         if (shouldSkipInitialActiveRender(entity)) {
             return;
         }
-        EntityAbilityPanel panel = (EntityAbilityPanel) entity;
+        EntityEnergyPanel panel = (EntityEnergyPanel) entity;
 
         float width = panel.getPanelData().panelWidth;
         float height = panel.getPanelData().panelHeight;
@@ -67,7 +67,7 @@ public class RenderAbilityPanel extends RenderEnergyBarrier {
             float outerScale = 1.0f + panel.getOuterColorWidth() * 0.15f;
             float outerAlpha = panel.getOuterColorAlpha() * healthPercent;
             GL11.glDepthMask(false);
-            renderPanel(panel.getOuterColor(), outerAlpha + flashAlpha,
+            renderPanel(panel.getOuterColor(), outerAlpha + (panel.getOuterColorAlpha() > 0 ? flashAlpha : 0),
                 width * 0.5f * outerScale, height * 0.5f * outerScale, panelThickness * 1.5f);
             GL11.glDepthMask(true);
         }

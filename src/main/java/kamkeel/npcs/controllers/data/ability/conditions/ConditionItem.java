@@ -137,21 +137,19 @@ public class ConditionItem extends AbilityCondition {
             this::getUsageType, this::setUsageType));
 
         defs.add(FieldDef.stringField("condition.item_name",
-                this::getItemName, this::setItemName));
-//            .hover("condition.hover.item_name"));
-
-
+                this::getItemName, this::setItemName)
+            .hover("condition.hover.item_name"));
 
         defs.add(FieldDef.enumField("condition.armor_slot", ArmorSlot.class,
                 this::getArmorSlot, this::setArmorSlot)
-            .visibleWhen(() -> usageType == UsageType.ARMOR));
-//            .hover("condition.hover.armor_slots"));
+            .visibleWhen(() -> usageType == UsageType.ARMOR)
+            .hover("condition.hover.armor_slots"));
 
         defs.add(FieldDef.intField("condition.item_count",
                 this::getRequiredCount, this::setRequiredCount)
             .range(1, 64)
-            .visibleWhen(() -> usageType == UsageType.AMMO && userType.allowsPlayer()));
-//            .hover("condition.hover.required_count"));
+            .visibleWhen(() -> usageType == UsageType.AMMO && userType.allowsPlayer())
+            .hover("condition.hover.required_count"));
     }
 
     @SideOnly(Side.CLIENT)

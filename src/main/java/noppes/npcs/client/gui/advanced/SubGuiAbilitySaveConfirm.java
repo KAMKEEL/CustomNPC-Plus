@@ -70,7 +70,7 @@ public class SubGuiAbilitySaveConfirm extends SubGuiInterface implements ISubGui
 
     private void doSave() {
         saved = true;
-        PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT()));
+        PacketClient.sendClient(new CustomAbilitySavePacket(ability.writeNBT(false)));
         if (callback != null) {
             callback.onAbilitySaved(ability);
         }

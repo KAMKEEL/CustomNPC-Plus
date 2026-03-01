@@ -8,6 +8,7 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.global.GuiNPCManageEffects;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -129,6 +130,12 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                     int width = data.getTotalWidth();
                     int height = data.getTotalHeight();
 
+                    // Animation V offset for preview
+                    if (data.isAnimated()) {
+                        iconY += (int) (data.getCurrentFrameVOffset() * height);
+                    } else if (effect.animated && effect.frameCount > 1) {
+                        iconY += (int) (AnimationHelper.getFrameVOffset(height, effect.frameCount, effect.frametime) * height);
+                    }
 
                     func_152125_a(x, y, iconX, iconY, iconWidth, iconHeight, iconRenderSize, iconRenderSize, width, height);
 
@@ -183,6 +190,33 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
             effect.height
         ));
         scrollWindow.addLabel(new GuiNpcLabel(9, "effect.editor.height", scrollWindow.getTextField(9).xPosition - 43, y + 6, 0xFFFFFF));
+        y += 25;
+
+        // Animation controls
+        scrollWindow.addLabel(new GuiNpcLabel(11, "gui.animated", x, y + 5, 0xFFFFFF));
+        GuiNpcButtonYesNo animBtn = new GuiNpcButtonYesNo(11, x + 70, y, 50, 20, effect.animated);
+        animBtn.setHoverText("gui.animated.hover");
+        scrollWindow.addButton(animBtn);
+
+        if (effect.animated) {
+            y += 23;
+            scrollWindow.addLabel(new GuiNpcLabel(12, "gui.frameCount", x, y + 6, 0xFFFFFF));
+            scrollWindow.addTextField(setIntegerOnly(
+                new GuiNpcTextField(12, this, x + 80, y, 60, 20, "" + effect.frameCount),
+                1,
+                256,
+                effect.frameCount
+            ));
+
+            y += 23;
+            scrollWindow.addLabel(new GuiNpcLabel(13, "gui.frameTime", x, y + 6, 0xFFFFFF));
+            scrollWindow.addTextField(setIntegerOnly(
+                new GuiNpcTextField(13, this, x + 80, y, 60, 20, "" + effect.frametime),
+                1,
+                100,
+                effect.frametime
+            ));
+        }
 
     }
 
@@ -208,6 +242,11 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         if (id == 10) {
             GuiNpcButtonYesNo button = (GuiNpcButtonYesNo) guibutton;
             effect.lossOnDeath = button.getBoolean();
+        }
+        if (id == 11) {
+            GuiNpcButtonYesNo button = (GuiNpcButtonYesNo) guibutton;
+            effect.animated = button.getBoolean();
+            initGui();
         }
     }
 
@@ -247,6 +286,12 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                 break;
             case 9:
                 effect.height = guiNpcTextField.getInteger();
+                break;
+            case 12:
+                effect.frameCount = Math.max(1, guiNpcTextField.getInteger());
+                break;
+            case 13:
+                effect.frametime = Math.max(1, guiNpcTextField.getInteger());
                 break;
         }
     }

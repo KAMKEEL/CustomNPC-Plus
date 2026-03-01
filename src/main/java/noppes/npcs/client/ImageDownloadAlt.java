@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.config.ConfigClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -101,18 +102,10 @@ public class ImageDownloadAlt extends SimpleTexture {
                 HttpURLConnection connection = null;
                 try {
                     URL url = new URL(ImageDownloadAlt.this.imageUrl);
-                    connection = (HttpURLConnection) (url).openConnection(Minecraft.getMinecraft().getProxy());
-                    connection.setDoInput(true);
-                    connection.setDoOutput(false);
-                    connection.setRequestProperty("Content-Type", "image/png");
-                    connection.setRequestProperty("Expect", "100-continue");
-                    //connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
-                    connection.setRequestProperty("User-Agent", "Mozilla/5.0");
 
-                    // Modify Accept Redirect
-                    if (isImgurLink(url)) {
-                        connection.setRequestProperty("Accept", "*/*");
-                    }
+                    // Adding a config so people can switch back if needed.
+                    // TODO: Remove config option if improved works better
+                    connection = ConfigClient.ImprovedImageDownloadConnection ? setupConnectionImproved(url) : setupConnectionOld(url);
 
                     connection.connect();
 
@@ -150,6 +143,44 @@ public class ImageDownloadAlt extends SimpleTexture {
         };
         this.imageThread.setDaemon(true);
         this.imageThread.start();
+    }
+
+    private HttpURLConnection setupConnectionOld(URL url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) (url).openConnection(Minecraft.getMinecraft().getProxy());
+        // setups stuff which basically tells the browser if this a get or post request
+        connection.setDoInput(true);
+        connection.setDoOutput(false);
+
+        // ??? I believe these are used to tell the receiver what you are sending to them
+        // Not what you expect to receive from them.
+        connection.setRequestProperty("Content-Type", "image/png");
+        connection.setRequestProperty("Expect", "100-continue");
+        //connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+        // Modify Accept Redirect
+        if (isImgurLink(url)) {
+            connection.setRequestProperty("Accept", "*/*");
+        }
+        return connection;
+    }
+
+    private HttpURLConnection setupConnectionImproved(URL url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) (url).openConnection(Minecraft.getMinecraft().getProxy());
+
+        connection.setRequestMethod("GET");
+        // Basically redundant because I set it as a GET request?
+        // Better safe than sorry ig.
+        connection.setDoInput(true);
+        connection.setDoOutput(false);
+
+        // Random ass user agent I grabbed from my snooping on imgur
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0");
+        // I tell the server what I want to receive.
+        // TODO: Should this just accept PNGs?
+        connection.setRequestProperty("Accept", "image/png,image/*");
+
+        return connection;
     }
 
 

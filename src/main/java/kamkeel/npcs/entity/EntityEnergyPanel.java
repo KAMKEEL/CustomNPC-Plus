@@ -21,9 +21,9 @@ import java.util.List;
 /**
  * Energy Panel entity - a flat rectangular barrier used by Wall and Shield abilities.
  * Supports three modes: PLACED (stationary), HELD (tracks caster), LAUNCHED (moves forward).
- * Extends EntityAbilityBarrier for shared barrier logic.
+ * Extends EntityEnergyBarrier for shared barrier logic.
  */
-public class EntityAbilityPanel extends EntityAbilityBarrier {
+public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     public enum PanelMode {
         PLACED,     // Stationary wall
@@ -41,15 +41,15 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
     protected float targetPanelWidth;
     protected float targetPanelHeight;
 
-    public EntityAbilityPanel(World world) {
+    public EntityEnergyPanel(World world) {
         super(world);
         this.setSize(0.5f, 0.5f);
     }
 
-    public EntityAbilityPanel(World world, EntityLivingBase owner, double x, double y, double z,
-                              float yaw, PanelMode mode,
-                              EnergyDisplayData display, EnergyLightningData lightning,
-                              EnergyBarrierData barrier, EnergyPanelData panel) {
+    public EntityEnergyPanel(World world, EntityLivingBase owner, double x, double y, double z,
+                             float yaw, PanelMode mode,
+                             EnergyDisplayData display, EnergyLightningData lightning,
+                             EnergyBarrierData barrier, EnergyPanelData panel) {
         this(world);
         this.setPosition(x, y + panel.heightOffset, z);
         this.ownerEntityId = owner.getEntityId();
@@ -157,17 +157,17 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
         // Follow owner position
         float frontDist = 1.5f;
         float yawRad = (float) Math.toRadians(panelYaw);
-        double newX = owner.posX + (-Math.sin(yawRad) * frontDist);
+        double newX = owner.posX + (-Math.sin(yawRad) * frontDist) + panelData.offsetX;
         double newY = owner.posY + panelData.heightOffset + (owner.height * 0.5f);
-        double newZ = owner.posZ + (Math.cos(yawRad) * frontDist);
+        double newZ = owner.posZ + (Math.cos(yawRad) * frontDist) + panelData.offsetZ;
 
         this.setPosition(newX, newY, newZ);
 
         // Sync prevPos with owner's prevPos for smooth interpolation
         float prevYawRad = (float) Math.toRadians(owner.prevRotationYaw);
-        this.prevPosX = owner.prevPosX + (-Math.sin(prevYawRad) * frontDist);
+        this.prevPosX = owner.prevPosX + (-Math.sin(prevYawRad) * frontDist) + panelData.offsetX;
         this.prevPosY = owner.prevPosY + panelData.heightOffset + (owner.height * 0.5f);
-        this.prevPosZ = owner.prevPosZ + (Math.cos(prevYawRad) * frontDist);
+        this.prevPosZ = owner.prevPosZ + (Math.cos(prevYawRad) * frontDist) + panelData.offsetZ;
     }
 
     @Override
@@ -340,13 +340,15 @@ public class EntityAbilityPanel extends EntityAbilityBarrier {
             }
         }
 
-        double prevX = projectile.posX - projectile.motionX;
-        double prevY = projectile.posY - projectile.motionY;
-        double prevZ = projectile.posZ - projectile.motionZ;
+        // Test the UPCOMING movement so the barrier intercepts before entity
+        // collision runs in updateProjectile().
+        double nextX = projectile.posX + projectile.motionX;
+        double nextY = projectile.posY + projectile.motionY;
+        double nextZ = projectile.posZ + projectile.motionZ;
 
         return isIncomingRay(
+            nextX, nextY, nextZ,
             projectile.posX, projectile.posY, projectile.posZ,
-            prevX, prevY, prevZ,
             projectile.getOwnerEntityId());
     }
 

@@ -26,14 +26,13 @@ public class CustomEffect implements ICustomEffect {
     public String icon = "";
     public int iconX = 0, iconY = 0;
 
-    /**
-     * Experimental script stuff.
-     */
-    public Consumer<PlayerEvent.EffectEvent.Added> onAddedConsumer;
-    public Consumer<PlayerEvent.EffectEvent.Ticked> onTickConsumer;
-    public Consumer<PlayerEvent.EffectEvent.Removed> onRemovedConsumer;
     public String menuName = "§aNEW EFFECT";
     public int width = 16, height = 16;
+
+    // Animation
+    public boolean animated = false;
+    public int frameCount = 1;
+    public int frametime = 2;
 
     public int index = 0;
 
@@ -144,6 +143,36 @@ public class CustomEffect implements ICustomEffect {
     }
 
     @Override
+    public boolean isAnimated() {
+        return animated;
+    }
+
+    @Override
+    public void setAnimated(boolean animated) {
+        this.animated = animated;
+    }
+
+    @Override
+    public int getFrameCount() {
+        return frameCount;
+    }
+
+    @Override
+    public void setFrameCount(int frameCount) {
+        this.frameCount = Math.max(1, frameCount);
+    }
+
+    @Override
+    public int getFrameTime() {
+        return frametime;
+    }
+
+    @Override
+    public void setFrameTime(int frametime) {
+        this.frametime = Math.max(1, frametime);
+    }
+
+    @Override
     public boolean isLossOnDeath() {
         return lossOnDeath;
     }
@@ -169,26 +198,10 @@ public class CustomEffect implements ICustomEffect {
     }
 
 
-    public void onAdded(Consumer<PlayerEvent.EffectEvent.Added> function) {
-        onAddedConsumer = function;
-    }
-
-    public void onTick(Consumer<PlayerEvent.EffectEvent.Ticked> function) {
-        onTickConsumer = function;
-    }
-
-    public void onRemoved(Consumer<PlayerEvent.EffectEvent.Removed> function) {
-        onRemovedConsumer = function;
-    }
-
     public void onAdded(EntityPlayer player, PlayerEffect playerEffect) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
         if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(iPlayer, playerEffect);
-
-            if (onAddedConsumer != null)
-                onAddedConsumer.accept(event);
-
             EffectScript script = getScriptHandler();
             if (script == null) {
                 return;
@@ -204,11 +217,6 @@ public class CustomEffect implements ICustomEffect {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
         if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(iPlayer, playerEffect);
-
-            if (onTickConsumer != null) {
-                onTickConsumer.accept(event);
-            }
-
             EffectScript script = getScriptHandler();
             if (script == null) {
                 return;
@@ -225,11 +233,6 @@ public class CustomEffect implements ICustomEffect {
 
         if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(iPlayer, playerEffect, type);
-
-            if (onRemovedConsumer != null) {
-                onRemovedConsumer.accept(event);
-            }
-
             EffectScript script = getScriptHandler();
             if (script == null) {
                 return;
@@ -254,6 +257,9 @@ public class CustomEffect implements ICustomEffect {
         compound.setInteger("iconHeight", height);
         compound.setString("icon", icon);
         compound.setBoolean("lossOnDeath", lossOnDeath);
+        compound.setBoolean("iconAnimated", animated);
+        compound.setInteger("iconFrameCount", frameCount);
+        compound.setInteger("iconFrameTime", frametime);
 
         if (saveScripts) {
             NBTTagCompound scriptData = new NBTTagCompound();
@@ -295,6 +301,13 @@ public class CustomEffect implements ICustomEffect {
 
         icon = compound.getString("icon");
         lossOnDeath = compound.getBoolean("lossOnDeath");
+
+        if (compound.hasKey("iconAnimated"))
+            animated = compound.getBoolean("iconAnimated");
+        if (compound.hasKey("iconFrameCount"))
+            frameCount = Math.max(1, compound.getInteger("iconFrameCount"));
+        if (compound.hasKey("iconFrameTime"))
+            frametime = Math.max(1, compound.getInteger("iconFrameTime"));
 
         if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
             EffectScript handler = new EffectScript();

@@ -47,6 +47,11 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.activeSound = "random.anvil_land";
         this.windUpAnimationName = "Ability_HeavyHit_Windup";
         this.activeAnimationName = "Ability_HeavyHit_Active";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/heavy_hit.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/heavy_hit_overlay.png",
+                this::getActiveColor)
+        };
     }
 
     @Override

@@ -7,6 +7,7 @@ import noppes.npcs.api.gui.ICustomGuiComponent;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
 import org.lwjgl.opengl.GL11;
@@ -29,6 +30,11 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
     int color;
     float alpha;
     float rotation;
+
+    // Animation
+    boolean animated;
+    int frameCount = 1;
+    int frametime = 2;
 
     public CustomGuiTexturedRect(int id, String texture, int x, int y, int width, int height) {
         this(id, texture, x, y, width, height, 0, 0);
@@ -64,10 +70,18 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             int totalWidth = this.imageData.getTotalWidth();
             int totalHeight = this.imageData.getTotalHeight();
 
+            // Animation V offset
+            float vOff = 0f;
+            if (this.imageData.isAnimated()) {
+                vOff = this.imageData.getCurrentFrameVOffset();
+            } else if (this.animated && this.frameCount > 1) {
+                vOff = AnimationHelper.getFrameVOffset(totalHeight, this.frameCount, this.frametime);
+            }
+
             float u1 = (float) textureX / (float) totalWidth;
             float u2 = u1 + (float) width / (float) totalWidth;
-            float v1 = (float) textureY / (float) totalHeight;
-            float v2 = v1 + (float) height / (float) totalHeight;
+            float v1 = vOff + (float) textureY / (float) totalHeight;
+            float v2 = vOff + ((float) textureY + (float) height) / (float) totalHeight;
 
             GL11.glPushMatrix();
             float red = (color >> 16 & 255) / 255f;
@@ -104,6 +118,9 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         component.setColor(color);
         component.setAlpha(alpha);
         component.setRotation(rotation);
+        if (this.animated && this.frameCount > 1) {
+            component.setAnimation(this.frameCount, this.frametime);
+        }
         return component;
     }
 
@@ -123,6 +140,12 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         rect.color = component.getColor();
         rect.alpha = component.getAlpha();
         rect.rotation = component.getRotation();
+
+        if (component.isAnimated()) {
+            rect.animated = true;
+            rect.frameCount = component.getFrameCount();
+            rect.frametime = component.getFrameTime();
+        }
 
         return rect;
     }

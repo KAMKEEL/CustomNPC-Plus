@@ -5,6 +5,8 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.network.PacketClient;
+
+import java.util.UUID;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilitiesGetPacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityGetPacket;
@@ -495,7 +497,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     private void handleChainConfigClosed() {
         if (pendingSaveChain != null) {
-            PacketClient.sendClient(new ChainedAbilitySavePacket(pendingSaveChain.writeNBT()));
+            PacketClient.sendClient(new ChainedAbilitySavePacket(pendingSaveChain.writeNBT(false)));
             selected = pendingSaveChain.getName();
             pendingSaveChain = null;
         }
@@ -510,6 +512,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             Ability newAbility = AbilityController.Instance.create(pendingTypeId);
             if (newAbility != null) {
                 gui.getVariants().get(idx).apply(newAbility);
+                newAbility.setId(UUID.randomUUID().toString());
                 pendingTypeId = null;
                 openConfig(newAbility);
                 return true;
@@ -536,6 +539,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
                 if (variants.size() == 1) {
                     variants.get(0).apply(newAbility);
                 }
+                newAbility.setId(UUID.randomUUID().toString());
                 openConfig(newAbility);
                 return true;
             }
@@ -550,7 +554,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         if (pendingSaveAbility == null) return false;
 
         if (gui.isConfirmed()) {
-            PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+            PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT(false)));
             pendingSaveAbility = null;
             return false;
         }
@@ -574,7 +578,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
             setSubGui(new SubGuiDuplicateNameConfirm());
             return true;
         }
-        PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT()));
+        PacketClient.sendClient(new CustomAbilitySavePacket(pendingSaveAbility.writeNBT(false)));
         pendingSaveAbility = null;
         return false;
     }

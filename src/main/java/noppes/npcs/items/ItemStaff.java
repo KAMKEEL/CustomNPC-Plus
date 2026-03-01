@@ -65,6 +65,11 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
 
         EntityAbilityOrb orb = (EntityAbilityOrb) entity;
 
+        if (orb.getChargeProgress() < 1.0f) {
+            orb.setDead();
+            return;
+        }
+
         orb.startMoving(null);
 
         world.playSoundAtEntity(
@@ -85,6 +90,19 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
         }
 
         int chargeTime = 20 + material.getHarvestLevel() * 8;
+
+        // Keep a fully-charged orb alive while the player is still holding
+        if (tick > chargeTime && stack.stackTagCompound != null) {
+            Entity existing = ((WorldServer) player.worldObj)
+                .getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
+            if (existing instanceof EntityAbilityOrb) {
+                EntityAbilityOrb orb = (EntityAbilityOrb) existing;
+                if (orb.isCharging()) {
+                    orb.resetChargeTick();
+                }
+            }
+            return;
+        }
 
         if (tick == chargeTime) {
 
@@ -127,7 +145,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             );
 
             orb.setupCharging(
-                new EnergyAnchorData(AnchorPoint.FRONT, 0, -1, 0),
+                new EnergyAnchorData(AnchorPoint.EYE, 0, 0, 1),
                 chargeTime
             );
 

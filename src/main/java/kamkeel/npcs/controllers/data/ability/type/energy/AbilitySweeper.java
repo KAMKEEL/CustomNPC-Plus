@@ -9,7 +9,7 @@ import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityAbilitySweeper;
+import kamkeel.npcs.entity.EntityEnergySweeper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.ability.type.IAbilitySweeper;
@@ -23,7 +23,7 @@ import java.util.List;
  * Players can jump over it. The beam completes a set number of rotations before ending.
  * Telegraph shows a large circle on the ground indicating range.
  * <p>
- * All damage logic is handled by the EntityAbilitySweeper entity to ensure
+ * All damage logic is handled by the EntityEnergySweeper entity to ensure
  * visual and damage hitbox alignment.
  */
 public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
@@ -40,7 +40,7 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
     private boolean lockOnTarget = false;
 
     // Runtime state (transient)
-    private transient EntityAbilitySweeper activeEntity = null;
+    private transient EntityEnergySweeper activeEntity = null;
 
     public AbilitySweeper() {
         super(new EnergyDisplayData(0xFF6600, 0xFF0000, true, 1.8f, 0.5f, 0.0f));
@@ -55,6 +55,12 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
         // Circle telegraph to show range
         this.telegraphType = TelegraphType.CIRCLE;
         this.showTelegraph = true;
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/sweeper.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/sweeper_overlay.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     @Override
@@ -92,7 +98,7 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
         // Spawn the sweeper entity that handles BOTH visuals AND damage.
         // NPC: target is the aggro target — lockOnTarget tracks it during sweep.
         // Player: target is null — sweep rotates around caster's facing direction, lockOnTarget has no effect.
-        activeEntity = new EntityAbilitySweeper(caster.worldObj, caster, target,
+        activeEntity = new EntityEnergySweeper(caster.worldObj, caster, target,
             beamLength, beamWidth, beamHeight,
             displayData,
             sweepSpeed, numberOfRotations,

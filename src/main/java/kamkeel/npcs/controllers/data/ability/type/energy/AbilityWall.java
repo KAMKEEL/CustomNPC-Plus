@@ -9,8 +9,8 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPanelData;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
-import kamkeel.npcs.entity.EntityAbilityBarrier;
-import kamkeel.npcs.entity.EntityAbilityPanel;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
@@ -45,6 +45,12 @@ public class AbilityWall extends AbilityBarrier {
         this.showTelegraph = true;
         this.windUpAnimationName = "";
         this.activeAnimationName = "";
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/wall.png"),
+            new DefaultIconLayer("customnpcs:textures/gui/ability/wall_overlay.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     @Override
@@ -55,7 +61,7 @@ public class AbilityWall extends AbilityBarrier {
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
 
     @Override
-    protected EntityAbilityBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
+    protected EntityEnergyBarrier createBarrierEntity(EntityLivingBase caster, EntityLivingBase target) {
         // Place wall between caster and target
         double placeX, placeY, placeZ;
         float yaw;
@@ -87,14 +93,21 @@ public class AbilityWall extends AbilityBarrier {
             yaw = caster.rotationYaw;
         }
 
-        EntityAbilityPanel.PanelMode mode = panelData.launching
-            ? EntityAbilityPanel.PanelMode.LAUNCHED
-            : EntityAbilityPanel.PanelMode.PLACED;
+        placeX += offsetX;
+        placeY += offsetY;
+        placeZ += offsetZ;
 
-        EntityAbilityPanel panel = new EntityAbilityPanel(
+        EntityEnergyPanel.PanelMode mode = panelData.launching
+            ? EntityEnergyPanel.PanelMode.LAUNCHED
+            : EntityEnergyPanel.PanelMode.PLACED;
+
+        EnergyPanelData data = panelData.copy();
+        data.heightOffset = 0.0f; // Y offset now handled by base class via placeY
+
+        EntityEnergyPanel panel = new EntityEnergyPanel(
             caster.worldObj, caster,
             placeX, placeY, placeZ, yaw, mode,
-            displayData.copy(), lightningData.copy(), barrierData.copy(), panelData.copy()
+            displayData.copy(), lightningData.copy(), barrierData.copy(), data
         );
         panel.setSourceAbility(this);
         return panel;
@@ -134,6 +147,11 @@ public class AbilityWall extends AbilityBarrier {
     @Override
     protected void readBarrierTypeNBT(NBTTagCompound nbt) {
         panelData.readNBT(nbt);
+        // Migrate legacy heightOffset → base class offsetY
+        if (!nbt.hasKey("barrierOffsetY") && panelData.heightOffset != 0.0f) {
+            offsetY = panelData.heightOffset;
+            panelData.heightOffset = 0.0f;
+        }
     }
 
     // ==================== GETTERS & SETTERS ====================
@@ -156,14 +174,6 @@ public class AbilityWall extends AbilityBarrier {
 
     public void setPanelHeight(float height) {
         panelData.setPanelHeight(height);
-    }
-
-    public float getHeightOffset() {
-        return panelData.heightOffset;
-    }
-
-    public void setHeightOffset(float offset) {
-        panelData.heightOffset = offset;
     }
 
     public boolean isLaunching() {
@@ -208,8 +218,6 @@ public class AbilityWall extends AbilityBarrier {
             FieldDef.floatField("gui.width", this::getPanelWidth, this::setPanelWidth).range(0.5f, 100.0f),
             FieldDef.floatField("gui.height", this::getPanelHeight, this::setPanelHeight).range(0.5f, 100.0f)
         ));
-        defs.add(FieldDef.floatField("ability.heightOffset", this::getHeightOffset, this::setHeightOffset)
-            .min(Float.NEGATIVE_INFINITY));
         defs.add(FieldDef.section("ability.section.launch"));
         defs.add(FieldDef.boolField("gui.enabled", this::isLaunching, this::setLaunching)
             .hover("ability.hover.launching"));

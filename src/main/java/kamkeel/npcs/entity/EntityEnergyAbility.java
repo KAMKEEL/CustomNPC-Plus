@@ -21,6 +21,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
 
     // ==================== SAFETY CONSTANTS ====================
     protected static final int CHARGE_TIMEOUT_GRACE = 60;          // Ticks of grace after charge should have ended
+    protected static final int PREVIEW_CHARGE_GRACE = 3;            // Ticks of grace for client-only charge previews
     protected static final int HARD_LIFETIME_CAP = 1200;           // 60 seconds absolute max for projectiles/sweepers
     protected static final int BARRIER_HARD_LIFETIME_CAP = 12000;  // 10 minutes absolute max for barriers
     protected static final float MAX_ENTITY_SIZE = 100.0f;         // Max size/width/length for any energy entity
@@ -87,6 +88,15 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         this.chargeDuration = duration;
     }
 
+    /**
+     * Reset chargeTick back to chargeDuration so the charging timeout
+     * grace period restarts.  Used by items that let the player hold
+     * a fully-charged orb indefinitely.
+     */
+    public void resetChargeTick() {
+        this.chargeTick = this.chargeDuration;
+    }
+
     public float getChargeProgress() {
         if (chargeDuration <= 0) return 1.0f;
         return Math.min(1.0f, (float) chargeTick / chargeDuration);
@@ -94,7 +104,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
 
     public float getInterpolatedChargeProgress(float partialTicks) {
         if (chargeDuration <= 0) return 1.0f;
-        float prevProgress = Math.max(0, (float) (chargeTick - 1) / chargeDuration);
+        float prevProgress = Math.min(1.0f, Math.max(0, (float) (chargeTick - 1) / chargeDuration));
         float currProgress = Math.min(1.0f, (float) chargeTick / chargeDuration);
         return prevProgress + (currProgress - prevProgress) * partialTicks;
     }

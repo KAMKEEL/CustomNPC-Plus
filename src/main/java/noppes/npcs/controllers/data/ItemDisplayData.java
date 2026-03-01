@@ -12,6 +12,11 @@ public class ItemDisplayData {
     public Boolean durabilityShow = false;
     public Integer durabilityColor = -1;
 
+    // Animation
+    public Boolean animated = false;
+    public Integer frameCount = 1;
+    public Integer frametime = 2;
+
     public NBTTagCompound writeToNBT() {
         NBTTagCompound compound = new NBTTagCompound();
         this.writeToNBT(compound);
@@ -41,6 +46,10 @@ public class ItemDisplayData {
         this.setFloat(compound, "TranslateX", this.translateX);
         this.setFloat(compound, "TranslateY", this.translateY);
         this.setFloat(compound, "TranslateZ", this.translateZ);
+
+        this.setBoolean(compound, "Animated", this.animated);
+        this.setInteger(compound, "FrameCount", this.frameCount);
+        this.setInteger(compound, "FrameTime", this.frametime);
 
         return compound;
     }
@@ -96,6 +105,16 @@ public class ItemDisplayData {
         }
         if (compound.hasKey("TranslateZ")) {
             this.translateZ = compound.getFloat("TranslateZ");
+        }
+
+        if (compound.hasKey("Animated")) {
+            this.animated = compound.getBoolean("Animated");
+        }
+        if (compound.hasKey("FrameCount")) {
+            this.frameCount = Math.max(1, compound.getInteger("FrameCount"));
+        }
+        if (compound.hasKey("FrameTime")) {
+            this.frametime = Math.max(1, compound.getInteger("FrameTime"));
         }
     }
 

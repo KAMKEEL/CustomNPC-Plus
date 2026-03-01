@@ -83,6 +83,9 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         // Default built-in animations
         this.windUpAnimationName = "Ability_Slam_Windup";
         this.activeAnimationName = "Ability_Slam_Active";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/slam.png")
+        };
     }
 
     /**

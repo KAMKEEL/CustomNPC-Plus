@@ -347,9 +347,14 @@ public class GuiFieldBuilder {
         String translated = StatCollector.translateToLocal(def.getLabel());
         int labelW = fontRenderer.getStringWidth(translated);
         int fieldX = colLLabel + labelW + labelPadding;
-        // Clamp field width so it doesn't extend under the scrollbar
+        // Available width before the scrollbar
         int maxW = contentRight - fieldX - 15;
-        if (maxW > 0 && fieldW > maxW) fieldW = maxW;
+        if (def.getType() == FieldType.SUB_GUI && maxW > 0) {
+            // SUB_GUI fields fill all available width up to the scrollbar
+            fieldW = maxW;
+        } else if (maxW > 0 && fieldW > maxW) {
+            fieldW = maxW;
+        }
         renderFieldAt(def, colLLabel, fieldX, fieldW, y);
     }
 

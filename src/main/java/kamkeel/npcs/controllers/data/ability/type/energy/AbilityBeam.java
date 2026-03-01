@@ -33,6 +33,7 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
 
     private float beamWidth = 0.4f;
     private float headSize = 0.6f;
+    private boolean freeAim = false;
 
     public AbilityBeam() {
         super(
@@ -55,6 +56,11 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Beam_Windup";
         this.activeAnimationName = "Ability_Beam_Active";
+
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/beam.png",
+                () -> isOuterColorEnabled() ? getOuterColor() : getInnerColor())
+        };
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
@@ -62,12 +68,14 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
     @Override
     protected EntityAbilityBeam createEntity(EntityLivingBase caster, EntityLivingBase target,
                                              Vec3 spawnPos, EnergyDisplayData resolved, int index) {
-        return new EntityAbilityBeam(
+        EntityAbilityBeam beam = new EntityAbilityBeam(
             caster.worldObj, caster, target,
             spawnPos.xCoord, spawnPos.yCoord, spawnPos.zCoord,
             beamWidth, headSize,
             resolved, combatData, homingData, lightningData, lifespanData,
             lockMovement.locksActive());
+        beam.setFreeAim(freeAim);
+        return beam;
     }
 
     @Override
@@ -93,6 +101,18 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
     @Override
     protected EntityAbilityBeam[] createEntityArray(int size) {
         return new EntityAbilityBeam[size];
+    }
+
+    @Override
+    public void detach() {
+        if (entities != null) {
+            for (EntityAbilityBeam beam : entities) {
+                if (beam != null && !beam.isDead) {
+                    beam.setAttachedToOwner(false);
+                }
+            }
+        }
+        super.detach();
     }
 
     @Override
@@ -134,12 +154,14 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
     protected void writeTypeSpecificNBT(NBTTagCompound nbt) {
         nbt.setFloat("beamWidth", beamWidth);
         nbt.setFloat("headSize", headSize);
+        nbt.setBoolean("freeAim", freeAim);
     }
 
     @Override
     protected void readTypeSpecificNBT(NBTTagCompound nbt) {
         this.beamWidth = nbt.getFloat("beamWidth");
         this.headSize = nbt.getFloat("headSize");
+        this.freeAim = nbt.getBoolean("freeAim");
     }
 
     // ==================== TYPE-SPECIFIC GETTERS ====================
@@ -168,6 +190,14 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
         this.headSize = headSize;
     }
 
+    public boolean isFreeAim() {
+        return freeAim;
+    }
+
+    public void setFreeAim(boolean freeAim) {
+        this.freeAim = freeAim;
+    }
+
     // ==================== TYPE-SPECIFIC GUI ====================
 
     @SideOnly(Side.CLIENT)
@@ -184,6 +214,9 @@ public class AbilityBeam extends AbilityEnergyProjectile<EntityAbilityBeam> impl
         ));
         defs.add(FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback));
         defs.add(FieldDef.section("ability.section.beam"));
+        defs.add(FieldDef.boolField("ability.freeAim", this::isFreeAim, this::setFreeAim)
+            .hover("ability.hover.freeAim")
+            .enabledWhen(() -> lockMovement.locksActive() && rotationMode == RotationMode.FREE && !freeOnCast));
         defs.add(FieldDef.row(
             FieldDef.floatField("ability.beamWidth", this::getBeamWidth, this::setBeamWidth).range(0.1f, 100.0f),
             FieldDef.floatField("ability.headSize", this::getHeadSize, this::setHeadSize).range(0.1f, 100.0f)

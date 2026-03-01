@@ -10,6 +10,8 @@ public class EnergyPanelData {
     public float panelWidth = 3.0f;
     public float panelHeight = 3.0f;
     public float heightOffset = 0.0f;
+    public float offsetX = 0.0f;
+    public float offsetZ = 0.0f;
 
     // Launch properties (Wall only)
     public boolean launching = false;
@@ -90,6 +92,8 @@ public class EnergyPanelData {
         nbt.setFloat("panelWidth", panelWidth);
         nbt.setFloat("panelHeight", panelHeight);
         nbt.setFloat("panelHeightOffset", heightOffset);
+        nbt.setFloat("panelOffsetX", offsetX);
+        nbt.setFloat("panelOffsetZ", offsetZ);
         nbt.setBoolean("panelLaunching", launching);
         nbt.setFloat("panelLaunchSpeed", launchSpeed);
         nbt.setFloat("panelLaunchDamage", launchDamage);
@@ -100,6 +104,8 @@ public class EnergyPanelData {
         panelWidth = nbt.hasKey("panelWidth") ? nbt.getFloat("panelWidth") : 3.0f;
         panelHeight = nbt.hasKey("panelHeight") ? nbt.getFloat("panelHeight") : 3.0f;
         heightOffset = nbt.hasKey("panelHeightOffset") ? nbt.getFloat("panelHeightOffset") : 0.0f;
+        offsetX = nbt.hasKey("panelOffsetX") ? nbt.getFloat("panelOffsetX") : 0.0f;
+        offsetZ = nbt.hasKey("panelOffsetZ") ? nbt.getFloat("panelOffsetZ") : 0.0f;
         launching = nbt.hasKey("panelLaunching") && nbt.getBoolean("panelLaunching");
         launchSpeed = nbt.hasKey("panelLaunchSpeed") ? nbt.getFloat("panelLaunchSpeed") : 0.5f;
         launchDamage = nbt.hasKey("panelLaunchDamage") ? nbt.getFloat("panelLaunchDamage") : 8.0f;
@@ -108,6 +114,8 @@ public class EnergyPanelData {
 
     public EnergyPanelData copy() {
         EnergyPanelData copy = new EnergyPanelData(panelWidth, panelHeight, heightOffset);
+        copy.offsetX = offsetX;
+        copy.offsetZ = offsetZ;
         copy.launching = launching;
         copy.launchSpeed = launchSpeed;
         copy.launchDamage = launchDamage;

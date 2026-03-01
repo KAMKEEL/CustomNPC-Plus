@@ -7,18 +7,19 @@ import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
-import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDefend;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.data.telegraph.TelegraphSpawnPacket;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
+import noppes.npcs.EventHooks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,51 +123,6 @@ public class DataAbilities extends AbstractDataAbilities {
     @Override
     protected long getWorldTime() {
         return npc.worldObj.getTotalWorldTime();
-    }
-
-    @Override
-    protected void fireTickEvent(Ability ability, EntityLivingBase target) {
-        AbilityEvent.TickEvent event = new AbilityEvent.TickEvent(
-            npc.wrappedNPC, ability, target,
-            ability.getPhase().ordinal(), ability.getCurrentTick());
-        NpcAPI.EVENT_BUS.post(event);
-    }
-
-    @Override
-    protected boolean fireExecuteEvent(Ability ability, EntityLivingBase target) {
-        AbilityEvent.ExecuteEvent executeEvent = new AbilityEvent.ExecuteEvent(
-            npc.wrappedNPC, ability, target);
-        return NpcAPI.EVENT_BUS.post(executeEvent);
-    }
-
-    @Override
-    protected void fireCompleteEvent(Ability ability, EntityLivingBase target) {
-        AbilityEvent.CompleteEvent completeEvent = new AbilityEvent.CompleteEvent(
-            npc.wrappedNPC, ability, target);
-        NpcAPI.EVENT_BUS.post(completeEvent);
-    }
-
-    @Override
-    protected void fireInterruptEvent(Ability ability, EntityLivingBase target,
-                                      DamageSource source, float damage) {
-        AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(
-            npc.wrappedNPC, ability, target, source, damage);
-        NpcAPI.EVENT_BUS.post(interruptEvent);
-    }
-
-    @Override
-    protected boolean fireToggleEvent(Ability ability, int oldState, int newState) {
-        AbilityEvent.ToggleEvent event = new AbilityEvent.ToggleEvent(
-            npc.wrappedNPC, ability, oldState, newState);
-        return NpcAPI.EVENT_BUS.post(event);
-    }
-
-    @Override
-    protected boolean fireToggleUpdateEvent(Ability ability, int tick, int state) {
-        AbilityEvent.ToggleUpdateEvent event = new AbilityEvent.ToggleUpdateEvent(
-            npc.wrappedNPC, ability, tick, state);
-        NpcAPI.EVENT_BUS.post(event);
-        return event.isEnabled();
     }
 
     @Override
@@ -502,10 +458,7 @@ public class DataAbilities extends AbstractDataAbilities {
      */
     private boolean startAbility(Ability ability, EntityLivingBase target) {
         // Fire start event (cancelable)
-        AbilityEvent.StartEvent startEvent = new AbilityEvent.StartEvent(
-            npc.wrappedNPC, ability, target);
-        if (NpcAPI.EVENT_BUS.post(startEvent)) {
-            // Event was cancelled - don't start the ability
+        if (EventHooks.onAbilityStart(ability, npc, target)) {
             return false;
         }
 
@@ -564,29 +517,12 @@ public class DataAbilities extends AbstractDataAbilities {
 
         // Track hit for hit count condition
         recordHit();
-
-        net.minecraft.entity.Entity sourceEntity = source.getEntity();
-        EntityLivingBase attacker = sourceEntity instanceof EntityLivingBase ? (EntityLivingBase) sourceEntity : null;
-        currentAbility.onDamageTaken(npc, attacker, source, amount);
-
         if (currentAbility.canInterrupt(source)) {
             interruptCurrentAbility(source, amount);
             return true;
         }
 
         return false;
-    }
-
-    /**
-     * Get the damage reduction factor if a Guard ability is currently active.
-     *
-     * @return The damage reduction factor (0.0 = no reduction, 1.0 = full immunity), or 0 if not guarding
-     */
-    public float getGuardDamageReduction() {
-        if (currentAbility instanceof AbilityGuard) {
-            return ((AbilityGuard) currentAbility).getDamageReductionFactor();
-        }
-        return 0.0f;
     }
 
     /**
@@ -697,29 +633,6 @@ public class DataAbilities extends AbstractDataAbilities {
     // ═══════════════════════════════════════════════════════════════════
     // SCRIPT EVENTS
     // ═══════════════════════════════════════════════════════════════════
-
-    /**
-     * Fire an ability hit event. Called by abilities when they hit an entity.
-     * Returns null if the event was cancelled, otherwise returns the (possibly modified) event.
-     *
-     * @param ability     The ability doing the hit
-     * @param target      The original target of the ability
-     * @param hitEntity   The entity being hit
-     * @param damage      The damage amount
-     * @param knockback   The horizontal knockback
-     * @param knockbackUp The vertical knockback
-     * @return The event (with possibly modified values), or null if cancelled
-     */
-    public AbilityEvent.HitEvent fireHitEvent(Ability ability, EntityLivingBase target,
-                                              EntityLivingBase hitEntity, float damage,
-                                              float knockback, float knockbackUp) {
-        AbilityEvent.HitEvent event = new AbilityEvent.HitEvent(
-            npc.wrappedNPC, ability, target, hitEntity, damage, knockback, knockbackUp);
-        if (NpcAPI.EVENT_BUS.post(event)) {
-            return null; // Cancelled
-        }
-        return event;
-    }
 
     /**
      * Get the NPC this DataAbilities belongs to.
@@ -1091,7 +1004,7 @@ public class DataAbilities extends AbstractDataAbilities {
 
         NBTTagList actionList = new NBTTagList();
         for (AbilityAction slot : actionSlots) {
-            actionList.appendTag(slot.writeNBT());
+            actionList.appendTag(slot.writeNBT(true));
         }
         compound.setTag("AbilityActions", actionList);
 
@@ -1146,7 +1059,7 @@ public class DataAbilities extends AbstractDataAbilities {
             }
         }
 
-        // Active toggles - restore state directly (no onToggleOn callback during load)
+        // Active toggles - restore state directly (no onToggle callback during load)
         activeToggles.clear();
         if (compound.hasKey("ActiveToggles")) {
             NBTTagList toggleNbt = compound.getTagList("ActiveToggles", 10); // 10 = TAG_COMPOUND
