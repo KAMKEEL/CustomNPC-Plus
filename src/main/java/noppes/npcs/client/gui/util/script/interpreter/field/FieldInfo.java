@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.field;
 
+import noppes.npcs.client.gui.util.script.ScopeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
@@ -53,6 +54,8 @@ public final class FieldInfo {
 
     // Reflection field for external types
     private final Field reflectionField;
+
+    private ScopeInfo scopeInfo;
 
     // Assignments to this field (populated after parsing)
     private final List<AssignmentInfo> assignments = new ArrayList<>();
@@ -533,12 +536,18 @@ public final class FieldInfo {
      * For local variables, they're only visible after their declaration.
      */
     public boolean isVisibleAt(int position) {
+        if (scopeInfo != null && !scopeInfo.containsPosition(position)) {
+            return false;
+        }
         if (scope == Scope.GLOBAL || scope == Scope.PARAMETER) {
             return true; // Always visible in their scope
         }
         // Local variables are only visible after declaration
         return position >= declarationOffset;
     }
+
+    public ScopeInfo getScopeInfo() { return scopeInfo; }
+    public void setScopeInfo(ScopeInfo scopeInfo) { this.scopeInfo = scopeInfo; }
 
     /**
      * Get the appropriate TokenType for highlighting this field.

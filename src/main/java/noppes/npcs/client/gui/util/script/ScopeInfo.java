@@ -20,7 +20,7 @@ public class ScopeInfo {
         return pos >= startOffset && pos < endOffset;
     }
     
-    public boolean isWithin(ScopeInfo other) {
+    public boolean isWithin(ScopeInfo other) { 
         return this.startOffset >= other.startOffset && this.endOffset <= other.endOffset;
     }
 }

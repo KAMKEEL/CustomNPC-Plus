@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.field;
 
+import noppes.npcs.client.gui.util.script.ScopeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
@@ -59,6 +60,8 @@ public class AssignmentInfo {
     private String errorMessage;
     private String requiredType;
     private String providedType;
+
+    private ScopeInfo scopeInfo;
 
     public AssignmentInfo(String targetName, int statementStart, int lhsStart, int lhsEnd,
                           TypeInfo targetType, int rhsStart, int rhsEnd,
@@ -227,6 +230,9 @@ public class AssignmentInfo {
     public boolean hasTypeMismatch() { return errorType == ErrorType.TYPE_MISMATCH; }
     public boolean hasFinalReassignment() { return errorType == ErrorType.FINAL_REASSIGNMENT; }
     public boolean hasAccessError() { return errorType == ErrorType.PRIVATE_ACCESS || errorType == ErrorType.PROTECTED_ACCESS; }
+
+    public ScopeInfo getScopeInfo() { return scopeInfo; }
+    public void setScopeInfo(ScopeInfo scopeInfo) { this.scopeInfo = scopeInfo; }
 
     @Override
     public String toString() {

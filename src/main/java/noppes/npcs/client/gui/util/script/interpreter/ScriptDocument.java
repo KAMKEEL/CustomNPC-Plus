@@ -23,6 +23,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.*;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticField;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticMethod;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticType;
+import noppes.npcs.client.gui.util.script.ScopeInfo;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.DataScript;
 
@@ -104,7 +105,7 @@ public class ScriptDocument {
     private final List<MethodInfo> methods = new ArrayList<>();
     private final Map<String, FieldInfo> globalFields = new HashMap<>();
     // Local variables per method (methodStartOffset -> {varName -> FieldInfo})
-    private final Map<Integer, Map<String, FieldInfo>> methodLocals = new HashMap<>();
+    private final Map<Integer, Map<String, List<FieldInfo>>> methodLocals = new HashMap<>();
 
     // Inner callable scopes (lambdas, JS function expressions) - NOT in methods list
     private final List<InnerCallableScope> innerScopes = new ArrayList<>();
@@ -1214,6 +1215,202 @@ public class ScriptDocument {
         return params;
     }
 
+    private ScopeInfo computeBlockScope(int bodyStart, int bodyEnd, int declarationOffset) {
+        int end = Math.min(bodyEnd, text.length());
+        int pos = Math.min(Math.max(declarationOffset, bodyStart), end);
+
+        Deque<Integer> stack = new ArrayDeque<>();
+        for (int i = bodyStart; i < pos && i < text.length(); i++) {
+            if (isExcluded(i)) {
+                continue;
+            }
+            char c = text.charAt(i);
+            if (c == '{') {
+                stack.push(i);
+            } else if (c == '}') {
+                if (!stack.isEmpty()) {
+                    stack.pop();
+                }
+            }
+        }
+
+        if (stack.isEmpty()) {
+            ScopeInfo parenScope = computeParenStatementScope(bodyStart, bodyEnd, pos);
+            if (parenScope != null) {
+                return parenScope;
+            }
+            return new ScopeInfo(bodyStart, bodyEnd, false, "method");
+        }
+
+        int openBrace = stack.peek();
+        int closeBrace = findMatchingBrace(openBrace);
+        if (closeBrace < 0 || closeBrace > bodyEnd) {
+            return new ScopeInfo(bodyStart, bodyEnd, false, "method");
+        }
+        return new ScopeInfo(openBrace + 1, closeBrace, false, "block");
+    }
+
+    private ScopeInfo computeParenStatementScope(int bodyStart, int bodyEnd, int position) {
+        int openParen = findEnclosingParenStart(bodyStart, position);
+        if (openParen < 0) {
+            return null;
+        }
+
+        int closeParen = findMatchingParen(openParen, bodyEnd);
+        if (closeParen < 0 || position > closeParen) {
+            return null;
+        }
+
+        String keyword = readKeywordBefore(openParen);
+        if (!"for".equals(keyword) && !"catch".equals(keyword)) {
+            return null;
+        }
+
+        int after = skipWhitespaceAndExcluded(closeParen + 1, bodyEnd);
+        if (after < 0 || after >= bodyEnd) {
+            return null;
+        }
+
+        if (text.charAt(after) == '{') {
+            int closeBrace = findMatchingBrace(after);
+            if (closeBrace > 0) {
+                return new ScopeInfo(openParen, closeBrace, false, "block");
+            }
+            return null;
+        }
+
+        int stmtEnd = findStatementEnd(after, bodyEnd);
+        if (stmtEnd > after) {
+            return new ScopeInfo(openParen, stmtEnd, false, "block");
+        }
+        return null;
+    }
+
+    private int skipWhitespaceAndExcluded(int pos, int limit) {
+        int i = Math.max(pos, 0);
+        int max = Math.min(limit, text.length());
+        while (i < max) {
+            if (isExcluded(i)) {
+                i++;
+                continue;
+            }
+            if (!Character.isWhitespace(text.charAt(i))) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    }
+
+    private int findStatementEnd(int start, int limit) {
+        int max = Math.min(limit, text.length());
+        int parenDepth = 0;
+        int bracketDepth = 0;
+        for (int i = start; i < max; i++) {
+            if (isExcluded(i)) {
+                continue;
+            }
+            char c = text.charAt(i);
+            if (c == '(') parenDepth++;
+            else if (c == ')') parenDepth = Math.max(0, parenDepth - 1);
+            else if (c == '[') bracketDepth++;
+            else if (c == ']') bracketDepth = Math.max(0, bracketDepth - 1);
+            else if (c == '{') {
+                int closeBrace = findMatchingBrace(i);
+                return closeBrace > 0 ? closeBrace : -1;
+            } else if (c == ';' && parenDepth == 0 && bracketDepth == 0) {
+                return i + 1;
+            }
+        }
+        return -1;
+    }
+
+    private int findEnclosingParenStart(int min, int position) {
+        int depth = 0;
+        for (int i = Math.min(position - 1, text.length() - 1); i >= min; i--) {
+            if (isExcluded(i)) {
+                continue;
+            }
+            char c = text.charAt(i);
+            if (c == ')') {
+                depth++;
+            } else if (c == '(') {
+                if (depth == 0) {
+                    return i;
+                }
+                depth--;
+            }
+        }
+        return -1;
+    }
+
+    private int findMatchingParen(int openParenIndex, int limit) {
+        if (openParenIndex < 0 || openParenIndex >= text.length()) {
+            return -1;
+        }
+        int max = Math.min(limit, text.length());
+        int depth = 0;
+        for (int i = openParenIndex; i < max; i++) {
+            if (isExcluded(i)) {
+                continue;
+            }
+            char c = text.charAt(i);
+            if (c == '(') depth++;
+            else if (c == ')') {
+                depth--;
+                if (depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private String readKeywordBefore(int position) {
+        int i = position - 1;
+        while (i >= 0) {
+            if (isExcluded(i)) {
+                i--;
+                continue;
+            }
+            if (!Character.isWhitespace(text.charAt(i))) {
+                break;
+            }
+            i--;
+        }
+        if (i < 0) {
+            return "";
+        }
+        int end = i + 1;
+        while (i >= 0 && Character.isJavaIdentifierPart(text.charAt(i))) {
+            i--;
+        }
+        int start = i + 1;
+        if (start >= end) {
+            return "";
+        }
+        return text.substring(start, end);
+    }
+
+    private FieldInfo pickVisibleLocal(List<FieldInfo> candidates, int position) {
+        if (candidates == null || candidates.isEmpty()) {
+            return null;
+        }
+        FieldInfo best = null;
+        for (FieldInfo f : candidates) {
+            if (f == null) {
+                continue;
+            }
+            if (!f.isVisibleAt(position)) {
+                continue;
+            }
+            if (best == null || f.getDeclarationOffset() > best.getDeclarationOffset()) {
+                best = f;
+            }
+        }
+        return best;
+    }
+
     /**
      * Parse local variables inside methods/functions - UNIFIED for both Java and JavaScript.
      * Stores results in the shared 'methodLocals' map (methodOffset -> varName -> FieldInfo).
@@ -1223,7 +1420,7 @@ public class ScriptDocument {
      */
     private void parseLocalVariables() {
         for (MethodInfo method : getAllMethods()) {
-            Map<String, FieldInfo> locals = new HashMap<>();
+            Map<String, List<FieldInfo>> locals = new HashMap<>();
             methodLocals.put(method.getDeclarationOffset(), locals);
 
             int bodyStart = method.getBodyStart();
@@ -1234,15 +1431,16 @@ public class ScriptDocument {
             
             if (isJavaScript()) {
                 // JavaScript: var/let/const varName = expr;
-                Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
+                Pattern varPattern = Pattern.compile("(var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
                 Matcher m = varPattern.matcher(bodyText);
                 
                 while (m.find()) {
-                    int absPos = bodyStart + m.start(1);
+                    int absPos = bodyStart + m.start(2);
                     if (isExcluded(absPos)) continue;
                     
-                    String varName = m.group(1);
-                    String initializer = m.group(3);
+                    String kind = m.group(1);
+                    String varName = m.group(2);
+                    String initializer = m.group(4);
                     
                     // Check for JSDoc type annotation before the declaration
                     int absStart = bodyStart + m.start();
@@ -1257,7 +1455,7 @@ public class ScriptDocument {
                     
                     // Priority 2: Infer type from initializer if no JSDoc type
                     if (typeInfo == null && initializer != null && !initializer.trim().isEmpty()) {
-                        typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(3));
+                        typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(4));
                     }
                     
                     // Priority 3: Use "any" type for uninitialized variables
@@ -1266,25 +1464,57 @@ public class ScriptDocument {
                     }
                     
                     int initStart = -1, initEnd = -1;
-                    if (m.group(2) != null) {
+                    if (m.group(3) != null) {
                         // Include the = sign in initStart
-                        initStart = bodyStart + m.start(2);
-                        initEnd = bodyStart + m.end(3);
+                        initStart = bodyStart + m.start(3);
+                        initEnd = bodyStart + m.end(4);
                     }
                     
                     FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, absPos, method, initStart, initEnd, 0);
+                    ScopeInfo scopeInfo;
+                    if ("var".equals(kind)) {
+                        scopeInfo = new ScopeInfo(bodyStart, bodyEnd, false, "method");
+                    } else {
+                        scopeInfo = computeBlockScope(bodyStart, bodyEnd, absPos);
+                    }
+                    fieldInfo.setScopeInfo(scopeInfo);
                     
                     if(jsDoc != null)
                         fieldInfo.setJSDocInfo(jsDoc);
                     // Check for duplicate
-                    if (locals.containsKey(varName) || globalFields.containsKey(varName)) {
+                    List<FieldInfo> existing = locals.get(varName);
+                    if (existing != null && !existing.isEmpty()) {
+                        boolean dup = false;
+                        if ("let".equals(kind) || "const".equals(kind)) {
+                            for (FieldInfo prev : existing) {
+                                ScopeInfo prevScope = prev.getScopeInfo();
+                                if (prevScope != null && prevScope.startOffset == scopeInfo.startOffset && prevScope.endOffset == scopeInfo.endOffset) {
+                                    dup = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (dup || globalFields.containsKey(varName)) {
+                            AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
+                                varName, absPos, absPos + varName.length(),
+                                "Variable '" + varName + "' is already defined in the scope");
+                            dupError.setScopeInfo(scopeInfo);
+                            declarationErrors.add(dupError);
+                            continue;
+                        }
+                        if ("var".equals(kind)) {
+                            continue;
+                        }
+                    } else if (globalFields.containsKey(varName)) {
                         AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
                             varName, absPos, absPos + varName.length(),
                             "Variable '" + varName + "' is already defined in the scope");
+                        dupError.setScopeInfo(scopeInfo);
                         declarationErrors.add(dupError);
-                    } else {
-                        locals.put(varName, fieldInfo);
+                        continue;
                     }
+
+                    locals.computeIfAbsent(varName, k -> new ArrayList<>()).add(fieldInfo);
                 }
             } else {
                 // Java: Type varName = expr; or Type varName;
@@ -1337,14 +1567,37 @@ public class ScriptDocument {
                     
                     int declPos = bodyStart + m.start(2);
                     FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method, initStart, initEnd, modifiers);
-
-                    if (locals.containsKey(varName) || globalFields.containsKey(varName)) {
+                    ScopeInfo scopeInfo = computeBlockScope(bodyStart, bodyEnd, declPos);
+                    fieldInfo.setScopeInfo(scopeInfo);
+                    
+                    List<FieldInfo> existing = locals.get(varName);
+                    if (existing != null) {
+                        boolean dup = false;
+                        for (FieldInfo prev : existing) {
+                            ScopeInfo prevScope = prev.getScopeInfo();
+                            if (prevScope != null && prevScope.containsPosition(declPos)) {
+                                dup = true;
+                                break;
+                            }
+                        }
+                        if (dup || globalFields.containsKey(varName)) {
+                            AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
+                                varName, declPos, declPos + varName.length(),
+                                "Variable '" + varName + "' is already defined in the scope");
+                            dupError.setScopeInfo(scopeInfo);
+                            declarationErrors.add(dupError);
+                            continue;
+                        }
+                    } else if (globalFields.containsKey(varName)) {
                         AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
                             varName, declPos, declPos + varName.length(),
                             "Variable '" + varName + "' is already defined in the scope");
+                        dupError.setScopeInfo(scopeInfo);
                         declarationErrors.add(dupError);
-                    } else if (!locals.containsKey(varName))
-                        locals.put(varName, fieldInfo);
+                        continue;
+                    }
+
+                    locals.computeIfAbsent(varName, k -> new ArrayList<>()).add(fieldInfo);
                 }
             }
         }
@@ -5897,10 +6150,10 @@ public class ScriptDocument {
 
             // Check local variables (method scope)
             if (containingMethod != null) {
-                Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
-                if (locals != null && locals.containsKey(name)) {
-                    FieldInfo localInfo = locals.get(name);
-                    if (localInfo.isVisibleAt(position)) {
+                Map<String, List<FieldInfo>> locals = methodLocals.get(containingMethod.getDeclarationOffset());
+                if (locals != null) {
+                    FieldInfo localInfo = pickVisibleLocal(locals.get(name), position);
+                    if (localInfo != null) {
                         Object metadata = callInfo != null ? new FieldInfo.ArgInfo(localInfo, callInfo) : localInfo;
                         marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, metadata));
                         continue;
@@ -6015,9 +6268,11 @@ public class ScriptDocument {
         for (FieldInfo field : globalFields.values()) {
             field.clearAssignments();
         }
-        for (Map<String, FieldInfo> locals : methodLocals.values()) {
-            for (FieldInfo field : locals.values()) {
-                field.clearAssignments();
+        for (Map<String, List<FieldInfo>> locals : methodLocals.values()) {
+            for (List<FieldInfo> fields : locals.values()) {
+                for (FieldInfo field : fields) {
+                    field.clearAssignments();
+                }
             }
         }
         // Also clear assignments in script type fields
@@ -6225,7 +6480,7 @@ public class ScriptDocument {
         FieldInfo finalTargetField = targetField;
         boolean isScriptField = targetField != null && 
             (globalFields.containsValue(targetField) || 
-             methodLocals.values().stream().anyMatch(m -> m.containsValue(finalTargetField)));
+             methodLocals.values().stream().anyMatch(m -> m.values().stream().anyMatch(list -> list.contains(finalTargetField))));
         
         // Determine if the target field is final
         // For script fields, use the modifiers; for external fields, use reflection
@@ -6249,6 +6504,10 @@ public class ScriptDocument {
             reflectionField,
             isFinal
         );
+
+        if (targetField != null) {
+            info.setScopeInfo(targetField.getScopeInfo());
+        }
         
         // Validate the assignment
         info.validate();
@@ -6353,6 +6612,8 @@ public class ScriptDocument {
             targetField.getReflectionField(),
             false // Don't flag as final for declaration assignments - initial assignment is always allowed
         );
+
+        info.setScopeInfo(targetField.getScopeInfo());
         
         // Validate the assignment
         info.validate();
@@ -6953,10 +7214,10 @@ public class ScriptDocument {
             }
             
             // Check method locals
-            Map<String, FieldInfo> locals = methodLocals.get(method.getDeclarationOffset());
-            if (locals != null && locals.containsKey(name)) {
-                FieldInfo localInfo = locals.get(name);
-                if (localInfo.isVisibleAt(position)) {
+            Map<String, List<FieldInfo>> locals = methodLocals.get(method.getDeclarationOffset());
+            if (locals != null) {
+                FieldInfo localInfo = pickVisibleLocal(locals.get(name), position);
+                if (localInfo != null) {
                     return localInfo;
                 }
             }
@@ -7181,11 +7442,13 @@ public class ScriptDocument {
             }
         }
 
-        for (Map<String, FieldInfo> locals : methodLocals.values()) {
-            for (FieldInfo field : locals.values()) {
-                AssignmentInfo assign = field.findAssignmentAtPosition(position);
-                if (assign != null) {
-                    return assign;
+        for (Map<String, List<FieldInfo>> locals : methodLocals.values()) {
+            for (List<FieldInfo> fields : locals.values()) {
+                for (FieldInfo field : fields) {
+                    AssignmentInfo assign = field.findAssignmentAtPosition(position);
+                    if (assign != null) {
+                        return assign;
+                    }
                 }
             }
         }
@@ -7270,11 +7533,12 @@ public class ScriptDocument {
             variables.addAll(method.getParameters());
             
             // Add method locals (only those visible at position)
-            Map<String, FieldInfo> locals = methodLocals.get(method.getDeclarationOffset());
+            Map<String, List<FieldInfo>> locals = methodLocals.get(method.getDeclarationOffset());
             if (locals != null) {
-                for (FieldInfo local : locals.values()) {
-                    if (local.isVisibleAt(position)) {
-                        variables.add(local);
+                for (List<FieldInfo> candidates : locals.values()) {
+                    FieldInfo best = pickVisibleLocal(candidates, position);
+                    if (best != null) {
+                        variables.add(best);
                     }
                 }
             }
@@ -7336,9 +7600,11 @@ public class ScriptDocument {
         }
         
         // Check method locals
-        for (Map<String, FieldInfo> locals : methodLocals.values()) {
-            for (FieldInfo field : locals.values()) {
-                errored.addAll(field.getErroredAssignments());
+        for (Map<String, List<FieldInfo>> locals : methodLocals.values()) {
+            for (List<FieldInfo> fields : locals.values()) {
+                for (FieldInfo field : fields) {
+                    errored.addAll(field.getErroredAssignments());
+                }
             }
         }
         
@@ -7527,10 +7793,10 @@ public class ScriptDocument {
         // Check method locals
         MethodInfo containingMethod = findMethodAtPosition(position);
         if (containingMethod != null) {
-            Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
-            if (locals != null && locals.containsKey(varName)) {
-                FieldInfo field = locals.get(varName);
-                if (field.isVisibleAt(position)) {
+            Map<String, List<FieldInfo>> locals = methodLocals.get(containingMethod.getDeclarationOffset());
+            if (locals != null) {
+                FieldInfo field = pickVisibleLocal(locals.get(varName), position);
+                if (field != null) {
                     return field.getTypeInfo();
                 }
             }
@@ -7560,7 +7826,18 @@ public class ScriptDocument {
      */
     public Map<String, FieldInfo> getLocalsForMethod(MethodInfo method) {
         if (method == null) return null;
-        return methodLocals.get(method.getDeclarationOffset());
+        Map<String, List<FieldInfo>> locals = methodLocals.get(method.getDeclarationOffset());
+        if (locals == null) {
+            return null;
+        }
+        Map<String, FieldInfo> flattened = new HashMap<>();
+        for (Map.Entry<String, List<FieldInfo>> e : locals.entrySet()) {
+            List<FieldInfo> fields = e.getValue();
+            if (fields != null && !fields.isEmpty()) {
+                flattened.put(e.getKey(), fields.get(0));
+            }
+        }
+        return flattened;
     }
     
     /**

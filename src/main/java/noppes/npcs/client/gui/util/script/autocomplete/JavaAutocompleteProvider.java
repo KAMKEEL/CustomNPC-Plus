@@ -258,18 +258,15 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
 
         // Add local variables
         if (containingMethod != null) {
-            Map<String, FieldInfo> locals = document.getLocalsForMethod(containingMethod);
-            if (locals != null) {
-                for (FieldInfo local : locals.values()) {
-                    if (local.isVisibleAt(pos)) {
-                        items.add(AutocompleteItem.fromField(local));
-                    }
+            List<FieldInfo> available = document.getAvailableVariablesAt(pos);
+            Set<String> seenNames = new HashSet<>();
+            for (FieldInfo field : available) {
+                if (!(field.isLocal() || field.isParameter())) {
+                    continue;
                 }
-            }
-
-            // Add method parameters
-            for (FieldInfo param : containingMethod.getParameters()) {
-                items.add(AutocompleteItem.fromField(param));
+                if (seenNames.add(field.getName())) {
+                    items.add(AutocompleteItem.fromField(field));
+                }
             }
         }
 
