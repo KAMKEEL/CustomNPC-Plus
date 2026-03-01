@@ -9,6 +9,7 @@ public class EnergyAnchorData implements IEnergyAnchorData {
     public float anchorOffsetX = 0;
     public float anchorOffsetY = 0;
     public float anchorOffsetZ = 0;
+    public boolean launchFromAnchor = false;
 
     public EnergyAnchorData() {
     }
@@ -83,11 +84,22 @@ public class EnergyAnchorData implements IEnergyAnchorData {
         this.anchorOffsetZ = anchorOffsetZ;
     }
 
+    @Override
+    public boolean getLaunchFromAnchor() {
+        return launchFromAnchor;
+    }
+
+    @Override
+    public void setLaunchFromAnchor(boolean launchFromAnchor) {
+        this.launchFromAnchor = launchFromAnchor;
+    }
+
     public void writeNBT(NBTTagCompound nbt) {
         nbt.setInteger("anchorPoint", anchorPoint.ordinal());
         nbt.setFloat("anchorOffsetX", anchorOffsetX);
         nbt.setFloat("anchorOffsetY", anchorOffsetY);
         nbt.setFloat("anchorOffsetZ", anchorOffsetZ);
+        nbt.setBoolean("launchFromAnchor", launchFromAnchor);
     }
 
     public void readNBT(NBTTagCompound nbt) {
@@ -95,9 +107,12 @@ public class EnergyAnchorData implements IEnergyAnchorData {
         this.anchorOffsetX = nbt.getFloat("anchorOffsetX");
         this.anchorOffsetY = nbt.getFloat("anchorOffsetY");
         this.anchorOffsetZ = nbt.getFloat("anchorOffsetZ");
+        this.launchFromAnchor = nbt.getBoolean("launchFromAnchor");
     }
 
     public EnergyAnchorData copy() {
-        return new EnergyAnchorData(anchorPoint, anchorOffsetX, anchorOffsetY, anchorOffsetZ);
+        EnergyAnchorData copy = new EnergyAnchorData(anchorPoint, anchorOffsetX, anchorOffsetY, anchorOffsetZ);
+        copy.launchFromAnchor = this.launchFromAnchor;
+        return copy;
     }
 }

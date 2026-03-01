@@ -1436,10 +1436,16 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     /**
-     * Only player-cast projectiles should be recentered to look-vector launch origin.
-     * NPC projectiles keep their anchor charge origin so casts originate from the configured anchor.
+     * Determines whether the projectile should snap to the look-vector launch origin on fire.
+     * By default, player-cast projectiles snap (launch from eye position along crosshair),
+     * and NPC projectiles keep their anchor charge origin.
+     * When {@code anchorData.launchFromAnchor} is true, snapping is disabled so the
+     * projectile launches from its configured anchor position instead.
      */
     protected boolean shouldSnapLaunchToLookVector(EntityLivingBase owner) {
+        if (anchorData.launchFromAnchor) {
+            return false;
+        }
         return owner instanceof EntityPlayer;
     }
 

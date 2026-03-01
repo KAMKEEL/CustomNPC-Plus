@@ -787,6 +787,14 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         projectiles[0].anchor.anchorOffsetZ = z;
     }
 
+    public boolean getLaunchFromAnchor() {
+        return projectiles[0].anchor.launchFromAnchor;
+    }
+
+    public void setLaunchFromAnchor(boolean launchFromAnchor) {
+        projectiles[0].anchor.launchFromAnchor = launchFromAnchor;
+    }
+
     @Override
     public int getAnchorPoint() {
         return projectiles[0].anchor.anchorPoint.ordinal();
@@ -840,6 +848,14 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         projectiles[clampIndex(index)].anchor.anchorOffsetZ = offset;
     }
 
+    public boolean getLaunchFromAnchor(int index) {
+        return projectiles[clampIndex(index)].anchor.launchFromAnchor;
+    }
+
+    public void setLaunchFromAnchor(int index, boolean launchFromAnchor) {
+        projectiles[clampIndex(index)].anchor.launchFromAnchor = launchFromAnchor;
+    }
+
     // ==================== GUI FIELD DEFINITIONS ====================
 
     @SideOnly(Side.CLIENT)
@@ -889,6 +905,9 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
             ).tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount));
             defs.add(FieldDef.floatField("ability.anchor.offsetZ", () -> projectiles[idx].anchor.anchorOffsetZ, v -> projectiles[idx].anchor.anchorOffsetZ = v)
                 .tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount).min(Float.NEGATIVE_INFINITY));
+            defs.add(FieldDef.boolField("ability.launchFromAnchor", () -> projectiles[idx].anchor.launchFromAnchor, v -> projectiles[idx].anchor.launchFromAnchor = v)
+                .tab("ability.tab.visual").visibleWhen(() -> idx < projectileCount)
+                .hover("ability.hover.launchFromAnchor"));
 
             // Color override (only when multiple projectiles)
             defs.add(FieldDef.boolField("ability.colorOverride", () -> projectiles[idx].colorOverride, v -> projectiles[idx].colorOverride = v)
