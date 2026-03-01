@@ -189,7 +189,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
             if (ability.isConcurrentCapable()) {
                 sw.addLabel(new GuiNpcLabel(baseId + 3,
-                    StatCollector.translateToLocal("ability.concurrentInfo"), 5, infoY, 0x55FF55));
+                    StatCollector.translateToLocal("ability.concurrentInfo"), 5, infoY, 0x55FFFF));
             }
         }
 

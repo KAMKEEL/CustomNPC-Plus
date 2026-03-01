@@ -649,9 +649,11 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             // Search matches either the display name or the typeId (strip color codes for matching)
             String stripped = displayName.replaceAll("\u00A7.", "");
             if (search.isEmpty() || stripped.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
-                // Lime green for concurrent-capable types, gray for other built-in types
-                if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
-                    displayName = "\u00A7a" + displayName;
+                // Pink for custom ability, light blue for concurrent-capable types, gray for other built-in types
+                if (typeId.equals("ability.cnpc.custom")) {
+                    displayName = "\u00A7d" + displayName;
+                } else if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
+                    displayName = "\u00A7b" + displayName;
                 } else if (AbilityController.Instance.isBuiltInType(typeId)) {
                     displayName = "\u00A77" + displayName;
                 }
@@ -661,6 +663,21 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         }
         Collections.sort(list, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
             a.replaceAll("\u00A7.", ""), b.replaceAll("\u00A7.", "")));
+
+        // Pin Custom Ability to top of list
+        String customEntry = null;
+        for (String name : list) {
+            String tid = displayNameToTypeId.get(name);
+            if (tid != null && tid.equals("ability.cnpc.custom")) {
+                customEntry = name;
+                break;
+            }
+        }
+        if (customEntry != null) {
+            list.remove(customEntry);
+            list.add(0, customEntry);
+        }
+
         return list;
     }
 

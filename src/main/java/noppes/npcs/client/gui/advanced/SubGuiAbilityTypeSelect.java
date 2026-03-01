@@ -86,7 +86,7 @@ public class SubGuiAbilityTypeSelect extends SubGuiInterface implements ICustomS
             if (typeId.equals("ability.cnpc.custom")) {
                 displayName = "\u00A7d" + displayName;
             } else if (AbilityController.Instance.isConcurrentCapableType(typeId)) {
-                displayName = "\u00A7a" + displayName;
+                displayName = "\u00A7b" + displayName;
             }
             allDisplayNameToTypeId.put(displayName, typeId);
         }

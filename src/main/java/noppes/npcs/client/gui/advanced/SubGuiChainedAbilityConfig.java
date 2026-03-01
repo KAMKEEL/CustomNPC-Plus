@@ -402,7 +402,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
                 // Concurrent toggle (only shown if resolved ability is concurrent-capable, never for first entry)
                 if (i > 0 && resolvedAbility != null && resolvedAbility.isConcurrentCapable()) {
-                    String cLabel = entry.isConcurrentEnabled() ? "\u00A7aC" : "\u00A77C";
+                    String cLabel = entry.isConcurrentEnabled() ? "\u00A7bC" : "\u00A77C";
                     GuiNpcButton cBtn = new GuiNpcButton(ENTRY_BASE + i * ENTRY_STRIDE + 5, L_LABEL_X + 288, y, 20, 20, cLabel);
                     cBtn.setHoverText("ability.hover.concurrent");
                     sw.addButton(cBtn);
