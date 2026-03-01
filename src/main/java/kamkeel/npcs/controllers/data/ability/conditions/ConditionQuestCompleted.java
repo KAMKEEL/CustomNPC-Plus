@@ -30,7 +30,9 @@ public class ConditionQuestCompleted extends AbilityCondition {
         if (questId < 0) return false;
 
         EntityPlayer player = (EntityPlayer) entity;
-        return PlayerData.get(player).questData.hasFinishedQuest(questId);
+        PlayerData data = PlayerData.get(player);
+        if (data == null || data.questData == null) return false;
+        return data.questData.hasFinishedQuest(questId);
     }
 
     @SideOnly(Side.CLIENT)

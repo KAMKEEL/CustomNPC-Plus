@@ -268,7 +268,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         }
 
         if (conditions.size() < MAX_CONDITIONS) {
-            sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));;
+            sw.addButton(new GuiNpcButton(BTN_ADD_COND, L_LABEL_X, y, 50, 20, "gui.add"));
             y += ROW_H;
         }
 

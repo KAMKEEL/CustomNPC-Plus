@@ -309,7 +309,7 @@ public class FieldDef {
     }
 
     public boolean hasRange() {
-        return min != Float.NEGATIVE_INFINITY || max != Float.POSITIVE_INFINITY;
+        return min != 0 || max != Float.POSITIVE_INFINITY;
     }
 
     public Class<? extends Enum<?>> getEnumClass() {

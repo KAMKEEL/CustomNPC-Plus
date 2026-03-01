@@ -116,8 +116,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     // ==================== HOMING PROPERTIES ====================
     protected EnergyHomingData homingData = new EnergyHomingData();
 
-    protected Map<Integer, Integer> pathDelays;
-
     // ==================== TRACKING ====================
     protected double startX, startY, startZ;
     protected int targetEntityId = -1;

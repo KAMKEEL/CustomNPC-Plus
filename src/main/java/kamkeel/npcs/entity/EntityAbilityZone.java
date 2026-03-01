@@ -790,7 +790,8 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
             this.shape = ZoneShape.CIRCLE;
         }
         this.ownerEntityId = buffer.readInt();
-        this.radius = buffer.readFloat();
+        this.radius = Math.max(0.1f, Math.min(100.0f, buffer.readFloat()));
+        if (Float.isNaN(radius) || Float.isInfinite(radius)) radius = 5.0f;
         this.durationTicks = buffer.readInt();
         this.maxTicks = buffer.readInt();
         this.innerColor = buffer.readInt();

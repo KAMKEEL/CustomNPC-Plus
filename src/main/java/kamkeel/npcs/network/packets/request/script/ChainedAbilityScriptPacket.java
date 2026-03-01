@@ -81,7 +81,9 @@ public final class ChainedAbilityScriptPacket extends AbstractPacket {
         if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT))
             return;
 
-        Action requestedAction = Action.values()[in.readInt()];
+        int actionOrd = in.readInt();
+        if (actionOrd < 0 || actionOrd >= Action.values().length) return;
+        Action requestedAction = Action.values()[actionOrd];
         String id = ByteBufUtils.readUTF8String(in);
 
         ChainedAbility chain = AbilityController.Instance.resolveChainedAbility(id);

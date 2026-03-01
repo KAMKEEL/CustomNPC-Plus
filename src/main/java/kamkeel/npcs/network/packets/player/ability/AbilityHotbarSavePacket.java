@@ -51,6 +51,7 @@ public final class AbilityHotbarSavePacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         int slot = in.readInt();
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
+        if (compound == null) return;
 
         if (slot < 0 || slot >= AbilityHotbarData.TOTAL_SLOTS) return;
 
@@ -73,6 +74,10 @@ public final class AbilityHotbarSavePacket extends AbstractPacket {
 
             if (valid && data.abilityData != null) {
                 valid = data.abilityData.hasUnlockedAbility(slotData.abilityKey);
+                // For chains, also check with resolved key in case key format differs
+                if (!valid && slotData.isChainKey()) {
+                    valid = data.abilityData.hasUnlockedAbility("chain:" + slotData.getResolveKey());
+                }
             }
         }
 

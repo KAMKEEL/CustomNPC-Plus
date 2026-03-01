@@ -126,7 +126,7 @@ public class CustomAbility extends Ability implements ICustomAbility {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.durationTicks = nbt.getInteger("durationTicks");
+        this.durationTicks = Math.max(0, nbt.getInteger("durationTicks"));
     }
 
     // ==================== GUI ====================
