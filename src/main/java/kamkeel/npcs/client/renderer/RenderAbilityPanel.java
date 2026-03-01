@@ -67,7 +67,7 @@ public class RenderAbilityPanel extends RenderEnergyBarrier {
             float outerScale = 1.0f + panel.getOuterColorWidth() * 0.15f;
             float outerAlpha = panel.getOuterColorAlpha() * healthPercent;
             GL11.glDepthMask(false);
-            renderPanel(panel.getOuterColor(), outerAlpha + flashAlpha,
+            renderPanel(panel.getOuterColor(), outerAlpha + (panel.getOuterColorAlpha() > 0 ? flashAlpha : 0),
                 width * 0.5f * outerScale, height * 0.5f * outerScale, panelThickness * 1.5f);
             GL11.glDepthMask(true);
         }

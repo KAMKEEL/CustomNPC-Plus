@@ -568,12 +568,21 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         }
         sourceAbility = null;
 
+        // Save original owner before transfer for potential target retargeting
+        int originalOwnerId = ownerEntityId;
+
         Entity barrierOwner = barrier.getOwnerEntity();
         if (barrierOwner != null) {
             setOwnerEntityId(barrierOwner.getEntityId());
             trackProjectile(this);
         }
-        setTargetEntityId(-1);
+
+        // Target Owner: set the reflected projectile's target to the original caster
+        if (barrier.getBarrierData().isTargetOwner() && originalOwnerId != -1) {
+            setTargetEntityId(originalOwnerId);
+        } else {
+            setTargetEntityId(-1);
+        }
 
         setInnerColor(barrier.getInnerColor());
         setOuterColor(barrier.getOuterColor());

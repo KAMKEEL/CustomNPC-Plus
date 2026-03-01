@@ -40,6 +40,7 @@ public class EnergyBarrierData {
     // Reflection: rebound projectiles that fail to break the barrier
     public boolean reflect = false;
     public float reflectStrengthPct = 25.0f;
+    public boolean targetOwner = false;
 
     /**
      * Per-projectile-type damage multipliers.
@@ -139,6 +140,14 @@ public class EnergyBarrierData {
         this.reflectStrengthPct = Math.max(0.0f, Math.min(100.0f, reflectStrengthPct));
     }
 
+    public boolean isTargetOwner() {
+        return targetOwner;
+    }
+
+    public void setTargetOwner(boolean targetOwner) {
+        this.targetOwner = targetOwner;
+    }
+
     // ==================== NBT ====================
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -155,6 +164,7 @@ public class EnergyBarrierData {
         nbt.setFloat("barrierMeleeMult", meleeDamageMultiplier);
         nbt.setBoolean("barrierReflect", reflect);
         nbt.setFloat("barrierReflectStrPct", reflectStrengthPct);
+        nbt.setBoolean("barrierTargetOwner", targetOwner);
 
         NBTTagCompound multNbt = new NBTTagCompound();
         for (Map.Entry<String, Float> entry : damageMultipliers.entrySet()) {
@@ -177,6 +187,7 @@ public class EnergyBarrierData {
         meleeDamageMultiplier = nbt.hasKey("barrierMeleeMult") ? nbt.getFloat("barrierMeleeMult") : 1.0f;
         reflect = nbt.hasKey("barrierReflect") && nbt.getBoolean("barrierReflect");
         setReflectStrengthPct(nbt.hasKey("barrierReflectStrPct") ? nbt.getFloat("barrierReflectStrPct") : 25.0f);
+        targetOwner = nbt.hasKey("barrierTargetOwner") && nbt.getBoolean("barrierTargetOwner");
 
         damageMultipliers.clear();
         if (nbt.hasKey("barrierMultipliers")) {
@@ -200,6 +211,7 @@ public class EnergyBarrierData {
         copy.meleeDamageMultiplier = meleeDamageMultiplier;
         copy.reflect = reflect;
         copy.reflectStrengthPct = reflectStrengthPct;
+        copy.targetOwner = targetOwner;
         copy.damageMultipliers = new HashMap<>(damageMultipliers);
         return copy;
     }

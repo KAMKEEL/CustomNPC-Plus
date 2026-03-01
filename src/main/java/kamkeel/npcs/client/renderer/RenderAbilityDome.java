@@ -44,7 +44,7 @@ public class RenderAbilityDome extends RenderEnergyBarrier {
             float outerScale = 1.0f + dome.getOuterColorWidth() * 0.1f;
             float outerAlpha = dome.getOuterColorAlpha() * healthPercent;
             GL11.glDepthMask(false);
-            renderSphere(dome.getOuterColor(), outerAlpha + flashAlpha, radius * outerScale, 8);
+            renderSphere(dome.getOuterColor(), outerAlpha + (dome.getOuterColorAlpha() > 0 ? flashAlpha : 0), radius * outerScale, 8);
         }
 
         // TODO: Skybox Feature

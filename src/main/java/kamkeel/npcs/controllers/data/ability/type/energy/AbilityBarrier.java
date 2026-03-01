@@ -282,6 +282,14 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         barrierData.setReflectStrengthPct(strengthPct);
     }
 
+    public boolean isTargetOwner() {
+        return barrierData.targetOwner;
+    }
+
+    public void setTargetOwner(boolean targetOwner) {
+        barrierData.targetOwner = targetOwner;
+    }
+
     // Melee data
     public boolean isMeleeEnabled() {
         return barrierData.meleeEnabled;
@@ -364,6 +372,9 @@ public abstract class AbilityBarrier extends AbilityEnergy {
             .hover("ability.hover.reflect"));
         defs.add(FieldDef.floatField("ability.reflectStrength", this::getReflectStrengthPct, this::setReflectStrengthPct)
             .range(0, 100).visibleWhen(this::isReflect));
+        defs.add(FieldDef.boolField("ability.targetOwner", this::isTargetOwner, this::setTargetOwner)
+            .hover("ability.hover.targetOwner")
+            .visibleWhen(this::isReflect));
         defs.add(FieldDef.boolField("ability.meleeEnabled", this::isMeleeEnabled, this::setMeleeEnabled)
             .hover("ability.hover.meleeEnabled"));
         defs.add(FieldDef.floatField("ability.meleeDamageMultiplier", this::getMeleeDamageMultiplier, this::setMeleeDamageMultiplier)

@@ -2132,6 +2132,8 @@ ability.hover.solid=Entities cannot pass through the barrier boundary
 ability.hover.knockbackEnabled=Repulsion field pushing entities away from barrier surface
 ability.hover.absorbing=Damage dealt to the caster is redirected to the barrier's health
 ability.hover.reflect=Rebounds non-breaking projectiles and reduces their damage by Strength
+ability.targetOwner=Target Owner
+ability.hover.targetOwner=Sets the reflected projectile's target to the original caster. With homing enabled, the projectile will home toward its former caster.
 ability.hover.meleeEnabled=Barrier can be hit and damaged by melee attacks
 
 

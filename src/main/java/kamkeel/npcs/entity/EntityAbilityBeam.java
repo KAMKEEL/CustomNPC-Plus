@@ -712,10 +712,14 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
             resetHeadOffsets();
             resetTrailStorage();
 
-            // Disable homing and free aim — reflected beams fly straight.
-            homingData.setHoming(false);
+            // Free aim only works for the original caster
             freeAim = false;
-            setTargetEntityId(-1);
+
+            // If targeting owner, keep homing so beam tracks back to caster
+            if (!barrier.getBarrierData().isTargetOwner()) {
+                homingData.setHoming(false);
+                setTargetEntityId(-1);
+            }
         }
         return reflected;
     }

@@ -582,14 +582,22 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         }
         sourceAbility = null;
 
+        // Save original owner before transfer for potential target retargeting
+        int originalOwnerId = ownerEntityId;
+
         Entity barrierOwner = barrier.getOwnerEntity();
         if (barrierOwner != null) {
             setOwnerEntityId(barrierOwner.getEntityId());
             // Ensure ownership-sensitive systems can query this projectile under the new owner.
             trackProjectile(this);
         }
-        // Old homing target may now be the new owner or ally; clear it after reflection.
-        setTargetEntityId(-1);
+
+        // Target Owner: set the reflected projectile's target to the original caster
+        if (barrier.getBarrierData().isTargetOwner() && originalOwnerId != -1) {
+            setTargetEntityId(originalOwnerId);
+        } else {
+            setTargetEntityId(-1);
+        }
 
         setInnerColor(barrier.getInnerColor());
         setOuterColor(barrier.getOuterColor());
