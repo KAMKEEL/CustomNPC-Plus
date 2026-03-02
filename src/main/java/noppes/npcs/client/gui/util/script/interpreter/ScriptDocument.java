@@ -1456,6 +1456,15 @@ public class ScriptDocument {
                 while (m.find()) {
                     int absPos = bodyStart + m.start(2);
                     if (isExcluded(absPos)) continue;
+
+                    boolean insideInner = false;
+                    for (InnerCallableScope scope : innerScopes) {
+                        if (scope.containsPosition(absPos)) {
+                            insideInner = true;
+                            break;
+                        }
+                    }
+                    if (insideInner) continue;
                     
                     String kind = m.group(1);
                     String varName = m.group(2);
@@ -2433,6 +2442,15 @@ public class ScriptDocument {
                     }
                 }
                 if (insideMethod) continue;
+
+                boolean insideInner = false;
+                for (InnerCallableScope scope : innerScopes) {
+                    if (scope.containsPosition(position)) {
+                        insideInner = true;
+                        break;
+                    }
+                }
+                if (insideInner) continue;
                 
                 String varName = m.group(1);
                 String initializer = null;
@@ -6510,9 +6528,20 @@ public class ScriptDocument {
                 stmtStart++;
             }
             
-            // Find the end of this statement (next ;)
-            int stmtEnd = text.indexOf(';', equalsPos);
-            if (stmtEnd < 0) stmtEnd = text.length();
+            int stmtEnd;
+            if (isJavaScript()) {
+                int rhsBoundaryStart = equalsPos + 1;
+                while (rhsBoundaryStart < text.length() && Character.isWhitespace(text.charAt(rhsBoundaryStart))) {
+                    rhsBoundaryStart++;
+                }
+                stmtEnd = findJsInitializerEnd(text, rhsBoundaryStart);
+                if (stmtEnd < equalsPos + 1) {
+                    stmtEnd = equalsPos + 1;
+                }
+            } else {
+                stmtEnd = text.indexOf(';', equalsPos);
+                if (stmtEnd < 0) stmtEnd = text.length();
+            }
             
             // Extract LHS (before =) and RHS (after =)
             String lhsRaw = text.substring(stmtStart, equalsPos).trim();
