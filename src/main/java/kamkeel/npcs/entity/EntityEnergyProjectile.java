@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityEnergyProjectile;
 import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
@@ -895,23 +896,24 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== DAMAGE & EFFECTS ====================
 
-    protected void applyDamage(EntityLivingBase target) {
-        if (previewMode) return; // Skip damage in preview mode
-        applyDamage(target, this.getDamage(), this.getKnockback());
+    protected boolean applyDamage(EntityLivingBase target) {
+        if (previewMode) return false; // Skip damage in preview mode
+        return applyDamage(target, this.getDamage(), this.getKnockback());
     }
 
-    protected void applyDamage(EntityLivingBase target, float dmg, float kb) {
-        if (previewMode) return; // Skip damage in preview mode
-        if (target == null || shouldIgnoreEntity(target)) return;
+    protected boolean applyDamage(EntityLivingBase target, float dmg, float kb) {
+        if (previewMode) return false; // Skip damage in preview mode
+        if (target == null || shouldIgnoreEntity(target)) return false;
 
         // Fire entity impact event (may cancel or modify damage)
         if (!worldObj.isRemote) {
             float result = EventHooks.onEnergyProjectileEntityImpact(this, target, dmg);
-            if (result < 0) return; // Event was cancelled
+            if (result < 0) return false; // Event was cancelled
             dmg = result;
         }
 
         Entity owner = getOwnerEntity();
+        boolean ignoreIFrames = isIgnoreIFrames();
 
         // Check for ability extenders (e.g., DBC Addon damage routing)
         boolean handled = false;
@@ -925,21 +927,26 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                 dmg, kb, kbUp, dx, dz, damageMultiplier);
         }
 
-        if (!handled) {
-            // Default damage path
-            if (owner instanceof EntityNPCInterface) {
-                defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
-            } else if (owner instanceof EntityPlayer) {
-                defaultDamageApplied = target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
-            } else if (owner instanceof EntityLivingBase) {
-                defaultDamageApplied = target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
-            } else {
-                defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+        int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
+        try {
+            if (!handled) {
+                // Default damage path
+                if (owner instanceof EntityNPCInterface) {
+                    defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+                } else if (owner instanceof EntityPlayer) {
+                    defaultDamageApplied = target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+                } else if (owner instanceof EntityLivingBase) {
+                    defaultDamageApplied = target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+                } else {
+                    defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+                }
             }
+        } finally {
+            Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);
         }
 
         boolean allowSecondaryEffects = handled || dmg <= 0 || defaultDamageApplied;
-        if (!allowSecondaryEffects) return;
+        if (!allowSecondaryEffects) return false;
 
         if (kb > 0) {
             double dx = target.posX - posX;
@@ -955,6 +962,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         }
 
         applyEffects(target);
+        return true;
     }
 
     protected void applyEffects(EntityLivingBase target) {
@@ -982,11 +990,11 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         }
     }
 
-    protected void doExplosion() {
-        if (previewMode) return; // Skip explosion in preview mode
-        if (worldObj.isRemote) return; // Explosions are server-side only
+    protected boolean doExplosion() {
+        if (previewMode) return false; // Skip explosion in preview mode
+        if (worldObj.isRemote) return false; // Explosions are server-side only
         float explosionRad = getExplosionRadius();
-        if (Float.isNaN(explosionRad) || explosionRad <= 0) return;
+        if (Float.isNaN(explosionRad) || explosionRad <= 0) return false;
         final double explosionRadSq = explosionRad * explosionRad;
         final float baseDamage = getDamage();
         final float baseKnockback = getKnockback();
@@ -1004,6 +1012,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> targets = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, explosionBox);
+        boolean anyDamaged = false;
 
         for (EntityLivingBase target : targets) {
             if (target == owner) continue;
@@ -1028,10 +1037,13 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
                 float dist = (float) Math.sqrt(distSq);
                 falloff = 1.0f - (dist / explosionRad) * damageFalloff;
             }
-            applyDamage(target, baseDamage * falloff, baseKnockback * falloff);
+            if (applyDamage(target, baseDamage * falloff, baseKnockback * falloff)) {
+                anyDamaged = true;
+            }
         }
 
         tryDestroyTerrain(explosionRad);
+        return anyDamaged;
     }
 
     /**
@@ -2114,7 +2126,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected boolean processEntityHit(EntityLivingBase entity, double impactX, double impactY, double impactZ) {
         if (entity == null || shouldIgnoreEntity(entity) || !canHitEntityNow(entity)) return false;
 
-        recordEntityHit(entity);
+        boolean successfulHit;
         if (isExplosive()) {
             Vec3 impactPoint = resolveEntityImpactPoint(entity, impactX, impactY, impactZ);
             double oldX = posX;
@@ -2123,15 +2135,19 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             posX = impactPoint.xCoord;
             posY = impactPoint.yCoord;
             posZ = impactPoint.zCoord;
-            doExplosion();
+            successfulHit = doExplosion();
             posX = oldX;
             posY = oldY;
             posZ = oldZ;
         } else {
-            applyDamage(entity);
+            successfulHit = applyDamage(entity);
         }
 
-        if (shouldTerminateAfterHit()) {
+        if (successfulHit) {
+            recordEntityHit(entity);
+        }
+
+        if ((successfulHit && shouldTerminateAfterHit()) || (!successfulHit && combatData.hitType == HitType.SINGLE)) {
             hasHit = true;
             this.setDead();
             return true;

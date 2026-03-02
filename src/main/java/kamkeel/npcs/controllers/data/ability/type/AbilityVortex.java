@@ -263,7 +263,6 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             state.lastZ = entity.posZ;
 
             if (shouldDealPullDamage) {
-                entity.hurtResistantTime = 0;
                 applyAbilityDamage(caster, entity, pullDamage * 0.5f, 0);
             }
         }

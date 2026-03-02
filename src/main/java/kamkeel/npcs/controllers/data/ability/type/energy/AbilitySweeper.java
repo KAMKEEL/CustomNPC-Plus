@@ -104,6 +104,8 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
             sweepSpeed, numberOfRotations,
             damage, damageInterval, piercing,
             lockOnTarget);
+        activeEntity.setIgnoreIFrames(this.isIgnoreIFrames());
+        activeEntity.setSourceAbility(this);
 
         if (isPreview()) {
             activeEntity.setupPreview(caster);

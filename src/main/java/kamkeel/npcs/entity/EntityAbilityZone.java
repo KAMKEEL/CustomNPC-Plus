@@ -156,7 +156,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
     private float damagePerSecond = 1.0f;
     private int damageInterval = 20;
-    private boolean ignoreInvulnFrames = false;
+    private boolean ignoreIFrames = false;
     private boolean affectsCaster = false;
 
     // ═══════════════════════════════════════════════════════════════════
@@ -203,6 +203,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                                                float triggerRadius, int armTime, int maxTriggers,
                                                int triggerCooldown, float damage, float damageRadius,
                                                float knockback, int durationTicks,
+                                               boolean ignoreIFrames,
                                                int innerColor, int outerColor, boolean outerColorEnabled,
                                                float zoneHeight,
                                                float particleDensity, float particleScale,
@@ -221,6 +222,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         zone.knockback = knockback;
         zone.durationTicks = durationTicks;
         zone.maxTicks = durationTicks;
+        zone.ignoreIFrames = ignoreIFrames;
         zone.innerColor = innerColor;
         zone.outerColor = outerColor;
         zone.outerColorEnabled = outerColorEnabled;
@@ -244,7 +246,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                                                  ZoneShape shape,
                                                  float radius,
                                                  float damagePerSecond, int damageInterval,
-                                                 boolean ignoreInvulnFrames, boolean affectsCaster,
+                                                 boolean ignoreIFrames, boolean affectsCaster,
                                                  int durationTicks,
                                                  int innerColor, int outerColor, boolean outerColorEnabled,
                                                  float zoneHeight,
@@ -256,7 +258,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         zone.radius = radius;
         zone.damagePerSecond = damagePerSecond;
         zone.damageInterval = damageInterval;
-        zone.ignoreInvulnFrames = ignoreInvulnFrames;
+        zone.ignoreIFrames = ignoreIFrames;
         zone.affectsCaster = affectsCaster;
         zone.durationTicks = durationTicks;
         zone.maxTicks = durationTicks;
@@ -472,9 +474,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
             if (!isInZone(entity)) continue;
 
             if (damagePerSecond > 0) {
-                if (ignoreInvulnFrames) {
-                    entity.hurtResistantTime = 0;
-                }
                 applyDamage(entity, owner, damagePerSecond);
             }
 
@@ -504,14 +503,19 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     private boolean applyDamage(EntityLivingBase target, Entity owner, float dmg) {
         if (dmg <= 0) return false;
 
-        if (owner instanceof EntityNPCInterface) {
-            return target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
-        } else if (owner instanceof EntityPlayer) {
-            return target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
-        } else if (owner instanceof EntityLivingBase) {
-            return target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
-        } else {
-            return target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+        int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
+        try {
+            if (owner instanceof EntityNPCInterface) {
+                return target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+            } else if (owner instanceof EntityPlayer) {
+                return target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+            } else if (owner instanceof EntityLivingBase) {
+                return target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+            } else {
+                return target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+            }
+        } finally {
+            Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);
         }
     }
 

@@ -85,6 +85,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Interruption
     protected boolean interruptible = true;
     protected InvulnerableMode invulnerableMode = InvulnerableMode.NONE;
+    protected boolean ignoreIFrames = false;
 
     // Feedback
     protected LockMode lockMovement = LockMode.WINDUP;
@@ -365,22 +366,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return true;
     }
 
-    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
-    }
+    public void onWindUpTick(EntityLivingBase caster, EntityLivingBase target, int tick) {}
 
-    /**
-     * Whether this execution is a burst refire (not the first execution).
-     * Useful in onExecute() to detect when windup was skipped and entities need fresh creation.
-     */
-    public boolean isBurstRefire() {
-        return burstEnabled && burstIndex > 0;
-    }
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {}
 
-    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
-    }
-
-    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
-    }
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {}
 
     /**
      * Called when the ability enters BURST_DELAY between burst iterations.
@@ -410,24 +400,6 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     /**
-     * Apply damage to an entity with ability hit event support and vertical knockback.
-     * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
-     *
-     * @param caster      The entity executing the ability (NPC or Player)
-     * @param hitEntity   The entity being hit
-     * @param damage      The damage amount
-     * @param knockback   The horizontal knockback
-     * @param knockbackUp The vertical knockback
-     * @return true if damage was applied (not cancelled), false if cancelled
-     */
-    protected boolean applyAbilityDamage(EntityLivingBase caster, EntityLivingBase hitEntity,
-                                         float damage, float knockback, float knockbackUp) {
-        double dx = hitEntity.posX - caster.posX;
-        double dz = hitEntity.posZ - caster.posZ;
-        return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, knockbackUp, dx, dz);
-    }
-
-    /**
      * Apply damage to an entity with ability hit event support and custom knockback direction.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
@@ -443,6 +415,28 @@ public abstract class Ability implements IAbility, IAbilityAction {
                                                       float damage, float knockback,
                                                       double knockbackDirX, double knockbackDirZ) {
         return applyAbilityDamageInternal(caster, hitEntity, damage, knockback, 0.0f, knockbackDirX, knockbackDirZ);
+    }
+
+    /**
+     * Clears hurt resistance before damage and returns the previous value so it can be restored later.
+     */
+    public static int clearHurtResistanceIfNeeded(EntityLivingBase target, boolean ignoreIFrames) {
+        if (!ignoreIFrames || target == null) {
+            return -1;
+        }
+        int previous = target.hurtResistantTime;
+        target.hurtResistantTime = 0;
+        return previous;
+    }
+
+    /**
+     * Restores hurt resistance after damage when {@link #clearHurtResistanceIfNeeded} was used.
+     */
+    public static void restoreHurtResistanceIfNeeded(EntityLivingBase target, boolean ignoreIFrames, int previous) {
+        if (!ignoreIFrames || target == null || previous < 0) {
+            return;
+        }
+        target.hurtResistantTime = previous;
     }
 
     /**
@@ -470,19 +464,24 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
         // Apply damage
         if (damage > 0) {
-            // Check for ability extenders (e.g., DBC Addon damage routing)
-            boolean handled = AbilityController.Instance.fireOnAbilityDamage(
-                this, caster, hitEntity, damage, knockback, knockbackUp,
-                knockbackDirX, knockbackDirZ, 1.0f);
-            if (!handled) {
-                // Default damage path
-                if (caster instanceof EntityNPCInterface) {
-                    hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
-                } else if (caster instanceof EntityPlayer) {
-                    hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
-                } else {
-                    hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+            int previousHurtResistantTime = clearHurtResistanceIfNeeded(hitEntity, ignoreIFrames);
+            try {
+                // Check for ability extenders (e.g., DBC Addon damage routing)
+                boolean handled = AbilityController.Instance.fireOnAbilityDamage(
+                    this, caster, hitEntity, damage, knockback, knockbackUp,
+                    knockbackDirX, knockbackDirZ, 1.0f);
+                if (!handled) {
+                    // Default damage path
+                    if (caster instanceof EntityNPCInterface) {
+                        hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
+                    } else if (caster instanceof EntityPlayer) {
+                        hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
+                    } else {
+                        hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+                    }
                 }
+            } finally {
+                restoreHurtResistanceIfNeeded(hitEntity, ignoreIFrames, previousHurtResistantTime);
             }
         }
 
@@ -589,14 +588,6 @@ public abstract class Ability implements IAbility, IAbilityAction {
      */
     public TargetingMode[] getAllowedTargetingModes() {
         return null;
-    }
-
-    /**
-     * Returns true if the telegraph type for this ability is locked and cannot be changed.
-     * Telegraph type is inherent to how the ability works (e.g., Charge uses LINE, Slam uses CIRCLE).
-     */
-    public boolean isTelegraphTypeLocked() {
-        return true;
     }
 
     /**
@@ -715,6 +706,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
                     }
                 })
             .hover("ability.hover.invulnerable")
+            .tab("General"));
+        defs.add(FieldDef.boolField("ability.ignoreIFrames", this::isIgnoreIFrames, this::setIgnoreIFrames)
+            .hover("ability.hover.ignoreIFrames")
+            .visibleWhen(this::hasDamage)
             .tab("General"));
 
         // ── Burst section ────────────────────────────────────────────
@@ -1033,43 +1028,6 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
         // No ground found within range — place slightly under entity
         return startY - 0.5;
-    }
-
-    /**
-     * Calculates offset position near the given coordinates.
-     * Used to place effects near a target rather than exactly on them.
-     *
-     * @param baseX        Base X coordinate
-     * @param baseY        Base Y coordinate
-     * @param baseZ        Base Z coordinate
-     * @param minOffset    Minimum offset distance
-     * @param maxOffset    Maximum offset distance
-     * @param randomOffset Whether to use random offset within range, or fixed at max
-     * @param random       Random instance to use
-     * @return Array of [x, y, z] with offset applied
-     */
-    public static double[] calculateOffsetPosition(double baseX, double baseY, double baseZ,
-                                                   float minOffset, float maxOffset,
-                                                   boolean randomOffset, java.util.Random random) {
-        if (maxOffset <= 0) {
-            return new double[]{baseX, baseY, baseZ};
-        }
-
-        double offsetDist;
-        double offsetAngle;
-
-        if (randomOffset) {
-            offsetDist = minOffset + random.nextDouble() * (maxOffset - minOffset);
-            offsetAngle = random.nextDouble() * Math.PI * 2;
-        } else {
-            offsetDist = maxOffset;
-            offsetAngle = random.nextDouble() * Math.PI * 2;
-        }
-
-        double offsetX = Math.cos(offsetAngle) * offsetDist;
-        double offsetZ = Math.sin(offsetAngle) * offsetDist;
-
-        return new double[]{baseX + offsetX, baseY, baseZ + offsetZ};
     }
 
     /**
@@ -1426,6 +1384,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("recovery", dazedTicks);
         nbt.setBoolean("interruptible", interruptible);
         nbt.setInteger("invulnerableMode", invulnerableMode.ordinal());
+        nbt.setBoolean("ignoreIFrames", ignoreIFrames);
         nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("rotationMode", rotationMode.ordinal());
         nbt.setInteger("rotationPhase", rotationPhase.ordinal());
@@ -1519,6 +1478,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         invulnerableMode = nbt.hasKey("invulnerableMode")
             ? InvulnerableMode.fromOrdinal(nbt.getInteger("invulnerableMode"))
             : InvulnerableMode.NONE;
+        ignoreIFrames = nbt.hasKey("ignoreIFrames") && nbt.getBoolean("ignoreIFrames");
         lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
@@ -1821,6 +1781,16 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public boolean isInvulnerableDuringActive() {
         return invulnerableMode.invulnerableDuringActive();
+    }
+
+    @Override
+    public boolean isIgnoreIFrames() {
+        return ignoreIFrames;
+    }
+
+    @Override
+    public void setIgnoreIFrames(boolean ignore) {
+        this.ignoreIFrames = ignore;
     }
 
     public LockMode getLockMovement() {
