@@ -20,16 +20,20 @@ final class DtsModScanner {
 
     static List<DtsFileRef> collectDtsFilesFromMods() {
         List<DtsFileRef> dtsFiles = new ArrayList<>();
-        for (ModContainer mod : Loader.instance().getModList()) {
-            File source = mod.getSource();
-            if (source == null || !source.exists()) {
-                continue;
+        try {
+            for (ModContainer mod : Loader.instance().getModList()) {
+                File source = mod.getSource();
+                if (source == null || !source.exists()) {
+                    continue;
+                }
+                if (source.isDirectory()) {
+                    scanDirectoryForModDts(source, mod.getModId(), dtsFiles);
+                } else if (source.getName().endsWith(".jar") || source.getName().endsWith(".zip")) {
+                    scanJarForModDts(source, mod.getModId(), dtsFiles);
+                }
             }
-            if (source.isDirectory()) {
-                scanDirectoryForModDts(source, mod.getModId(), dtsFiles);
-            } else if (source.getName().endsWith(".jar") || source.getName().endsWith(".zip")) {
-                scanJarForModDts(source, mod.getModId(), dtsFiles);
-            }
+        } catch (Throwable ignored) {
+            // Headless/non-FML environment: fall back to resource scanning.
         }
         return dtsFiles;
     }

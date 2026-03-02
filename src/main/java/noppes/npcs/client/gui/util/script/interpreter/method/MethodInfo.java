@@ -12,6 +12,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.GenericContext;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
+import noppes.npcs.client.gui.util.script.interpreter.type.GenericParameterAdapter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -191,6 +192,12 @@ public final class MethodInfo {
 
             if (receiverBindings != null && !receiverBindings.isEmpty()) {
                 paramType = TypeSubstitutor.substitute(paramType, receiverBindings);
+            }
+
+            // Adapt Object params to receiver generic type args (e.g., Map.get(Object) -> Map.get(K))
+            TypeInfo adapted = GenericParameterAdapter.adaptParameterType(method, containingType, i, paramType);
+            if (adapted != null) {
+                paramType = adapted;
             }
             String paramName = "arg" + i;
             if (jsParams != null && i < jsParams.size()) {

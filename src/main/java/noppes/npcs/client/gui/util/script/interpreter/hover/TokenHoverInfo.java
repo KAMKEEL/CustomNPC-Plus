@@ -743,6 +743,13 @@ public class TokenHoverInfo {
             return;
         }
         if (methodInfo != null && methodInfo.getJavaMethod() != null) {
+            // When receiver is parameterized, MethodInfo has adapted generic params
+            // (e.g., Map<String,Integer>.get(String) instead of get(Object)).
+            // Use buildBasicMethodDeclaration to show adapted types correctly.
+            if (containingType != null && containingType.isParameterized()) {
+                buildBasicMethodDeclaration(methodInfo, containingType);
+                return;
+            }
             TypeInfo methodReturnType = methodInfo.getReturnType();
             Class<?> reflectedReturnType = methodInfo.getJavaMethod().getReturnType();
             if (methodReturnType != null && methodReturnType.getJavaClass() != null
