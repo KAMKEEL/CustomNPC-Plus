@@ -113,6 +113,7 @@ public final class NodexFxWindow {
     private NodexTheme currentTheme = NodexTheme.DARK_BLUE;
 
     private final Map<String, EditorTab> openEditors = new HashMap<String, EditorTab>();
+    private final Map<Tab, EditorTab> tabToEditor = new HashMap<Tab, EditorTab>();
     private final Set<Path> watchedDirectories = new HashSet<Path>();
     private NodexScriptBinding activeBinding;
     private Path cssTempFile;
@@ -124,7 +125,12 @@ public final class NodexFxWindow {
     private WatchService watchService;
     private Thread watchThread;
     private final AtomicBoolean watcherRunning = new AtomicBoolean(false);
-    private final AtomicBoolean pendingRefresh = new AtomicBoolean(false);
+    private PauseTransition watcherDebounce;
+    private PauseTransition cursorDebounce;
+
+    // Paths to temporarily ignore in the file watcher (after we save them ourselves)
+    private final Map<Path, Long> ignoredPaths = new java.util.concurrent.ConcurrentHashMap<Path, Long>();
+    private static final long IGNORE_DURATION_MS = 2000L;
 
     private enum LanguageKind {
         JAVA,
@@ -228,7 +234,7 @@ public final class NodexFxWindow {
     private static final String SEMICOLON_PATTERN = "\\;";
     private static final String NUMBER_PATTERN = "\\b\\d+(?:\\.\\d+)?\\b";
     private static final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"|'([^'\\\\]|\\\\.)*'";
-    private static final String COMMENT_PATTERN = "//[^\\n]*|/\\*(.|\\R)*?\\*/";
+    private static final String COMMENT_PATTERN = "//[^\\n]*|/\\*(?:[^*]|\\*(?!/))*\\*/";
     private static final String ANNOTATION_PATTERN = "@[A-Za-z_][a-zA-Z0-9_.]*";
     private static final String TYPE_REF_PATTERN = "\\b[A-Z][a-zA-Z0-9_]*\\b";
     private static final String METHOD_CALL_PATTERN = "[a-z_][a-zA-Z0-9_]*(?=\\s*\\()";
@@ -330,19 +336,11 @@ public final class NodexFxWindow {
             refreshTree(null);
         }
 
-        // Auto-open virtual script tabs from the binding
-        if (binding != null && binding.tabs != null) {
-            for (NodexScriptBinding.ScriptTabData tabData : binding.tabs) {
-                openVirtualTab(tabData, binding.saveCallback);
-            }
-            // Select the first tab
-            if (!binding.tabs.isEmpty()) {
-                String firstVirtualId = "virtual#" + binding.contextId + "#" + binding.tabs.get(0).index;
-                EditorTab firstEditor = openEditors.get(firstVirtualId);
-                if (firstEditor != null) {
-                    tabPane.getSelectionModel().select(firstEditor.tab);
-                    firstEditor.area.requestFocus();
-                }
+        // Only open the first tab initially - others open on-demand when clicked
+        if (binding != null && binding.tabs != null && !binding.tabs.isEmpty()) {
+            openVirtualTab(binding.tabs.get(0), binding.saveCallback);
+            if (scriptListView != null) {
+                scriptListView.getSelectionModel().select(0);
             }
         }
 
@@ -385,7 +383,7 @@ public final class NodexFxWindow {
         area.getStyleClass().add("code-area");
 
         String tabDisplayName = tabData.name;
-        PauseTransition debounce = new PauseTransition(Duration.millis(120));
+        PauseTransition debounce = new PauseTransition(Duration.millis(300));
         Tab tab = new Tab(tabDisplayName);
         tab.setGraphic(createIconLabel("S", "#55ff55"));
         ChangeListener<Number> caretListener = (obs, oldVal, newVal) -> updateCursorStatus();
@@ -421,6 +419,7 @@ public final class NodexFxWindow {
 
         tabPane.getTabs().add(tab);
         openEditors.put(virtualId, editorTab);
+        tabToEditor.put(tab, editorTab);
         applyHighlighting(editorTab);
         updateCursorStatus();
         updateBottomStatus();
@@ -586,9 +585,9 @@ public final class NodexFxWindow {
         scriptListView.getStyleClass().add("script-list");
         VBox.setVgrow(scriptListView, Priority.ALWAYS);
 
-        // Single click opens the tab in the editor
-        scriptListView.setOnMouseClicked(evt -> {
-            int idx = scriptListView.getSelectionModel().getSelectedIndex();
+        // Open tab in editor when selection changes (not on every click)
+        scriptListView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
+            int idx = newIdx.intValue();
             if (idx >= 0 && idx < currentTabs.size() && activeBinding != null) {
                 openVirtualTab(currentTabs.get(idx), activeBinding.saveCallback);
             }
@@ -909,7 +908,8 @@ public final class NodexFxWindow {
             + ".tab-pane .tab { -fx-background-color: " + tabBg + "; }"
             + ".tab-pane .tab:selected { -fx-background-color: " + tabActiveBg + "; }"
             + ".tab-pane .tab-label { -fx-text-fill: " + tabText + "; }"
-            + ".code-area { -fx-background-color: " + editorBg + "; -fx-font-family: 'Consolas'; -fx-font-size: 13px; -fx-text-fill: " + defaultText + "; }"
+            + ".code-area { -fx-background-color: " + editorBg + "; -fx-font-family: 'Consolas'; -fx-font-size: 13px; }"
+            + ".code-area .text { -fx-fill: " + defaultText + "; }"
             + ".code-area .lineno { -fx-background-color: " + gutterBg + "; -fx-text-fill: " + gutterText + "; }"
             + ".code-area .caret { -fx-stroke: " + caretColor + "; }"
             + ".script-panel { -fx-background-color: " + treeBg + "; }"
@@ -945,17 +945,27 @@ public final class NodexFxWindow {
             + ".code-area .json-null { -fx-fill: " + jsonNull + "; }";
     }
 
+    // ==================== THEME SYNTAX COLORS ====================
+    // Dark Blue uses EXACT CNPC+ in-game TokenType colors:
+    //   KEYWORD=#FF5555  MODIFIER=#FFAA00  JSDOC_TAG=#CC9933  IMPORTED_CLASS=#00AAAA
+    //   METHOD_CALL=#55FF55  STRING=#CC8855  COMMENT=#777777  LITERAL=#777777
+    //   DEFAULT=#FFFFFF  ENUM_DECL/#FF55FF  PARAMETER=#5555FF
+
     private static String buildDarkBlueCss() {
         return buildChromeCss(
             "#121821", "#151d29", "#1a2433", "#101722", "#151d29", "#8ea0b5",
             "#0f1621", "#a8b7c8", "#263348", "#f0f4fa",
             "#182234", "#101a28", "#253349", "#d9e4f0",
-            "#0f1720", "#0b1218", "#5f7387", "#dbe5f0", "#dbe5f0"
+            "#0f1720", "#0b1218", "#5f7387", "#dbe5f0", "#ffffff"
         ) + buildSyntaxCss(
-            "#70c4ff", "#ffaa00", "#cc9933", "#00aaaa", "#55ff55",
-            "#dbe5f0", "#8ed0ff", "#8ed0ff", "#dbe5f0",
-            "#8fd66a", "#6a7a88", "#f6b17a",
-            "#f0d58a", "#8fd66a", "#f6b17a", "#70c4ff", "#d88ec7"
+            // keyword    modifier   annotation  typeRef    methodCall
+            "#FF5555",  "#FFAA00", "#CC9933",  "#00AAAA", "#55FF55",
+            // paren     brace      bracket     semicolon
+            "#ffffff",  "#ffffff", "#ffffff",  "#ffffff",
+            // string    comment    number
+            "#CC8855",  "#777777", "#777777",
+            // jsonProp   jsonStr    jsonNum    jsonBool   jsonNull
+            "#CC9933",  "#CC8855", "#777777", "#FF5555", "#FF55FF"
         );
     }
 
@@ -966,10 +976,14 @@ public final class NodexFxWindow {
             "#2d2d2d", "#252526", "#1e1e1e", "#cccccc",
             "#1e1e1e", "#1e1e1e", "#858585", "#aeafad", "#d4d4d4"
         ) + buildSyntaxCss(
-            "#569cd6", "#569cd6", "#dcdcaa", "#4ec9b0", "#dcdcaa",
-            "#d4d4d4", "#d4d4d4", "#d4d4d4", "#d4d4d4",
-            "#ce9178", "#6a9955", "#b5cea8",
-            "#9cdcfe", "#ce9178", "#b5cea8", "#569cd6", "#569cd6"
+            // keyword    modifier   annotation  typeRef    methodCall
+            "#EE5050",  "#DDAA00", "#CC9933",  "#00AAAA", "#50DD50",
+            // paren     brace      bracket     semicolon
+            "#d4d4d4",  "#d4d4d4", "#d4d4d4",  "#d4d4d4",
+            // string    comment    number
+            "#CC8855",  "#777777", "#888877",
+            // jsonProp   jsonStr    jsonNum    jsonBool   jsonNull
+            "#CC9933",  "#CC8855", "#888877", "#EE5050", "#DD55DD"
         );
     }
 
@@ -980,10 +994,14 @@ public final class NodexFxWindow {
             "#3e3d32", "#1e1f1c", "#272822", "#f8f8f2",
             "#272822", "#2f3129", "#75715e", "#f8f8f0", "#f8f8f2"
         ) + buildSyntaxCss(
-            "#f92672", "#f92672", "#e6db74", "#66d9ef", "#a6e22e",
-            "#f8f8f2", "#f8f8f2", "#f8f8f2", "#f8f8f2",
-            "#e6db74", "#75715e", "#ae81ff",
-            "#f92672", "#e6db74", "#ae81ff", "#66d9ef", "#ae81ff"
+            // keyword    modifier   annotation  typeRef    methodCall
+            "#f92672",  "#f92672", "#e6db74",  "#66d9ef", "#a6e22e",
+            // paren     brace      bracket     semicolon
+            "#f8f8f2",  "#f8f8f2", "#f8f8f2",  "#f8f8f2",
+            // string    comment    number
+            "#e6db74",  "#75715e", "#ae81ff",
+            // jsonProp   jsonStr    jsonNum    jsonBool   jsonNull
+            "#f92672",  "#e6db74", "#ae81ff",  "#66d9ef", "#ae81ff"
         );
     }
 
@@ -994,10 +1012,14 @@ public final class NodexFxWindow {
             "#ececec", "#e0e0e0", "#ffffff", "#333333",
             "#ffffff", "#f0f0f0", "#999999", "#000000", "#333333"
         ) + buildSyntaxCss(
-            "#0000ff", "#7f0055", "#808000", "#267f99", "#795e26",
-            "#333333", "#333333", "#333333", "#333333",
-            "#008000", "#808080", "#098658",
-            "#a31515", "#008000", "#098658", "#0000ff", "#0000ff"
+            // keyword    modifier   annotation  typeRef    methodCall
+            "#CC0000",  "#CC7700", "#997722",  "#007777", "#006600",
+            // paren     brace      bracket     semicolon
+            "#333333",  "#333333", "#333333",  "#333333",
+            // string    comment    number
+            "#AA5533",  "#999999", "#885533",
+            // jsonProp   jsonStr    jsonNum    jsonBool   jsonNull
+            "#997722",  "#AA5533", "#885533", "#CC0000", "#8800AA"
         );
     }
 
@@ -1206,7 +1228,7 @@ public final class NodexFxWindow {
         area.setParagraphGraphicFactory(LineNumberFactory.get(area));
         area.getStyleClass().add("code-area");
 
-        PauseTransition debounce = new PauseTransition(Duration.millis(120));
+        PauseTransition debounce = new PauseTransition(Duration.millis(300));
         Tab tab = new Tab(getPathName(normalized));
         ChangeListener<Number> caretListener = (obs, oldVal, newVal) -> updateCursorStatus();
         EditorTab editorTab = new EditorTab(normalized, tab, area, debounce, caretListener);
@@ -1236,6 +1258,7 @@ public final class NodexFxWindow {
         tabPane.getTabs().add(insertAt, tab);
 
         openEditors.put(key, editorTab);
+        tabToEditor.put(tab, editorTab);
         applyHighlighting(editorTab);
         tabPane.getSelectionModel().select(tab);
         area.requestFocus();
@@ -1284,12 +1307,12 @@ public final class NodexFxWindow {
             if (parent != null && !Files.exists(parent)) {
                 Files.createDirectories(parent);
             }
+            ignoredPaths.put(editor.path.toAbsolutePath().normalize(), System.currentTimeMillis());
             Files.write(editor.path, editor.area.getText().getBytes(StandardCharsets.UTF_8));
             editor.lastModifiedMillis = getLastModifiedMillis(editor.path);
             editor.dirty = false;
             refreshTabTitle(editor);
             setStatus("Saved: " + editor.path);
-            refreshTree(editor.path);
         } catch (Exception e) {
             LogWriter.error("Failed to save script file in Nodex IDE: " + editor.path, asException(e));
             setStatus("Failed saving: " + getPathName(editor.path));
@@ -1375,11 +1398,11 @@ public final class NodexFxWindow {
     }
 
     private void removeEditor(EditorTab editorTab) {
-        if (editorTab == null) {
-            return;
-        }
+        if (editorTab == null) return;
         editorTab.area.caretPositionProperty().removeListener(editorTab.caretListener);
+        if (editorTab.highlightDebounce != null) editorTab.highlightDebounce.stop();
         openEditors.remove(editorTab.editorKey());
+        tabToEditor.remove(editorTab.tab);
         updateCursorStatus();
         updateBottomStatus();
     }
@@ -1393,25 +1416,26 @@ public final class NodexFxWindow {
     }
 
     private EditorTab getActiveEditor() {
-        if (tabPane == null) {
-            return null;
-        }
+        if (tabPane == null) return null;
         Tab selected = tabPane.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            return null;
+        if (selected == null) return null;
+        return tabToEditor.get(selected);
+    }
+
+    private void scheduleCursorUpdate() {
+        if (cursorDebounce == null) {
+            cursorDebounce = new PauseTransition(Duration.millis(50));
+            cursorDebounce.setOnFinished(evt -> updateCursorStatusNow());
         }
-        for (EditorTab editorTab : openEditors.values()) {
-            if (editorTab.tab == selected) {
-                return editorTab;
-            }
-        }
-        return null;
+        cursorDebounce.playFromStart();
     }
 
     private void updateCursorStatus() {
-        if (cursorLabel == null) {
-            return;
-        }
+        scheduleCursorUpdate();
+    }
+
+    private void updateCursorStatusNow() {
+        if (cursorLabel == null) return;
         EditorTab active = getActiveEditor();
         if (active == null) {
             cursorLabel.setText("Ln 1, Col 1");
@@ -2068,21 +2092,42 @@ public final class NodexFxWindow {
     }
 
     private void scheduleExternalRefresh() {
-        if (!pendingRefresh.compareAndSet(false, true)) {
-            return;
-        }
         Platform.runLater(() -> {
-            pendingRefresh.set(false);
-            refreshTree(null);
-            syncOpenEditorsFromDisk();
+            if (watcherDebounce == null) {
+                watcherDebounce = new PauseTransition(Duration.millis(500));
+                watcherDebounce.setOnFinished(evt -> {
+                    // Only refresh if the window is visible
+                    if (stage != null && stage.isShowing()) {
+                        // Only refresh file tree if it's actually visible in the split pane
+                        if (contentSplit != null && contentSplit.getItems().contains(fileTree)) {
+                            refreshTree(null);
+                        }
+                        syncOpenEditorsFromDisk();
+                    }
+                });
+            }
+            watcherDebounce.playFromStart();
         });
     }
 
     private void syncOpenEditorsFromDisk() {
+        long now = System.currentTimeMillis();
+        // Purge stale ignore entries
+        java.util.Iterator<Map.Entry<Path, Long>> it = ignoredPaths.entrySet().iterator();
+        while (it.hasNext()) {
+            if (now - it.next().getValue() >= IGNORE_DURATION_MS) it.remove();
+        }
         List<EditorTab> editors = new ArrayList<EditorTab>(openEditors.values());
         for (EditorTab editorTab : editors) {
             if (editorTab.isVirtual()) continue;
             try {
+                // Skip files we just saved ourselves (self-modification ignore)
+                Path normalizedPath = editorTab.path.toAbsolutePath().normalize();
+                Long ignoreTime = ignoredPaths.get(normalizedPath);
+                if (ignoreTime != null) {
+                    if (now - ignoreTime < IGNORE_DURATION_MS) continue;
+                    else ignoredPaths.remove(normalizedPath);
+                }
                 if (!Files.exists(editorTab.path)) {
                     if (!editorTab.dirty) {
                         tabPane.getTabs().remove(editorTab.tab);
