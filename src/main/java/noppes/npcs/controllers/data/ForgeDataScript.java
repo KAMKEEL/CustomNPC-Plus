@@ -18,6 +18,7 @@ import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ScriptHookController;
+import noppes.npcs.janino.EventJaninoScript;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -159,6 +160,11 @@ public class ForgeDataScript extends MultiScriptHandler {
     @Override
     public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
         ForgeScriptPacket.Save(index, totalCount, nbt);
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.FORGE);
     }
 
     @Override

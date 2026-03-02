@@ -168,6 +168,12 @@ public class PlayerDataScript extends MultiScriptHandler {
     }
 
     @Override
+    public void setLanguage(String lang) {
+        ScriptController.Instance.playerScripts.scriptLanguage = lang;
+        this.scriptLanguage = lang;
+    }
+
+    @Override
     public String noticeString() {
         if (this.player == null) {
             return "Global script";
