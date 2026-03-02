@@ -948,16 +948,16 @@ public class JSTypeRegistry {
      * This handles overload keys (methodName, methodName$1, methodName$2, etc.)
      *
      * @param type The type to search in
-     * @param methodName The method name to search for
-     * @param paramCount The parameter count to match
+     * @param candidate The method name to search for
      * @return The method key if found, or null if no match
      */
-    private String findOwnMethodKeyByParamCount(JSTypeInfo type, String methodName, int paramCount) {
+    private String findOwnMethodKeyBySignature(JSTypeInfo type, JSMethodInfo candidate) {
         Map<String, JSMethodInfo> methods = type.getMethods();
-        
+        String methodName = candidate.getName();
+
         // Check direct key first
         JSMethodInfo direct = methods.get(methodName);
-        if (direct != null && direct.getParameterCount() == paramCount) {
+        if (direct != null && hasSameParameterSignature(direct, candidate)) {
             return methodName;
         }
         
@@ -966,7 +966,7 @@ public class JSTypeRegistry {
         String overloadKey = methodName + "$" + index;
         while (methods.containsKey(overloadKey)) {
             JSMethodInfo overload = methods.get(overloadKey);
-            if (overload.getParameterCount() == paramCount) {
+            if (hasSameParameterSignature(overload, candidate)) {
                 return overloadKey;
             }
             index++;
@@ -974,6 +974,28 @@ public class JSTypeRegistry {
         }
         
         return null; // No match found
+    }
+
+    private boolean hasSameParameterSignature(JSMethodInfo left, JSMethodInfo right) {
+        if (left == null || right == null) {
+            return false;
+        }
+
+        if (left.getParameterCount() != right.getParameterCount()) {
+            return false;
+        }
+
+        List<JSMethodInfo.JSParameterInfo> leftParams = left.getParameters();
+        List<JSMethodInfo.JSParameterInfo> rightParams = right.getParameters();
+        for (int i = 0; i < leftParams.size(); i++) {
+            String leftType = leftParams.get(i).getType();
+            String rightType = rightParams.get(i).getType();
+            if (!Objects.equals(leftType, rightType)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -992,10 +1014,7 @@ public class JSTypeRegistry {
         for (Map.Entry<String, JSMethodInfo> entry : incoming.getMethods().entrySet()) {
             JSMethodInfo incomingMethod = entry.getValue();
             String methodName = incomingMethod.getName();
-            int paramCount = incomingMethod.getParameterCount();
-            
-            // Find existing method with same param count
-            String existingKey = findOwnMethodKeyByParamCount(existing, methodName, paramCount);
+            String existingKey = findOwnMethodKeyBySignature(existing, incomingMethod);
             if (existingKey != null) {
                 // Replace existing overload
                 existing.getMethods().put(existingKey, incomingMethod);
