@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
 import noppes.npcs.api.ability.type.IAbilityGuard;
 import noppes.npcs.client.gui.builder.FieldDef;
 
@@ -32,6 +33,14 @@ public class AbilityGuard extends AbilityDefend implements IAbilityGuard {
     // ═══════════════════════════════════════════════════════════════════
     // DEFEND HOOKS
     // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Guard accepts ALL damage types (melee, projectile, magic, fire, explosion).
+     */
+    @Override
+    protected boolean isValidDamageSource(DamageSource source) {
+        return true;
+    }
 
     @Override
     protected float performDefend(EntityLivingBase attacker, float amount) {
