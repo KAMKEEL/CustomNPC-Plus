@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Shared zone entity for Trap and Hazard abilities.
@@ -166,7 +165,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     private transient boolean armed = false;
     private transient int triggerCount = 0;
     private transient int ticksSinceLastTrigger = 0;
-    private transient Set<UUID> triggeredEntities = new HashSet<>();
+    private transient Set<Integer> triggeredEntities = new HashSet<>();
     private transient int triggerFlashTick = -1;
 
     private transient int ticksSinceDamage = 0;
@@ -360,7 +359,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         for (EntityLivingBase entity : entities) {
             if (owner != null && entity == owner) continue;
             if (entity.isDead) continue;
-            if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+            if (maxTriggers == 1 && triggeredEntities.contains(entity.getEntityId())) continue;
             if (owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
 
             double dx = entity.posX - posX;
@@ -439,7 +438,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         if (anyDamaged) {
             triggerCount++;
             ticksSinceLastTrigger = 0;
-            triggeredEntities.add(triggerer.getUniqueID());
+            triggeredEntities.add(triggerer.getEntityId());
             triggerFlashTick = ticksExisted;
             worldObj.setEntityState(this, TRIGGER_FLASH_STATUS);
         }
