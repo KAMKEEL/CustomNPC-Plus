@@ -1450,7 +1450,7 @@ public class ScriptDocument {
             
             if (isJavaScript()) {
                 // JavaScript: var/let/const varName = expr;
-                Pattern varPattern = Pattern.compile("(var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
+                Pattern varPattern = Pattern.compile("(var|let|const)\\s+(\\w+)(?:\\s*(=))?");
                 Matcher m = varPattern.matcher(bodyText);
                 
                 while (m.find()) {
@@ -1459,7 +1459,19 @@ public class ScriptDocument {
                     
                     String kind = m.group(1);
                     String varName = m.group(2);
-                    String initializer = m.group(4);
+                    String initializer = null;
+                    int initializerStart = -1;
+                    int initializerEnd = -1;
+                    if (m.group(3) != null) {
+                        initializerStart = skipSegmentWhitespace(bodyText, m.end(3));
+                        initializerEnd = findJsInitializerEnd(bodyText, initializerStart);
+                        if (initializerEnd > initializerStart) {
+                            initializer = bodyText.substring(initializerStart, initializerEnd).trim();
+                            if (initializer.isEmpty()) {
+                                initializer = null;
+                            }
+                        }
+                    }
                     
                     // Check for JSDoc type annotation before the declaration
                     int absStart = bodyStart + m.start();
@@ -1473,8 +1485,8 @@ public class ScriptDocument {
                     }
                     
                     // Priority 2: Infer type from initializer if no JSDoc type
-                    if (typeInfo == null && initializer != null && !initializer.trim().isEmpty()) {
-                        typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(4));
+                    if (typeInfo == null && initializer != null && !initializer.isEmpty()) {
+                        typeInfo = resolveExpressionType(initializer, bodyStart + initializerStart);
                     }
                     
                     // Priority 3: Use "any" type for uninitialized variables
@@ -1484,9 +1496,8 @@ public class ScriptDocument {
                     
                     int initStart = -1, initEnd = -1;
                     if (m.group(3) != null) {
-                        // Include the = sign in initStart
                         initStart = bodyStart + m.start(3);
-                        initEnd = bodyStart + m.end(4);
+                        initEnd = (initializerEnd >= 0) ? bodyStart + initializerEnd : bodyStart + m.end(3);
                     }
                     
                     FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, absPos, method, initStart, initEnd, 0);
@@ -1712,7 +1723,7 @@ public class ScriptDocument {
     private void parseJSLocalsInRange(int start, int end, InnerCallableScope scope) {
         String rangeText = text.substring(start, Math.min(end, text.length()));
         
-        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
+        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=))?");
         Matcher m = varPattern.matcher(rangeText);
         
         while (m.find()) {
@@ -1721,7 +1732,19 @@ public class ScriptDocument {
             if (isExcluded(declPos)) continue;
             
             String varName = m.group(1);
-            String initializer = m.group(3);
+            String initializer = null;
+            int initializerStart = -1;
+            int initializerEnd = -1;
+            if (m.group(2) != null) {
+                initializerStart = skipSegmentWhitespace(rangeText, m.end(2));
+                initializerEnd = findJsInitializerEnd(rangeText, initializerStart);
+                if (initializerEnd > initializerStart) {
+                    initializer = rangeText.substring(initializerStart, initializerEnd).trim();
+                    if (initializer.isEmpty()) {
+                        initializer = null;
+                    }
+                }
+            }
             
             // Check for JSDoc type annotation
             JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, declPos);
@@ -1734,8 +1757,8 @@ public class ScriptDocument {
             }
             
             // Priority 2: Infer from initializer
-            if (varType == null && initializer != null && !initializer.trim().isEmpty()) {
-                varType = resolveExpressionType(initializer.trim(), start + m.start(3));
+            if (varType == null && initializer != null && !initializer.isEmpty()) {
+                varType = resolveExpressionType(initializer, start + initializerStart);
             }
             
             // Priority 3: Use "any" type
@@ -1746,7 +1769,7 @@ public class ScriptDocument {
             int initStart = -1, initEnd = -1;
             if (m.group(2) != null) {
                 initStart = start + m.start(2);
-                initEnd = start + m.end(3);
+                initEnd = (initializerEnd >= 0) ? start + initializerEnd : start + m.end(2);
             }
             
             int absPos = start + m.start(1);
@@ -1758,6 +1781,107 @@ public class ScriptDocument {
             
             scope.addLocal(varName, localVar);
         }
+    }
+
+    private int skipSegmentWhitespace(String source, int pos) {
+        while (pos < source.length() && Character.isWhitespace(source.charAt(pos))) {
+            pos++;
+        }
+        return pos;
+    }
+
+    private int findJsInitializerEnd(String source, int rhsStart) {
+        if (rhsStart < 0 || rhsStart >= source.length()) {
+            return rhsStart;
+        }
+
+        int pos = rhsStart;
+        int lineExprStart = rhsStart;
+        while (pos < source.length()) {
+            char c = source.charAt(pos);
+            if (c == ';') {
+                return pos;
+            }
+
+            if (c == '\n' || c == '\r') {
+                int lineBreakPos = pos;
+                int nextPos = pos + 1;
+                if (c == '\r' && nextPos < source.length() && source.charAt(nextPos) == '\n') {
+                    nextPos++;
+                }
+
+                int currentLineEnd = lineBreakPos;
+                while (currentLineEnd > lineExprStart && Character.isWhitespace(source.charAt(currentLineEnd - 1))) {
+                    currentLineEnd--;
+                }
+                String currentLineExpr = source.substring(lineExprStart, currentLineEnd);
+
+                int nextExprStart = nextPos;
+                while (nextExprStart < source.length()) {
+                    char next = source.charAt(nextExprStart);
+                    if (next == ' ' || next == '\t') {
+                        nextExprStart++;
+                        continue;
+                    }
+                    if (next == ';') {
+                        return nextExprStart;
+                    }
+                    if (next == '\n' || next == '\r') {
+                        nextExprStart++;
+                        if (next == '\r' && nextExprStart < source.length() && source.charAt(nextExprStart) == '\n') {
+                            nextExprStart++;
+                        }
+                        continue;
+                    }
+                    break;
+                }
+
+                if (nextExprStart >= source.length()) {
+                    return source.length();
+                }
+
+                int nextLineEnd = nextExprStart;
+                while (nextLineEnd < source.length()) {
+                    char next = source.charAt(nextLineEnd);
+                    if (next == '\n' || next == '\r' || next == ';') {
+                        break;
+                    }
+                    nextLineEnd++;
+                }
+                String nextLineExpr = source.substring(nextExprStart, nextLineEnd).trim();
+
+                if (!shouldContinueJsInitializer(currentLineExpr, nextLineExpr)) {
+                    return lineBreakPos;
+                }
+
+                pos = nextExprStart;
+                lineExprStart = nextExprStart;
+                continue;
+            }
+            pos++;
+        }
+        return source.length();
+    }
+
+    private boolean shouldContinueJsInitializer(String currentLineExpr, String nextLineExpr) {
+        if (nextLineExpr.isEmpty()) {
+            return false;
+        }
+
+        if (nextLineExpr.startsWith(".") || nextLineExpr.startsWith("?.") || nextLineExpr.startsWith("[")) {
+            return true;
+        }
+
+        String current = currentLineExpr.trim();
+        if (current.isEmpty()) {
+            return false;
+        }
+
+        char tail = current.charAt(current.length() - 1);
+        return tail == '+' || tail == '-' || tail == '*' || tail == '/' || tail == '%' ||
+                tail == '&' || tail == '|' || tail == '^' || tail == '!' || tail == '=' ||
+                tail == '<' || tail == '>' || tail == '?' || tail == ':' || tail == ',' ||
+                tail == '.' || tail == '(' || tail == '[' || tail == '{';
     }
     
     /**
@@ -2293,7 +2417,7 @@ public class ScriptDocument {
     private void parseGlobalFields() {
         if (isJavaScript()) {
             // JavaScript: var/let/const varName = expr; (outside functions)
-            Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
+            Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=))?");
             Matcher m = varPattern.matcher(text);
             
             while (m.find()) {
@@ -2311,7 +2435,19 @@ public class ScriptDocument {
                 if (insideMethod) continue;
                 
                 String varName = m.group(1);
-                String initializer = m.group(3);
+                String initializer = null;
+                int initializerStart = -1;
+                int initializerEnd = -1;
+                if (m.group(2) != null) {
+                    initializerStart = skipSegmentWhitespace(text, m.end(2));
+                    initializerEnd = findJsInitializerEnd(text, initializerStart);
+                    if (initializerEnd > initializerStart) {
+                        initializer = text.substring(initializerStart, initializerEnd).trim();
+                        if (initializer.isEmpty()) {
+                            initializer = null;
+                        }
+                    }
+                }
                 
                 // First, check for JSDoc type annotation
                 String documentation = extractDocumentationBefore(m.start());
@@ -2325,8 +2461,8 @@ public class ScriptDocument {
                 }
                 
                 // Priority 2: Infer from initializer if no JSDoc type
-                if (typeInfo == null && initializer != null && !initializer.trim().isEmpty()) {
-                    typeInfo = resolveExpressionType(initializer.trim(), m.start(3));
+                if (typeInfo == null && initializer != null && !initializer.isEmpty()) {
+                    typeInfo = resolveExpressionType(initializer, initializerStart);
                 }
                 
                 // Priority 3: Use "any" type for uninitialized variables
@@ -2336,9 +2472,8 @@ public class ScriptDocument {
                 
                 int initStart = -1, initEnd = -1;
                 if (m.group(2) != null) {
-                    // Include the = sign in initStart
                     initStart = m.start(2);
-                    initEnd = m.end(3);
+                    initEnd = (initializerEnd >= 0) ? initializerEnd : m.end(2);
                 }
 
                 FieldInfo fieldInfo = FieldInfo.globalField(varName, typeInfo, position, documentation, initStart, initEnd, 0);
