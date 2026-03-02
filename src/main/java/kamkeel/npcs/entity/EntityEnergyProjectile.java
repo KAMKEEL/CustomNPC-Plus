@@ -966,6 +966,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     /**
      * Set the effects list from the ability's configured effects.
      */
+    public void setAnchorData(EnergyAnchorData anchor) {
+        this.anchorData = anchor != null ? anchor.copy() : new EnergyAnchorData(AnchorPoint.FRONT);
+    }
+
     public void setEffects(List<AbilityPotionEffect> effects) {
         if (effects == null || effects.isEmpty()) {
             this.effects = new ArrayList<>();
@@ -1490,13 +1494,67 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     /**
      * Set motion along owner look vector or apply explicit fallback values.
+     * When {@code launchFromAnchor} is true, ray-casts from the owner's eye to find the
+     * crosshair target point and aims from the projectile's anchor position toward it.
      */
     protected void setMotionAlongLookVectorOrFallback(float speed, double fallbackX, double fallbackY, double fallbackZ) {
+        if (anchorData.launchFromAnchor && setMotionTowardLookTarget(speed)) {
+            return;
+        }
         if (!setMotionAlongLookVector(speed)) {
             motionX = fallbackX;
             motionY = fallbackY;
             motionZ = fallbackZ;
         }
+    }
+
+    /**
+     * Ray-cast from the owner's eye along the look vector to find the crosshair target point,
+     * then set motion from the projectile's current position toward that point.
+     * Used when {@code launchFromAnchor} is true so projectiles fired from offset anchor
+     * positions converge to the crosshair rather than flying parallel to the look direction.
+     */
+    protected boolean setMotionTowardLookTarget(float speed) {
+        Entity owner = getOwnerEntity();
+        if (!(owner instanceof EntityLivingBase)) return false;
+        Vec3 look = getOwnerLookVector();
+        if (look == null) return false;
+
+        EntityLivingBase livingOwner = (EntityLivingBase) owner;
+        double eyeX = livingOwner.posX;
+        double eyeY = livingOwner.posY + livingOwner.getEyeHeight();
+        double eyeZ = livingOwner.posZ;
+
+        double maxDist = 200.0;
+        Vec3 start = Vec3.createVectorHelper(eyeX, eyeY, eyeZ);
+        Vec3 end = Vec3.createVectorHelper(
+            eyeX + look.xCoord * maxDist,
+            eyeY + look.yCoord * maxDist,
+            eyeZ + look.zCoord * maxDist
+        );
+
+        double targetX, targetY, targetZ;
+        MovingObjectPosition hit = worldObj.rayTraceBlocks(start, end);
+        if (hit != null && hit.hitVec != null) {
+            targetX = hit.hitVec.xCoord;
+            targetY = hit.hitVec.yCoord;
+            targetZ = hit.hitVec.zCoord;
+        } else {
+            targetX = eyeX + look.xCoord * maxDist;
+            targetY = eyeY + look.yCoord * maxDist;
+            targetZ = eyeZ + look.zCoord * maxDist;
+        }
+
+        double dx = targetX - posX;
+        double dy = targetY - posY;
+        double dz = targetZ - posZ;
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len <= 0.0001) return false;
+
+        motionX = (dx / len) * speed;
+        motionY = (dy / len) * speed;
+        motionZ = (dz / len) * speed;
+        return true;
     }
 
     /**
