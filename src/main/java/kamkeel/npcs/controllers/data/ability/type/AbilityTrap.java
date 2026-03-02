@@ -80,6 +80,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
                 zoneShape,
                 triggerRadius, armTime, maxTriggers, triggerCooldown,
                 damage, damageRadius, knockback, durationTicks,
+                isIgnoreIFrames(),
                 colorData.innerColor, colorData.outerColor, colorData.outerColorEnabled,
                 zoneHeight,
                 particleDensity, particleScale, animSpeed, lightningDensity,

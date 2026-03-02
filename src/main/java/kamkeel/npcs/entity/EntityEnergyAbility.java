@@ -43,6 +43,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
      * The ability that spawned this entity. Transient, not saved to NBT.
      */
     protected transient Ability sourceAbility = null;
+    protected boolean ignoreIFrames = false;
     protected boolean previewMode = false;
     protected EntityLivingBase previewOwner = null;
 
@@ -138,6 +139,14 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
 
     public void setSourceAbility(Ability ability) {
         this.sourceAbility = ability;
+    }
+
+    public boolean isIgnoreIFrames() {
+        return ignoreIFrames;
+    }
+
+    public void setIgnoreIFrames(boolean ignoreIFrames) {
+        this.ignoreIFrames = ignoreIFrames;
     }
 
     // ==================== PREVIEW MODE ====================
@@ -313,6 +322,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
      */
     protected void writeEnergyBaseNBT(NBTTagCompound nbt) {
         nbt.setInteger("OwnerId", ownerEntityId);
+        nbt.setBoolean("IgnoreIFrames", ignoreIFrames);
         displayData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
     }
@@ -323,6 +333,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
      */
     protected void readEnergyBaseNBT(NBTTagCompound nbt) {
         this.ownerEntityId = nbt.getInteger("OwnerId");
+        this.ignoreIFrames = nbt.getBoolean("IgnoreIFrames");
         displayData.readNBT(nbt);
         lightningData.readNBT(nbt);
     }

@@ -19,8 +19,11 @@ import java.util.List;
 /**
  * Abstract base class for defensive abilities (Guard, Counter, Dodge).
  * <p>
- * {@link #onDefend} handles shared checks (physical melee only) then delegates
- * to {@link #performDefend(EntityLivingBase, float)} which subclasses override for their specific behavior.
+ * {@link #onDefend} handles shared checks then delegates to {@link #performDefend(EntityLivingBase, float)}
+ * which subclasses override for their specific behavior.
+ * <p>
+ * Damage source filtering is controlled by {@link #isValidDamageSource(DamageSource)}.
+ * By default only physical melee is accepted; subclasses can override to widen (e.g. Guard accepts all).
  */
 public abstract class AbilityDefend extends Ability implements IAbilityDefend {
 
@@ -97,12 +100,13 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
 
     /**
      * Called when the caster is hit while defending.
-     * Checks for physical melee damage only, then delegates to {@link #performDefend(float)}.
+     * Checks damage source validity via {@link #isValidDamageSource}, then delegates
+     * to {@link #performDefend(EntityLivingBase, float)}.
      *
      * @param attacker The entity that hit the caster
      * @param source   The damage source
      * @param amount   The original incoming damage
-     * @return The modified damage to apply (unchanged if not physical melee)
+     * @return The modified damage to apply (unchanged if source is invalid)
      */
     public final float onDefend(EntityLivingBase attacker, DamageSource source, float amount) {
         if (!isDefending()) {
@@ -112,8 +116,7 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
             return amount;
         }
 
-        // Only react to physical melee damage
-        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion() || source.isProjectile()) {
+        if (!isValidDamageSource(source)) {
             return amount;
         }
 
@@ -149,13 +152,23 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
     }
 
     /**
-     * Subclass-specific defend behavior. Called only for physical melee hits while defending.
+     * Subclass-specific defend behavior. Called only for valid hits while defending
+     * (as determined by {@link #isValidDamageSource}).
      *
      * @param attacker The entity that hit the caster
      * @param amount   The incoming damage
      * @return The modified damage the caster should take
      */
     protected abstract float performDefend(EntityLivingBase attacker, float amount);
+
+    /**
+     * Determines whether this defend ability reacts to the given damage source.
+     * Default implementation accepts only physical melee damage (rejects magic, fire, explosion, projectile).
+     * Subclasses can override to accept additional damage types (e.g. Guard accepts all).
+     */
+    protected boolean isValidDamageSource(DamageSource source) {
+        return !source.isMagicDamage() && !source.isFireDamage() && !source.isExplosion() && !source.isProjectile();
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // SUBCLASS HOOKS
