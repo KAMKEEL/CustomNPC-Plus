@@ -210,6 +210,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         Vec3 spawnPos = getSpawnPosition(caster, index);
         EnergyDisplayData resolved = projectiles[index].resolveDisplay(displayData);
         E entity = createEntity(caster, target, spawnPos, resolved, index);
+        entity.setAnchorData(projectiles[index].anchor);
         entity.setEffects(this.effects);
         entity.setSourceAbility(this);
         return entity;
