@@ -16,6 +16,8 @@ import net.minecraft.world.World;
 import noppes.npcs.api.ability.type.IAbilityVortex;
 import noppes.npcs.client.gui.builder.FieldDef;
 
+import net.minecraft.entity.player.EntityPlayer;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -241,10 +243,19 @@ public class AbilityVortex extends Ability implements IAbilityVortex {
             double motionY = dy * factor * 0.5;
             double motionZ = dz * factor;
 
-            entity.motionX = motionX;
-            entity.motionY = motionY;
-            entity.motionZ = motionZ;
-            entity.velocityChanged = true;
+            if (entity instanceof EntityPlayer) {
+                // Players: send velocity packet — client applies movement
+                entity.motionX = motionX;
+                entity.motionY = motionY;
+                entity.motionZ = motionZ;
+                entity.velocityChanged = true;
+            } else {
+                // NPCs/mobs: directly apply movement with collision detection.
+                // Setting motionX alone is unreliable because the entity's AI tick
+                // (moveFlying/moveEntityWithHeading) can override the velocity before
+                // moveEntity runs, depending on entity tick order relative to the caster.
+                entity.moveEntity(motionX, motionY, motionZ);
+            }
 
             // Update tracked position for next tick's stuck detection
             state.lastX = entity.posX;
