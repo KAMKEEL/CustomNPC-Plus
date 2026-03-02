@@ -1650,7 +1650,7 @@ ability.particleMotion.sparks=Sparks
 ability.section.zone=Zone Placement
 ability.telegraphSize=Telegraph Size
 ability.coneAngle=Cone Angle
-ability.ignoreInvulnFrames=Ignore Invuln Frames
+ability.ignoreIFrames=Ignore I-Frames
 ability.visible=Visible
 
 # Visual Layer Section Headers
@@ -2051,6 +2051,7 @@ ability.hover.lockMovement=Prevents NPC pathfinding during the selected phases (
 ability.hover.rotationMode=Free: normal AI rotation. Locked: freeze facing direction. Track: force face target for precise aiming.
 ability.hover.rotationPhase=When the rotation mode applies (Windup, Active, or Both)
 ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
+ability.hover.ignoreIFrames=Temporarily clears target hurt resistance before applying ability damage, then restores it.
 ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)
 ability.hover.windup=Charge-up time before ability activates (20 ticks = 1 second)
 ability.hover.cooldown=Time before ability can be used again (20 ticks = 1 second)

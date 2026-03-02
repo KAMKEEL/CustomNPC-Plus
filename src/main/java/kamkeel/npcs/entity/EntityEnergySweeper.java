@@ -2,6 +2,7 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.entity.Entity;
@@ -308,14 +309,20 @@ public class EntityEnergySweeper extends EntityEnergyAbility {
     }
 
     private void applyDamage(EntityLivingBase target, Entity owner) {
-        if (owner instanceof EntityNPCInterface) {
-            target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), damage);
-        } else if (owner instanceof EntityPlayer) {
-            target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), damage);
-        } else if (owner instanceof EntityLivingBase) {
-            target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), damage);
-        } else {
-            target.attackEntityFrom(new NpcDamageSource("npc_ability", null), damage);
+        boolean ignoreIFrames = isIgnoreIFrames();
+        int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
+        try {
+            if (owner instanceof EntityNPCInterface) {
+                target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), damage);
+            } else if (owner instanceof EntityPlayer) {
+                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), damage);
+            } else if (owner instanceof EntityLivingBase) {
+                target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), damage);
+            } else {
+                target.attackEntityFrom(new NpcDamageSource("npc_ability", null), damage);
+            }
+        } finally {
+            Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);
         }
 
         // Small upward knockback to help escape

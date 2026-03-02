@@ -20,7 +20,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
     private float radius = 2.0f;
     private float damagePerSecond = 1.0f;
     private int damageInterval = 20;
-    private boolean ignoreInvulnFrames = false;
     private boolean affectsCaster = false;
 
     public AbilityHazard() {
@@ -75,7 +74,7 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
                 zoneShape,
                 radius,
                 damagePerSecond, damageInterval,
-                ignoreInvulnFrames, affectsCaster,
+                isIgnoreIFrames(), affectsCaster,
                 durationTicks,
                 colorData.innerColor, colorData.outerColor, colorData.outerColorEnabled,
                 zoneHeight,
@@ -99,7 +98,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         nbt.setFloat("radius", radius);
         nbt.setFloat("damagePerSecond", damagePerSecond);
         nbt.setInteger("damageInterval", damageInterval);
-        nbt.setBoolean("ignoreInvulnFrames", ignoreInvulnFrames);
         nbt.setBoolean("affectsCaster", affectsCaster);
     }
 
@@ -109,7 +107,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         this.radius = nbt.getFloat("radius");
         this.damagePerSecond = nbt.getFloat("damagePerSecond");
         this.damageInterval = nbt.getInteger("damageInterval");
-        this.ignoreInvulnFrames = nbt.getBoolean("ignoreInvulnFrames");
         this.affectsCaster = nbt.getBoolean("affectsCaster");
     }
 
@@ -135,14 +132,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
 
     public void setDamageInterval(int damageInterval) {
         this.damageInterval = damageInterval;
-    }
-
-    public boolean isIgnoreInvulnFrames() {
-        return ignoreInvulnFrames;
-    }
-
-    public void setIgnoreInvulnFrames(boolean ignoreInvulnFrames) {
-        this.ignoreInvulnFrames = ignoreInvulnFrames;
     }
 
     public boolean isAffectsCaster() {
@@ -176,7 +165,6 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
                 FieldDef.floatField("gui.dps", this::getDamagePerSecond, this::setDamagePerSecond),
                 FieldDef.intField("gui.interval", this::getDamageInterval, this::setDamageInterval)
             ),
-            FieldDef.boolField("ability.ignoreInvulnFrames", this::isIgnoreInvulnFrames, this::setIgnoreInvulnFrames),
             FieldDef.boolField("ability.affectsCaster", this::isAffectsCaster, this::setAffectsCaster)
                 .hover("ability.hover.affectsCaster"),
             AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)

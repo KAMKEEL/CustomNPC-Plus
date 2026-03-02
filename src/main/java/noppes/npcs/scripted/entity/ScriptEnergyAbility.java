@@ -120,4 +120,12 @@ public abstract class ScriptEnergyAbility<T extends EntityEnergyAbility> extends
     public float getChargeProgress() {
         return entity.getChargeProgress();
     }
+
+    public boolean isIgnoreIFrames() {
+        return entity.isIgnoreIFrames();
+    }
+
+    public void setIgnoreIFrames(boolean ignore) {
+        entity.setIgnoreIFrames(ignore);
+    }
 }

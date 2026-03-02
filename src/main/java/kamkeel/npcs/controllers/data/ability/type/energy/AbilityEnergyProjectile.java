@@ -212,6 +212,7 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         E entity = createEntity(caster, target, spawnPos, resolved, index);
         entity.setAnchorData(projectiles[index].anchor);
         entity.setEffects(this.effects);
+        entity.setIgnoreIFrames(this.isIgnoreIFrames());
         entity.setSourceAbility(this);
         return entity;
     }
