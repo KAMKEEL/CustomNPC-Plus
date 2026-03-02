@@ -37,8 +37,8 @@ public final class TypeChecker {
         // Handle null literal - null is compatible with any reference type (non-primitive)
         if ("<null>".equals(actual.getFullName())) {
             Class<?> expectedClass = expected.getJavaClass();
-            if (expectedClass != null && !expectedClass.isPrimitive()) {
-                return true; // null can be assigned to any reference type
+            if (expectedClass != null && !expectedClass.isPrimitive() || "<null>".equals(expected.getFullName())) {
+                return true; // null can be assigned to any reference type and null
             }
             // null cannot be assigned to primitive types
             return false;

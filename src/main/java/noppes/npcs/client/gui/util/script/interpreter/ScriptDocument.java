@@ -1495,7 +1495,10 @@ public class ScriptDocument {
                     
                     // Priority 2: Infer type from initializer if no JSDoc type
                     if (typeInfo == null && initializer != null && !initializer.isEmpty()) {
-                        typeInfo = resolveExpressionType(initializer, bodyStart + initializerStart);
+                        TypeInfo inferred = resolveExpressionType(initializer, bodyStart + initializerStart);
+                        if (!TypeInfo.NULL.equals(inferred)) {
+                            typeInfo = inferred;
+                        }
                     }
                     
                     // Priority 3: Use "any" type for uninitialized variables
@@ -1767,7 +1770,10 @@ public class ScriptDocument {
             
             // Priority 2: Infer from initializer
             if (varType == null && initializer != null && !initializer.isEmpty()) {
-                varType = resolveExpressionType(initializer, start + initializerStart);
+                TypeInfo inferred = resolveExpressionType(initializer, start + initializerStart);
+                if (!TypeInfo.NULL.equals(inferred)) {
+                    varType = inferred;
+                }
             }
             
             // Priority 3: Use "any" type
@@ -2480,7 +2486,10 @@ public class ScriptDocument {
                 
                 // Priority 2: Infer from initializer if no JSDoc type
                 if (typeInfo == null && initializer != null && !initializer.isEmpty()) {
-                    typeInfo = resolveExpressionType(initializer, initializerStart);
+                    TypeInfo inferred = resolveExpressionType(initializer, initializerStart);
+                    if (!TypeInfo.NULL.equals(inferred)) {
+                        typeInfo = inferred;
+                    }
                 }
                 
                 // Priority 3: Use "any" type for uninitialized variables
@@ -4849,7 +4858,7 @@ public class ScriptDocument {
         
         // Null literal
         if (expr.equals("null")) {
-            return TypeInfo.unresolved("null", "<null>"); // null is compatible with any reference type
+            return TypeInfo.NULL; // null is compatible with any reference type
         }
         
         // Numeric literals with precision checking

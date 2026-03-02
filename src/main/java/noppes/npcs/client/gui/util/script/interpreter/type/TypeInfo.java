@@ -48,6 +48,8 @@ public class TypeInfo {
     
     public static final TypeInfo STRING = TypeInfo.fromClass(String.class);
     
+    public static final TypeInfo NULL = TypeInfo.unresolved("null", "<null>");
+    
     /**
      * Singleton constant for the "any" type (used in JavaScript/TypeScript).
      * The "any" type is universally compatible - it can be assigned to anything
