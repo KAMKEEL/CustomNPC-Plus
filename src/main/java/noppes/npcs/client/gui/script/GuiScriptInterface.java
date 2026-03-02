@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
 import noppes.npcs.client.gui.util.ITextChangeListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -114,6 +115,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         // Initialize hooks from handler
         gui.hookList = new ArrayList<>(handler.getHooks());
+
+        JSTypeRegistry registry = JSTypeRegistry.getInstance();
+        if (!registry.isInitialized()) {
+            registry.initializeFromResources();
+        }
+        registry.syncHooksFromScriptHookControllerIfNeeded();
 
         // Request data from server
         if (handler instanceof IScriptHandlerPacket)

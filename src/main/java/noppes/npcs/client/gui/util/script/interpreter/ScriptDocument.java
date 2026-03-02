@@ -26,6 +26,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticTy
 import noppes.npcs.client.gui.util.script.ScopeInfo;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.DataScript;
+import noppes.npcs.controllers.ScriptHookController;
 
 import java.util.*;
 import java.util.function.Function;
@@ -925,20 +926,38 @@ public class ScriptDocument {
                 TypeInfo returnType = TypeInfo.fromPrimitive("void");
                 List<String> namespaces = scriptContext != null ? scriptContext.getNamespaces() : Collections.singletonList("Global");
 
-                if (typeResolver.isJSHook(namespaces, funcName)) {
-                    List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(namespaces, funcName);
-                    if (!sigs.isEmpty()) {
-                        JSTypeRegistry.HookSignature sig = sigs.get(0);
-                        documentation = sig.doc;
-                        
-                        // Infer parameter types from hook signature
+                boolean runtimeHook = false;
+                if (ScriptHookController.Instance != null && scriptContext != null) {
+                    String hookContext = scriptContext.hookContext;
+                    if (hookContext != null && !hookContext.isEmpty()) {
+                        runtimeHook = ScriptHookController.Instance.hasHook(hookContext, funcName);
+                    }
+                }
+
+                if (runtimeHook) {
+                    if (typeResolver.isJSHook(namespaces, funcName)) {
+                        List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(namespaces, funcName);
+                        if (!sigs.isEmpty()) {
+                            JSTypeRegistry.HookSignature sig = sigs.get(0);
+                            documentation = sig.doc;
+
+                            if (paramList != null && !paramList.trim().isEmpty()) {
+                                String[] paramNames = paramList.split(",");
+                                if (paramNames.length > 0) {
+                                    String paramName = paramNames[0].trim();
+                                    TypeInfo paramType = typeResolver.resolveJSType(sig.paramType);
+                                    int paramStart = m.start(2) + paramList.indexOf(paramName);
+                                    params.add(FieldInfo.parameter(paramName, paramType, paramStart, null));
+                                }
+                            }
+                        }
+                    } else {
                         if (paramList != null && !paramList.trim().isEmpty()) {
                             String[] paramNames = paramList.split(",");
                             if (paramNames.length > 0) {
                                 String paramName = paramNames[0].trim();
-                                TypeInfo paramType = typeResolver.resolveJSType(sig.paramType);
                                 int paramStart = m.start(2) + paramList.indexOf(paramName);
-                                params.add(FieldInfo.parameter(paramName, paramType, paramStart, null));
+                                params.add(FieldInfo.parameter(paramName, TypeInfo.unresolved("any", "any"), paramStart, null));
                             }
                         }
                     }

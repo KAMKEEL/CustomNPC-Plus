@@ -141,6 +141,7 @@ public class TypeResolver {
             if (!jsTypeRegistry.isInitialized()) {
                 jsTypeRegistry.initializeFromResources();
             }
+            jsTypeRegistry.syncHooksFromScriptHookControllerIfNeeded();
         }
         return jsTypeRegistry;
     }

@@ -123,7 +123,8 @@ public class TypeScriptDefinitionParser {
     public void parseDefinitionFile(String content, String fileName) {
         // Special handling for hooks.d.ts - extract function signatures
         if (fileName.contains("hooks.d.ts")) {
-            parseHooksFile(content);
+            // Commented out as hooks are now parsed through ScriptHookController which is the universal source of truth for registered hooks.
+            // parseHooksFile(content);
             return;
         }
         

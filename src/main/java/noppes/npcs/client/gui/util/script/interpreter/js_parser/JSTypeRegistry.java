@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.client.gui.util.script.interpreter.bridge.DtsJavaBridge;
+import noppes.npcs.api.handler.IHookDefinition;
+import noppes.npcs.controllers.ScriptHookController;
 
 import java.io.*;
 import java.net.URL;
@@ -59,6 +61,7 @@ public class JSTypeRegistry {
     
     private boolean initialized = false;
     private boolean initializationAttempted = false;
+    private int lastSyncedHookRevision = -1;
 
     private String currentSource = null;
     
@@ -845,6 +848,80 @@ public class JSTypeRegistry {
         initialized = false;
         initializationAttempted = false;
         currentSource = null;
+        lastSyncedHookRevision = -1;
+    }
+
+    /**
+     * Sync hook signatures from ScriptHookController into this registry.
+     * Uses revision-gating so repeated calls are no-ops when nothing changed.
+     */
+    public void syncHooksFromScriptHookControllerIfNeeded() {
+        try {
+            if (ScriptHookController.Instance == null) {
+                return;
+            }
+
+            int currentRevision = ScriptHookController.Instance.getHookRevision();
+            if (currentRevision == lastSyncedHookRevision) {
+                return;
+            }
+
+            hooks.clear();
+            contextHooks.clear();
+
+            Set<String> seen = new HashSet<>();
+
+            String[] contexts = ScriptHookController.Instance.getContexts();
+            if (contexts != null) {
+                for (String context : contexts) {
+                    if (context == null || context.isEmpty()) {
+                        continue;
+                    }
+                    List<IHookDefinition> defs = ScriptHookController.Instance.getAllHookDefinitions(context);
+                    if (defs == null || defs.isEmpty()) {
+                        continue;
+                    }
+
+                    for (IHookDefinition def : defs) {
+                        if (def == null) {
+                            continue;
+                        }
+                        String hookName = def.hookName();
+                        if (hookName == null || hookName.isEmpty()) {
+                            continue;
+                        }
+
+                        String usableTypeName = def.getUsableTypeName();
+                        String namespace;
+                        String paramType;
+
+                        if (usableTypeName != null && usableTypeName.contains(".")) {
+                            namespace = usableTypeName.substring(0, usableTypeName.indexOf('.'));
+                        } else {
+                            namespace = GLOBAL_NAMESPACE;
+                        }
+
+                        paramType = usableTypeName != null ? usableTypeName : "any";
+
+                        String[] paramNames = def.paramNames();
+                        String paramName = (paramNames != null && paramNames.length > 0 && paramNames[0] != null && !paramNames[0].isEmpty())
+                                ? paramNames[0]
+                                : "event";
+
+                        String dedupKey = namespace + "|" + hookName + "|" + paramType + "|" + paramName;
+                        if (!seen.add(dedupKey)) {
+                            continue;
+                        }
+                        registerHook(namespace, hookName, paramName, paramType);
+                    }
+                }
+            }
+
+            lastSyncedHookRevision = currentRevision;
+        } catch (Throwable t) {
+            System.err.println("[JSTypeRegistry] Failed to sync runtime hooks: " + t.getMessage());
+            t.printStackTrace();
+        }
     }
 
     private void setCurrentSource(String source) {
