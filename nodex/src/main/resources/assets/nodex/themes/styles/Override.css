@@ -1,0 +1,36 @@
+.ikonli-font-icon {
+    -fx-icon-size: 25px;
+}
+
+/* Settings */
+.tile .title {
+    -fx-font-size: 1.1em;
+    -fx-font-weight: bold;
+}
+
+.tile .description {
+    -fx-font-size: 1.0em;
+}
+
+.category-content {
+    -fx-padding: 0 5px 0 15px;
+}
+
+.category-title {
+    -fx-font-size: 1.4em;
+    -fx-font-weight: bold;
+}
+
+.category-content .subcategory-title {
+    -fx-font-size: 1.3em;
+    -fx-font-weight: bold;
+}
+
+/* MoveConfirmationView */
+.move-confirmation-dialog .content {
+    -fx-padding: 10px;
+}
+
+.move-confirmation-dialog .label {
+    -fx-font-weight: bold;
+}

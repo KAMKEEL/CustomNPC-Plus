@@ -1,0 +1,24 @@
+.code-area {
+    -fx-background-color: -color-bg-default;
+}
+
+.code-area .text {
+    -fx-fill: -color-fg-default;
+}
+
+.code-area .lineno {
+    -fx-background-color: -color-bg-subtle;
+    -fx-text-fill: -color-fg-muted;
+}
+
+.code-area .caret {
+    -fx-stroke: -color-fg-default;
+}
+
+.code-area .paragraph-box:has-caret {
+    -fx-background-color: -color-bg-subtle;
+}
+
+.code-area .selection {
+    -fx-fill: -color-accent-subtle;
+}

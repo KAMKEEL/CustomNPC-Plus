@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "package": "io.github.frostzie.nodex.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CaseInsensitiveCommandMapMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "client": [
+    "PauseScreenMixin",
+    "TitleScreenMixin"
+  ]
+}

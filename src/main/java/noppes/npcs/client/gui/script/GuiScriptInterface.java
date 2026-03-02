@@ -20,6 +20,8 @@ import noppes.npcs.client.gui.util.GuiNpcTextArea;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScriptTextArea;
 import noppes.npcs.client.gui.util.GuiUtil;
+import noppes.npcs.client.fx.JavaFxBridge;
+import noppes.npcs.client.fx.NodexScriptBinding;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
@@ -364,12 +366,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         if (this.player.worldObj.isRemote) {
             this.addButton(new GuiNpcButton(106, var9, this.guiTop + 55, 150, 20, "script.openfolder"));
+            this.addButton(new GuiNpcButton(114, var9, this.guiTop + 78, 150, 20, "script.nodex"));
         }
 
-        this.addButton(new GuiNpcButton(109, var9, this.guiTop + 78, 80, 20, "gui.website"));
-        this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 78, 80, 20, "gui.forum"));
-        this.addButton(new GuiNpcButton(110, var9, this.guiTop + 99, 80, 20, "script.apidoc"));
-        this.addButton(new GuiNpcButton(111, var9 + 81, this.guiTop + 99, 80, 20, "script.apisrc"));
+        this.addButton(new GuiNpcButton(109, var9, this.guiTop + 101, 80, 20, "gui.website"));
+        this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 101, 80, 20, "gui.forum"));
+        this.addButton(new GuiNpcButton(110, var9, this.guiTop + 122, 80, 20, "script.apidoc"));
+        this.addButton(new GuiNpcButton(111, var9 + 81, this.guiTop + 122, 80, 20, "script.apisrc"));
     }
 
     public GuiScriptInterface setDimensions(int x, int y) {
@@ -387,7 +390,89 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected ScriptContext getScriptContext() {
         return handler.getContext();
     }
-    
+
+    protected NodexScriptBinding createNodexBinding() {
+        if (handler == null) return null;
+
+        java.util.List<IScriptUnit> scripts = handler.getScripts();
+        if (scripts == null || scripts.isEmpty()) return null;
+
+        // For multi-tab handlers, use "Tab 1", "Tab 2", etc.
+        java.util.List<NodexScriptBinding.ScriptTabData> tabs = new java.util.ArrayList<NodexScriptBinding.ScriptTabData>();
+        for (int i = 0; i < scripts.size(); i++) {
+            IScriptUnit unit = scripts.get(i);
+            String name = "Tab " + (i + 1);
+            String lang = unit.getLanguage() != null ? unit.getLanguage() : handler.getLanguage();
+            tabs.add(new NodexScriptBinding.ScriptTabData(i, name, unit.getScript(), lang));
+        }
+
+        String label = handler.getContext() != null ? handler.getContext().id + " Scripts" : "Scripts";
+        String contextId = handler.getContext() != null ? handler.getContext().id : "GLOBAL";
+        final IScriptHandler handlerRef = handler;
+
+        NodexScriptBinding.SaveCallback saveCallback = new NodexScriptBinding.SaveCallback() {
+            @Override
+            public void onSave(int tabIndex, String newContent) {
+                net.minecraft.client.Minecraft.getMinecraft().func_152344_a(new Runnable() {
+                    @Override
+                    public void run() {
+                        java.util.List<IScriptUnit> currentScripts = handlerRef.getScripts();
+                        if (tabIndex >= 0 && tabIndex < currentScripts.size()) {
+                            currentScripts.get(tabIndex).setScript(newContent);
+                        }
+                        if (handlerRef instanceof IScriptHandlerPacket) {
+                            ((IScriptHandlerPacket) handlerRef).sync();
+                        }
+                    }
+                });
+            }
+        };
+
+        NodexScriptBinding.CloseCallback closeCallback = new NodexScriptBinding.CloseCallback() {
+            @Override
+            public void onClose(java.util.List<NodexScriptBinding.ScriptTabData> allTabs) {
+                net.minecraft.client.Minecraft.getMinecraft().func_152344_a(new Runnable() {
+                    @Override
+                    public void run() {
+                        java.util.List<IScriptUnit> currentScripts = handlerRef.getScripts();
+
+                        // Update existing tabs
+                        for (NodexScriptBinding.ScriptTabData tab : allTabs) {
+                            if (tab.index >= 0 && tab.index < currentScripts.size()) {
+                                currentScripts.get(tab.index).setScript(tab.content);
+                            } else {
+                                // New tab added in Nodex
+                                ScriptContainer newContainer = new ScriptContainer(handlerRef);
+                                newContainer.script = tab.content;
+                                handlerRef.addScriptUnit(newContainer);
+                            }
+                        }
+
+                        // Remove extra tabs if user deleted some (from the end)
+                        while (handlerRef.getScripts().size() > allTabs.size()) {
+                            handlerRef.removeScriptUnit(handlerRef.getScripts().size() - 1);
+                        }
+
+                        if (handlerRef instanceof IScriptHandlerPacket) {
+                            ((IScriptHandlerPacket) handlerRef).sync();
+                        }
+
+                        // Refresh in-game GUI if still showing
+                        net.minecraft.client.gui.GuiScreen current = net.minecraft.client.Minecraft.getMinecraft().currentScreen;
+                        if (current instanceof GuiScriptInterface) {
+                            ((GuiScriptInterface) current).textAreas.clear();
+                            ((GuiScriptInterface) current).initGui();
+                        }
+                    }
+                });
+            }
+        };
+
+        // Multi-tab handlers (Player, Forge, etc.) allow add/delete
+        boolean canModify = !handler.isSingleContainer();
+        return new NodexScriptBinding(label, contextId, tabs, saveCallback, closeCallback, canModify);
+    }
+
     // ==================== MOUSE HANDLING ====================
 
     @Override
@@ -661,6 +746,14 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             // TODO: Opens the ScriptController shared directory; this screen is available only to editors with the scripter
             //       tool and CustomNpcsPermissions.TOOL_SCRIPTER.
             NoppesUtil.openFolder(ScriptController.Instance.dir);
+        }
+
+        if (guibutton.id == 114) {
+            NodexScriptBinding binding = createNodexBinding();
+            JavaFxBridge.openScriptIde(
+                ScriptController.Instance != null ? ScriptController.Instance.dir : null,
+                binding
+            );
         }
 
         if (guibutton.id == 107) {

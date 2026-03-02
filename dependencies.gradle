@@ -45,6 +45,17 @@ dependencies {
 
     shadowImplementation(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
     annotationProcessor(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
+
+    // JavaFX editor stack (Nodex-style popup IDE window)
+    shadowImplementation("org.fxmisc.richtext:richtextfx:0.8.1")
+
+    // JavaFX classes are required at compile-time for the optional Nodex-style editor.
+    // The legacy 1.7.10 toolchain JDK may not ship JavaFX, so we wire a local jfxrt.jar when present.
+    def localJfxRt = file("C:/Program Files/Java/jdk1.8.0_202/jre/lib/ext/jfxrt.jar")
+    if (localJfxRt.exists()) {
+        compileOnly(files(localJfxRt))
+        runtimeOnlyNonPublishable(files(localJfxRt))
+    }
     
     testImplementation("junit:junit:4.13.2")
 

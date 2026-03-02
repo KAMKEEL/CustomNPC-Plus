@@ -1,0 +1,21 @@
+/* Tree cell styling */
+.file-tree-container .tree-cell {
+    -fx-padding: 0 0 0 0;
+    -fx-cell-size: 25px;
+}
+
+/* Default selection color when the TreeView item is not focused */
+.file-tree-container .tree-cell:selected {
+    -fx-background-color: -color-neutral-subtle;
+    -fx-text-fill: -color-fg-default;
+}
+
+/* Highlight for valid drop target */
+.file-tree-container .tree-cell.drag-over {
+    -fx-background-color: -color-accent-subtle;
+}
+
+/* Selection color when the TreeView item is focused */
+.file-tree-container .tree-view:focused .tree-cell:selected {
+    -fx-background-color: -color-accent-emphasis;
+}

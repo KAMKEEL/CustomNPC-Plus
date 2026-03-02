@@ -1,0 +1,4 @@
+/* Window Drop Shadow Effect */
+.window {
+    -fx-effect: dropshadow(three-pass-box, rgb(0,0,0,0.95), 2, 0.6, 0, 1);
+}

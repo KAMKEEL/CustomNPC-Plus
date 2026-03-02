@@ -10,6 +10,8 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.client.fx.JavaFxBridge;
+import noppes.npcs.client.fx.NodexScriptBinding;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -236,6 +238,7 @@ public class GuiScript extends GuiScriptInterface {
 
         if (MinecraftServer.getServer() != null)
             addButton(new GuiNpcButton(106, guiLeft + 232, guiTop + 71, 150, 20, "script.openfolder"));
+        addButton(new GuiNpcButton(114, guiLeft + 232, guiTop + 93, 150, 20, "script.nodex"));
     }
 
     // Apply editor globals for the active NPC hook.
@@ -333,12 +336,81 @@ public class GuiScript extends GuiScriptInterface {
         if (guibutton.id == 106) {
             NoppesUtil.openFolder(ScriptController.Instance.dir);
         }
+        if (guibutton.id == 114) {
+            NodexScriptBinding binding = createNodexBinding();
+            JavaFxBridge.openScriptIde(
+                ScriptController.Instance != null ? ScriptController.Instance.dir : null,
+                binding
+            );
+        }
         if (guibutton.id == 107) {
             ScriptContainer container = getCurrentContainer();
             if (container == null)
                 script.setNPCScript(activeTab, container = new ScriptContainer(this.script));
             setSubGui(new GuiScriptList(languages.get(script.scriptLanguage), container));
         }
+    }
+
+    @Override
+    protected NodexScriptBinding createNodexBinding() {
+        if (script == null) return null;
+
+        java.util.List<NodexScriptBinding.ScriptTabData> tabs = new java.util.ArrayList<NodexScriptBinding.ScriptTabData>();
+        for (int i = 0; i < hookList.size(); i++) {
+            ScriptContainer container = script.getNPCScript(i);
+            String content = container != null ? container.script : "";
+            tabs.add(new NodexScriptBinding.ScriptTabData(i, hookList.get(i), content, script.scriptLanguage));
+        }
+
+        final DataScript scriptRef = script;
+        NodexScriptBinding.SaveCallback saveCallback = new NodexScriptBinding.SaveCallback() {
+            @Override
+            public void onSave(int tabIndex, String newContent) {
+                net.minecraft.client.Minecraft.getMinecraft().func_152344_a(new Runnable() {
+                    @Override
+                    public void run() {
+                        ScriptContainer container = scriptRef.getNPCScript(tabIndex);
+                        if (container == null) {
+                            container = new ScriptContainer(scriptRef);
+                            scriptRef.setNPCScript(tabIndex, container);
+                        }
+                        container.script = newContent;
+                        NPCScriptPacket.Save(scriptRef.writeToNBT(new NBTTagCompound()));
+                    }
+                });
+            }
+        };
+
+        NodexScriptBinding.CloseCallback closeCallback = new NodexScriptBinding.CloseCallback() {
+            @Override
+            public void onClose(java.util.List<NodexScriptBinding.ScriptTabData> allTabs) {
+                net.minecraft.client.Minecraft.getMinecraft().func_152344_a(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (NodexScriptBinding.ScriptTabData tab : allTabs) {
+                            ScriptContainer container = scriptRef.getNPCScript(tab.index);
+                            if (container == null) {
+                                container = new ScriptContainer(scriptRef);
+                                scriptRef.setNPCScript(tab.index, container);
+                            }
+                            container.script = tab.content;
+                        }
+                        NPCScriptPacket.Save(scriptRef.writeToNBT(new NBTTagCompound()));
+
+                        // Refresh in-game GUI if still showing
+                        net.minecraft.client.gui.GuiScreen current = net.minecraft.client.Minecraft.getMinecraft().currentScreen;
+                        if (current instanceof GuiScript) {
+                            GuiScript gui = (GuiScript) current;
+                            gui.textAreas.clear();
+                            gui.initGui();
+                        }
+                    }
+                });
+            }
+        };
+
+        // NPC scripts have fixed hook-based tabs - no add/delete
+        return new NodexScriptBinding("NPC Scripts", "NPC", tabs, saveCallback, closeCallback, false);
     }
 
     @Override

@@ -1,0 +1,80 @@
+/* TODO: Yeahhhh need to finish this but that's future me problem... */
+
+.debug-layout .top-bar-view {
+    -fx-background-color: -color-bg-default;
+    -fx-effect: innershadow(one-pass-box, red, 4, 1, 0, 0);
+}
+.debug-layout .left-bar {
+    -fx-background-color: -color-bg-default;
+    -fx-effect: innershadow(one-pass-box, blue, 4, 1, 0, 0);
+}
+.debug-layout .file-tree-container {
+    -fx-background-color: -color-bg-default;
+    -fx-effect: innershadow(one-pass-box, green, 4, 1, 0, 0);
+}
+.debug-layout .text-editor-container {
+    -fx-background-color: -color-bg-default;
+    -fx-effect: innershadow(one-pass-box, yellow, 4, 1, 0, 0);
+}
+.debug-layout .status-bar {
+    -fx-background-color: -color-bg-default;
+    -fx-effect: innershadow(one-pass-box, orange, 4, 1, 0, 0);
+}
+.debug-layout .status-label {
+    -fx-background-color: -color-bg-default;
+    -fx-effect: innershadow(one-pass-box, orangered, 4, 1, 0, 0);
+}
+
+.debug-resize-handles .resize-handle-region {
+    -fx-background-color: rgba(255, 0, 0, 0.5);
+}
+
+/* --- Settings --- */
+/*  */
+.debug-layout .category-scroll { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, blue, 4, 1, 0, 0); } /* Main Settings window */
+.debug-layout .fields-container { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, cyan, 4, 1, 0, 0); } /* Settings content TOTAL */
+.debug-layout .setting-reset-button { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, salmon, 4, 1, 0, 0); } /* Reset button */
+.debug-layout .toggle-switch { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, seagreen, 4, 1, 0, 0); } /* Boolean Toggle */
+.debug-layout .tile .text-container { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, lime, 4, 1, 0, 0); } /* Settings Text area INDIVIDUAL */
+.debug-layout .tile .title { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, yellow, 4, 1, 0, 0); } /* Settings Title INDIVIDUAL */
+.debug-layout .tile .description { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, green, 4, 1, 0, 0); } /* Settings Description INDIVIDUAL */
+
+
+
+
+/*.debug-layout .search-section { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, orange, 4, 1, 0, 0); } */
+/*.debug-layout .category-tree { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, yellow, 4, 1, 0, 0); } */
+/*.debug-layout .category-title { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, violet, 4, 1, 0, 0); } */
+/*.debug-layout .subcategory-section { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, purple, 4, 1, 0, 0); } */
+/*.debug-layout .subcategory-header { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, magenta, 4, 1, 0, 0); } */
+/*.debug-layout .subcategory-title { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, pink, 4, 1, 0, 0); } */
+/*.debug-layout .subcategory-description { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, gold, 4, 1, 0, 0); } */
+/*.debug-layout .tile { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, teal, 4, 1, 0, 0); } */
+/*.debug-layout .field-textfield { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, slateblue, 4, 1, 0, 0); } */
+/*.debug-layout .field-slider { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, tomato, 4, 1, 0, 0); } */
+/*.debug-layout .slider-value { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, turquoise, 4, 1, 0, 0); } */
+/*.debug-layout .field-button { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, wheat, 4, 1, 0, 0); } */
+/*.debug-layout .keybind-input-button { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, yellowgreen, 4, 1, 0, 0); } */
+
+/* --- File Tree --- */
+/*.debug-layout .tree-cell { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, brown, 4, 1, 0, 0); }
+.debug-layout .tree-cell .tree-disclosure-node { -fx-background-color: -color-bg-default; -fx-effect: innershadow(one-pass-box, purple, 4, 1, 0, 0); } */
+
+/* --- Notifications --- *//*
+.debug-layout .notification-overlay {
+    -fx-border-color: red;
+    -fx-border-width: 2;
+    -fx-border-style: dashed;
+}
+.debug-layout .notification-container {
+    -fx-background-color: rgba(255, 0, 255, 0.1);
+    -fx-effect: innershadow(one-pass-box, magenta, 4, 1, 0, 0);
+}
+*/
+
+/* --- Project Manager --- */
+.debug-layout .start-screen { -fx-border-color: red; -fx-border-width: 1; }
+.debug-layout .start-screen-header { -fx-border-color: blue; -fx-border-width: 1; }
+.debug-layout .recent-projects-pane { -fx-border-color: green; -fx-border-width: 1; }
+.debug-layout .actions-pane { -fx-border-color: yellow; -fx-border-width: 1; }
+.debug-layout .actions-box { -fx-border-color: cyan; -fx-border-width: 1; -fx-border-style: dashed; }
