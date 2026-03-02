@@ -167,7 +167,9 @@ public class GuiScript extends GuiScriptInterface {
                 container == null ? "" : container.script);
         }
 
-        activeArea.setLanguage(script.getLanguage());
+        // Use the container's language for syntax highlighting, fall back to handler default
+        String language = (container != null) ? container.getLanguage() : script.getLanguage();
+        activeArea.setLanguage(language);
         activeArea.setScriptContext(getScriptContext());
         
         // Set editor globals based on the active NPC hook
@@ -224,15 +226,18 @@ public class GuiScript extends GuiScriptInterface {
         addButton(new GuiNpcButton(105, guiLeft + 60, guiTop + 4, 80, 20,
             consoleOptions.toArray(new String[0]), activeConsole));
 
-        addLabel(new GuiNpcLabel(1, "script.language", guiLeft + 232, guiTop + 30));
+        addLabel(new GuiNpcLabel(1, "script.default", guiLeft + 232, guiTop + 30));
         List<String> languageOptions = getLanguageOptions();
         addButton(new GuiNpcButton(103, guiLeft + 294, guiTop + 25, 80, 20,
             languageOptions.toArray(new String[0]), getLanguageIndex(languageOptions)));
-        getButton(103).enabled = languageOptions.size() > 0;
 
         addLabel(new GuiNpcLabel(2, "gui.enabled", guiLeft + 232, guiTop + 53));
         addButton(new GuiNpcButton(104, guiLeft + 294, guiTop + 48, 50, 20,
             new String[]{"gui.no", "gui.yes"}, script.enabled ? 1 : 0));
+
+        // Disable language/enabled controls until server data actually arrives
+        getButton(103).enabled = serverDataReceived && languageOptions.size() > 0;
+        getButton(104).enabled = serverDataReceived;
 
         if (MinecraftServer.getServer() != null)
             addButton(new GuiNpcButton(106, guiLeft + 232, guiTop + 71, 150, 20, "script.openfolder"));
@@ -335,9 +340,13 @@ public class GuiScript extends GuiScriptInterface {
         }
         if (guibutton.id == 107) {
             ScriptContainer container = getCurrentContainer();
-            if (container == null)
-                script.setNPCScript(activeTab, container = new ScriptContainer(this.script));
-            setSubGui(new GuiScriptList(languages.get(script.scriptLanguage), container));
+            if (container == null) {
+                container = new ScriptContainer(this.script);
+                container.setLanguage(script.getLanguage());
+                script.setNPCScript(activeTab, container);
+            }
+            String lang = container.getLanguage();
+            setSubGui(new GuiScriptList(languages.get(lang), container));
         }
     }
 
@@ -345,8 +354,11 @@ public class GuiScript extends GuiScriptInterface {
     protected void setScript() {
         if (showScript) {
             ScriptContainer container = getCurrentContainer();
-            if (container == null)
-                script.setNPCScript(activeTab, container = new ScriptContainer(this.script));
+            if (container == null) {
+                container = new ScriptContainer(this.script);
+                container.setLanguage(script.getLanguage());
+                script.setNPCScript(activeTab, container);
+            }
             String text = getTextField(2).getText();
             text = text.replace("\r\n", "\n");
             text = text.replace("\r", "\n");

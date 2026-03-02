@@ -87,6 +87,11 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         return this.durabilityValue;
     }
 
+    public void setDurabilityValue(float value) {
+        this.durabilityValue = (double) value;
+        saveItemData();
+    }
+
     @Override
     public int getMaxItemUseDuration() {
         return this.linkedItem.maxItemUseDuration;
@@ -217,6 +222,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         this.itemDisplay.writeToNBT(compound);
         compound.setTag(LinkedItem.LINKED_DATA_NBT_TAG, this.linkedItem.writeToNBT(false));
         compound.setInteger(LinkedItem.LINKED_VERSION_VERSION_TAG, this.linkedVersion);
+        compound.setDouble("DurabilityValue", this.durabilityValue);
         return compound;
     }
 
@@ -224,5 +230,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         this.itemDisplay.readFromNBT(compound);
         this.linkedItem.readFromNBT(compound.getCompoundTag(LinkedItem.LINKED_DATA_NBT_TAG));
         this.linkedVersion = compound.getInteger(LinkedItem.LINKED_VERSION_VERSION_TAG);
+        if (compound.hasKey("DurabilityValue"))
+            this.durabilityValue = compound.getDouble("DurabilityValue");
     }
 }

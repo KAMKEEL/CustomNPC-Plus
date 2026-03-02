@@ -432,6 +432,7 @@ script.interact=interagieren
 script.update=Update
 script.console=Konsole
 script.language=Sprache
+script.default=Standard
 script.damaged=Schaden
 script.killed=Sterben
 script.attack=Angriff

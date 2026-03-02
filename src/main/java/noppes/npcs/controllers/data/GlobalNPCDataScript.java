@@ -8,6 +8,7 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.janino.EventJaninoScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ScriptToStringHelper;
 
@@ -45,6 +46,11 @@ public class GlobalNPCDataScript extends MultiScriptHandler {
     protected void reInitScripts() {
         super.reInitScripts();
         lastNpcUpdate = ScriptController.Instance.lastGlobalNpcUpdate;
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.NPC);
     }
 
     @Override

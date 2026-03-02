@@ -861,6 +861,7 @@ script.interact=Interact
 script.update=Update
 script.console=Console
 script.language=Language
+script.default=Default
 script.damaged=Damaged
 script.killed=Killed
 script.attack=Attack

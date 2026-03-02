@@ -423,6 +423,7 @@ script.interact=상호작용
 script.update=업데이트
 script.console=콘솔
 script.language=언어
+script.default=기본
 script.damaged=데미지
 script.killed=사망
 script.attack=공격

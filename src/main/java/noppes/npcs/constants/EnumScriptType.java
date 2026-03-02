@@ -155,9 +155,21 @@ public enum EnumScriptType {
 
     public String function;
 
+    private static final java.util.Map<String, EnumScriptType> BY_FUNCTION = new java.util.HashMap<>();
+    static {
+        for (EnumScriptType type : values()) {
+            BY_FUNCTION.put(type.function, type);
+        }
+    }
+
     public static EnumScriptType valueOfIgnoreCase(String channelName) {
-        channelName = channelName.toUpperCase();
-        return valueOf(channelName);
+        // First try by function name (e.g. "abilityStart")
+        EnumScriptType type = BY_FUNCTION.get(channelName);
+        if (type != null) {
+            return type;
+        }
+        // Fallback to enum constant name (e.g. "ABILITY_START")
+        return valueOf(channelName.toUpperCase());
     }
 
     private EnumScriptType(String function) {

@@ -46,6 +46,12 @@ public class ScriptContainer implements IScriptUnit {
     private CompiledScript compScript = null;
     private final HashMap<String, ScriptObjectMirror> cachedFunctions = new HashMap<>();
 
+    /**
+     * Persisted per-container language. Null means inherit from handler default.
+     * Separate from currentScriptLanguage which is the engine cache.
+     */
+    private String language = null;
+
     public ScriptContainer(IScriptHandler handler) {
         this.handler = handler;
     }
@@ -68,6 +74,12 @@ public class ScriptContainer implements IScriptUnit {
         this.console = NBTTags.GetLongStringMap(compound.getTagList("Console", 10));
         this.scripts = NBTTags.getStringList(compound.getTagList("ScriptList", 10));
         this.lastCreated = 0L;
+
+        // Read per-container language (empty string or missing = inherit from handler)
+        if (compound.hasKey("ContainerLanguage")) {
+            String lang = compound.getString("ContainerLanguage");
+            this.language = lang.isEmpty() ? null : lang;
+        }
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
@@ -98,6 +110,11 @@ public class ScriptContainer implements IScriptUnit {
         //compound.setString("Type", this.type);
         compound.setTag("Console", NBTTags.NBTLongStringMap(this.console));
         compound.setTag("ScriptList", NBTTags.nbtStringList(this.scripts));
+
+        // Persist per-container language if explicitly set
+        if (this.language != null) {
+            compound.setString("ContainerLanguage", this.language);
+        }
         return compound;
     }
 
@@ -169,7 +186,7 @@ public class ScriptContainer implements IScriptUnit {
         if (!CustomNpcs.proxy.isScriptingEnabled() || errored || !hasCode() || unknownFunctions.contains(type))
             return;
 
-        this.setEngine(handler.getLanguage());
+        this.setEngine(this.getLanguage());
         if (engine == null)
             return;
 
@@ -308,18 +325,15 @@ public class ScriptContainer implements IScriptUnit {
 
     @Override
     public String getLanguage() {
-        // If a specific language is set for this container, use it
-        // Otherwise fall back to the handler's language
-        if (currentScriptLanguage != null) {
-            return currentScriptLanguage;
-        }
-        return handler != null ? handler.getLanguage() : "ECMAScript";
+        // Return persisted per-container language, defaulting to ECMAScript.
+        // This is separate from currentScriptLanguage which is the engine cache.
+        return this.language != null ? this.language : "ECMAScript";
     }
 
     @Override
     public void setLanguage(String language) {
-        if (!Objects.equals(this.currentScriptLanguage, language)) {
-            this.currentScriptLanguage = language;
+        if (!Objects.equals(this.language, language)) {
+            this.language = language;
             this.evaluated = false;
         }
     }
