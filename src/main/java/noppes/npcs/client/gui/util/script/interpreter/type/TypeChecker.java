@@ -1,5 +1,10 @@
 package noppes.npcs.client.gui.util.script.interpreter.type;
 
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Utility class for checking type compatibility between types.
  * Handles primitive widening conversions, boxing/unboxing, and inheritance.
@@ -62,6 +67,13 @@ public final class TypeChecker {
         if (isNumericType(expectedName) && isNumericType(actualName)) {
             return canWiden(actualName, expectedName);
         }
+
+        // JS/.d.ts type compatibility (check inheritance chain from actual -> parent)
+        if (expected.isJSType() && actual.isJSType()) {
+            if (isJSTypeAssignableFrom(expected.getJSTypeInfo(), actual.getJSTypeInfo())) {
+                return true;
+            }
+        }
         
         // Object type compatibility (check inheritance)
         if (expected.getJavaClass() != null && actual.getJavaClass() != null) {
@@ -89,6 +101,32 @@ public final class TypeChecker {
             return getUnboxedName(expectedName).equals(getUnboxedName(actualName));
         }
         
+        return false;
+    }
+
+    /**
+     * Check assignability for JS/.d.ts types by walking the resolved parent chain.
+     */
+    private static boolean isJSTypeAssignableFrom(JSTypeInfo expected, JSTypeInfo actual) {
+        if (expected == null || actual == null) {
+            return false;
+        }
+
+        Set<String> visited = new HashSet<>();
+        JSTypeInfo current = actual;
+        while (current != null) {
+            String currentFullName = current.getFullName();
+            if (currentFullName == null || !visited.add(currentFullName)) {
+                break;
+            }
+
+            if (expected.getFullName() != null && expected.getFullName().equals(currentFullName)) {
+                return true;
+            }
+
+            current = current.getResolvedParent();
+        }
+
         return false;
     }
 
