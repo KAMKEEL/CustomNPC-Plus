@@ -86,6 +86,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
                 particleDensity, particleScale, animSpeed, lightningDensity,
                 visible,
                 getEffects());
+            entity.setSourceAbility(this);
 
             applyVisualToEntity(entity);
 

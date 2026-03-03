@@ -2,6 +2,7 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
@@ -217,12 +218,24 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                 if (panelData.launchDamage > 0) {
                     int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
                     try {
-                        if (owner instanceof EntityNPCInterface) {
-                            target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), panelData.launchDamage);
-                        } else if (owner instanceof EntityPlayer) {
-                            target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), panelData.launchDamage);
-                        } else {
-                            target.attackEntityFrom(DamageSource.generic, panelData.launchDamage);
+                        // Route through ability extender (e.g. DBC Addon damage scaling)
+                        boolean handled = false;
+                        if (sourceAbility != null && owner instanceof EntityLivingBase) {
+                            double dx = target.posX - posX;
+                            double dz = target.posZ - posZ;
+                            handled = AbilityController.Instance.fireOnAbilityDamage(
+                                sourceAbility, (EntityLivingBase) owner, target,
+                                panelData.launchDamage, panelData.launchKnockback, 0.0f, dx, dz, 1.0f);
+                        }
+
+                        if (!handled) {
+                            if (owner instanceof EntityNPCInterface) {
+                                target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), panelData.launchDamage);
+                            } else if (owner instanceof EntityPlayer) {
+                                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), panelData.launchDamage);
+                            } else {
+                                target.attackEntityFrom(DamageSource.generic, panelData.launchDamage);
+                            }
                         }
                     } finally {
                         Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);

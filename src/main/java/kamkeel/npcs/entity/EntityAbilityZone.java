@@ -5,6 +5,7 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
@@ -170,6 +171,8 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
     private transient int ticksSinceDamage = 0;
     private transient Set<Integer> damagedThisTick = new HashSet<>();
+
+    private transient Ability sourceAbility = null;
 
     private boolean previewMode = false;
     private EntityLivingBase previewOwner = null;
@@ -504,15 +507,28 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
         int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
         try {
-            if (owner instanceof EntityNPCInterface) {
-                return target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
-            } else if (owner instanceof EntityPlayer) {
-                return target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
-            } else if (owner instanceof EntityLivingBase) {
-                return target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
-            } else {
-                return target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+            // Route through ability extender (e.g. DBC Addon damage scaling)
+            boolean handled = false;
+            if (sourceAbility != null && owner instanceof EntityLivingBase) {
+                double dx = target.posX - posX;
+                double dz = target.posZ - posZ;
+                handled = AbilityController.Instance.fireOnAbilityDamage(
+                    sourceAbility, (EntityLivingBase) owner, target,
+                    dmg, 0.0f, 0.0f, dx, dz, 1.0f);
             }
+
+            if (!handled) {
+                if (owner instanceof EntityNPCInterface) {
+                    return target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+                } else if (owner instanceof EntityPlayer) {
+                    return target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+                } else if (owner instanceof EntityLivingBase) {
+                    return target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+                } else {
+                    return target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+                }
+            }
+            return true;
         } finally {
             Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);
         }
@@ -538,6 +554,14 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     public void setupPreview(EntityLivingBase owner) {
         this.previewMode = true;
         this.previewOwner = owner;
+    }
+
+    public Ability getSourceAbility() {
+        return sourceAbility;
+    }
+
+    public void setSourceAbility(Ability ability) {
+        this.sourceAbility = ability;
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -2,6 +2,7 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.util.CNPCDebug;
@@ -312,14 +313,26 @@ public class EntityEnergySweeper extends EntityEnergyAbility {
         boolean ignoreIFrames = isIgnoreIFrames();
         int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
         try {
-            if (owner instanceof EntityNPCInterface) {
-                target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), damage);
-            } else if (owner instanceof EntityPlayer) {
-                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), damage);
-            } else if (owner instanceof EntityLivingBase) {
-                target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), damage);
-            } else {
-                target.attackEntityFrom(new NpcDamageSource("npc_ability", null), damage);
+            // Route through ability extender (e.g. DBC Addon damage scaling)
+            boolean handled = false;
+            if (sourceAbility != null && owner instanceof EntityLivingBase) {
+                double dx = target.posX - posX;
+                double dz = target.posZ - posZ;
+                handled = AbilityController.Instance.fireOnAbilityDamage(
+                    sourceAbility, (EntityLivingBase) owner, target,
+                    damage, 0.0f, 0.2f, dx, dz, 1.0f);
+            }
+
+            if (!handled) {
+                if (owner instanceof EntityNPCInterface) {
+                    target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), damage);
+                } else if (owner instanceof EntityPlayer) {
+                    target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), damage);
+                } else if (owner instanceof EntityLivingBase) {
+                    target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), damage);
+                } else {
+                    target.attackEntityFrom(new NpcDamageSource("npc_ability", null), damage);
+                }
             }
         } finally {
             Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);

@@ -80,6 +80,7 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
                 zoneHeight,
                 particleDensity, particleScale, animSpeed, lightningDensity,
                 getEffects());
+            entity.setSourceAbility(this);
 
             applyVisualToEntity(entity);
 
