@@ -20,6 +20,13 @@ import static kamkeel.npcs.controllers.AttributeController.getTracker;
 
 public class AttributeAttackUtil {
     private static final Random random = new Random();
+
+    /**
+     * Crit decision from the last LivingAttackEvent for vanilla/modded mob targets.
+     * Set in LivingAttackEvent, consumed in LivingHurtEvent.
+     * null = no roll occurred, true = critted, false = did not crit.
+     */
+    public static Boolean lastAttackCritted = null;
     // --- Helper Classes & Methods ---
 
     // Container for allocation results.
@@ -168,10 +175,31 @@ public class AttributeAttackUtil {
 
     public static float applyCrit(float damage, PlayerAttributeTracker tracker) {
         if (ConfigMain.AttributesEnabled) {
+            if (rollCrit(tracker))
+                damage = applyCritDamage(damage, tracker);
+        }
+        return damage;
+    }
+
+    /**
+     * Rolls for a critical hit based on the tracker's CRITICAL_CHANCE attribute.
+     */
+    public static boolean rollCrit(PlayerAttributeTracker tracker) {
+        if (ConfigMain.AttributesEnabled && tracker != null) {
             float critChance = tracker.getAttributeValue(CustomAttributes.CRITICAL_CHANCE);
+            return random.nextFloat() < (critChance / 100f);
+        }
+        return false;
+    }
+
+    /**
+     * Applies crit damage unconditionally (no chance roll).
+     * Use when the crit decision was already made via {@link #rollCrit}.
+     */
+    public static float applyCritDamage(float damage, PlayerAttributeTracker tracker) {
+        if (ConfigMain.AttributesEnabled && tracker != null) {
             float critBonus = tracker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
-            if (random.nextFloat() < (critChance / 100f))
-                damage = (damage * (1 + (float) ConfigMain.AttributesCriticalBoost / 100f)) + critBonus;
+            damage = (damage * (1 + (float) ConfigMain.AttributesCriticalBoost / 100f)) + critBonus;
         }
         return damage;
     }
