@@ -127,6 +127,12 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
         this.damagePerSecond = damagePerSecond;
     }
 
+    @Override
+    public float getDisplayDamage() { return damagePerSecond; }
+
+    @Override
+    public boolean isDisplayDamageDPS() { return true; }
+
     public int getDamageInterval() {
         return damageInterval;
     }

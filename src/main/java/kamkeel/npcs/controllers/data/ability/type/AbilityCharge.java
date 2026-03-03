@@ -276,6 +276,9 @@ public class AbilityCharge extends AbilityMovement implements IAbilityCharge {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public float getKnockback() {
         return knockback;
     }

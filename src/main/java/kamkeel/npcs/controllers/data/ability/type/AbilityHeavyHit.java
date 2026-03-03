@@ -174,6 +174,9 @@ public class AbilityHeavyHit extends Ability implements IAbilityHeavyHit {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public float getKnockback() {
         return knockback;
     }

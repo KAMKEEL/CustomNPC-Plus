@@ -25,11 +25,17 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.data.Magic;
+import noppes.npcs.controllers.data.MagicData;
+import noppes.npcs.controllers.data.MagicEntry;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/standardbg.png");
@@ -91,6 +97,11 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
     // ═══ Detail panel cache ═══
     private AbilityIcon cachedDetailIcon = null;
     private int cachedDetailIndex = -1;
+
+    // ═══ Info panel scroll ═══
+    private int infoScrollOffset = 0;
+    private int infoContentHeight = 0;
+    private int lastInfoIndex = -1;
 
     // ═══ Hotbar state ═══
     private int hoveredSlotIndex = -1;
@@ -436,11 +447,17 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
         int infoIndex = hoveredGridIndex >= 0 ? hoveredGridIndex : selectedIndex;
         if (infoIndex < 0 || infoIndex >= filteredKeys.size()) return;
 
+        // Reset scroll when ability changes
+        if (infoIndex != lastInfoIndex) {
+            infoScrollOffset = 0;
+            lastInfoIndex = infoIndex;
+        }
+
         FontRenderer fr = mc.fontRenderer;
         int panelInnerLeft = guiLeft + infoLeft + infoPad;
         int panelInnerTop = guiTop + infoTop + infoPad;
         int panelInnerWidth = (infoRight - infoLeft) - infoPad * 2;
-        int y = panelInnerTop;
+        int panelHeight = infoBottom - infoTop;
 
         // Cached icon for detail preview
         if (cachedDetailIndex != infoIndex) {
@@ -448,13 +465,27 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
             cachedDetailIndex = infoIndex;
         }
 
+        Ability ability = filteredAbilities.get(infoIndex);
+
         // Get toggle state for icon rendering and state display
         int toggleState = 0;
         PlayerData togglePlayerData = ClientCacheHandler.playerData;
-        Ability infoAbility = filteredAbilities.get(infoIndex);
-        if (infoAbility != null && infoAbility.isToggleable() && togglePlayerData != null && togglePlayerData.abilityData != null) {
+        if (ability != null && ability.isToggleable() && togglePlayerData != null && togglePlayerData.abilityData != null) {
             toggleState = togglePlayerData.abilityData.getToggleState(filteredKeys.get(infoIndex));
         }
+
+        // GL Scissor to clip info panel content
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        int scaleFactor = sr.getScaleFactor();
+        int scissorX = (guiLeft + infoLeft) * scaleFactor;
+        int scissorY = mc.displayHeight - (guiTop + infoBottom) * scaleFactor;
+        int scissorW = (infoRight - infoLeft) * scaleFactor;
+        int scissorH = panelHeight * scaleFactor;
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
+
+        int y = panelInnerTop - infoScrollOffset;
 
         // Preview icon (centered, state-aware for multi-state toggles)
         if (cachedDetailIcon != null) {
@@ -490,9 +521,8 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
         }
         y += 4;
 
-        // Type info
-        Ability ability = filteredAbilities.get(infoIndex);
         if (ability != null) {
+            // Type info
             String typeId = ability.getTypeId();
             if (typeId != null && !typeId.isEmpty()) {
                 String translated = StatCollector.translateToLocal(typeId);
@@ -503,6 +533,7 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
                 }
             }
 
+            // Toggle info
             if (ability.isToggleable()) {
                 String toggleText = "[" + StatCollector.translateToLocal("gui.toggle") + "]";
                 int textW = fr.getStringWidth(toggleText);
@@ -510,12 +541,11 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
                 y += fr.FONT_HEIGHT + 3;
             }
 
-            // Toggle state (uses pre-computed toggleState)
+            // Toggle state
             if (ability.isToggleable()) {
                 String stateText;
                 String prefix;
                 if (toggleState > 0) {
-                    // Active — check for state label (multi-state toggles like Ki Weapon)
                     String stateLabel = ability.getToggleStateLabel(toggleState);
                     stateText = stateLabel != null ? stateLabel : StatCollector.translateToLocal("gui.toggle.active");
                     prefix = "\u00A72";
@@ -528,20 +558,110 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
                 y += fr.FONT_HEIGHT + 3;
             }
 
-            // Cooldown info
+            // Cooldown info — yellow if per-ability cooldown
             if (ability.getCooldownTicks() > 0) {
                 float seconds = ability.getCooldownTicks() / 20.0f;
                 String cdText = StatCollector.translateToLocal("ability.cooldown") + ": " + String.format("%.1f", seconds) + "s";
                 int textW2 = fr.getStringWidth(cdText);
-                fr.drawStringWithShadow("\u00A77" + cdText, panelInnerLeft + (panelInnerWidth - textW2) / 2, y, 0xAAAAAA);
+                boolean perAbility = ability.isPerAbilityCooldown();
+                String cdColor = perAbility ? "\u00A7e" : "\u00A77";
+                int cdColorInt = perAbility ? 0xFFFF55 : 0xAAAAAA;
+                fr.drawStringWithShadow(cdColor + cdText, panelInnerLeft + (panelInnerWidth - textW2) / 2, y, cdColorInt);
                 y += fr.FONT_HEIGHT + 3;
 
-                if (ability.isPerAbilityCooldown()) {
+                if (perAbility) {
                     String perText = "[" + StatCollector.translateToLocal("ability.perAbilityCooldown") + "]";
                     int ptW = fr.getStringWidth(perText);
                     fr.drawStringWithShadow("\u00A7e" + perText, panelInnerLeft + (panelInnerWidth - ptW) / 2, y, 0xFFFF55);
+                    y += fr.FONT_HEIGHT + 3;
                 }
             }
+
+            // Damage info
+            float baseDamage = ability.getDisplayDamage();
+            if (baseDamage > 0) {
+                float displayDamage = baseDamage;
+                if (AbilityController.Instance != null && mc.thePlayer != null) {
+                    displayDamage = AbilityController.Instance.fireModifyProjectileDamage(ability, mc.thePlayer, baseDamage);
+                }
+                String label = ability.isDisplayDamageDPS()
+                    ? StatCollector.translateToLocal("gui.dps")
+                    : StatCollector.translateToLocal("ability.preview.damage");
+                String dmgText = label + ": " + String.format("%.1f", displayDamage);
+                int textW = fr.getStringWidth(dmgText);
+                fr.drawStringWithShadow("\u00A7c" + dmgText, panelInnerLeft + (panelInnerWidth - textW) / 2, y, 0xFF5555);
+                y += fr.FONT_HEIGHT + 3;
+            }
+
+            // Barrier health
+            float baseHealth = ability.getDisplayBarrierHealth();
+            if (baseHealth > 0) {
+                float displayHealth = baseHealth;
+                if (AbilityController.Instance != null && mc.thePlayer != null) {
+                    displayHealth = AbilityController.Instance.fireModifyBarrierHealth(ability, mc.thePlayer, baseHealth);
+                }
+                String healthText = StatCollector.translateToLocal("ability.preview.health") + ": " + String.format("%.0f", displayHealth);
+                int textW = fr.getStringWidth(healthText);
+                fr.drawStringWithShadow("\u00A7a" + healthText, panelInnerLeft + (panelInnerWidth - textW) / 2, y, 0x55FF55);
+                y += fr.FONT_HEIGHT + 3;
+            }
+
+            // Barrier reflection
+            if (ability.isDisplayReflect()) {
+                String reflectText = StatCollector.translateToLocal("ability.reflect") + ": " + String.format("%.0f%%", ability.getDisplayReflectStrength());
+                int textW = fr.getStringWidth(reflectText);
+                fr.drawStringWithShadow("\u00A7d" + reflectText, panelInnerLeft + (panelInnerWidth - textW) / 2, y, 0xFF55FF);
+                y += fr.FONT_HEIGHT + 3;
+            }
+
+            // Barrier absorbing
+            if (ability.isDisplayAbsorbing()) {
+                String absorbText = "[" + StatCollector.translateToLocal("ability.absorbing") + "]";
+                int textW = fr.getStringWidth(absorbText);
+                fr.drawStringWithShadow("\u00A7b" + absorbText, panelInnerLeft + (panelInnerWidth - textW) / 2, y, 0x55FFFF);
+                y += fr.FONT_HEIGHT + 3;
+            }
+
+            // Magic info
+            if (ability.hasMagic()) {
+                y += 2;
+                MagicData magicData = ability.getMagicData();
+                if (magicData.isEmpty()) {
+                    String magicText = StatCollector.translateToLocal("ability.preview.magic.casters");
+                    int textW = fr.getStringWidth(magicText);
+                    fr.drawStringWithShadow("\u00A79" + magicText, panelInnerLeft + (panelInnerWidth - textW) / 2, y, 0x5555FF);
+                    y += fr.FONT_HEIGHT + 3;
+                } else {
+                    for (Map.Entry<Integer, MagicEntry> entry : magicData.getMagics().entrySet()) {
+                        Magic magic = MagicController.getInstance() != null
+                            ? MagicController.getInstance().getMagic(entry.getKey()) : null;
+                        String magicName = magic != null ? magic.getDisplayName() : "Magic #" + entry.getKey();
+                        String splitText = magicName + ": " + Math.round(entry.getValue().split * 100) + "%";
+                        int textW = fr.getStringWidth(splitText);
+                        fr.drawStringWithShadow("\u00A79" + splitText, panelInnerLeft + (panelInnerWidth - textW) / 2, y, 0x5555FF);
+                        y += fr.FONT_HEIGHT + 1;
+                    }
+                    y += 2;
+                }
+            }
+        }
+
+        // Track content height for scroll limits
+        infoContentHeight = (y + infoScrollOffset) - panelInnerTop + infoPad * 2;
+
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+        // Scroll indicator
+        if (infoContentHeight > panelHeight) {
+            int maxScroll = Math.max(1, infoContentHeight - panelHeight);
+            if (infoScrollOffset > maxScroll) infoScrollOffset = maxScroll;
+            float scrollPercent = (float) infoScrollOffset / maxScroll;
+            int barHeight = panelHeight - 4;
+            int thumbHeight = Math.max(8, barHeight * panelHeight / infoContentHeight);
+            int thumbY = guiTop + infoTop + 2 + (int) ((barHeight - thumbHeight) * scrollPercent);
+            int barX = guiLeft + infoRight - 3;
+            drawRect(barX, guiTop + infoTop + 2, barX + 2, guiTop + infoTop + 2 + barHeight, 0x40FFFFFF);
+            drawRect(barX, thumbY, barX + 2, thumbY + thumbHeight, 0xA0FFFFFF);
         }
     }
 
@@ -903,11 +1023,26 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
 
         int wheel = Mouse.getEventDWheel();
         if (wheel != 0) {
-            int maxScroll = getMaxScrollRow();
-            if (wheel > 0) {
-                scrollRow = Math.max(0, scrollRow - 1);
+            int mouseX = Mouse.getEventX() * width / mc.displayWidth;
+            int mouseY = height - Mouse.getEventY() * height / mc.displayHeight - 1;
+
+            if (mouseX >= guiLeft + infoLeft && mouseX < guiLeft + infoRight
+                && mouseY >= guiTop + infoTop && mouseY < guiTop + infoBottom) {
+                // Info panel scroll
+                int panelHeight = infoBottom - infoTop;
+                int maxInfoScroll = Math.max(0, infoContentHeight - panelHeight);
+                if (wheel > 0) {
+                    infoScrollOffset = Math.max(0, infoScrollOffset - 10);
+                } else {
+                    infoScrollOffset = Math.min(maxInfoScroll, infoScrollOffset + 10);
+                }
             } else {
-                scrollRow = Math.min(maxScroll, scrollRow + 1);
+                int maxScroll = getMaxScrollRow();
+                if (wheel > 0) {
+                    scrollRow = Math.max(0, scrollRow - 1);
+                } else {
+                    scrollRow = Math.min(maxScroll, scrollRow + 1);
+                }
             }
         }
     }

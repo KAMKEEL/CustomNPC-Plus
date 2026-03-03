@@ -640,6 +640,9 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     }
 
     @Override
+    public float getDisplayDamage() { return combatData.damage; }
+
+    @Override
     public float getKnockback() {
         return combatData.knockback;
     }

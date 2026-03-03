@@ -270,6 +270,9 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public float getDamageRadius() {
         return damageRadius;
     }

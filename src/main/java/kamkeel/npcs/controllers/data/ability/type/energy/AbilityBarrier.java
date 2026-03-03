@@ -213,6 +213,18 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         barrierData.useHealth = useHealth;
     }
 
+    @Override
+    public float getDisplayBarrierHealth() { return barrierData.useHealth ? barrierData.maxHealth : 0; }
+
+    @Override
+    public boolean isDisplayReflect() { return barrierData.reflect; }
+
+    @Override
+    public float getDisplayReflectStrength() { return barrierData.reflectStrengthPct; }
+
+    @Override
+    public boolean isDisplayAbsorbing() { return barrierData.absorbing; }
+
     public int getBarrierDuration() {
         return barrierData.durationTicks;
     }

@@ -197,6 +197,9 @@ public class AbilityShockwave extends Ability implements IAbilityShockwave {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public boolean isAoe() {
         return aoe;
     }

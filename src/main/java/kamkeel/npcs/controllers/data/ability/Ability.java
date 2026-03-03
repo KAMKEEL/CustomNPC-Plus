@@ -302,6 +302,26 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return hasDamage();
     }
 
+    // ── Display methods for inventory preview ──────────────────────
+
+    /** Base damage for preview display. Override in damaging types. */
+    public float getDisplayDamage() { return 0; }
+
+    /** True if getDisplayDamage() is damage-per-second (e.g., Hazard). */
+    public boolean isDisplayDamageDPS() { return false; }
+
+    /** Base barrier health for preview display. Override in barrier types. */
+    public float getDisplayBarrierHealth() { return 0; }
+
+    /** True if this ability reflects projectiles. */
+    public boolean isDisplayReflect() { return false; }
+
+    /** Reflection strength percentage (0-100). */
+    public float getDisplayReflectStrength() { return 0; }
+
+    /** True if this ability absorbs projectiles. */
+    public boolean isDisplayAbsorbing() { return false; }
+
     /**
      * Override to provide variant templates for this ability type.
      * When a user creates this ability type, they will be shown a selection dialog
