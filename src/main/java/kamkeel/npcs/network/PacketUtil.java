@@ -21,9 +21,36 @@ import noppes.npcs.items.ItemNpcTool;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PacketUtil {
+
+    // ==================== SCRIPT SESSION TOKEN SYSTEM ====================
+    // Prevents saving script data before the client has received it from the server.
+    // Each GET generates a token sent to the client; each SAVE must echo it back.
+
+    private static final Map<UUID, String> scriptSessionTokens = new ConcurrentHashMap<>();
+
+    public static String createScriptSession(EntityPlayerMP player) {
+        String token = Long.toHexString(ThreadLocalRandom.current().nextLong());
+        scriptSessionTokens.put(player.getUniqueID(), token);
+        return token;
+    }
+
+    public static boolean verifyScriptSession(EntityPlayer player, String token) {
+        if (token == null || token.isEmpty())
+            return false;
+        String expected = scriptSessionTokens.get(player.getUniqueID());
+        return expected != null && expected.equals(token);
+    }
+
+    public static void clearScriptSession(EntityPlayer player) {
+        scriptSessionTokens.remove(player.getUniqueID());
+    }
 
     public static boolean verifyItemPacket(String name, EnumItemPacketType type, EntityPlayer player) {
         if (player == null)
@@ -216,11 +243,14 @@ public class PacketUtil {
     }
 
     public static void getScripts(IScriptHandler data, EntityPlayerMP player) {
+        String token = createScriptSession(player);
+
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("ScriptEnabled", data.getEnabled());
         compound.setString("ScriptLanguage", data.getLanguage());
         compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
         compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(data.getConsoleText()));
+        compound.setString("ScriptSessionToken", token);
         GuiDataPacket.sendGuiData(player, compound);
         List<IScriptUnit> containers = data.getScripts();
         for (int i = 0; i < containers.size(); i++) {
@@ -237,9 +267,18 @@ public class PacketUtil {
         GuiDataPacket.sendGuiData(player, loadComplete);
     }
 
-    public static void saveScripts(IScriptHandler data, ByteBuf buffer) throws IOException {
+    public static boolean saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayer player) throws IOException {
         int tab = buffer.readInt();
         int totalScripts = buffer.readInt();
+        NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
+
+        // Verify script session token to prevent saving unloaded defaults
+        String token = compound.getString("ScriptSessionToken");
+        if (!verifyScriptSession(player, token)) {
+            LogWriter.error(String.format("Rejected script save from %s: session not verified (data not loaded)", player.getCommandSenderName()));
+            return false;
+        }
+
         if (totalScripts == 0) {
             data.getScripts().clear();
         }
@@ -250,12 +289,10 @@ public class PacketUtil {
             } else while (data.getScripts().size() < totalScripts) {
                 data.getScripts().add(new ScriptContainer(data));
             }
-            NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
             // Use factory method to create correct script unit type based on NBT
-            IScriptUnit script = IScriptUnit.createFromNBT(tabCompound, data);
+            IScriptUnit script = IScriptUnit.createFromNBT(compound, data);
             data.getScripts().set(tab, script);
         } else {
-            NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
             data.setLanguage(compound.getString("ScriptLanguage"));
             if (!ScriptController.Instance.languages.containsKey(data.getLanguage())) {
                 if (!ScriptController.Instance.languages.isEmpty()) {
@@ -266,5 +303,6 @@ public class PacketUtil {
             }
             data.setEnabled(compound.getBoolean("ScriptEnabled"));
         }
+        return true;
     }
 }
