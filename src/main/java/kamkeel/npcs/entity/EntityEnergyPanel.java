@@ -369,8 +369,25 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
             }
         }
 
-        // Test the UPCOMING movement so the barrier intercepts before entity
-        // collision runs in updateProjectile().
+        if (mode == PanelMode.LAUNCHED) {
+            // For moving panels, use RELATIVE motion in the panel's reference frame.
+            // This correctly captures the combined closing speed when both objects
+            // are moving toward each other, preventing phase-through at high speeds.
+            double relMotionX = projectile.motionX - this.motionX;
+            double relMotionY = projectile.motionY - this.motionY;
+            double relMotionZ = projectile.motionZ - this.motionZ;
+
+            double nextX = projectile.posX + relMotionX;
+            double nextY = projectile.posY + relMotionY;
+            double nextZ = projectile.posZ + relMotionZ;
+
+            return isIncomingRay(
+                nextX, nextY, nextZ,
+                projectile.posX, projectile.posY, projectile.posZ,
+                projectile.getOwnerEntityId());
+        }
+
+        // Non-moving panels: standard test using projectile's absolute motion
         double nextX = projectile.posX + projectile.motionX;
         double nextY = projectile.posY + projectile.motionY;
         double nextZ = projectile.posZ + projectile.motionZ;
@@ -388,6 +405,16 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         double prevPosX, double prevPosY, double prevPosZ,
         int ownerEntityId)
     {
+        if (mode == PanelMode.LAUNCHED) {
+            // Use relative motion for moving panels
+            double relMotionX = motionX - this.motionX;
+            double relMotionY = motionY - this.motionY;
+            double relMotionZ = motionZ - this.motionZ;
+            double adjX = prevPosX + relMotionX;
+            double adjY = prevPosY + relMotionY;
+            double adjZ = prevPosZ + relMotionZ;
+            return isIncomingRay(adjX, adjY, adjZ, prevPosX, prevPosY, prevPosZ, ownerEntityId);
+        }
         return isIncomingRay(posX, posY, posZ, prevPosX, prevPosY, prevPosZ, ownerEntityId);
     }
 
