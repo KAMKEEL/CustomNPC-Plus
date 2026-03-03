@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.EnergyController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.type.energy.AbilityEnergyProjectile;
 import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
@@ -925,6 +926,15 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             handled = AbilityController.Instance.fireOnAbilityDamage(
                 sourceAbility, (EntityLivingBase) owner, target,
                 dmg, kb, kbUp, dx, dz, damageMultiplier);
+        }
+        // Fallback: route through EnergyController for script-created entities with custom damage data
+        if (!handled && customDamageData != null && owner instanceof EntityLivingBase) {
+            double dx = target.posX - posX;
+            double dz = target.posZ - posZ;
+            float kbUp = getKnockbackUp() > 0 ? getKnockbackUp() : 0.1f;
+            handled = EnergyController.Instance.fireOnEnergyDamage(
+                this, (EntityLivingBase) owner, target,
+                dmg, kb, kbUp, dx, dz, damageMultiplier, customDamageData);
         }
 
         int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);

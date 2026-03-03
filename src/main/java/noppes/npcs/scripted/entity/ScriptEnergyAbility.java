@@ -2,6 +2,8 @@ package noppes.npcs.scripted.entity;
 
 import kamkeel.npcs.entity.EntityEnergyAbility;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.api.entity.IEnergyAbility;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.scripted.NpcAPI;
@@ -127,5 +129,24 @@ public abstract class ScriptEnergyAbility<T extends EntityEnergyAbility> extends
 
     public void setIgnoreIFrames(boolean ignore) {
         entity.setIgnoreIFrames(ignore);
+    }
+
+    // ==================== CUSTOM DAMAGE DATA ====================
+
+    public INbt getDamageData() {
+        NBTTagCompound data = entity.getCustomDamageData();
+        if (data == null) {
+            data = new NBTTagCompound();
+            entity.setCustomDamageData(data);
+        }
+        return NpcAPI.Instance().getINbt(data);
+    }
+
+    public void setDamageData(INbt data) {
+        if (data == null) {
+            entity.setCustomDamageData(null);
+        } else {
+            entity.setCustomDamageData((NBTTagCompound) data.getMCNBT());
+        }
     }
 }

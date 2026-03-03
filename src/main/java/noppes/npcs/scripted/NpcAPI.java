@@ -5,9 +5,11 @@ import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.EnergyController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilityZone;
 import kamkeel.npcs.entity.EntityAbilityDisc;
 import kamkeel.npcs.entity.EntityEnergyDome;
 import kamkeel.npcs.entity.EntityAbilityLaser;
@@ -60,6 +62,7 @@ import noppes.npcs.api.IBlock;
 import noppes.npcs.api.ICommand;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IEnergyController;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
 import noppes.npcs.api.IPos;
@@ -105,6 +108,7 @@ import noppes.npcs.scripted.entity.ScriptEnergyPanel;
 import noppes.npcs.scripted.entity.ScriptEnergyProjectile;
 import noppes.npcs.scripted.entity.ScriptEnergySlicer;
 import noppes.npcs.scripted.entity.ScriptEnergySweeper;
+import noppes.npcs.scripted.entity.ScriptEnergyZone;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptEntityItem;
 import noppes.npcs.scripted.entity.ScriptFishHook;
@@ -462,6 +466,8 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptEnergyPanel<>((EntityEnergyPanel) entity));
                 else if (entity instanceof EntityEnergySweeper)
                     data = new ScriptEntityData(new ScriptEnergySweeper<>((EntityEnergySweeper) entity));
+                else if (entity instanceof EntityAbilityZone)
+                    data = new ScriptEntityData(new ScriptEnergyZone<>((EntityAbilityZone) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);
@@ -610,6 +616,11 @@ public class NpcAPI extends AbstractNpcAPI {
         }
 
         return instance;
+    }
+
+    @Override
+    public IEnergyController getEnergyController() {
+        return EnergyController.Instance;
     }
 
     public EventBus events() {

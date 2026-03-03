@@ -3,6 +3,7 @@ package kamkeel.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.EnergyController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
@@ -226,6 +227,14 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                             handled = AbilityController.Instance.fireOnAbilityDamage(
                                 sourceAbility, (EntityLivingBase) owner, target,
                                 panelData.launchDamage, panelData.launchKnockback, 0.0f, dx, dz, 1.0f);
+                        }
+                        // Fallback: route through EnergyController for script-created entities with custom damage data
+                        if (!handled && customDamageData != null && owner instanceof EntityLivingBase) {
+                            double dx = target.posX - posX;
+                            double dz = target.posZ - posZ;
+                            handled = EnergyController.Instance.fireOnEnergyDamage(
+                                this, (EntityLivingBase) owner, target,
+                                panelData.launchDamage, panelData.launchKnockback, 0.0f, dx, dz, 1.0f, customDamageData);
                         }
 
                         if (!handled) {
@@ -653,6 +662,15 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     public EnergyPanelData getPanelData() {
         return panelData;
+    }
+
+    public void setPanelYaw(float yaw) {
+        this.panelYaw = yaw;
+        this.prevPanelYaw = yaw;
+    }
+
+    public void setMode(PanelMode mode) {
+        this.mode = mode;
     }
 
     // ==================== NBT ====================

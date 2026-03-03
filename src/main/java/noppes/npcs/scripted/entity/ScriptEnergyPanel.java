@@ -54,4 +54,23 @@ public class ScriptEnergyPanel<T extends EntityEnergyPanel> extends ScriptEnergy
     public boolean isLaunched() {
         return entity.getMode() == EntityEnergyPanel.PanelMode.LAUNCHED;
     }
+
+    public void setPanelYaw(float yaw) {
+        entity.setPanelYaw(yaw);
+    }
+
+    public void setPanelMode(int mode) {
+        EntityEnergyPanel.PanelMode[] values = EntityEnergyPanel.PanelMode.values();
+        if (mode >= 0 && mode < values.length) {
+            entity.setMode(values[mode]);
+        }
+    }
+
+    // ==================== SPAWNING ====================
+
+    public void spawn() {
+        if (!entity.addedToChunk && entity.worldObj != null) {
+            entity.worldObj.spawnEntityInWorld(entity);
+        }
+    }
 }
