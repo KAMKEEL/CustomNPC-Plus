@@ -6,6 +6,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyCombatData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.util.AnchorPointHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.Entity;
@@ -224,11 +225,16 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             dirZ = 0.0;
         }
 
-        // Keep origin centered on look vector while active and clear owner bbox.
-        Vec3 direction = Vec3.createVectorHelper(dirX, dirY, dirZ);
-        setLookVectorLaunchPosition(livingOwner, direction, false);
-        // Lower beam origin slightly so it doesn't obscure the player's crosshair
-        posY -= 0.15;
+        // Position: use anchor if launchFromAnchor, otherwise use look vector position
+        if (anchorData.launchFromAnchor) {
+            Vec3 anchorPos = AnchorPointHelper.calculateAnchorPosition(livingOwner, anchorData);
+            setPosition(anchorPos.xCoord, anchorPos.yCoord, anchorPos.zCoord);
+        } else {
+            Vec3 direction = Vec3.createVectorHelper(dirX, dirY, dirZ);
+            setLookVectorLaunchPosition(livingOwner, direction, false);
+            // Lower beam origin slightly so it doesn't obscure the player's crosshair
+            posY -= 0.15;
+        }
         syncStartPositionToCurrent();
         syncPositionStateToCurrent(false);
     }

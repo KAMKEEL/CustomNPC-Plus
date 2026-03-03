@@ -91,6 +91,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected LockMode lockMovement = LockMode.WINDUP;
     protected RotationMode rotationMode = RotationMode.FREE;
     protected LockMode rotationPhase = LockMode.WINDUP_AND_ACTIVE;
+    protected float trackDelay = 0;       // 0 = instant tracking (legacy). Higher = slower lerp toward target.
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -687,6 +688,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 .hover("ability.hover.rotationPhase")
                 .visibleWhen(() -> this.rotationMode != RotationMode.FREE)
         ).tab("General"));
+        defs.add(FieldDef.floatField("ability.trackDelay", this::getTrackDelay, this::setTrackDelay)
+            .range(0.0f, 20.0f)
+            .hover("ability.hover.trackDelay")
+            .visibleWhen(() -> this.rotationMode == RotationMode.TRACK)
+            .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
                 .hover("ability.hover.interruptible")
@@ -1388,6 +1394,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("rotationMode", rotationMode.ordinal());
         nbt.setInteger("rotationPhase", rotationPhase.ordinal());
+        nbt.setFloat("trackDelay", trackDelay);
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
@@ -1482,6 +1489,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
+        trackDelay = nbt.hasKey("trackDelay") ? nbt.getFloat("trackDelay") : 0;
         windUpColor = nbt.hasKey("windUpColor") ? nbt.getInteger("windUpColor") : 0x80FF4400;
         activeColor = nbt.hasKey("activeColor") ? nbt.getInteger("activeColor") : 0xC0FF0000;
         windUpSound = nbt.getString("windUpSound");
@@ -1817,6 +1825,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.rotationPhase = rotationPhase;
     }
 
+    public float getTrackDelay() {
+        return trackDelay;
+    }
+
+    public void setTrackDelay(float trackDelay) {
+        this.trackDelay = trackDelay;
+    }
+
     /**
      * API method: Get lock movement type as integer.
      *
@@ -1875,6 +1891,25 @@ public abstract class Ability implements IAbility, IAbilityAction {
     @Override
     public void setRotationPhaseType(int type) {
         this.rotationPhase = LockMode.fromOrdinal(type);
+    }
+
+    /**
+     * API method: Get track delay for TRACK rotation mode.
+     * 0 = instant tracking (legacy). Higher = slower lerp toward target.
+     */
+    @Override
+    public float getTrackDelayValue() {
+        return trackDelay;
+    }
+
+    /**
+     * API method: Set track delay for TRACK rotation mode.
+     *
+     * @param delay 0 = instant tracking. Higher = slower lerp toward target.
+     */
+    @Override
+    public void setTrackDelayValue(float delay) {
+        this.trackDelay = Math.max(0, delay);
     }
 
     /**
