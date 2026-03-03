@@ -16,6 +16,7 @@ import kamkeel.npcs.entity.EntityAbilityLaser;
 import kamkeel.npcs.entity.EntityAbilityOrb;
 import kamkeel.npcs.entity.EntityEnergyPanel;
 import kamkeel.npcs.entity.EntityEnergySweeper;
+import kamkeel.npcs.entity.EntityEnergyExplosion;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.block.Block;
@@ -102,6 +103,7 @@ import noppes.npcs.scripted.entity.ScriptDBCPlayer;
 import noppes.npcs.scripted.entity.ScriptEnergyBeam;
 import noppes.npcs.scripted.entity.ScriptEnergyDisc;
 import noppes.npcs.scripted.entity.ScriptEnergyDome;
+import noppes.npcs.scripted.entity.ScriptEnergyExplosion;
 import noppes.npcs.scripted.entity.ScriptEnergyLaser;
 import noppes.npcs.scripted.entity.ScriptEnergyOrb;
 import noppes.npcs.scripted.entity.ScriptEnergyPanel;
@@ -466,6 +468,8 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptEnergyPanel<>((EntityEnergyPanel) entity));
                 else if (entity instanceof EntityEnergySweeper)
                     data = new ScriptEntityData(new ScriptEnergySweeper<>((EntityEnergySweeper) entity));
+                else if (entity instanceof EntityEnergyExplosion)
+                    data = new ScriptEntityData(new ScriptEnergyExplosion<>((EntityEnergyExplosion) entity));
                 else if (entity instanceof EntityAbilityZone)
                     data = new ScriptEntityData(new ScriptEnergyZone<>((EntityAbilityZone) entity));
                 else

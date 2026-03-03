@@ -60,7 +60,7 @@ public class ScriptEnergyBeam<T extends EntityAbilityBeam> extends ScriptEnergyP
     // ==================== FIRE ====================
 
     @Override
-    public void fire(IEntity target) {
+    public void fireAt(IEntity target) {
         ensureSpawned();
         EntityLivingBase mcTarget = null;
         if (target != null && target.getMCEntity() instanceof EntityLivingBase) {
@@ -70,7 +70,7 @@ public class ScriptEnergyBeam<T extends EntityAbilityBeam> extends ScriptEnergyP
     }
 
     @Override
-    public void fire(double x, double y, double z) {
+    public void fireAt(double x, double y, double z) {
         ensureSpawned();
         double dx = x - entity.posX;
         double dy = y - entity.posY;

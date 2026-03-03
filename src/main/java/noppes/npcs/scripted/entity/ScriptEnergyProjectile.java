@@ -259,7 +259,7 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
 
     // ==================== FIRE ====================
 
-    public void fire(IEntity target) {
+    public void fireAt(IEntity target) {
         if (target != null) {
             Entity mcTarget = target.getMCEntity();
             setMotionToward(mcTarget.posX, mcTarget.posY + mcTarget.getEyeHeight(), mcTarget.posZ);
@@ -267,12 +267,12 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
         ensureSpawned();
     }
 
-    public void fire(double x, double y, double z) {
+    public void fireAt(double x, double y, double z) {
         setMotionToward(x, y, z);
         ensureSpawned();
     }
 
-    public void fire(float yaw, float pitch) {
+    public void fireDirection(float yaw, float pitch) {
         float yawRad = (float) Math.toRadians(yaw);
         float pitchRad = (float) Math.toRadians(pitch);
         entity.motionX = -Math.sin(yawRad) * Math.cos(pitchRad) * entity.getSpeed();
@@ -281,16 +281,16 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
         ensureSpawned();
     }
 
-    public void fire(IEntityLivingBase caster) {
+    public void fireFrom(IEntityLivingBase caster) {
         if (caster == null) return;
         initFromCaster(caster);
-        fire(caster.getRotation(), caster.getPitch());
+        fireDirection(caster.getRotation(), caster.getPitch());
     }
 
-    public void fire(IEntityLivingBase caster, IEntity target) {
+    public void fireFrom(IEntityLivingBase caster, IEntity target) {
         if (caster == null) return;
         initFromCaster(caster);
-        fire(target);
+        fireAt(target);
     }
 
     /**

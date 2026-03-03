@@ -9,7 +9,9 @@ import net.minecraft.world.World;
 import noppes.npcs.api.IEnergyController;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.*;
+import noppes.npcs.api.entity.IEnergyExplosion;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.entity.ScriptEnergyExplosion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,6 +145,10 @@ public class EnergyController implements IEnergyController {
         return entity;
     }
 
+    public EntityEnergyExplosion createExplosionInternal(World world, Entity owner, double x, double y, double z, float radius) {
+        return new EntityEnergyExplosion(world, owner, x, y, z, radius);
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // IEnergyController (Script API methods)
     // ═══════════════════════════════════════════════════════════════════
@@ -193,5 +199,11 @@ public class EnergyController implements IEnergyController {
     public IEnergyPanel createPanel(IWorld world, IEntity owner, double x, double y, double z) {
         EntityEnergyPanel entity = createPanelInternal((World) world.getMCWorld(), owner.getMCEntity(), x, y, z);
         return (IEnergyPanel) NpcAPI.Instance().getIEntity(entity);
+    }
+
+    @Override
+    public IEnergyExplosion createExplosion(IWorld world, IEntity owner, double x, double y, double z, float radius) {
+        EntityEnergyExplosion entity = createExplosionInternal((World) world.getMCWorld(), owner.getMCEntity(), x, y, z, radius);
+        return new ScriptEnergyExplosion<>(entity);
     }
 }
