@@ -18,6 +18,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.network.packets.data.energy.ProjectileReflectPacket;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
+import kamkeel.npcs.util.AttributeAttackUtil;
 import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -39,6 +40,7 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.config.ConfigEnergy;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -940,15 +942,23 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
         try {
             if (!handled) {
+                float finalDmg = dmg;
+
+                // Apply magic pipeline for player and NPC casters
+                if (this.magicData != null && !this.magicData.isEmpty() && owner instanceof EntityLivingBase) {
+                    finalDmg = AttributeAttackUtil.calculateAbilityDamage(
+                        (EntityLivingBase) owner, target, dmg, this.magicData);
+                }
+
                 // Default damage path
                 if (owner instanceof EntityNPCInterface) {
-                    defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+                    defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), finalDmg);
                 } else if (owner instanceof EntityPlayer) {
-                    defaultDamageApplied = target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+                    defaultDamageApplied = target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), finalDmg);
                 } else if (owner instanceof EntityLivingBase) {
-                    defaultDamageApplied = target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+                    defaultDamageApplied = target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), finalDmg);
                 } else {
-                    defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+                    defaultDamageApplied = target.attackEntityFrom(new NpcDamageSource("npc_ability", null), finalDmg);
                 }
             }
         } finally {

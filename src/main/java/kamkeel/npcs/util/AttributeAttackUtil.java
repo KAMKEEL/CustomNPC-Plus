@@ -7,7 +7,9 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicEntry;
+import noppes.npcs.controllers.data.MagicData;
 import noppes.npcs.controllers.data.PlayerData;
+import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
@@ -30,7 +32,7 @@ public class AttributeAttackUtil {
     // --- Helper Classes & Methods ---
 
     // Container for allocation results.
-    private static class AllocationResult {
+    public static class AllocationResult {
         public Map<Integer, Float> allocation;
         public float leftover;
 
@@ -44,7 +46,7 @@ public class AttributeAttackUtil {
      * Allocates physical damage into magic allocations based on MagicData splits.
      * Returns both a mapping (magic ID -> allocated damage) and any leftover physical damage.
      */
-    private static AllocationResult allocateMagicDamage(float physicalDamage, Map<Integer, MagicEntry> magicData) {
+    public static AllocationResult allocateMagicDamage(float physicalDamage, Map<Integer, MagicEntry> magicData) {
         Map<Integer, Float> allocation = new HashMap<>();
         float totalSplit = 0f;
         if (magicData != null) {
@@ -64,7 +66,7 @@ public class AttributeAttackUtil {
     /**
      * Adds extra magic damage from attribute sources if attributes are enabled.
      */
-    private static void addAttributeMagicDamage(Map<Integer, Float> allocation,
+    public static void addAttributeMagicDamage(Map<Integer, Float> allocation,
                                                 Map<Integer, Float> attributeDamage,
                                                 Map<Integer, Float> magicBoost) {
         if (!ConfigMain.AttributesEnabled) return;
@@ -81,7 +83,7 @@ public class AttributeAttackUtil {
      * Applies magic interactions. For each magic in the allocation, multiplies its damage by (1 + bonus)
      * for each opposing magic the defender possesses.
      */
-    private static void applyMagicInteractions(Map<Integer, Float> allocation,
+    public static void applyMagicInteractions(Map<Integer, Float> allocation,
                                                Set<Integer> defenderMagicIDs,
                                                MagicController magicController) {
         for (Map.Entry<Integer, Float> entry : allocation.entrySet()) {
@@ -104,7 +106,7 @@ public class AttributeAttackUtil {
      * Applies defender magic defenses if attributes are enabled.
      * Subtracts tracker-based magic defense (scaled by resistance) from each magic allocation.
      */
-    private static float applyDefenderMagicDefense(Map<Integer, Float> allocation,
+    public static float applyDefenderMagicDefense(Map<Integer, Float> allocation,
                                                    PlayerAttributeTracker defender,
                                                    MagicController magicController) {
         if (!ConfigMain.AttributesEnabled) return 0f;
@@ -283,5 +285,142 @@ public class AttributeAttackUtil {
         float gearDamage = tracker.gearOutput;
 
         return mainDamage + gearDamage;
+    }
+
+    // --- Magic Interaction Utility ---
+
+    /**
+     * Calculate magic interaction multiplier between attacker's magic types
+     * and defender's magic types. Used for barrier defense and entity-vs-entity interactions.
+     *
+     * @param attackerMagic Attacker's magic data (projectile or weapon)
+     * @param defenderMagic Defender's magic data (barrier or entity)
+     * @return Multiplier (1.0 = no interaction, >1.0 = bonus damage, <1.0 = resistance)
+     */
+    public static float calculateMagicInteractionMultiplier(MagicData attackerMagic, MagicData defenderMagic) {
+        if (attackerMagic == null || defenderMagic == null) return 1.0f;
+        if (attackerMagic.isEmpty() || defenderMagic.isEmpty()) return 1.0f;
+
+        MagicController mc = MagicController.getInstance();
+        float multiplier = 1.0f;
+
+        for (int attackMagicId : attackerMagic.getMagics().keySet()) {
+            Magic magic = mc.getMagic(attackMagicId);
+            if (magic == null || magic.interactions == null) continue;
+            for (Map.Entry<Integer, Float> interaction : magic.interactions.entrySet()) {
+                if (defenderMagic.getMagics().containsKey(interaction.getKey())) {
+                    multiplier *= (1 + interaction.getValue());
+                }
+            }
+        }
+        return multiplier;
+    }
+
+    // --- Ability Damage Pipeline ---
+
+    /**
+     * Apply gear magic boost percentages to the split-allocated magic damage.
+     * This multiplies each magic type's allocated damage by (1 + boost/100).
+     * Unlike {@link #addAttributeMagicDamage}, this does NOT add flat gear damage —
+     * it only applies the percentage multiplier from gear to the existing allocation.
+     */
+    public static void applyMagicBoostToAllocation(Map<Integer, Float> allocation, Map<Integer, Float> magicBoost) {
+        if (!ConfigMain.AttributesEnabled) return;
+        for (Map.Entry<Integer, Float> entry : allocation.entrySet()) {
+            float boost = magicBoost.getOrDefault(entry.getKey(), 0f);
+            if (boost != 0f) {
+                entry.setValue(entry.getValue() * (1 + boost / 100f));
+            }
+        }
+    }
+
+    /**
+     * Apply gear magic boost percentages to barrier/dome health.
+     * Each magic type's split determines what portion of health is affected by its boost.
+     * E.g., Thunder [100%] dome + 50% Thunder gear boost = health * 1.5
+     */
+    public static float applyMagicBoostToHealth(EntityPlayer caster, MagicData magicData, float health) {
+        if (!ConfigMain.AttributesEnabled) return health;
+        if (magicData == null || magicData.isEmpty()) return health;
+
+        PlayerAttributeTracker tracker = getTracker(caster);
+        if (tracker == null) return health;
+
+        float multiplier = 1.0f;
+        for (Map.Entry<Integer, MagicEntry> entry : magicData.getMagics().entrySet()) {
+            float split = entry.getValue().split;
+            float boost = tracker.magicBoost.getOrDefault(entry.getKey(), 0f);
+            multiplier += split * (boost / 100f);
+        }
+        return health * multiplier;
+    }
+
+    /**
+     * Apply the magic pipeline to ability damage. Works for both player and NPC casters.
+     * Abilities do NOT get main attack or critical boosts — they have their own scaling.
+     * This handles:
+     * <ul>
+     *   <li>Magic allocation (splits from ability/caster magic data)</li>
+     *   <li>Gear magic boost multipliers on split damage (player casters only, no flat gear damage)</li>
+     *   <li>Magic interactions vs defender</li>
+     *   <li>Defender magic defense/resistance (player defenders only)</li>
+     * </ul>
+     * If no magic data is present, damage passes through unchanged.
+     *
+     * @param caster       Caster (player or NPC)
+     * @param target       Target entity
+     * @param damage       Base ability damage (already scaled by ability's own system)
+     * @param abilityMagic Resolved magic data (ability's own, or caster's fallback)
+     * @return Final damage after magic splits, boosts, interactions, and defense
+     */
+    public static float calculateAbilityDamage(EntityLivingBase caster, EntityLivingBase target,
+                                                float damage, MagicData abilityMagic) {
+        if (abilityMagic == null || abilityMagic.isEmpty()) return damage;
+
+        // 1. Allocate base damage into magic types using ability's splits
+        AllocationResult result = allocateMagicDamage(damage, abilityMagic.getMagics());
+        float leftover = result.leftover;
+
+        // 2. Apply gear magic boost multipliers to the split allocation (player casters only)
+        if (caster instanceof EntityPlayer && ConfigMain.AttributesEnabled) {
+            PlayerAttributeTracker tracker = getTracker((EntityPlayer) caster);
+            if (tracker != null) {
+                applyMagicBoostToAllocation(result.allocation, tracker.magicBoost);
+            }
+        }
+
+        // 3. Magic interactions against target
+        MagicController magicController = MagicController.getInstance();
+        Set<Integer> defenderMagicIDs = null;
+
+        if (target instanceof EntityPlayer) {
+            PlayerData defenderData = PlayerData.get((EntityPlayer) target);
+            if (defenderData != null) {
+                defenderMagicIDs = new HashSet<>(defenderData.magicData.getMagics().keySet());
+            }
+        } else if (target instanceof EntityNPCInterface) {
+            EntityNPCInterface npc = (EntityNPCInterface) target;
+            if (npc.stats != null && npc.stats.magicData != null) {
+                defenderMagicIDs = new HashSet<>(npc.stats.magicData.getMagics().keySet());
+            }
+        }
+
+        if (defenderMagicIDs != null) {
+            applyMagicInteractions(result.allocation, defenderMagicIDs, magicController);
+        }
+
+        // 4. Apply defender magic defense (player defenders with attributes only)
+        if (target instanceof EntityPlayer && ConfigMain.AttributesEnabled) {
+            PlayerAttributeTracker defenderTracker = getTracker((EntityPlayer) target);
+            if (defenderTracker != null) {
+                float adjustedMagic = applyDefenderMagicDefense(result.allocation, defenderTracker, magicController);
+                return leftover + adjustedMagic;
+            }
+        }
+
+        // Sum magic damage
+        float magicTotal = 0f;
+        for (float val : result.allocation.values()) magicTotal += val;
+        return leftover + magicTotal;
     }
 }

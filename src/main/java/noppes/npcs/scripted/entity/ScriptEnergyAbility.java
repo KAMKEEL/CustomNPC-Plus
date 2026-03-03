@@ -6,6 +6,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.entity.IEnergyAbility;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.handler.data.IMagicData;
+import noppes.npcs.controllers.data.MagicData;
 import noppes.npcs.scripted.NpcAPI;
 
 /**
@@ -147,6 +149,18 @@ public abstract class ScriptEnergyAbility<T extends EntityEnergyAbility> extends
             entity.setCustomDamageData(null);
         } else {
             entity.setCustomDamageData((NBTTagCompound) data.getMCNBT());
+        }
+    }
+
+    // ==================== MAGIC DATA ====================
+
+    public IMagicData getMagicData() {
+        return entity.getMagicData();
+    }
+
+    public void setMagicData(IMagicData data) {
+        if (data instanceof MagicData) {
+            entity.setMagicData((MagicData) data);
         }
     }
 }

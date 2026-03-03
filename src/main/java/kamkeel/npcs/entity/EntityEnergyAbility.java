@@ -12,6 +12,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import noppes.npcs.controllers.data.MagicData;
 
 /**
  * Universal base class for all energy ability entities (Projectiles, Barriers, Sweeper).
@@ -50,6 +51,9 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
      * directly on the entity. Persistent — saved to spawn data for client sync.
      */
     protected NBTTagCompound customDamageData = null;
+
+    /** Magic data for this entity — defines magic types for outgoing damage or barrier defense. */
+    protected MagicData magicData = new MagicData();
 
     protected boolean ignoreIFrames = false;
     protected boolean previewMode = false;
@@ -157,6 +161,14 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
 
     public void setCustomDamageData(NBTTagCompound data) {
         this.customDamageData = data;
+    }
+
+    public MagicData getMagicData() {
+        return magicData;
+    }
+
+    public void setMagicData(MagicData data) {
+        this.magicData = data != null ? data : new MagicData();
     }
 
     public boolean isIgnoreIFrames() {
@@ -346,6 +358,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         if (customDamageData != null) {
             nbt.setTag("CustomDamageData", customDamageData);
         }
+        magicData.writeToNBT(nbt);
     }
 
     /**
@@ -360,6 +373,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         if (nbt.hasKey("CustomDamageData")) {
             this.customDamageData = nbt.getCompoundTag("CustomDamageData");
         }
+        magicData.readToNBT(nbt);
     }
 
     // ==================== SPAWN DATA ====================
