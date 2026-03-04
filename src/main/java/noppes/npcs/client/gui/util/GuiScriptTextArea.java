@@ -676,6 +676,30 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 hoverState.releaseTooltipResize();
             }
         }
+        // Handle autocomplete scrollbar drag
+        if (autocompleteManager.isDraggingScrollbarMenu()) {
+            if (Mouse.isButtonDown(0)) {
+                autocompleteManager.updateScrollbarDrag(yMouse);
+            } else {
+                autocompleteManager.releaseScrollbarDrag();
+            }
+        }
+        // Handle autocomplete panel drag
+        if (autocompleteManager.isDraggingPanel()) {
+            if (Mouse.isButtonDown(0)) {
+                autocompleteManager.updatePanelDrag(xMouse, yMouse);
+            } else {
+                autocompleteManager.releasePanelDrag();
+            }
+        }
+        // Handle autocomplete panel resize
+        if (autocompleteManager.isResizingPanel()) {
+            if (Mouse.isButtonDown(0)) {
+                autocompleteManager.updatePanelResize(xMouse, yMouse);
+            } else {
+                autocompleteManager.releasePanelResize();
+            }
+        }
         
         // Update scroll animation
         scroll.initializeIfNeeded(scroll.getScrolledLine());

@@ -49,6 +49,25 @@ public class AutocompleteMenu extends Gui {
     private boolean isDraggingScrollbar = false;
     private int dragStartY = 0;
     private int dragStartScroll = 0;
+
+    // Panel pan/drag state
+    private boolean isDraggingPanel;
+    private int panelDragOffsetX, panelDragOffsetY;
+    private boolean panelPositionOverridden;
+    private int overriddenX, overriddenY;
+    private boolean hasPendingPanelDrag;
+    private int pendingDragStartX, pendingDragStartY;
+    private boolean pendingItemConfirm;
+
+    // Panel resize state
+    private boolean isResizingPanel;
+    private int resizeInitMouseX, resizeInitMouseY;
+    private int resizeInitW, resizeInitH;
+    private boolean panelSizeOverridden;
+    private int overriddenW, overriddenH;
+    private static final int MIN_RESIZE_W = 140;
+    private static final int MIN_RESIZE_H = 60;
+    private static final int DRAG_THRESHOLD = 4;
     
     // ==================== POSITION ====================
     private int x, y;
@@ -79,7 +98,7 @@ public class AutocompleteMenu extends Gui {
         if (items == null || items.isEmpty())
             return 0;
         int cap = visibleItemsCount > 0 ? visibleItemsCount : MAX_VISIBLE_ITEMS;
-        cap = Math.min(cap, MAX_VISIBLE_ITEMS);
+        if (!panelSizeOverridden) cap = Math.min(cap, MAX_VISIBLE_ITEMS);
         return Math.max(1, Math.min(cap, items.size()));
     }
 
@@ -136,6 +155,12 @@ public class AutocompleteMenu extends Gui {
      */
     public void hide() {
         visible = false;
+        isDraggingPanel = false;
+        isResizingPanel = false;
+        panelPositionOverridden = false;
+        panelSizeOverridden = false;
+        hasPendingPanelDrag = false;
+        pendingItemConfirm = false;
         if (callback != null) {
             callback.onDismiss();
         }
@@ -239,6 +264,15 @@ public class AutocompleteMenu extends Gui {
         
         this.width = menuWidth;
         this.height = menuHeight;
+        // Apply position override if user has dragged the panel
+        if (panelPositionOverridden) { this.x = overriddenX; this.y = overriddenY; }
+        // Apply size override if user has resized the panel
+        if (panelSizeOverridden) {
+            this.menuWidth = overriddenW;
+            this.width = overriddenW;
+            this.height = overriddenH;
+            this.visibleItemsCount = Math.max(1, (overriddenH - HINT_HEIGHT - PADDING * 2) / ITEM_HEIGHT);
+        }
     }
     
     // ==================== SELECTION ====================
@@ -351,6 +385,8 @@ public class AutocompleteMenu extends Gui {
         drawHintBar();
         
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        // Draw resize handle outside scissor
+        drawResizeHandle(mouseX, mouseY);
     }
     
     /**
@@ -596,7 +632,7 @@ public class AutocompleteMenu extends Gui {
         int visibleCount = getVisibleItemCapacity();
         if (visibleCount <= 0)
             return;
-        int scrollbarHeight = visibleCount * ITEM_HEIGHT;
+        int scrollbarHeight = visibleCount * ITEM_HEIGHT - 8; // leave room for resize handle
         
         // Background
         drawRect(scrollbarX, scrollbarY, scrollbarX + 6, scrollbarY + scrollbarHeight, SCROLLBAR_BG);
@@ -604,8 +640,9 @@ public class AutocompleteMenu extends Gui {
         // Thumb
         float thumbRatio = (float) visibleCount / items.size();
         int thumbHeight = Math.max(20, (int) (scrollbarHeight * thumbRatio));
-        float thumbPosRatio = (float) scrollOffset / Math.max(1, items.size() - visibleCount);
+        float thumbPosRatio = Math.min(1f, (float) scrollOffset / Math.max(1, items.size() - visibleCount));
         int thumbY = scrollbarY + (int) ((scrollbarHeight - thumbHeight) * thumbPosRatio);
+        thumbY = Math.max(scrollbarY, Math.min(scrollbarY + scrollbarHeight - thumbHeight, thumbY));
         
         // Check if mouse is above the scrollbar thumb
         boolean isAboveScrollbar = mouseX >= scrollbarX && mouseX <= scrollbarX + 6 && 
@@ -686,32 +723,46 @@ public class AutocompleteMenu extends Gui {
      */
     public boolean mouseClicked(int mouseX, int mouseY, int button) {
         if (!visible) return false;
-        
+
         // Check if click is outside menu
         if (!isMouseInBounds(mouseX, mouseY)) {
             hide();
             return false;
         }
 
-        // Check if clicking on scrollbar
+        // Resize handle has top priority
+        if (button == 0 && isMouseOverResizeHandle(mouseX, mouseY)) {
+            isResizingPanel = true;
+            resizeInitMouseX = mouseX; resizeInitMouseY = mouseY;
+            resizeInitW = width; resizeInitH = height;
+            return true;
+        }
+
+        // Scrollbar
         if (button == 0 && items.size() > getVisibleItemCapacity()) {
             int scrollbarX = x + width - 8;
             if (mouseX >= scrollbarX && mouseX <= scrollbarX + 6) {
-                // Clicked on scrollbar area - start drag
                 isDraggingScrollbar = true;
                 dragStartY = mouseY;
                 dragStartScroll = scrollOffset;
                 return true;
             }
         }
-        
-        // Check if clicking on an item
-        if (button == 0 && hoveredIndex >= 0 && hoveredIndex < items.size()) {
-            selectedIndex = hoveredIndex;
-            confirmSelection();
+
+        // Anywhere inside panel body — start pending drag, defer item confirm to release
+        if (button == 0) {
+            hasPendingPanelDrag = true;
+            pendingDragStartX = mouseX;
+            pendingDragStartY = mouseY;
+            panelDragOffsetX = mouseX - x;
+            panelDragOffsetY = mouseY - y;
+            if (hoveredIndex >= 0 && hoveredIndex < items.size()) {
+                selectedIndex = hoveredIndex;
+                pendingItemConfirm = true;
+            }
             return true;
         }
-        
+
         return true; // Consume click if inside menu
     }
 
@@ -720,9 +771,16 @@ public class AutocompleteMenu extends Gui {
      * @return true if release was consumed
      */
     public boolean mouseReleased(int mouseX, int mouseY, int button) {
-        if (button == 0 && isDraggingScrollbar) {
-            isDraggingScrollbar = false;
-            return true;
+        if (button == 0) {
+            if (isDraggingScrollbar) { isDraggingScrollbar = false; return true; }
+            if (isDraggingPanel)     { isDraggingPanel = false;     return true; }
+            if (isResizingPanel)     { isResizingPanel = false;     return true; }
+            hasPendingPanelDrag = false;
+            if (pendingItemConfirm) {
+                pendingItemConfirm = false;
+                confirmSelection();
+                return true;
+            }
         }
         return false;
     }
@@ -732,26 +790,35 @@ public class AutocompleteMenu extends Gui {
      * @return true if drag was consumed
      */
     public boolean mouseDragged(int mouseX, int mouseY) {
-        if (!visible || !isDraggingScrollbar)
-            return false;
+        if (!visible) return false;
+        if (isDraggingPanel)     { updatePanelDrag(mouseX, mouseY);   return true; }
+        if (isResizingPanel)     { updatePanelResize(mouseX, mouseY); return true; }
 
-        // Calculate scroll area height
-        int visibleCount = getVisibleItemCapacity();
-        if (visibleCount <= 0)
-            return false;
-        int listHeight = visibleCount * ITEM_HEIGHT;
-        int scrollbarHeight = Math.max(20, (listHeight * visibleCount) / items.size());
-        int scrollTrackHeight = listHeight - scrollbarHeight;
-
-        // Calculate new scroll offset based on drag
-        int deltaY = mouseY - dragStartY;
-        int maxScroll = items.size() - visibleCount;
-
-        if (scrollTrackHeight > 0) {
-            int scrollDelta = (deltaY * maxScroll) / scrollTrackHeight;
-            scrollOffset = Math.max(0, Math.min(maxScroll, dragStartScroll + scrollDelta));
+        // Activate panel drag once movement exceeds threshold
+        if (hasPendingPanelDrag) {
+            int dx = Math.abs(mouseX - pendingDragStartX);
+            int dy = Math.abs(mouseY - pendingDragStartY);
+            if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+                isDraggingPanel = true;
+                hasPendingPanelDrag = false;
+                pendingItemConfirm = false; // cancel any pending selection
+                updatePanelDrag(mouseX, mouseY);
+                return true;
+            }
+            return true;
         }
 
+        if (!isDraggingScrollbar) return false;
+        // Scrollbar drag (kept for backward compat — also handled via draw loop)
+        int visibleCount = getVisibleItemCapacity();
+        if (visibleCount <= 0) return false;
+        int scrollbarHeight = visibleCount * ITEM_HEIGHT - 8;
+        int thumbHeight = Math.max(20, (int) (scrollbarHeight * (float) visibleCount / Math.max(1, items.size())));
+        int scrollTrackHeight = Math.max(1, scrollbarHeight - thumbHeight);
+        int maxScroll = items.size() - visibleCount;
+        int deltaY = mouseY - dragStartY;
+        int scrollDelta = (deltaY * maxScroll) / scrollTrackHeight;
+        scrollOffset = Math.max(0, Math.min(maxScroll, dragStartScroll + scrollDelta));
         return true;
     }
     
@@ -801,4 +868,69 @@ public class AutocompleteMenu extends Gui {
     public int getWidth() { return width; }
     public int getHeight() { return height; }
     public List<AutocompleteItem> getItems() { return items; }
+    // ==================== PANEL DRAG / RESIZE ====================
+
+    public boolean isMouseOverResizeHandle(int mx, int my) {
+        if (!visible) return false;
+        return mx >= x + width - 8 && mx <= x + width && my >= y + height - 8 && my <= y + height;
+    }
+
+    public void updatePanelDrag(int mouseX, int mouseY) {
+        if (!isDraggingPanel) return;
+        x = mouseX - panelDragOffsetX;
+        y = mouseY - panelDragOffsetY;
+        overriddenX = x;
+        overriddenY = y;
+        panelPositionOverridden = true;
+    }
+
+    public void releasePanelDrag() { isDraggingPanel = false; hasPendingPanelDrag = false; }
+
+    public void updatePanelResize(int mouseX, int mouseY) {
+        if (!isResizingPanel) return;
+        overriddenW = Math.max(MIN_RESIZE_W, resizeInitW + (mouseX - resizeInitMouseX));
+        overriddenH = Math.max(MIN_RESIZE_H, resizeInitH + (mouseY - resizeInitMouseY));
+        panelSizeOverridden = true;
+        menuWidth = overriddenW;
+        width = overriddenW;
+        height = overriddenH;
+        visibleItemsCount = Math.max(1, (overriddenH - HINT_HEIGHT - PADDING * 2) / ITEM_HEIGHT);
+    }
+
+    public void releasePanelResize() { isResizingPanel = false; }
+
+    /** Used by draw-loop scrollbar update in GuiScriptTextArea */
+    public void updateScrollbarDragDraw(int mouseY) {
+        if (!isDraggingScrollbar || items.isEmpty()) return;
+        int visibleCount = getVisibleItemCapacity();
+        if (visibleCount <= 0) return;
+        int scrollbarHeight = visibleCount * ITEM_HEIGHT - 8;
+        int thumbHeight = Math.max(20, (int) (scrollbarHeight * (float) visibleCount / items.size()));
+        int scrollTrackHeight = Math.max(1, scrollbarHeight - thumbHeight);
+        int maxScroll = items.size() - visibleCount;
+        int deltaY = mouseY - dragStartY;
+        int scrollDelta = (deltaY * maxScroll) / scrollTrackHeight;
+        scrollOffset = Math.max(0, Math.min(maxScroll, dragStartScroll + scrollDelta));
+    }
+
+    public void releaseScrollbarDrag() { isDraggingScrollbar = false; }
+
+    public boolean isDraggingPanel()     { return isDraggingPanel; }
+    public boolean isDraggingScrollbarMenu() { return isDraggingScrollbar; }
+    public boolean isResizingPanel()     { return isResizingPanel; }
+
+    private void drawResizeHandle(int mouseX, int mouseY) {
+        boolean resizeActive = isResizingPanel || isMouseOverResizeHandle(mouseX, mouseY);
+        int dotColor = resizeActive ? 0xFFCCCCCC : 0x80888888;
+        int rhX = x + width - 2;
+        int rhY = y + height - 2;
+        // Three-dot diagonal pattern (◢)
+        drawRect(rhX - 1, rhY - 1, rhX,     rhY,     dotColor);
+        drawRect(rhX - 3, rhY - 1, rhX - 2, rhY,     dotColor);
+        drawRect(rhX - 1, rhY - 3, rhX,     rhY - 2, dotColor);
+        drawRect(rhX - 5, rhY - 1, rhX - 4, rhY,     dotColor);
+        drawRect(rhX - 3, rhY - 3, rhX - 2, rhY - 2, dotColor);
+        drawRect(rhX - 1, rhY - 5, rhX,     rhY - 4, dotColor);
+    }
+
 }

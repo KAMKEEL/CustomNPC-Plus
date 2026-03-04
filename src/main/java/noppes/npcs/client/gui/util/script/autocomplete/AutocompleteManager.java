@@ -679,6 +679,17 @@ public class AutocompleteManager {
             return false;
         return menu.mouseDragged(mouseX, mouseY);
     }
+
+    public boolean isDraggingPanel()      { return active && menu.isDraggingPanel(); }
+    public boolean isDraggingScrollbarMenu() { return active && menu.isDraggingScrollbarMenu(); }
+    public boolean isResizingPanel()      { return active && menu.isResizingPanel(); }
+    public boolean isMouseOverResizeHandle(int mx, int my) { return active && menu.isMouseOverResizeHandle(mx, my); }
+    public void updatePanelDrag(int x, int y)    { if (active) menu.updatePanelDrag(x, y); }
+    public void releasePanelDrag()               { if (active) menu.releasePanelDrag(); }
+    public void updateScrollbarDrag(int y)       { if (active) menu.updateScrollbarDragDraw(y); }
+    public void releaseScrollbarDrag()           { if (active) menu.releaseScrollbarDrag(); }
+    public void updatePanelResize(int x, int y)  { if (active) menu.updatePanelResize(x, y); }
+    public void releasePanelResize()             { if (active) menu.releasePanelResize(); }
     
     // ==================== ITEM SELECTION ====================
     
