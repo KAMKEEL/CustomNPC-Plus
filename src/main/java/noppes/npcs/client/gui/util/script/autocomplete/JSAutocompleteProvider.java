@@ -217,6 +217,14 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
 
             items.add(AutocompleteItem.fromField(fieldInfo));
         }
+
+        // Add global imports in JSTypeRegistry.globalEngineImports
+        for (String importName : registry.getGlobalEngineImports().keySet()) {
+            TypeInfo jsTypeInfo = document.resolveType(registry.getGlobalImportType(importName));
+            if (jsTypeInfo != null) {
+                items.add(AutocompleteItem.fromType(jsTypeInfo));
+            }
+        }
     }
 
     protected UsageTracker getUsageTracker() {

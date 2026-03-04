@@ -68,6 +68,7 @@ tasks.named("generateTypeScriptDefinitions").configure {
     outputDirectory = "src/main/resources/assets/${project.property("modId")}/api"
     apiPackages = ['noppes.npcs.api', 'net.minecraft'] as Set
     cleanOutputFirst = true  // Clean old generated files before regenerating
+    patchesDirectory = "dts-patches"
     implementationPackages = [
         'noppes.npcs.scripted',
         'noppes.npcs.controllers.data',

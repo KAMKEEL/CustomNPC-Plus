@@ -52,6 +52,8 @@ public class JSTypeRegistry {
     // Global object instances: name -> type (e.g., "API" -> "AbstractNpcAPI")
     // These are treated as instance objects, not static classes
     private final Map<String, String> globalEngineObjects = new LinkedHashMap<>();
+    // Math / Number / Json / etc. built-in globals from ECMAScript 5.1
+    private final Map<String, String> globalEngineImports = new LinkedHashMap<>();
     
     // Primitive types
     private static final Set<String> PRIMITIVES = new HashSet<>(Arrays.asList(
@@ -119,6 +121,7 @@ public class JSTypeRegistry {
             
             resolveInheritance();
             registerEngineGlobalObjects();
+            registerES5Builtins();
             
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from resources");
@@ -447,6 +450,13 @@ public class JSTypeRegistry {
                 return null;
             }
             return getType(resolved, visited);
+        }
+        
+        if (globalEngineImports.containsKey(baseName)){
+            String resolved = globalEngineImports.get(baseName);
+            if (types.containsKey(resolved)) {
+                return types.get(resolved);
+            }
         }
         
         // Try simple name lookup (for types like "IEntity" without namespace)
@@ -824,7 +834,64 @@ public class JSTypeRegistry {
         // Default: return the original name
         return concreteClassName;
     }
-    
+
+    /**
+     * Register ECMAScript 5.1 global built-in objects so that expressions like
+     * `Math.floor(Math.random())`, `new Date()`, `Array.isArray(...)`, etc.
+     * resolve properly with type checking and autocomplete.
+     *
+     * These globals are parsed from .d.ts patch files under `patches/ecmascript/`
+     * and provide both static methods (e.g., Math.floor, Array.isArray, Object.keys)
+     * and instance members (e.g., date.getTime(), array.length, string.charAt).
+     */
+    private void registerES5Builtins() {
+        // Singleton/namespace globals (accessed directly, not constructed)
+        registerGlobalIfTypeExists("Math",   "Math");
+        registerGlobalIfTypeExists("JSON",   "JSON");
+
+        // Constructor globals (can be called with `new` or used for static methods)
+        registerGlobalIfTypeExists("Date",    "Date");
+        registerGlobalIfTypeExists("Array",   "Array");
+        registerGlobalIfTypeExists("Object",  "Object");
+        registerGlobalIfTypeExists("String",  "String");
+        registerGlobalIfTypeExists("Number",  "Number");
+        registerGlobalIfTypeExists("Boolean", "Boolean");
+        registerGlobalIfTypeExists("RegExp",  "RegExp");
+        registerGlobalIfTypeExists("Error",   "Error");
+    }
+
+    /**
+     * Registers a global object only if the target type is present in the registry.
+     * Silently skips if the .d.ts patch hasn't been loaded yet (e.g. in unit tests).
+     */
+    private void registerGlobalIfTypeExists(String globalName, String typeName) {
+        if (types.containsKey(typeName)) {
+            globalEngineImports.put(globalName, typeName);
+        }
+    }
+
+    /**
+     * Get the type name for a global object.
+     * @param name The global variable name
+     * @return The type name, or null if not a registered global object
+     */
+    public String getGlobalImportType(String name) {
+        return globalEngineImports.get(name);
+    }
+
+    /**
+     * Check if a name is a registered global object instance.
+     */
+    public boolean isGlobalImport(String name) {
+        return globalEngineImports.containsKey(name);
+    }
+
+    /**
+     * Get all registered global objects.
+     */
+    public Map<String, String> getGlobalEngineImports() {
+        return Collections.unmodifiableMap(globalEngineImports);
+    }
     /**
      * Check if initialized.
      */
@@ -844,6 +911,7 @@ public class JSTypeRegistry {
         hooks.clear();
         contextHooks.clear();
         globalEngineObjects.clear();
+        globalEngineImports.clear();
         DtsJavaBridge.clearCache();
         initialized = false;
         initializationAttempted = false;

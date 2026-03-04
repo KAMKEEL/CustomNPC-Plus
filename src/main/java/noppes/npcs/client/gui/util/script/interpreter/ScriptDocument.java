@@ -7134,13 +7134,22 @@ public class ScriptDocument {
                 continue;
 
             // For JavaScript, first check synthetic types (Nashorn built-ins like Java, print, etc.)
-            if (isJavaScript() && typeResolver.isSyntheticType(className)) {
-                SyntheticType syntheticType = typeResolver.getSyntheticType(className);
-                // Mark as IMPORTED_CLASS since it's a type reference
-                // Pass the TypeInfo (which the hover system can display)
-                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.IMPORTED_CLASS,
-                        syntheticType.getTypeInfo()));
-                continue;
+            if (isJavaScript()) {
+                if (typeResolver.isSyntheticType(className)) {
+                    SyntheticType syntheticType = typeResolver.getSyntheticType(className);
+                    // Mark as IMPORTED_CLASS since it's a type reference
+                    // Pass the TypeInfo (which the hover system can display)
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.IMPORTED_CLASS,
+                            syntheticType.getTypeInfo()));
+                    continue;
+                }
+                JSTypeRegistry jsRegistry = JSTypeRegistry.getInstance();
+                if (jsRegistry.isGlobalImport(className)) {
+                    // Mark as IMPORTED_CLASS since it's a type reference
+                    TypeInfo globalType = typeResolver.resolveJSType(jsRegistry.getGlobalImportType(className));
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.INTERFACE_DECL, globalType));
+                    continue;
+                }
             }
             
             // Try to resolve the class

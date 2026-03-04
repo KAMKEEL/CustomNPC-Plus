@@ -413,6 +413,13 @@ public class TypeResolver {
             SyntheticType syntheticType = getSyntheticType(baseName);
             return syntheticType.getTypeInfo();
         }
+        
+        // Check JS type registry
+        // Before primitive mapping, to allow .d.ts types to override primitive names for ECMAScript 5.1 globals (e.g., "String" in JS is not the same as "String" in Java))
+        JSTypeInfo jsTypeInfo = getJSTypeRegistry().getType(baseName);
+        if (jsTypeInfo != null) {
+            return TypeInfo.fromJSTypeInfo(jsTypeInfo);
+        }
 
         // Check primitives and common types
         switch (baseName.toLowerCase()) {
@@ -431,12 +438,6 @@ public class TypeResolver {
             case "object":
             case "*":
                 return TypeInfo.ANY;
-        }
-        
-        // Check JS type registry
-        JSTypeInfo jsTypeInfo = getJSTypeRegistry().getType(baseName);
-        if (jsTypeInfo != null) {
-            return TypeInfo.fromJSTypeInfo(jsTypeInfo);
         }
         
         // Fall back to Java type resolution
@@ -898,7 +899,7 @@ public class TypeResolver {
 
         // Not a variable - check if it's a type name by trying to resolve as type
         TypeInfo typeCheck = document.resolveType(identifier);
-        boolean isType = typeCheck != null && typeCheck.isResolved();
+        boolean isType = typeCheck != null && typeCheck.isResolved() && !typeCheck.isJSType(); // JS types aren't static access in this context
         return isStaticAccess(typeCheck, isType);
     }
 

@@ -41,10 +41,10 @@ public class TypeScriptDefinitionParser {
         "export\\s+type\\s+(\\w+)\\s*=\\s*([^;\\n]+);?");
     
     private static final Pattern METHOD_PATTERN = Pattern.compile(
-        "(?m)^\\s*(\\w+)\\s*\\((.*)\\)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
+        "(?m)^\\s*(\\w+)\\??\\s*\\((.*)\\)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
     
     private static final Pattern FIELD_PATTERN = Pattern.compile(
-        "^\\s*(readonly\\s+)?(\\w+)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
+        "^\\s*(readonly\\s+)?(\\w+)\\??\\s*:\\s*([^;]+);", Pattern.MULTILINE);
     
     private static final Pattern GLOBAL_FUNCTION_PATTERN = Pattern.compile(
         "function\\s+(\\w+)\\s*\\((.*)\\)\\s*:\\s*([^;]+);");
