@@ -371,8 +371,10 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
                     ent.motionY -= radialVel * ny;
                     ent.motionZ -= radialVel * nz;
                     double pushForce = wasInside ? -0.15 : 0.15;
-                    ent.motionX += nx * pushForce;
-                    ent.motionZ += nz * pushForce;
+                    if (canPushInDirection(ent, nx * pushForce, 0, nz * pushForce)) {
+                        ent.motionX += nx * pushForce;
+                        ent.motionZ += nz * pushForce;
+                    }
                     ent.velocityChanged = true;
                 } else {
                     // Preemptive: near surface and moving toward it — cancel radial velocity
@@ -385,8 +387,10 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
                             ent.motionY -= radialVel * ny;
                             ent.motionZ -= radialVel * nz;
                             double pushForce = isInside ? -0.05 : 0.05;
-                            ent.motionX += nx * pushForce;
-                            ent.motionZ += nz * pushForce;
+                            if (canPushInDirection(ent, nx * pushForce, 0, nz * pushForce)) {
+                                ent.motionX += nx * pushForce;
+                                ent.motionZ += nz * pushForce;
+                            }
                             ent.velocityChanged = true;
                         }
                     }
@@ -400,16 +404,21 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
                     double proximity = 1.0 - (surfaceDist / knockbackMargin);
                     double force = proximity * strength * 0.06;
 
+                    double pushX, pushY, pushZ;
                     if (isInside) {
-                        // Push toward center (away from surface)
-                        ent.motionX += -nx * force;
-                        ent.motionY += -ny * force * 0.5;
-                        ent.motionZ += -nz * force;
+                        pushX = -nx * force;
+                        pushY = -ny * force * 0.5;
+                        pushZ = -nz * force;
                     } else {
-                        // Push outward (away from surface)
-                        ent.motionX += nx * force;
-                        ent.motionY += ny * force * 0.5;
-                        ent.motionZ += nz * force;
+                        pushX = nx * force;
+                        pushY = ny * force * 0.5;
+                        pushZ = nz * force;
+                    }
+
+                    if (canPushInDirection(ent, pushX, pushY, pushZ)) {
+                        ent.motionX += pushX;
+                        ent.motionY += pushY;
+                        ent.motionZ += pushZ;
                     }
                     ent.velocityChanged = true;
                 }
