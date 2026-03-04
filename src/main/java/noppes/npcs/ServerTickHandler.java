@@ -6,6 +6,7 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.controllers.AuctionController;
@@ -78,5 +79,8 @@ public class ServerTickHandler {
 
         // Save and unload the player's profile data on logout
         ProfileController.Instance.logout(event.player);
+
+        // Clear script session tokens
+        PacketUtil.clearScriptSession(event.player);
     }
 }
