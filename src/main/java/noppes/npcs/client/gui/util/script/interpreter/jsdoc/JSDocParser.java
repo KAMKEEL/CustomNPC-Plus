@@ -69,22 +69,27 @@ public class JSDocParser {
             CleanLine cleanLine = cleanLine(rawLine, contentOffset + position);
             String line = cleanLine.text;
 
-            if (!line.isEmpty()) {
-                if (line.startsWith("@")) {
-                    foundFirstTag = true;
-                    lastTag = parseTagLine(line, cleanLine.offset, info);
-                } else if (!foundFirstTag) {
+            if (line.startsWith("@")) {
+                foundFirstTag = true;
+                lastTag = parseTagLine(line, cleanLine.offset, info);
+            } else if (!foundFirstTag) {
+                if (line.isEmpty()) {
+                    // Preserve blank lines as paragraph gaps (only if description has started)
                     if (descriptionBuilder.length() > 0) {
-                        descriptionBuilder.append(" ");
+                        descriptionBuilder.append("\n");
+                    }
+                } else {
+                    if (descriptionBuilder.length() > 0) {
+                        descriptionBuilder.append("\n");
                     }
                     descriptionBuilder.append(line);
-                } else if (lastTag != null) {
-                    String existing = lastTag.getDescription();
-                    if (existing == null || existing.isEmpty()) {
-                        lastTag.setDescription(line);
-                    } else {
-                        lastTag.setDescription(existing + " " + line);
-                    }
+                }
+            } else if (lastTag != null && !line.isEmpty()) {
+                String existing = lastTag.getDescription();
+                if (existing == null || existing.isEmpty()) {
+                    lastTag.setDescription(line);
+                } else {
+                    lastTag.setDescription(existing + "\n" + line);
                 }
             }
 

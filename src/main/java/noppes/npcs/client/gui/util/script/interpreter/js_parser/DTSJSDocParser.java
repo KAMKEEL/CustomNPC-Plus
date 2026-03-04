@@ -38,22 +38,29 @@ public class DTSJSDocParser {
         
         for (String line : lines) {
             line = cleanLine(line);
-            if (line.isEmpty()) continue;
-            
             if (line.startsWith("@")) {
                 foundFirstTag = true;
                 lastTag = parseTag(line, info);
             } else if (!foundFirstTag) {
-                if (descriptionBuilder.length() > 0) {
-                    descriptionBuilder.append(" ");
-                }
-                descriptionBuilder.append(line);
-            } else if (lastTag != null) {
-                String existing = lastTag.getDescription();
-                if (existing == null || existing.isEmpty()) {
-                    lastTag.setDescription(line);
+                if (line.isEmpty()) {
+                    // Preserve blank lines as paragraph gaps (only if description has started)
+                    if (descriptionBuilder.length() > 0) {
+                        descriptionBuilder.append("\n");
+                    }
                 } else {
-                    lastTag.setDescription(existing + " " + line);
+                    if (descriptionBuilder.length() > 0) {
+                        descriptionBuilder.append("\n");
+                    }
+                    descriptionBuilder.append(line);
+                }
+            } else if (lastTag != null) {
+                if (!line.isEmpty()) {
+                    String existing = lastTag.getDescription();
+                    if (existing == null || existing.isEmpty()) {
+                        lastTag.setDescription(line);
+                    } else {
+                        lastTag.setDescription(existing + "\n" + line);
+                    }
                 }
             }
         }
