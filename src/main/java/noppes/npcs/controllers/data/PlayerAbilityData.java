@@ -696,6 +696,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
 
         // Clear chain and concurrent state
+        if (currentChain != null) currentChain.clearInstanceScript();
         currentChain = null;
         chainEntryIndex = -1;
         chainDelayRemaining = -1;
@@ -778,6 +779,7 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
         }
 
         // Clear chain and concurrent state
+        if (currentChain != null) currentChain.clearInstanceScript();
         currentChain = null;
         chainEntryIndex = -1;
         chainDelayRemaining = -1;

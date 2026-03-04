@@ -299,6 +299,7 @@ public class DataAbilities extends AbstractDataAbilities {
                 if (positionLocked) releaseLockedPosition();
             }
             // Clear chain and concurrent state
+            if (currentChain != null) currentChain.clearInstanceScript();
             currentChain = null;
             chainEntryIndex = -1;
             chainDelayRemaining = -1;
@@ -588,6 +589,7 @@ public class DataAbilities extends AbstractDataAbilities {
             lastTarget = null;
         }
         // Also clear chain state
+        if (currentChain != null) currentChain.clearInstanceScript();
         currentChain = null;
         chainEntryIndex = -1;
         chainDelayRemaining = -1;
