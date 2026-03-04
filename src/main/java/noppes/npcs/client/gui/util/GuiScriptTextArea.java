@@ -652,6 +652,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 hoverState.clearHover();
             }
         }
+        // Handle tooltip scrollbar drag (update each frame; release when button lifted)
+        if (hoverState.isDraggingScrollbar()) {
+            if (Mouse.isButtonDown(0)) {
+                hoverState.updateScrollbarDrag(yMouse);
+            } else {
+                hoverState.releaseScrollbarDrag();
+            }
+        }
         
         // Update scroll animation
         scroll.initializeIfNeeded(scroll.getScrolledLine());
@@ -2894,6 +2902,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton))
             return;
             
+        // Check tooltip scrollbar click (highest priority — before text interaction)
+        if (mouseButton == 0 && hoverState.isTooltipVisible()
+                && hoverState.isMouseOverScrollbarThumb(xMouse, yMouse)) {
+            hoverState.startScrollbarDrag(yMouse);
+            return;
+        }
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
         if (this.active) {
