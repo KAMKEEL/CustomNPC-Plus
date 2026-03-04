@@ -45,6 +45,7 @@ import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.AbilityScript;
@@ -237,6 +238,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Burst execution state
     protected transient int burstIndex = 0;
     protected transient List<Entity> burstEntities = new ArrayList<>();
+
+    // Per-instance script (isolated per execution, not saved to NBT)
+    protected transient AbilityScript instanceScript;
     protected transient float damageMultiplier = 1.0f; // Ability-internal damage scaling (e.g., Slam height)
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1335,6 +1339,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         telegraphInstances.clear();
         previewMode = false;
         previewEntityHandler = null;
+        instanceScript = null;
     }
 
     /**
@@ -1647,10 +1652,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
 
         // Script handler data (matching CustomEffect.readFromNBT pattern)
+        // Only create a new handler if one doesn't already exist in the global map,
+        // to avoid clobbering a live handler's script state during deepCopy/resolve.
         if (nbt.hasKey("ScriptData", 10)) {
-            AbilityScript handler = new AbilityScript(this.id);
-            handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
-            setScriptHandler(handler);
+            if (getScriptHandler() == null) {
+                AbilityScript handler = new AbilityScript(this.id);
+                handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
+                setScriptHandler(handler);
+            }
         }
     }
 
@@ -1753,7 +1762,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     public Ability deepCopy() {
-        return AbilityController.Instance.fromNBT(this.writeNBT(true));
+        return AbilityController.Instance.fromNBT(this.writeNBT(false));
     }
 
     @Override
@@ -2733,5 +2742,26 @@ public abstract class Ability implements IAbility, IAbilityAction {
             AbilityController.Instance.abilityScriptHandlers.put(this.id, handler);
         }
         return handler;
+    }
+
+    /**
+     * Get or create a per-instance script handler for this ability execution.
+     * Shares the template's engine but creates isolated Bindings for variable state.
+     * Returns null if no script is configured on the template.
+     */
+    public AbilityScript getOrCreateInstanceScript() {
+        if (instanceScript != null) return instanceScript;
+
+        AbilityScript template = getScriptHandler();
+        if (template == null || !template.getEnabled() || template.container == null) return null;
+
+        instanceScript = new AbilityScript(this.id);
+        instanceScript.setLanguage(template.getLanguage());
+        instanceScript.setEnabled(true);
+
+        ScriptContainer clone = ((ScriptContainer) template.container).createInstanceScope(instanceScript);
+        instanceScript.addScriptUnit(clone);
+
+        return instanceScript;
     }
 }

@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.advanced;
 
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
 import net.minecraft.client.gui.GuiButton;
@@ -15,6 +16,7 @@ import noppes.npcs.constants.EnumScrollData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -93,14 +95,18 @@ public class SubGuiAbilitySelect extends SubGuiInterface implements ICustomScrol
             merged.putAll(builtInData);
         }
 
-        if (search.isEmpty()) {
-            return new ArrayList<>(merged.keySet());
-        }
         List<String> list = new ArrayList<>();
-        for (String name : merged.keySet()) {
-            if (name.toLowerCase().contains(search.toLowerCase())) {
-                list.add(name);
+        for (Map.Entry<String, Integer> entry : merged.entrySet()) {
+            String name = entry.getKey();
+
+            // Only show NPC-valid abilities (NPC_ONLY or BOTH)
+            UserType ut = UserType.fromOrdinal(entry.getValue());
+            if (!ut.allowsNpc()) continue;
+
+            if (!search.isEmpty() && !name.toLowerCase().contains(search.toLowerCase())) {
+                continue;
             }
+            list.add(name);
         }
         return list;
     }

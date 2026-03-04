@@ -1079,6 +1079,7 @@ public abstract class AbstractDataAbilities {
                 rollChainCooldown(currentChain);
                 interruptCooldownRolled = true;
                 fireChainInterruptEvent(currentChain, chainEntryIndex, getTarget(), source, damage);
+                currentChain.clearInstanceScript();
                 currentChain = null;
                 chainEntryIndex = -1;
                 chainDelayRemaining = -1;
@@ -1138,6 +1139,7 @@ public abstract class AbstractDataAbilities {
         // Roll cooldown
         if (currentChain != null) {
             rollChainCooldown(currentChain);
+            currentChain.clearInstanceScript();
             currentChain = null;
             chainEntryIndex = -1;
             chainDelayRemaining = -1;
@@ -1336,6 +1338,7 @@ public abstract class AbstractDataAbilities {
         if (currentChain != null) {
             rollChainCooldown(currentChain);
             fireChainCompleteEvent(currentChain, chainEntryIndex, getTarget());
+            currentChain.clearInstanceScript();
         }
         currentChain = null;
         chainEntryIndex = -1;

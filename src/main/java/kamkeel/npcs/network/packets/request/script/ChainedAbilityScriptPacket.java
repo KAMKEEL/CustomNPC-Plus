@@ -88,9 +88,17 @@ public final class ChainedAbilityScriptPacket extends AbstractPacket {
 
         ChainedAbility chain = AbilityController.Instance.resolveChainedAbility(id);
         if (chain == null) {
-            // Chain not yet saved — send default empty script data so the GUI is usable
+            // Chain not yet saved — store handler in global map so scripts persist
+            // until the chain is saved via ChainedAbilitySavePacket
+            ChainedAbilityScript data = AbilityController.Instance.chainedAbilityScriptHandlers.get(id);
+            if (data == null) {
+                data = new ChainedAbilityScript(id);
+                AbilityController.Instance.chainedAbilityScriptHandlers.put(id, data);
+            }
             if (requestedAction == Action.GET) {
-                PacketUtil.getScripts((IScriptHandler) new ChainedAbilityScript(id), (EntityPlayerMP) player);
+                PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
+            } else {
+                data.saveScript(in, player);
             }
             return;
         }
