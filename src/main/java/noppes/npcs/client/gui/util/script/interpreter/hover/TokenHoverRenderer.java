@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.hover;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.ScaledResolution;
 import noppes.npcs.client.ClientProxy;
 import org.lwjgl.opengl.GL11;
 
@@ -72,6 +73,7 @@ public class TokenHoverRenderer {
      */
     public static void render(HoverState hoverState, int viewportX, int viewportWidth, int viewportY, int viewportHeight) {
         if (!hoverState.isTooltipVisible()) return;
+        hoverState.updateSmoothScroll();
         
         TokenHoverInfo info = hoverState.getHoverInfo();
         if (info == null || !info.hasContent()) return;
@@ -86,12 +88,14 @@ public class TokenHoverRenderer {
         // Calculate actual content width needed (clamped to max)
         int contentWidth = calculateContentWidth(info, maxContentWidth);
         
-        // Calculate height based on the actual content width (accounts for wrapping)
-        int contentHeight = calculateContentHeight(info, contentWidth);
-        
-        // Box dimensions
+        // Cap visible height at 60% of viewport
+        int totalContentHeight = calculateContentHeight(info, contentWidth);
+        int maxVisibleContentHeight = (int)(viewportHeight * 0.60f);
+        int visibleContentHeight = Math.min(totalContentHeight, maxVisibleContentHeight);
+
+        // Box dimensions — use visibleContentHeight so positioning matches rendering
         int boxWidth = contentWidth + PADDING * 2;
-        int boxHeight = contentHeight + PADDING * 2;
+        int boxHeight = visibleContentHeight + PADDING * 2;
         
         // Position the tooltip
         int tooltipX = tokenX;
@@ -122,9 +126,15 @@ public class TokenHoverRenderer {
         if (tooltipY < viewportY) {
             tooltipY = viewportY;
         }
+
+        // Cover the gap between token bottom and tooltip top so mouse can travel through it
+        // without dismissing the tooltip (tokenY + lineHeight ... tooltipY)
+        int boundsTopY = Math.min(tokenY + lineHeight, tooltipY);
+        hoverState.setTooltipBounds(tooltipX, boundsTopY, boxWidth, tooltipY - boundsTopY + boxHeight);
         
-        // Render the tooltip - use maxContentWidth for consistent wrapping
-        renderTooltipBox(tooltipX, tooltipY, boxWidth, maxContentWidth, info);
+        // Render the tooltip
+        renderTooltipBox(tooltipX, tooltipY, boxWidth, maxContentWidth, info, hoverState,
+                totalContentHeight, visibleContentHeight);
     }
 
     /**
@@ -143,11 +153,18 @@ public class TokenHoverRenderer {
     /**
      * Render the tooltip box with all content.
      */
-    private static void renderTooltipBox(int x, int y, int boxWidth, int wrapWidth, TokenHoverInfo info) {
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+    private static void renderTooltipBox(int x, int y, int boxWidth, int wrapWidth, TokenHoverInfo info,
+                                         HoverState hoverState, int totalContentHeight, int visibleContentHeight) {
 
-        int boxHeight = calculateContentHeight(info, wrapWidth) + PADDING * 2;
-        
+        boolean hasScrollbar = totalContentHeight > visibleContentHeight;
+        // Reserve 6px on right for scrollbar (3px bar + 3px gap) so text doesn't run under it
+        int effectiveWrapWidth = hasScrollbar ? wrapWidth - 6 : wrapWidth;
+
+        int boxHeight = visibleContentHeight + PADDING * 2;
+
+        // Store scroll metadata into HoverState
+        hoverState.setTooltipMaxScroll(Math.max(0, totalContentHeight - visibleContentHeight));
+
         // Draw background
         Gui.drawRect(x, y, x + boxWidth, y + boxHeight, BG_COLOR);
         
@@ -156,11 +173,21 @@ public class TokenHoverRenderer {
         Gui.drawRect(x, y + boxHeight - 1, x + boxWidth, y + boxHeight, BORDER_COLOR);
         Gui.drawRect(x, y, x + 1, y + boxHeight, BORDER_COLOR);
         Gui.drawRect(x + boxWidth - 1, y, x + boxWidth, y + boxHeight, BORDER_COLOR);
-        
-        int textX = x + PADDING;
-        int currentY = y + PADDING;
-        int lineHeight = ClientProxy.Font.height();
 
+        // Set up GL scissor to clip scrollable content within the tooltip box (inside borders)
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        int sf = sr.getScaleFactor();
+        int clipX = (x + 1) * sf;
+        int clipY = (sr.getScaledHeight() - (y + boxHeight - 1)) * sf;
+        int clipW = (boxWidth - 2) * sf;
+        int clipH = (boxHeight - 2) * sf;
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(clipX, clipY, clipW, clipH);
+
+        int textX = x + PADDING;
+        int currentY = y + PADDING - hoverState.getTooltipScrollOffset();
+        int lineHeight = ClientProxy.Font.height();
 
         String packageName = info.getPackageName();
         List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
@@ -171,7 +198,7 @@ public class TokenHoverRenderer {
         List<String> errors = info.getErrors();
         if (!errors.isEmpty()) {
             for (String error : errors) {
-                List<String> wrappedLines = wrapText(error, wrapWidth);
+                List<String> wrappedLines = wrapText(error, effectiveWrapWidth);
                 for (String line : wrappedLines) {
                     drawText(textX, currentY, line, ERROR_COLOR);
                     currentY += lineHeight + LINE_SPACING;
@@ -191,7 +218,7 @@ public class TokenHoverRenderer {
         // Draw package name
         if (packageName != null && !packageName.isEmpty()) {
             String packageText = "\u25CB " + packageName;
-            List<String> wrappedLines = wrapText(packageText, wrapWidth);
+            List<String> wrappedLines = wrapText(packageText, effectiveWrapWidth);
             for (String line : wrappedLines) {
                 drawText(textX, currentY, line, PACKAGE_COLOR);
                 currentY += lineHeight + LINE_SPACING;
@@ -200,7 +227,7 @@ public class TokenHoverRenderer {
         
         // Draw declaration (colored segments with wrapping)
         if (!declaration.isEmpty()) {
-            currentY = drawWrappedSegments(textX, currentY, wrapWidth, declaration);
+            currentY = drawWrappedSegments(textX, currentY, effectiveWrapWidth, declaration);
             currentY += LINE_SPACING;
         }
         
@@ -210,7 +237,7 @@ public class TokenHoverRenderer {
             Gui.drawRect(textX, currentY, x + boxWidth - PADDING, currentY + SEPARATOR_HEIGHT, BORDER_COLOR);
             currentY += SEPARATOR_HEIGHT + SEPARATOR_SPACING;
             for (String doc : docs) {
-                List<String> wrappedLines = wrapText(doc, wrapWidth);
+                List<String> wrappedLines = wrapText(doc, effectiveWrapWidth);
                 for (String line : wrappedLines) {
                     drawText(textX, currentY, line, DOC_COLOR);
                     currentY += lineHeight + LINE_SPACING;
@@ -229,26 +256,54 @@ public class TokenHoverRenderer {
             
             for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
                 if (!docLine.isEmpty()) {
-                    currentY = drawWrappedSegments(textX, currentY, wrapWidth, docLine.segments);
+                    currentY = drawWrappedSegments(textX, currentY, effectiveWrapWidth, docLine.segments);
                     currentY += LINE_SPACING;
                 } else {
                     // Empty line - just add spacing
-                    currentY += lineHeight + LINE_SPACING;
+                    currentY += lineHeight / 2;
                 }
             }
         }
         
         // Draw additional info
-
         if (!additionalInfo.isEmpty()) {
             currentY += LINE_SPACING;
             for (String infoLine : additionalInfo) {
-                List<String> wrappedLines = wrapText(infoLine, wrapWidth);
+                List<String> wrappedLines = wrapText(infoLine, effectiveWrapWidth);
                 for (String line : wrappedLines) {
                     drawText(textX, currentY, line, INFO_COLOR);
                     currentY += lineHeight + LINE_SPACING;
                 }
             }
+        }
+
+        // Restore scissor state before drawing scrollbar (scrollbar must not be clipped)
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+        // Draw scrollbar outside scissor rect so it is never clipped
+        if (hasScrollbar) {
+            int scrollbarX = x + boxWidth - PADDING;
+            int scrollbarTrackTop = y + PADDING;
+            int scrollbarTrackHeight = visibleContentHeight;
+            // Track
+            Gui.drawRect(scrollbarX, scrollbarTrackTop, scrollbarX + 3,
+                scrollbarTrackTop + scrollbarTrackHeight, 0x40FFFFFF);
+            // Thumb
+            float scrollRatio = (float) visibleContentHeight / totalContentHeight;
+            int thumbHeight = Math.max(6, (int)(scrollbarTrackHeight * scrollRatio));
+            int effectiveMaxScroll = totalContentHeight - visibleContentHeight;
+            float scrollProgress = effectiveMaxScroll > 0
+                ? (float) hoverState.getTooltipScrollOffset() / effectiveMaxScroll : 0f;
+            int thumbY = scrollbarTrackTop + (int)((scrollbarTrackHeight - thumbHeight) * scrollProgress);
+            // Store thumb bounds in HoverState for drag/hover detection
+            hoverState.setScrollbarThumb(scrollbarX, thumbY, thumbHeight, scrollbarTrackTop, scrollbarTrackHeight);
+            // Highlight thumb when hovered or dragging (darker = active, like AutocompleteMenu)
+            int mouseX = hoverState.getLastMouseX();
+            int mouseY = hoverState.getLastMouseY();
+            boolean thumbActive = hoverState.isDraggingScrollbar()
+                || hoverState.isMouseOverScrollbarThumb(mouseX, mouseY);
+            int thumbColor = thumbActive ? 0xFF808080 : 0xFFCCCCCC;
+            Gui.drawRect(scrollbarX, thumbY, scrollbarX + 3, thumbY + thumbHeight, thumbColor);
         }
     }
 
@@ -477,7 +532,7 @@ public class TokenHoverRenderer {
                     totalHeight += calculateSegmentsHeight(contentWidth, docLine.segments);
                     totalHeight += LINE_SPACING;
                 } else {
-                    totalHeight += lineHeight + LINE_SPACING;
+                    totalHeight += lineHeight / 2;
                 }
             }
         }

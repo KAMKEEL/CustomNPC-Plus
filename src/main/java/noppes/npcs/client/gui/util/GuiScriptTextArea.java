@@ -623,19 +623,35 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (listener instanceof GuiNPCInterface) {
             ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
 
+            // Intercept wheel scroll for tooltip (highest priority)
+            if (wheelDelta != 0 && hoverState.isTooltipVisible() && hoverState.isMouseOverTooltip(xMouse, yMouse)) {
+                hoverState.scrollTooltip(wheelDelta);
+                wheelDelta = 0;
+            }
+
             // Let autocomplete menu consume scroll first if visible
             if (wheelDelta != 0 && autocompleteManager.isVisible() && autocompleteManager.mouseScrolled(xMouse, yMouse, wheelDelta)) {
                 // Autocomplete consumed the scroll
             } else {
                 boolean canScroll = !KEYS_OVERLAY.isVisible() || KEYS_OVERLAY.isVisible() && !KEYS_OVERLAY.aboveOverlay;
-                if (wheelDelta != 0 && canScroll)
+                if (wheelDelta != 0 && canScroll) {
+                    int previousScrollLine = scroll.getScrolledLine();
                     scroll.applyWheelScroll(wheelDelta, maxScroll);
+                    if (scroll.getScrolledLine() != previousScrollLine) {
+                        hoverState.clearHover();
+                    }
             }
+        }
         }
 
         // Handle scrollbar dragging (delegated to ScrollState)
-        if (scroll.isClickScrolling())
+        if (scroll.isClickScrolling()) {
+            int prevLine = scroll.getScrolledLine();
             scroll.handleClickScrolling(yMouse, x, y, height, container.visibleLines, getPaddedLineCount(), maxScroll);
+            if (scroll.getScrolledLine() != prevLine) {
+                hoverState.clearHover();
+            }
+        }
         
         // Update scroll animation
         scroll.initializeIfNeeded(scroll.getScrolledLine());
@@ -1171,6 +1187,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      * Called every frame from drawTextBox.
      */
     private void updateHoverState(int xMouse, int yMouse) {
+        // If mouse is currently over the tooltip panel, keep it visible — do not clear or re-evaluate tokens
+        if (hoverState.isTooltipVisible() && hoverState.isMouseOverTooltip(xMouse, yMouse)) {
+            return;
+        }
         // Don't show tooltips when not active, clicking, or when overlays are visible
         if (!isEnabled() || clicked || searchBar.isVisible() ||
                 goToLineDialog.isVisible() || KEYS_OVERLAY.isVisible() || renameHandler.isActive() || autocompleteManager.isVisible()) {
@@ -1189,6 +1209,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             
             hoverState.update(xMouse, yMouse, token, tokenScreenX, tokenScreenY, tokenWidth);
         } else {
+            // If mouse is over the tooltip box, keep tooltip visible — do not clear
+            if (hoverState.isMouseOverTooltip(xMouse, yMouse)) {
+                return;
+            }
             hoverState.update(xMouse, yMouse, null, 0, 0, 0);
         }
     }

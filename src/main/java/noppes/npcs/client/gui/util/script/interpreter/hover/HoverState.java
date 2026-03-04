@@ -43,7 +43,29 @@ public class HoverState {
     private int tokenScreenX;
     private int tokenScreenY;
     private int tokenWidth;
-    
+
+    /** Tooltip bounding box (set after each render frame, used for mouse-over detection) */
+    private int tooltipBoxX, tooltipBoxY, tooltipBoxWidth, tooltipBoxHeight;
+
+    /** Also store the actual tooltip panel rect (not including the token-gap extension) */
+    private int tooltipPanelX, tooltipPanelY, tooltipPanelW, tooltipPanelH;
+
+    /** Scrollbar thumb rect (set each render frame, used for drag/hover detection) */
+    private int scrollbarThumbX, scrollbarThumbY, scrollbarThumbH;
+    private int scrollbarX;
+    private int scrollbarTrackTop;
+    private int scrollbarTrackHeight;
+    private boolean isDraggingScrollbar;
+    private int dragStartMouseY;
+    private int dragStartScrollOffset;
+
+    /** Smooth scroll: target offset (pixels), current is animated toward it each frame */
+    private float targetScrollOffset;
+    /** Vertical scroll offset for tooltip content (pixels) */
+    private float tooltipScrollOffsetF;
+
+    /** Maximum scroll offset = totalContentHeight - visibleContentHeight (pixels) */
+    private int tooltipMaxScroll;
     /** Pinned token (set when user clicks a token to keep tooltip open) */
     private Token pinnedToken;
     private TokenHoverInfo pinnedHoverInfo;
@@ -125,6 +147,7 @@ public class HoverState {
             tooltipVisible = false;
             hoverInfo = null;
             
+            resetTooltipScroll();
             // Calculate token screen position for tooltip
             calculateTokenPosition(line, token, viewportX, viewportY, scrollOffset, lineHeight);
         } else {
@@ -173,6 +196,7 @@ public class HoverState {
             tooltipVisible = false;
             hoverInfo = null;
             
+            resetTooltipScroll();
             // Store token position
             tokenScreenX = tokenX;
             tokenScreenY = tokenY;
@@ -198,6 +222,12 @@ public class HoverState {
             if (pinnedToken == null) {
                 tooltipVisible = false;
                 hoverInfo = null;
+                tooltipBoxX = tooltipBoxY = tooltipBoxWidth = tooltipBoxHeight = 0;
+                tooltipPanelX = tooltipPanelY = tooltipPanelW = tooltipPanelH = 0;
+                tooltipScrollOffsetF = 0;
+                targetScrollOffset = 0;
+                tooltipMaxScroll = 0;
+                isDraggingScrollbar = false;
             }
         }
     }
@@ -288,6 +318,94 @@ public class HoverState {
         // Token width
         tokenWidth = noppes.npcs.client.ClientProxy.Font.width(token.getText());
     }
+
+    public void setTooltipBounds(int x, int y, int width, int height) {
+        tooltipBoxX = x;
+        tooltipBoxY = y;
+        tooltipBoxWidth = width;
+        tooltipBoxHeight = height;
+    }
+
+    public void setTooltipMaxScroll(int maxScroll) {
+        this.tooltipMaxScroll = Math.max(0, maxScroll);
+    }
+
+    public boolean isMouseOverTooltip(int mouseX, int mouseY) {
+        if (!tooltipVisible || tooltipBoxWidth <= 0) return false;
+        return mouseX >= tooltipBoxX && mouseX <= tooltipBoxX + tooltipBoxWidth
+            && mouseY >= tooltipBoxY && mouseY <= tooltipBoxY + tooltipBoxHeight;
+    }
+
+    public void scrollTooltip(int wheelDelta) {
+        // LWJGL wheelDelta: positive = scrolled up (content should move up = offset increases)
+        // Divide by 2 for sensitivity; negate to match expected direction
+        targetScrollOffset = Math.max(0, Math.min(tooltipMaxScroll, targetScrollOffset - wheelDelta / 5.0f));
+    }
+
+    public int getTooltipScrollOffset() {
+        return (int) tooltipScrollOffsetF;
+    }
+
+    public void resetTooltipScroll() {
+        tooltipScrollOffsetF = 0;
+        targetScrollOffset = 0;
+    }
+
+    /** Lerp current offset toward target. Call every frame while tooltip is visible. */
+    public void updateSmoothScroll() {
+        float diff = targetScrollOffset - tooltipScrollOffsetF;
+        if (Math.abs(diff) < 0.5f) {
+            tooltipScrollOffsetF = targetScrollOffset;
+        } else {
+            tooltipScrollOffsetF += diff * 0.04f;
+        }
+    }
+
+    /** Called by renderer each frame to store thumb bounds for drag/hover detection. */
+    public void setScrollbarThumb(int barX, int thumbY, int thumbH, int trackTop, int trackHeight) {
+        scrollbarX = barX;
+        scrollbarThumbX = barX;
+        scrollbarThumbY = thumbY;
+        scrollbarThumbH = thumbH;
+        scrollbarTrackTop = trackTop;
+        scrollbarTrackHeight = trackHeight;
+    }
+
+    public boolean isMouseOverScrollbarThumb(int mx, int my) {
+        if (!tooltipVisible || scrollbarThumbH <= 0) return false;
+        return mx >= scrollbarX && mx <= scrollbarX + 3
+            && my >= scrollbarThumbY && my <= scrollbarThumbY + scrollbarThumbH;
+    }
+
+    public void startScrollbarDrag(int mouseY) {
+        isDraggingScrollbar = true;
+        dragStartMouseY = mouseY;
+        dragStartScrollOffset = (int) tooltipScrollOffsetF;
+    }
+
+    public void updateScrollbarDrag(int mouseY) {
+        if (!isDraggingScrollbar || scrollbarTrackHeight <= 0 || tooltipMaxScroll <= 0) return;
+        float scrollRatio = (float) (scrollbarTrackHeight) / Math.max(1, scrollbarTrackHeight + tooltipMaxScroll);
+        int thumbH = Math.max(6, (int)(scrollbarTrackHeight * scrollRatio));
+        int effectiveTrack = scrollbarTrackHeight - thumbH;
+        if (effectiveTrack <= 0) return;
+        int deltaY = mouseY - dragStartMouseY;
+        float scrollDelta = (float) deltaY / effectiveTrack * tooltipMaxScroll;
+        targetScrollOffset = Math.max(0, Math.min(tooltipMaxScroll, dragStartScrollOffset + scrollDelta));
+        tooltipScrollOffsetF = targetScrollOffset; // snap during drag
+    }
+
+    public void releaseScrollbarDrag() {
+        isDraggingScrollbar = false;
+    }
+
+    public boolean isDraggingScrollbar() {
+        return isDraggingScrollbar;
+    }
+
+    public int getScrollbarThumbY() { return scrollbarThumbY; }
+    public int getScrollbarThumbH() { return scrollbarThumbH; }
+    public int getScrollbarX()      { return scrollbarX; }
 
     // ==================== GETTERS ====================
 
