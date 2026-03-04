@@ -11,12 +11,14 @@ import noppes.npcs.api.event.IEnergyProjectileEvent;
 import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.event.IForgeEvent;
 import noppes.npcs.api.event.IItemEvent;
+import noppes.npcs.api.event.ILinkedItemEvent;
 import noppes.npcs.api.event.INpcEvent;
 import noppes.npcs.api.event.IPartyEvent;
 import noppes.npcs.api.event.IChainEvent;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.event.IProjectileEvent;
 import noppes.npcs.api.event.IQuestEvent;
+import noppes.npcs.api.event.IRecipeEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,23 +95,24 @@ public class ScriptContext {
     );
 
     public static final ScriptContext LINKED_ITEM = register("LINKED_ITEM", "linked_item",
+        ILinkedItemEvent.class,
         IItemEvent.class
     );
 
     public static final ScriptContext RECIPE = register("RECIPE", "recipe",
-        "Recipe"
+        IRecipeEvent.class
     );
 
     public static final ScriptContext EFFECT = register("EFFECT", "effect",
-        "Effect"
+        IPlayerEvent.class
     );
 
     public static final ScriptContext ABILITY = register("ABILITY", "ability",
-        "Ability"
+        IAbilityEvent.class
     );
 
     public static final ScriptContext CHAINED_ABILITY = register("CHAINED_ABILITY", "chained_ability",
-        "ChainedAbility"
+        IChainEvent.class
     );
 
     public static final ScriptContext GLOBAL = register("GLOBAL", "",
