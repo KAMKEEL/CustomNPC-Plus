@@ -19,6 +19,7 @@ import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.items.ItemNpcTool;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,20 +33,36 @@ public class PacketUtil {
     // ==================== SCRIPT SESSION TOKEN SYSTEM ====================
     // Prevents saving script data before the client has received it from the server.
     // Each GET generates a token sent to the client; each SAVE must echo it back.
+    // Multiple tokens per player are allowed so concurrent script editors don't invalidate each other.
+    // Tokens are consumed on successful verify to prevent unbounded growth.
 
-    private static final Map<UUID, String> scriptSessionTokens = new ConcurrentHashMap<>();
+    private static final int MAX_TOKENS_PER_PLAYER = 10;
+    private static final Map<UUID, Set<String>> scriptSessionTokens = new ConcurrentHashMap<>();
 
     public static String createScriptSession(EntityPlayerMP player) {
         String token = Long.toHexString(ThreadLocalRandom.current().nextLong());
-        scriptSessionTokens.put(player.getUniqueID(), token);
+        Set<String> tokens = scriptSessionTokens.computeIfAbsent(player.getUniqueID(), k -> new LinkedHashSet<>());
+        synchronized (tokens) {
+            // Evict oldest tokens if at capacity
+            while (tokens.size() >= MAX_TOKENS_PER_PLAYER) {
+                Iterator<String> it = tokens.iterator();
+                it.next();
+                it.remove();
+            }
+            tokens.add(token);
+        }
         return token;
     }
 
     public static boolean verifyScriptSession(EntityPlayer player, String token) {
         if (token == null || token.isEmpty())
             return false;
-        String expected = scriptSessionTokens.get(player.getUniqueID());
-        return expected != null && expected.equals(token);
+        Set<String> tokens = scriptSessionTokens.get(player.getUniqueID());
+        if (tokens == null)
+            return false;
+        synchronized (tokens) {
+            return tokens.remove(token);
+        }
     }
 
     public static void clearScriptSession(EntityPlayer player) {
