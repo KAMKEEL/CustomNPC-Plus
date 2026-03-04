@@ -75,6 +75,11 @@ public class TokenHoverInfo {
     public static class DocumentationLine {
         public final List<TextSegment> segments;
 
+        /** True for every line (including empty ones) inside a ``` code fence */
+        public boolean isCodeLine = false;
+        /** True only for the FIRST line of each code block (triggers background draw) */
+        public boolean isCodeBlockFirst = false;
+
         public DocumentationLine() {
             this.segments = new ArrayList<>();
         }
@@ -1195,20 +1200,125 @@ public class TokenHoverInfo {
      *  - blank lines        → empty DocumentationLine (spacer)
      *  - normal text        → default color
      */
+    /**
+     * Simple JavaScript syntax tokenizer.
+     * Breaks a single code line into colored TextSegments.
+     * Handles: // comments, "strings", 'strings', keywords, numbers, identifiers.
+     */
+    private static List<TextSegment> tokenizeCodeLine(String line) {
+        List<TextSegment> tokens = new ArrayList<>();
+        if (line == null || line.isEmpty()) return tokens;
+
+        // JS keywords
+        java.util.Set<String> keywords = new java.util.HashSet<>(java.util.Arrays.asList(
+            "var","let","const","function","return","if","else","while","for","do",
+            "break","continue","new","this","null","undefined","true","false",
+            "typeof","instanceof","void","delete","in","of","class","extends",
+            "import","export","from","try","catch","finally","throw","switch","case",
+            "default","with","debugger","yield","async","await"
+        ));
+
+        int i = 0;
+        int len = line.length();
+
+        while (i < len) {
+            char c = line.charAt(i);
+
+            // Line comment
+            if (c == '/' && i + 1 < len && line.charAt(i + 1) == '/') {
+                tokens.add(new TextSegment(line.substring(i), 0x6A9955)); // muted green-gray
+                break;
+            }
+
+            // String literal
+            if (c == '"' || c == '\'') {
+                char quote = c;
+                int start = i++;
+                while (i < len && line.charAt(i) != quote) {
+                    if (line.charAt(i) == '\\') i++; // skip escape
+                    i++;
+                }
+                if (i < len) i++; // consume closing quote
+                tokens.add(new TextSegment(line.substring(start, i), TextSegment.COLOR_STRING));
+                continue;
+            }
+
+            // Number
+            if (Character.isDigit(c)) {
+                int start = i++;
+                while (i < len && (Character.isDigit(line.charAt(i)) || line.charAt(i) == '.' || line.charAt(i) == 'x' || line.charAt(i) == 'X' || (line.charAt(i) >= 'a' && line.charAt(i) <= 'f') || (line.charAt(i) >= 'A' && line.charAt(i) <= 'F'))) i++;
+                tokens.add(new TextSegment(line.substring(start, i), 0x6897BB));
+                continue;
+            }
+
+            // Identifier or keyword
+            if (Character.isLetter(c) || c == '_' || c == '$') {
+                int start = i++;
+                while (i < len && (Character.isLetterOrDigit(line.charAt(i)) || line.charAt(i) == '_' || line.charAt(i) == '$')) i++;
+                String word = line.substring(start, i);
+                int color = keywords.contains(word) ? TextSegment.COLOR_KEYWORD : TextSegment.COLOR_DEFAULT;
+                tokens.add(new TextSegment(word, color));
+                continue;
+            }
+
+            // Anything else (operators, punctuation, spaces) — group consecutive non-identifier chars
+            int start = i++;
+            while (i < len) {
+                char nc = line.charAt(i);
+                if (Character.isLetterOrDigit(nc) || nc == '_' || nc == '$' || nc == '"' || nc == '\'' || nc == '/' ) break;
+                i++;
+            }
+            tokens.add(new TextSegment(line.substring(start, i), TextSegment.COLOR_DEFAULT));
+        }
+
+        return tokens;
+    }
+
+    private static boolean isCodeOperatorChar(char c) {
+        return "=<>!+-*/%&|^~,;:([{".indexOf(c) >= 0;
+    }
+
     private void addDescriptionAsMarkdown(String description) {
         if (description == null || description.isEmpty()) return;
         String[] lines = description.split("\n", -1);
         boolean inCodeFence = false;
+        boolean nextIsFirst = false;
         for (String line : lines) {
             DocumentationLine docLine = new DocumentationLine();
             if (line.trim().startsWith("```")) {
                 // Toggle code fence — suppress the fence marker, emit empty spacer
                 inCodeFence = !inCodeFence;
+                if (inCodeFence) {
+                    nextIsFirst = true;
+                }
                 jsDocLines.add(new DocumentationLine());
             } else if (inCodeFence) {
-                // Code content — green
-                docLine.addSegment(line, TextSegment.COLOR_STRING);
-                jsDocLines.add(docLine);
+                if (line.trim().isEmpty()) {
+                    // Empty line inside code fence — keep as code line
+                    DocumentationLine emptyCode = new DocumentationLine();
+                    emptyCode.isCodeLine = true;
+                    if (nextIsFirst) {
+                        emptyCode.isCodeBlockFirst = true;
+                        nextIsFirst = false;
+                    }
+                    jsDocLines.add(emptyCode);
+                } else {
+                    // Code content — syntax highlighted
+                    List<TextSegment> codeTokens = tokenizeCodeLine(line);
+                    if (codeTokens.isEmpty()) {
+                        docLine.addSegment(line, TextSegment.COLOR_STRING);
+                    } else {
+                        for (TextSegment tok : codeTokens) {
+                            docLine.segments.add(tok);
+                        }
+                    }
+                    docLine.isCodeLine = true;
+                    if (nextIsFirst) {
+                        docLine.isCodeBlockFirst = true;
+                        nextIsFirst = false;
+                    }
+                    jsDocLines.add(docLine);
+                }
             } else if (line.trim().startsWith("###")) {
                 // H3 heading — yellow (strip ### prefix, keep emoji if present)
                 String text = line.trim().substring(3).trim();
@@ -1227,6 +1337,10 @@ public class TokenHoverInfo {
                 docLine.addText(line.trim());
                 jsDocLines.add(docLine);
             }
+        }
+        // Strip trailing blank lines left by description ending with \n
+        while (!jsDocLines.isEmpty() && jsDocLines.get(jsDocLines.size() - 1).isEmpty() && !jsDocLines.get(jsDocLines.size() - 1).isCodeLine) {
+            jsDocLines.remove(jsDocLines.size() - 1);
         }
     }
 

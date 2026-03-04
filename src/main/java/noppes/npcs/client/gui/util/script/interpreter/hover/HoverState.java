@@ -59,6 +59,12 @@ public class HoverState {
     private int dragStartMouseY;
     private int dragStartScrollOffset;
 
+    /** Tooltip panel drag state */
+    private boolean isDraggingTooltip;
+    private int tooltipDragOffsetX, tooltipDragOffsetY;
+    private boolean tooltipPositionOverridden;
+    private int overriddenTooltipX, overriddenTooltipY;
+
     /** Smooth scroll: target offset (pixels), current is animated toward it each frame */
     private float targetScrollOffset;
     /** Vertical scroll offset for tooltip content (pixels) */
@@ -224,6 +230,9 @@ public class HoverState {
                 hoverInfo = null;
                 tooltipBoxX = tooltipBoxY = tooltipBoxWidth = tooltipBoxHeight = 0;
                 tooltipPanelX = tooltipPanelY = tooltipPanelW = tooltipPanelH = 0;
+                isDraggingScrollbar = false;
+                isDraggingTooltip = false;
+                tooltipPositionOverridden = false;
                 tooltipScrollOffsetF = 0;
                 targetScrollOffset = 0;
                 tooltipMaxScroll = 0;
@@ -399,6 +408,49 @@ public class HoverState {
         isDraggingScrollbar = false;
     }
 
+    // ==================== TOOLTIP PANEL DRAG ====================
+
+    /** Record the actual rendered tooltip panel rect (used for drag hit-testing). */
+    public void setTooltipPanel(int x, int y, int w, int h) {
+        tooltipPanelX = x;
+        tooltipPanelY = y;
+        tooltipPanelW = w;
+        tooltipPanelH = h;
+    }
+
+    public boolean isMouseOverTooltipPanel(int mx, int my) {
+        if (!tooltipVisible || tooltipPanelW <= 0) return false;
+        return mx >= tooltipPanelX && mx <= tooltipPanelX + tooltipPanelW
+            && my >= tooltipPanelY && my <= tooltipPanelY + tooltipPanelH;
+    }
+
+    public int getTooltipPanelX() { return tooltipPanelX; }
+    public int getTooltipPanelY() { return tooltipPanelY; }
+
+    /** Begin dragging the tooltip; offsets are from mouse to tooltip top-left. */
+    public void startTooltipDrag(int mouseX, int mouseY) {
+        isDraggingTooltip = true;
+        tooltipDragOffsetX = mouseX - tooltipPanelX;
+        tooltipDragOffsetY = mouseY - tooltipPanelY;
+    }
+
+    /** Called every frame while M1 is held to move the tooltip. */
+    public void updateTooltipDrag(int mouseX, int mouseY) {
+        if (!isDraggingTooltip) return;
+        overriddenTooltipX = mouseX - tooltipDragOffsetX;
+        overriddenTooltipY = mouseY - tooltipDragOffsetY;
+        tooltipPositionOverridden = true;
+    }
+
+    public void releaseTooltipDrag() {
+        isDraggingTooltip = false;
+    }
+
+    public boolean isDraggingTooltip()     { return isDraggingTooltip; }
+    public boolean hasOverriddenPosition() { return tooltipPositionOverridden; }
+    public int getOverriddenTooltipX()     { return overriddenTooltipX; }
+    public int getOverriddenTooltipY()     { return overriddenTooltipY; }
+
     public boolean isDraggingScrollbar() {
         return isDraggingScrollbar;
     }
@@ -439,6 +491,10 @@ public class HoverState {
 
     public int getLastMouseY() {
         return lastMouseY;
+    }
+    public void setLastMousePosition(int x, int y) {
+        lastMouseX = x;
+        lastMouseY = y;
     }
 
     /**

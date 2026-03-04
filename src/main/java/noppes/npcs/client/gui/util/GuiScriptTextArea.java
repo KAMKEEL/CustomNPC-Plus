@@ -660,6 +660,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 hoverState.releaseScrollbarDrag();
             }
         }
+        // Handle tooltip panel drag (update each frame; release when button lifted)
+        if (hoverState.isDraggingTooltip()) {
+            if (Mouse.isButtonDown(0)) {
+                hoverState.updateTooltipDrag(xMouse, yMouse);
+            } else {
+                hoverState.releaseTooltipDrag();
+            }
+        }
         
         // Update scroll animation
         scroll.initializeIfNeeded(scroll.getScrolledLine());
@@ -1195,8 +1203,19 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      * Called every frame from drawTextBox.
      */
     private void updateHoverState(int xMouse, int yMouse) {
+        // Keep tooltip alive and skip token re-evaluation while it is being dragged
+        if (hoverState.isDraggingTooltip()) {
+            hoverState.setLastMousePosition(xMouse, yMouse);
+            return;
+        }
+        // Tooltip was dragged to a custom position — keep it pinned until an explicit click dismisses it
+        if (hoverState.hasOverriddenPosition()) {
+            hoverState.setLastMousePosition(xMouse, yMouse);
+            return;
+        }
         // If mouse is currently over the tooltip panel, keep it visible — do not clear or re-evaluate tokens
         if (hoverState.isTooltipVisible() && hoverState.isMouseOverTooltip(xMouse, yMouse)) {
+            hoverState.setLastMousePosition(xMouse, yMouse);
             return;
         }
         // Don't show tooltips when not active, clicking, or when overlays are visible
@@ -1219,6 +1238,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         } else {
             // If mouse is over the tooltip box, keep tooltip visible — do not clear
             if (hoverState.isMouseOverTooltip(xMouse, yMouse)) {
+                hoverState.setLastMousePosition(xMouse, yMouse);
                 return;
             }
             hoverState.update(xMouse, yMouse, null, 0, 0, 0);
@@ -2907,6 +2927,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 && hoverState.isMouseOverScrollbarThumb(xMouse, yMouse)) {
             hoverState.startScrollbarDrag(yMouse);
             return;
+        }
+        // Check tooltip panel drag — M1 anywhere on the panel body (not the scrollbar thumb)
+        if (mouseButton == 0 && hoverState.isTooltipVisible()
+                && hoverState.isMouseOverTooltipPanel(xMouse, yMouse)
+                && !hoverState.isMouseOverScrollbarThumb(xMouse, yMouse)) {
+            hoverState.startTooltipDrag(xMouse, yMouse);
+            return;
+        }
+        // M1 outside a drag-pinned tooltip — dismiss it and let the click fall through to the editor
+        if (mouseButton == 0 && hoverState.hasOverriddenPosition()
+                && !hoverState.isMouseOverTooltipPanel(xMouse, yMouse)) {
+            hoverState.clearHover();
         }
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
