@@ -85,6 +85,7 @@ import noppes.npcs.DataInventory;
 import noppes.npcs.DataStats;
 import noppes.npcs.EventHooks;
 import noppes.npcs.IChatMessages;
+import noppes.npcs.LogWriter;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
@@ -482,8 +483,42 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             abilities.tick();
         }
 
+        // DEBUG: Log client-side health state every tick to diagnose DI green health spam
+        if (worldObj.isRemote && ticksExisted % 20 == 0) {
+            float h = getHealth();
+            float mh = (float) getMaxHealth();
+            int flags = dataWatcher.getWatchableObjectInt(15);
+            boolean killed = isKilled();
+            LogWriter.info("[CLIENT-HEALTH-DEBUG] NPC=" + display.name
+                + " id=" + getEntityId()
+                + " health=" + h
+                + " maxHealth=" + mh
+                + " flags=" + Integer.toBinaryString(flags)
+                + " isKilled=" + killed
+                + " wasKilled=" + wasKilled
+                + " isDead=" + isDead
+                + " deathTime=" + deathTime
+                + " statsMaxHP=" + stats.maxHealth
+                + " tick=" + ticksExisted);
+        }
+
         if (wasKilled != isKilled() && wasKilled) {
-            reset();
+            if (!worldObj.isRemote) {
+                reset();
+            } else {
+                // Client: only reset visual state. Health/flags are synced via DataWatcher.
+                // Full reset() on client can cause health oscillation when maxHealth is desynced.
+                LogWriter.info("[CLIENT-RESET-DEBUG] NPC=" + display.name
+                    + " id=" + getEntityId()
+                    + " health=" + getHealth()
+                    + " maxHealth=" + (float) getMaxHealth()
+                    + " wasKilled=" + wasKilled
+                    + " isKilled=" + isKilled()
+                    + " tick=" + ticksExisted);
+                deathTime = 0;
+                currentAnimation = EnumAnimation.NONE;
+                updateHitbox();
+            }
         }
 
         wasKilled = isKilled();
@@ -1881,6 +1916,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             readSpawnData(ByteBufUtils.readNBT(buf));
         } catch (IOException e) {
             if (this.worldObj != null && this.worldObj.isRemote) {
+                LogWriter.info("[SPAWN-DATA-DEBUG] ByteBuf readSpawnData FAILED for id=" + getEntityId()
+                    + " health=" + getHealth()
+                    + " maxHealth=" + (float) getMaxHealth()
+                    + " statsMaxHP=" + stats.maxHealth);
                 RequestProperSpawnData.reportMissingData(this);
             }
         }
@@ -1888,8 +1927,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     public void readSpawnData(NBTTagCompound compound) {
         if (this.worldObj != null && this.worldObj.isRemote) {
-            if(requestClientFix(compound))
+            if(requestClientFix(compound)) {
+                LogWriter.info("[SPAWN-DATA-DEBUG] requestClientFix returned true (bad compound) for id=" + getEntityId()
+                    + " health=" + getHealth()
+                    + " maxHealth=" + (float) getMaxHealth()
+                    + " statsMaxHP=" + stats.maxHealth);
                 return;
+            }
+            LogWriter.info("[SPAWN-DATA-DEBUG] readSpawnData SUCCESS for id=" + getEntityId()
+                + " health=" + getHealth()
+                + " oldMaxHP=" + (float) getMaxHealth()
+                + " newMaxHP=" + compound.getDouble("MaxHealth"));
         }
 
         stats.maxHealth = compound.getDouble("MaxHealth");

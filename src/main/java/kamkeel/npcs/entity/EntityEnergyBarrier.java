@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
@@ -672,14 +673,46 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
     /**
      * Teleport an entity to a position. Uses network handler for players
      * to ensure reliable client synchronization.
+     * Skips teleport if destination intersects solid blocks.
      */
     protected void teleportEntity(EntityLivingBase ent, double x, double y, double z) {
+        if (!isPositionClear(ent, x, y, z)) return;
+
         if (ent instanceof EntityPlayerMP) {
             EntityPlayerMP player = (EntityPlayerMP) ent;
             player.playerNetServerHandler.setPlayerLocation(x, y, z, player.rotationYaw, player.rotationPitch);
         } else {
             ent.setPosition(x, y, z);
         }
+    }
+
+    /**
+     * Returns true if placing the entity at (x, y, z) would not intersect solid blocks.
+     */
+    protected boolean isPositionClear(EntityLivingBase ent, double x, double y, double z) {
+        double halfW = ent.width * 0.5;
+        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
+            x - halfW, y, z - halfW,
+            x + halfW, y + ent.height, z + halfW
+        );
+        return worldObj.getCollidingBoundingBoxes(ent, box).isEmpty();
+    }
+
+    /**
+     * Returns true if the entity can be pushed in the given direction without hitting solid blocks.
+     * Probes a small distance (0.3 blocks) ahead in the push direction.
+     */
+    protected boolean canPushInDirection(EntityLivingBase ent, double dirX, double dirY, double dirZ) {
+        double probe = 0.3;
+        double halfW = ent.width * 0.5;
+        double px = ent.posX + dirX * probe;
+        double py = ent.posY + dirY * probe;
+        double pz = ent.posZ + dirZ * probe;
+        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
+            px - halfW, py, pz - halfW,
+            px + halfW, py + ent.height, pz + halfW
+        );
+        return worldObj.getCollidingBoundingBoxes(ent, box).isEmpty();
     }
 
     // ==================== GETTERS ====================

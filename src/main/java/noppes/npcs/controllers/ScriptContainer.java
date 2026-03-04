@@ -14,6 +14,7 @@ import noppes.npcs.scripted.NpcAPI;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
+import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import java.io.PrintWriter;
@@ -272,20 +273,18 @@ public class ScriptContainer implements IScriptUnit {
                         unknownFunctions.add(type);
                     }
                 } else {
-                    if (!this.cachedFunctions.containsKey(type)) {
-                        ScriptObjectMirror func;
-                        if (instanceBindings != null) {
+                    if (instanceBindings != null) {
+                        if (!this.cachedFunctions.containsKey(type)) {
                             Object val = instanceBindings.get(type);
-                            func = val instanceof ScriptObjectMirror ? (ScriptObjectMirror) val : null;
-                        } else {
-                            ScriptObjectMirror global = (ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE);
-                            func = (ScriptObjectMirror) global.get(type);
+                            ScriptObjectMirror func = val instanceof ScriptObjectMirror ? (ScriptObjectMirror) val : null;
+                            this.cachedFunctions.put(type, func);
                         }
-                        this.cachedFunctions.put(type, func);
-                    }
-                    ScriptObjectMirror func = this.cachedFunctions.get(type);
-                    if (func != null) {
-                        func.call(null, event);
+                        ScriptObjectMirror func = this.cachedFunctions.get(type);
+                        if (func != null) {
+                            func.call(null, event);
+                        }
+                    } else {
+                        ((Invocable) engine).invokeFunction(type, event);
                     }
                 }
             } catch (NoSuchMethodException e) {
