@@ -88,9 +88,17 @@ public final class AbilityScriptPacket extends AbstractPacket {
 
         Ability ability = AbilityController.Instance.resolveAbility(id);
         if (ability == null) {
-            // Ability not yet saved — send default empty script data so the GUI is usable
+            // Ability not yet saved — store handler in global map so scripts persist
+            // until the ability is saved via CustomAbilitySavePacket
+            AbilityScript data = AbilityController.Instance.abilityScriptHandlers.get(id);
+            if (data == null) {
+                data = new AbilityScript(id);
+                AbilityController.Instance.abilityScriptHandlers.put(id, data);
+            }
             if (requestedAction == Action.GET) {
-                PacketUtil.getScripts((IScriptHandler) new AbilityScript(id), (EntityPlayerMP) player);
+                PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
+            } else {
+                data.saveScript(in, player);
             }
             return;
         }
