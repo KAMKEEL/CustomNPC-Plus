@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.type.AbilityCounter;
@@ -623,8 +624,21 @@ public class ScriptPlayerEventHandler {
 
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.source.getEntity());
                 float attackAmount = event.ammount;
-                if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable())
-                    attackAmount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.source.getEntity(), attackAmount);
+                AttributeAttackUtil.lastAttackCritted = null;
+                if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable()) {
+                    EntityPlayer attackPlayer = (EntityPlayer) event.source.getEntity();
+                    attackAmount = AttributeAttackUtil.calculateOutgoing(attackPlayer, attackAmount);
+                    // For vanilla/modded mob targets, roll crit once and store for LivingHurtEvent
+                    if (!(event.entityLiving instanceof EntityPlayerMP) && !(event.entityLiving instanceof EntityNPCInterface)) {
+                        PlayerAttributeTracker tracker = AttributeController.getTracker(attackPlayer);
+                        if (AttributeAttackUtil.rollCrit(tracker)) {
+                            AttributeAttackUtil.lastAttackCritted = true;
+                            attackAmount = AttributeAttackUtil.applyCritDamage(attackAmount, tracker);
+                        } else {
+                            AttributeAttackUtil.lastAttackCritted = false;
+                        }
+                    }
+                }
 
                 noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.source.getEntity()), event.entityLiving, attackAmount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
@@ -663,6 +677,15 @@ public class ScriptPlayerEventHandler {
                     event.ammount = AttributeAttackUtil.calculateDamagePlayerToPlayer((EntityPlayer) source, (EntityPlayer) event.entityLiving, event.ammount);
                 } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer) {
                     event.ammount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) source, event.ammount);
+                    if (AttributeAttackUtil.lastAttackCritted != null) {
+                        // Use the crit decision from LivingAttackEvent
+                        if (AttributeAttackUtil.lastAttackCritted)
+                            event.ammount = AttributeAttackUtil.applyCritDamage(event.ammount, AttributeController.getTracker((EntityPlayer) source));
+                        AttributeAttackUtil.lastAttackCritted = null;
+                    } else {
+                        // Fallback: roll independently (no preceding LivingAttackEvent)
+                        event.ammount = AttributeAttackUtil.applyCrit(event.ammount, AttributeController.getTracker((EntityPlayer) source));
+                    }
                 }
             }
 

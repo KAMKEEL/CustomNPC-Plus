@@ -293,6 +293,9 @@ public class AbilityProjectile extends Ability implements IAbilityProjectile {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public float getSpeed() {
         return speed;
     }

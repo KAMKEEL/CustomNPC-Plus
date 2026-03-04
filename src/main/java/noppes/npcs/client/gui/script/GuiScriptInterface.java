@@ -46,8 +46,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public Map<String, List<String>> languages = new HashMap();
     protected int scriptLimit = 1;
     public List<String> hookList = new ArrayList<String>();
-    protected boolean loaded = false;
+    protected volatile boolean loaded = false;
     protected boolean serverDataReceived = false;
+    protected String scriptSessionToken = null;
 
     protected Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     protected GuiScreen parent;
@@ -766,6 +767,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 return;
             }
             if (result.kind == IScriptHandlerPacket.GuiDataKind.METADATA) {
+                if (compound.hasKey("ScriptSessionToken"))
+                    scriptSessionToken = compound.getString("ScriptSessionToken");
                 loadLanguagesData(compound);
                 return;
             }
@@ -776,6 +779,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             return;
         }
 
+        if (compound.hasKey("ScriptSessionToken"))
+            scriptSessionToken = compound.getString("ScriptSessionToken");
         loadLanguagesData(compound);
     }
 
@@ -825,9 +830,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.setScript();
 
         if (handler instanceof IScriptHandlerPacket)
-            ((IScriptHandlerPacket) handler).sync();
-
-
+            ((IScriptHandlerPacket) handler).sync(scriptSessionToken);
     }
 
     public void textUpdate(String text) {

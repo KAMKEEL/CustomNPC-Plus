@@ -87,14 +87,20 @@ public final class AbilityScriptPacket extends AbstractPacket {
         String id = ByteBufUtils.readUTF8String(in);
 
         Ability ability = AbilityController.Instance.resolveAbility(id);
-        if (ability == null)
+        if (ability == null) {
+            // Ability not yet saved — send default empty script data so the GUI is usable
+            if (requestedAction == Action.GET) {
+                PacketUtil.getScripts((IScriptHandler) new AbilityScript(id), (EntityPlayerMP) player);
+            }
             return;
+        }
 
         AbilityScript data = ability.getOrCreateScriptHandler();
         if (requestedAction == Action.GET) {
             PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
-            data.saveScript(in);
+            if (!data.saveScript(in, player))
+                return;
             // Persist to disk
             AbilityController.Instance.saveCustomAbility(ability);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {

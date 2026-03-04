@@ -12,6 +12,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import noppes.npcs.controllers.data.MagicData;
 
 /**
  * Universal base class for all energy ability entities (Projectiles, Barriers, Sweeper).
@@ -43,6 +44,17 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
      * The ability that spawned this entity. Transient, not saved to NBT.
      */
     protected transient Ability sourceAbility = null;
+
+    /**
+     * Custom damage data for script-created entities that don't have a sourceAbility.
+     * Used by EnergyController handlers (e.g. DBC Addon) to carry damage configuration
+     * directly on the entity. Persistent — saved to spawn data for client sync.
+     */
+    protected NBTTagCompound customDamageData = null;
+
+    /** Magic data for this entity — defines magic types for outgoing damage or barrier defense. */
+    protected MagicData magicData = new MagicData();
+
     protected boolean ignoreIFrames = false;
     protected boolean previewMode = false;
     protected EntityLivingBase previewOwner = null;
@@ -139,6 +151,24 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
 
     public void setSourceAbility(Ability ability) {
         this.sourceAbility = ability;
+    }
+
+    // ==================== CUSTOM DAMAGE DATA ====================
+
+    public NBTTagCompound getCustomDamageData() {
+        return customDamageData;
+    }
+
+    public void setCustomDamageData(NBTTagCompound data) {
+        this.customDamageData = data;
+    }
+
+    public MagicData getMagicData() {
+        return magicData;
+    }
+
+    public void setMagicData(MagicData data) {
+        this.magicData = data != null ? data : new MagicData();
     }
 
     public boolean isIgnoreIFrames() {
@@ -325,6 +355,10 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         nbt.setBoolean("IgnoreIFrames", ignoreIFrames);
         displayData.writeNBT(nbt);
         lightningData.writeNBT(nbt);
+        if (customDamageData != null) {
+            nbt.setTag("CustomDamageData", customDamageData);
+        }
+        magicData.writeToNBT(nbt);
     }
 
     /**
@@ -336,6 +370,10 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         this.ignoreIFrames = nbt.getBoolean("IgnoreIFrames");
         displayData.readNBT(nbt);
         lightningData.readNBT(nbt);
+        if (nbt.hasKey("CustomDamageData")) {
+            this.customDamageData = nbt.getCompoundTag("CustomDamageData");
+        }
+        magicData.readToNBT(nbt);
     }
 
     // ==================== SPAWN DATA ====================

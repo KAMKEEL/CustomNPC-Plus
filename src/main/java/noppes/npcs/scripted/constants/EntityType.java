@@ -23,4 +23,5 @@ public class EntityType {
     public static final int ENERGY_BARRIER = 19;
     public static final int ENERGY_DOME = 20;
     public static final int ENERGY_PANEL = 21;
+    public static final int ENERGY_EXPLOSION = 22;
 }

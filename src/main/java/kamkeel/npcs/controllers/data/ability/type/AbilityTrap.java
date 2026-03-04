@@ -86,6 +86,7 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
                 particleDensity, particleScale, animSpeed, lightningDensity,
                 visible,
                 getEffects());
+            entity.setSourceAbility(this);
 
             applyVisualToEntity(entity);
 
@@ -268,6 +269,9 @@ public class AbilityTrap extends AbilityZone implements IAbilityTrap {
     public void setDamage(float damage) {
         this.damage = damage;
     }
+
+    @Override
+    public float getDisplayDamage() { return damage; }
 
     public float getDamageRadius() {
         return damageRadius;

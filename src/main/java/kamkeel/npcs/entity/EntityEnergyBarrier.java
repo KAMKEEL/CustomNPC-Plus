@@ -2,6 +2,7 @@ package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
+import kamkeel.npcs.util.AttributeAttackUtil;
 import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -12,6 +13,8 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
+import noppes.npcs.controllers.data.MagicData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.lang.ref.WeakReference;
@@ -248,6 +251,13 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         float multiplier = barrierData.getMultiplier(typeId);
         float finalDamage = damage * multiplier;
 
+        // Apply magic interactions if projectile is a CNPC+ energy entity
+        if (projectileEntity instanceof EntityEnergyAbility) {
+            float magicMultiplier = AttributeAttackUtil.calculateMagicInteractionMultiplier(
+                ((EntityEnergyAbility) projectileEntity).getMagicData(), this.magicData);
+            finalDamage *= magicMultiplier;
+        }
+
         if (!worldObj.isRemote) {
             float eventDamage = EventHooks.onEnergyBarrierHit(this, ownerEntityId, null, finalDamage);
             if (eventDamage < 0) {
@@ -328,6 +338,11 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         }
         float multiplier = barrierData.getMultiplier(typeId);
         float damage = baseDamage * multiplier;
+
+        // Apply magic interactions (e.g., Water projectile vs Fire barrier)
+        float magicMultiplier = AttributeAttackUtil.calculateMagicInteractionMultiplier(
+            projectile.getMagicData(), this.magicData);
+        damage *= magicMultiplier;
 
         // Fire hit event (may cancel or modify damage)
         if (!worldObj.isRemote) {
@@ -418,6 +433,24 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         if (isCharging()) return false;
 
         float damage = amount * barrierData.meleeDamageMultiplier;
+
+        // Apply magic interactions from attacker's magic vs barrier's magic
+        Entity attacker = source.getEntity();
+        if (attacker != null) {
+            MagicData attackerMagic = null;
+            if (attacker instanceof EntityPlayer) {
+                PlayerData data = PlayerData.get((EntityPlayer) attacker);
+                if (data != null) attackerMagic = data.magicData;
+            } else if (attacker instanceof EntityNPCInterface) {
+                EntityNPCInterface npc = (EntityNPCInterface) attacker;
+                if (npc.stats != null) attackerMagic = npc.stats.magicData;
+            }
+            if (attackerMagic != null) {
+                float magicMultiplier = AttributeAttackUtil.calculateMagicInteractionMultiplier(
+                    attackerMagic, this.magicData);
+                damage *= magicMultiplier;
+            }
+        }
 
         // Fire hit event with null projectile (melee hit)
         float eventDamage = EventHooks.onEnergyBarrierHit(this, ownerEntityId, null, damage);

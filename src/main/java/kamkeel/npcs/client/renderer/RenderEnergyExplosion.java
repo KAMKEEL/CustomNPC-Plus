@@ -10,6 +10,8 @@ import org.lwjgl.opengl.GL11;
 /**
  * Voxel-style renderer for {@link EntityEnergyExplosion}.
  * Draws expanding cubic shells with a short fade-out.
+ * Uses batched cube rendering for performance — all cubes of each layer
+ * are drawn in a single tessellator pass instead of per-cube draw calls.
  */
 @SideOnly(Side.CLIENT)
 public class RenderEnergyExplosion extends RenderEnergy {
@@ -55,44 +57,73 @@ public class RenderEnergyExplosion extends RenderEnergy {
         int steps = Math.max(2, Math.min(6, (int) Math.ceil(radius * 0.65f) + 1));
         float cell = radius / steps;
         float cubeHalf = Math.max(0.04f, cell * 0.22f * (0.90f - life * 0.25f));
+        float outerScale = hasOuter ? 1.0f + explosion.getOuterColorWidth() * 0.35f : 1.0f;
         long seed = explosion.getRenderSeed();
 
+        // Pre-extract RGB for batched rendering
+        float outerR = ((outerColor >> 16) & 0xFF) / 255.0f;
+        float outerG = ((outerColor >> 8) & 0xFF) / 255.0f;
+        float outerB = (outerColor & 0xFF) / 255.0f;
+        float innerR = ((innerColor >> 16) & 0xFF) / 255.0f;
+        float innerG = ((innerColor >> 8) & 0xFF) / 255.0f;
+        float innerB = (innerColor & 0xFF) / 255.0f;
+
         GL11.glDepthMask(false);
+
+        // Smoke layer — single batched pass
         renderSmokeVoxelShell(radius, life, seed);
 
-        for (int ix = -steps; ix <= steps; ix++) {
-            for (int iy = -steps; iy <= steps; iy++) {
-                for (int iz = -steps; iz <= steps; iz++) {
-                    int edge = Math.max(Math.abs(ix), Math.max(Math.abs(iy), Math.abs(iz)));
-                    if (edge != steps) continue;
-                    if (!shouldRenderVoxel(ix, iy, iz, steps, seed, life)) continue;
+        // Outer color layer — single batched pass
+        if (hasOuter) {
+            float outerHalf = cubeHalf * outerScale;
+            float oa = outerAlpha * fade;
+            beginCubeBatch();
+            for (int ix = -steps; ix <= steps; ix++) {
+                for (int iy = -steps; iy <= steps; iy++) {
+                    for (int iz = -steps; iz <= steps; iz++) {
+                        int edge = Math.max(Math.abs(ix), Math.max(Math.abs(iy), Math.abs(iz)));
+                        if (edge != steps) continue;
+                        if (!shouldRenderVoxel(ix, iy, iz, steps, seed, life)) continue;
 
-                    float px = ix * cell + jitter(ix, iy, iz, seed, 1) * cell * 0.18f;
-                    float py = iy * cell + jitter(ix, iy, iz, seed, 2) * cell * 0.18f;
-                    float pz = iz * cell + jitter(ix, iy, iz, seed, 3) * cell * 0.18f;
-
-                    GL11.glPushMatrix();
-                    GL11.glTranslatef(px, py, pz);
-
-                    if (hasOuter) {
-                        GL11.glPushMatrix();
-                        float outerScale = 1.0f + explosion.getOuterColorWidth() * 0.35f;
-                        GL11.glScalef(outerScale, outerScale, outerScale);
-                        renderCube(outerColor, outerAlpha * fade, cubeHalf);
-                        GL11.glPopMatrix();
+                        float px = ix * cell + jitter(ix, iy, iz, seed, 1) * cell * 0.18f;
+                        float py = iy * cell + jitter(ix, iy, iz, seed, 2) * cell * 0.18f;
+                        float pz = iz * cell + jitter(ix, iy, iz, seed, 3) * cell * 0.18f;
+                        addBatchedCube(px, py, pz, outerHalf, outerR, outerG, outerB, oa);
                     }
-
-                    renderCube(innerColor, innerAlpha * fade, cubeHalf * 0.9f);
-                    GL11.glPopMatrix();
                 }
             }
+            endCubeBatch();
         }
+
+        // Inner color layer — single batched pass
+        {
+            float innerHalf = cubeHalf * 0.9f;
+            float ia = innerAlpha * fade;
+            beginCubeBatch();
+            for (int ix = -steps; ix <= steps; ix++) {
+                for (int iy = -steps; iy <= steps; iy++) {
+                    for (int iz = -steps; iz <= steps; iz++) {
+                        int edge = Math.max(Math.abs(ix), Math.max(Math.abs(iy), Math.abs(iz)));
+                        if (edge != steps) continue;
+                        if (!shouldRenderVoxel(ix, iy, iz, steps, seed, life)) continue;
+
+                        float px = ix * cell + jitter(ix, iy, iz, seed, 1) * cell * 0.18f;
+                        float py = iy * cell + jitter(ix, iy, iz, seed, 2) * cell * 0.18f;
+                        float pz = iz * cell + jitter(ix, iy, iz, seed, 3) * cell * 0.18f;
+                        addBatchedCube(px, py, pz, innerHalf, innerR, innerG, innerB, ia);
+                    }
+                }
+            }
+            endCubeBatch();
+        }
+
         renderCoreFlash(innerColor, innerAlpha, radius, cubeHalf, life);
         GL11.glDepthMask(true);
     }
 
     /**
      * Adds large translucent white/gray cubes to fake a smoky volumetric expansion.
+     * All smoke cubes are batched into a single draw call.
      */
     private void renderSmokeVoxelShell(float radius, float life, long seed) {
         int smokeSteps = Math.max(2, Math.min(5, (int) Math.ceil(radius * 0.5f) + 1));
@@ -101,6 +132,8 @@ public class RenderEnergyExplosion extends RenderEnergy {
         float smokeCubeHalf = Math.max(0.07f, smokeCell * 0.24f * (0.95f - life * 0.25f));
         float smokeAlpha = Math.min(MAX_SMOKE_CUBE_ALPHA, (0.15f + (1.0f - life) * 0.55f));
 
+        // White = 1,1,1  Gray (0xDCDCDC) = 0.863,0.863,0.863
+        beginCubeBatch();
         for (int ix = -smokeSteps; ix <= smokeSteps; ix++) {
             for (int iy = -smokeSteps; iy <= smokeSteps; iy++) {
                 for (int iz = -smokeSteps; iz <= smokeSteps; iz++) {
@@ -115,16 +148,14 @@ public class RenderEnergyExplosion extends RenderEnergy {
                     float py = iy * smokeCell + jitter(ix, iy, iz, seed ^ 0x2299aa11L, 2) * smokeJitter;
                     float pz = iz * smokeCell + jitter(ix, iy, iz, seed ^ 0x2299aa11L, 3) * smokeJitter;
 
-                    int smokeColor = ((h >>> 9) & 1) == 0 ? 0xFFFFFF : 0xDCDCDC;
+                    boolean isWhite = ((h >>> 9) & 1) == 0;
+                    float gray = isWhite ? 1.0f : 0.863f;
                     float alpha = smokeAlpha * (0.78f + (((h >>> 10) & 15) / 15.0f) * 0.22f);
-
-                    GL11.glPushMatrix();
-                    GL11.glTranslatef(px, py, pz);
-                    renderCube(smokeColor, alpha, smokeCubeHalf);
-                    GL11.glPopMatrix();
+                    addBatchedCube(px, py, pz, smokeCubeHalf, gray, gray, gray, alpha);
                 }
             }
         }
+        endCubeBatch();
     }
 
     /**
@@ -138,11 +169,8 @@ public class RenderEnergyExplosion extends RenderEnergy {
         float whiteAlpha = Math.min(1.0f, 0.25f + flash * 0.95f);
         float innerFlashAlpha = Math.min(1.0f, innerAlpha * (0.45f + flash * 0.95f));
 
-        GL11.glPushMatrix();
         renderCube(0xFFFFFF, whiteAlpha, coreHalf * 1.45f);
-        GL11.glScalef(0.82f, 0.82f, 0.82f);
-        renderCube(innerColor, innerFlashAlpha, coreHalf);
-        GL11.glPopMatrix();
+        renderCube(innerColor, innerFlashAlpha, coreHalf * 0.82f);
     }
 
     private float saturate(float value) {

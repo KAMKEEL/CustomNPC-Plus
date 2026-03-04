@@ -200,6 +200,9 @@ public class AbilityWall extends AbilityBarrier {
         panelData.setLaunchDamage(damage);
     }
 
+    @Override
+    public float getDisplayDamage() { return panelData.launching ? panelData.launchDamage : 0; }
+
     public float getLaunchKnockback() {
         return panelData.launchKnockback;
     }

@@ -87,14 +87,20 @@ public final class ChainedAbilityScriptPacket extends AbstractPacket {
         String id = ByteBufUtils.readUTF8String(in);
 
         ChainedAbility chain = AbilityController.Instance.resolveChainedAbility(id);
-        if (chain == null)
+        if (chain == null) {
+            // Chain not yet saved — send default empty script data so the GUI is usable
+            if (requestedAction == Action.GET) {
+                PacketUtil.getScripts((IScriptHandler) new ChainedAbilityScript(id), (EntityPlayerMP) player);
+            }
             return;
+        }
 
         ChainedAbilityScript data = chain.getOrCreateScriptHandler();
         if (requestedAction == Action.GET) {
             PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
-            data.saveScript(in);
+            if (!data.saveScript(in, player))
+                return;
             // Persist to disk
             AbilityController.Instance.saveChainedAbility(chain);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {

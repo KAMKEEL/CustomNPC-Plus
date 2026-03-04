@@ -25,6 +25,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import noppes.npcs.api.ability.type.IAbilityEnergyProjectile;
 import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.controllers.data.MagicData;
 
 import java.util.List;
 
@@ -214,6 +215,10 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
         entity.setEffects(this.effects);
         entity.setIgnoreIFrames(this.isIgnoreIFrames());
         entity.setSourceAbility(this);
+        MagicData resolvedMagic = resolveMagicData(caster);
+        if (resolvedMagic != null) {
+            entity.setMagicData(resolvedMagic.copy());
+        }
         return entity;
     }
 
@@ -633,6 +638,9 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
     public void setDamage(float damage) {
         combatData.damage = damage;
     }
+
+    @Override
+    public float getDisplayDamage() { return combatData.damage; }
 
     @Override
     public float getKnockback() {
