@@ -794,11 +794,10 @@ public class NoppesUtilServer {
         HashMap<String, Integer> map = new HashMap<String, Integer>();
         AbilityController controller = AbilityController.Instance;
         if (controller != null) {
-            int index = 0;
             for (String name : controller.getAbilityNames()) {
                 Ability ability = controller.getAbility(name);
                 if (ability != null) {
-                    map.put(ability.getName(), index++);
+                    map.put(ability.getName(), ability.getAllowedBy().ordinal());
                 }
             }
         }
@@ -809,11 +808,10 @@ public class NoppesUtilServer {
         HashMap<String, Integer> map = new HashMap<String, Integer>();
         AbilityController controller = AbilityController.Instance;
         if (controller != null) {
-            int index = 0;
             for (String name : controller.getCustomAbilityNames()) {
                 Ability ability = controller.getCustomAbility(name);
-                if (ability == null || !ability.getAllowedBy().allowsNpc()) continue;
-                map.put(name, index++);
+                if (ability == null) continue;
+                map.put(name, ability.getAllowedBy().ordinal());
             }
         }
         sendScrollData(player, map, EnumScrollData.CUSTOM_ABILITIES);
