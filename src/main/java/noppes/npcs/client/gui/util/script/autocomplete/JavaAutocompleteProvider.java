@@ -152,6 +152,25 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             }
         }
         
+        // Add nested types (inner classes/interfaces) in static context
+        if (isStaticContext && !context.methodsOnly) {
+            try {
+                for (Class<?> nested : clazz.getDeclaredClasses()) {
+                    if (!Modifier.isPublic(nested.getModifiers())) {
+                        continue;
+                    }
+                    // Convert $ notation to dot notation for resolution
+                    String nestedFullName = nested.getName().replace('$', '.');
+                    TypeInfo nestedType = TypeResolver.getInstance().resolveFullName(nestedFullName);
+                    if (nestedType != null && nestedType.isResolved()) {
+                        items.add(AutocompleteItem.fromType(nestedType));
+                    }
+                }
+            } catch (SecurityException ignored) {
+                // Some runtimes may restrict getDeclaredClasses()
+            }
+        }
+        
     }
 
     /**
@@ -224,6 +243,13 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             // Add enum constants (getEnumConstants returns Map<String, EnumConstantInfo>)
             for (EnumConstantInfo enumConstant : scriptType.getEnumConstants().values()) {
                 items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
+            }
+
+            // Add nested types (inner classes/interfaces) in static context
+            if (isStaticContext) {
+                for (ScriptTypeInfo inner : scriptType.getInnerClasses()) {
+                    items.add(AutocompleteItem.fromType(inner));
+                }
             }
         }
         

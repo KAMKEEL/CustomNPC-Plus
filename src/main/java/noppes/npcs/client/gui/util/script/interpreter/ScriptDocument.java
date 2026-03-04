@@ -8072,14 +8072,24 @@ public class ScriptDocument {
      * Get all imported types that have been resolved.
      * Used by autocomplete to show available types.
      */
-    public List<TypeInfo> getImportedTypes() {
-        List<TypeInfo> types = new ArrayList<>();
+    public Set<TypeInfo> getImportedTypes() {
+        Set<TypeInfo> types = new HashSet<>();
         for (ImportData imp : imports) {
             if (!imp.isWildcard() && imp.isResolved()) {
                 TypeInfo type = typeResolver.resolveSimpleName(imp.getSimpleName(), importsBySimpleName, wildcardPackages);
                 if (type != null && type.isResolved()) {
                     types.add(type);
                 }
+            }
+        }
+        // For class-level wildcard imports (e.g. INpcEvent.*), add the outer class itself.
+        // Package-level wildcards (e.g. noppes.npcs.api.event.*) are skipped — those are
+        // already covered by addUnimportedClassSuggestions via ClassIndex.
+        for (String pkg : wildcardPackages) {
+            TypeInfo outerType = typeResolver.resolveFullName(pkg);
+            if (outerType != null && outerType.isResolved()) {
+                // resolveFullName succeeded → pkg is a class, not a package
+                types.add(outerType);
             }
         }
         return types;

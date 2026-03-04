@@ -284,22 +284,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         activeArea.setScriptContext(getScriptContext());
         activeArea.enableCodeHighlighting();
 
-        // For JaninoScripts, add implicit imports (default imports + hook signature types)
-        // These allow the syntax highlighter to resolve types without explicit import statements
-        if (container instanceof JaninoScript) {
-            JaninoScript<?> janinoScript = (JaninoScript<?>) container;
-
-            // Add default imports (e.g., noppes.npcs.api.*, noppes.npcs.api.entity.*, etc.)
-            activeArea.addImplicitImports(janinoScript.getDefaultImports());
-
-            // Add hook types from signatures (parameters + return types)
-            // e.g., INpcEvent.InitEvent, Color, String, IOverlayContext, etc.
-            Set<String> hookTypes = janinoScript.getHookTypes();
-            activeArea.addImplicitImports(hookTypes.toArray(new String[0]));
-
-            // Format to update which implicit imports are actually used
-            activeArea.formatCodeText();
-        }
+        updateScriptDocumentImports(activeArea, container);
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -343,7 +328,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.addScroll(scroll);
         }
     }
-
     /**
      * Initialize the settings tab layout (console view).
      */
@@ -433,8 +417,37 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             this.getTextField(2).setText(this.getTextField(2).getText() + addString);
             previousHookClicked = "";
+
+            updateScriptDocumentImports(getActiveScriptArea(), container);
         } else {
             previousHookClicked = hook;
+        }
+    }
+
+    public void updateScriptDocumentImports(GuiScriptTextArea activeArea, IScriptUnit container) {
+        // For JaninoScripts, add implicit imports (default imports + hook signature types)
+        // These allow the syntax highlighter to resolve types without explicit import statements
+        if (container instanceof JaninoScript) {
+            JaninoScript<?> janinoScript = (JaninoScript<?>) container;
+            ScriptContext ctx = getScriptContext();
+            // Add default imports (e.g., noppes.npcs.api.*, noppes.npcs.api.entity.*, etc.)
+            activeArea.addImplicitImports(janinoScript.getDefaultImports());
+
+            // Add hook types from signatures (parameters + return types)
+            // e.g., INpcEvent.InitEvent, Color, String, IOverlayContext, etc.
+            Set<String> hookTypes = janinoScript.getHookTypes();
+            activeArea.addImplicitImports(hookTypes.toArray(new String[0]));
+
+            // Add wildcard imports for each event class in the script context: INpcEvent.*, IProjectileEvent.*
+            // so nested types like INpcEvent.CollideEvent resolve without explicit import
+            Set<String> wildcardImports = new HashSet<>();
+            for (String fqn : ctx.getNamespaceFQNs())
+                wildcardImports.add(fqn + ".*");
+            activeArea.addImplicitImports(wildcardImports.toArray(new String[0]));
+
+
+            // Format to update which implicit imports are actually used
+            activeArea.formatCodeText();
         }
     }
 
