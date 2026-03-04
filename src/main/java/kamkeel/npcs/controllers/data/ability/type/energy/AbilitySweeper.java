@@ -235,6 +235,9 @@ public class AbilitySweeper extends AbilityEnergy implements IAbilitySweeper {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public int getDamageInterval() {
         return damageInterval;
     }

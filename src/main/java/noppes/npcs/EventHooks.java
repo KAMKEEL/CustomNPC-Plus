@@ -887,7 +887,8 @@ public class EventHooks {
         IAbilityEvent abilityEvent = (IAbilityEvent) event;
 
         // 1. Internal ability script (fires for ALL — both NPC and Player)
-        AbilityScript abScript = ability.getScriptHandler();
+        // Use per-instance script so each execution has isolated variable state
+        AbilityScript abScript = ability.getOrCreateInstanceScript();
         if (abScript != null) {
             abScript.callScript(abilityEvent.getHookName(), event);
         }
@@ -916,7 +917,8 @@ public class EventHooks {
         IChainEvent chainEvent = (IChainEvent) event;
 
         // 1. Internal chain script (fires first)
-        ChainedAbilityScript chainScript = chain.getScriptHandler();
+        // Use per-instance script so each execution has isolated variable state
+        ChainedAbilityScript chainScript = chain.getOrCreateInstanceScript();
         if (chainScript != null) {
             chainScript.callScript(chainEvent.getHookName(), event);
         }

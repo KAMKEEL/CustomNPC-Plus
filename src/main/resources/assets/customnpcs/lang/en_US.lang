@@ -861,6 +861,7 @@ script.interact=Interact
 script.update=Update
 script.console=Console
 script.language=Language
+script.default=Default
 script.damaged=Damaged
 script.killed=Killed
 script.attack=Attack
@@ -1790,6 +1791,13 @@ ability.section.explosive=Explosive
 ability.section.colors=Colors
 ability.section.effects=Effects
 ability.section.burst=Burst
+ability.section.magic=Magic
+ability.magic.note=Magic Note
+ability.magic.usesCaster=Uses the Caster's Magic Data
+ability.magic.editor=Magic Editor
+ability.preview.damage=Damage
+ability.preview.health=Health
+ability.preview.magic.casters=Magic: Caster's
 ability.section.dodgeAnimations=Dodge Animations
 ability.section.visual=Visual
 ability.section.projectile1=Projectile 1
@@ -2050,6 +2058,8 @@ ability.hover.weight=Higher weight = more likely to be chosen when multiple abil
 ability.hover.lockMovement=Prevents NPC pathfinding during the selected phases (Windup, Active, or Both)
 ability.hover.rotationMode=Free: normal AI rotation. Locked: freeze facing direction. Track: force face target for precise aiming.
 ability.hover.rotationPhase=When the rotation mode applies (Windup, Active, or Both)
+ability.trackDelay=Track Delay
+ability.hover.trackDelay=How sluggish tracking is. 0 = instant (impossible to dodge). Higher = slower rotation toward target. Default 3 for lasers.
 ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
 ability.hover.ignoreIFrames=Temporarily clears target hurt resistance before applying ability damage, then restores it.
 ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)

@@ -22,6 +22,7 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityEnergyBarrier;
 import kamkeel.npcs.entity.EntityEnergyDome;
 import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.util.AttributeAttackUtil;
 import kamkeel.npcs.util.FileNameHelper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -37,23 +38,32 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.AbilityScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.EventHooks;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.data.Magic;
+import noppes.npcs.controllers.data.MagicData;
+import noppes.npcs.controllers.data.MagicEntry;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityMagic;
 import noppes.npcs.scripted.event.AbilityEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Ability implements IAbility, IAbilityAction {
 
@@ -91,6 +101,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected LockMode lockMovement = LockMode.WINDUP;
     protected RotationMode rotationMode = RotationMode.FREE;
     protected LockMode rotationPhase = LockMode.WINDUP_AND_ACTIVE;
+    protected float trackDelay = 0;       // 0 = instant tracking (legacy). Higher = slower lerp toward target.
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -115,6 +126,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     // Custom data for external mods
     protected NBTTagCompound customData = new NBTTagCompound();
+
+    // Magic data — defines magic types and damage splits for this ability
+    protected MagicData magicData = new MagicData();
 
     // User type restriction
     protected UserType allowedBy = UserType.BOTH;
@@ -224,6 +238,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
     // Burst execution state
     protected transient int burstIndex = 0;
     protected transient List<Entity> burstEntities = new ArrayList<>();
+
+    // Per-instance script (isolated per execution, not saved to NBT)
+    protected transient AbilityScript instanceScript;
     protected transient float damageMultiplier = 1.0f; // Ability-internal damage scaling (e.g., Slam height)
 
     // ═══════════════════════════════════════════════════════════════════
@@ -279,6 +296,35 @@ public abstract class Ability implements IAbility, IAbilityAction {
     public boolean hasDamage() {
         return true;
     }
+
+    /**
+     * Returns true if this ability type uses magic data.
+     * By default, any ability that deals damage also has magic.
+     * Override in subclasses like Barrier that need magic but don't deal direct damage.
+     */
+    public boolean hasMagic() {
+        return hasDamage();
+    }
+
+    // ── Display methods for inventory preview ──────────────────────
+
+    /** Base damage for preview display. Override in damaging types. */
+    public float getDisplayDamage() { return 0; }
+
+    /** True if getDisplayDamage() is damage-per-second (e.g., Hazard). */
+    public boolean isDisplayDamageDPS() { return false; }
+
+    /** Base barrier health for preview display. Override in barrier types. */
+    public float getDisplayBarrierHealth() { return 0; }
+
+    /** True if this ability reflects projectiles. */
+    public boolean isDisplayReflect() { return false; }
+
+    /** Reflection strength percentage (0-100). */
+    public float getDisplayReflectStrength() { return 0; }
+
+    /** True if this ability absorbs projectiles. */
+    public boolean isDisplayAbsorbing() { return false; }
 
     /**
      * Override to provide variant templates for this ability type.
@@ -471,13 +517,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
                     this, caster, hitEntity, damage, knockback, knockbackUp,
                     knockbackDirX, knockbackDirZ, 1.0f);
                 if (!handled) {
+                    float finalDamage = damage;
+
+                    // Apply magic pipeline for player and NPC casters
+                    MagicData resolved = resolveMagicData(caster);
+                    if (resolved != null && !resolved.isEmpty()) {
+                        finalDamage = AttributeAttackUtil.calculateAbilityDamage(
+                            caster, hitEntity, damage, resolved);
+                    }
+
                     // Default damage path
                     if (caster instanceof EntityNPCInterface) {
-                        hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), damage);
+                        hitEntity.attackEntityFrom(new NpcDamageSource("mob", (EntityNPCInterface) caster), finalDamage);
                     } else if (caster instanceof EntityPlayer) {
-                        hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), damage);
+                        hitEntity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) caster), finalDamage);
                     } else {
-                        hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), damage);
+                        hitEntity.attackEntityFrom(DamageSource.causeMobDamage(caster), finalDamage);
                     }
                 }
             } finally {
@@ -687,6 +742,11 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 .hover("ability.hover.rotationPhase")
                 .visibleWhen(() -> this.rotationMode != RotationMode.FREE)
         ).tab("General"));
+        defs.add(FieldDef.floatField("ability.trackDelay", this::getTrackDelay, this::setTrackDelay)
+            .range(0.0f, 20.0f)
+            .hover("ability.hover.trackDelay")
+            .visibleWhen(() -> this.rotationMode == RotationMode.TRACK)
+            .tab("General"));
         defs.add(FieldDef.row(
             FieldDef.boolField("ability.interruptible", this::isInterruptible, this::setInterruptible)
                 .hover("ability.hover.interruptible")
@@ -729,6 +789,41 @@ public abstract class Ability implements IAbility, IAbilityAction {
                     .tab("General").visibleWhen(this::isBurstEnabled)
                     .hover("ability.hover.burstOverlap"));
             }
+        }
+
+        // ── Magic section ────────────────────────────────────────────
+        if (hasMagic()) {
+            defs.add(FieldDef.section("ability.section.magic").tab("General"));
+
+            defs.add(FieldDef.labelField("ability.magic.note", () -> {
+                if (magicData.isEmpty()) {
+                    return StatCollector.translateToLocal("ability.magic.usesCaster");
+                }
+                StringBuilder sb = new StringBuilder();
+                for (Map.Entry<Integer, MagicEntry> entry : magicData.getMagics().entrySet()) {
+                    Magic magic = MagicController.getInstance().getMagic(entry.getKey());
+                    if (magic != null) {
+                        if (sb.length() > 0) sb.append(", ");
+                        sb.append(magic.getDisplayName()).append(": ")
+                          .append(Math.round(entry.getValue().split * 100)).append("%");
+                    }
+                }
+                return sb.toString();
+            }).tab("General"));
+
+            defs.add(FieldDef.subGuiField("ability.magic.editor",
+                () -> new SubGuiAbilityMagic(magicData.copy()),
+                gui -> {
+                    MagicData result = ((SubGuiAbilityMagic) gui).magicData;
+                    magicData.getMagics().clear();
+                    for (Map.Entry<Integer, MagicEntry> e : result.getMagics().entrySet()) {
+                        magicData.getMagics().put(e.getKey(), e.getValue());
+                    }
+                })
+                .buttonLabel(() -> magicData.isEmpty()
+                    ? StatCollector.translateToLocal("ability.magic.usesCaster")
+                    : magicData.getMagics().size() + " Magic(s)")
+                .tab("General"));
         }
 
         // ── Target tab ───────────────────────────────────────────────
@@ -1244,6 +1339,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         telegraphInstances.clear();
         previewMode = false;
         previewEntityHandler = null;
+        instanceScript = null;
     }
 
     /**
@@ -1388,6 +1484,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("rotationMode", rotationMode.ordinal());
         nbt.setInteger("rotationPhase", rotationPhase.ordinal());
+        nbt.setFloat("trackDelay", trackDelay);
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
@@ -1403,6 +1500,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
         nbt.setTag("customData", (NBTTagCompound) customData.copy());
+        magicData.writeToNBT(nbt);
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
         nbt.setBoolean("perAbilityCooldown", perAbilityCooldown);
@@ -1482,6 +1580,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
+        trackDelay = nbt.hasKey("trackDelay") ? nbt.getFloat("trackDelay") : 0;
         windUpColor = nbt.hasKey("windUpColor") ? nbt.getInteger("windUpColor") : 0x80FF4400;
         activeColor = nbt.hasKey("activeColor") ? nbt.getInteger("activeColor") : 0xC0FF0000;
         windUpSound = nbt.getString("windUpSound");
@@ -1500,6 +1599,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
         telegraphHeightOffset = nbt.getFloat("telegraphHeightOffset");
         customData = (NBTTagCompound) nbt.getCompoundTag("customData").copy();
+        magicData.readToNBT(nbt);
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
         perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");
@@ -1552,10 +1652,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
 
         // Script handler data (matching CustomEffect.readFromNBT pattern)
+        // Only create a new handler if one doesn't already exist in the global map,
+        // to avoid clobbering a live handler's script state during deepCopy/resolve.
         if (nbt.hasKey("ScriptData", 10)) {
-            AbilityScript handler = new AbilityScript(this.id);
-            handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
-            setScriptHandler(handler);
+            if (getScriptHandler() == null) {
+                AbilityScript handler = new AbilityScript(this.id);
+                handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
+                setScriptHandler(handler);
+            }
         }
     }
 
@@ -1658,7 +1762,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     public Ability deepCopy() {
-        return AbilityController.Instance.fromNBT(this.writeNBT(true));
+        return AbilityController.Instance.fromNBT(this.writeNBT(false));
     }
 
     @Override
@@ -1817,6 +1921,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.rotationPhase = rotationPhase;
     }
 
+    public float getTrackDelay() {
+        return trackDelay;
+    }
+
+    public void setTrackDelay(float trackDelay) {
+        this.trackDelay = trackDelay;
+    }
+
     /**
      * API method: Get lock movement type as integer.
      *
@@ -1875,6 +1987,25 @@ public abstract class Ability implements IAbility, IAbilityAction {
     @Override
     public void setRotationPhaseType(int type) {
         this.rotationPhase = LockMode.fromOrdinal(type);
+    }
+
+    /**
+     * API method: Get track delay for TRACK rotation mode.
+     * 0 = instant tracking (legacy). Higher = slower lerp toward target.
+     */
+    @Override
+    public float getTrackDelayValue() {
+        return trackDelay;
+    }
+
+    /**
+     * API method: Set track delay for TRACK rotation mode.
+     *
+     * @param delay 0 = instant tracking. Higher = slower lerp toward target.
+     */
+    @Override
+    public void setTrackDelayValue(float delay) {
+        this.trackDelay = Math.max(0, delay);
     }
 
     /**
@@ -2168,6 +2299,35 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public NBTTagCompound getCustomData() {
         return customData;
+    }
+
+    public MagicData getMagicData() {
+        return magicData;
+    }
+
+    /**
+     * Resolve magic data for this ability + caster combination.
+     * If the ability has its own magic data, use that (override).
+     * Otherwise, fall back to the caster's magic data (player or NPC).
+     *
+     * @return Resolved MagicData, or null if neither has magic
+     */
+    public MagicData resolveMagicData(EntityLivingBase caster) {
+        if (!this.magicData.isEmpty()) {
+            return this.magicData;
+        }
+        if (caster instanceof EntityPlayer) {
+            PlayerData data = PlayerData.get((EntityPlayer) caster);
+            if (data != null && data.magicData != null && !data.magicData.isEmpty()) {
+                return data.magicData;
+            }
+        } else if (caster instanceof EntityNPCInterface) {
+            EntityNPCInterface npc = (EntityNPCInterface) caster;
+            if (npc.stats != null && npc.stats.magicData != null && !npc.stats.magicData.isEmpty()) {
+                return npc.stats.magicData;
+            }
+        }
+        return null;
     }
 
     public List<AbilityCondition> getConditions() {
@@ -2582,5 +2742,26 @@ public abstract class Ability implements IAbility, IAbilityAction {
             AbilityController.Instance.abilityScriptHandlers.put(this.id, handler);
         }
         return handler;
+    }
+
+    /**
+     * Get or create a per-instance script handler for this ability execution.
+     * Shares the template's engine but creates isolated Bindings for variable state.
+     * Returns null if no script is configured on the template.
+     */
+    public AbilityScript getOrCreateInstanceScript() {
+        if (instanceScript != null) return instanceScript;
+
+        AbilityScript template = getScriptHandler();
+        if (template == null || !template.getEnabled() || template.container == null) return null;
+
+        instanceScript = new AbilityScript(this.id);
+        instanceScript.setLanguage(template.getLanguage());
+        instanceScript.setEnabled(true);
+
+        ScriptContainer clone = ((ScriptContainer) template.container).createInstanceScope(instanceScript);
+        instanceScript.addScriptUnit(clone);
+
+        return instanceScript;
     }
 }

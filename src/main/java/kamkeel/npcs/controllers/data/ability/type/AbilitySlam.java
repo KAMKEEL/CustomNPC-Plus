@@ -751,6 +751,9 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public float getRadius() {
         return radius;
     }

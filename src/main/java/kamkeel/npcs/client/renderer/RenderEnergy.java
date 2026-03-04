@@ -81,70 +81,95 @@ public abstract class RenderEnergy extends Render {
      * Render a cube centered at origin with given color and alpha.
      */
     protected void renderCube(int color, float alpha, float halfSize) {
-        float[] rgb = extractRGB(color);
-        float r = rgb[0], g = rgb[1], b = rgb[2];
-
         Tessellator tess = Tessellator.instance;
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
 
-        // Front face (z+)
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
+        addCubeVertices(tess, 0, 0, 0, halfSize);
+        tess.draw();
+    }
+
+    // ==================== BATCHED CUBE RENDERING ====================
+
+    /**
+     * Begin a batched cube draw call. All cubes added via {@link #addBatchedCube}
+     * will be drawn in a single tessellator pass when {@link #endCubeBatch} is called.
+     */
+    protected void beginCubeBatch() {
+        Tessellator.instance.startDrawingQuads();
+    }
+
+    /**
+     * Add a cube to the current batch at the given position with per-cube color/alpha.
+     * Must be called between {@link #beginCubeBatch} and {@link #endCubeBatch}.
+     */
+    protected void addBatchedCube(float px, float py, float pz, float halfSize,
+                                   float r, float g, float b, float alpha) {
+        Tessellator tess = Tessellator.instance;
+        tess.setColorRGBA_F(r, g, b, alpha);
+        addCubeVertices(tess, px, py, pz, halfSize);
+    }
+
+    /**
+     * End the batched cube draw call, flushing all queued cubes in one draw.
+     */
+    protected void endCubeBatch() {
+        Tessellator.instance.draw();
+    }
+
+    /**
+     * Add the 24 vertices (6 faces) of a cube centered at (px,py,pz) to the tessellator.
+     * Color must be set before calling. Used by both single and batched cube rendering.
+     */
+    private static void addCubeVertices(Tessellator tess, float px, float py, float pz, float h) {
+        float x0 = px - h, x1 = px + h;
+        float y0 = py - h, y1 = py + h;
+        float z0 = pz - h, z1 = pz + h;
+
+        // Front (z+)
         tess.setNormal(0, 0, 1);
-        tess.addVertex(-halfSize, -halfSize, halfSize);
-        tess.addVertex(halfSize, -halfSize, halfSize);
-        tess.addVertex(halfSize, halfSize, halfSize);
-        tess.addVertex(-halfSize, halfSize, halfSize);
-        tess.draw();
+        tess.addVertex(x0, y0, z1);
+        tess.addVertex(x1, y0, z1);
+        tess.addVertex(x1, y1, z1);
+        tess.addVertex(x0, y1, z1);
 
-        // Back face (z-)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
+        // Back (z-)
         tess.setNormal(0, 0, -1);
-        tess.addVertex(halfSize, -halfSize, -halfSize);
-        tess.addVertex(-halfSize, -halfSize, -halfSize);
-        tess.addVertex(-halfSize, halfSize, -halfSize);
-        tess.addVertex(halfSize, halfSize, -halfSize);
-        tess.draw();
+        tess.addVertex(x1, y0, z0);
+        tess.addVertex(x0, y0, z0);
+        tess.addVertex(x0, y1, z0);
+        tess.addVertex(x1, y1, z0);
 
-        // Top face (y+)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
+        // Top (y+)
         tess.setNormal(0, 1, 0);
-        tess.addVertex(-halfSize, halfSize, halfSize);
-        tess.addVertex(halfSize, halfSize, halfSize);
-        tess.addVertex(halfSize, halfSize, -halfSize);
-        tess.addVertex(-halfSize, halfSize, -halfSize);
-        tess.draw();
+        tess.addVertex(x0, y1, z1);
+        tess.addVertex(x1, y1, z1);
+        tess.addVertex(x1, y1, z0);
+        tess.addVertex(x0, y1, z0);
 
-        // Bottom face (y-)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
+        // Bottom (y-)
         tess.setNormal(0, -1, 0);
-        tess.addVertex(-halfSize, -halfSize, -halfSize);
-        tess.addVertex(halfSize, -halfSize, -halfSize);
-        tess.addVertex(halfSize, -halfSize, halfSize);
-        tess.addVertex(-halfSize, -halfSize, halfSize);
-        tess.draw();
+        tess.addVertex(x0, y0, z0);
+        tess.addVertex(x1, y0, z0);
+        tess.addVertex(x1, y0, z1);
+        tess.addVertex(x0, y0, z1);
 
-        // Right face (x+)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
+        // Right (x+)
         tess.setNormal(1, 0, 0);
-        tess.addVertex(halfSize, -halfSize, halfSize);
-        tess.addVertex(halfSize, -halfSize, -halfSize);
-        tess.addVertex(halfSize, halfSize, -halfSize);
-        tess.addVertex(halfSize, halfSize, halfSize);
-        tess.draw();
+        tess.addVertex(x1, y0, z1);
+        tess.addVertex(x1, y0, z0);
+        tess.addVertex(x1, y1, z0);
+        tess.addVertex(x1, y1, z1);
 
-        // Left face (x-)
-        tess.startDrawingQuads();
-        tess.setColorRGBA_F(r, g, b, alpha);
+        // Left (x-)
         tess.setNormal(-1, 0, 0);
-        tess.addVertex(-halfSize, -halfSize, -halfSize);
-        tess.addVertex(-halfSize, -halfSize, halfSize);
-        tess.addVertex(-halfSize, halfSize, halfSize);
-        tess.addVertex(-halfSize, halfSize, -halfSize);
-        tess.draw();
+        tess.addVertex(x0, y0, z0);
+        tess.addVertex(x0, y0, z1);
+        tess.addVertex(x0, y1, z1);
+        tess.addVertex(x0, y1, z0);
     }
 
     /**

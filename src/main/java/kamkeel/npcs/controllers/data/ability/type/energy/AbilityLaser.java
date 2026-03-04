@@ -49,6 +49,7 @@ public class AbilityLaser extends AbilityEnergyProjectile<EntityAbilityLaser> im
         this.lockMovement = LockMode.WINDUP_AND_ACTIVE;
         this.rotationMode = RotationMode.TRACK;
         this.rotationPhase = LockMode.WINDUP_AND_ACTIVE;
+        this.trackDelay = 3;
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
         this.windUpAnimationName = "Ability_Laser_Windup";

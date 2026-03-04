@@ -11,6 +11,7 @@ import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.NpcAPI;
 
+import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
@@ -46,8 +47,43 @@ public class ScriptContainer implements IScriptUnit {
     private CompiledScript compScript = null;
     private final HashMap<String, ScriptObjectMirror> cachedFunctions = new HashMap<>();
 
+    /**
+     * Persisted per-container language. Null means inherit from handler default.
+     * Separate from currentScriptLanguage which is the engine cache.
+     */
+    private String language = null;
+
+    /**
+     * Per-instance bindings for variable isolation. When non-null, this container
+     * is an instance scope sharing a template's engine. All eval/lookup uses these
+     * bindings instead of the engine's default ENGINE_SCOPE.
+     */
+    private Bindings instanceBindings = null;
+
     public ScriptContainer(IScriptHandler handler) {
         this.handler = handler;
+    }
+
+    /**
+     * Create a lightweight instance scope that shares this container's engine
+     * but has its own isolated Bindings for variable state.
+     * The template's engine is initialized if needed.
+     *
+     * @param instanceHandler the script handler for the instance
+     */
+    public ScriptContainer createInstanceScope(IScriptHandler instanceHandler) {
+        if (this.engine == null) {
+            this.setEngine(this.getLanguage());
+        }
+        ScriptContainer instance = new ScriptContainer(instanceHandler);
+        instance.script = this.script;
+        instance.scripts = new ArrayList<>(this.scripts);
+        instance.console = this.console;
+        instance.language = this.language;
+        instance.engine = this.engine;
+        instance.currentScriptLanguage = this.currentScriptLanguage;
+        instance.instanceBindings = this.engine.createBindings();
+        return instance;
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -68,6 +104,12 @@ public class ScriptContainer implements IScriptUnit {
         this.console = NBTTags.GetLongStringMap(compound.getTagList("Console", 10));
         this.scripts = NBTTags.getStringList(compound.getTagList("ScriptList", 10));
         this.lastCreated = 0L;
+
+        // Read per-container language (empty string or missing = inherit from handler)
+        if (compound.hasKey("ContainerLanguage")) {
+            String lang = compound.getString("ContainerLanguage");
+            this.language = lang.isEmpty() ? null : lang;
+        }
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
@@ -98,6 +140,11 @@ public class ScriptContainer implements IScriptUnit {
         //compound.setString("Type", this.type);
         compound.setTag("Console", NBTTags.NBTLongStringMap(this.console));
         compound.setTag("ScriptList", NBTTags.nbtStringList(this.scripts));
+
+        // Persist per-container language if explicitly set
+        if (this.language != null) {
+            compound.setString("ContainerLanguage", this.language);
+        }
         return compound;
     }
 
@@ -169,7 +216,7 @@ public class ScriptContainer implements IScriptUnit {
         if (!CustomNpcs.proxy.isScriptingEnabled() || errored || !hasCode() || unknownFunctions.contains(type))
             return;
 
-        this.setEngine(handler.getLanguage());
+        this.setEngine(this.getLanguage());
         if (engine == null)
             return;
 
@@ -188,20 +235,33 @@ public class ScriptContainer implements IScriptUnit {
             engine.getContext().setWriter(pw);
             engine.getContext().setErrorWriter(pw);
 
-            engine.put("API", NpcAPI.Instance());
-            HashMap<String, Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
-            for (Map.Entry<String, Object> objectEntry : engineEntries.entrySet()) {
-                engine.put(objectEntry.getKey(), objectEntry.getValue());
+            // Populate bindings with API objects
+            if (instanceBindings != null) {
+                instanceBindings.put("API", NpcAPI.Instance());
+                HashMap<String, Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
+                for (Map.Entry<String, Object> objectEntry : engineEntries.entrySet()) {
+                    instanceBindings.put(objectEntry.getKey(), objectEntry.getValue());
+                }
+            } else {
+                engine.put("API", NpcAPI.Instance());
+                HashMap<String, Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
+                for (Map.Entry<String, Object> objectEntry : engineEntries.entrySet()) {
+                    engine.put(objectEntry.getKey(), objectEntry.getValue());
+                }
             }
 
             try {
                 if (!evaluated) {
                     this.cachedFunctions.clear();
-                    engine.eval(getFullCode());
+                    if (instanceBindings != null) {
+                        engine.eval(getFullCode(), instanceBindings);
+                    } else {
+                        engine.eval(getFullCode());
+                    }
                     evaluated = true;
                 }
                 if (engine.getFactory().getLanguageName().equals("lua")) {
-                    Object ob = engine.get(type);
+                    Object ob = instanceBindings != null ? instanceBindings.get(type) : engine.get(type);
                     if (ob != null) {
                         if (luaCoerce == null) {
                             luaCoerce = Class.forName("org.luaj.vm2.lib.jse.CoerceJavaToLua").getMethod("coerce", Object.class);
@@ -213,8 +273,14 @@ public class ScriptContainer implements IScriptUnit {
                     }
                 } else {
                     if (!this.cachedFunctions.containsKey(type)) {
-                        ScriptObjectMirror global = (ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE);
-                        ScriptObjectMirror func = (ScriptObjectMirror) global.get(type);
+                        ScriptObjectMirror func;
+                        if (instanceBindings != null) {
+                            Object val = instanceBindings.get(type);
+                            func = val instanceof ScriptObjectMirror ? (ScriptObjectMirror) val : null;
+                        } else {
+                            ScriptObjectMirror global = (ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE);
+                            func = (ScriptObjectMirror) global.get(type);
+                        }
                         this.cachedFunctions.put(type, func);
                     }
                     ScriptObjectMirror func = this.cachedFunctions.get(type);
@@ -263,6 +329,8 @@ public class ScriptContainer implements IScriptUnit {
 
     public void setEngine(String scriptLanguage) {
         if (!Objects.equals(scriptLanguage, this.currentScriptLanguage)) {
+            // Instance scopes share the template's engine — never create a new one
+            if (instanceBindings != null) return;
             this.currentScriptLanguage = scriptLanguage;
             if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
                 System.setProperty("nashorn.args", "--language=es6");
@@ -308,18 +376,15 @@ public class ScriptContainer implements IScriptUnit {
 
     @Override
     public String getLanguage() {
-        // If a specific language is set for this container, use it
-        // Otherwise fall back to the handler's language
-        if (currentScriptLanguage != null) {
-            return currentScriptLanguage;
-        }
-        return handler != null ? handler.getLanguage() : "ECMAScript";
+        // Return persisted per-container language, defaulting to ECMAScript.
+        // This is separate from currentScriptLanguage which is the engine cache.
+        return this.language != null ? this.language : "ECMAScript";
     }
 
     @Override
     public void setLanguage(String language) {
-        if (!Objects.equals(this.currentScriptLanguage, language)) {
-            this.currentScriptLanguage = language;
+        if (!Objects.equals(this.language, language)) {
+            this.language = language;
             this.evaluated = false;
         }
     }

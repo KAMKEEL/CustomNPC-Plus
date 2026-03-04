@@ -2,6 +2,8 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.EnergyController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
@@ -217,12 +219,32 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                 if (panelData.launchDamage > 0) {
                     int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
                     try {
-                        if (owner instanceof EntityNPCInterface) {
-                            target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), panelData.launchDamage);
-                        } else if (owner instanceof EntityPlayer) {
-                            target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), panelData.launchDamage);
-                        } else {
-                            target.attackEntityFrom(DamageSource.generic, panelData.launchDamage);
+                        // Route through ability extender (e.g. DBC Addon damage scaling)
+                        boolean handled = false;
+                        if (sourceAbility != null && owner instanceof EntityLivingBase) {
+                            double dx = target.posX - posX;
+                            double dz = target.posZ - posZ;
+                            handled = AbilityController.Instance.fireOnAbilityDamage(
+                                sourceAbility, (EntityLivingBase) owner, target,
+                                panelData.launchDamage, panelData.launchKnockback, 0.0f, dx, dz, 1.0f);
+                        }
+                        // Fallback: route through EnergyController for script-created entities with custom damage data
+                        if (!handled && customDamageData != null && owner instanceof EntityLivingBase) {
+                            double dx = target.posX - posX;
+                            double dz = target.posZ - posZ;
+                            handled = EnergyController.Instance.fireOnEnergyDamage(
+                                this, (EntityLivingBase) owner, target,
+                                panelData.launchDamage, panelData.launchKnockback, 0.0f, dx, dz, 1.0f, customDamageData);
+                        }
+
+                        if (!handled) {
+                            if (owner instanceof EntityNPCInterface) {
+                                target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), panelData.launchDamage);
+                            } else if (owner instanceof EntityPlayer) {
+                                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), panelData.launchDamage);
+                            } else {
+                                target.attackEntityFrom(DamageSource.generic, panelData.launchDamage);
+                            }
                         }
                     } finally {
                         Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);
@@ -347,8 +369,25 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
             }
         }
 
-        // Test the UPCOMING movement so the barrier intercepts before entity
-        // collision runs in updateProjectile().
+        if (mode == PanelMode.LAUNCHED) {
+            // For moving panels, use RELATIVE motion in the panel's reference frame.
+            // This correctly captures the combined closing speed when both objects
+            // are moving toward each other, preventing phase-through at high speeds.
+            double relMotionX = projectile.motionX - this.motionX;
+            double relMotionY = projectile.motionY - this.motionY;
+            double relMotionZ = projectile.motionZ - this.motionZ;
+
+            double nextX = projectile.posX + relMotionX;
+            double nextY = projectile.posY + relMotionY;
+            double nextZ = projectile.posZ + relMotionZ;
+
+            return isIncomingRay(
+                nextX, nextY, nextZ,
+                projectile.posX, projectile.posY, projectile.posZ,
+                projectile.getOwnerEntityId());
+        }
+
+        // Non-moving panels: standard test using projectile's absolute motion
         double nextX = projectile.posX + projectile.motionX;
         double nextY = projectile.posY + projectile.motionY;
         double nextZ = projectile.posZ + projectile.motionZ;
@@ -366,6 +405,16 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         double prevPosX, double prevPosY, double prevPosZ,
         int ownerEntityId)
     {
+        if (mode == PanelMode.LAUNCHED) {
+            // Use relative motion for moving panels
+            double relMotionX = motionX - this.motionX;
+            double relMotionY = motionY - this.motionY;
+            double relMotionZ = motionZ - this.motionZ;
+            double adjX = prevPosX + relMotionX;
+            double adjY = prevPosY + relMotionY;
+            double adjZ = prevPosZ + relMotionZ;
+            return isIncomingRay(adjX, adjY, adjZ, prevPosX, prevPosY, prevPosZ, ownerEntityId);
+        }
         return isIncomingRay(posX, posY, posZ, prevPosX, prevPosY, prevPosZ, ownerEntityId);
     }
 
@@ -640,6 +689,15 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     public EnergyPanelData getPanelData() {
         return panelData;
+    }
+
+    public void setPanelYaw(float yaw) {
+        this.panelYaw = yaw;
+        this.prevPanelYaw = yaw;
+    }
+
+    public void setMode(PanelMode mode) {
+        this.mode = mode;
     }
 
     // ==================== NBT ====================

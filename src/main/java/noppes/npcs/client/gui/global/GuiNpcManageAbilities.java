@@ -4,6 +4,7 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.network.PacketClient;
 
 import java.util.UUID;
@@ -48,6 +49,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -72,6 +74,7 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private static final int BTN_PREVIEW_PLAY = 91;
     private static final int BTN_PREVIEW_PAUSE = 92;
     private static final int BTN_PREVIEW_STOP = 93;
+    private static final int BTN_USER_TYPE_FILTER = 11;
 
     // ── TextField / Label IDs ─────────────────────────────────────────────────
     private static final int TF_SEARCH = 55;
@@ -98,6 +101,11 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     private boolean showingBuiltIn = false;
     private boolean showingChained = false;
     private boolean currentIsBuiltIn = false;
+
+    // ==================== USER TYPE FILTER ====================
+    // 0 = Both, 1 = NPC Only, 2 = Player Only
+    private int userTypeFilter = 0;
+    private static final String[] USER_TYPE_FILTER_LABELS = {"gui.both", "gui.npcs", "gui.players"};
 
     // ==================== CHAINED DATA ====================
     private HashMap<String, Integer> chainedData = new HashMap<>();
@@ -176,6 +184,11 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         // Search bar
         addTextField(new GuiNpcTextField(TF_SEARCH, this, fontRendererObj, guiLeft + 220, guiTop + 192, 143, 20, search));
 
+        // User type filter button (only for Custom and Built-in views)
+        if (!showingChained) {
+            addButton(new GuiNpcButton(BTN_USER_TYPE_FILTER, guiLeft + 368, guiTop + 192, 45, 20, USER_TYPE_FILTER_LABELS[userTypeFilter]));
+        }
+
         // Check if we have something to preview
         if (showingChained) {
             if (selectedChain == null || selected == null || selectedChain.getEntries().isEmpty()) {
@@ -213,14 +226,23 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
 
     private List<String> getSearchList() {
         HashMap<String, Integer> data = getCurrentData();
-        if (search.isEmpty()) {
-            return new ArrayList<>(data.keySet());
-        }
         List<String> list = new ArrayList<>();
-        for (String name : data.keySet()) {
-            if (name.toLowerCase().contains(search.toLowerCase())) {
-                list.add(name);
+        for (Map.Entry<String, Integer> entry : data.entrySet()) {
+            String name = entry.getKey();
+
+            // Apply search filter
+            if (!search.isEmpty() && !name.toLowerCase().contains(search.toLowerCase())) {
+                continue;
             }
+
+            // Apply UserType filter (only for Custom and Built-in views)
+            if (!showingChained && userTypeFilter != 0) {
+                UserType ut = UserType.fromOrdinal(entry.getValue());
+                if (userTypeFilter == 1 && !ut.allowsNpc()) continue;
+                if (userTypeFilter == 2 && !ut.allowsPlayer()) continue;
+            }
+
+            list.add(name);
         }
         return list;
     }
@@ -277,6 +299,16 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         super.actionPerformed(guibutton);
 
         int id = guibutton.id;
+
+        // User type filter: Both → NPC → Player → Both
+        if (id == BTN_USER_TYPE_FILTER) {
+            userTypeFilter = (userTypeFilter + 1) % 3;
+            if (scroll != null) {
+                scroll.setList(getSearchList());
+            }
+            initGui();
+            return;
+        }
 
         // Toggle: Custom → Built-in → Chained → Custom
         if (id == BTN_TOGGLE_VIEW) {

@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.ability.IChainedAbility;
+import noppes.npcs.controllers.ScriptContainer;
 import kamkeel.npcs.util.FileNameHelper;
 
 import java.util.ArrayList;
@@ -74,6 +75,9 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      * Extension data for external mods (e.g., icons, DBC stats).
      */
     private NBTTagCompound customData = new NBTTagCompound();
+
+    // Per-instance script (isolated per execution, not saved to NBT)
+    private transient ChainedAbilityScript instanceScript;
 
     public ChainedAbility() {
     }
@@ -371,7 +375,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
      */
     public ChainedAbility deepCopy() {
         ChainedAbility copy = new ChainedAbility();
-        copy.readNBT(this.writeNBT(true));
+        copy.readNBT(this.writeNBT(false));
         return copy;
     }
 
@@ -468,9 +472,11 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
         // Script handler data (matching CustomEffect.readFromNBT pattern)
         if (nbt.hasKey("ScriptData", 10)) {
-            ChainedAbilityScript handler = new ChainedAbilityScript(this.id);
-            handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
-            setScriptHandler(handler);
+            if (getScriptHandler() == null) {
+                ChainedAbilityScript handler = new ChainedAbilityScript(this.id);
+                handler.readFromNBT(nbt.getCompoundTag("ScriptData"));
+                setScriptHandler(handler);
+            }
         }
     }
 
@@ -493,5 +499,33 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
             AbilityController.Instance.chainedAbilityScriptHandlers.put(this.id, handler);
         }
         return handler;
+    }
+
+    /**
+     * Get or create a per-instance script handler for this chain execution.
+     * Shares the template's engine but creates isolated Bindings for variable state.
+     * Returns null if no script is configured on the template.
+     */
+    public ChainedAbilityScript getOrCreateInstanceScript() {
+        if (instanceScript != null) return instanceScript;
+
+        ChainedAbilityScript template = getScriptHandler();
+        if (template == null || !template.getEnabled() || template.container == null) return null;
+
+        instanceScript = new ChainedAbilityScript(this.id);
+        instanceScript.setLanguage(template.getLanguage());
+        instanceScript.setEnabled(true);
+
+        ScriptContainer clone = ((ScriptContainer) template.container).createInstanceScope(instanceScript);
+        instanceScript.addScriptUnit(clone);
+
+        return instanceScript;
+    }
+
+    /**
+     * Clear the per-instance script handler (call on chain completion/reset).
+     */
+    public void clearInstanceScript() {
+        this.instanceScript = null;
     }
 }

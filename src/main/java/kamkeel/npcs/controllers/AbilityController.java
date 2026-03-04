@@ -220,6 +220,7 @@ public class AbilityController implements IAbilityHandler {
     public void load() {
         customAbilities.clear();
         customAbilitiesById.clear();
+        abilityScriptHandlers.clear();
 
         File dir = getDir();
         File[] files = dir.exists() ? dir.listFiles() : null;
@@ -470,6 +471,7 @@ public class AbilityController implements IAbilityHandler {
     private void loadChainedAbilities() {
         chainedAbilities.clear();
         chainedAbilitiesById.clear();
+        chainedAbilityScriptHandlers.clear();
 
         File dir = getChainedDir();
         File[] files = dir.exists() ? dir.listFiles() : null;

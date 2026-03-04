@@ -80,6 +80,7 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
                 zoneHeight,
                 particleDensity, particleScale, animSpeed, lightningDensity,
                 getEffects());
+            entity.setSourceAbility(this);
 
             applyVisualToEntity(entity);
 
@@ -125,6 +126,12 @@ public class AbilityHazard extends AbilityZone implements IAbilityHazard {
     public void setDamagePerSecond(float damagePerSecond) {
         this.damagePerSecond = damagePerSecond;
     }
+
+    @Override
+    public float getDisplayDamage() { return damagePerSecond; }
+
+    @Override
+    public boolean isDisplayDamageDPS() { return true; }
 
     public int getDamageInterval() {
         return damageInterval;

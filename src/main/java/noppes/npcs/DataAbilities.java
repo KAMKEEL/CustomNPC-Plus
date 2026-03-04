@@ -4,6 +4,7 @@ import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.AbilityAction;
 import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
+import kamkeel.npcs.controllers.data.ability.enums.RotationMode;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
@@ -87,6 +88,7 @@ public class DataAbilities extends AbstractDataAbilities {
      */
     private transient boolean hitScanActive = false;
     private transient EntityLivingBase hitScanTarget = null;
+    private transient float currentTrackDelay = 0;
 
     /**
      * Bit flag for rotation control (LOCKED or TRACK) in data watcher slot 15
@@ -227,9 +229,19 @@ public class DataAbilities extends AbstractDataAbilities {
     protected void onPostPhaseTick(Ability ability, EntityLivingBase target) {
         // Update hit scan state - actual facing is deferred to applyRotationControl()
         // which runs AFTER super.onLivingUpdate() to override AI look helper
-        if (ability != null && ability.isExecuting()
-            && ability.isHitScanForCurrentPhase() && target != null) {
-            enableHitScan(target);
+        if (ability != null && ability.isExecuting() && target != null) {
+            if (ability.isHitScanForCurrentPhase()) {
+                enableHitScan(target, ability.getTrackDelay());
+            } else {
+                // Release hit scan if it was previously active
+                if (hitScanActive) {
+                    releaseRotationControl();
+                }
+                // FREE mode: use AI look helper during ability execution since combat AI may not run
+                if (ability.getRotationMode() == RotationMode.FREE) {
+                    npc.getLookHelper().setLookPositionWithEntity(target, 30.0F, 30.0F);
+                }
+            }
         } else if (hitScanActive) {
             releaseRotationControl();
         }
@@ -287,6 +299,7 @@ public class DataAbilities extends AbstractDataAbilities {
                 if (positionLocked) releaseLockedPosition();
             }
             // Clear chain and concurrent state
+            if (currentChain != null) currentChain.clearInstanceScript();
             currentChain = null;
             chainEntryIndex = -1;
             chainDelayRemaining = -1;
@@ -576,6 +589,7 @@ public class DataAbilities extends AbstractDataAbilities {
             lastTarget = null;
         }
         // Also clear chain state
+        if (currentChain != null) currentChain.clearInstanceScript();
         currentChain = null;
         chainEntryIndex = -1;
         chainDelayRemaining = -1;
@@ -867,34 +881,74 @@ public class DataAbilities extends AbstractDataAbilities {
     /**
      * Enable hit scan tracking for the given target.
      */
-    private void enableHitScan(EntityLivingBase target) {
+    private void enableHitScan(EntityLivingBase target, float trackDelay) {
         if (!hitScanActive) {
             hitScanActive = true;
             npc.setBoolFlag(true, ROTATION_CONTROLLED_FLAG);
         }
         hitScanTarget = target;
+        currentTrackDelay = trackDelay;
     }
 
     /**
-     * Snap the NPC to face the target instantly.
+     * Face the target with optional track delay.
+     * When trackDelay <= 0, snaps instantly (legacy behavior).
+     * When trackDelay > 0, lerps toward the target each tick.
      */
-    private void faceTarget(EntityLivingBase target) {
+    private void faceTarget(EntityLivingBase target, float trackDelay) {
         double dx = target.posX - npc.posX;
         double dz = target.posZ - npc.posZ;
         double dy = (target.posY + target.getEyeHeight() * 0.5) - (npc.posY + npc.getEyeHeight());
         double distXZ = Math.sqrt(dx * dx + dz * dz);
 
-        float yaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
-        float pitch = (float) (-(Math.atan2(dy, distXZ)) * 180.0 / Math.PI);
+        float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
+        float targetPitch = (float) (-(Math.atan2(dy, distXZ)) * 180.0 / Math.PI);
 
-        npc.rotationYaw = yaw;
-        npc.rotationYawHead = yaw;
-        npc.renderYawOffset = yaw;
-        npc.rotationPitch = pitch;
-        npc.prevRotationYaw = yaw;
-        npc.prevRotationYawHead = yaw;
-        npc.prevRenderYawOffset = yaw;
-        npc.prevRotationPitch = pitch;
+        if (trackDelay <= 0) {
+            // Instant snap (legacy behavior)
+            npc.rotationYaw = targetYaw;
+            npc.rotationYawHead = targetYaw;
+            npc.renderYawOffset = targetYaw;
+            npc.rotationPitch = targetPitch;
+            npc.prevRotationYaw = targetYaw;
+            npc.prevRotationYawHead = targetYaw;
+            npc.prevRenderYawOffset = targetYaw;
+            npc.prevRotationPitch = targetPitch;
+        } else {
+            float lerpFactor = 1.0f / (1.0f + trackDelay);
+
+            // Wrap yaw difference to [-180, 180] for correct interpolation
+            float yawDiff = wrapAngle(targetYaw - npc.rotationYawHead);
+            float pitchDiff = targetPitch - npc.rotationPitch;
+
+            float newYaw = npc.rotationYawHead + yawDiff * lerpFactor;
+            float newPitch = npc.rotationPitch + pitchDiff * lerpFactor;
+
+            // Set prev to current before updating (for smooth client interpolation)
+            npc.prevRotationYaw = npc.rotationYaw;
+            npc.prevRotationYawHead = npc.rotationYawHead;
+            npc.prevRenderYawOffset = npc.renderYawOffset;
+            npc.prevRotationPitch = npc.rotationPitch;
+
+            npc.rotationYaw = newYaw;
+            npc.rotationYawHead = newYaw;
+            npc.renderYawOffset = newYaw;
+            npc.rotationPitch = newPitch;
+        }
+    }
+
+    /**
+     * Snap the NPC to face the target instantly (no delay).
+     */
+    private void faceTarget(EntityLivingBase target) {
+        faceTarget(target, 0);
+    }
+
+    private static float wrapAngle(float angle) {
+        angle = angle % 360.0f;
+        if (angle >= 180.0f) angle -= 360.0f;
+        if (angle < -180.0f) angle += 360.0f;
+        return angle;
     }
 
     /**
@@ -922,7 +976,7 @@ public class DataAbilities extends AbstractDataAbilities {
 
         // Server: apply the appropriate rotation
         if (hitScanActive && hitScanTarget != null && !hitScanTarget.isDead) {
-            faceTarget(hitScanTarget);
+            faceTarget(hitScanTarget, currentTrackDelay);
         } else if (rotationLocked) {
             npc.rotationYaw = lockedYaw;
             npc.rotationYawHead = lockedYawHead;

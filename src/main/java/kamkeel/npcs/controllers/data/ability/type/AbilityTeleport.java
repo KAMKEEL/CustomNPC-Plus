@@ -536,6 +536,9 @@ public class AbilityTeleport extends Ability implements IAbilityTeleport {
         this.damage = damage;
     }
 
+    @Override
+    public float getDisplayDamage() { return damage; }
+
     public float getDamageRadius() {
         return damageRadius;
     }

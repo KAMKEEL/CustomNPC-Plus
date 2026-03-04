@@ -46,7 +46,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public Map<String, List<String>> languages = new HashMap();
     protected int scriptLimit = 1;
     public List<String> hookList = new ArrayList<String>();
-    protected boolean loaded = false;
+    protected volatile boolean loaded = false;
+    protected boolean serverDataReceived = false;
+    protected String scriptSessionToken = null;
 
     protected Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     protected GuiScreen parent;
@@ -321,9 +323,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.addButton(new GuiNpcButton(100, left1, this.guiTop + 21 + yoffset, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(105, left1 + 61, this.guiTop + 21 + yoffset, 60, 20, "gui.remove"));
 
-            // Language toggle button (only if handler supports Janino and there is more than one option)
-            if (handler.supportsJanino() && getLanguageOptions().size() > 1 && container != null) {
-                this.addButton(new GuiNpcButton(113, left1, this.guiTop + 42 + yoffset, 121, 20, container.getLanguage()));
+            // Per-tab language button — cycles through all available languages
+            List<String> langOptions = getLanguageOptions();
+            if (langOptions.size() > 1 && container != null) {
+                int langIdx = getContainerLanguageIndex(langOptions, container);
+                this.addButton(new GuiNpcButton(113, left1, this.guiTop + 42 + yoffset, 121, 20,
+                    langOptions.toArray(new String[0]), langIdx));
             }
 
             this.addButton(new GuiNpcButton(107, left1, this.guiTop + 66 + yoffset, 80, 20, "script.loadscript"));
@@ -352,15 +357,19 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         int var9 = this.guiLeft + this.xSize - 150;
         this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
         this.addButton(new GuiNpcButton(102, var9, this.guiTop + 146, 60, 20, "gui.clear"));
-        this.addLabel(new GuiNpcLabel(1, "script.language", var9, this.guiTop + 15));
+        this.addLabel(new GuiNpcLabel(1, "script.default", var9, this.guiTop + 15));
         List<String> languageOptions = getLanguageOptions();
         this.addButton(new GuiNpcButton(103, var9 + 60, this.guiTop + 10, 80, 20,
             languageOptions.toArray(new String[0]),
             this.getLanguageIndex(languageOptions)));
-        this.getButton(103).enabled = languageOptions.size() > 0;
         this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
         this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20,
             new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
+
+        // Disable language/enabled controls until server data actually arrives
+        // (serverDataReceived is only set in loadLanguagesData, not by getLanguageOptions injecting Java)
+        this.getButton(103).enabled = serverDataReceived && languageOptions.size() > 0;
+        this.getButton(104).enabled = serverDataReceived;
 
         if (this.player.worldObj.isRemote) {
             this.addButton(new GuiNpcButton(106, var9, this.guiTop + 55, 150, 20, "script.openfolder"));
@@ -475,6 +484,26 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             i++;
         }
 
+        return 0;
+    }
+
+    /**
+     * Finds the index of a container's language within the available options.
+     * Used for the per-tab language button (113).
+     *
+     * @param languageOptions The list of available languages.
+     * @param container       The script unit whose language to find.
+     * @return The 0-based index, or 0 if not found.
+     */
+    protected int getContainerLanguageIndex(List<String> languageOptions, IScriptUnit container) {
+        if (languageOptions == null || languageOptions.isEmpty() || container == null)
+            return 0;
+
+        String current = container.getLanguage();
+        for (int i = 0; i < languageOptions.size(); i++) {
+            if (current != null && languageOptions.get(i).equalsIgnoreCase(current))
+                return i;
+        }
         return 0;
     }
 
@@ -602,13 +631,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         if (guibutton.id == scriptLimit) {
             if (handler.isSingleContainer()) {
                 if (handler.getSingleScript() == null) {
-                    handler.addScriptUnit(new ScriptContainer(handler));
+                    handler.addScriptUnit(createDefaultScriptUnit());
                 } else {
                     this.setScript();
                 }
                 this.activeTab = 1;
             } else {
-                handler.addScriptUnit(new ScriptContainer(this.handler));
+                handler.addScriptUnit(createDefaultScriptUnit());
                 this.activeTab = this.handler.getScripts().size();
             }
             this.initGui();
@@ -666,43 +695,47 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         if (guibutton.id == 107) {
             IScriptUnit container = getCurrentContainer();
             if (container == null) {
-                container = new ScriptContainer(this.handler);
+                container = createDefaultScriptUnit();
                 handler.addScriptUnit(container);
             }
 
-            String language = container != null ? container.getLanguage() : this.handler.getLanguage();
+            String language = container.getLanguage();
             this.setSubGui(new EventGuiScriptList((List) this.languages.get(language), container));
         }
 
-        // Language toggle button - switch between ECMAScript and Java
+        // Per-tab language cycling button
         if (guibutton.id == 113) {
+            String selectedLanguage = ((GuiNpcButton) guibutton).displayString;
             int idx = getActiveScriptIndex();
             if (idx >= 0 && idx < handler.getScripts().size()) {
                 IScriptUnit currentUnit = handler.getScripts().get(idx);
-                IScriptUnit newUnit;
+                boolean currentIsJanino = currentUnit.isJanino();
+                boolean targetIsJanino = "Java".equals(selectedLanguage);
 
-                if (currentUnit.isJanino()) {
-                    // Switch from Java to ECMAScript
-                    newUnit = new ScriptContainer(handler);
+                if (currentIsJanino && !targetIsJanino) {
+                    // Switch from Java to a non-Java language
+                    IScriptUnit newUnit = new ScriptContainer(handler);
                     newUnit.setScript(currentUnit.getScript());
                     newUnit.setExternalScripts(new ArrayList<>(currentUnit.getExternalScripts()));
-                } else {
-                    // Switch from ECMAScript to Java
-                    newUnit = handler.createJaninoScriptUnit();
+                    handler.replaceScriptUnit(idx, newUnit);
+                    textAreas.remove(idx);
+                    initGui();
+                } else if (!currentIsJanino && targetIsJanino) {
+                    // Switch from non-Java to Java
+                    IScriptUnit newUnit = handler.createJaninoScriptUnit();
                     if (newUnit != null) {
                         newUnit.setScript(currentUnit.getScript());
                         newUnit.setExternalScripts(new ArrayList<>(currentUnit.getExternalScripts()));
-                    } else {
-                        return; // Handler doesn't support Janino
+                        handler.replaceScriptUnit(idx, newUnit);
+                        textAreas.remove(idx);
+                        initGui();
                     }
+                } else if (!currentIsJanino) {
+                    // Switch between non-Java languages (e.g., ECMAScript to Lua)
+                    currentUnit.setLanguage(selectedLanguage);
+                    GuiScriptTextArea area = getActiveScriptArea();
+                    if (area != null) area.setLanguage(selectedLanguage);
                 }
-
-                handler.replaceScriptUnit(idx, newUnit);
-                // Clear the cached text area so it recreates with new language
-                textAreas.remove(idx);
-
-                // Reinitialize the GUI
-                initGui();
             }
         }
     }
@@ -712,7 +745,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             IScriptUnit container = getCurrentContainer();
 
             if (container == null) {
-                container = new ScriptContainer(this.handler);
+                container = createDefaultScriptUnit();
                 handler.addScriptUnit(container);
             }
 
@@ -734,6 +767,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 return;
             }
             if (result.kind == IScriptHandlerPacket.GuiDataKind.METADATA) {
+                if (compound.hasKey("ScriptSessionToken"))
+                    scriptSessionToken = compound.getString("ScriptSessionToken");
                 loadLanguagesData(compound);
                 return;
             }
@@ -744,6 +779,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             return;
         }
 
+        if (compound.hasKey("ScriptSessionToken"))
+            scriptSessionToken = compound.getString("ScriptSessionToken");
         loadLanguagesData(compound);
     }
 
@@ -782,6 +819,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         this.languages = languages;
+        this.serverDataReceived = true;
         this.initGui();
     }
 
@@ -792,9 +830,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.setScript();
 
         if (handler instanceof IScriptHandlerPacket)
-            ((IScriptHandlerPacket) handler).sync();
-
-
+            ((IScriptHandlerPacket) handler).sync(scriptSessionToken);
     }
 
     public void textUpdate(String text) {
@@ -829,6 +865,22 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             mc.currentScreen = parent;
         } else
             super.close();
+    }
+
+    /**
+     * Create a new script unit using the handler's default language.
+     * If default is Java, creates a JaninoScript; otherwise a ScriptContainer
+     * with its language set to the handler's default.
+     */
+    protected IScriptUnit createDefaultScriptUnit() {
+        String defaultLang = handler.getLanguage();
+        if ("Java".equals(defaultLang)) {
+            IScriptUnit unit = handler.createJaninoScriptUnit();
+            if (unit != null) return unit;
+        }
+        ScriptContainer sc = new ScriptContainer(handler);
+        sc.setLanguage(defaultLang);
+        return sc;
     }
 
     // ==================== FULLSCREEN METHODS ====================

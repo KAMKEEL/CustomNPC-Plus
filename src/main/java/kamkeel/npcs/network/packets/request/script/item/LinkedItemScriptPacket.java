@@ -90,7 +90,8 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
         if (requestedAction == Action.GET) {
             PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
-            data.saveScript(in);
+            if (!data.saveScript(in, player))
+                return;
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
                 LogWriter.script(String.format("[%s] (Player) %s SAVED LINKED ITEM [%s]", "LINKED ITEM SCRIPTS", player.getCommandSenderName(), linkedItem.getName()));
             }

@@ -76,4 +76,15 @@ public class MagicData implements IMagicData {
         MagicEntry entry = magics.get(id);
         return entry == null ? 0 : entry.split;
     }
+
+    public MagicData copy() {
+        MagicData copy = new MagicData();
+        for (java.util.Map.Entry<Integer, MagicEntry> e : magics.entrySet()) {
+            MagicEntry entryCopy = new MagicEntry();
+            entryCopy.damage = e.getValue().damage;
+            entryCopy.split = e.getValue().split;
+            copy.magics.put(e.getKey(), entryCopy);
+        }
+        return copy;
+    }
 }

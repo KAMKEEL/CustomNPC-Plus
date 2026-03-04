@@ -461,6 +461,7 @@ script.interact=Взаимодействие
 script.update=Обновление
 script.console=Консоль
 script.language=Язык
+script.default=По умолч.
 script.damaged=Получ. урон
 script.killed=Убит
 script.attack=Атакует

@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
@@ -15,6 +16,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.LogWriter;
 import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
@@ -81,8 +83,10 @@ public final class BlockScriptPacket extends AbstractPacket {
             TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());
             if (!(tile instanceof TileScripted))
                 return;
+            String token = PacketUtil.createScriptSession((EntityPlayerMP) player);
             NBTTagCompound compound = ((TileScripted) tile).getNBT(new NBTTagCompound());
             compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+            compound.setString("ScriptSessionToken", token);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
 
             NBTTagCompound loadComplete = new NBTTagCompound();
@@ -95,8 +99,14 @@ public final class BlockScriptPacket extends AbstractPacket {
             TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());
             if (!(tile instanceof TileScripted))
                 return;
+            NBTTagCompound compound = ByteBufUtils.readNBT(in);
+            String token = compound.getString("ScriptSessionToken");
+            if (!PacketUtil.verifyScriptSession(player, token)) {
+                LogWriter.error(String.format("Rejected block script save from %s: session not verified", player.getCommandSenderName()));
+                return;
+            }
             TileScripted script = (TileScripted) tile;
-            script.setNBT(ByteBufUtils.readNBT(in));
+            script.setNBT(compound);
             script.lastInited = -1;
         }
     }

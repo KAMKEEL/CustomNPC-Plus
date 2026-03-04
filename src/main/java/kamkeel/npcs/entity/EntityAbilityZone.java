@@ -5,6 +5,8 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.EnergyController;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.effect.AbilityPotionEffect;
 import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
@@ -24,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Shared zone entity for Trap and Hazard abilities.
@@ -166,11 +167,20 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     private transient boolean armed = false;
     private transient int triggerCount = 0;
     private transient int ticksSinceLastTrigger = 0;
-    private transient Set<UUID> triggeredEntities = new HashSet<>();
+    private transient Set<Integer> triggeredEntities = new HashSet<>();
     private transient int triggerFlashTick = -1;
 
     private transient int ticksSinceDamage = 0;
     private transient Set<Integer> damagedThisTick = new HashSet<>();
+
+    private transient Ability sourceAbility = null;
+
+    /**
+     * Custom damage data for script-created zones that don't have a sourceAbility.
+     * Used by EnergyController handlers (e.g. DBC Addon) to carry damage configuration
+     * directly on the entity. Synced via spawn data for client sync.
+     */
+    private NBTTagCompound customDamageData = null;
 
     private boolean previewMode = false;
     private EntityLivingBase previewOwner = null;
@@ -195,6 +205,30 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         // Snap to ground with tiny offset to prevent z-clipping
         double groundY = Ability.findGroundLevel(world, x, y, z) + GROUND_OFFSET;
         this.setPosition(x, groundY, z);
+    }
+
+    /**
+     * Initialize as a hazard zone with default values. Used by EnergyController factory.
+     * Scripts can then configure properties before calling spawn().
+     */
+    public void initAsHazard(Entity owner, double x, double y, double z) {
+        this.zoneType = ZoneType.HAZARD;
+        this.ownerEntityId = owner.getEntityId();
+        double groundY = Ability.findGroundLevel(worldObj, x, y, z) + GROUND_OFFSET;
+        this.setPosition(x, groundY, z);
+        this.ticksSinceDamage = damageInterval;
+    }
+
+    /**
+     * Initialize as a trap zone with default values. Used by EnergyController factory.
+     * Scripts can then configure properties before calling spawn().
+     */
+    public void initAsTrap(Entity owner, double x, double y, double z) {
+        this.zoneType = ZoneType.TRAP;
+        this.ownerEntityId = owner.getEntityId();
+        double groundY = Ability.findGroundLevel(worldObj, x, y, z) + GROUND_OFFSET;
+        this.setPosition(x, groundY, z);
+        this.ticksSinceLastTrigger = triggerCooldown;
     }
 
     public static EntityAbilityZone createTrap(World world, EntityLivingBase owner,
@@ -360,7 +394,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         for (EntityLivingBase entity : entities) {
             if (owner != null && entity == owner) continue;
             if (entity.isDead) continue;
-            if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+            if (maxTriggers == 1 && triggeredEntities.contains(entity.getEntityId())) continue;
             if (owner instanceof EntityLivingBase && !AbilityTargetHelper.shouldAffect((EntityLivingBase) owner, entity, TargetFilter.ENEMIES, false)) continue;
 
             double dx = entity.posX - posX;
@@ -439,7 +473,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         if (anyDamaged) {
             triggerCount++;
             ticksSinceLastTrigger = 0;
-            triggeredEntities.add(triggerer.getUniqueID());
+            triggeredEntities.add(triggerer.getEntityId());
             triggerFlashTick = ticksExisted;
             worldObj.setEntityState(this, TRIGGER_FLASH_STATUS);
         }
@@ -505,15 +539,36 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
 
         int previousHurtResistantTime = Ability.clearHurtResistanceIfNeeded(target, ignoreIFrames);
         try {
-            if (owner instanceof EntityNPCInterface) {
-                return target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
-            } else if (owner instanceof EntityPlayer) {
-                return target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
-            } else if (owner instanceof EntityLivingBase) {
-                return target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
-            } else {
-                return target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+            // Route through ability extender (e.g. DBC Addon damage scaling)
+            boolean handled = false;
+            if (sourceAbility != null && owner instanceof EntityLivingBase) {
+                double dx = target.posX - posX;
+                double dz = target.posZ - posZ;
+                handled = AbilityController.Instance.fireOnAbilityDamage(
+                    sourceAbility, (EntityLivingBase) owner, target,
+                    dmg, 0.0f, 0.0f, dx, dz, 1.0f);
             }
+            // Fallback: route through EnergyController for script-created entities with custom damage data
+            if (!handled && customDamageData != null && owner instanceof EntityLivingBase) {
+                double dx = target.posX - posX;
+                double dz = target.posZ - posZ;
+                handled = EnergyController.Instance.fireOnEnergyDamage(
+                    this, (EntityLivingBase) owner, target,
+                    dmg, 0.0f, 0.0f, dx, dz, 1.0f, customDamageData);
+            }
+
+            if (!handled) {
+                if (owner instanceof EntityNPCInterface) {
+                    return target.attackEntityFrom(new NpcDamageSource("npc_ability", (EntityNPCInterface) owner), dmg);
+                } else if (owner instanceof EntityPlayer) {
+                    return target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) owner), dmg);
+                } else if (owner instanceof EntityLivingBase) {
+                    return target.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase) owner), dmg);
+                } else {
+                    return target.attackEntityFrom(new NpcDamageSource("npc_ability", null), dmg);
+                }
+            }
+            return true;
         } finally {
             Ability.restoreHurtResistanceIfNeeded(target, ignoreIFrames, previousHurtResistantTime);
         }
@@ -539,6 +594,22 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     public void setupPreview(EntityLivingBase owner) {
         this.previewMode = true;
         this.previewOwner = owner;
+    }
+
+    public Ability getSourceAbility() {
+        return sourceAbility;
+    }
+
+    public void setSourceAbility(Ability ability) {
+        this.sourceAbility = ability;
+    }
+
+    public NBTTagCompound getCustomDamageData() {
+        return customDamageData;
+    }
+
+    public void setCustomDamageData(NBTTagCompound data) {
+        this.customDamageData = data;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -715,6 +786,51 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    // PUBLIC SETTERS (for EnergyController / scripting API)
+    // ═══════════════════════════════════════════════════════════════════
+
+    public void setShape(ZoneShape shape) { this.shape = shape; }
+    public void setRadius(float radius) { this.radius = radius; }
+    public void setZoneHeight(float height) { this.zoneHeight = height; }
+    public void setDurationTicks(int ticks) { this.durationTicks = ticks; this.maxTicks = ticks; }
+    public void setInnerColor(int color) { this.innerColor = color; }
+    public void setOuterColor(int color) { this.outerColor = color; }
+    public void setOuterColorEnabled(boolean enabled) { this.outerColorEnabled = enabled; }
+    public void setParticleDensity(float density) { this.particleDensity = density; }
+    public void setParticleScale(float scale) { this.particleScale = scale; }
+    public void setAnimSpeed(float speed) { this.animSpeed = speed; }
+    public void setIgnoreIFrames(boolean ignore) { this.ignoreIFrames = ignore; }
+
+    // Hazard-specific
+    public float getDamagePerSecond() { return damagePerSecond; }
+    public void setDamagePerSecond(float dps) { this.damagePerSecond = dps; }
+    public int getDamageInterval() { return damageInterval; }
+    public void setDamageInterval(int ticks) { this.damageInterval = ticks; }
+    public boolean isAffectsCaster() { return affectsCaster; }
+    public void setAffectsCaster(boolean affects) { this.affectsCaster = affects; }
+
+    // Trap-specific
+    public float getTriggerRadius() { return triggerRadius; }
+    public void setTriggerRadius(float radius) { this.triggerRadius = radius; }
+    public int getArmTime() { return armTime; }
+    public void setArmTime(int ticks) { this.armTime = ticks; }
+    public int getMaxTriggers() { return maxTriggers; }
+    public void setMaxTriggers(int max) { this.maxTriggers = max; }
+    public int getTriggerCooldown() { return triggerCooldown; }
+    public void setTriggerCooldown(int ticks) { this.triggerCooldown = ticks; }
+    public float getDamage() { return damage; }
+    public void setDamage(float damage) { this.damage = damage; }
+    public float getDamageRadius() { return damageRadius; }
+    public void setDamageRadius(float radius) { this.damageRadius = radius; }
+    public float getKnockback() { return knockback; }
+    public void setKnockback(float knockback) { this.knockback = knockback; }
+    public void setVisible(boolean visible) { this.visible = visible; }
+
+    public boolean isIgnoreIFrames() { return ignoreIFrames; }
+
+    public int getOwnerEntityId() { return ownerEntityId; }
+
+    // ═══════════════════════════════════════════════════════════════════
     // NBT SERIALIZATION
     // ═══════════════════════════════════════════════════════════════════
 
@@ -781,6 +897,17 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
         } catch (java.io.IOException e) {
             noppes.npcs.LogWriter.error("Error writing zone effects spawn data", e);
         }
+
+        // Custom damage data
+        boolean hasDamageData = customDamageData != null;
+        buffer.writeBoolean(hasDamageData);
+        if (hasDamageData) {
+            try {
+                ByteBufUtils.writeNBT(buffer, customDamageData);
+            } catch (java.io.IOException e) {
+                noppes.npcs.LogWriter.error("Error writing zone custom damage data", e);
+            }
+        }
     }
 
     @Override
@@ -841,6 +968,15 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                 if (effect != null && effect.isValid()) {
                     effects.add(effect);
                 }
+            }
+        }
+
+        // Custom damage data
+        if (buffer.readableBytes() > 0 && buffer.readBoolean()) {
+            try {
+                this.customDamageData = ByteBufUtils.readNBT(buffer);
+            } catch (java.io.IOException e) {
+                noppes.npcs.LogWriter.error("Error reading zone custom damage data", e);
             }
         }
     }

@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.controllers.data.MagicData;
 
 import java.util.List;
 
@@ -70,6 +71,11 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     }
 
     @Override
+    public boolean hasMagic() {
+        return true; // Barriers use magic for defense interactions
+    }
+
+    @Override
     public boolean allowFreeOnCast() {
         return true;
     }
@@ -86,6 +92,7 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         if (tick == 1) {
             barrierEntity = createBarrierEntity(caster, target);
             if (barrierEntity != null) {
+                inheritMagicData(barrierEntity, caster);
                 applyBarrierHealthModifiers(caster);
                 barrierEntity.setupCharging(getWindUpTicks());
                 spawnAbilityEntity(barrierEntity);
@@ -102,9 +109,17 @@ public abstract class AbilityBarrier extends AbilityEnergy {
             // No windup or entity died — create fresh
             barrierEntity = createBarrierEntity(caster, target);
             if (barrierEntity != null) {
+                inheritMagicData(barrierEntity, caster);
                 applyBarrierHealthModifiers(caster);
                 spawnAbilityEntity(barrierEntity);
             }
+        }
+    }
+
+    private void inheritMagicData(EntityEnergyBarrier entity, EntityLivingBase caster) {
+        MagicData resolved = resolveMagicData(caster);
+        if (resolved != null) {
+            entity.setMagicData(resolved.copy());
         }
     }
 
@@ -197,6 +212,18 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     public void setUseHealth(boolean useHealth) {
         barrierData.useHealth = useHealth;
     }
+
+    @Override
+    public float getDisplayBarrierHealth() { return barrierData.useHealth ? barrierData.maxHealth : 0; }
+
+    @Override
+    public boolean isDisplayReflect() { return barrierData.reflect; }
+
+    @Override
+    public float getDisplayReflectStrength() { return barrierData.reflectStrengthPct; }
+
+    @Override
+    public boolean isDisplayAbsorbing() { return barrierData.absorbing; }
 
     public int getBarrierDuration() {
         return barrierData.durationTicks;
