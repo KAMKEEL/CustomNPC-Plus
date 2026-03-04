@@ -109,6 +109,21 @@ public class TokenHoverRenderer {
         // Box dimensions — use visibleContentHeight so positioning matches rendering
         int boxWidth = contentWidth + PADDING * 2;
         int boxHeight = visibleContentHeight + PADDING * 2;
+
+        // Apply user size override when the panel has been resized
+        if (hoverState.hasOverriddenSize()) {
+            int overW = Math.max(MIN_WIDTH + PADDING * 2, hoverState.getOverriddenTooltipW());
+            int overH = Math.max(lineHeight + PADDING * 2, hoverState.getOverriddenTooltipH());
+            boxWidth = overW;
+            visibleContentHeight = overH - PADDING * 2;
+            boxHeight = overH;
+            // Re-measure with new wrap width so scrollbar detection is accurate
+            int newContentW = boxWidth - PADDING * 2;
+            totalContentHeight = calculateContentHeight(info, newContentW);
+            if (totalContentHeight > visibleContentHeight) {
+                totalContentHeight = calculateContentHeight(info, newContentW - 6);
+            }
+        }
         
         // Position the tooltip — use dragged position if user has panned the panel
         int tooltipX = hoverState.hasOverriddenPosition() ? hoverState.getOverriddenTooltipX() : tokenX;
@@ -341,7 +356,7 @@ public class TokenHoverRenderer {
         if (hasScrollbar) {
             int scrollbarX = x + boxWidth - PADDING;
             int scrollbarTrackTop = y + PADDING;
-            int scrollbarTrackHeight = visibleContentHeight;
+            int scrollbarTrackHeight = visibleContentHeight - 4; // leave room for resize handle
             // Track
             Gui.drawRect(scrollbarX, scrollbarTrackTop, scrollbarX + 3,
                 scrollbarTrackTop + scrollbarTrackHeight, 0x40888888);
@@ -349,9 +364,12 @@ public class TokenHoverRenderer {
             float scrollRatio = (float) visibleContentHeight / totalContentHeight;
             int thumbHeight = Math.max(6, (int)(scrollbarTrackHeight * scrollRatio));
             int effectiveMaxScroll = totalContentHeight - visibleContentHeight;
+            // Clamp scrollProgress to [0,1] — guards against stale offset after resize shrinks content
             float scrollProgress = effectiveMaxScroll > 0
-                ? (float) hoverState.getTooltipScrollOffset() / effectiveMaxScroll : 0f;
+                ? Math.min(1f, (float) hoverState.getTooltipScrollOffset() / effectiveMaxScroll) : 0f;
             int thumbY = scrollbarTrackTop + (int)((scrollbarTrackHeight - thumbHeight) * scrollProgress);
+            // Clamp thumb within track bounds defensively
+            thumbY = Math.max(scrollbarTrackTop, Math.min(scrollbarTrackTop + scrollbarTrackHeight - thumbHeight, thumbY));
             // Store thumb bounds in HoverState for drag/hover detection
             hoverState.setScrollbarThumb(scrollbarX, thumbY, thumbHeight, scrollbarTrackTop, scrollbarTrackHeight);
             // Highlight thumb when hovered or dragging (darker = active, like AutocompleteMenu)
@@ -361,6 +379,24 @@ public class TokenHoverRenderer {
                 || hoverState.isMouseOverScrollbarThumb(mouseX, mouseY);
             int thumbColor = thumbActive ? 0xFFCCCCCC : 0xFF808080;
             Gui.drawRect(scrollbarX, thumbY, scrollbarX + 3, thumbY + thumbHeight, thumbColor);
+        }
+
+        // Draw resize handle at bottom-right corner (outside scissor, same as scrollbar)
+        {
+            int mouseX = hoverState.getLastMouseX();
+            int mouseY = hoverState.getLastMouseY();
+            boolean resizeActive = hoverState.isResizingTooltip()
+                || hoverState.isMouseOverResizeHandle(mouseX, mouseY);
+            int dotColor = resizeActive ? 0xFFCCCCCC : 0x80888888;
+            int rhX = x + boxWidth - 2;
+            int rhY = y + boxHeight - 2;
+            // Three-dot diagonal pattern (◢)
+            Gui.drawRect(rhX - 1, rhY - 1, rhX,     rhY,     dotColor);
+            Gui.drawRect(rhX - 3, rhY - 1, rhX - 2, rhY,     dotColor);
+            Gui.drawRect(rhX - 1, rhY - 3, rhX,     rhY - 2, dotColor);
+            Gui.drawRect(rhX - 5, rhY - 1, rhX - 4, rhY,     dotColor);
+            Gui.drawRect(rhX - 3, rhY - 3, rhX - 2, rhY - 2, dotColor);
+            Gui.drawRect(rhX - 1, rhY - 5, rhX,     rhY - 4, dotColor);
         }
     }
 

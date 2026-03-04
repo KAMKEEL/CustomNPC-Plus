@@ -65,6 +65,16 @@ public class HoverState {
     private boolean tooltipPositionOverridden;
     private int overriddenTooltipX, overriddenTooltipY;
 
+    /** Tooltip panel resize state */
+    private boolean isResizingTooltip;
+    private int resizeInitMouseX, resizeInitMouseY;
+    private int resizeInitW, resizeInitH;
+    private boolean tooltipSizeOverridden;
+    private int overriddenTooltipW, overriddenTooltipH;
+    /** Minimum tooltip dimensions when user-resized */
+    private static final int MIN_TOOLTIP_W = 80;
+    private static final int MIN_TOOLTIP_H = 30;
+
     /** Smooth scroll: target offset (pixels), current is animated toward it each frame */
     private float targetScrollOffset;
     /** Vertical scroll offset for tooltip content (pixels) */
@@ -233,6 +243,8 @@ public class HoverState {
                 isDraggingScrollbar = false;
                 isDraggingTooltip = false;
                 tooltipPositionOverridden = false;
+                isResizingTooltip = false;
+                tooltipSizeOverridden = false;
                 tooltipScrollOffsetF = 0;
                 targetScrollOffset = 0;
                 tooltipMaxScroll = 0;
@@ -450,6 +462,43 @@ public class HoverState {
     public boolean hasOverriddenPosition() { return tooltipPositionOverridden; }
     public int getOverriddenTooltipX()     { return overriddenTooltipX; }
     public int getOverriddenTooltipY()     { return overriddenTooltipY; }
+
+    // ==================== TOOLTIP PANEL RESIZE ====================
+
+    /** Returns true when the mouse is over the resize handle (bottom-right corner). */
+    public boolean isMouseOverResizeHandle(int mx, int my) {
+        if (!tooltipVisible || tooltipPanelW <= 0) return false;
+        int rx = tooltipPanelX + tooltipPanelW - 8;
+        int ry = tooltipPanelY + tooltipPanelH - 8;
+        return mx >= rx && mx <= tooltipPanelX + tooltipPanelW
+            && my >= ry && my <= tooltipPanelY + tooltipPanelH;
+    }
+
+    /** Begin resizing; captures current panel dimensions as the baseline. */
+    public void startTooltipResize(int mouseX, int mouseY) {
+        isResizingTooltip = true;
+        resizeInitMouseX = mouseX;
+        resizeInitMouseY = mouseY;
+        resizeInitW = tooltipSizeOverridden ? overriddenTooltipW : tooltipPanelW;
+        resizeInitH = tooltipSizeOverridden ? overriddenTooltipH : tooltipPanelH;
+    }
+
+    /** Called every frame while M1 is held to resize the tooltip panel. */
+    public void updateTooltipResize(int mouseX, int mouseY) {
+        if (!isResizingTooltip) return;
+        overriddenTooltipW = Math.max(MIN_TOOLTIP_W, resizeInitW + (mouseX - resizeInitMouseX));
+        overriddenTooltipH = Math.max(MIN_TOOLTIP_H, resizeInitH + (mouseY - resizeInitMouseY));
+        tooltipSizeOverridden = true;
+    }
+
+    public void releaseTooltipResize() {
+        isResizingTooltip = false;
+    }
+
+    public boolean isResizingTooltip()  { return isResizingTooltip; }
+    public boolean hasOverriddenSize()   { return tooltipSizeOverridden; }
+    public int getOverriddenTooltipW()   { return overriddenTooltipW; }
+    public int getOverriddenTooltipH()   { return overriddenTooltipH; }
 
     public boolean isDraggingScrollbar() {
         return isDraggingScrollbar;

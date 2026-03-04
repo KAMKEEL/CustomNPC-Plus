@@ -668,6 +668,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 hoverState.releaseTooltipDrag();
             }
         }
+        // Handle tooltip panel resize (update each frame; release when button lifted)
+        if (hoverState.isResizingTooltip()) {
+            if (Mouse.isButtonDown(0)) {
+                hoverState.updateTooltipResize(xMouse, yMouse);
+            } else {
+                hoverState.releaseTooltipResize();
+            }
+        }
         
         // Update scroll animation
         scroll.initializeIfNeeded(scroll.getScrolledLine());
@@ -1208,8 +1216,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             hoverState.setLastMousePosition(xMouse, yMouse);
             return;
         }
-        // Tooltip was dragged to a custom position — keep it pinned until an explicit click dismisses it
-        if (hoverState.hasOverriddenPosition()) {
+        // Keep tooltip alive while resizing (mouse may be outside the panel bounds)
+        if (hoverState.isResizingTooltip()) {
+            hoverState.setLastMousePosition(xMouse, yMouse);
+            return;
+        }
+        // Tooltip has been dragged or resized — keep it pinned until an explicit outside click
+        if (hoverState.hasOverriddenPosition() || hoverState.hasOverriddenSize()) {
             hoverState.setLastMousePosition(xMouse, yMouse);
             return;
         }
@@ -1749,6 +1762,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
 
+        // Dismiss pinned/resized tooltip on Escape
+        if (i == Keyboard.KEY_ESCAPE && hoverState.isTooltipVisible()
+                && (hoverState.hasOverriddenPosition() || hoverState.hasOverriddenSize())) {
+            hoverState.clearHover();
+            return true;
+        }
         // Ignore if any global keys bound to this code are currently pressed
         if (KEYS.hasMatchingKeyPressed(i))
             return false;
@@ -2693,7 +2712,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
     
     public boolean closeOnEsc(){
-        return !KEYS_OVERLAY.isVisible() && !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive() && !autocompleteManager.isVisible(); 
+        return !KEYS_OVERLAY.isVisible() && !searchBar.isVisible() && !goToLineDialog.isVisible()
+                && !renameHandler.isActive() && !autocompleteManager.isVisible()
+                && !(hoverState.isTooltipVisible() && (hoverState.hasOverriddenPosition() || hoverState.hasOverriddenSize()));
     }
     
     // ==================== KEYBOARD MODIFIERS ====================
@@ -2889,6 +2910,24 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== MOUSE HANDLING ====================
 
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
+        // HIGHEST PRIORITY: tooltip panel absorbs all clicks — no click-through to panels beneath it
+        if (hoverState.isTooltipVisible() && hoverState.isMouseOverTooltipPanel(xMouse, yMouse)) {
+            if (mouseButton == 0) {
+                if (hoverState.isMouseOverResizeHandle(xMouse, yMouse)) {
+                    hoverState.startTooltipResize(xMouse, yMouse);
+                } else if (hoverState.isMouseOverScrollbarThumb(xMouse, yMouse)) {
+                    hoverState.startScrollbarDrag(yMouse);
+                } else {
+                    hoverState.startTooltipDrag(xMouse, yMouse);
+                }
+            }
+            return; // consume — nothing below receives this click
+        }
+        // M1 outside a dragged/resized tooltip — dismiss it and fall through to editor
+        if (mouseButton == 0 && (hoverState.hasOverriddenPosition() || hoverState.hasOverriddenSize())
+                && !hoverState.isMouseOverTooltipPanel(xMouse, yMouse)) {
+            hoverState.clearHover();
+        }
         // Check autocomplete menu clicks first
         if (autocompleteManager.isVisible() && autocompleteManager.mouseClicked(xMouse, yMouse, mouseButton)) {
             return;
@@ -2922,24 +2961,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton))
             return;
             
-        // Check tooltip scrollbar click (highest priority — before text interaction)
-        if (mouseButton == 0 && hoverState.isTooltipVisible()
-                && hoverState.isMouseOverScrollbarThumb(xMouse, yMouse)) {
-            hoverState.startScrollbarDrag(yMouse);
-            return;
-        }
-        // Check tooltip panel drag — M1 anywhere on the panel body (not the scrollbar thumb)
-        if (mouseButton == 0 && hoverState.isTooltipVisible()
-                && hoverState.isMouseOverTooltipPanel(xMouse, yMouse)
-                && !hoverState.isMouseOverScrollbarThumb(xMouse, yMouse)) {
-            hoverState.startTooltipDrag(xMouse, yMouse);
-            return;
-        }
-        // M1 outside a drag-pinned tooltip — dismiss it and let the click fall through to the editor
-        if (mouseButton == 0 && hoverState.hasOverriddenPosition()
-                && !hoverState.isMouseOverTooltipPanel(xMouse, yMouse)) {
-            hoverState.clearHover();
-        }
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
         if (this.active) {
