@@ -1188,6 +1188,49 @@ public class TokenHoverInfo {
     }
 
     /**
+     * Parses a JSDoc description string and routes each logical line into jsDocLines[]
+     * with markdown-aware coloring:
+     *  - ## / ### headings  → COLOR_METHOD (yellow)
+     *  - ``` code fences    → markers suppressed; code lines → COLOR_STRING (green)
+     *  - blank lines        → empty DocumentationLine (spacer)
+     *  - normal text        → default color
+     */
+    private void addDescriptionAsMarkdown(String description) {
+        if (description == null || description.isEmpty()) return;
+        String[] lines = description.split("\n", -1);
+        boolean inCodeFence = false;
+        for (String line : lines) {
+            DocumentationLine docLine = new DocumentationLine();
+            if (line.trim().startsWith("```")) {
+                // Toggle code fence — suppress the fence marker, emit empty spacer
+                inCodeFence = !inCodeFence;
+                jsDocLines.add(new DocumentationLine());
+            } else if (inCodeFence) {
+                // Code content — green
+                docLine.addSegment(line, TextSegment.COLOR_STRING);
+                jsDocLines.add(docLine);
+            } else if (line.trim().startsWith("###")) {
+                // H3 heading — yellow (strip ### prefix, keep emoji if present)
+                String text = line.trim().substring(3).trim();
+                docLine.addSegment(text, TextSegment.COLOR_METHOD);
+                jsDocLines.add(docLine);
+            } else if (line.trim().startsWith("##")) {
+                // H2 heading — yellow (strip ## prefix, keep emoji if present)
+                String text = line.trim().substring(2).trim();
+                docLine.addSegment(text, TextSegment.COLOR_METHOD);
+                jsDocLines.add(docLine);
+            } else if (line.trim().isEmpty()) {
+                // Blank line — empty spacer
+                jsDocLines.add(new DocumentationLine());
+            } else {
+                // Normal text
+                docLine.addText(line.trim());
+                jsDocLines.add(docLine);
+            }
+        }
+    }
+
+    /**
      * Format JSDoc information in IntelliJ-style with "Params:" and "Returns:" sections.
      * Creates colored documentation lines with parameter names highlighted.
      */
@@ -1195,17 +1238,7 @@ public class TokenHoverInfo {
         // Add description if available (without @tags)
         String description = jsDoc.getDescription();
         if (description != null && !description.isEmpty()) {
-            // Clean up the description - remove leading/trailing whitespace and asterisks
-            String[] descLines = description.split("\n");
-            for (String line : descLines) {
-                line = line.trim();
-                if (line.startsWith("*")) {
-                    line = line.substring(1).trim();
-                }
-                if (!line.isEmpty() && !line.startsWith("@")) {
-                    documentation.add(line);
-                }
-            }
+            addDescriptionAsMarkdown(description);
         }
 
         // Add Returns section if there's a @return tag
@@ -1266,11 +1299,20 @@ public class TokenHoverInfo {
                 // Description if available
                 String paramDesc = paramTag.getDescription();
                 if (paramDesc != null && !paramDesc.isEmpty()) {
+                    String[] paramDescLines = paramDesc.split("\n", -1);
                     paramLine.addText(" - ");
-                    paramLine.addText(paramDesc.trim());
+                    paramLine.addText(paramDescLines[0].trim());
+                    jsDocLines.add(paramLine);
+                    for (int i = 1; i < paramDescLines.length; i++) {
+                        if (!paramDescLines[i].trim().isEmpty()) {
+                            DocumentationLine contLine = new DocumentationLine();
+                            contLine.addText("  " + paramDescLines[i].trim());
+                            jsDocLines.add(contLine);
+                        }
+                    }
+                } else {
+                    jsDocLines.add(paramLine);
                 }
-
-                jsDocLines.add(paramLine);
             }
         }
 
@@ -1293,11 +1335,20 @@ public class TokenHoverInfo {
             // Description if available
             String returnDesc = returnTag.getDescription();
             if (returnDesc != null && !returnDesc.isEmpty()) {
+                String[] returnDescLines = returnDesc.split("\n", -1);
                 returnLine.addText(" - ");
-                returnLine.addText(returnDesc.trim());
+                returnLine.addText(returnDescLines[0].trim());
+                jsDocLines.add(returnLine);
+                for (int i = 1; i < returnDescLines.length; i++) {
+                    if (!returnDescLines[i].trim().isEmpty()) {
+                        DocumentationLine contLine = new DocumentationLine();
+                        contLine.addText("  " + returnDescLines[i].trim());
+                        jsDocLines.add(contLine);
+                    }
+                }
+            } else {
+                jsDocLines.add(returnLine);
             }
-
-            jsDocLines.add(returnLine);
         }
         
         List<JSDocSeeTag> seeTags = jsDoc.getSeeTags();
