@@ -257,12 +257,12 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                     double dz = target.posZ - posZ;
                     double len = Math.sqrt(dx * dx + dz * dz);
                     if (len > 0) {
-                        target.addVelocity(
-                            (dx / len) * panelData.launchKnockback * 0.5,
-                            0.1,
-                            (dz / len) * panelData.launchKnockback * 0.5
-                        );
-                        target.velocityChanged = true;
+                        double kbX = (dx / len) * panelData.launchKnockback * 0.5;
+                        double kbZ = (dz / len) * panelData.launchKnockback * 0.5;
+                        if (canPushInDirection(target, kbX, 0.1, kbZ)) {
+                            target.addVelocity(kbX, 0.1, kbZ);
+                            target.velocityChanged = true;
+                        }
                     }
                 }
             }
@@ -580,8 +580,12 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                     // Cancel normal velocity and add corrective push
                     ent.motionX -= normalVel * normalX;
                     ent.motionZ -= normalVel * normalZ;
-                    ent.motionX += normalX * prevSide * 0.15;
-                    ent.motionZ += normalZ * prevSide * 0.15;
+                    double pushX = normalX * prevSide * 0.15;
+                    double pushZ = normalZ * prevSide * 0.15;
+                    if (canPushInDirection(ent, pushX, 0, pushZ)) {
+                        ent.motionX += pushX;
+                        ent.motionZ += pushZ;
+                    }
                     ent.velocityChanged = true;
                 } else {
                     // Preemptive: near the plane and moving toward it — cancel normal velocity
@@ -592,8 +596,12 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                         if (movingToward) {
                             ent.motionX -= normalVel * normalX;
                             ent.motionZ -= normalVel * normalZ;
-                            ent.motionX += normalX * side * 0.05;
-                            ent.motionZ += normalZ * side * 0.05;
+                            double pushX = normalX * side * 0.05;
+                            double pushZ = normalZ * side * 0.05;
+                            if (canPushInDirection(ent, pushX, 0, pushZ)) {
+                                ent.motionX += pushX;
+                                ent.motionZ += pushZ;
+                            }
                             ent.velocityChanged = true;
                         }
                     }
@@ -606,8 +614,12 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                 if (absDist < searchExtension) {
                     double proximity = 1.0 - (absDist / searchExtension);
                     double force = proximity * strength * 0.06;
-                    ent.motionX += normalX * side * force;
-                    ent.motionZ += normalZ * side * force;
+                    double pushX = normalX * side * force;
+                    double pushZ = normalZ * side * force;
+                    if (canPushInDirection(ent, pushX, 0, pushZ)) {
+                        ent.motionX += pushX;
+                        ent.motionZ += pushZ;
+                    }
                     ent.velocityChanged = true;
                 }
             }
