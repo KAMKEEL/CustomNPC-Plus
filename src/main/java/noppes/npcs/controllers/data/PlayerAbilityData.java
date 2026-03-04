@@ -8,6 +8,8 @@ import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.controllers.data.ability.data.entry.AbilityToggleEntry;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
@@ -177,6 +179,22 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     protected void clearAnimationData() {
         playerData.animationData.setAnimation(null);
         playerData.animationData.updateClient();
+
+        // Directly send animation clear to the owning player. updateClient() uses
+        // getEntitiesWithinAABB to find recipients, but during teleport the player
+        // entity hasn't migrated to the new chunk yet — so the AABB search centered
+        // on the new position won't find them, and the clear packet is never delivered.
+        // This guarantees the player's client always receives the clear.
+        EntityPlayer player = playerData.player;
+        if (player instanceof EntityPlayerMP) {
+            NBTTagCompound data = new NBTTagCompound();
+            data.setBoolean("AllowAnimation", playerData.animationData.enabled());
+            PacketHandler.Instance.sendToPlayer(
+                new UpdateAnimationsPacket(data, player.getCommandSenderName()),
+                (EntityPlayerMP) player
+            );
+        }
+
         playingAbilityAnimation = false;
     }
 
