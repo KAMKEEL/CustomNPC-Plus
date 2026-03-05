@@ -79,6 +79,8 @@ public class TokenHoverInfo {
         public boolean isCodeLine = false;
         /** True only for the FIRST line of each code block (triggers background draw) */
         public boolean isCodeBlockFirst = false;
+        /** Number of stripped leading spaces — used to apply explicit pixel indentation */
+        public int codeLeadingSpaces = 0;
 
         public DocumentationLine() {
             this.segments = new ArrayList<>();
@@ -1303,16 +1305,22 @@ public class TokenHoverInfo {
                     }
                     jsDocLines.add(emptyCode);
                 } else {
-                    // Code content — syntax highlighted
-                    List<TextSegment> codeTokens = tokenizeCodeLine(line);
+                    // Code content — strip leading spaces for explicit indentation, then syntax-highlight
+                    int leadingSpaces = 0;
+                    while (leadingSpaces < line.length() && line.charAt(leadingSpaces) == ' ') {
+                        leadingSpaces++;
+                    }
+                    String codeLine = leadingSpaces > 0 ? line.substring(leadingSpaces) : line;
+                    List<TextSegment> codeTokens = tokenizeCodeLine(codeLine);
                     if (codeTokens.isEmpty()) {
-                        docLine.addSegment(line, TextSegment.COLOR_STRING);
+                        docLine.addSegment(codeLine, TextSegment.COLOR_STRING);
                     } else {
                         for (TextSegment tok : codeTokens) {
                             docLine.segments.add(tok);
                         }
                     }
                     docLine.isCodeLine = true;
+                    docLine.codeLeadingSpaces = leadingSpaces;
                     if (nextIsFirst) {
                         docLine.isCodeBlockFirst = true;
                         nextIsFirst = false;

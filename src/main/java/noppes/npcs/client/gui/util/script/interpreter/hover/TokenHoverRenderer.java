@@ -74,6 +74,8 @@ public class TokenHoverRenderer {
     private static final int CODE_INDENT = 10;
     /** Vertical padding above/below code block content */
     private static final int CODE_VPAD = 6;
+    /** Fixed visual gap between last content line and the panel bottom (always visible, regardless of scroll) */
+    private static final int BOTTOM_GAP = 4;
 
     // ==================== RENDERING ====================
 
@@ -90,6 +92,15 @@ public class TokenHoverRenderer {
         int lineHeight = ClientProxy.Font.height();
         int tokenX = hoverState.getTokenScreenX();
         int tokenY = hoverState.getTokenScreenY();
+
+        // Screen dimensions for clamping when the panel has been dragged outside the editor viewport
+        Minecraft mc2 = Minecraft.getMinecraft();
+        ScaledResolution sr2 = new ScaledResolution(mc2, mc2.displayWidth, mc2.displayHeight);
+        int screenW = sr2.getScaledWidth();
+        int screenH = sr2.getScaledHeight();
+        boolean positionOverridden = hoverState.hasOverriddenPosition();
+        // Use screen bounds whenever the panel has been dragged OR resized — both escape the editor viewport
+        boolean useScreenBounds = positionOverridden || hoverState.hasOverriddenSize();
         
         // Calculate max available width for content
         int maxContentWidth = getMaxContentWidth(viewportX, viewportWidth, tokenX);
@@ -99,7 +110,7 @@ public class TokenHoverRenderer {
         
         // Cap visible height at 60% of viewport
         int totalContentHeight = calculateContentHeight(info, contentWidth);
-        int maxVisibleContentHeight = (int)(viewportHeight * 0.60f);
+        int maxVisibleContentHeight = (int)((useScreenBounds ? screenH : viewportHeight) * 0.60f);
         if (totalContentHeight > maxVisibleContentHeight) {
             // Scrollbar will appear, reducing effective wrap width by 6px — re-measure for accurate height
             totalContentHeight = calculateContentHeight(info, contentWidth - 6);
@@ -126,35 +137,37 @@ public class TokenHoverRenderer {
         }
         
         // Position the tooltip — use dragged position if user has panned the panel
-        int tooltipX = hoverState.hasOverriddenPosition() ? hoverState.getOverriddenTooltipX() : tokenX;
-        int tooltipY = hoverState.hasOverriddenPosition() ? hoverState.getOverriddenTooltipY() : tokenY + lineHeight + VERTICAL_OFFSET;
+        int tooltipX = positionOverridden ? hoverState.getOverriddenTooltipX() : tokenX;
+        int tooltipY = positionOverridden ? hoverState.getOverriddenTooltipY() : tokenY + lineHeight + VERTICAL_OFFSET;
         
-        // Clamp X position to viewport
-        int rightBound = viewportX + viewportWidth;
+        // Clamp position — use screen bounds when user has dragged the panel outside the editor viewport
+        int leftBound   = useScreenBounds ? 0       : viewportX;
+        int rightBound  = useScreenBounds ? screenW  : viewportX + viewportWidth;
+        int topBound    = useScreenBounds ? 0       : viewportY;
+        int bottomBound = useScreenBounds ? screenH  : viewportY + viewportHeight;
+
         if (tooltipX + boxWidth > rightBound) {
             tooltipX = rightBound - boxWidth;
         }
-        if (tooltipX < viewportX) {
-            tooltipX = viewportX;
+        if (tooltipX < leftBound) {
+            tooltipX = leftBound;
         }
-        
+
         // If box still doesn't fit horizontally, shrink it
         int availableWidth = rightBound - tooltipX;
         if (boxWidth > availableWidth) {
             boxWidth = availableWidth;
         }
-        
-        // Clamp Y position to viewport
-        int bottomBound = viewportY + viewportHeight;
+
         if (tooltipY + boxHeight > bottomBound) {
-            if (hoverState.hasOverriddenPosition()) {
-                tooltipY = bottomBound - boxHeight; // clamp dragged panel to bottom edge
+            if (useScreenBounds) {
+                tooltipY = bottomBound - boxHeight;
             } else {
                 tooltipY = tokenY - boxHeight - VERTICAL_OFFSET; // try above token
             }
         }
-        if (tooltipY < viewportY) {
-            tooltipY = viewportY;
+        if (tooltipY < topBound) {
+            tooltipY = topBound;
         }
         
         // Record actual panel rect for drag hit-testing
@@ -203,7 +216,7 @@ public class TokenHoverRenderer {
         int boxHeight = visibleContentHeight + PADDING * 2;
 
         // Store scroll metadata into HoverState
-        hoverState.setTooltipMaxScroll(Math.max(0, totalContentHeight - visibleContentHeight));
+        hoverState.setTooltipMaxScroll(Math.max(0, totalContentHeight - visibleContentHeight + BOTTOM_GAP));
 
         // Draw background
         Gui.drawRect(x, y, x + boxWidth, y + boxHeight, BG_COLOR);
@@ -219,9 +232,9 @@ public class TokenHoverRenderer {
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int sf = sr.getScaleFactor();
         int clipX = (x + 1) * sf;
-        int clipY = (sr.getScaledHeight() - (y + boxHeight - 1)) * sf;
+        int clipY = (sr.getScaledHeight() - (y + boxHeight - 1 - BOTTOM_GAP)) * sf;
         int clipW = (hasScrollbar ? boxWidth - PADDING - 1 : boxWidth - 2) * sf;
-        int clipH = (boxHeight - 2) * sf;
+        int clipH = (boxHeight - 2 - BOTTOM_GAP) * sf;
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GL11.glScissor(clipX, clipY, clipW, clipH);
 
@@ -303,7 +316,9 @@ public class TokenHoverRenderer {
                     for (int k = di; k < jsDocLines.size() && jsDocLines.get(k).isCodeLine; k++) {
                         TokenHoverInfo.DocumentationLine cl = jsDocLines.get(k);
                         if (!cl.isEmpty()) {
-                            blockH += calculateSegmentsHeight(effectiveWrapWidth - CODE_INDENT, cl.segments) + LINE_SPACING;
+                            int clIndent = cl.codeLeadingSpaces * ClientProxy.Font.width(" ");
+                            int clWrapW = Math.max(10, effectiveWrapWidth - CODE_INDENT - clIndent);
+                            blockH += calculateSegmentsHeight(clWrapW, cl.segments) + LINE_SPACING;
                         } else {
                             blockH += lineHeight / 2;
                         }
@@ -322,7 +337,10 @@ public class TokenHoverRenderer {
                 
                 if (docLine.isCodeLine) {
                     if (!docLine.isEmpty()) {
-                        currentY = drawWrappedSegments(textX + CODE_INDENT, currentY, effectiveWrapWidth - CODE_INDENT, docLine.segments);
+                        int explicitIndent = docLine.codeLeadingSpaces * ClientProxy.Font.width(" ");
+                        int codeX = textX + CODE_INDENT + explicitIndent;
+                        int codeWrapW = Math.max(10, effectiveWrapWidth - CODE_INDENT - explicitIndent);
+                        currentY = drawWrappedSegments(codeX, currentY, codeWrapW, docLine.segments);
                         currentY += LINE_SPACING;
                     } else {
                         currentY += lineHeight / 2;
@@ -361,9 +379,9 @@ public class TokenHoverRenderer {
             Gui.drawRect(scrollbarX, scrollbarTrackTop, scrollbarX + 3,
                 scrollbarTrackTop + scrollbarTrackHeight, 0x40888888);
             // Thumb
-            float scrollRatio = (float) visibleContentHeight / totalContentHeight;
+            float scrollRatio = (float) visibleContentHeight / (totalContentHeight + BOTTOM_GAP);
             int thumbHeight = Math.max(6, (int)(scrollbarTrackHeight * scrollRatio));
-            int effectiveMaxScroll = totalContentHeight - visibleContentHeight;
+            int effectiveMaxScroll = totalContentHeight - visibleContentHeight + BOTTOM_GAP;
             // Clamp scrollProgress to [0,1] — guards against stale offset after resize shrinks content
             float scrollProgress = effectiveMaxScroll > 0
                 ? Math.min(1f, (float) hoverState.getTooltipScrollOffset() / effectiveMaxScroll) : 0f;
@@ -542,7 +560,10 @@ public class TokenHoverRenderer {
         if (jsDocLines != null) {
             for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
                 if (!docLine.isEmpty()) {
-                    int lineLongest = calculateSegmentsLongestLine(maxWidth, docLine.segments);
+                    int explicitIndent = docLine.isCodeLine
+                        ? CODE_INDENT + docLine.codeLeadingSpaces * ClientProxy.Font.width(" ")
+                        : 0;
+                    int lineLongest = calculateSegmentsLongestLine(maxWidth - explicitIndent, docLine.segments) + explicitIndent;
                     longestLineWidth = Math.max(longestLineWidth, lineLongest);
                 }
             }
@@ -622,7 +643,10 @@ public class TokenHoverRenderer {
 
             for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
                 if (!docLine.isEmpty()) {
-                    int wrapW = docLine.isCodeLine ? contentWidth - CODE_INDENT : contentWidth;
+                    int explicitIndent = docLine.isCodeLine
+                        ? docLine.codeLeadingSpaces * ClientProxy.Font.width(" ")
+                        : 0;
+                    int wrapW = Math.max(10, contentWidth - (docLine.isCodeLine ? CODE_INDENT : 0) - explicitIndent);
                     totalHeight += calculateSegmentsHeight(wrapW, docLine.segments);
                     totalHeight += LINE_SPACING;
                 } else {
@@ -639,8 +663,7 @@ public class TokenHoverRenderer {
                 totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
             }
         }
-        
-        return Math.max(lineHeight, totalHeight + LINE_SPACING * 2); // small bottom breathing room
+        return Math.max(lineHeight, Math.max(0, totalHeight - LINE_SPACING))-2;
     }
 
     /**
