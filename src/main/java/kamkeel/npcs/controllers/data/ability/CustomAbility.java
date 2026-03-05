@@ -405,19 +405,25 @@ public class CustomAbility extends Ability implements ICustomAbility {
         // ── Telegraph Controls (Effects tab) ─────────────────────────
         defs.add(FieldDef.section("ability.section.telegraph").tab("Effects"));
         defs.add(FieldDef.enumField("ability.telegraphShape", TelegraphType.class,
-            this::getTelegraphType, this::setTelegraphType).tab("Effects"));
+            this::getTelegraphType, this::setTelegraphType).tab("Effects")
+            .hover("ability.hover.telegraphShape"));
         defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
-            .tab("Effects").visibleWhen(this::hasTelegraphShape));
+            .tab("Effects").visibleWhen(this::hasTelegraphShape)
+            .hover("ability.hover.showTelegraph"));
         defs.add(FieldDef.colorSubGui("ability.windUpColor", this::getWindUpColor, this::setWindUpColor)
-            .tab("Effects").visibleWhen(this::isTelegraphVisible));
+            .tab("Effects").visibleWhen(this::isTelegraphVisible)
+            .hover("ability.hover.windUpColor"));
         defs.add(FieldDef.colorSubGui("ability.activeColor", this::getActiveColor, this::setActiveColor)
-            .tab("Effects").visibleWhen(this::isTelegraphVisible));
+            .tab("Effects").visibleWhen(this::isTelegraphVisible)
+            .hover("ability.hover.activeColor"));
         defs.add(FieldDef.floatField("ability.telegraphHeight", this::getTelegraphHeightOffset, this::setTelegraphHeightOffset)
-            .tab("Effects").visibleWhen(this::isTelegraphVisible));
+            .tab("Effects").visibleWhen(this::isTelegraphVisible)
+            .hover("ability.hover.telegraphHeight"));
 
         // Telegraph active duration with sync toggle (mirrors windup sync pattern)
         defs.add(FieldDef.row(
-            FieldDef.intField("ability.telegraphActiveTicks", this::getTelegraphActiveTicks, this::setTelegraphActiveTicks).range(0, 6000),
+            FieldDef.intField("ability.telegraphActiveTicks", this::getTelegraphActiveTicks, this::setTelegraphActiveTicks).range(0, 6000)
+                .hover("ability.hover.telegraphActiveTicks"),
             FieldDef.boolField("ability.syncTelegraph", this::isSyncTelegraphWithDuration, this::setSyncTelegraphWithDuration)
                 .hover("ability.hover.syncTelegraph")
         ).tab("Effects").visibleWhen(() -> isTelegraphVisible() && !isSyncTelegraphWithDuration()));
@@ -429,15 +435,20 @@ public class CustomAbility extends Ability implements ICustomAbility {
 
         // Shape-specific dimension fields
         defs.add(FieldDef.floatField("ability.telegraphRadius", this::getTRadius, this::setTRadius)
-            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsRadius()));
+            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsRadius())
+            .hover("ability.hover.telegraphRadius"));
         defs.add(FieldDef.floatField("ability.telegraphInnerRadius", this::getTInnerRadius, this::setTInnerRadius)
-            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsInnerRadius()));
+            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsInnerRadius())
+            .hover("ability.hover.telegraphInnerRadius"));
         defs.add(FieldDef.floatField("ability.telegraphLength", this::getTLength, this::setTLength)
-            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsLength()));
+            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsLength())
+            .hover("ability.hover.telegraphLength"));
         defs.add(FieldDef.floatField("ability.telegraphWidth", this::getTWidth, this::setTWidth)
-            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsWidth()));
+            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsWidth())
+            .hover("ability.hover.telegraphWidth"));
         defs.add(FieldDef.floatField("ability.telegraphAngle", this::getTAngle, this::setTAngle)
-            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsAngle()));
+            .tab("Effects").visibleWhen(() -> isTelegraphVisible() && needsAngle())
+            .hover("ability.hover.telegraphAngle"));
     }
 
     // ==================== TELEGRAPH VISIBILITY HELPERS ====================

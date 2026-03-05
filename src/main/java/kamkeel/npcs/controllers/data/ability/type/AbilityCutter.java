@@ -461,6 +461,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
             FieldDef.row(
                 FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle),
                 FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius)
+                    .hover("ability.hover.innerRadius")
             ),
             FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
             FieldDef.intField("ability.spinDuration", this::getSpinDurationTicks, this::setSpinDurationTicks)
