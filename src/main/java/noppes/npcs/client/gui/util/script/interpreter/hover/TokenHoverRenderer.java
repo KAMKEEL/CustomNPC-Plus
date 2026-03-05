@@ -175,12 +175,13 @@ public class TokenHoverRenderer {
         
         // Mouse-over detection bounds:
         // When dragged, use panel rect only — no gap extension (token is unrelated to panel position)
-        // When default, extend downward to cover the gap between token bottom and tooltip top
+        // When default, union the token bottom and the tooltip rect so both directions are covered
         if (hoverState.hasOverriddenPosition()) {
             hoverState.setTooltipBounds(tooltipX, tooltipY, boxWidth, boxHeight);
         } else {
-            int boundsTopY = Math.min(tokenY + lineHeight, tooltipY);
-            hoverState.setTooltipBounds(tooltipX, boundsTopY, boxWidth, tooltipY - boundsTopY + boxHeight);
+            int boundsTopY    = Math.min(tokenY + lineHeight, tooltipY);
+            int boundsBottomY = Math.max(tooltipY + boxHeight, tokenY + lineHeight);
+            hoverState.setTooltipBounds(tooltipX, boundsTopY, boxWidth, boundsBottomY - boundsTopY);
         }
         
         // Render the tooltip
