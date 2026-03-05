@@ -81,19 +81,11 @@ public final class NPCScriptPacket extends AbstractPacket {
 
         Action requestedAction = Action.values()[in.readInt()];
         if (requestedAction == Action.GET) {
-            String token = PacketUtil.createScriptSession((EntityPlayerMP) player);
             NBTTagCompound compound = npc.script.writeToNBT(new NBTTagCompound());
             compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-            compound.setString("ScriptSessionToken", token);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         } else {
-            NBTTagCompound compound = ByteBufUtils.readNBT(in);
-            String token = compound.getString("ScriptSessionToken");
-            if (!PacketUtil.verifyScriptSession(player, token)) {
-                LogWriter.error(String.format("Rejected NPC script save from %s: session not verified", player.getCommandSenderName()));
-                return;
-            }
-            npc.script.readFromNBT(compound);
+            npc.script.readFromNBT(ByteBufUtils.readNBT(in));
             npc.updateAI = true;
             npc.script.hasInited = false;
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {

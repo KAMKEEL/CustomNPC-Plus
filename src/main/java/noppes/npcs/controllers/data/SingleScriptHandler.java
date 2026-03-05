@@ -2,9 +2,7 @@ package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.util.ByteBufUtils;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.CustomNpcs;
@@ -119,16 +117,9 @@ public abstract class SingleScriptHandler extends ScriptHandler {
      * - tab == 0: Script content NBT follows
      * - tab != 0 (typically -1): Script metadata (language, enabled) follows
      */
-    public boolean saveScript(ByteBuf buffer, EntityPlayer player) throws IOException {
+    public void saveScript(ByteBuf buffer) throws IOException {
         int tab = buffer.readInt();
         int totalScripts = buffer.readInt();
-        NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
-
-        // Verify session token
-        String token = compound.getString("ScriptSessionToken");
-        if (!PacketUtil.verifyScriptSession(player, token)) {
-            return false;
-        }
 
         if (totalScripts == 0) {
             this.container = null;
@@ -136,14 +127,15 @@ public abstract class SingleScriptHandler extends ScriptHandler {
 
         if (tab == 0) {
             // Script content
-            this.container = IScriptUnit.createFromNBT(compound, this);
+            NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
+            this.container = IScriptUnit.createFromNBT(tabCompound, this);
         } else {
             // Metadata (language, enabled)
+            NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
             this.setLanguage(compound.getString("ScriptLanguage"));
             normalizeLanguage();
             this.setEnabled(compound.getBoolean("ScriptEnabled"));
         }
-        return true;
     }
 
     /**
