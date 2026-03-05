@@ -7229,7 +7229,7 @@ public class ScriptDocument {
                 JSTypeRegistry jsRegistry = JSTypeRegistry.getInstance();
                 if (jsRegistry.isGlobalImport(className)) {
                     // Mark as IMPORTED_CLASS since it's a type reference
-                    TypeInfo globalType = typeResolver.resolveJSType(jsRegistry.getGlobalImportType(className));
+                    TypeInfo globalType = TypeInfo.fromJSTypeInfo(jsRegistry.getGlobalImportType(className));
                     marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.INTERFACE_DECL, globalType));
                     continue;
                 }

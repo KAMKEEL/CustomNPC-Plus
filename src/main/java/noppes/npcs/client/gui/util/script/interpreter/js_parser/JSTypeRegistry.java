@@ -53,7 +53,7 @@ public class JSTypeRegistry {
     // These are treated as instance objects, not static classes
     private final Map<String, String> globalEngineObjects = new LinkedHashMap<>();
     // Math / Number / Json / etc. built-in globals from ECMAScript 5.1
-    private final Map<String, String> globalEngineImports = new LinkedHashMap<>();
+    private final Map<String, JSTypeInfo> globalEngineImports = new LinkedHashMap<>();
     
     // Primitive types
     private static final Set<String> PRIMITIVES = new HashSet<>(Arrays.asList(
@@ -451,12 +451,10 @@ public class JSTypeRegistry {
             }
             return getType(resolved, visited);
         }
-        
+
+        // Check global engine imports (e.g., ES5.1 Math, JSON) before giving up
         if (globalEngineImports.containsKey(baseName)){
-            String resolved = globalEngineImports.get(baseName);
-            if (types.containsKey(resolved)) {
-                return types.get(resolved);
-            }
+            return globalEngineImports.get(baseName);
         }
         
         // Try simple name lookup (for types like "IEntity" without namespace)
@@ -853,7 +851,7 @@ public class JSTypeRegistry {
         registerGlobalIfTypeExists("Date",    "Date");
         registerGlobalIfTypeExists("Array",   "Array");
         registerGlobalIfTypeExists("Object",  "Object");
-        registerGlobalIfTypeExists("String",  "String");
+        registerGlobalIfTypeExists("String", "String");
         registerGlobalIfTypeExists("Number",  "Number");
         registerGlobalIfTypeExists("Boolean", "Boolean");
         registerGlobalIfTypeExists("RegExp",  "RegExp");
@@ -865,8 +863,9 @@ public class JSTypeRegistry {
      * Silently skips if the .d.ts patch hasn't been loaded yet (e.g. in unit tests).
      */
     private void registerGlobalIfTypeExists(String globalName, String typeName) {
+        // Remove the type since it's now accessed via the global import
         if (types.containsKey(typeName)) {
-            globalEngineImports.put(globalName, typeName);
+            globalEngineImports.put(globalName, types.remove(typeName));
         }
     }
 
@@ -875,7 +874,7 @@ public class JSTypeRegistry {
      * @param name The global variable name
      * @return The type name, or null if not a registered global object
      */
-    public String getGlobalImportType(String name) {
+    public JSTypeInfo getGlobalImportType(String name) {
         return globalEngineImports.get(name);
     }
 
@@ -889,7 +888,7 @@ public class JSTypeRegistry {
     /**
      * Get all registered global objects.
      */
-    public Map<String, String> getGlobalEngineImports() {
+    public Map<String, JSTypeInfo> getGlobalEngineImports() {
         return Collections.unmodifiableMap(globalEngineImports);
     }
     /**

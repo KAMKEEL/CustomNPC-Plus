@@ -220,9 +220,9 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
 
         // Add global imports in JSTypeRegistry.globalEngineImports
         for (String importName : registry.getGlobalEngineImports().keySet()) {
-            TypeInfo jsTypeInfo = document.resolveType(registry.getGlobalImportType(importName));
+            JSTypeInfo jsTypeInfo = registry.getGlobalImportType(importName);
             if (jsTypeInfo != null) {
-                items.add(AutocompleteItem.fromType(jsTypeInfo));
+                items.add(AutocompleteItem.fromType(TypeInfo.fromJSTypeInfo(jsTypeInfo)));
             }
         }
     }
