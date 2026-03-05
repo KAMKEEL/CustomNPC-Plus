@@ -517,7 +517,7 @@ public class TokenHoverInfo {
         TypeInfo typeInfo = token.getTypeInfo();
         if (typeInfo == null) return;
         
-        packageName = typeInfo.getPackageName();
+        packageName = getPackageName(typeInfo);
         
         Class<?> clazz = typeInfo.getJavaClass();
         if (clazz != null) {
@@ -932,12 +932,15 @@ public class TokenHoverInfo {
         if (type == null)
             return null;
 
-        String fullName = type.getFullName();
+        TypeInfo base = type.isArray() ? type.getElementType() : type;
+        if (base == null) base = type;
+
+        String fullName = base.getFullName();
         if (fullName != null && !fullName.isEmpty()) {
             return fullName;
         } else {
-            String pkg = type.getPackageName();
-            String className = getName(type);
+            String pkg = base.getPackageName();
+            String className = getName(base);
             if (pkg != null && !pkg.isEmpty()) {
                 return pkg + "." + className;
             } else {
