@@ -181,10 +181,9 @@ public class DTSJSDocParser {
     
     public static String extractJSDocBefore(String content, int elementStart) {
         if (elementStart <= 0) return null;
-        
-        int searchStart = Math.max(0, elementStart - 2000);
-        String searchArea = content.substring(searchStart, elementStart);
-        
+
+        String searchArea = content.substring(0, elementStart); 
+
         int lastJSDocEnd = searchArea.lastIndexOf("*/");
         if (lastJSDocEnd < 0) return null;
         
