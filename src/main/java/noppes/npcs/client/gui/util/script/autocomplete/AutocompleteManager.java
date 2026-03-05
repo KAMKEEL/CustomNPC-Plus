@@ -184,6 +184,8 @@ public class AutocompleteManager {
             if (effectiveCursor >= 0 && effectiveCursor < text.length() && text.charAt(effectiveCursor) == c) {
                 effectiveCursor = effectiveCursor + 1;
             }
+
+            effectiveCursor = Math.max(0, Math.min(effectiveCursor, text.length()));
             
             // Check if the previous character is also :
             if (effectiveCursor >= 2 && text.charAt(effectiveCursor - 2) == ':') {
@@ -202,6 +204,8 @@ public class AutocompleteManager {
             if (effectiveCursor >= 0 && effectiveCursor < text.length() && text.charAt(effectiveCursor) == c) {
                 effectiveCursor = effectiveCursor + 1;
             }
+
+            effectiveCursor = Math.max(0, Math.min(effectiveCursor, text.length()));
 
             if (active) {
                 // Update existing autocomplete
@@ -462,6 +466,11 @@ public class AutocompleteManager {
      * Update the prefix and refresh suggestions.
      */
     private void updatePrefix(String text, int cursorPosition) {
+        if (text == null || cursorPosition < 0 || cursorPosition > text.length()) {
+            dismiss();
+            return;
+        }
+
         // Re-calculate prefix from the original start position
         if (prefixStartPosition < 0 || prefixStartPosition > cursorPosition) {
             dismiss();
@@ -817,14 +826,17 @@ public class AutocompleteManager {
      * Find the word being typed at the cursor position.
      */
     private String findCurrentWord(String text, int cursorPos) {
-        if (text == null || cursorPos <= 0) return "";
+        if (text == null || text.isEmpty()) return "";
+
+        int safeCursorPos = Math.max(0, Math.min(cursorPos, text.length()));
+        if (safeCursorPos <= 0) return "";
         
-        int start = cursorPos;
+        int start = safeCursorPos;
         while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) {
             start--;
         }
         
-        return text.substring(start, cursorPos);
+        return text.substring(start, safeCursorPos);
     }
     
     /**
@@ -1020,7 +1032,10 @@ public class AutocompleteManager {
      * Returns -1 if no dot found.
      */
     private int findDotBeforeWhitespace(String text, int fromPos) {
-        int pos = fromPos;
+        if (text == null || text.isEmpty()) return -1;
+
+        int pos = Math.min(fromPos, text.length() - 1);
+        if (pos < 0) return -1;
         // Skip backwards over whitespace
 
         while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
@@ -1044,8 +1059,11 @@ public class AutocompleteManager {
      * Check if cursor is after a dot.
      */
     private boolean isAfterDot(String text, int cursorPos) {
+        if (text == null || text.isEmpty()) return false;
+
         // Look backwards, skipping any identifier characters
-        int pos = cursorPos - 1;
+        int pos = Math.min(cursorPos - 1, text.length() - 1);
+        if (pos < 0) return false;
         while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) {
             pos--;
         }
