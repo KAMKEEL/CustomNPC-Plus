@@ -2305,14 +2305,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // intuitive on blank/indented lines outside any recognized scope.
             LineData currCheck = selection.findCurrentLine(container.lines);
             if (currCheck != null && currCheck.text.trim().length() == 0) {
-                int removeEnd = text.indexOf('\n', currCheck.start - 1);
-                if (removeEnd == -1) {
-                    removeEnd = text.length();
-                } else {
-                    removeEnd = removeEnd + 1; // include the newline
-                }
                 String before = text.substring(0, ValueUtil.clamp(currCheck.start - 1, 0, text.length()));
-                String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
+                String after = text.substring(Math.min(currCheck.end, text.length()));
                 setText(before + after, true); // Use atomic undo
                 int newCursor = Math.max(0, currCheck.start - 1);
                 selection.reset(newCursor);
