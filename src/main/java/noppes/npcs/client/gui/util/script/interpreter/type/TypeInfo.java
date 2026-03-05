@@ -10,13 +10,9 @@ import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
+import java.lang.reflect.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -84,6 +80,10 @@ public class TypeInfo {
     // For array types, the element type (e.g., IItemStack for IItemStack[])
     // Null for non-array types
     private final TypeInfo elementType;
+
+    // Synthetic members injected at construction time (e.g. array built-ins: length, clone)
+    public final List<FieldInfo> syntheticFields = new ArrayList<>();
+    public final List<MethodInfo> syntheticMethods = new ArrayList<>();
 
     // Documentation (script-defined types)
     private JSDocInfo jsDocInfo;
@@ -343,7 +343,12 @@ public class TypeInfo {
             }
         }
         
-        return new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, true, null, null, null, null, elementType);
+        TypeInfo arr = new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, true, null, null, null, null, elementType);
+        arr.syntheticFields.add(FieldInfo.external("length", TypeInfo.fromPrimitive("int"), null,
+                Modifier.PUBLIC | Modifier.FINAL));
+        arr.syntheticMethods.add(MethodInfo.external("clone", arr, null,
+                Collections.emptyList(), Modifier.PUBLIC, null));
+        return arr;
     }
     
     /**
@@ -540,6 +545,7 @@ public class TypeInfo {
      * Check if this type has a method with the given name.
      */
     public boolean hasMethod(String methodName) {
+        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return true;
         // Check JS type first
         if (jsTypeInfo != null) {
             return jsTypeInfo.hasMethod(methodName);
@@ -562,6 +568,7 @@ public class TypeInfo {
      * Check if this type has a method with the given name and parameter count.
      */
     public boolean hasMethod(String methodName, int paramCount) {
+        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName) && m.getParameterCount() == paramCount) return true;
         // Check JS type first
         if (jsTypeInfo != null) {
             List<JSMethodInfo> overloads = jsTypeInfo.getMethodOverloads(methodName);
@@ -670,6 +677,7 @@ public class TypeInfo {
      * Check if this type has a field with the given name.
      */
     public boolean hasField(String fieldName) {
+        for (FieldInfo f : syntheticFields) if (f.getName().equals(fieldName)) return true;
         // Check JS type first
         if (jsTypeInfo != null) {
             return jsTypeInfo.hasField(fieldName);
@@ -724,6 +732,7 @@ public class TypeInfo {
      * Creates a synthetic MethodInfo based on reflection data or JS type data.
      */
     public MethodInfo getMethodInfo(String methodName) {
+        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return m;
         // Check JS type first
         if (jsTypeInfo != null) {
             JSMethodInfo jsMethod = jsTypeInfo.getMethod(methodName);
@@ -813,6 +822,7 @@ public class TypeInfo {
      * @return The best matching MethodInfo, or null if not found
      */
     public MethodInfo getBestMethodOverload(String methodName, TypeInfo[] argTypes) {
+        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return m;
         java.util.List<MethodInfo> overloads = getAllMethodOverloads(methodName);
         if (overloads.isEmpty()) return null;
         return OverloadSelector.selectBestOverload(overloads, argTypes);
@@ -823,6 +833,7 @@ public class TypeInfo {
      * Creates a synthetic FieldInfo based on reflection data or JS type data.
      */
     public FieldInfo getFieldInfo(String fieldName) {
+        for (FieldInfo f : syntheticFields) if (f.getName().equals(fieldName)) return f;
         // Check JS type first
         if (jsTypeInfo != null) {
             JSFieldInfo jsField = jsTypeInfo.getField(fieldName);

@@ -136,6 +136,9 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 }
             }
         }
+
+        for (MethodInfo method : receiverType.syntheticMethods)
+            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
         
         // Add fields (skip if methodsOnly is true - but the filtering will be done in getSuggestions)
         if (!context.methodsOnly) {
@@ -150,6 +153,9 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                     items.add(AutocompleteItem.fromField(fieldInfo));
                 }
             }
+
+            for (FieldInfo field : receiverType.syntheticFields)
+                    items.add(AutocompleteItem.fromField(field));
         }
         
         // Add nested types (inner classes/interfaces) in static context

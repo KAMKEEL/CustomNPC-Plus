@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.autocomplete;
 
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.*;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.*;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
@@ -61,6 +62,13 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             super.addMemberSuggestions(context, items);
             return;
         }
+        
+        // Add synthetic members (e.g., array built-ins: length, clone)
+        for (FieldInfo field : receiverType.syntheticFields)
+            if (!context.methodsOnly)
+                items.add(AutocompleteItem.fromField(field));
+        for (MethodInfo method : receiverType.syntheticMethods)
+            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
 
         // For pure JS types, check JSTypeRegistry
         JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
