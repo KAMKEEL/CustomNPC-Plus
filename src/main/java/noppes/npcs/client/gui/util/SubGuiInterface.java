@@ -12,6 +12,7 @@ public class SubGuiInterface extends GuiNPCInterface {
 
     @Override
     public void close() {
+        GuiNpcTextField.unfocus();
         save();
 
         if (parent instanceof ISubGuiListener)
