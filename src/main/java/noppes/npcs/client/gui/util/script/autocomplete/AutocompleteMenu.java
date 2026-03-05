@@ -457,7 +457,7 @@ public class AutocompleteMenu extends Gui {
 
             TypeInfo type = item.getTypeInfo();
             int col = type != null ? type.getTokenType().getHexColor() : DIM_TEXT_COLOR;
-            drawTypeLabelWithArraySuffix(typeLabel, typeLabelX, textY, col);
+            drawTypeLabel(typeLabel, typeLabelX, textY, col, type);
         }
     }
 
@@ -629,10 +629,45 @@ public class AutocompleteMenu extends Gui {
         return text;
     }
     
-    private void drawTypeLabelWithArraySuffix(String typeLabel, int x, int y, int typeColor) {
+    private void drawTypeLabel(String typeLabel, int x, int y, int typeColor, TypeInfo typeInfo) {
+        if (typeInfo == null) {
+            drawSimpleTypeWithArraySuffix(typeLabel, x, y, typeColor);
+            return;
+        }
+        drawTypeLabel(x, y, typeInfo, 0);
+    }
+
+    private int drawTypeLabel(int x, int y, TypeInfo typeInfo, int depth) {
+        if (depth > 25) {
+            String name = typeInfo.getDisplayName();
+            font.drawString(name, x, y, TokenType.getColor(typeInfo));
+            return x + font.getStringWidth(name);
+        }
+        int defaultColor = TokenType.DEFAULT.getHexColor();
+        if (typeInfo.isParameterized()) {
+            TypeInfo raw = typeInfo.getRawType();
+            x = drawSimpleTypeWithArraySuffix(raw.getDisplayName(), x, y, TokenType.getColor(raw));
+            font.drawString("<", x, y, defaultColor);
+            x += font.getStringWidth("<");
+            java.util.List<TypeInfo> args = typeInfo.getAppliedTypeArgs();
+            for (int i = 0; i < args.size(); i++) {
+                if (i > 0) {
+                    font.drawString(", ", x, y, defaultColor);
+                    x += font.getStringWidth(", ");
+                }
+                x = drawTypeLabel(x, y, args.get(i), depth + 1);
+            }
+            font.drawString(">", x, y, defaultColor);
+            return x + font.getStringWidth(">");
+        }
+        return drawSimpleTypeWithArraySuffix(typeInfo.getDisplayName(), x, y, TokenType.getColor(typeInfo));
+    }
+
+    /** @return x position after last drawn character */
+    private int drawSimpleTypeWithArraySuffix(String typeLabel, int x, int y, int typeColor) {
         if (!typeLabel.endsWith("[]")) {
             font.drawString(typeLabel, x, y, typeColor);
-            return;
+            return x + font.getStringWidth(typeLabel);
         }
         int suffixStart = typeLabel.length() - 2;
         while (suffixStart >= 2 && typeLabel.charAt(suffixStart - 2) == '[' && typeLabel.charAt(suffixStart - 1) == ']') {
@@ -643,6 +678,7 @@ public class AutocompleteMenu extends Gui {
         font.drawString(core, x, y, typeColor);
         int coreWidth = font.getStringWidth(core);
         font.drawString(suffix, x + coreWidth, y, TokenType.DEFAULT.getHexColor());
+        return x + coreWidth + font.getStringWidth(suffix);
     }
 
     private void drawScrollbar(int mouseX, int mouseY) {
