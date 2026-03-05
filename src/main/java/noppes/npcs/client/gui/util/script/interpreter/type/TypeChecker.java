@@ -19,7 +19,7 @@ public final class TypeChecker {
         CURRENT_JAVASCRIPT_MODE = javaScriptMode;
     }
 
-    private static boolean isJavaScriptMode() {
+    static boolean isJavaScriptMode() {
         return CURRENT_JAVASCRIPT_MODE;
     }
 

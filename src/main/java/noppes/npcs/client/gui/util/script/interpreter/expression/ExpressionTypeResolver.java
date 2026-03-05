@@ -88,7 +88,7 @@ public class ExpressionTypeResolver {
         if (node instanceof ExpressionNode.DoubleLiteralNode) return TypeInfo.fromPrimitive("double");
         if (node instanceof ExpressionNode.BooleanLiteralNode) return TypeInfo.fromPrimitive("boolean");
         if (node instanceof ExpressionNode.CharLiteralNode) return TypeInfo.fromPrimitive("char");
-        if (node instanceof ExpressionNode.StringLiteralNode) return TypeInfo.fromClass(String.class);
+        if (node instanceof ExpressionNode.StringLiteralNode) return TypeInfo.string();
         if (node instanceof ExpressionNode.NullLiteralNode) return TypeInfo.unresolved("null", "<null>");
         
         if (node instanceof ExpressionNode.IdentifierNode) {

@@ -24,6 +24,9 @@ public class TypeResolver {
     // Cache: fully-qualified class name -> TypeInfo
     private final Map<String, TypeInfo> typeCache = new HashMap<>();
 
+    // Cache: Java types that have been enriched with JS members from .d.ts types (e.g., String, Object)
+    private final Map<String, TypeInfo> jsMergeCache = new HashMap<>();
+    
     // Cache: validated package paths
     private final Set<String> validPackages = new HashSet<>();
     
@@ -418,6 +421,8 @@ public class TypeResolver {
         // Before primitive mapping, to allow .d.ts types to override primitive names for ECMAScript 5.1 globals (e.g., "String" in JS is not the same as "String" in Java))
         JSTypeInfo jsTypeInfo = getJSTypeRegistry().getType(baseName);
         if (jsTypeInfo != null) {
+            TypeInfo merged = tryMergeJSWithJava(baseName, jsTypeInfo);
+            if (merged != null) return merged;
             return TypeInfo.fromJSTypeInfo(jsTypeInfo);
         }
 
@@ -449,7 +454,38 @@ public class TypeResolver {
         // Unresolved
         return TypeInfo.unresolved(baseName, baseName);
     }
-    
+
+    private static TypeInfo getJSJavaMergeBase(String baseName) {
+        switch (baseName) {
+            case "String":
+                return TypeInfo.STRING;
+            case "Object":
+                return TypeInfo.OBJECT;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * For certain core types (e.g., String, Object), we want to merge JS type info from .d.ts with the Java TypeInfo to create an enriched type that has both Java and JS members.
+     */
+    private TypeInfo tryMergeJSWithJava(String baseName, JSTypeInfo jsTypeInfo) {
+        TypeInfo javaBase = getJSJavaMergeBase(baseName);
+        if (javaBase == null) return null;
+        
+        return jsMergeCache.computeIfAbsent(baseName, k -> {
+            TypeInfo result = TypeInfo.fromClass(javaBase.getJavaClass());
+            if (result == null) result = javaBase;
+            TypeInfo.injectJSMembers(result, jsTypeInfo);
+            if (javaBase == TypeInfo.STRING) {
+                TypeInfo.jsString = result;
+            } else if (javaBase == TypeInfo.OBJECT) {
+                TypeInfo.jsObject = result;
+            }
+            return result;
+        });
+    }
+
     /**
      * Check if a JS type name is a primitive.
      */

@@ -54,7 +54,7 @@ public abstract class ExpressionNode {
         private final String value;
         public StringLiteralNode(String value, int start, int end) { super(start, end); this.value = value; }
         public String getValue() { return value; }
-        public TypeInfo resolveType(TypeResolverContext resolver) { return TypeInfo.fromClass(String.class); }
+        public TypeInfo resolveType(TypeResolverContext resolver) { return TypeInfo.string(); }
     }
     
     public static class NullLiteralNode extends ExpressionNode {

@@ -58,66 +58,25 @@
  * ```
  */
 export interface String {
-  /** Creates a string from one or more Unicode character codes (e.g., String.fromCharCode(65, 66, 67) returns "ABC") */
-  fromCharCode(...codes: number[]): string;
-
   /** The number of characters in the string */
   length: number;
 
-  /** Returns the character at the specified index, or an empty string if the index is out of range */
-  charAt(pos: number): string;
+  /** Creates a string from one or more Unicode character codes (e.g., String.fromCharCode(65, 66, 67) returns "ABC") */
+  static fromCharCode(...codes: number[]): string;
 
-  /** Returns the Unicode code point (0-65535) of the character at the specified index */
+  /** Returns the Unicode code point (0–65535) of the character at the specified index. Unlike Java's charAt() + cast, this returns the numeric code directly. */
   charCodeAt(pos: number): number;
 
-  /** Combines this string with other strings and returns a new combined string */
-  concat(...strings: string[]): string;
-
-  /** Returns the index of the first occurrence of the search string, or -1 if not found */
-  indexOf(searchString: string, position: number): number;
-
-  /** Returns the index of the last occurrence of the search string, or -1 if not found */
-  lastIndexOf(searchString: string, position: number): number;
-
-  /** Compares this string to another string and returns a number indicating sort order (-1, 0, or 1) */
-  localeCompare(that: string): number;
-
-  /** Tests the string against a regular expression and returns an array of matches or null if no match */
+  /** Tests the string against a regular expression and returns an array of matches, or null if no match found */
   match(regexp: any): any[];
 
-  /** Replaces the first occurrence of a pattern (string or regex) with a replacement string or the result of a function */
+  /**
+   * Replaces a pattern (string or RegExp object) with a replacement string.
+   * Unlike Java's replace/replaceAll which only accept String/CharSequence,
+   * this accepts a RegExp object as the first argument.
+   */
   replace(searchValue: any, replaceValue: any): string;
 
   /** Returns the index of the first character that matches a regular expression, or -1 if not found */
   search(regexp: any): number;
-
-  /** Returns a new string containing the characters from the start index up to (but not including) the end index */
-  slice(start: number, end: number): string;
-
-  /** Splits the string into an array of substrings using the separator, optionally limiting the number of splits */
-  split(separator: any, limit: number): string[];
-
-  /** Returns a new string containing characters from the start index up to (but not including) the end index */
-  substring(start: number, end: number): string;
-
-  /** Returns a new string with all uppercase characters converted to lowercase */
-  toLowerCase(): string;
-
-  /** Returns a new string with all uppercase characters converted to lowercase according to locale rules */
-  toLocaleLowerCase(): string;
-
-  /** Returns a new string with all lowercase characters converted to uppercase */
-  toUpperCase(): string;
-
-  /** Returns a new string with all lowercase characters converted to uppercase according to locale rules */
-  toLocaleUpperCase(): string;
-
-  /** Returns a new string with whitespace (spaces, tabs, newlines, etc.) removed from both ends */
-  trim(): string;
-
-  /** Returns the string itself */
-  toString(): string;
-
-  /** Returns the primitive value of the string object */
-  valueOf(): string;
 }

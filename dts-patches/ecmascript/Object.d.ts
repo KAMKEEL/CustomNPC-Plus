@@ -102,9 +102,4 @@ export interface Object {
   /** Returns a localized string representation of the object (format depends on locale) */
   toLocaleString(): string;
 
-  /** Returns a string representation of the object, usually "[object Object]" unless overridden */
-  toString(): string;
-
-  /** Returns the primitive value of the object (usually the object itself unless overridden) */
-  valueOf(): any;
 }

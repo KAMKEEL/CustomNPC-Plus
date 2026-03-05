@@ -94,7 +94,7 @@ public class TypeRules {
         switch (op.getCategory()) {
             case ARITHMETIC:
                 if (op == OperatorType.ADD && (isString(left) || isString(right))) {
-                    return validateAgainstExpectedType(TypeInfo.fromClass(String.class));
+                    return validateAgainstExpectedType(TypeInfo.string());
                 }
                 if (isAny(left) || isAny(right)) {
                     return validateAgainstExpectedType(TypeInfo.ANY);

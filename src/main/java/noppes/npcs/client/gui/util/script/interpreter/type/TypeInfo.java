@@ -43,6 +43,18 @@ public class TypeInfo {
     public static final TypeInfo BOOLEAN = fromPrimitive("boolean");
     
     public static final TypeInfo STRING = TypeInfo.fromClass(String.class);
+    static TypeInfo jsString = null;
+
+    public static final TypeInfo OBJECT = TypeInfo.fromClass(Object.class);
+    static TypeInfo jsObject = null;
+
+    public static TypeInfo string() {
+        return TypeChecker.isJavaScriptMode() && jsString != null ? jsString : STRING;
+    }
+
+    public static TypeInfo object() {
+        return TypeChecker.isJavaScriptMode() && jsObject != null ? jsObject : OBJECT;
+    }
     
     public static final TypeInfo NULL = TypeInfo.unresolved("null", "<null>");
     
@@ -317,6 +329,13 @@ public class TypeInfo {
                            Kind.INTERFACE, null, true, null, jsType);
     }
     
+    public static void injectJSMembers(TypeInfo target, JSTypeInfo jsExtensions) {
+        for (JSFieldInfo jsField : jsExtensions.getFields().values())
+            target.syntheticFields.add(FieldInfo.fromJSField(jsField, target));
+        for (JSMethodInfo jsMethod : jsExtensions.getMethods().values())
+            target.syntheticMethods.add(MethodInfo.fromJSMethod(jsMethod, target));
+    }
+
     /**
      * Create an array type wrapping the given element type.
      * 

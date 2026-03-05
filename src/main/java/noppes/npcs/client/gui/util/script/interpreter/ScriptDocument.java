@@ -4887,7 +4887,7 @@ public class ScriptDocument {
         
         // String literals
         if (expr.startsWith("\"") && expr.endsWith("\"")) {
-            return resolveType("String");
+            return TypeInfo.string();
         }
         
         // Character literals
@@ -5728,7 +5728,7 @@ public class ScriptDocument {
     private TypeInfo resolveSimpleExpression(String expr, int position) {
         // String literals
         if (expr.startsWith("\"") && expr.endsWith("\"")) {
-            return resolveType("String");
+            return TypeInfo.string();
         }
         
         // Character literals
