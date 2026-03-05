@@ -311,6 +311,14 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             this.addButton(new GuiNpcButton(107, left1, this.guiTop + 66 + yoffset, 80, 20, "script.loadscript"));
 
+            // Disable all buttons until server data arrives
+            if (!serverDataReceived) {
+                for (int btnId : new int[]{100, 101, 102, 105, 107, 113}) {
+                    GuiNpcButton btn = getButton(btnId);
+                    if (btn != null) btn.enabled = false;
+                }
+            }
+
             GuiCustomScroll scroll = (new GuiCustomScroll(this, 0)).setUnselectable();
             scroll.setSize(100, (int) ((double) this.ySize * 0.54D) - yoffset * 2);
             scroll.guiLeft = left1;
@@ -344,11 +352,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20,
             new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
 
-        // Disable language/enabled controls until server data actually arrives
-        // (serverDataReceived is only set in loadLanguagesData, not by getLanguageOptions injecting Java)
-        this.getButton(103).enabled = serverDataReceived && languageOptions.size() > 0;
-        this.getButton(104).enabled = serverDataReceived;
-
         if (this.player.worldObj.isRemote) {
             this.addButton(new GuiNpcButton(106, var9, this.guiTop + 55, 150, 20, "script.openfolder"));
         }
@@ -357,6 +360,17 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 78, 80, 20, "gui.forum"));
         this.addButton(new GuiNpcButton(110, var9, this.guiTop + 99, 80, 20, "script.apidoc"));
         this.addButton(new GuiNpcButton(111, var9 + 81, this.guiTop + 99, 80, 20, "script.apisrc"));
+
+        // Disable all buttons until server data arrives
+        if (!serverDataReceived) {
+            for (int btnId : new int[]{100, 102, 103, 104, 106, 109, 110, 111, 112}) {
+                GuiNpcButton btn = getButton(btnId);
+                if (btn != null) btn.enabled = false;
+            }
+        } else {
+            // Language button requires options to be available
+            this.getButton(103).enabled = languageOptions.size() > 0;
+        }
     }
 
     public GuiScriptInterface setDimensions(int x, int y) {
@@ -750,6 +764,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public void setGuiData(NBTTagCompound compound) {
         if (handler instanceof IScriptHandlerPacket) {
             IScriptHandlerPacket.GuiDataResult result = ((IScriptHandlerPacket) handler).setGuiData(compound);
+            if (result == null) {
+                return; // Unrelated packet, ignore
+            }
             if (result.kind == IScriptHandlerPacket.GuiDataKind.LOAD_COMPLETE) {
                 loaded = true;
                 return;
@@ -765,6 +782,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             return;
         }
 
+        // For non-IScriptHandlerPacket handlers, ignore unrelated packets
+        if (!compound.hasKey("ScriptLanguage") && !compound.hasKey("Languages")) {
+            return;
+        }
         loadLanguagesData(compound);
     }
 
@@ -808,7 +829,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public void save() {
-        if (!loaded)
+        if (!loaded || !serverDataReceived)
             return;
 
         this.setScript();

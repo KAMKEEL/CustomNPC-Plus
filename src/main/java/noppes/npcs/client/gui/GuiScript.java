@@ -184,6 +184,14 @@ public class GuiScript extends GuiScriptInterface {
             addButton(new GuiNpcButton(100, guiLeft + 315, guiTop + 25, 50, 20, "gui.copy"));
             addButton(new GuiNpcButton(107, guiLeft + 315, guiTop + 70, 80, 20, "script.loadscript"));
 
+            // Disable all buttons until server data arrives
+            if (!serverDataReceived) {
+                for (int btnId : new int[]{100, 101, 102, 107}) {
+                    GuiNpcButton btn = getButton(btnId);
+                    if (btn != null) btn.enabled = false;
+                }
+            }
+
             GuiCustomScroll scroll = new GuiCustomScroll(this, 0).setUnselectable();
             scroll.setSize(100, 120);
             scroll.guiLeft = guiLeft + 315;
@@ -222,12 +230,18 @@ public class GuiScript extends GuiScriptInterface {
         addButton(new GuiNpcButton(104, guiLeft + 294, guiTop + 48, 50, 20,
             new String[]{"gui.no", "gui.yes"}, script.enabled ? 1 : 0));
 
-        // Disable language/enabled controls until server data actually arrives
-        getButton(103).enabled = serverDataReceived && languageOptions.size() > 0;
-        getButton(104).enabled = serverDataReceived;
-
         if (MinecraftServer.getServer() != null)
             addButton(new GuiNpcButton(106, guiLeft + 232, guiTop + 71, 150, 20, "script.openfolder"));
+
+        // Disable all buttons until server data arrives
+        if (!serverDataReceived) {
+            for (int btnId : new int[]{100, 102, 103, 104, 105, 106}) {
+                GuiNpcButton btn = getButton(btnId);
+                if (btn != null) btn.enabled = false;
+            }
+        } else {
+            getButton(103).enabled = languageOptions.size() > 0;
+        }
     }
 
     @Override
@@ -342,6 +356,11 @@ public class GuiScript extends GuiScriptInterface {
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
+        // Only process the actual NPCScriptPacket response (has ScriptLanguage + Languages)
+        // Ignore unrelated packets (e.g. script config with ScriptsEnabled/GlobalNPCScriptsEnabled)
+        if (!compound.hasKey("ScriptLanguage") && !compound.hasKey("Languages")) {
+            return;
+        }
         script.readFromNBT(compound);
         loadLanguagesData(compound);
         loaded = true;
@@ -349,7 +368,7 @@ public class GuiScript extends GuiScriptInterface {
 
     @Override
     public void save() {
-        if (loaded) {
+        if (loaded && serverDataReceived) {
             setScript();
             NPCScriptPacket.Save(script.writeToNBT(new NBTTagCompound()));
         }
