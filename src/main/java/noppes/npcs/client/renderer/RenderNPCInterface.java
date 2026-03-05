@@ -609,7 +609,26 @@ public class RenderNPCInterface extends RenderLiving {
         InputStream inputstream = null;
         try {
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-            texturemanager.deleteTexture(location);
+
+            // Compute the hash-based skin location first
+            ResourceLocation skinLocation = location;
+            try {
+                MessageDigest digest = MessageDigest.getInstance("MD5");
+                byte[] hash = digest.digest(npc.display.texture.getBytes("UTF-8"));
+                StringBuilder sb = new StringBuilder(2 * hash.length);
+                for (byte b : hash) {
+                    sb.append(String.format("%02x", b & 0xff));
+                }
+                if (npc.display.modelType == 0) {
+                    skinLocation = new ResourceLocation("skin/" + sb.toString());
+                } else {
+                    skinLocation = new ResourceLocation("skin64/" + sb.toString());
+                }
+            } catch (Exception ignored) {
+            }
+
+            // Delete old processed skin texture if cached (prevents GL texture leak)
+            texturemanager.deleteTexture(skinLocation);
 
             IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
             inputstream = iresource.getInputStream();
@@ -625,22 +644,8 @@ public class RenderNPCInterface extends RenderLiving {
             ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(true));
             object.setBufferedImage(bufferedimage);
 
-            try {
-                MessageDigest digest = MessageDigest.getInstance("MD5");
-                byte[] hash = digest.digest(npc.display.texture.getBytes("UTF-8"));
-                StringBuilder sb = new StringBuilder(2 * hash.length);
-                for (byte b : hash) {
-                    sb.append(String.format("%02x", b & 0xff));
-                }
-                if (npc.display.modelType == 0) {
-                    location = new ResourceLocation("skin/" + sb.toString());
-                } else {
-                    location = new ResourceLocation("skin64/" + sb.toString());
-                }
-            } catch (Exception ignored) {
-            }
-            texturemanager.loadTexture(location, object);
-            return location;
+            texturemanager.loadTexture(skinLocation, object);
+            return skinLocation;
         } finally {
             if (inputstream != null) {
                 inputstream.close();
