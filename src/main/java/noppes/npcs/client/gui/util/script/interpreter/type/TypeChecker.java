@@ -79,6 +79,7 @@ public final class TypeChecker {
             return true;
         }
         if (isNumericType(expectedName) && isNumericType(actualName)) {
+            if (isJavaScriptMode()) return true;
             return canWiden(actualName, expectedName);
         }
 
