@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public abstract class Ability implements IAbility, IAbilityAction {
 
@@ -155,6 +156,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected transient DefaultIconLayer[] defaultIconLayers = null;
     protected transient int defaultIconWidth = 48;
     protected transient int defaultIconHeight = 48;
+
+    /**
+     * Optional player requirement predicate. When set, the ability is only visible
+     * and usable by players for whom this predicate returns true.
+     * Evaluated on-demand (no polling). Null means no requirement (always available).
+     * <p>
+     * This is transient — set programmatically by addons, not saved to NBT.
+     */
+    protected transient Predicate<EntityPlayer> playerRequirement;
 
     /**
      * A single layer of a default ability icon. Each layer has a texture,
@@ -1774,7 +1784,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     public Ability deepCopy() {
-        return AbilityController.Instance.fromNBT(this.writeNBT(false));
+        Ability copy = AbilityController.Instance.fromNBT(this.writeNBT(false));
+        if (copy != null)
+            copy.playerRequirement = this.playerRequirement;
+        return copy;
     }
 
     @Override
@@ -2356,6 +2369,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public void setAllowedBy(UserType allowedBy) {
         this.allowedBy = allowedBy;
+    }
+
+    public Predicate<EntityPlayer> getPlayerRequirement() {
+        return playerRequirement;
+    }
+
+    public void setPlayerRequirement(Predicate<EntityPlayer> requirement) {
+        this.playerRequirement = requirement;
+    }
+
+    /**
+     * Check if this ability is available for the given player.
+     * Returns true if no requirement is set, or if the requirement predicate passes.
+     */
+    public boolean isAvailableFor(EntityPlayer player) {
+        return playerRequirement == null || playerRequirement.test(player);
     }
 
     public boolean isIgnoreCooldown() {
