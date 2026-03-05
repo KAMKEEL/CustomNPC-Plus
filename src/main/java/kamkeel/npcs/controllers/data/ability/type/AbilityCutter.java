@@ -122,7 +122,7 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
             return null;
         }
 
-        Telegraph telegraph = Telegraph.cone(getTelegraphLength(), getTelegraphAngle());
+        Telegraph telegraph = Telegraph.cone(getTelegraphLength(), getTelegraphAngle(), getTelegraphInnerRadius());
         int totalDuration = windUpTicks + getActiveDurationTicks();
         telegraph.setDurationTicks(totalDuration);
         telegraph.setColor(windUpColor);
@@ -160,6 +160,11 @@ public class AbilityCutter extends Ability implements IAbilityCutter {
     @Override
     public float getTelegraphAngle() {
         return arcAngle;
+    }
+
+    @Override
+    public float getTelegraphInnerRadius() {
+        return innerRadius;
     }
 
     @Override
