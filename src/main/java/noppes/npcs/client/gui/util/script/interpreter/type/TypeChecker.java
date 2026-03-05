@@ -13,6 +13,16 @@ public final class TypeChecker {
 
     private TypeChecker() {} // Utility class
 
+    private static boolean CURRENT_JAVASCRIPT_MODE;
+
+    public static void enterTypeCheckingContext(boolean javaScriptMode) {
+        CURRENT_JAVASCRIPT_MODE = javaScriptMode;
+    }
+
+    private static boolean isJavaScriptMode() {
+        return CURRENT_JAVASCRIPT_MODE;
+    }
+
     /**
      * Check if the actual type is compatible with (assignable to) the expected type.
      * @param expected The expected/target type
@@ -31,6 +41,10 @@ public final class TypeChecker {
         
         // Handle "any" type - universally compatible (JavaScript/TypeScript)
         if ("any".equals(expected.getFullName()) || "any".equals(actual.getFullName())) {
+            return true;
+        }
+        // In JavaScript mode, treat java.lang.Object as "any"
+        if (isJavaScriptMode() && "Object".equals(expected.getSimpleName())) {
             return true;
         }
         

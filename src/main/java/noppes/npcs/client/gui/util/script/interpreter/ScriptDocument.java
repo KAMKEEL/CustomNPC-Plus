@@ -385,6 +385,8 @@ public class ScriptDocument {
      * ALL methods called here handle BOTH languages using the SAME data structures.
      */
     private List<ScriptLine.Mark> formatUnified() {
+        TypeChecker.enterTypeCheckingContext(isJavaScript());
+        
         // Phase 1: Find excluded regions (strings/comments) - same for both
         findExcludedRanges();
 
