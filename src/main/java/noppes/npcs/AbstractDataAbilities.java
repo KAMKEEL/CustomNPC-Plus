@@ -1021,6 +1021,11 @@ public abstract class AbstractDataAbilities {
      * Execute an ability immediately (no windup). Called when windUpTicks is 0.
      */
     protected void executeImmediate(Ability ability, EntityLivingBase target) {
+        // Spawn telegraph for abilities that persist during active phase (e.g., Custom Ability)
+        if (ability.keepTelegraphDuringActive()) {
+            spawnTelegraph(ability, target);
+        }
+
         // Play active sound and animation
         playAbilitySound(ability.getActiveSound());
         playAbilityAnimation(ability.getActiveAnimation());

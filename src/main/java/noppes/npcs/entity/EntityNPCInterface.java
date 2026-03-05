@@ -236,6 +236,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     // For Client-Side Use Only
     public int clientFixAttempts = 0;
+    public long clientFixLastRequestMillis = 0L;
 
     public EntityNPCInterface(World world) {
         super(world);
@@ -483,7 +484,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 
         if (wasKilled != isKilled() && wasKilled) {
-            reset();
+            if (!worldObj.isRemote) {
+                reset();
+            } else {
+                // Client-side full reset can create health oscillation when spawn data is being repaired.
+                deathTime = 0;
+                currentAnimation = EnumAnimation.NONE;
+                updateHitbox();
+            }
         }
 
         wasKilled = isKilled();
@@ -1838,6 +1846,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         NBTTagCompound compound = new NBTTagCompound();
         display.writeToNBT(compound);
         compound.setDouble("MaxHealth", stats.maxHealth);
+        compound.setFloat("CurrentHealth", getHealth());
         compound.setTag("Armor", NBTTags.nbtItemStackList(inventory.getArmor()));
         compound.setTag("Weapons", NBTTags.nbtItemStackList(inventory.getWeapons()));
         compound.setInteger("Speed", ais.getWalkingSpeed());
@@ -1892,6 +1901,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 return;
         }
 
+        float preservedHealth = getHealth();
         stats.maxHealth = compound.getDouble("MaxHealth");
         ais.setWalkingSpeed(compound.getInteger("Speed"));
         stats.hideKilledBody = compound.getBoolean("DeadBody");
@@ -1916,6 +1926,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         ais.bodyOffsetY = compound.getFloat("OffsetY");
 
         this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
+        if (compound.hasKey("CurrentHealth", Constants.NBT.TAG_FLOAT)) {
+            setHealth(MathHelper.clamp_float(compound.getFloat("CurrentHealth"), 0.0F, getMaxHealth()));
+        } else {
+            // Keep previous client health if packet came from an older sender format.
+            setHealth(MathHelper.clamp_float(preservedHealth, 0.0F, getMaxHealth()));
+        }
         inventory.setArmor(NBTTags.getItemStackList(compound.getTagList("Armor", 10)));
         inventory.setWeapons(NBTTags.getItemStackList(compound.getTagList("Weapons", 10)));
         advanced.setRole(compound.getInteger("Role"));
@@ -1990,6 +2006,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             return true;
         }
         clientFixAttempts = 0;
+        clientFixLastRequestMillis = 0L;
         return false;
     }
 

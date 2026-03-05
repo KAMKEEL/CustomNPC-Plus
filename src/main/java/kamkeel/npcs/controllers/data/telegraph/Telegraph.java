@@ -152,6 +152,14 @@ public class Telegraph {
         return t;
     }
 
+    public static Telegraph cone(float length, float angle, float innerRadius) {
+        Telegraph t = new Telegraph("", TelegraphType.CONE);
+        t.length = length;
+        t.angle = angle;
+        t.innerRadius = innerRadius;
+        return t;
+    }
+
     public static Telegraph point() {
         return new Telegraph("", TelegraphType.POINT);
     }

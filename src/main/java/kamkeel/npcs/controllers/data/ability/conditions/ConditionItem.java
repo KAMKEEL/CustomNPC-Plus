@@ -15,7 +15,7 @@ import java.util.List;
 public class ConditionItem extends AbilityCondition {
 
     public enum UsageType {
-        ARMOR, HOLDING, AMMO, OFFHAND;
+        ARMOR, HOLDING, COUNT, OFFHAND;
 
         public static UsageType fromOrdinal(int ordinal) {
             UsageType[] values = values();
@@ -40,7 +40,7 @@ public class ConditionItem extends AbilityCondition {
     private ArmorSlot armorSlot = ArmorSlot.BOOTS;
     private boolean fullArmorSet = false;
 
-    // AMMO + PLAYER only
+    // COUNT + PLAYER only
     private int requiredCount = 1;
 
     public ConditionItem() {
@@ -55,8 +55,8 @@ public class ConditionItem extends AbilityCondition {
                 return checkHolding(entity);
             case ARMOR:
                 return checkArmor(entity);
-            case AMMO:
-                return checkAmmo(entity);
+            case COUNT:
+                return checkCount(entity);
             case OFFHAND:
                 return checkOffhand(entity);
             default:
@@ -75,17 +75,7 @@ public class ConditionItem extends AbilityCondition {
         return matchesItem(entity.getEquipmentInSlot(slot));
     }
 
-    private boolean checkFullArmor(EntityLivingBase entity) {
-        for (int i = 0; i < 4; i++) {
-            int slot = i + 1;
-            if (!matchesItem(i, entity.getEquipmentInSlot(slot)))
-                return false;
-        }
-
-        return true;
-    }
-
-    private boolean checkAmmo(EntityLivingBase entity) {
+    private boolean checkCount(EntityLivingBase entity) {
         if (entity instanceof EntityPlayer) {
             return checkPlayerInventoryCount((EntityPlayer) entity);
         }
@@ -121,10 +111,6 @@ public class ConditionItem extends AbilityCondition {
     }
 
     private boolean matchesItem(ItemStack stack) {
-        return matchesItem(0, stack);
-    }
-
-    private boolean matchesItem(int index, ItemStack stack) {
         if (stack == null || itemName == null || itemName.isEmpty()) return false;
         String registryName = net.minecraft.item.Item.itemRegistry.getNameForObject(stack.getItem());
         return itemName.equals(registryName);
@@ -148,7 +134,7 @@ public class ConditionItem extends AbilityCondition {
         defs.add(FieldDef.intField("condition.item_count",
                 this::getRequiredCount, this::setRequiredCount)
             .range(1, 64)
-            .visibleWhen(() -> usageType == UsageType.AMMO && userType.allowsPlayer())
+            .visibleWhen(() -> usageType == UsageType.COUNT && userType.allowsPlayer())
             .hover("condition.hover.required_count"));
     }
 

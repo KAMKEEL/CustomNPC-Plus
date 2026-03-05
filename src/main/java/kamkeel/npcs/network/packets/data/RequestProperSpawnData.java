@@ -9,7 +9,6 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.packets.data.npc.UpdateNpcPacket;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -17,16 +16,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 public class RequestProperSpawnData extends AbstractPacket {
     public static final String packetName = "Player|SpawnData";
-    private static final int BATCH_LIMIT = 5;
-
-    private static final Set<Integer> entitiesToFix = new HashSet<>();
-    private static long lastBatchAttemptMillis = 0L;
+    private static final long REQUEST_COOLDOWN_MILLIS = 1000L;
     private int entityId;
 
     public RequestProperSpawnData() {}
@@ -37,8 +30,7 @@ public class RequestProperSpawnData extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     public static void clear() {
-        entitiesToFix.clear();
-        lastBatchAttemptMillis = 0L;
+        // No backlog queue to clear.
     }
 
     @Override
@@ -81,40 +73,24 @@ public class RequestProperSpawnData extends AbstractPacket {
         if (entityID <= 0)
             return;
 
-        if (npc.clientFixAttempts++ < 3) {
-            PacketClient.sendClient(new RequestProperSpawnData(entityID));
-        } else {
-            entitiesToFix.add(entityID);
-        }
+        long now = System.currentTimeMillis();
+        if (now - npc.clientFixLastRequestMillis < REQUEST_COOLDOWN_MILLIS)
+            return;
+        if (npc.clientFixAttempts >= 3)
+            return;
+
+        npc.clientFixLastRequestMillis = now;
+        npc.clientFixAttempts++;
+        PacketClient.sendClient(new RequestProperSpawnData(entityID));
     }
 
     @SideOnly(Side.CLIENT)
     public static boolean canDoBatchUpdate() {
-        return System.currentTimeMillis() - lastBatchAttemptMillis >= 5000;
+        return false;
     }
 
     @SideOnly(Side.CLIENT)
     public static void handleBacklog() {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc == null || mc.theWorld == null || mc.thePlayer == null)
-            return;
-
-        if (entitiesToFix.isEmpty())
-            return;
-        // Remove entity checks if they're no longer loaded
-        entitiesToFix.removeIf(value -> !(mc.theWorld.getEntityByID(value) instanceof EntityNPCInterface));
-
-        Iterator<Integer> it = entitiesToFix.iterator();
-        int count = 0;
-
-        while (it.hasNext() && count < BATCH_LIMIT) {
-            PacketClient.sendClient(new RequestProperSpawnData(it.next()));
-            it.remove();
-            count++;
-        }
-
-        if (count != 0) {
-            lastBatchAttemptMillis = System.currentTimeMillis();
-        }
+        // No batch backlog. Requests are immediate and throttled in reportMissingData().
     }
 }

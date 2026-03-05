@@ -193,8 +193,6 @@ public class ClientTickHandler {
             return;
 
         if (mc.theWorld.getTotalWorldTime() % 20 == 0) { // Update every second
-            if (RequestProperSpawnData.canDoBatchUpdate())
-                RequestProperSpawnData.handleBacklog();
             updateCompassMarks();
         }
     }

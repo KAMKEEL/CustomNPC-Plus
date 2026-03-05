@@ -381,6 +381,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
     public boolean activateAbility(EntityPlayer player, String key) {
         if (player.worldObj.isRemote || key == null || key.isEmpty()) return false;
 
+        // Global activation check (e.g., addon-registered restrictions)
+        if (!AbilityController.Instance.canPlayerActivate(player)) return false;
+
         // Can't activate if already executing
         if (currentAbility != null && currentAbility.isExecuting()) return false;
         if (isExecutingChain()) return false;
@@ -394,6 +397,9 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         // Check conditions (skip target-requiring ones)
         if (!action.checkConditionsForPlayer(player)) return false;
+
+        // Check player requirement (visibility/availability gate)
+        if (!action.isAvailableFor(player)) return false;
 
         // Dispatch: chain vs ability
         if (action.isChain()) {

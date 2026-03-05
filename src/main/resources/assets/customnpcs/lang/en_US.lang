@@ -1772,6 +1772,14 @@ ability.dodgeAnimation3=Dodge Animation 3
 ability.showTelegraph=Show Telegraph
 ability.windUpColor=Wind Up Color
 ability.activeColor=Active Color
+ability.telegraphHeight=Height Offset
+ability.telegraphRadius=Radius
+ability.telegraphInnerRadius=Inner Radius
+ability.telegraphLength=Length
+ability.telegraphWidth=Width
+ability.telegraphAngle=Angle
+ability.telegraphActiveTicks=Active Ticks
+ability.syncTelegraph=Sync Duration
 
 # Section Headers
 ability.section.timing=Timing
@@ -2108,6 +2116,16 @@ ability.hover.canCounter=Enable counterattack when blocking damage
 ability.hover.counterType=Flat = fixed damage, Percent = % of blocked damage
 ability.hover.affectsCaster=Hazard can damage the NPC that created it
 ability.hover.sweepMode=Swipe = single arc attack, Spin = continuous rotation
+ability.hover.innerRadius=Minimum distance from caster. Entities closer than this are not hit. Creates a donut-shaped dead zone. Also shown on the telegraph.
+ability.hover.telegraphShape=Shape of the telegraph warning indicator. Different shapes use different size parameters.
+ability.hover.telegraphHeight=Vertical offset from the ground for telegraph rendering
+ability.hover.telegraphRadius=Radius of the telegraph shape (used by Circle, Ring, Square)
+ability.hover.telegraphInnerRadius=Inner radius creating a hollow center. Used by Ring (donut) and Cone (truncated wedge).
+ability.hover.telegraphLength=Forward distance of the telegraph shape (used by Line, Cone)
+ability.hover.telegraphWidth=Side-to-side width of the telegraph (used by Line)
+ability.hover.telegraphAngle=Spread angle in degrees (used by Cone)
+ability.hover.telegraphActiveTicks=How long the telegraph stays visible during the active phase (20 ticks = 1 second). Set to 0 for windup-only telegraph.
+ability.hover.syncTelegraph=When enabled, telegraph active duration automatically matches the ability duration
 ability.hover.launching=When enabled, wall launches forward dealing damage and knockback
 
 # Energy Barrier Abilities
