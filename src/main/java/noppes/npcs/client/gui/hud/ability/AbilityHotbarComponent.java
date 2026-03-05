@@ -8,7 +8,7 @@ import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSelectPacket;
 import net.minecraft.client.Minecraft;
-import noppes.npcs.client.ClientProxy;
+import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.client.ClientAbilityState;
 import noppes.npcs.client.KeyPressHandler;
 import net.minecraft.client.gui.FontRenderer;
@@ -527,19 +527,34 @@ public class AbilityHotbarComponent extends HudComponent {
         PlayerAbilityHotbarData hotbarData = playerData.hotbarData;
         if (hotbarData == null) return;
 
+        EntityPlayer clientPlayer = Minecraft.getMinecraft().thePlayer;
+        boolean globalBlock = clientPlayer != null && AbilityController.Instance != null
+            && !AbilityController.Instance.canPlayerActivate(clientPlayer);
+
         for (int i = 0; i < TOTAL_SLOTS; i++) {
             AbilityHotbarData slotData = hotbarData.slots[i];
             String key = slotData.isEmpty() ? null : slotData.abilityKey;
             Ability ability = null;
             IAbilityAction action = null;
             if (key != null && AbilityController.Instance != null) {
-                if (slotData.isChainKey()) {
-                    action = AbilityController.Instance.resolveChainedAbility(slotData.getResolveKey());
+                if (globalBlock) {
+                    key = null;
                 } else {
-                    ability = AbilityController.Instance.resolveAbility(key);
-                    action = ability;
+                    if (slotData.isChainKey()) {
+                        action = AbilityController.Instance.resolveChainedAbility(slotData.getResolveKey());
+                    } else {
+                        ability = AbilityController.Instance.resolveAbility(key);
+                        action = ability;
+                    }
+                    if (ability == null && action == null) key = null;
+
+                    // Hide abilities whose player requirement is not met
+                    if (action != null && clientPlayer != null && !action.isAvailableFor(clientPlayer)) {
+                        key = null;
+                        ability = null;
+                        action = null;
+                    }
                 }
-                if (ability == null && action == null) key = null;
             }
             slots[i].setAbility(key, ability, action);
         }

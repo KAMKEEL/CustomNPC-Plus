@@ -53,6 +53,12 @@ public interface IScriptHandlerPacket extends IScriptHandler {
             return new GuiDataResult(GuiDataKind.LOAD_COMPLETE, -1);
         }
 
+        // Ignore unrelated packets (e.g. ScriptInfoPacket config data)
+        // that don't contain any expected keys for this handler
+        if (!compound.hasKey("Tab") && !compound.hasKey("ScriptLanguage") && !compound.hasKey("ScriptEnabled")) {
+            return null;
+        }
+
         if (!compound.hasKey("Tab")) {
             setLanguage(compound.getString("ScriptLanguage"));
             setEnabled(compound.getBoolean("ScriptEnabled"));

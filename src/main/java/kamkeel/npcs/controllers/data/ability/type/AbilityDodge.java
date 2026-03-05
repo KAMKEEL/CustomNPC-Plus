@@ -111,9 +111,10 @@ public class AbilityDodge extends AbilityDefend implements IAbilityDodge {
     @SideOnly(Side.CLIENT)
     @Override
     protected void getTypeDefinitions(List<FieldDef> defs) {
-        defs.add(FieldDef.section("ability.section.dodgeAnimations").tab("Effects"));
-
         FieldDef.insertAfter(defs, "ability.dazedAnimation",
+            FieldDef.section("ability.section.dodgeAnimations").tab("Effects"));
+
+        FieldDef.insertAfter(defs, "ability.section.dodgeAnimations",
             FieldDef.animSubGui("ability.dodgeAnimation1",
                     this::getDodgeAnimation1Id, this::setDodgeAnimation1Id,
                     this::getDodgeAnimation1Name, this::setDodgeAnimation1Name)

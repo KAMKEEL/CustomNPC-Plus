@@ -105,7 +105,7 @@ public class TelegraphRenderer {
                 renderLine(telegraph.getLength(), telegraph.getWidth(), red, green, blue, alpha);
                 break;
             case CONE:
-                renderCone(telegraph.getLength(), telegraph.getAngle(), red, green, blue, alpha);
+                renderCone(telegraph.getLength(), telegraph.getAngle(), telegraph.getInnerRadius(), red, green, blue, alpha);
                 break;
             case POINT:
                 renderPoint(red, green, blue, alpha);
@@ -207,42 +207,98 @@ public class TelegraphRenderer {
         tessellator.draw();
     }
 
-    private void renderCone(float length, float angle, float r, float g, float b, float a) {
+    private void renderCone(float length, float angle, float innerRadius, float r, float g, float b, float a) {
         float halfAngleRad = (float) Math.toRadians(angle / 2);
 
         Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawing(GL11.GL_TRIANGLE_FAN);
-        tessellator.setColorRGBA_F(r, g, b, a);
 
-        // Origin point
-        tessellator.addVertex(0, 0, 0);
+        if (innerRadius <= 0) {
+            // Standard cone: triangle fan from origin
+            tessellator.startDrawing(GL11.GL_TRIANGLE_FAN);
+            tessellator.setColorRGBA_F(r, g, b, a);
 
-        // Arc points
-        for (int i = 0; i <= CONE_SEGMENTS; i++) {
-            float segmentAngle = -halfAngleRad + (halfAngleRad * 2 * i) / CONE_SEGMENTS;
-            double x = Math.sin(segmentAngle) * length;
-            double z = Math.cos(segmentAngle) * length;
-            tessellator.addVertex(x, 0, z);
+            tessellator.addVertex(0, 0, 0);
+
+            for (int i = 0; i <= CONE_SEGMENTS; i++) {
+                float segmentAngle = -halfAngleRad + (halfAngleRad * 2 * i) / CONE_SEGMENTS;
+                double x = Math.sin(segmentAngle) * length;
+                double z = Math.cos(segmentAngle) * length;
+                tessellator.addVertex(x, 0, z);
+            }
+
+            tessellator.draw();
+
+            // Border
+            tessellator.startDrawing(GL11.GL_LINE_STRIP);
+            tessellator.setColorRGBA_F(r, g, b, Math.min(1.0f, a * 2));
+
+            tessellator.addVertex(0, 0.01, 0);
+
+            for (int i = 0; i <= CONE_SEGMENTS; i++) {
+                float segmentAngle = -halfAngleRad + (halfAngleRad * 2 * i) / CONE_SEGMENTS;
+                double x = Math.sin(segmentAngle) * length;
+                double z = Math.cos(segmentAngle) * length;
+                tessellator.addVertex(x, 0.01, z);
+            }
+
+            tessellator.addVertex(0, 0.01, 0);
+
+            tessellator.draw();
+        } else {
+            // Truncated cone: strip between inner and outer arcs
+            tessellator.startDrawing(GL11.GL_TRIANGLE_STRIP);
+            tessellator.setColorRGBA_F(r, g, b, a);
+
+            for (int i = 0; i <= CONE_SEGMENTS; i++) {
+                float segmentAngle = -halfAngleRad + (halfAngleRad * 2 * i) / CONE_SEGMENTS;
+                double sinA = Math.sin(segmentAngle);
+                double cosA = Math.cos(segmentAngle);
+
+                tessellator.addVertex(sinA * length, 0, cosA * length);
+                tessellator.addVertex(sinA * innerRadius, 0, cosA * innerRadius);
+            }
+
+            tessellator.draw();
+
+            // Border: outer arc
+            float borderAlpha = Math.min(1.0f, a * 2);
+            tessellator.startDrawing(GL11.GL_LINE_STRIP);
+            tessellator.setColorRGBA_F(r, g, b, borderAlpha);
+
+            for (int i = 0; i <= CONE_SEGMENTS; i++) {
+                float segmentAngle = -halfAngleRad + (halfAngleRad * 2 * i) / CONE_SEGMENTS;
+                tessellator.addVertex(Math.sin(segmentAngle) * length, 0.01, Math.cos(segmentAngle) * length);
+            }
+
+            tessellator.draw();
+
+            // Border: inner arc
+            tessellator.startDrawing(GL11.GL_LINE_STRIP);
+            tessellator.setColorRGBA_F(r, g, b, borderAlpha);
+
+            for (int i = 0; i <= CONE_SEGMENTS; i++) {
+                float segmentAngle = -halfAngleRad + (halfAngleRad * 2 * i) / CONE_SEGMENTS;
+                tessellator.addVertex(Math.sin(segmentAngle) * innerRadius, 0.01, Math.cos(segmentAngle) * innerRadius);
+            }
+
+            tessellator.draw();
+
+            // Border: side edges connecting inner and outer arcs
+            tessellator.startDrawing(GL11.GL_LINES);
+            tessellator.setColorRGBA_F(r, g, b, borderAlpha);
+
+            double sinStart = Math.sin(-halfAngleRad);
+            double cosStart = Math.cos(-halfAngleRad);
+            tessellator.addVertex(sinStart * innerRadius, 0.01, cosStart * innerRadius);
+            tessellator.addVertex(sinStart * length, 0.01, cosStart * length);
+
+            double sinEnd = Math.sin(halfAngleRad);
+            double cosEnd = Math.cos(halfAngleRad);
+            tessellator.addVertex(sinEnd * innerRadius, 0.01, cosEnd * innerRadius);
+            tessellator.addVertex(sinEnd * length, 0.01, cosEnd * length);
+
+            tessellator.draw();
         }
-
-        tessellator.draw();
-
-        // Draw border
-        tessellator.startDrawing(GL11.GL_LINE_STRIP);
-        tessellator.setColorRGBA_F(r, g, b, Math.min(1.0f, a * 2));
-
-        tessellator.addVertex(0, 0.01, 0);
-
-        for (int i = 0; i <= CONE_SEGMENTS; i++) {
-            float segmentAngle = -halfAngleRad + (halfAngleRad * 2 * i) / CONE_SEGMENTS;
-            double x = Math.sin(segmentAngle) * length;
-            double z = Math.cos(segmentAngle) * length;
-            tessellator.addVertex(x, 0.01, z);
-        }
-
-        tessellator.addVertex(0, 0.01, 0);
-
-        tessellator.draw();
     }
 
     private void renderPoint(float r, float g, float b, float a) {
@@ -344,7 +400,7 @@ public class TelegraphRenderer {
                 renderLine(telegraph.getLength(), telegraph.getWidth(), red, green, blue, alpha);
                 break;
             case CONE:
-                renderCone(telegraph.getLength(), telegraph.getAngle(), red, green, blue, alpha);
+                renderCone(telegraph.getLength(), telegraph.getAngle(), telegraph.getInnerRadius(), red, green, blue, alpha);
                 break;
             case POINT:
                 renderPoint(red, green, blue, alpha);

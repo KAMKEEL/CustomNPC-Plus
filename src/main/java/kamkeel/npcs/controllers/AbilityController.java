@@ -81,6 +81,7 @@ public class AbilityController implements IAbilityHandler {
     private final List<IAbilityExtender> extenders = new ArrayList<>();
     private final Map<String, Supplier<AbilityCondition>> conditionTypes = new HashMap<>();
     private final List<Predicate<EntityPlayer>> flightCheckers = new ArrayList<>();
+    private final List<Predicate<EntityPlayer>> activationCheckers = new ArrayList<>();
 
     // ── Chained Abilities ──────────────────────────────────────────────────
     private final Map<String, ChainedAbility> chainedAbilities = new LinkedHashMap<>();      // name → ChainedAbility
@@ -1017,6 +1018,17 @@ public class AbilityController implements IAbilityHandler {
             if (checker.test(player)) return true;
         }
         return false;
+    }
+
+    public void registerActivationChecker(Predicate<EntityPlayer> checker) {
+        activationCheckers.add(checker);
+    }
+
+    public boolean canPlayerActivate(EntityPlayer player) {
+        for (Predicate<EntityPlayer> checker : activationCheckers) {
+            if (!checker.test(player)) return false;
+        }
+        return true;
     }
 
     /**

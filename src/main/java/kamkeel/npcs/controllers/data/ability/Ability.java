@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public abstract class Ability implements IAbility, IAbilityAction {
 
@@ -155,6 +156,15 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected transient DefaultIconLayer[] defaultIconLayers = null;
     protected transient int defaultIconWidth = 48;
     protected transient int defaultIconHeight = 48;
+
+    /**
+     * Optional player requirement predicate. When set, the ability is only visible
+     * and usable by players for whom this predicate returns true.
+     * Evaluated on-demand (no polling). Null means no requirement (always available).
+     * <p>
+     * This is transient — set programmatically by addons, not saved to NBT.
+     */
+    protected transient Predicate<EntityPlayer> playerRequirement;
 
     /**
      * A single layer of a default ability icon. Each layer has a texture,
@@ -597,6 +607,18 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return 45.0f;
     }
 
+    public float getTelegraphInnerRadius() {
+        return 0.0f;
+    }
+
+    /**
+     * Override to return true if the ability type manages its own telegraph GUI controls.
+     * When true, the base class will skip adding the default telegraph section.
+     */
+    public boolean hasOwnTelegraphControls() {
+        return false;
+    }
+
     /**
      * Returns true if the caster is a player (not an NPC).
      * Use this instead of checking {@code target != null} to make NPC/Player
@@ -875,7 +897,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
             .tab("Effects"));
 
         TelegraphType tType = getTelegraphType();
-        if (tType != null && tType != TelegraphType.NONE) {
+        if (tType != null && tType != TelegraphType.NONE && !hasOwnTelegraphControls()) {
             defs.add(FieldDef.section("ability.section.telegraph").tab("Effects")
                 .hover("telegraph." + tType.name().toLowerCase()));
             defs.add(FieldDef.boolField("ability.showTelegraph", this::isShowTelegraph, this::setShowTelegraph)
@@ -1015,13 +1037,13 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 telegraph = Telegraph.circle(getTelegraphRadius());
                 break;
             case RING:
-                telegraph = Telegraph.ring(getTelegraphRadius(), getTelegraphRadius() * 0.5f);
+                telegraph = Telegraph.ring(getTelegraphRadius(), getTelegraphInnerRadius());
                 break;
             case LINE:
                 telegraph = Telegraph.line(getTelegraphLength(), getTelegraphWidth());
                 break;
             case CONE:
-                telegraph = Telegraph.cone(getTelegraphLength(), getTelegraphAngle());
+                telegraph = Telegraph.cone(getTelegraphLength(), getTelegraphAngle(), getTelegraphInnerRadius());
                 break;
             case POINT:
                 telegraph = new Telegraph("", TelegraphType.POINT);
@@ -1762,7 +1784,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     public Ability deepCopy() {
-        return AbilityController.Instance.fromNBT(this.writeNBT(false));
+        Ability copy = AbilityController.Instance.fromNBT(this.writeNBT(false));
+        if (copy != null)
+            copy.playerRequirement = this.playerRequirement;
+        return copy;
     }
 
     @Override
@@ -2344,6 +2369,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public void setAllowedBy(UserType allowedBy) {
         this.allowedBy = allowedBy;
+    }
+
+    public Predicate<EntityPlayer> getPlayerRequirement() {
+        return playerRequirement;
+    }
+
+    public void setPlayerRequirement(Predicate<EntityPlayer> requirement) {
+        this.playerRequirement = requirement;
+    }
+
+    /**
+     * Check if this ability is available for the given player.
+     * Returns true if no requirement is set, or if the requirement predicate passes.
+     */
+    public boolean isAvailableFor(EntityPlayer player) {
+        return playerRequirement == null || playerRequirement.test(player);
     }
 
     public boolean isIgnoreCooldown() {
