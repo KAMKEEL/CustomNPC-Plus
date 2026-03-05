@@ -4954,9 +4954,15 @@ public class ScriptDocument {
                 String fieldName = segments.get(1).name;
                 if (globalFields.containsKey(fieldName)) {
                     currentType = globalFields.get(fieldName).getTypeInfo();
+                    if (currentType != null && segments.get(1).hasArrayAccess) {
+                        currentType = unwrapArrayElement(currentType);
+                    }
                     // Continue from segment 2
                     for (int i = 2; i < segments.size(); i++) {
                         currentType = resolveChainSegment(currentType, segments.get(i));
+                        if (currentType != null && segments.get(i).hasArrayAccess) {
+                            currentType = unwrapArrayElement(currentType);
+                        }
                         if (currentType == null) return null;
                     }
                     return currentType;
@@ -5004,10 +5010,17 @@ public class ScriptDocument {
                 }
             }
         }
-        
+
+        if (currentType != null && first.hasArrayAccess) {
+            currentType = unwrapArrayElement(currentType);
+        }
+
         // Resolve the rest of the chain
         for (int i = 1; i < segments.size(); i++) {
             currentType = resolveChainSegment(currentType, segments.get(i));
+            if (currentType != null && segments.get(i).hasArrayAccess) {
+                currentType = unwrapArrayElement(currentType);
+            }
             if (currentType == null) {
                 return null;
             }
@@ -5104,13 +5117,12 @@ public class ScriptDocument {
                 }
             }
             
-            // Check if followed by array brackets (array access)
-            // Skip array accesses like [0] or [i] - treat them as part of the current segment
+            boolean hasArrayAccess = false;
             while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
                 i++;
             }
             if (i < expr.length() && expr.charAt(i) == '[') {
-                // Skip to the matching closing bracket
+                hasArrayAccess = true;
                 int depth = 1;
                 i++;
                 while (i < expr.length() && depth > 0) {
@@ -5121,7 +5133,7 @@ public class ScriptDocument {
                 }
             }
             
-            segments.add(new ChainSegment(name, start, i, isMethodCall, arguments));
+            segments.add(new ChainSegment(name, start, i, isMethodCall, arguments, hasArrayAccess));
             
             // Skip whitespace
             while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
@@ -5239,14 +5251,46 @@ public class ScriptDocument {
         final int end;
         final boolean isMethodCall;
         final String arguments;  // The text between parentheses for method calls, or null for fields
+        final boolean hasArrayAccess;
         
-        ChainSegment(String name, int start, int end, boolean isMethodCall, String arguments) {
+        ChainSegment(String name, int start, int end, boolean isMethodCall, String arguments, boolean hasArrayAccess) {
             this.name = name;
             this.start = start;
             this.end = end;
             this.isMethodCall = isMethodCall;
             this.arguments = arguments;
+            this.hasArrayAccess = hasArrayAccess;
         }
+    }
+
+    /**
+     * Extract the element type from an array type, using multiple fallback strategies.
+     * 
+     * Used when a chain segment has array subscript notation (e.g., items[1]).
+     * Given an array type like IItemStack[], returns IItemStack so that subsequent
+     * chain resolution (e.g., .getName()) operates on the element type, not the array type.
+     * 
+     * Strategy (in priority order):
+     * 1. If TypeInfo stores elementType (preferred, from arrayOf factory), use it directly
+     * 2. If fullName has [] suffix (legacy or JS types), strip it and re-resolve
+     * 3. If underlying javaClass is an array, use Class.getComponentType()
+     * 4. Fallback to ANY type to prevent null propagation
+     * 
+     * @param arrayType The array type to unwrap
+     * @return The element type, or TypeInfo.ANY if unwrapping fails
+     */
+    private TypeInfo unwrapArrayElement(TypeInfo arrayType) {
+        if (arrayType == null) return null;
+        TypeInfo el = arrayType.getElementType();
+        if (el != null) return el;
+        String name = arrayType.getFullName();
+        if (name != null && name.endsWith("[]")) {
+            return resolveType(name.substring(0, name.length() - 2));
+        }
+        if (arrayType.getJavaClass() != null && arrayType.getJavaClass().isArray()) {
+            return TypeInfo.fromClass(arrayType.getJavaClass().getComponentType());
+        }
+        return TypeInfo.ANY;
     }
 
     /**
@@ -5741,9 +5785,16 @@ public class ScriptDocument {
                 }
             }
         }
-        
+
+        if (currentType != null && first.hasArrayAccess) {
+            currentType = unwrapArrayElement(currentType);
+        }
+
         for (int i = 1; i < segments.size(); i++) {
             currentType = resolveChainSegment(currentType, segments.get(i));
+            if (currentType != null && segments.get(i).hasArrayAccess) {
+                currentType = unwrapArrayElement(currentType);
+            }
             if (currentType == null) {
                 return null;
             }

@@ -81,6 +81,10 @@ public class TypeInfo {
     // Null for non-parameterized types
     private final TypeInfo rawType;
 
+    // For array types, the element type (e.g., IItemStack for IItemStack[])
+    // Null for non-array types
+    private final TypeInfo elementType;
+
     // Documentation (script-defined types)
     private JSDocInfo jsDocInfo;
 
@@ -90,18 +94,18 @@ public class TypeInfo {
 
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
-        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, null, null, null);
+        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, null, null, null, null);
     }
     
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType,
                      JSTypeInfo jsTypeInfo) {
-        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, jsTypeInfo, null, null);
+        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, jsTypeInfo, null, null, null);
     }
     
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType,
-                     JSTypeInfo jsTypeInfo, TypeInfo rawType, List<TypeInfo> appliedTypeArgs) {
+                     JSTypeInfo jsTypeInfo, TypeInfo rawType, List<TypeInfo> appliedTypeArgs, TypeInfo elementType) {
         this.simpleName = simpleName;
         this.fullName = fullName;
         this.packageName = packageName;
@@ -111,6 +115,7 @@ public class TypeInfo {
         this.enclosingType = enclosingType;
         this.jsTypeInfo = jsTypeInfo;
         this.rawType = rawType;
+        this.elementType = elementType;
         if (appliedTypeArgs != null) {
             this.appliedTypeArgs.addAll(appliedTypeArgs);
         }
@@ -129,6 +134,7 @@ public class TypeInfo {
         this.enclosingType = enclosingType;
         this.jsTypeInfo = null;
         this.rawType = null;
+        this.elementType = null;
     }
 
     // Factory methods
@@ -176,6 +182,10 @@ public class TypeInfo {
         TypeInfo enclosing = null;
         if (clazz.getEnclosingClass() != null) {
             enclosing = fromClass(clazz.getEnclosingClass());
+        }
+
+        if (clazz.isArray()) {
+            return arrayOf(fromClass(clazz.getComponentType()));
         }
 
         return new TypeInfo(simpleName, fullName, packageName, kind, clazz, true, enclosing);
@@ -333,7 +343,7 @@ public class TypeInfo {
             }
         }
         
-        return new TypeInfo(simpleName, fullName, pkg, Kind.CLASS, arrayClass, true, null);
+        return new TypeInfo(simpleName, fullName, pkg, Kind.CLASS, arrayClass, true, null, null, null, null, elementType);
     }
     
     /**
@@ -390,6 +400,14 @@ public class TypeInfo {
     public TypeInfo getRawType() {
         return rawType != null ? rawType : this;
     }
+
+    public TypeInfo getElementType() {
+        return elementType;
+    }
+
+    public boolean isArray() {
+        return elementType != null || (javaClass != null && javaClass.isArray());
+    }
     
     /**
      * Get the applied type arguments.
@@ -417,7 +435,7 @@ public class TypeInfo {
         // Generic arguments are tracked via appliedTypeArgs and rendered via getDisplayName*().
         TypeInfo raw = getRawType();
         return new TypeInfo(raw.simpleName, raw.fullName, raw.packageName, raw.kind, raw.javaClass,
-                           raw.resolved, raw.enclosingType, raw.jsTypeInfo, raw, typeArgs);
+                           raw.resolved, raw.enclosingType, raw.jsTypeInfo, raw, typeArgs, null);
     }
     
     /**
