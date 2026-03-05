@@ -84,8 +84,7 @@ public final class GlobalNPCScriptPacket extends AbstractPacket {
             PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
             int tab = in.getInt(in.readerIndex());
-            if (!PacketUtil.saveScripts(data, in, player))
-                return;
+            PacketUtil.saveScripts(data, in);
             ScriptController.Instance.lastGlobalNpcUpdate = System.currentTimeMillis();
             if (tab == -1)
                 ScriptController.Instance.saveGlobalScriptsSync();

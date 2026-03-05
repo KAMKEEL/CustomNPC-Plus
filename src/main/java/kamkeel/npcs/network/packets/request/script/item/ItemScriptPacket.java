@@ -7,7 +7,6 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
@@ -15,7 +14,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
@@ -74,10 +72,8 @@ public final class ItemScriptPacket extends AbstractPacket {
         if (requestedAction == Action.GET) {
             ScriptCustomItem iw = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(player.getHeldItem());
             iw.loadScriptData();
-            String token = PacketUtil.createScriptSession((EntityPlayerMP) player);
             NBTTagCompound compound = iw.getMCNbt();
             compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-            compound.setString("ScriptSessionToken", token);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
 
             NBTTagCompound loadComplete = new NBTTagCompound();
@@ -89,11 +85,6 @@ public final class ItemScriptPacket extends AbstractPacket {
             }
 
             NBTTagCompound compound = ByteBufUtils.readNBT(in);
-            String token = compound.getString("ScriptSessionToken");
-            if (!PacketUtil.verifyScriptSession(player, token)) {
-                LogWriter.error(String.format("Rejected item script save from %s: session not verified", player.getCommandSenderName()));
-                return;
-            }
             ScriptCustomItem wrapper = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(player.getHeldItem());
             wrapper.setMCNbt(compound);
             wrapper.saveScriptData();

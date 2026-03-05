@@ -71,29 +71,16 @@ public interface IScriptHandlerPacket extends IScriptHandler {
      * GuiScriptInterface is responsible for updating the active {@link IScriptUnit} with current editor text first.
      */
     default void sync() {
-        sync(null);
-    }
-
-    /**
-     * Emit save packets with a session token for server-side verification.
-     * The token prevents saving unloaded default data due to race conditions.
-     */
-    default void sync(String sessionToken) {
         List<IScriptUnit> containers = getScripts();
         for (int i = 0; i < containers.size(); i++) {
             IScriptUnit container = containers.get(i);
-            NBTTagCompound nbt = container.writeToNBT(new NBTTagCompound());
-            if (sessionToken != null && !sessionToken.isEmpty())
-                nbt.setString("ScriptSessionToken", sessionToken);
-            sendSavePacket(i, containers.size(), nbt);
+            sendSavePacket(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
         }
 
         NBTTagCompound scriptData = new NBTTagCompound();
         scriptData.setString("ScriptLanguage", getLanguage());
         scriptData.setBoolean("ScriptEnabled", getEnabled());
         scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(getConsoleText()));
-        if (sessionToken != null && !sessionToken.isEmpty())
-            scriptData.setString("ScriptSessionToken", sessionToken);
         sendSavePacket(-1, containers.size(), scriptData);
     }
 }

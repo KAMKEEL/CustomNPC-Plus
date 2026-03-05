@@ -99,11 +99,8 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     @Override
-    public void sync(String sessionToken) {
-        NBTTagCompound compound = getMCNbt();
-        if (sessionToken != null && !sessionToken.isEmpty())
-            compound.setString("ScriptSessionToken", sessionToken);
-        sendSavePacket(-1, getScripts().size(), compound);
+    public void sync() {
+        sendSavePacket(-1, getScripts().size(), getMCNbt());
     }
 
     public int getType() {

@@ -188,11 +188,8 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler, ISc
     }
 
     @Override
-    public void sync(String sessionToken) {
-        NBTTagCompound compound = getNBT(new NBTTagCompound());
-        if (sessionToken != null && !sessionToken.isEmpty())
-            compound.setString("ScriptSessionToken", sessionToken);
-        sendSavePacket(-1, getScripts().size(), compound);
+    public void sync() {
+        sendSavePacket(-1, getScripts().size(), getNBT(new NBTTagCompound()));
     }
 
     @Override

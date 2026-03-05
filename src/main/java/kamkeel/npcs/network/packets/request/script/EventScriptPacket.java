@@ -89,8 +89,7 @@ public final class EventScriptPacket extends AbstractPacket {
         if (requestedAction == Action.GET) {
             PacketUtil.getScripts(data, (EntityPlayerMP) player);
         } else {
-            if (!PacketUtil.saveScripts(data, in, player))
-                return;
+            PacketUtil.saveScripts(data, in);
             npc.updateAI = true;
             npc.script.hasInited = false;
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
