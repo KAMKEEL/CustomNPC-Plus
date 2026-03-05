@@ -43,9 +43,11 @@ public final class TypeChecker {
         if ("any".equals(expected.getFullName()) || "any".equals(actual.getFullName())) {
             return true;
         }
-        // In JavaScript mode, treat java.lang.Object as "any"
-        if (isJavaScriptMode() && "Object".equals(expected.getSimpleName())) {
-            return true;
+        
+        if (isJavaScriptMode()) {
+            // Treat java.lang.Object as "any", universally compatible
+            if ("Object".equals(expected.getSimpleName()) || "Object".equals(actual.getSimpleName()) )
+                return true;
         }
         
         // Handle null literal - null is compatible with any reference type (non-primitive)
