@@ -4800,6 +4800,9 @@ public class ScriptDocument {
     }
 
     private TypeInfo narrowIntLiteral(String literalText) {
+        if (isJavaScript()) 
+            return TypeInfo.NUMBER;
+        
         TypeInfo expectedType = ExpressionTypeResolver.CURRENT_EXPECTED_TYPE;
         if (expectedType != null) {
             TypeInfo narrowed = TypeChecker.narrowLiteralToExpectedType(literalText, expectedType);
@@ -4866,6 +4869,9 @@ public class ScriptDocument {
         // Numeric literals with precision checking
         // Float: can be 10f, 10.5f, 10.f, .5f
         if (expr.matches("-?\\d*\\.?\\d+[fF]")) {
+            if (isJavaScript()) 
+                return TypeInfo.NUMBER;
+            
             // Check if it has too many decimal places for float (>7 significant digits)
             // If so, treat it as double (causing type mismatch)
             if (hasExcessivePrecision(expr, 7)) {
@@ -4875,6 +4881,9 @@ public class ScriptDocument {
         }
         // Double: can be 10d, 10.5d, 10.5, .5, 10., but NOT plain integers
         if (expr.matches("-?\\d*\\.\\d+[dD]?") || expr.matches("-?\\d+\\.[dD]?") || expr.matches("-?\\d+[dD]")) {
+            if (isJavaScript()) 
+                return TypeInfo.NUMBER;
+            
             // Check if it has too many decimal places for double (>15 significant digits)
             // Return null to indicate the literal is invalid/unrepresentable
             if (hasExcessivePrecision(expr, 15)) {
@@ -4884,6 +4893,9 @@ public class ScriptDocument {
         }
         // Long: 10L or 10l
         if (expr.matches("-?\\d+[lL]")) {
+            if (isJavaScript()) 
+                return TypeInfo.NUMBER;
+            
             return TypeInfo.fromPrimitive("long");
         }
         // Hex integer literals: 0x7F, -0x80, 0X1A
