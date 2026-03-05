@@ -360,21 +360,27 @@ public class AutocompleteMenu extends Gui {
         drawRect(x, y, x + 1, y + height, BORDER_COLOR);
         drawRect(x + width - 1, y, x + width, y + height, BORDER_COLOR);
         
-        // Draw items
+        // Draw items — tighter scissor so partial last item is clipped at the items-area boundary
+        int itemAreaH = height - HINT_HEIGHT - PADDING * 2;
+        setScissor(x + 1, y + PADDING , width - 2, itemAreaH);
         int itemY = y + PADDING;
 
         int visibleCount = getVisibleItemCapacity();
-        for (int i = 0; i < visibleCount; i++) {
+        int renderCount = Math.min(visibleCount + 1, items.size() - scrollOffset);
+        for (int i = 0; i < renderCount; i++) {
             int itemIndex = scrollOffset + i;
             if (itemIndex >= items.size()) break;
-            
+
             AutocompleteItem item = items.get(itemIndex);
             boolean isSelected = (itemIndex == selectedIndex);
-            boolean isHovered = (itemIndex == hoveredIndex);
-            
+            boolean isHovered  = (itemIndex == hoveredIndex);
+
             drawItem(item, x + PADDING, itemY, width - PADDING * 2 - 8, isSelected, isHovered);
             itemY += ITEM_HEIGHT;
         }
+
+        // Restore full-panel scissor for scrollbar and hint bar
+        setScissor(x - 2, y - 2, width + 4, height + 4);
         
         // Draw scrollbar if needed
         if (items.size() > visibleCount) {
@@ -708,9 +714,11 @@ public class AutocompleteMenu extends Gui {
 
         int visibleItems = getVisibleItemCapacity();
 
-        for (int i = 0; i < visibleItems; i++) {
+        for (int i = 0; i <= visibleItems; i++) {
+            int idx = scrollOffset + i;
+            if (idx >= items.size()) break;
             if (mouseY >= itemY && mouseY < itemY + ITEM_HEIGHT) {
-                hoveredIndex = scrollOffset + i;
+                hoveredIndex = idx;
                 break;
             }
             itemY += ITEM_HEIGHT;
