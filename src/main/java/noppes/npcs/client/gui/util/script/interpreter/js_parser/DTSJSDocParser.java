@@ -73,15 +73,29 @@ public class DTSJSDocParser {
     }
     
     private static String cleanLine(String line) {
+        // Strip outer leading whitespace (before the * marker) and all trailing whitespace
         line = line.trim();
         if (line.startsWith("/**")) {
             line = line.substring(3).trim();
         }
         if (line.endsWith("*/")) {
-            line = line.substring(0, line.length() - 2).trim();
+            line = line.substring(0, line.length() - 2);
+            // Strip trailing whitespace between content and */ but preserve leading spaces
+            int end = line.length();
+            while (end > 0 && Character.isWhitespace(line.charAt(end - 1))) end--;
+            line = line.substring(0, end);
         }
         if (line.startsWith("*")) {
-            line = line.substring(1).trim();
+            line = line.substring(1); // strip the leading *
+            // Consume exactly ONE space after * (the JSDoc conventional separator).
+            // Remaining leading spaces are intentional indentation (e.g. inside code fences).
+            if (!line.isEmpty() && line.charAt(0) == ' ') {
+                line = line.substring(1);
+            }
+            // Strip trailing whitespace
+            int end = line.length();
+            while (end > 0 && Character.isWhitespace(line.charAt(end - 1))) end--;
+            line = line.substring(0, end);
         }
         return line;
     }
