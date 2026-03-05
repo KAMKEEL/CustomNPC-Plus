@@ -3231,7 +3231,7 @@ public class ScriptDocument {
             // Try to resolve as a type
             TypeInfo typeInfo = resolveType(target);
             if (typeInfo != null && typeInfo.isResolved()) {
-                marks.add(new ScriptLine.Mark(start, end, TokenType.IMPORTED_CLASS, typeInfo));
+                addTypeMark(marks, start, end, TokenType.IMPORTED_CLASS, typeInfo);
                 return;
             }
             // Otherwise mark the parts separately
@@ -3253,7 +3253,7 @@ public class ScriptDocument {
         // Check for type name (imported class)
         TypeInfo typeInfo = resolveType(target);
         if (typeInfo != null && typeInfo.isResolved()) {
-            marks.add(new ScriptLine.Mark(start, end, TokenType.IMPORTED_CLASS, typeInfo));
+            addTypeMark(marks, start, end, TokenType.IMPORTED_CLASS, typeInfo);
             return;
         }
         
@@ -3929,13 +3929,20 @@ public class ScriptDocument {
                 posAfterType++;
             }
 
+            int varScanPos = posAfterType;
+            while (text.startsWith("[]", varScanPos)) {
+                marks.add(new ScriptLine.Mark(varScanPos, varScanPos + 2, TokenType.DEFAULT, null));
+                varScanPos += 2;
+                while (varScanPos < text.length() && Character.isWhitespace(text.charAt(varScanPos))) varScanPos++;
+            }
+
             // Check if this looks like a type declaration:
             boolean hasGeneric = genericContent != null && !genericContent.isEmpty();
             boolean followedByVarName = false;
-            boolean atEndOfLine = posAfterType >= text.length() || text.charAt(posAfterType) == '\n';
+            boolean atEndOfLine = varScanPos >= text.length() || text.charAt(varScanPos) == '\n';
 
-            if (!atEndOfLine && posAfterType < text.length()) {
-                char nextChar = text.charAt(posAfterType);
+            if (!atEndOfLine && varScanPos < text.length()) {
+                char nextChar = text.charAt(varScanPos);
                 followedByVarName = Character.isLetter(nextChar) || nextChar == '_';
             }
 
@@ -4169,7 +4176,9 @@ public class ScriptDocument {
                 
                 // Try to resolve the type for hover info
                 TypeInfo resolvedType = resolveType(typeName);
-                marks.add(new ScriptLine.Mark(typeStart, typeEnd, resolvedType != null? resolvedType.getTokenType() : TokenType.UNDEFINED_VAR, resolvedType));
+                addTypeMark(marks, typeStart, typeEnd,
+                        resolvedType != null ? resolvedType.getTokenType() : TokenType.UNDEFINED_VAR,
+                        resolvedType);
             }
             
             // Sort special ranges by start position
@@ -4271,6 +4280,13 @@ public class ScriptDocument {
         }
     }
 
+    private void addTypeMark(List<ScriptLine.Mark> marks, int start, int end, TokenType type, Object metadata) {
+        int bracketStart = text.indexOf('[', start);
+        int coreEnd = (bracketStart >= start && bracketStart < end) ? bracketStart : end;
+        if (coreEnd < end) marks.add(new ScriptLine.Mark(coreEnd, end, TokenType.DEFAULT, null));
+        marks.add(new ScriptLine.Mark(start, coreEnd, type, metadata));
+    }
+
     private void markMethodDeclarations(List<ScriptLine.Mark> marks) {
         Matcher m = METHOD_DECL_PATTERN.matcher(text);
         while (m.find()) {
@@ -4304,8 +4320,10 @@ public class ScriptDocument {
             if (methodInfo != null)
                 returnToken = methodInfo.getReturnType().getTokenType();
 
-            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), returnToken,
-                    methodInfo != null ? methodInfo.getReturnType() : null));
+            int returnStart = m.start(1);
+            int returnEnd = m.end(1);
+            addTypeMark(marks, returnStart, returnEnd,
+                    returnToken, methodInfo != null ? methodInfo.getReturnType() : null);
             // Method name with MethodInfo metadata
             marks.add(new ScriptLine.Mark(m.start(2), m.end(2), TokenType.METHOD_DECL, methodInfo));
         }

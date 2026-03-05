@@ -699,9 +699,10 @@ public class TokenHoverInfo {
         } else {
             // Unresolved type
             iconIndicator = "?";
-            addSegment(getName(typeInfo), token.getType().getHexColor());
+            String typeName = getName(typeInfo);
+            splitAndAddTypeName(typeName, token.getType().getHexColor());
             if (!typeInfo.isResolved()) {
-                errors.add("Cannot resolve class '" + getName(typeInfo) + "'");
+                errors.add("Cannot resolve class '" + typeName + "'");
             }
         }
         
@@ -1001,14 +1002,14 @@ public class TokenHoverInfo {
             return;
         }
         if (depth > 25) {
-            // Safety guard against pathological recursive types
             addSegment(getName(typeInfo), getColorForTypeInfo(typeInfo));
             return;
         }
 
         if (typeInfo.isParameterized()) {
             TypeInfo raw = typeInfo.getRawType();
-            addSegment(getName(raw), getColorForTypeInfo(raw));
+            String rawName = getName(raw);
+            splitAndAddTypeName(rawName, getColorForTypeInfo(raw));
             addSegment("<", TokenType.DEFAULT.getHexColor());
 
             java.util.List<TypeInfo> args = typeInfo.getAppliedTypeArgs();
@@ -1023,7 +1024,23 @@ public class TokenHoverInfo {
             return;
         }
 
-        addSegment(getName(typeInfo), getColorForTypeInfo(typeInfo));
+        String typeName = getName(typeInfo);
+        splitAndAddTypeName(typeName, getColorForTypeInfo(typeInfo));
+    }
+
+    private void splitAndAddTypeName(String typeName, int typeColor) {
+        if (typeName == null || !typeName.endsWith("[]")) {
+            addSegment(typeName, typeColor);
+            return;
+        }
+        int idx = typeName.length() - 2;
+        while (idx >= 1 && typeName.charAt(idx - 1) == '[' && typeName.charAt(idx) == ']') {
+            idx -= 2;
+        }
+        if (idx > 0) {
+            addSegment(typeName.substring(0, idx), typeColor);
+        }
+        addSegment(typeName.substring(idx), TokenType.DEFAULT.getHexColor());
     }
 
     private void extractFieldInfoGeneric(Token token) {
@@ -1098,10 +1115,11 @@ public class TokenHoverInfo {
         if (Modifier.isAbstract(mods)) addSegment("abstract ", TokenType.MODIFIER.getHexColor());
         if (Modifier.isSynchronized(mods)) addSegment("synchronized ", TokenType.MODIFIER.getHexColor());
         
-        // Return type - check for actual type color
+        // Return type - check for actual type color (handle array suffix coloring)
         Class<?> returnType = method.getReturnType();
         int returnTypeColor = getColorForClass(returnType);
-        addSegment(returnType.getSimpleName(), returnTypeColor);
+        String returnTypeName = returnType.getSimpleName();
+        splitAndAddTypeName(returnTypeName, getColorForTypeInfo(containingType));
         addSegment(" ", TokenType.DEFAULT.getHexColor());
         
         // Method name
@@ -1114,7 +1132,8 @@ public class TokenHoverInfo {
         for (int i = 0; i < paramTypes.length; i++) {
             if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
             int paramTypeColor = getColorForClass(paramTypes[i]);
-            addSegment(paramTypes[i].getSimpleName(), paramTypeColor);
+            String paramTypeName = paramTypes[i].getSimpleName();
+            splitAndAddTypeName(paramTypeName, paramTypeColor);
             addSegment(" ", TokenType.DEFAULT.getHexColor());
             // Try to get parameter name if available
             String paramName = params.length > i ? params[i].getName() : "arg" + i;

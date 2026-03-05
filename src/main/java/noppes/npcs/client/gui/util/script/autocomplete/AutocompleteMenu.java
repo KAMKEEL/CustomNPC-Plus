@@ -457,7 +457,7 @@ public class AutocompleteMenu extends Gui {
 
             TypeInfo type = item.getTypeInfo();
             int col = type != null ? type.getTokenType().getHexColor() : DIM_TEXT_COLOR;
-            font.drawString(typeLabel, typeLabelX, textY, col);
+            drawTypeLabelWithArraySuffix(typeLabel, typeLabelX, textY, col);
         }
     }
 
@@ -629,9 +629,22 @@ public class AutocompleteMenu extends Gui {
         return text;
     }
     
-    /**
-     * Draw the scrollbar.
-     */
+    private void drawTypeLabelWithArraySuffix(String typeLabel, int x, int y, int typeColor) {
+        if (!typeLabel.endsWith("[]")) {
+            font.drawString(typeLabel, x, y, typeColor);
+            return;
+        }
+        int suffixStart = typeLabel.length() - 2;
+        while (suffixStart >= 2 && typeLabel.charAt(suffixStart - 2) == '[' && typeLabel.charAt(suffixStart - 1) == ']') {
+            suffixStart -= 2;
+        }
+        String core = typeLabel.substring(0, suffixStart);
+        String suffix = typeLabel.substring(suffixStart);
+        font.drawString(core, x, y, typeColor);
+        int coreWidth = font.getStringWidth(core);
+        font.drawString(suffix, x + coreWidth, y, TokenType.DEFAULT.getHexColor());
+    }
+
     private void drawScrollbar(int mouseX, int mouseY) {
         int scrollbarX = x + width - 8;
         int scrollbarY = y + PADDING;

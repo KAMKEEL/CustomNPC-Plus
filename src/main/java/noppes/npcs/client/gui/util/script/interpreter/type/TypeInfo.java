@@ -343,7 +343,7 @@ public class TypeInfo {
             }
         }
         
-        return new TypeInfo(simpleName, fullName, pkg, Kind.CLASS, arrayClass, true, null, null, null, null, elementType);
+        return new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, true, null, null, null, null, elementType);
     }
     
     /**
