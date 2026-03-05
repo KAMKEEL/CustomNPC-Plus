@@ -54,6 +54,8 @@ public class JSTypeRegistry {
     private final Map<String, String> globalEngineObjects = new LinkedHashMap<>();
     // Math / Number / Json / etc. built-in globals from ECMAScript 5.1
     private final Map<String, JSTypeInfo> globalEngineImports = new LinkedHashMap<>();
+    // Top-level global functions from GlobalFunctions.d.ts (parseInt, parseFloat, isNaN, etc.)
+    private final Map<String, JSMethodInfo> globalEngineFunctions = new LinkedHashMap<>();
     
     // Primitive types
     private static final Set<String> PRIMITIVES = new HashSet<>(Arrays.asList(
@@ -856,6 +858,8 @@ public class JSTypeRegistry {
         registerGlobalIfTypeExists("Boolean", "Boolean");
         registerGlobalIfTypeExists("RegExp",  "RegExp");
         registerGlobalIfTypeExists("Error",   "Error");
+        
+        extractGlobalFunctions();
     }
 
     /**
@@ -867,6 +871,27 @@ public class JSTypeRegistry {
         if (types.containsKey(typeName)) {
             globalEngineImports.put(globalName, types.remove(typeName));
         }
+    }
+
+    /**
+     * Extract top-level global functions from the GlobalFunctions JSTypeInfo.
+     * Moves all methods into globalEngineFunctions and removes the GlobalFunctions
+     * type from the registry (it is not a constructable type).
+     */
+    private void extractGlobalFunctions() {
+        JSTypeInfo globalFns = types.get("GlobalFunctions");
+        if (globalFns == null) return;
+
+        for (Map.Entry<String, JSMethodInfo> entry : globalFns.getMethods().entrySet()) {
+            String key = entry.getKey();
+            // Strip overload suffix ($1, $2, …) to get base name
+            String baseName = key.contains("$") ? key.substring(0, key.indexOf('$')) : key;
+            // Keep the first overload per base name
+            globalEngineFunctions.putIfAbsent(baseName, entry.getValue());
+        }
+
+        // Remove GlobalFunctions from the main type registry — it is not a usable type name
+        types.remove("GlobalFunctions");
     }
 
     /**
@@ -891,6 +916,27 @@ public class JSTypeRegistry {
     public Map<String, JSTypeInfo> getGlobalEngineImports() {
         return Collections.unmodifiableMap(globalEngineImports);
     }
+
+    /**
+     * Get JSMethodInfo for a global engine function by name (e.g., "parseInt").
+     */
+    public JSMethodInfo getGlobalEngineFunction(String name) {
+        return globalEngineFunctions.get(name);
+    }
+
+    /**
+     * Check if a name is a registered global engine function.
+     */
+    public boolean isGlobalEngineFunction(String name) {
+        return globalEngineFunctions.containsKey(name);
+    }
+
+    /**
+     * Get all registered global engine functions (parseInt, parseFloat, isNaN, etc.).
+     */
+    public Map<String, JSMethodInfo> getGlobalEngineFunctions() {
+        return Collections.unmodifiableMap(globalEngineFunctions);
+    }
     /**
      * Check if initialized.
      */
@@ -911,6 +957,7 @@ public class JSTypeRegistry {
         contextHooks.clear();
         globalEngineObjects.clear();
         globalEngineImports.clear();
+        globalEngineFunctions.clear();
         DtsJavaBridge.clearCache();
         initialized = false;
         initializationAttempted = false;

@@ -233,6 +233,11 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
                 items.add(AutocompleteItem.fromType(TypeInfo.fromJSTypeInfo(jsTypeInfo)));
             }
         }
+
+        // Add global engine functions (parseInt, parseFloat, isNaN, isFinite, etc.)
+        for (JSMethodInfo fn : registry.getGlobalEngineFunctions().values()) {
+            items.add(AutocompleteItem.fromJSMethod(fn, 0));
+        }
     }
 
     protected UsageTracker getUsageTracker() {

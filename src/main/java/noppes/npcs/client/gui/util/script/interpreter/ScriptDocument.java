@@ -9,6 +9,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSScriptAnalyzer;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
@@ -4502,6 +4503,26 @@ public class ScriptDocument {
                             methodCalls.add(callInfo);
                             marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                         }
+                    } else if (isGlobalEngineFunction(methodName)) {
+                        JSMethodInfo jsGlobalMethod = JSTypeRegistry.getInstance().getGlobalEngineFunction(methodName);
+                        MethodInfo resolvedGlobal = MethodInfo.fromJSMethod(jsGlobalMethod, null);
+
+                        List<MethodCallInfo.Argument> globalArguments = arguments;
+                        if (resolvedGlobal.getParameters().size() == arguments.size()) {
+                            globalArguments = parseMethodArguments(openParen + 1, closeParen, resolvedGlobal);
+                        }
+
+                        MethodCallInfo callInfo = new MethodCallInfo(
+                            methodName, nameStart, nameEnd, openParen, closeParen,
+                            globalArguments, null, resolvedGlobal
+                        );
+                        if (!isFollowedByDot(closeParen)) {
+                            TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
+                            if (expectedType != null) callInfo.setExpectedType(expectedType);
+                        }
+                        callInfo.validate();
+                        methodCalls.add(callInfo);
+                        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                     } else {
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
                     }
@@ -5026,6 +5047,9 @@ public class ScriptDocument {
                 if (scriptMethod != null) {
                     currentType = scriptMethod.getReturnType();
                 }
+            }
+            if (currentType == null && isGlobalEngineFunction(first.name)) {
+                currentType = getGlobalEngineFunctionReturnType(first.name);
             }
         }
 
@@ -5658,6 +5682,9 @@ public class ScriptDocument {
                             return scriptMethod.getReturnType();
                         }
                     }
+                    if (isGlobalEngineFunction(methodName)) {
+                        return getGlobalEngineFunctionReturnType(methodName);
+                    }
                     return null;
                 }
                 
@@ -5801,6 +5828,9 @@ public class ScriptDocument {
                 if (scriptMethod != null) {
                     currentType = scriptMethod.getReturnType();
                 }
+            }
+            if (currentType == null && isGlobalEngineFunction(first.name)) {
+                currentType = getGlobalEngineFunctionReturnType(first.name);
             }
         }
 
@@ -6227,6 +6257,21 @@ public class ScriptDocument {
             matchingByArity.size() + " overloads match"
         );
         return null;
+    }
+
+    /**
+     * True if in JS mode and name is a registered global engine function (parseInt, parseFloat, etc.).
+     */
+    private boolean isGlobalEngineFunction(String name) {
+        return isJavaScript() && JSTypeRegistry.getInstance().isGlobalEngineFunction(name);
+    }
+
+    /**
+     * Return the resolved return type of a global engine function call, or null if unknown.
+     */
+    private TypeInfo getGlobalEngineFunctionReturnType(String name) {
+        JSMethodInfo m = JSTypeRegistry.getInstance().getGlobalEngineFunction(name);
+        return m != null ? m.getResolvedReturnType(null) : null;
     }
     
     private void injectSamParameterTypes(MethodInfo scriptMethod, MethodInfo sam) {

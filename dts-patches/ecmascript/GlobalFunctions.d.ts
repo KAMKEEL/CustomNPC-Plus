@@ -47,16 +47,19 @@ export interface GlobalFunctions {
   eval(x: any): any;
 
   /** Parses a string and returns an integer. Stops parsing at the first non-digit character */
+  parseInt(string: string): number;
+
+  /** Parses a string and returns an integer using the specified radix (base). Stops parsing at the first non-digit character */
   parseInt(string: string, radix: number): number;
 
   /** Parses a string and returns a floating-point number. Stops parsing at the first invalid character */
   parseFloat(string: string): number;
 
-  /** Determines whether a value is NaN (not-a-number). Returns true for NaN, false for numbers and non-numeric values */
-  isNaN(number: number): boolean;
+  /** Determines whether a value is NaN (not-a-number). The value is first coerced to a number before testing */
+  isNaN(value: any): boolean;
 
-  /** Determines whether a value is a finite number. Returns false for infinity, -infinity, and NaN */
-  isFinite(number: number): boolean;
+  /** Determines whether a value is a finite number. The value is first coerced to a number. Returns false for Infinity, -Infinity, and NaN */
+  isFinite(value: any): boolean;
 
   /** Decodes a URI by replacing encoded sequences like %20 with their original characters */
   decodeURI(encodedURI: string): string;
