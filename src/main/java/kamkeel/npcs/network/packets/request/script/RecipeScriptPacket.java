@@ -102,8 +102,7 @@ public final class RecipeScriptPacket extends AbstractPacket {
         if (action == Action.GET) {
             PacketUtil.getScripts(script, player);
         } else {
-            if (!script.saveScript(in, player))
-                return;
+            script.saveScript(in);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
                 // TODO: Log Recipe Script Saving
             }

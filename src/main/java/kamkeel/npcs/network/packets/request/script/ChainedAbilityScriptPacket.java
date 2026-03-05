@@ -98,7 +98,7 @@ public final class ChainedAbilityScriptPacket extends AbstractPacket {
             if (requestedAction == Action.GET) {
                 PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
             } else {
-                data.saveScript(in, player);
+                data.saveScript(in);
             }
             return;
         }
@@ -107,8 +107,7 @@ public final class ChainedAbilityScriptPacket extends AbstractPacket {
         if (requestedAction == Action.GET) {
             PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
-            if (!data.saveScript(in, player))
-                return;
+            data.saveScript(in);
             // Persist to disk
             AbilityController.Instance.saveChainedAbility(chain);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {

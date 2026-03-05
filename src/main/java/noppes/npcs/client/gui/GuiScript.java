@@ -369,8 +369,6 @@ public class GuiScript extends GuiScriptInterface {
     @Override
     public void setGuiData(NBTTagCompound compound) {
         script.readFromNBT(compound);
-        if (compound.hasKey("ScriptSessionToken"))
-            scriptSessionToken = compound.getString("ScriptSessionToken");
         loadLanguagesData(compound);
         loaded = true;
     }
@@ -379,10 +377,7 @@ public class GuiScript extends GuiScriptInterface {
     public void save() {
         if (loaded) {
             setScript();
-            NBTTagCompound compound = script.writeToNBT(new NBTTagCompound());
-            if (scriptSessionToken != null)
-                compound.setString("ScriptSessionToken", scriptSessionToken);
-            NPCScriptPacket.Save(compound);
+            NPCScriptPacket.Save(script.writeToNBT(new NBTTagCompound()));
         }
     }
 
