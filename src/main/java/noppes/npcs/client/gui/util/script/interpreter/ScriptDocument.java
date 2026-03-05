@@ -5397,7 +5397,7 @@ public class ScriptDocument {
                     if (prevIdx >= 0) {
                         char prev = expr.charAt(prevIdx);
                         // If previous char is identifier char or ), this is binary
-                        if (Character.isJavaIdentifierPart(prev) || prev == ')' || prev == ']' || Character.isDigit(prev)) {
+                        if (Character.isJavaIdentifierPart(prev) || prev == ')' || prev == ']' || prev == '"' || prev == '\'' || Character.isDigit(prev)) {
                             return true;
                         }
                     }
