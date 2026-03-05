@@ -41,10 +41,10 @@ public class TypeScriptDefinitionParser {
         "export\\s+type\\s+(\\w+)\\s*=\\s*([^;\\n]+);?");
     
     private static final Pattern METHOD_PATTERN = Pattern.compile(
-        "(?m)^\\s*(\\w+)\\??\\s*\\((.*)\\)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
+        "(?m)^\\s*(static\\s+)?(\\w+)\\??\\s*\\((.*)\\)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
     
     private static final Pattern FIELD_PATTERN = Pattern.compile(
-        "^\\s*(readonly\\s+)?(\\w+)\\??\\s*:\\s*([^;]+);", Pattern.MULTILINE);
+        "^\\s*(static\\s+)?(readonly\\s+)?(\\w+)\\??\\s*:\\s*([^;]+);", Pattern.MULTILINE);
     
     private static final Pattern GLOBAL_FUNCTION_PATTERN = Pattern.compile(
         "function\\s+(\\w+)\\s*\\((.*)\\)\\s*:\\s*([^;]+);");
@@ -570,12 +570,14 @@ public class TypeScriptDefinitionParser {
         // Parse methods
         Matcher methodMatcher = METHOD_PATTERN.matcher(body);
         while (methodMatcher.find()) {
-            String methodName = methodMatcher.group(1);
-            String params = methodMatcher.group(2);
-            String returnType = cleanType(methodMatcher.group(3));
+            boolean isStatic = methodMatcher.group(1) != null;
+            String methodName = methodMatcher.group(2);
+            String params = methodMatcher.group(3);
+            String returnType = cleanType(methodMatcher.group(4));
             
             List<JSMethodInfo.JSParameterInfo> parameters = parseParameters(params);
             JSMethodInfo method = new JSMethodInfo(methodName, returnType, parameters);
+            method.setStatic(isStatic);
             
             JSDocInfo jsDoc = extractJSDocBefore(body, methodMatcher.start());
             if (jsDoc != null) {
@@ -588,7 +590,8 @@ public class TypeScriptDefinitionParser {
         // Parse fields (that aren't method signatures)
         Matcher fieldMatcher = FIELD_PATTERN.matcher(body);
         while (fieldMatcher.find()) {
-            String fieldName = fieldMatcher.group(2);
+            boolean isStatic = fieldMatcher.group(1) != null;
+            String fieldName = fieldMatcher.group(3);
 
             // CNPC+ base event implementation CustomNPCsEvent exposes a public "API" field that 
             // ends up polluting autocomplete on every event via ICustomNPCsEvent inheritance. 
@@ -596,10 +599,11 @@ public class TypeScriptDefinitionParser {
             if ("ICustomNPCsEvent".equals(typeInfo.getSimpleName()) && "API".equals(fieldName))
                 continue;
             
-            String fieldType = cleanType(fieldMatcher.group(3));
-            boolean readonly = fieldMatcher.group(1) != null;
+            String fieldType = cleanType(fieldMatcher.group(4));
+            boolean readonly = fieldMatcher.group(2) != null;
             
             JSFieldInfo field = new JSFieldInfo(fieldName, fieldType, readonly);
+            field.setStatic(isStatic);
             
             JSDocInfo jsDoc = extractJSDocBefore(body, fieldMatcher.start());
             if (jsDoc != null) {

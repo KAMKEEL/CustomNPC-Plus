@@ -16,6 +16,7 @@ public class JSMethodInfo {
     private final String returnType;      // Raw type string for display, e.g., "number", "IEntity", "void"
     private TypeInfo returnTypeInfo;      // Resolved TypeInfo (set during Phase 2)
     private final List<JSParameterInfo> parameters;
+    private boolean isStatic;
     private JSDocInfo jsDocInfo;
     private JSTypeInfo containingType;    // The type that contains this method
     
@@ -27,6 +28,13 @@ public class JSMethodInfo {
     
     public JSMethodInfo setJsDocInfo(JSDocInfo jsDocInfo) {
         this.jsDocInfo = jsDocInfo;
+        return this;
+    }
+
+    public boolean isStatic() { return isStatic; }
+
+    public JSMethodInfo setStatic(boolean isStatic) {
+        this.isStatic = isStatic;
         return this;
     }
 

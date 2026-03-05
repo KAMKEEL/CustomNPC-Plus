@@ -216,6 +216,9 @@ public final class FieldInfo {
         if (jsField.isReadonly()) {
             modifiers |= Modifier.FINAL;
         }
+        if (jsField.isStatic()) {
+            modifiers |= Modifier.STATIC;
+        }
         
         // Use documentation if available
         JSDocInfo jsDocInfo = jsField.getJsDocInfo();

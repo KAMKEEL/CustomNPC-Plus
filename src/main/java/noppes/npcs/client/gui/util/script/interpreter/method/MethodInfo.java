@@ -277,6 +277,9 @@ public final class MethodInfo {
         
         // JS methods are always public (no access modifiers in .d.ts)
         int modifiers = Modifier.PUBLIC;
+        if (jsMethod.isStatic()) {
+            modifiers |= Modifier.STATIC;
+        }
         
         // Use the documentation from the method if available
         JSDocInfo jsDocInfo = jsMethod.getJsDocInfo();

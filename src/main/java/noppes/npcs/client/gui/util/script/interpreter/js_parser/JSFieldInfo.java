@@ -13,6 +13,7 @@ public class JSFieldInfo {
     private final String type;          // Raw type string for display
     private TypeInfo typeInfo;          // Resolved TypeInfo 
     private final boolean readonly;
+    private boolean isStatic;
     private JSDocInfo jsDocInfo;
     private JSTypeInfo containingType;  // The type that contains this field
     
@@ -24,6 +25,13 @@ public class JSFieldInfo {
     
     public JSFieldInfo setJsDocInfo(JSDocInfo jsDocInfo) {
         this.jsDocInfo = jsDocInfo;
+        return this;
+    }
+
+    public boolean isStatic() { return isStatic; }
+
+    public JSFieldInfo setStatic(boolean isStatic) {
+        this.isStatic = isStatic;
         return this;
     }
     
