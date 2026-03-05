@@ -1117,7 +1117,6 @@ public class TokenHoverInfo {
         
         // Return type - check for actual type color (handle array suffix coloring)
         Class<?> returnType = method.getReturnType();
-        int returnTypeColor = getColorForClass(returnType);
         String returnTypeName = returnType.getSimpleName();
         splitAndAddTypeName(returnTypeName, getColorForTypeInfo(containingType));
         addSegment(" ", TokenType.DEFAULT.getHexColor());
