@@ -8,6 +8,9 @@ import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.ability.AbilityHotbarComponent;
 import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.controllers.data.PlayerData;
 import org.lwjgl.input.Keyboard;
@@ -45,6 +48,7 @@ public class KeyPressHandler {
 
         updateHeldStates(mc);
         handleNPCButton(mc);
+        handleAbilityCycleKeys(mc);
 
         if (!Keyboard.isRepeatEvent()) {
             int key = Keyboard.getEventKey();
@@ -69,6 +73,7 @@ public class KeyPressHandler {
         // Just update held states and handle keybind actions.
         updateHeldStates(mc);
         handleNPCButton(mc);
+        handleAbilityCycleKeys(mc);
 
         int button = Mouse.getEventButton();
         if (button == -1 && Mouse.getEventDWheel() == 0)
@@ -148,6 +153,21 @@ public class KeyPressHandler {
             } else if (mc.currentScreen instanceof GuiCNPCInventory) {
                 mc.setIngameFocus();
             }
+        }
+    }
+
+    private static void handleAbilityCycleKeys(Minecraft mc) {
+        if (mc.currentScreen != null || mc.theWorld == null) return;
+
+        AbilityHotbarComponent comp = (AbilityHotbarComponent) ClientHudManager.getInstance()
+            .getHudComponents().get(EnumHudComponent.AbilityHotbar);
+        if (comp == null || !comp.hasAnyAbilities()) return;
+
+        if (ClientProxy.AbilityNextKey != null && ClientProxy.AbilityNextKey.isPressed()) {
+            comp.onCycleNext();
+        }
+        if (ClientProxy.AbilityPrevKey != null && ClientProxy.AbilityPrevKey.isPressed()) {
+            comp.onCyclePrev();
         }
     }
 

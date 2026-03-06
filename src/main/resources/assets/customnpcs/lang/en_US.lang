@@ -3,6 +3,8 @@ customnpcs.defaultTextColor=404040
 key.categories.customnpc=CustomNPC+
 key.customnpcs.special=Special Key
 key.customnpcs.abilityHudKey=HUD Key
+key.customnpcs.abilityNext=Ability Next
+key.customnpcs.abilityPrev=Ability Previous
 key.npcInventory=NPC Inventory
 
 entity.CustomNpc.name=Custom Npc
