@@ -145,24 +145,34 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
     public void initGui() {
         super.initGui();
 
+        // Fullscreen button - FIRST
+        GuiNpcButton fullBtn = new GuiNpcButton(66, guiLeft + 368, guiTop + 8, 45, 20, "gui.fullscreen");
+        fullBtn.setTextColor(0x55FF55);
+        fullBtn.setHoverText("gui.fullscreen.tooltip");
+        addButton(fullBtn);
+
         // Toggle button — cycles: Custom → Built-in → Chained
         String toggleLabel = showingChained ? "gui.chained" : (showingBuiltIn ? "gui.builtin" : "gui.custom");
-        addButton(new GuiNpcButton(BTN_TOGGLE_VIEW, guiLeft + 368, guiTop + 52, 45, 20, toggleLabel));
+        GuiNpcButton toggleBtn = new GuiNpcButton(BTN_TOGGLE_VIEW, guiLeft + 368, guiTop + 36, 45, 20, toggleLabel);
+        if (showingChained) toggleBtn.setTextColor(0xFFFF55);
+        else if (showingBuiltIn) toggleBtn.setTextColor(0x55FFFF);
+        else toggleBtn.setTextColor(0xFFFFFF);
+        addButton(toggleBtn);
 
         if (showingChained) {
             // Chained view buttons
-            addButton(new GuiNpcButton(BTN_ADD, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
-            addButton(new GuiNpcButton(BTN_REMOVE, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
+            addButton(new GuiNpcButton(BTN_ADD, guiLeft + 368, guiTop + 60, 45, 20, "gui.add"));
+            addButton(new GuiNpcButton(BTN_REMOVE, guiLeft + 368, guiTop + 84, 45, 20, "gui.remove"));
             getButton(BTN_REMOVE).setEnabled(selected != null && !selected.isEmpty() && chainedData.containsKey(selected));
-            addButton(new GuiNpcButton(BTN_EDIT, guiLeft + 368, guiTop + 74, 45, 20, "gui.edit"));
+            addButton(new GuiNpcButton(BTN_EDIT, guiLeft + 368, guiTop + 108, 45, 20, "gui.edit"));
             getButton(BTN_EDIT).setEnabled(selected != null && !selected.isEmpty() && selectedChain != null);
         } else if (!showingBuiltIn) {
             // Custom view buttons
-            addButton(new GuiNpcButton(BTN_ADD, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
-            addButton(new GuiNpcButton(BTN_REMOVE, guiLeft + 368, guiTop + 30, 45, 20, "gui.remove"));
+            addButton(new GuiNpcButton(BTN_ADD, guiLeft + 368, guiTop + 60, 45, 20, "gui.add"));
+            addButton(new GuiNpcButton(BTN_REMOVE, guiLeft + 368, guiTop + 84, 45, 20, "gui.remove"));
             getButton(BTN_REMOVE).setEnabled(selected != null && !selected.isEmpty() && customData.containsKey(selected));
             if (!currentIsBuiltIn) {
-                addButton(new GuiNpcButton(BTN_EDIT, guiLeft + 368, guiTop + 74, 45, 20, "gui.edit"));
+                addButton(new GuiNpcButton(BTN_EDIT, guiLeft + 368, guiTop + 108, 45, 20, "gui.edit"));
                 getButton(BTN_EDIT).setEnabled(selected != null && !selected.isEmpty() && selectedAbility != null);
             }
         }
@@ -299,6 +309,13 @@ public class GuiNpcManageAbilities extends GuiAbilityInterface
         super.actionPerformed(guibutton);
 
         int id = guibutton.id;
+
+        // Fullscreen
+        if (id == 66) {
+            previewExecutor.stop();
+            mc.displayGuiScreen(new GuiAbilityDirectory(npc));
+            return;
+        }
 
         // User type filter: Both → NPC → Player → Both
         if (id == BTN_USER_TYPE_FILTER) {

@@ -427,6 +427,27 @@ public class AbilitySlam extends Ability implements IAbilitySlam {
             ((EntityNPCInterface) caster).getNavigator().clearPathEntity();
         }
 
+        // Check if slam trajectory is blocked by a solid barrier
+        if (!isPreview() && !caster.worldObj.isRemote) {
+            double moveX = caster.motionX;
+            double moveZ = caster.motionZ;
+            double hSpeed = Math.sqrt(moveX * moveX + moveZ * moveZ);
+            if (hSpeed > 0.01) {
+                double normX = moveX / hSpeed;
+                double normZ = moveZ / hSpeed;
+                if (isMovementBlockedByBarrier(caster, normX, normZ, hSpeed)) {
+                    caster.motionX = 0;
+                    caster.motionZ = 0;
+                    if (caster instanceof EntityPlayerMP) {
+                        ((EntityPlayerMP) caster).playerNetServerHandler.sendPacket(
+                            new S12PacketEntityVelocity(caster));
+                    } else {
+                        caster.velocityChanged = true;
+                    }
+                }
+            }
+        }
+
         // Track if entity has risen above launch position.
         // This prevents premature landing detection for players, where
         // server-side caster.onGround remains true from stale C03 packets

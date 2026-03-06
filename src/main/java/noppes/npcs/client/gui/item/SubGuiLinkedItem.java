@@ -12,7 +12,7 @@ import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.SubGuiColorSelector;
-import noppes.npcs.client.gui.global.GuiNPCManageLinked;
+import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
@@ -37,7 +37,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
     private int tab = -1;
     private int colorPicked = 0;
 
-    public SubGuiLinkedItem(GuiNPCManageLinked parent, LinkedItem linkedItem) {
+    public SubGuiLinkedItem(GuiScreen parent, LinkedItem linkedItem) {
         this.linkedItem = linkedItem;
         this.parent = parent;
         this.originalName = linkedItem.name;

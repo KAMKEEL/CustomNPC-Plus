@@ -65,15 +65,22 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     public void initGui() {
         super.initGui();
 
-        // Toggle button - added FIRST to maintain stable buttonList index
-        // (prevents double-toggle when initGui() is called from actionPerformed)
+        // Fullscreen button - FIRST
+        GuiNpcButton fullBtn = new GuiNpcButton(66, guiLeft + 368, guiTop + 8, 45, 20, "gui.fullscreen");
+        fullBtn.setTextColor(0x55FF55);
+        fullBtn.setHoverText("gui.fullscreen.tooltip");
+        this.addButton(fullBtn);
+
+        // Toggle button
         String toggleLabel = showingBuiltIn ? "gui.builtin" : "gui.custom";
-        this.addButton(new GuiNpcButton(10, guiLeft + 368, guiTop + 56, 45, 20, toggleLabel));
+        GuiNpcButton toggleBtn = new GuiNpcButton(10, guiLeft + 368, guiTop + 36, 45, 20, toggleLabel);
+        toggleBtn.setTextColor(showingBuiltIn ? 0x55FFFF : 0xFFFFFF);
+        this.addButton(toggleBtn);
 
         // Add/Remove buttons - only show for custom animations
         if (!showingBuiltIn) {
-            this.addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
-            this.addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
+            this.addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 60, 45, 20, "gui.add"));
+            this.addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 84, 45, 20, "gui.remove"));
         }
 
         if (scrollAnimations == null) {
@@ -197,6 +204,11 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
+
+        if (button.id == 66) {
+            mc.displayGuiScreen(new GuiAnimationDirectory(npc));
+            return;
+        }
 
         // Toggle button
         if (button.id == 10) {

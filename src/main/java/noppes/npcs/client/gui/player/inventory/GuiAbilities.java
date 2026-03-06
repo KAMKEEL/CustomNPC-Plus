@@ -17,6 +17,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.hud.ability.AbilityIcon;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
+import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.ISubGuiListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.AbilityHotbarData;
@@ -44,6 +45,8 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
     private int subTab = 0;
     private static final int BTN_TAB_ABILITIES = -200;
     private static final int BTN_TAB_TOGGLES = -201;
+    private static final int BTN_SCROLL_LEFT = -202;
+    private static final int BTN_SCROLL_RIGHT = -203;
 
     // ═══ Panel Bounds (relative to guiLeft/guiTop) ═══
     // Selection panel (RIGHT side - icon grid)
@@ -148,6 +151,19 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
         buildFilteredList();
         updateHotbarIcons();
 
+        // Scroll buttons for ability grid
+        int totalRows = (filteredKeys.size() + gridCols - 1) / gridCols;
+        int visibleRows = getGridVisibleRows();
+        if (totalRows > visibleRows) {
+            int scrollBtnY = guiTop + selBottom + 1;
+            int btnW = 14;
+            int btnH = 12;
+            addButton(new GuiNpcButton(BTN_SCROLL_LEFT, guiLeft + selRight - btnW * 2 - 2, scrollBtnY, btnW, btnH, "<"));
+            addButton(new GuiNpcButton(BTN_SCROLL_RIGHT, guiLeft + selRight - btnW, scrollBtnY, btnW, btnH, ">"));
+            getButton(BTN_SCROLL_LEFT).setEnabled(scrollRow > 0);
+            getButton(BTN_SCROLL_RIGHT).setEnabled(scrollRow < getMaxScrollRow());
+        }
+
         // Capture initial selected key for close sync
         if (initialSelectedKey == null) {
             PlayerData playerData = ClientCacheHandler.playerData;
@@ -217,7 +233,7 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
             tempActions.add(action);
         }
 
-        // Sort: toggles tab sorts enabled first, then alphabetically
+        // Sort: toggles tab sorts enabled first, then by type, then by display name
         List<Integer> indices = new ArrayList<>();
         for (int i = 0; i < tempNames.size(); i++) indices.add(i);
         final boolean sortTogglesFirst = (subTab == 1);
@@ -229,6 +245,16 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
                     boolean bToggled = playerData.abilityData.isAbilityToggled(tempKeys.get(b));
                     if (aToggled != bToggled) return aToggled ? -1 : 1;
                 }
+                // Sort by type first
+                Ability abilityA = tempAbilities.get(a);
+                Ability abilityB = tempAbilities.get(b);
+                String typeA = abilityA != null ? abilityA.getTypeId() : "";
+                String typeB = abilityB != null ? abilityB.getTypeId() : "";
+                if (typeA == null) typeA = "";
+                if (typeB == null) typeB = "";
+                int typeCompare = typeA.compareToIgnoreCase(typeB);
+                if (typeCompare != 0) return typeCompare;
+                // Then by display name (strip color codes for comparison)
                 return stripFormatting(tempNames.get(a)).compareToIgnoreCase(stripFormatting(tempNames.get(b)));
             }
         });
@@ -432,15 +458,7 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(1, 1, 1, 1);
 
-        // Scroll indicator (drawn outside scissor)
-        int totalRows = (filteredKeys.size() + gridCols - 1) / gridCols;
-        if (totalRows > visibleRows) {
-            FontRenderer fr = mc.fontRenderer;
-            String scrollText = (scrollRow + 1) + "/" + (totalRows - visibleRows + 1);
-            int textX = guiLeft + selRight - fr.getStringWidth(scrollText) - 4;
-            int textY = guiTop + selBottom + 1;
-            fr.drawStringWithShadow(scrollText, textX, textY, 0x888888);
-        }
+        // Scroll buttons are added in initGui()
     }
 
     private void drawInfoPanel() {
@@ -1067,6 +1085,16 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
         }
         if (btn.id == BTN_TAB_TOGGLES) {
             subTab = 1;
+            initGui();
+            return;
+        }
+        if (btn.id == BTN_SCROLL_LEFT) {
+            scrollRow = Math.max(0, scrollRow - 1);
+            initGui();
+            return;
+        }
+        if (btn.id == BTN_SCROLL_RIGHT) {
+            scrollRow = Math.min(getMaxScrollRow(), scrollRow + 1);
             initGui();
             return;
         }

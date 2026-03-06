@@ -6,7 +6,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.gui.global.GuiNPCManageEffects;
+import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
@@ -27,13 +27,13 @@ import java.util.List;
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
 public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldListener {
-    private final GuiNPCManageEffects parent;
+    private final GuiScreen parent;
     public CustomEffect effect;
     private final String originalName;
 
     private final List<GuiMenuTopButton> topButtons = new ArrayList<>();
 
-    public SubGuiEffectGeneral(GuiNPCManageEffects parent, CustomEffect effect) {
+    public SubGuiEffectGeneral(GuiScreen parent, CustomEffect effect) {
         this.effect = effect;
         this.parent = parent;
         this.originalName = effect.name;
@@ -109,7 +109,8 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
 
         x = oldX - 4;
         y += 23;
-        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, x + 5, y, xSize - 20, ySize - 10 - (y - guiTop), 0) {
+        int scrollClipHeight = ySize - 10 - (y - guiTop);
+        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, x + 5, y, xSize - 20, scrollClipHeight, 0) {
             @Override
             public void drawComponents(int mouseX, int mouseY, float partialTicks) {
                 super.drawComponents(mouseX, mouseY, partialTicks);
@@ -217,6 +218,9 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                 effect.frametime
             ));
         }
+
+        int contentBottom = y + 20 + 5;
+        scrollWindow.maxScrollY = Math.max(0, contentBottom - scrollClipHeight);
 
     }
 

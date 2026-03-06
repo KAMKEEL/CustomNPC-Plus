@@ -440,7 +440,12 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     /**
      * Steer beam toward player's look direction (Free Aim mode).
-     * Target point is projected along look vector at the current head distance from origin.
+     * Blends the velocity DIRECTION toward the look vector each tick, producing
+     * a smooth arc. The turn radius scales naturally with speed (faster = wider arc).
+     * <p>
+     * Previous approach projected a target point at headDist along the look line,
+     * which caused oscillation at high speeds (the position target kept shifting)
+     * and spiraling at large distances (cross-track error grew faster than correction).
      */
     private void updateFreeAim() {
         Entity owner = getOwnerEntity();
@@ -449,39 +454,24 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         Vec3 look = getOwnerLookVector();
         if (look == null) return;
 
-        double headDist = Math.sqrt(headOffsetX * headOffsetX + headOffsetY * headOffsetY + headOffsetZ * headOffsetZ);
-        if (headDist < 0.1) return;
+        double speed = getSpeed();
 
-        // Target point along look vector at current head distance
-        double targetX = startX + look.xCoord * headDist;
-        double targetY = startY + look.yCoord * headDist;
-        double targetZ = startZ + look.zCoord * headDist;
+        // Desired velocity = look direction at current speed
+        double desiredVX = look.xCoord * speed;
+        double desiredVY = look.yCoord * speed;
+        double desiredVZ = look.zCoord * speed;
 
-        // Current head world position
-        double headWorldX = startX + headOffsetX;
-        double headWorldY = startY + headOffsetY;
-        double headWorldZ = startZ + headOffsetZ;
-
-        double dx = targetX - headWorldX;
-        double dy = targetY - headWorldY;
-        double dz = targetZ - headWorldZ;
-        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-        if (dist < 0.01) return;
-
-        double desiredVX = (dx / dist) * getSpeed();
-        double desiredVY = (dy / dist) * getSpeed();
-        double desiredVZ = (dz / dist) * getSpeed();
-
+        // Blend current velocity toward desired direction
         motionX += (desiredVX - motionX) * FREE_AIM_STRENGTH;
         motionY += (desiredVY - motionY) * FREE_AIM_STRENGTH;
         motionZ += (desiredVZ - motionZ) * FREE_AIM_STRENGTH;
 
+        // Renormalize to constant speed
         double vLen = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
         if (vLen > 0) {
-            motionX = (motionX / vLen) * getSpeed();
-            motionY = (motionY / vLen) * getSpeed();
-            motionZ = (motionZ / vLen) * getSpeed();
+            motionX = (motionX / vLen) * speed;
+            motionY = (motionY / vLen) * speed;
+            motionZ = (motionZ / vLen) * speed;
         }
     }
 

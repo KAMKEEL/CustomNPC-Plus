@@ -86,6 +86,15 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
         int y = guiTop + 8;
 
+        // Fullscreen button - FIRST (only for Items tab)
+        if (tab == 1) {
+            GuiNpcButton fullBtn = new GuiNpcButton(66, guiLeft + 368, y, 45, 20, "gui.fullscreen");
+            fullBtn.setTextColor(0x55FF55);
+            fullBtn.setHoverText("gui.fullscreen.tooltip");
+            this.addButton(fullBtn);
+            y += 22;
+        }
+
         this.addButton(new GuiNpcButton(10, guiLeft + 368, y, 45, 20, "gui.npcs"));
         this.addButton(new GuiNpcButton(11, guiLeft + 368, y += 22, 45, 20, "gui.items"));
         getButton(10).enabled = tab == 1;
@@ -216,6 +225,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
     }
 
     private List<String> getSearchList() {
+        if (data == null) return new ArrayList<String>();
         if (search.isEmpty()) {
             return new ArrayList<String>(this.data.keySet());
         }
@@ -263,6 +273,11 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             tab = 1;
             LinkedGetAllPacket.GetItems();
             scroll.setSelected("");
+        }
+
+        if (button.id == 66) {
+            mc.displayGuiScreen(new GuiLinkedItemDirectory(npc));
+            return;
         }
 
         if (linkedItem == null)

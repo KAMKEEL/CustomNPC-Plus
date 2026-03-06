@@ -268,6 +268,8 @@ public class ClientProxy extends CommonProxy {
     public static KeyBinding NPCButton;
     public static KeyBinding SpecialKey;
     public static KeyBinding AbilityHudKey;
+    public static KeyBinding AbilityNextKey;
+    public static KeyBinding AbilityPrevKey;
     public static final Random RAND = new Random();
     public static FontContainer Font;
 
@@ -352,6 +354,11 @@ public class ClientProxy extends CommonProxy {
 
         AbilityHudKey = new KeyBinding("key.customnpcs.abilityHudKey", Keyboard.KEY_LMENU, "key.categories.customnpc");
         ClientRegistry.registerKeyBinding(AbilityHudKey);
+
+        AbilityNextKey = new KeyBinding("key.customnpcs.abilityNext", Keyboard.KEY_NONE, "key.categories.customnpc");
+        AbilityPrevKey = new KeyBinding("key.customnpcs.abilityPrev", Keyboard.KEY_NONE, "key.categories.customnpc");
+        ClientRegistry.registerKeyBinding(AbilityNextKey);
+        ClientRegistry.registerKeyBinding(AbilityPrevKey);
 
         new PresetController(CustomNpcs.Dir);
 

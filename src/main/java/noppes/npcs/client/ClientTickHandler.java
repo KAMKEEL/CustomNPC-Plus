@@ -60,15 +60,16 @@ public class ClientTickHandler {
         if (event.phase == Phase.START) {
             EntityPlayer player = mc.thePlayer;
             if (player != null) {
-                boolean suppressMovement = mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput();
-                if (!suppressMovement && wasMovementSuppressed) {
+                boolean shouldSuppress = ClientAbilityState.shouldSuppressMovementInput();
+                boolean suppressInput = mc.currentScreen == null && shouldSuppress;
+                if (!suppressInput && wasMovementSuppressed) {
                     syncMovementKeyStates(mc);
                 }
-                wasMovementSuppressed = suppressMovement;
+                wasMovementSuppressed = suppressInput;
 
-                // Suppress player input during ability-controlled phases.
-                // Only suppress when no GUI screen is open (screens already capture input).
-                if (suppressMovement) {
+                // Suppress player keyboard input during ability-controlled phases.
+                // Only suppress key binds when no GUI screen is open (screens already capture input).
+                if (suppressInput) {
                     // Unpress movement keybinds at the source BEFORE updatePlayerMoveState() reads them.
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false);
@@ -77,13 +78,17 @@ public class ClientTickHandler {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false);
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
+                }
 
+                // Zero movement input regardless of GUI state — the ability lock must
+                // hold the player in place even when chat or other screens are open.
+                if (shouldSuppress) {
                     mc.thePlayer.movementInput.moveForward = 0;
                     mc.thePlayer.movementInput.moveStrafe = 0;
                     mc.thePlayer.movementInput.jump = false;
                     mc.thePlayer.movementInput.sneak = false;
                 }
-                if (mc.currentScreen == null && ClientAbilityState.shouldLockRotation()) {
+                if (ClientAbilityState.shouldLockRotation()) {
                     mc.thePlayer.rotationYaw = ClientAbilityState.lockedYaw;
                     mc.thePlayer.rotationPitch = ClientAbilityState.lockedPitch;
                     mc.thePlayer.prevRotationYaw = ClientAbilityState.lockedYaw;
@@ -107,8 +112,9 @@ public class ClientTickHandler {
                 // EntityPlayerSP.onLivingUpdate() calls updatePlayerMoveState() which
                 // overwrites Phase.START suppression with actual keyboard state, causing
                 // client-predicted movement that fights the server lock. Undo it here.
-                // Skip when a GUI screen is open (screens already capture all input).
-                if (mc.currentScreen == null && ClientAbilityState.shouldSuppressMovementInput()) {
+                // Motion zeroing runs regardless of GUI state so the player doesn't fall
+                // when opening chat or other screens during an ability lock.
+                if (ClientAbilityState.shouldSuppressMovementInput()) {
                     mc.thePlayer.movementInput.moveForward = 0;
                     mc.thePlayer.movementInput.moveStrafe = 0;
                     mc.thePlayer.movementInput.jump = false;
@@ -131,7 +137,7 @@ public class ClientTickHandler {
                     }
                 }
 
-                if (mc.currentScreen == null && ClientAbilityState.shouldLockRotation()) {
+                if (ClientAbilityState.shouldLockRotation()) {
                     mc.thePlayer.rotationYaw = ClientAbilityState.lockedYaw;
                     mc.thePlayer.rotationPitch = ClientAbilityState.lockedPitch;
                     mc.thePlayer.prevRotationYaw = ClientAbilityState.lockedYaw;
@@ -210,7 +216,7 @@ public class ClientTickHandler {
             return;
 
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer == null || mc.currentScreen != null)
+        if (mc.thePlayer == null)
             return;
 
         if (!ClientAbilityState.shouldSuppressMovementInput())

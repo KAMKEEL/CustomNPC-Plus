@@ -51,6 +51,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.ability.IChainedAbility;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.CategoryManager;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
 import kamkeel.npcs.util.FileNameHelper;
@@ -87,6 +88,12 @@ public class AbilityController implements IAbilityHandler {
     private final Map<String, ChainedAbility> chainedAbilities = new LinkedHashMap<>();      // name → ChainedAbility
     private final Map<String, ChainedAbility> chainedAbilitiesById = new LinkedHashMap<>();  // UUID → ChainedAbility
     private int chainedAbilityRevision = 0;
+
+    // ── Category Managers ─────────────────────────────────────────────────
+    public final CategoryManager customAbilityCategories = new CategoryManager();
+    public final CategoryManager chainedAbilityCategories = new CategoryManager();
+    private final Map<String, Integer> customAbilityCatMap = new HashMap<>();   // abilityName → catId
+    private final Map<String, Integer> chainedAbilityCatMap = new HashMap<>();  // chainName → catId
 
     // ── Effect Action Registry ──────────────────────────────────────────────
     private final Map<String, IEffectAction> effectActions = new LinkedHashMap<>();
@@ -222,57 +229,73 @@ public class AbilityController implements IAbilityHandler {
         customAbilities.clear();
         customAbilitiesById.clear();
         abilityScriptHandlers.clear();
+        customAbilityCatMap.clear();
 
         File dir = getDir();
-        File[] files = dir.exists() ? dir.listFiles() : null;
-        if (files != null) {
-            for (File file : files) {
-                if (!file.isFile() || !file.getName().endsWith(".json")) continue;
-                try {
-                    String filename = file.getName();
-                    String fileKey = filename.substring(0, filename.length() - 5);
+        customAbilityCategories.loadCategories(dir, "chained");
 
-                    NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
-                    Ability ability = fromNBT(nbt);
-                    if (ability == null) continue;
+        // Load from root directory (Uncategorized)
+        loadAbilitiesFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
 
-                    String name = FileNameHelper.sanitizeName(fileKey, "Ability");
-                    name = makeUniqueNameForLoad(customAbilities, dir, file, name, fileKey);
-
-                    boolean dirty = false;
-                    if (!name.equals(fileKey)) {
-                        File renamedFile = new File(dir, name + ".json");
-                        if (file.renameTo(renamedFile)) {
-                            file = renamedFile;
-                            dirty = true;
-                        }
-                    }
-
-                    ability.setName(name);
-
-                    String uuid = ability.getId();
-                    if (uuid == null || uuid.isEmpty()) {
-                        uuid = UUID.randomUUID().toString();
-                        ability.setId(uuid);
-                        dirty = true;
-                    }
-
-                    if (dirty) {
-                        NBTJsonUtil.SaveFile(file, ability.writeNBT(true));
-                    }
-
-                    customAbilities.put(name, ability);
-                    customAbilitiesById.put(uuid, ability);
-                } catch (Exception e) {
-                    LogWriter.error("Error loading custom ability: " + file.getAbsolutePath(), e);
-                }
-            }
+        // Load from category subdirectories
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : customAbilityCategories.getCategories().entrySet()) {
+            File catDir = new File(dir, entry.getValue().title);
+            loadAbilitiesFromDir(catDir, entry.getKey());
         }
 
         customAbilityRevision++;
         LogWriter.info("Loaded " + customAbilities.size() + " custom abilities");
 
         loadChainedAbilities();
+    }
+
+    private void loadAbilitiesFromDir(File dir, int catId) {
+        File[] files = dir.exists() ? dir.listFiles() : null;
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json")) continue;
+            try {
+                String filename = file.getName();
+                String fileKey = filename.substring(0, filename.length() - 5);
+
+                NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
+                Ability ability = fromNBT(nbt);
+                if (ability == null) continue;
+
+                String name = FileNameHelper.sanitizeName(fileKey, "Ability");
+                name = makeUniqueNameForLoad(customAbilities, dir, file, name, fileKey);
+
+                boolean dirty = false;
+                if (!name.equals(fileKey)) {
+                    File renamedFile = new File(dir, name + ".json");
+                    if (file.renameTo(renamedFile)) {
+                        file = renamedFile;
+                        dirty = true;
+                    }
+                }
+
+                ability.setName(name);
+
+                String uuid = ability.getId();
+                if (uuid == null || uuid.isEmpty()) {
+                    uuid = UUID.randomUUID().toString();
+                    ability.setId(uuid);
+                    dirty = true;
+                }
+
+                if (dirty) {
+                    NBTJsonUtil.SaveFile(file, ability.writeNBT(true));
+                }
+
+                customAbilities.put(name, ability);
+                customAbilitiesById.put(uuid, ability);
+                if (catId > CategoryManager.UNCATEGORIZED_ID) {
+                    customAbilityCatMap.put(name, catId);
+                }
+            } catch (Exception e) {
+                LogWriter.error("Error loading custom ability: " + file.getAbsolutePath(), e);
+            }
+        }
     }
 
     private boolean nameFileExists(File dir, String name, File ignoredFile) {
@@ -307,6 +330,7 @@ public class AbilityController implements IAbilityHandler {
 
         String uuid = ability.getId();
         boolean isNew = (uuid == null || uuid.isEmpty());
+        int catId = CategoryManager.UNCATEGORIZED_ID;
 
         if (isNew) {
             // Generate UUID for new ability
@@ -321,16 +345,23 @@ public class AbilityController implements IAbilityHandler {
             Ability existing = customAbilitiesById.get(uuid);
             if (existing != null) {
                 String oldName = existing.getName();
+                catId = customAbilityCatMap.getOrDefault(oldName, CategoryManager.UNCATEGORIZED_ID);
                 name = makeUniqueNameForMap(customAbilities, name, oldName);
                 ability.setName(name);
 
                 if (!oldName.equals(name)) {
                     // Delete old file and remove old map entry
-                    File oldFile = new File(getDir(), oldName + ".json");
+                    File oldDir = getCustomAbilityDir(oldName);
+                    File oldFile = new File(oldDir, oldName + ".json");
                     if (oldFile.exists()) {
                         oldFile.delete();
                     }
                     customAbilities.remove(oldName);
+                    // Update catMap key
+                    customAbilityCatMap.remove(oldName);
+                    if (catId > CategoryManager.UNCATEGORIZED_ID) {
+                        customAbilityCatMap.put(name, catId);
+                    }
                 }
             } else {
                 name = makeUniqueNameForMap(customAbilities, name, null);
@@ -338,7 +369,7 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
-        File dir = getDir();
+        File dir = getCustomAbilityDir(name);
         File fileNew = new File(dir, name + ".json_new");
         File fileCurrent = new File(dir, name + ".json");
 
@@ -389,11 +420,12 @@ public class AbilityController implements IAbilityHandler {
             abilityScriptHandlers.remove(uuid);
         }
 
-        File dir = getDir();
+        File dir = getCustomAbilityDir(name);
         File file = new File(dir, name + ".json");
         if (file.exists()) {
             file.delete();
         }
+        customAbilityCatMap.remove(name);
 
         // Clean up online players' unlocked ability lists
         if (PlayerDataController.Instance != null) {
@@ -465,6 +497,98 @@ public class AbilityController implements IAbilityHandler {
         return dir;
     }
 
+    private File getCustomAbilityDir(String name) {
+        int catId = customAbilityCatMap.getOrDefault(name, CategoryManager.UNCATEGORIZED_ID);
+        return customAbilityCategories.getCategoryDir(catId);
+    }
+
+    private File getChainedAbilityDir(String name) {
+        int catId = chainedAbilityCatMap.getOrDefault(name, CategoryManager.UNCATEGORIZED_ID);
+        return chainedAbilityCategories.getCategoryDir(catId);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CUSTOM ABILITY CATEGORY HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public Map<String, Integer> getCustomAbilityCategoryScrollData() {
+        return customAbilityCategories.getCategoryScrollData();
+    }
+
+    public Map<String, Integer> getCustomAbilityItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        for (Map.Entry<String, Ability> entry : customAbilities.entrySet()) {
+            int assignedCat = customAbilityCatMap.getOrDefault(entry.getKey(), CategoryManager.UNCATEGORIZED_ID);
+            if (assignedCat == catId) {
+                map.put(entry.getKey(), entry.getValue().getAllowedBy().ordinal());
+            }
+        }
+        return map;
+    }
+
+    public void moveCustomAbilityToCategory(String name, int destCatId) {
+        Ability ability = customAbilities.get(name);
+        if (ability == null) return;
+
+        int oldCatId = customAbilityCatMap.getOrDefault(name, CategoryManager.UNCATEGORIZED_ID);
+        if (oldCatId == destCatId) return;
+
+        File oldDir = customAbilityCategories.getCategoryDir(oldCatId);
+        File newDir = customAbilityCategories.getCategoryDir(destCatId);
+        if (!newDir.exists()) newDir.mkdirs();
+
+        File oldFile = new File(oldDir, name + ".json");
+        File newFile = new File(newDir, name + ".json");
+        if (oldFile.exists()) oldFile.renameTo(newFile);
+
+        if (destCatId == CategoryManager.UNCATEGORIZED_ID) {
+            customAbilityCatMap.remove(name);
+        } else {
+            customAbilityCatMap.put(name, destCatId);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CHAINED ABILITY CATEGORY HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public Map<String, Integer> getChainedAbilityCategoryScrollData() {
+        return chainedAbilityCategories.getCategoryScrollData();
+    }
+
+    public Map<String, Integer> getChainedAbilityItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        for (Map.Entry<String, ChainedAbility> entry : chainedAbilities.entrySet()) {
+            int assignedCat = chainedAbilityCatMap.getOrDefault(entry.getKey(), CategoryManager.UNCATEGORIZED_ID);
+            if (assignedCat == catId) {
+                map.put(entry.getKey(), entry.getValue().getAllowedBy().ordinal());
+            }
+        }
+        return map;
+    }
+
+    public void moveChainedAbilityToCategory(String name, int destCatId) {
+        ChainedAbility chain = chainedAbilities.get(name);
+        if (chain == null) return;
+
+        int oldCatId = chainedAbilityCatMap.getOrDefault(name, CategoryManager.UNCATEGORIZED_ID);
+        if (oldCatId == destCatId) return;
+
+        File oldDir = chainedAbilityCategories.getCategoryDir(oldCatId);
+        File newDir = chainedAbilityCategories.getCategoryDir(destCatId);
+        if (!newDir.exists()) newDir.mkdirs();
+
+        File oldFile = new File(oldDir, name + ".json");
+        File newFile = new File(newDir, name + ".json");
+        if (oldFile.exists()) oldFile.renameTo(newFile);
+
+        if (destCatId == CategoryManager.UNCATEGORIZED_ID) {
+            chainedAbilityCatMap.remove(name);
+        } else {
+            chainedAbilityCatMap.put(name, destCatId);
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // CHAINED ABILITIES
     // ═══════════════════════════════════════════════════════════════════════════
@@ -473,55 +597,71 @@ public class AbilityController implements IAbilityHandler {
         chainedAbilities.clear();
         chainedAbilitiesById.clear();
         chainedAbilityScriptHandlers.clear();
+        chainedAbilityCatMap.clear();
 
         File dir = getChainedDir();
-        File[] files = dir.exists() ? dir.listFiles() : null;
-        if (files != null) {
-            for (File file : files) {
-                if (!file.isFile() || !file.getName().endsWith(".json")) continue;
-                try {
-                    String filename = file.getName();
-                    String fileKey = filename.substring(0, filename.length() - 5);
+        chainedAbilityCategories.loadCategories(dir);
 
-                    NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
-                    ChainedAbility chain = new ChainedAbility();
-                    chain.readNBT(nbt);
+        // Load from root directory (Uncategorized)
+        loadChainedFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
 
-                    String name = FileNameHelper.sanitizeName(fileKey, "Chain");
-                    name = makeUniqueNameForLoad(chainedAbilities, dir, file, name, fileKey);
-
-                    boolean dirty = false;
-                    if (!name.equals(fileKey)) {
-                        File renamedFile = new File(dir, name + ".json");
-                        if (file.renameTo(renamedFile)) {
-                            file = renamedFile;
-                            dirty = true;
-                        }
-                    }
-
-                    chain.setName(name);
-
-                    String uuid = chain.getId();
-                    if (uuid == null || uuid.isEmpty()) {
-                        uuid = UUID.randomUUID().toString();
-                        chain.setId(uuid);
-                        dirty = true;
-                    }
-
-                    if (dirty) {
-                        NBTJsonUtil.SaveFile(file, chain.writeNBT(true));
-                    }
-
-                    chainedAbilities.put(name, chain);
-                    chainedAbilitiesById.put(uuid, chain);
-                } catch (Exception e) {
-                    LogWriter.error("Error loading chained ability: " + file.getAbsolutePath(), e);
-                }
-            }
+        // Load from category subdirectories
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : chainedAbilityCategories.getCategories().entrySet()) {
+            File catDir = new File(dir, entry.getValue().title);
+            loadChainedFromDir(catDir, entry.getKey());
         }
 
         chainedAbilityRevision++;
         LogWriter.info("Loaded " + chainedAbilities.size() + " chained abilities");
+    }
+
+    private void loadChainedFromDir(File dir, int catId) {
+        File[] files = dir.exists() ? dir.listFiles() : null;
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json")) continue;
+            try {
+                String filename = file.getName();
+                String fileKey = filename.substring(0, filename.length() - 5);
+
+                NBTTagCompound nbt = NBTJsonUtil.LoadFile(file);
+                ChainedAbility chain = new ChainedAbility();
+                chain.readNBT(nbt);
+
+                String name = FileNameHelper.sanitizeName(fileKey, "Chain");
+                name = makeUniqueNameForLoad(chainedAbilities, dir, file, name, fileKey);
+
+                boolean dirty = false;
+                if (!name.equals(fileKey)) {
+                    File renamedFile = new File(dir, name + ".json");
+                    if (file.renameTo(renamedFile)) {
+                        file = renamedFile;
+                        dirty = true;
+                    }
+                }
+
+                chain.setName(name);
+
+                String uuid = chain.getId();
+                if (uuid == null || uuid.isEmpty()) {
+                    uuid = UUID.randomUUID().toString();
+                    chain.setId(uuid);
+                    dirty = true;
+                }
+
+                if (dirty) {
+                    NBTJsonUtil.SaveFile(file, chain.writeNBT(true));
+                }
+
+                chainedAbilities.put(name, chain);
+                chainedAbilitiesById.put(uuid, chain);
+                if (catId > CategoryManager.UNCATEGORIZED_ID) {
+                    chainedAbilityCatMap.put(name, catId);
+                }
+            } catch (Exception e) {
+                LogWriter.error("Error loading chained ability: " + file.getAbsolutePath(), e);
+            }
+        }
     }
 
     public boolean saveChainedAbility(ChainedAbility chain) {
@@ -543,15 +683,21 @@ public class AbilityController implements IAbilityHandler {
             ChainedAbility existing = chainedAbilitiesById.get(uuid);
             if (existing != null) {
                 String oldName = existing.getName();
+                int catId = chainedAbilityCatMap.getOrDefault(oldName, CategoryManager.UNCATEGORIZED_ID);
                 name = makeUniqueNameForMap(chainedAbilities, name, oldName);
                 chain.setName(name);
 
                 if (!oldName.equals(name)) {
-                    File oldFile = new File(getChainedDir(), oldName + ".json");
+                    File oldDir = getChainedAbilityDir(oldName);
+                    File oldFile = new File(oldDir, oldName + ".json");
                     if (oldFile.exists()) {
                         oldFile.delete();
                     }
                     chainedAbilities.remove(oldName);
+                    chainedAbilityCatMap.remove(oldName);
+                    if (catId > CategoryManager.UNCATEGORIZED_ID) {
+                        chainedAbilityCatMap.put(name, catId);
+                    }
                 }
             } else {
                 name = makeUniqueNameForMap(chainedAbilities, name, null);
@@ -559,7 +705,7 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
-        File dir = getChainedDir();
+        File dir = getChainedAbilityDir(name);
         File fileNew = new File(dir, name + ".json_new");
         File fileCurrent = new File(dir, name + ".json");
 
@@ -609,11 +755,12 @@ public class AbilityController implements IAbilityHandler {
             chainedAbilityScriptHandlers.remove(uuid);
         }
 
-        File dir = getChainedDir();
+        File dir = getChainedAbilityDir(name);
         File file = new File(dir, name + ".json");
         if (file.exists()) {
             file.delete();
         }
+        chainedAbilityCatMap.remove(name);
 
         // Clean up online players' unlocked ability lists (chain keys use "chain:" prefix)
         if (PlayerDataController.Instance != null) {

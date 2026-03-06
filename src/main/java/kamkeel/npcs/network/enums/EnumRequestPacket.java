@@ -216,4 +216,11 @@ public enum EnumRequestPacket {
     ManageAuctionAction,
     AbilityScript,
     ChainedAbilityScript,
+
+    CategorySave,
+    CategoryRemove,
+    CategoryMoveItem,
+    CategoryListRequest,
+    CategoryItemsRequest,
+    AbilityCategoryMoveItem,
 }

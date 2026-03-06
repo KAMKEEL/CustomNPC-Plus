@@ -57,15 +57,21 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
 
     public void initGui() {
         super.initGui();
-        addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
+        // Fullscreen button - FIRST
+        GuiNpcButton fullBtn = new GuiNpcButton(66, guiLeft + 368, guiTop + 8, 45, 20, "gui.fullscreen");
+        fullBtn.setTextColor(0x55FF55);
+        fullBtn.setHoverText("gui.fullscreen.tooltip");
+        addButton(fullBtn);
 
-        addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
+        addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 36, 45, 20, "gui.add"));
+
+        addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 60, 45, 20, "gui.remove"));
         getButton(1).enabled = effect != null && effect.id != -1;
 
-        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 56, 45, 20, "gui.copy"));
+        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 84, 45, 20, "gui.copy"));
         getButton(2).enabled = effect != null && effect.id != -1;
 
-        addButton(new GuiNpcButton(3, guiLeft + 368, guiTop + 80, 45, 20, "gui.edit"));
+        addButton(new GuiNpcButton(3, guiLeft + 368, guiTop + 108, 45, 20, "gui.edit"));
         getButton(3).enabled = effect != null && effect.id != -1;
 
         if (scrollEffects == null) {
@@ -104,6 +110,11 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
             while (data.containsKey(effect.name))
                 effect.name += "_";
             PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), ""));
+        }
+
+        if (button.id == 66) {
+            mc.displayGuiScreen(new GuiEffectDirectory(npc));
+            return;
         }
 
         if (effect == null)
