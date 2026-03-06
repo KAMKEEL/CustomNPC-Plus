@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.autocomplete;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticField;
@@ -655,41 +656,32 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * These methods should be deprioritized in autocomplete.
      */
     public boolean isInheritedObjectMethod() {
-        if (kind != Kind.METHOD || !(sourceData instanceof MethodInfo)) {
-            return false;
-        }
-        
-        MethodInfo methodInfo = (MethodInfo) sourceData;
-        
-        // For Java reflection methods, check the declaring class
-        if (methodInfo.getJavaMethod() != null) {
+        if (kind != Kind.METHOD) return false;
+
+        if (sourceData instanceof MethodInfo) {
+            MethodInfo methodInfo = (MethodInfo) sourceData;
             java.lang.reflect.Method javaMethod = methodInfo.getJavaMethod();
-            Class<?> declaringClass = javaMethod.getDeclaringClass();
-            
-            // If the method is declared in Object, it's an inherited Object method
-            // unless the containing type is Object itself
-            if (declaringClass.getName().equals("java.lang.Object")) {
+            if (javaMethod != null) {
+                if (!Object.class.equals(javaMethod.getDeclaringClass())) return false;
                 TypeInfo containingType = methodInfo.getContainingType();
-                // If we're showing methods for Object itself, don't treat them as "inherited"
-                return containingType != null && !containingType.getFullName().equals("java.lang.Object");
+                return containingType == null || !containingType.getFullName().equals("java.lang.Object");
             }
-        } else {
-            // For script-defined methods, use the original logic
             TypeInfo containingType = methodInfo.getContainingType();
-            
-            // Check if declaring class is Object
-            if (containingType != null && containingType.getFullName().equals("java.lang.Object")) {
-                return true;
-            }
-            
-            // Check if method overrides from Object (meaning it's overridden, so NOT inherited)
-            if (methodInfo.isOverride()) {
-                TypeInfo overridesFrom = methodInfo.getOverridesFrom();
-                // If it overrides from Object, it means this class overrode it, so it's NOT just inherited
-                return false;
-            }
+            return containingType != null
+                && containingType.getFullName().equals("java.lang.Object")
+                && !methodInfo.isStatic()
+                && !methodInfo.isOverride();
         }
-        
+
+        if (sourceData instanceof JSMethodInfo) {
+            JSMethodInfo jsMethod = (JSMethodInfo) sourceData;
+            JSTypeInfo definingType = jsMethod.getContainingType();
+            return definingType != null
+                && "Object".equals(definingType.getSimpleName())
+                && !jsMethod.isStatic()
+                && inheritanceDepth > 0;
+        }
+
         return false;
     }
     

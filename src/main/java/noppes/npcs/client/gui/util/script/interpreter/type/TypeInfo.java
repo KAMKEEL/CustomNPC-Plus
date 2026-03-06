@@ -571,19 +571,19 @@ public class TypeInfo {
         for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return true;
         // Check JS type first
         if (jsTypeInfo != null) {
-            return jsTypeInfo.hasMethod(methodName);
+            if (jsTypeInfo.hasMethod(methodName)) return true;
+        } else if (javaClass != null) {
+            try {
+                for (java.lang.reflect.Method m : javaClass.getMethods()) {
+                    if (m.getName().equals(methodName)) return true;
+                }
+            } catch (Exception e) {
+                // Security or linkage error
+            }
         }
         
-        if (javaClass == null) return false;
-        try {
-            for (java.lang.reflect.Method m : javaClass.getMethods()) {
-                if (m.getName().equals(methodName)) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            // Security or linkage error
-        }
+        TypeInfo obj = TypeInfo.object(); 
+        if (obj != this) return obj.hasMethod(methodName);
         return false;
     }
 
@@ -596,23 +596,19 @@ public class TypeInfo {
         if (jsTypeInfo != null) {
             List<JSMethodInfo> overloads = jsTypeInfo.getMethodOverloads(methodName);
             for (JSMethodInfo m : overloads) {
-                if (m.getParameterCount() == paramCount) {
-                    return true;
-                }
+                if (m.getParameterCount() == paramCount) return true;
             }
-            return false;
-        }
-        
-        if (javaClass == null) return false;
-        try {
-            for (java.lang.reflect.Method m : javaClass.getMethods()) {
-                if (m.getName().equals(methodName) && m.getParameterCount() == paramCount) {
-                    return true;
+        } else if (javaClass != null) {
+            try {
+                for (java.lang.reflect.Method m : javaClass.getMethods()) {
+                    if (m.getName().equals(methodName) && m.getParameterCount() == paramCount) return true;
                 }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
         }
+        TypeInfo obj = TypeInfo.object();
+        if (obj != this) return obj.hasMethod(methodName);
         return false;
     }
     
@@ -756,26 +752,20 @@ public class TypeInfo {
      */
     public MethodInfo getMethodInfo(String methodName) {
         for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return m;
-        // Check JS type first
         if (jsTypeInfo != null) {
             JSMethodInfo jsMethod = jsTypeInfo.getMethod(methodName);
-            if (jsMethod != null) {
-                return MethodInfo.fromJSMethod(jsMethod, this);
-            }
-            return null;
-        }
-        
-        if (javaClass == null) return null;
-        try {
-            for (java.lang.reflect.Method m : javaClass.getMethods()) {
-                if (m.getName().equals(methodName)) {
-                    // Create a synthetic MethodInfo from reflection
-                    return MethodInfo.fromReflection(m, this);
+            if (jsMethod != null) return MethodInfo.fromJSMethod(jsMethod, this);
+        } else if (javaClass != null) {
+            try {
+                for (java.lang.reflect.Method m : javaClass.getMethods()) {
+                    if (m.getName().equals(methodName)) return MethodInfo.fromReflection(m, this);
                 }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
         }
+        TypeInfo obj = TypeInfo.object();
+        if (obj != this) return obj.getMethodInfo(methodName);
         return null;
     }
 
@@ -785,6 +775,9 @@ public class TypeInfo {
      */
     public java.util.List<MethodInfo> getAllMethodOverloads(String methodName) {
         java.util.List<MethodInfo> overloads = new java.util.ArrayList<>();
+
+        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) overloads.add(m);
+        if (!overloads.isEmpty()) return overloads;
         
         // Check JS type first
         if (jsTypeInfo != null) {
@@ -792,19 +785,21 @@ public class TypeInfo {
                 // Type parameter resolution now happens inside fromJSMethod using this TypeInfo
                 overloads.add(MethodInfo.fromJSMethod(jsMethod, this));
             }
-            return overloads;
-        }
-        
-        if (javaClass == null) return overloads;
-        try {
-            for (java.lang.reflect.Method m : javaClass.getMethods()) {
-                if (m.getName().equals(methodName)) {
-                    overloads.add(MethodInfo.fromReflection(m, this));
+            if (!overloads.isEmpty()) return overloads;
+        } else if (javaClass != null) {
+            try {
+                for (java.lang.reflect.Method m : javaClass.getMethods()) {
+                    if (m.getName().equals(methodName)) {
+                        overloads.add(MethodInfo.fromReflection(m, this));
+                    }
                 }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
+           if (!overloads.isEmpty()) return overloads;
         }
+        TypeInfo obj = TypeInfo.object();
+        if (obj != this) return obj.getAllMethodOverloads(methodName);    
         return overloads;
     }
 

@@ -8,6 +8,9 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.config.ConfigScript;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -55,17 +58,51 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             return;
         }
 
-        // If this is a Java type (has a Java class), delegate to parent's Java handling
-        // This preserves static/instance context, modifiers, and all Java-specific behavior
+        boolean isStaticContext = isStaticAccess(receiverExpr, getMemberAccessResolvePosition(context));
+
         Class<?> javaClass = receiverType.getJavaClass();
         if (javaClass != null) {
-            super.addMemberSuggestions(context, items);
+            Set<String> addedMethods = new HashSet<>();
+            for (Method method : javaClass.getMethods()) {
+                if (!Modifier.isPublic(method.getModifiers())) continue;
+                if (isStaticContext && !Modifier.isStatic(method.getModifiers())) continue;
+                String sig = method.getName() + "(" + method.getParameterCount() + ")";
+                if (addedMethods.add(sig)) {
+                    items.add(AutocompleteItem.fromMethod(MethodInfo.fromReflection(method, receiverType), context.methodsOnly));
+                }
+            }
+            if (!receiverType.syntheticMethods.isEmpty()) {
+                for (MethodInfo method : receiverType.syntheticMethods) {
+                    if (isStaticContext && !method.isStatic()) continue;
+                    items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
+                }
+            } else {
+                JSTypeInfo jsType = getMergeRegistryType(javaClass);
+                if (jsType != null) {
+                    addMethodsFromType(jsType, receiverType, items, new HashSet<>(), context.methodsOnly, isStaticContext);
+                }
+            }
+            if (!context.methodsOnly) {
+                for (Field field : javaClass.getFields()) {
+                    if (!Modifier.isPublic(field.getModifiers())) continue;
+                    if (isStaticContext && !Modifier.isStatic(field.getModifiers())) continue;
+                    items.add(AutocompleteItem.fromField(FieldInfo.fromReflection(field, receiverType)));
+                }
+                if (!receiverType.syntheticFields.isEmpty()) {
+                    for (FieldInfo field : receiverType.syntheticFields) {
+                        if (isStaticContext && !field.isStatic()) continue;
+                        items.add(AutocompleteItem.fromField(field));
+                    }
+                } else {
+                    JSTypeInfo jsType = getMergeRegistryType(javaClass);
+                    if (jsType != null) {
+                        addFieldsFromType(jsType, receiverType, items, new HashSet<>(), isStaticContext);
+                    }
+                }
+            }
             return;
         }
 
-        boolean isStaticContext = isStaticAccess(receiverExpr, getMemberAccessResolvePosition(context));
-
-        // Add synthetic members (e.g., array built-ins: length, clone)
         for (FieldInfo field : receiverType.syntheticFields) {
             if (!context.methodsOnly) {
                 if (isStaticContext && !field.isStatic()) continue;
@@ -77,15 +114,27 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
         }
 
-        // For pure JS types, check JSTypeRegistry
         JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
         if (jsTypeInfo != null) {
-            // Pass both: jsTypeInfo (current type in hierarchy) and receiverType (context for type params)
             addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), context.methodsOnly, isStaticContext);
             if (!context.methodsOnly && ConfigScript.ShowImplementationFieldsInAutocomplete) {
                 addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), isStaticContext);
             }
+            if (!isStaticContext) {
+                JSTypeInfo objJSType = registry.getType("Object");
+                if (objJSType != null) {
+                    for (JSMethodInfo m : objJSType.getMethods().values()) {
+                        if (!m.isStatic()) {
+                            items.add(AutocompleteItem.fromJSMethod(m, receiverType, 1, context.methodsOnly));
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    private JSTypeInfo getMergeRegistryType(Class<?> javaClass) {
+        return document.getTypeResolver().findJSTypeForJavaClass(javaClass);
     }
     
     /**

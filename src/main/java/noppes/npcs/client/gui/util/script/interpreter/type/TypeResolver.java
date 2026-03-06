@@ -466,6 +466,15 @@ public class TypeResolver {
         }
     }
 
+    public JSTypeInfo findJSTypeForJavaClass(Class<?> javaClass) {
+        if (javaClass == null) return null;
+        String simpleName = javaClass.getSimpleName();
+        if (getJSJavaMergeBase(simpleName) != null) {
+            return getJSTypeRegistry().getType(simpleName);
+        }
+        return getJSTypeRegistry().getTypeByJavaFqn(javaClass.getName());
+    }
+
     /**
      * For certain core types (e.g., String, Object), we want to merge JS type info from .d.ts with the Java TypeInfo to create an enriched type that has both Java and JS members.
      */
