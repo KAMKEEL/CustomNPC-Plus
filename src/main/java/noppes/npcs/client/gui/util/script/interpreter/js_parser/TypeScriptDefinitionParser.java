@@ -636,7 +636,16 @@ public class TypeScriptDefinitionParser {
                 String name = part.substring(0, colonIndex).trim().replace("?", "");
                 String type = cleanType(part.substring(colonIndex + 1).trim());
                 boolean isVarArg = name.startsWith("...");
-                if (isVarArg) name = name.substring(3).trim();
+                if (isVarArg) {
+                    name = name.substring(3).trim();
+                    // Varargs in TS are typed as arrays (e.g. ...codes: number[])
+                    // Strip the array wrapper to get the element type since isVarArg already implies array
+                    if (type.endsWith("[]")) {
+                        type = type.substring(0, type.length() - 2).trim();
+                    } else if (type.startsWith("Array<") && type.endsWith(">")) {
+                        type = type.substring(6, type.length() - 1).trim();
+                    }
+                }
                 JSMethodInfo.JSParameterInfo param = new JSMethodInfo.JSParameterInfo(name, type);
                 param.setVarArg(isVarArg);
                 result.add(param);

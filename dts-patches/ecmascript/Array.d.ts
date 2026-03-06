@@ -61,7 +61,7 @@ export interface Array<T> {
   length: number;
 
   /** Combines two or more arrays and returns a new array without modifying the original */
-  concat(...items: T): T[];
+  concat(...items: T[]): T[];
 
   /** Tests whether all elements in the array pass the provided test function */
   every(callback: Java.java.util.function.Function<T, boolean>): boolean;
@@ -88,7 +88,7 @@ export interface Array<T> {
   pop(): T;
 
   /** Adds one or more elements to the end of an array and returns the new length */
-  push(...items: T): number;
+  push(...items: T[]): number;
 
   /** Applies a function against an accumulator and each element to reduce the array to a single value */
   reduce(callback: Java.java.util.function.BiFunction<any, T, any>, initialValue: any): any;
@@ -112,11 +112,11 @@ export interface Array<T> {
   sort(compareFn: Java.java.util.function.BiFunction<T, T, number>): T[];
 
   /** Changes the contents of an array by removing or replacing existing elements and/or adding new ones */
-  splice(start: number, deleteCount: number, ...items: T): T[];
+  splice(start: number, deleteCount: number, ...items: T[]): T[];
 
   /** Returns a string representation of the array */
   toString(): string;
 
   /** Adds one or more elements to the beginning of an array and returns the new length */
-  unshift(...items: T): number;
+  unshift(...items: T[]): number;
 }

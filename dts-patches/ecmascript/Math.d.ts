@@ -103,10 +103,10 @@ export interface Math {
   static log(x: number): number;
 
   /** Returns the largest of zero or more numbers */
-  static max(...values: number): number;
+  static max(...values: number[]): number;
 
   /** Returns the smallest of zero or more numbers */
-  static min(...values: number): number;
+  static min(...values: number[]): number;
 
   /** Returns base raised to the power of exponent */
   static pow(x: number, y: number): number;
