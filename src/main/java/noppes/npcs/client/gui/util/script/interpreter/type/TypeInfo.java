@@ -63,7 +63,7 @@ public class TypeInfo {
      * The "any" type is universally compatible - it can be assigned to anything
      * and anything can be assigned to it.
      */
-    public static final TypeInfo ANY = new TypeInfo("any", "any", "", Kind.CLASS, null, true, null);
+    public static final TypeInfo ANY = new TypeInfo("any", "any", "", Kind.CLASS, null, true, null).setPrimitive(true);
     public static final TypeInfo NUMBER = new TypeInfo("number", "number", "", Kind.CLASS, double.class, true, null).setPrimitive(true);
     
     
