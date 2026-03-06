@@ -89,8 +89,8 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
                     if (isStaticContext && !Modifier.isStatic(field.getModifiers())) continue;
                     items.add(AutocompleteItem.fromField(FieldInfo.fromReflection(field, receiverType)));
                 }
-                if (!receiverType.syntheticFields.isEmpty()) {
-                    for (FieldInfo field : receiverType.syntheticFields) {
+                if (!receiverType.getSyntheticFields().isEmpty()) {
+                    for (FieldInfo field : receiverType.getSyntheticFields()) {
                         if (isStaticContext && !field.isStatic()) continue;
                         items.add(AutocompleteItem.fromField(field));
                     }
@@ -114,7 +114,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             return;
         }
 
-        for (FieldInfo field : receiverType.syntheticFields) {
+        for (FieldInfo field : receiverType.getSyntheticFields()) {
             if (!context.methodsOnly) {
                 if (isStaticContext && !field.isStatic()) continue;
                 items.add(AutocompleteItem.fromField(field));

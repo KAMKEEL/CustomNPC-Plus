@@ -100,7 +100,7 @@ public class TypeInfo {
     private final TypeInfo elementType;
 
     // Synthetic members injected at construction time (e.g. array built-ins: length, clone)
-    public final List<FieldInfo> syntheticFields = new ArrayList<>();
+    private final List<FieldInfo> syntheticFields = new ArrayList<>();
     private final List<MethodInfo> syntheticMethods = new ArrayList<>();
 
     // Documentation (script-defined types)
@@ -367,6 +367,10 @@ public class TypeInfo {
         }
 
         return syntheticMethods;
+    }
+
+    public List<FieldInfo> getSyntheticFields() {
+        return syntheticFields;
     }
 
     /**

@@ -158,7 +158,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 }
             }
 
-            for (FieldInfo field : receiverType.syntheticFields) {
+            for (FieldInfo field : receiverType.getSyntheticFields()) {
                 if (isStaticContext && !Modifier.isStatic(field.getModifiers()))
                     continue;
                 
