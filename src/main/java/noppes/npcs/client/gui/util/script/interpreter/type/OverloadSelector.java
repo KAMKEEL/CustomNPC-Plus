@@ -21,7 +21,7 @@ public class OverloadSelector {
 
     // Scoring constants
     private static final int ARITY_MISMATCH_BASE = 10000;
-    private static final int VARARGS_PENALTY = 1000;
+    private static final int VARARGS_PENALTY = 50;
     private static final int UNKNOWN_TYPE_PENALTY = 10;
     private static final int COMPATIBLE_TYPE_PENALTY = 5;
     private static final int INCOMPATIBLE_TYPE_PENALTY = 100;
@@ -208,6 +208,12 @@ public class OverloadSelector {
         java.lang.reflect.Method javaMethod = method.getJavaMethod();
         if (javaMethod != null) {
             isVarArgs = javaMethod.isVarArgs();
+        } else {
+            // JS methods from .d.ts have no backing Java method; vararg info lives on the last FieldInfo
+            List<FieldInfo> checkParams = method.getParameters();
+            if (!checkParams.isEmpty()) {
+                isVarArgs = checkParams.get(checkParams.size() - 1).isVarArg();
+            }
         }
         
         // Determine arity applicability
@@ -253,6 +259,23 @@ public class OverloadSelector {
             } else {
                 // Incompatible type
                 score += INCOMPATIBLE_TYPE_PENALTY;
+            }
+        }
+        
+        // For vararg methods, also score extra args (index >= paramCount) against the element type
+        if (isVarArgs && argCount > paramCount && !params.isEmpty()) {
+            TypeInfo varargElemType = params.get(paramCount - 1).getTypeInfo();
+            for (int i = paramCount; i < argCount; i++) {
+                TypeInfo argType = (argTypes != null && i < argTypes.length) ? argTypes[i] : null;
+                if (argType == null || varargElemType == null) {
+                    score += UNKNOWN_TYPE_PENALTY;
+                } else if (varargElemType.equals(argType)) {
+                    // exact match
+                } else if (TypeChecker.isTypeCompatible(varargElemType, argType)) {
+                    score += COMPATIBLE_TYPE_PENALTY;
+                } else {
+                    score += INCOMPATIBLE_TYPE_PENALTY;
+                }
             }
         }
         
