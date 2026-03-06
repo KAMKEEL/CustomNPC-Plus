@@ -379,7 +379,8 @@ public class ExpressionParser {
         
         ExpressionNode inner = parseExpression(0);
         if (inner != null && match(ExpressionToken.TokenKind.RIGHT_PAREN)) {
-            return new ExpressionNode.ParenthesizedNode(inner, start, current().getStart());
+            ExpressionNode paren = new ExpressionNode.ParenthesizedNode(inner, start, current().getStart());
+            return parseAccessChain(paren);
         }
         return inner;
     }
