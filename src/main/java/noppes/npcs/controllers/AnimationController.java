@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
@@ -47,6 +48,7 @@ public class AnimationController implements IAnimationHandler {
 
     public static AnimationController Instance = new AnimationController();
     private int lastUsedID = 0;
+    public CategoryManager categoryManager = new CategoryManager();
 
     public LinkedHashMap<String, Register.Animations> registeredAnimations = new LinkedHashMap<>();
 
@@ -164,43 +166,60 @@ public class AnimationController implements IAnimationHandler {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-        } else {
-            for (File file : dir.listFiles()) {
-                if (!file.isFile() || !file.getName().endsWith(".json"))
-                    continue;
-                try {
-                    Animation animation = new Animation();
-                    animation.readFromNBT(NBTJsonUtil.LoadFile(file));
-                    animation.name = file.getName().substring(0, file.getName().length() - 5);
+            return;
+        }
 
-                    if (animation.id == -1) {
-                        animation.id = getUnusedId();
-                    }
+        categoryManager.loadCategories(dir);
 
-                    int originalID = animation.id;
-                    int setID = animation.id;
-                    while (bootOrder.containsKey(setID) || animations.containsKey(setID)) {
-                        if (bootOrder.containsKey(setID))
-                            if (bootOrder.get(setID).equals(animation.name))
-                                break;
+        // Load uncategorized animations (root level .json files)
+        loadAnimationsFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
 
-                        setID++;
-                    }
-
-                    animation.id = setID;
-                    if (originalID != setID) {
-                        LogWriter.info("Found Animation ID Mismatch: " + animation.name + ", New ID: " + setID);
-                        animation.save();
-                    }
-
-                    animations.put(animation.id, animation);
-                } catch (Exception e) {
-                    LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-                }
-            }
+        // Load categorized animations (subdirectories)
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : categoryManager.getCategories().entrySet()) {
+            File catDir = categoryManager.getCategoryDir(entry.getKey());
+            loadAnimationsFromDir(catDir, entry.getKey());
         }
 
         saveAnimationMap();
+    }
+
+    private void loadAnimationsFromDir(File dir, int catId) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json"))
+                continue;
+            try {
+                Animation animation = new Animation();
+                animation.readFromNBT(NBTJsonUtil.LoadFile(file));
+                animation.name = file.getName().substring(0, file.getName().length() - 5);
+
+                if (animation.id == -1) {
+                    animation.id = getUnusedId();
+                }
+
+                int originalID = animation.id;
+                int setID = animation.id;
+                while (bootOrder.containsKey(setID) || animations.containsKey(setID)) {
+                    if (bootOrder.containsKey(setID))
+                        if (bootOrder.get(setID).equals(animation.name))
+                            break;
+
+                    setID++;
+                }
+
+                animation.id = setID;
+                if (originalID != setID) {
+                    LogWriter.info("Found Animation ID Mismatch: " + animation.name + ", New ID: " + setID);
+                    animation.save();
+                }
+
+                animations.put(animation.id, animation);
+                categoryManager.registerItem(animation.id, catId);
+            } catch (Exception e) {
+                LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            }
+        }
     }
 
     public void addAnimationRegister(String namespace, Register.Animations register) {
@@ -265,7 +284,7 @@ public class AnimationController implements IAnimationHandler {
         saveAnimationMap();
 
         // Save Animation File
-        File dir = this.getDir();
+        File dir = categoryManager.getItemDir(animation.getID());
         if (!dir.exists())
             dir.mkdirs();
 
@@ -295,46 +314,29 @@ public class AnimationController implements IAnimationHandler {
     public void delete(String name) {
         Animation delete = getAnimationFromName(name);
         if (delete != null) {
-            // Reject deleting built-in animations
-            if (delete instanceof BuiltInAnimation) {
-                LogWriter.info("Cannot delete built-in animation: " + name);
-                return;
-            }
-
-            Animation foundAnimation = this.animations.remove(delete.getID());
-            if (foundAnimation != null && foundAnimation.name != null) {
-                File dir = this.getDir();
-                for (File file : dir.listFiles()) {
-                    if (!file.isFile() || !file.getName().endsWith(".json"))
-                        continue;
-                    if (file.getName().equals(foundAnimation.name + ".json")) {
-                        file.delete();
-                        break;
-                    }
-                }
-
-                saveAnimationMap();
-            }
+            delete(delete.getID());
         }
     }
 
     public void delete(int id) {
-        // Only user animations have valid IDs (>= 0)
         if (id < 0 || !this.animations.containsKey(id))
             return;
 
+        // Reject deleting built-in animations
+        Animation anim = this.animations.get(id);
+        if (anim instanceof BuiltInAnimation) {
+            LogWriter.info("Cannot delete built-in animation: " + anim.name);
+            return;
+        }
+
         Animation foundAnimation = this.animations.remove(id);
         if (foundAnimation != null && foundAnimation.name != null) {
-            File dir = this.getDir();
-            for (File file : dir.listFiles()) {
-                if (!file.isFile() || !file.getName().endsWith(".json"))
-                    continue;
-                if (file.getName().equals(foundAnimation.name + ".json")) {
-                    file.delete();
-                    break;
-                }
+            File dir = categoryManager.getItemDir(id);
+            File file = new File(dir, foundAnimation.name + ".json");
+            if (file.exists()) {
+                file.delete();
             }
-
+            categoryManager.removeItem(id);
             saveAnimationMap();
         }
     }
@@ -553,5 +555,29 @@ public class AnimationController implements IAnimationHandler {
     }
 
     ////////////////////////////////////////////////////////
+    // CATEGORY HELPERS
     ////////////////////////////////////////////////////////
+
+    public Map<String, Integer> getCategoryScrollData() {
+        return categoryManager.getCategoryScrollData();
+    }
+
+    public void moveItemToCategory(int itemId, int catId) {
+        Animation animation = animations.get(itemId);
+        if (animation == null) return;
+        categoryManager.moveItem(itemId, animation.name + ".json", catId);
+        saveAnimationMap();
+    }
+
+    public Map<String, Integer> getItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, animations.keySet());
+        for (int itemId : itemIds) {
+            Animation animation = animations.get(itemId);
+            if (animation != null) {
+                map.put(animation.name, animation.id);
+            }
+        }
+        return map;
+    }
 }

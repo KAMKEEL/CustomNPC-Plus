@@ -92,6 +92,12 @@ import kamkeel.npcs.network.packets.request.ability.ChainedAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.category.AbilityCategoryMovePacket;
+import kamkeel.npcs.network.packets.request.category.CategoryItemsRequestPacket;
+import kamkeel.npcs.network.packets.request.category.CategoryListRequestPacket;
+import kamkeel.npcs.network.packets.request.category.CategoryMoveItemPacket;
+import kamkeel.npcs.network.packets.request.category.CategoryRemovePacket;
+import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
@@ -525,6 +531,14 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ChainedAbilityGetPacket());
         REQUEST_PACKET.registerPacket(new ChainedAbilitySavePacket());
         REQUEST_PACKET.registerPacket(new ChainedAbilityRemovePacket());
+
+        // Category Packets
+        REQUEST_PACKET.registerPacket(new CategorySavePacket());
+        REQUEST_PACKET.registerPacket(new CategoryRemovePacket());
+        REQUEST_PACKET.registerPacket(new CategoryMoveItemPacket());
+        REQUEST_PACKET.registerPacket(new CategoryListRequestPacket());
+        REQUEST_PACKET.registerPacket(new CategoryItemsRequestPacket());
+        REQUEST_PACKET.registerPacket(new AbilityCategoryMovePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

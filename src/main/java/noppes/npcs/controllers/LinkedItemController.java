@@ -20,6 +20,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 public class LinkedItemController implements ILinkedItemHandler {
@@ -30,6 +32,7 @@ public class LinkedItemController implements ILinkedItemHandler {
     public HashMap<Integer, LinkedItemScript> linkedItemsScripts = new HashMap<>();
 
     private HashMap<Integer, String> bootOrder;
+    public CategoryManager categoryManager = new CategoryManager();
 
     private LinkedItemController() {
     }
@@ -121,43 +124,60 @@ public class LinkedItemController implements ILinkedItemHandler {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-        } else {
-            for (File file : dir.listFiles()) {
-                if (!file.isFile() || !file.getName().endsWith(".json"))
-                    continue;
-                try {
-                    LinkedItem linkedItem = new LinkedItem();
-                    linkedItem.readFromNBT(NBTJsonUtil.LoadFile(file));
-                    linkedItem.name = file.getName().substring(0, file.getName().length() - 5);
+            return;
+        }
 
-                    if (linkedItem.id == -1) {
-                        linkedItem.id = getUnusedId();
-                    }
+        categoryManager.loadCategories(dir);
 
-                    int originalID = linkedItem.id;
-                    int setID = linkedItem.id;
-                    while (bootOrder.containsKey(setID) || linkedItems.containsKey(setID)) {
-                        if (bootOrder.containsKey(setID))
-                            if (bootOrder.get(setID).equals(linkedItem.name))
-                                break;
+        // Load uncategorized items (root level .json files)
+        loadItemsFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
 
-                        setID++;
-                    }
-
-                    linkedItem.id = setID;
-                    if (originalID != setID) {
-                        LogWriter.info("Found Linked Item ID Mismatch: " + linkedItem.name + ", New ID: " + setID);
-                        linkedItem.save();
-                    }
-
-                    linkedItems.put(linkedItem.id, linkedItem);
-                } catch (Exception e) {
-                    LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-                }
-            }
+        // Load categorized items (subdirectories)
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : categoryManager.getCategories().entrySet()) {
+            File catDir = categoryManager.getCategoryDir(entry.getKey());
+            loadItemsFromDir(catDir, entry.getKey());
         }
 
         saveLinkedItemsMap();
+    }
+
+    private void loadItemsFromDir(File dir, int catId) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json"))
+                continue;
+            try {
+                LinkedItem linkedItem = new LinkedItem();
+                linkedItem.readFromNBT(NBTJsonUtil.LoadFile(file));
+                linkedItem.name = file.getName().substring(0, file.getName().length() - 5);
+
+                if (linkedItem.id == -1) {
+                    linkedItem.id = getUnusedId();
+                }
+
+                int originalID = linkedItem.id;
+                int setID = linkedItem.id;
+                while (bootOrder.containsKey(setID) || linkedItems.containsKey(setID)) {
+                    if (bootOrder.containsKey(setID))
+                        if (bootOrder.get(setID).equals(linkedItem.name))
+                            break;
+
+                    setID++;
+                }
+
+                linkedItem.id = setID;
+                if (originalID != setID) {
+                    LogWriter.info("Found Linked Item ID Mismatch: " + linkedItem.name + ", New ID: " + setID);
+                    linkedItem.save();
+                }
+
+                linkedItems.put(linkedItem.id, linkedItem);
+                categoryManager.registerItem(linkedItem.id, catId);
+            } catch (Exception e) {
+                LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            }
+        }
     }
 
     private File getDir() {
@@ -200,7 +220,7 @@ public class LinkedItemController implements ILinkedItemHandler {
         saveLinkedItemsMap();
 
         // Save Linked Item File
-        File dir = this.getDir();
+        File dir = categoryManager.getItemDir(linkedItem.getId());
         if (!dir.exists())
             dir.mkdirs();
 
@@ -231,27 +251,19 @@ public class LinkedItemController implements ILinkedItemHandler {
         if (linkedItem != null) {
             LinkedItem foundItem = remove(id);
             if (foundItem != null && foundItem.name != null) {
-                File dir = this.getDir();
-                for (File file : dir.listFiles()) {
-                    if (!file.isFile() || !file.getName().endsWith(".json"))
-                        continue;
-                    if (file.getName().equalsIgnoreCase(foundItem.name + ".json")) {
-                        file.delete();
-                        break;
-                    }
+                File dir = categoryManager.getItemDir(id);
+                File file = new File(dir, foundItem.name + ".json");
+                if (file.exists()) {
+                    file.delete();
                 }
+                categoryManager.removeItem(id);
                 saveLinkedItemsMap();
             }
         }
     }
 
     public void deleteLinkedItemFile(String prevName) {
-        File dir = this.getDir();
-        if (!dir.exists())
-            dir.mkdirs();
-        File file2 = new File(dir, prevName + ".json");
-        if (file2.exists())
-            file2.delete();
+        categoryManager.deleteFile(prevName + ".json");
     }
 
 
@@ -350,5 +362,29 @@ public class LinkedItemController implements ILinkedItemHandler {
     }
 
     ////////////////////////////////////////////////////////
+    // CATEGORY HELPERS
     ////////////////////////////////////////////////////////
+
+    public Map<String, Integer> getCategoryScrollData() {
+        return categoryManager.getCategoryScrollData();
+    }
+
+    public void moveItemToCategory(int itemId, int catId) {
+        LinkedItem item = linkedItems.get(itemId);
+        if (item == null) return;
+        categoryManager.moveItem(itemId, item.name + ".json", catId);
+        saveLinkedItemsMap();
+    }
+
+    public Map<String, Integer> getItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, linkedItems.keySet());
+        for (int itemId : itemIds) {
+            LinkedItem item = linkedItems.get(itemId);
+            if (item != null) {
+                map.put(item.name, item.id);
+            }
+        }
+        return map;
+    }
 }

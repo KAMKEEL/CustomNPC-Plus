@@ -6,7 +6,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.gui.global.GuiNPCManageEffects;
+import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
@@ -27,13 +27,13 @@ import java.util.List;
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
 public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldListener {
-    private final GuiNPCManageEffects parent;
+    private final GuiScreen parent;
     public CustomEffect effect;
     private final String originalName;
 
     private final List<GuiMenuTopButton> topButtons = new ArrayList<>();
 
-    public SubGuiEffectGeneral(GuiNPCManageEffects parent, CustomEffect effect) {
+    public SubGuiEffectGeneral(GuiScreen parent, CustomEffect effect) {
         this.effect = effect;
         this.parent = parent;
         this.originalName = effect.name;

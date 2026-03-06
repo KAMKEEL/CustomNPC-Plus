@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +44,7 @@ public class CustomEffectController implements ICustomEffectHandler {
 
     public HashMap<Integer, EffectScript> customEffectScriptHandlers = new HashMap<>();
     private HashMap<Integer, String> bootOrder;
+    public CategoryManager categoryManager = new CategoryManager();
 
     private int lastUsedID = 0;
     public ConcurrentHashMap<UUID, ConcurrentHashMap<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
@@ -119,16 +121,13 @@ public class CustomEffectController implements ICustomEffectHandler {
             CustomEffect foundEffect = getCustomEffects().remove(effect.getID());
             customEffectScriptHandlers.remove(effect.getID());
             if (foundEffect != null && foundEffect.name != null) {
-                File dir = this.getDir();
-                for (File file : dir.listFiles()) {
-                    if (!file.isFile() || !file.getName().endsWith(".json"))
-                        continue;
-                    if (file.getName().equalsIgnoreCase(foundEffect.name + ".json")) {
-                        file.delete();
-                        SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
-                        break;
-                    }
+                File dir = categoryManager.getItemDir(id);
+                File file = new File(dir, foundEffect.name + ".json");
+                if (file.exists()) {
+                    file.delete();
                 }
+                categoryManager.removeItem(id);
+                SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
                 saveEffectLoadMap();
             }
         }
@@ -328,38 +327,56 @@ public class CustomEffectController implements ICustomEffectHandler {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-        } else {
-            for (File file : dir.listFiles()) {
-                if (!file.isFile() || !file.getName().endsWith(".json"))
-                    continue;
-                try {
-                    CustomEffect effect = new CustomEffect();
-                    effect.readFromNBT(NBTJsonUtil.LoadFile(file));
-                    effect.name = file.getName().substring(0, file.getName().length() - 5);
-                    if (effect.id == -1) {
-                        effect.id = getUnusedId();
-                    }
-                    int originalID = effect.id;
-                    int setID = effect.id;
-                    while (bootOrder.containsKey(setID) || getCustomEffects().containsKey(setID)) {
-                        if (bootOrder.containsKey(setID))
-                            if (bootOrder.get(setID).equalsIgnoreCase(effect.name))
-                                break;
-                        setID++;
-                    }
-                    effect.id = setID;
-                    if (originalID != setID) {
-                        LogWriter.info("Found Custom Effect ID Mismatch: " + effect.name + ", New ID: " + setID);
-                        effect.save();
-                    }
-                    getCustomEffects().put(effect.id, effect);
-                } catch (Exception e) {
-                    LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-                }
-            }
+            return;
         }
+
+        categoryManager.loadCategories(dir);
+
+        // Load uncategorized effects (root level .json files)
+        loadEffectsFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
+
+        // Load categorized effects (subdirectories)
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : categoryManager.getCategories().entrySet()) {
+            File catDir = categoryManager.getCategoryDir(entry.getKey());
+            loadEffectsFromDir(catDir, entry.getKey());
+        }
+
         this.registerEffectMap(0, getCustomEffects());
         saveEffectLoadMap();
+    }
+
+    private void loadEffectsFromDir(File dir, int catId) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json"))
+                continue;
+            try {
+                CustomEffect effect = new CustomEffect();
+                effect.readFromNBT(NBTJsonUtil.LoadFile(file));
+                effect.name = file.getName().substring(0, file.getName().length() - 5);
+                if (effect.id == -1) {
+                    effect.id = getUnusedId();
+                }
+                int originalID = effect.id;
+                int setID = effect.id;
+                while (bootOrder.containsKey(setID) || getCustomEffects().containsKey(setID)) {
+                    if (bootOrder.containsKey(setID))
+                        if (bootOrder.get(setID).equalsIgnoreCase(effect.name))
+                            break;
+                    setID++;
+                }
+                effect.id = setID;
+                if (originalID != setID) {
+                    LogWriter.info("Found Custom Effect ID Mismatch: " + effect.name + ", New ID: " + setID);
+                    effect.save();
+                }
+                getCustomEffects().put(effect.id, effect);
+                categoryManager.registerItem(effect.id, catId);
+            } catch (Exception e) {
+                LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            }
+        }
     }
 
     public HashMap<Integer, CustomEffect> getEffectMap(int index) {
@@ -370,7 +387,7 @@ public class CustomEffectController implements ICustomEffectHandler {
         return new File(CustomNpcs.getWorldSaveDirectory(), "customeffects");
     }
 
-    private void saveEffectLoadMap() {
+    public void saveEffectLoadMap() {
         try {
             File saveDir = getMapDir();
             File file = new File(saveDir, "customeffects.dat_new");
@@ -453,12 +470,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     }
 
     public void deleteEffectFile(String prevName) {
-        File dir = this.getDir();
-        if (!dir.exists())
-            dir.mkdirs();
-        File file2 = new File(dir, prevName + ".json");
-        if (file2.exists())
-            file2.delete();
+        categoryManager.deleteFile(prevName + ".json");
     }
 
     // API Versions
@@ -490,21 +502,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     public void deleteEffect(String name) {
         ICustomEffect effect = getEffect(name);
         if (effect != null) {
-            CustomEffect foundEffect = getCustomEffects().remove(effect.getID());
-            customEffectScriptHandlers.remove(effect.getID());
-            if (foundEffect != null && foundEffect.name != null) {
-                File dir = this.getDir();
-                for (File file : dir.listFiles()) {
-                    if (!file.isFile() || !file.getName().endsWith(".json"))
-                        continue;
-                    if (file.getName().equalsIgnoreCase(foundEffect.name + ".json")) {
-                        file.delete();
-                        SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
-                        break;
-                    }
-                }
-                saveEffectLoadMap();
-            }
+            delete(effect.getID());
         }
     }
 
@@ -632,6 +630,33 @@ public class CustomEffectController implements ICustomEffectHandler {
         return get(id, index);
     }
 
+    ////////////////////////////////////////////////////////
+    // CATEGORY HELPERS
+    ////////////////////////////////////////////////////////
+
+    public Map<String, Integer> getCategoryScrollData() {
+        return categoryManager.getCategoryScrollData();
+    }
+
+    public void moveItemToCategory(int itemId, int catId) {
+        CustomEffect effect = getCustomEffects().get(itemId);
+        if (effect == null) return;
+        categoryManager.moveItem(itemId, effect.name + ".json", catId);
+        saveEffectLoadMap();
+    }
+
+    public Map<String, Integer> getItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, getCustomEffects().keySet());
+        for (int itemId : itemIds) {
+            CustomEffect effect = getCustomEffects().get(itemId);
+            if (effect != null) {
+                map.put(effect.name, effect.id);
+            }
+        }
+        return map;
+    }
+
     @Override
     public ICustomEffect saveEffect(ICustomEffect customEffect) {
         if (customEffect.getID() < 0) {
@@ -648,7 +673,7 @@ public class CustomEffectController implements ICustomEffectHandler {
 
         saveEffectLoadMap();
 
-        File dir = this.getDir();
+        File dir = categoryManager.getItemDir(customEffect.getID());
         if (!dir.exists())
             dir.mkdirs();
 
