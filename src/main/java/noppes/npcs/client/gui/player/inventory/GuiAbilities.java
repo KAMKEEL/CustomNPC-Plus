@@ -399,6 +399,14 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
             boolean isDragSource = isDragging && dragSourceSlot == -1 && draggedKey != null
                 && draggedKey.equals(filteredKeys.get(absIndex));
 
+            // Compute toggle state early so border can reflect it
+            int cellToggleState = 0;
+            Ability cellAbility = filteredAbilities.get(absIndex);
+            PlayerData cellPlayerData = ClientCacheHandler.playerData;
+            if (cellAbility != null && cellAbility.isToggleable() && cellPlayerData != null && cellPlayerData.abilityData != null) {
+                cellToggleState = cellPlayerData.abilityData.getToggleState(filteredKeys.get(absIndex));
+            }
+
             // Cell background
             int bgColor;
             if (isDragSource) bgColor = 0x40333333;
@@ -409,7 +417,8 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
 
             // Cell border
             int borderColor;
-            if (isSelected) borderColor = 0xAA9999DD;
+            if (cellToggleState > 0) borderColor = 0x7733DD55;
+            else if (isSelected) borderColor = 0xAA9999DD;
             else if (isHovered) borderColor = 0xAA8888CC;
             else borderColor = 0x40404060;
             drawHorizontalLine(cellX, cellX + gridCellSize - 2, cellY, borderColor);
@@ -429,13 +438,6 @@ public class GuiAbilities extends GuiCNPCInventory implements ISubGuiListener {
 
                 int iconCenterX = cellX + (gridCellSize - 1) / 2;
                 int iconCenterY = cellY + (gridCellSize - 1) / 2;
-
-                int cellToggleState = 0;
-                Ability cellAbility = filteredAbilities.get(absIndex);
-                PlayerData cellPlayerData = ClientCacheHandler.playerData;
-                if (cellAbility != null && cellAbility.isToggleable() && cellPlayerData != null && cellPlayerData.abilityData != null) {
-                    cellToggleState = cellPlayerData.abilityData.getToggleState(filteredKeys.get(absIndex));
-                }
 
                 GL11.glPushMatrix();
                 GL11.glTranslatef(iconCenterX, iconCenterY, 0);

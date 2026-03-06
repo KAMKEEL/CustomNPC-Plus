@@ -56,6 +56,9 @@ public final class AbilityTogglePacket extends AbstractPacket {
 
         int newState = playerData.abilityData.toggleAbility(key);
 
+        // Sync toggle states to client (toggle may have side effects like mutual exclusivity)
+        playerData.abilityData.syncToClient();
+
         String displayName = ability.getDisplayName();
         if (newState > 0) {
             String stateLabel = ability.getToggleStateLabel(newState);
