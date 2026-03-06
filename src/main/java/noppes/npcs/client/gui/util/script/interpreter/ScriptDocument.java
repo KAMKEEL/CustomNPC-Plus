@@ -4964,22 +4964,23 @@ public class ScriptDocument {
             return findEnclosingScriptType(position);
         }
         
-        // "new Type()" expressions
         if (expr.startsWith("new ")) {
             Matcher newMatcher = NEW_TYPE_PATTERN.matcher(expr);
             if (newMatcher.find()) {
                 String typeName = newMatcher.group(1);
-                
-                // First check if it's a variable holding a ClassTypeInfo (like var File = Java.type("java.io.File"))
                 FieldInfo varInfo = resolveVariable(typeName, position);
                 if (varInfo != null && varInfo.getTypeInfo() instanceof ClassTypeInfo) {
-                    // It's a variable holding a class reference, return the wrapped class
-                    ClassTypeInfo classRef = (ClassTypeInfo) varInfo.getTypeInfo();
-                    return classRef.getInstanceType();
+                    return ((ClassTypeInfo) varInfo.getTypeInfo()).getInstanceType();
                 }
-                
-                // Otherwise treat it as a type name
-                return resolveType(typeName);
+                TypeInfo baseType = resolveType(typeName);
+                if (baseType == null) return null;
+                String rest = expr.substring(newMatcher.end());
+                int dims = 0;
+                for (int i = 0; i < rest.length() && rest.charAt(i) != '('; i++) {
+                    if (rest.charAt(i) == '[') { dims++; i = rest.indexOf(']', i); }
+                }
+                for (int i = 0; i < dims; i++) baseType = TypeInfo.arrayOf(baseType);
+                return baseType;
             }
         }
         
@@ -6790,6 +6791,12 @@ public class ScriptDocument {
             String[] segments = lhs.split("\\.");
             targetName = segments[segments.length - 1].trim();
             
+            // Check if the last segment has array subscript (e.g., obj.items[0])
+            boolean lastSegmentHasArrayAccess = targetName.contains("[");
+            if (lastSegmentHasArrayAccess) {
+                targetName = targetName.substring(0, targetName.indexOf('[')).trim();
+            }
+            
             // Resolve the chain to get the target type
             String receiverExpr = lhs.substring(0, lhs.lastIndexOf('.')).trim();
             receiverType = resolveExpressionType(receiverExpr, lhsStart);
@@ -6799,11 +6806,26 @@ public class ScriptDocument {
                 if (receiverType.hasField(targetName)) {
                     targetField = receiverType.getFieldInfo(targetName);
                     targetType = targetField.getTypeInfo();
+                    if (lastSegmentHasArrayAccess) {
+                        targetType = unwrapArrayElement(targetType);
+                    }
                     reflectionField = targetField.getReflectionField();
                 }
             }
           //  Minecraft.getMinecraft().thePlayer.PERSISTED_NBT_TAG = null;
 
+        } else if (lhs.contains("[")) {
+            // Array subscript access (e.g., items[0])
+            // Extract the variable name before the bracket
+            String varName = lhs.substring(0, lhs.indexOf('[')).trim();
+            targetName = varName;
+            targetField = resolveVariable(varName, lhsStart);
+            if (targetField != null) {
+                // The variable type is the array type (e.g., ItemStack[])
+                // Unwrap to get the element type (e.g., ItemStack)
+                targetType = unwrapArrayElement(targetField.getTypeInfo());
+                reflectionField = targetField.getReflectionField();
+            }
         } else {
             // Simple variable
             targetField = resolveVariable(targetName, lhsStart);
@@ -6840,8 +6862,9 @@ public class ScriptDocument {
         
         // Determine if the target field is final
         // For script fields, use the modifiers; for external fields, use reflection
+        // Array element assignment (items[0] = ...) is always allowed even if the array itself is final
         boolean isFinal = false;
-        if (targetField != null) {
+        if (targetField != null && !lhs.contains("[")) {
             isFinal = targetField.isFinal();
         }
         
