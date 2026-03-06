@@ -225,10 +225,26 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             dirZ = 0.0;
         }
 
-        // Position: use anchor if launchFromAnchor, otherwise use look vector position
+        // Position: use anchor if launchFromAnchor, otherwise use look vector position.
+        // When using an anchor point, recalculate direction from anchor toward the target
+        // so the beam aims at the target rather than shooting straight from the offset position.
         if (anchorData.launchFromAnchor) {
             Vec3 anchorPos = AnchorPointHelper.calculateAnchorPosition(livingOwner, anchorData);
             setPosition(anchorPos.xCoord, anchorPos.yCoord, anchorPos.zCoord);
+
+            Entity targetEntity = getTargetEntity();
+            if (targetEntity instanceof EntityLivingBase && targetEntity.isEntityAlive()) {
+                EntityLivingBase target = (EntityLivingBase) targetEntity;
+                double dx = target.posX - anchorPos.xCoord;
+                double dy = (target.posY + target.getEyeHeight() - 0.4) - anchorPos.yCoord;
+                double dz = target.posZ - anchorPos.zCoord;
+                double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (len > 0.0001) {
+                    dirX = dx / len;
+                    dirY = dy / len;
+                    dirZ = dz / len;
+                }
+            }
         } else {
             Vec3 direction = Vec3.createVectorHelper(dirX, dirY, dirZ);
             setLookVectorLaunchPosition(livingOwner, direction, false);
@@ -250,16 +266,19 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         lastBlockHitZ = Integer.MIN_VALUE;
         lastExplosionTick = -100;
 
-        // Set initial direction: owner look vector (sweeping beam always follows look)
-        Vec3 look = getOwnerLookVector();
-        if (look != null) {
-            dirX = look.xCoord;
-            dirY = look.yCoord;
-            dirZ = look.zCoord;
-        } else if (!setDirectionTowardTarget(target, startX, startY, startZ)) {
-            dirX = 1.0;
-            dirY = 0.0;
-            dirZ = 0.0;
+        // Set initial direction: aim toward target first (like Orb/Beam),
+        // fall back to owner look vector if no target is available.
+        if (!setDirectionTowardTarget(target, startX, startY, startZ)) {
+            Vec3 look = getOwnerLookVector();
+            if (look != null) {
+                dirX = look.xCoord;
+                dirY = look.yCoord;
+                dirZ = look.zCoord;
+            } else {
+                dirX = 1.0;
+                dirY = 0.0;
+                dirZ = 0.0;
+            }
         }
 
         // Initialize end point at start (will expand from here)
