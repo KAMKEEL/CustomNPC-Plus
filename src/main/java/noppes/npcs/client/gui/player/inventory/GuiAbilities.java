@@ -17,6 +17,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.hud.ability.AbilityIcon;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
+import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.ISubGuiListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.AbilityHotbarData;
