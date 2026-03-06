@@ -64,7 +64,7 @@ public class TypeInfo {
      * and anything can be assigned to it.
      */
     public static final TypeInfo ANY = new TypeInfo("any", "any", "", Kind.CLASS, null, true, null);
-    public static final TypeInfo NUMBER = new TypeInfo("number", "number", "", Kind.CLASS, double.class, true, null);
+    public static final TypeInfo NUMBER = new TypeInfo("number", "number", "", Kind.CLASS, double.class, true, null).setPrimitive(true);
     
     
     private final String simpleName;       // e.g., "List", "ColorType"
@@ -74,7 +74,9 @@ public class TypeInfo {
     private final Class<?> javaClass;      // The actual resolved Java class (null if unresolved or JS type)
     private final boolean resolved;        // Whether this type was successfully resolved
     private final TypeInfo enclosingType;  // For inner classes, the outer type (null if top-level)
-    
+
+    private boolean isPrimitive;           // Whether this is a primitive type (e.g., int, boolean)
+
     // JavaScript/TypeScript type info (for types from .d.ts files)
     private final JSTypeInfo jsTypeInfo;   // The JS type info (null if Java type)
     
@@ -307,7 +309,7 @@ public class TypeInfo {
             case "double": primitiveClass = double.class; break;
             case "void": primitiveClass = void.class; break;
         }
-        return new TypeInfo(typeName, typeName, "", Kind.CLASS, primitiveClass, true, null);
+        return new TypeInfo(typeName, typeName, "", Kind.CLASS, primitiveClass, true, null).setPrimitive(true);
     }
     
     /**
@@ -363,6 +365,7 @@ public class TypeInfo {
         }
         
         TypeInfo arr = new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, true, null, null, null, null, elementType);
+        arr.setPrimitive(elementType.isPrimitive());
         arr.syntheticFields.add(FieldInfo.external("length", TypeInfo.fromPrimitive("int"), null,
                 Modifier.PUBLIC | Modifier.FINAL));
         arr.syntheticMethods.add(MethodInfo.external("clone", arr, null,
@@ -404,7 +407,8 @@ public class TypeInfo {
     public boolean isInnerClass() { return enclosingType != null; }
     public boolean isInterface() {return kind == Kind.INTERFACE;}
     public boolean isEnum() {return kind == Kind.ENUM;}
-    public boolean isPrimitive() {return javaClass != null && javaClass.isPrimitive();}
+    public boolean isPrimitive() {return this.isPrimitive || javaClass != null && javaClass.isPrimitive();}
+    private TypeInfo setPrimitive(boolean value) { this.isPrimitive = value; return this;}
     
     // ==================== Applied Type Arguments (Parameterized Types) ====================
     
