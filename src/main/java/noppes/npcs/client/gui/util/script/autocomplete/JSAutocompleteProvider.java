@@ -71,8 +71,9 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
                     items.add(AutocompleteItem.fromMethod(MethodInfo.fromReflection(method, receiverType), context.methodsOnly));
                 }
             }
-            if (!receiverType.syntheticMethods.isEmpty()) {
-                for (MethodInfo method : receiverType.syntheticMethods) {
+            List<MethodInfo> effectiveSyntheticMethods = receiverType.getSyntheticMethods();
+            if (!effectiveSyntheticMethods.isEmpty()) {
+                for (MethodInfo method : effectiveSyntheticMethods) {
                     if (isStaticContext && !method.isStatic()) continue;
                     items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
                 }
@@ -119,7 +120,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
                 items.add(AutocompleteItem.fromField(field));
             }
         }
-        for (MethodInfo method : receiverType.syntheticMethods) {
+        for (MethodInfo method : receiverType.getSyntheticMethods()) {
             if (isStaticContext && !method.isStatic()) continue;
             items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
         }

@@ -5,15 +5,19 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents resolved type information for a class/interface/enum.
@@ -97,7 +101,7 @@ public class TypeInfo {
 
     // Synthetic members injected at construction time (e.g. array built-ins: length, clone)
     public final List<FieldInfo> syntheticFields = new ArrayList<>();
-    public final List<MethodInfo> syntheticMethods = new ArrayList<>();
+    private final List<MethodInfo> syntheticMethods = new ArrayList<>();
 
     // Documentation (script-defined types)
     private JSDocInfo jsDocInfo;
@@ -338,6 +342,33 @@ public class TypeInfo {
             target.syntheticMethods.add(MethodInfo.fromJSMethod(jsMethod, target));
     }
 
+    public List<MethodInfo> getSyntheticMethods() {
+        // Merge .d.ts methods for arrays in JS
+        if (isArray() && TypeChecker.isJavaScriptMode()) {
+            JSTypeInfo arrayType = JSTypeRegistry.getInstance().getType("Array");
+            if (arrayType == null) {
+                return syntheticMethods;
+            }
+
+            Map<MethodSignature, MethodInfo> merged = new LinkedHashMap<>();
+            for (MethodInfo method : syntheticMethods) {
+                merged.put(method.getSignature(), method);
+            }
+
+            for (JSMethodInfo jsMethod : arrayType.getMethods().values()) {
+                if (jsMethod.isStatic()) {
+                    continue;
+                }
+                MethodInfo method = MethodInfo.fromJSMethod(jsMethod, this);
+                merged.putIfAbsent(method.getSignature(), method);
+            }
+
+            return new ArrayList<>(merged.values());
+        }
+
+        return syntheticMethods;
+    }
+
     /**
      * Create an array type wrapping the given element type.
      * 
@@ -568,7 +599,9 @@ public class TypeInfo {
      * Check if this type has a method with the given name.
      */
     public boolean hasMethod(String methodName) {
-        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return true;
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName))
+                return true;
         // Check JS type first
         if (jsTypeInfo != null) {
             if (jsTypeInfo.hasMethod(methodName)) return true;
@@ -591,7 +624,9 @@ public class TypeInfo {
      * Check if this type has a method with the given name and parameter count.
      */
     public boolean hasMethod(String methodName, int paramCount) {
-        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName) && m.getParameterCount() == paramCount) return true;
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName) && m.getParameterCount() == paramCount)
+                return true;
         // Check JS type first
         if (jsTypeInfo != null) {
             List<JSMethodInfo> overloads = jsTypeInfo.getMethodOverloads(methodName);
@@ -751,7 +786,9 @@ public class TypeInfo {
      * Creates a synthetic MethodInfo based on reflection data or JS type data.
      */
     public MethodInfo getMethodInfo(String methodName) {
-        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return m;
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName))
+                return m;
         if (jsTypeInfo != null) {
             JSMethodInfo jsMethod = jsTypeInfo.getMethod(methodName);
             if (jsMethod != null) return MethodInfo.fromJSMethod(jsMethod, this);
@@ -776,7 +813,9 @@ public class TypeInfo {
     public java.util.List<MethodInfo> getAllMethodOverloads(String methodName) {
         java.util.List<MethodInfo> overloads = new java.util.ArrayList<>();
 
-        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) overloads.add(m);
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName))
+                overloads.add(m);
         if (!overloads.isEmpty()) return overloads;
         
         // Check JS type first
@@ -840,7 +879,9 @@ public class TypeInfo {
      * @return The best matching MethodInfo, or null if not found
      */
     public MethodInfo getBestMethodOverload(String methodName, TypeInfo[] argTypes) {
-        for (MethodInfo m : syntheticMethods) if (m.getName().equals(methodName)) return m;
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName))
+                return m;
         java.util.List<MethodInfo> overloads = getAllMethodOverloads(methodName);
         if (overloads.isEmpty()) return null;
         return OverloadSelector.selectBestOverload(overloads, argTypes);

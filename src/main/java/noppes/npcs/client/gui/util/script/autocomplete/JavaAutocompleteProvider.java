@@ -137,7 +137,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             }
         }
 
-        for (MethodInfo method : receiverType.syntheticMethods) {
+        for (MethodInfo method : receiverType.getSyntheticMethods()) {
             if (isStaticContext && !Modifier.isStatic(method.getModifiers())) 
                 continue;
             
