@@ -20,6 +20,7 @@ import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.entity.EntityEnergyDome;
 import kamkeel.npcs.entity.EntityEnergyPanel;
 import kamkeel.npcs.util.AttributeAttackUtil;
@@ -1415,6 +1416,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
             previewEntityHandler.onEntitySpawned(entity);
         } else {
             entity.worldObj.spawnEntityInWorld(entity);
+            if (!entity.worldObj.isRemote && entity instanceof EntityEnergyProjectile) {
+                EventHooks.onEnergyProjectileFired((EntityEnergyProjectile) entity);
+            }
         }
         if (burstEnabled && burstOverlap) {
             burstEntities.add(entity);
