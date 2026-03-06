@@ -1229,10 +1229,14 @@ public class ScriptDocument {
         while (m.find()) {
             String typeName = m.group(1);
             String paramName = m.group(2);
+            boolean isVarArg = typeName.endsWith("...");
+            if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
             TypeInfo typeInfo = resolveType(typeName);
             // Store the absolute position of the parameter name
             int paramNameStart = paramListStart + m.start(2);
-            params.add(FieldInfo.parameter(paramName, typeInfo, paramNameStart, null));
+            FieldInfo fieldInfo = FieldInfo.parameter(paramName, typeInfo, paramNameStart, null);
+            fieldInfo.setVarArg(isVarArg);
+            params.add(fieldInfo);
         }
         return params;
     }
@@ -2295,17 +2299,22 @@ public class ScriptDocument {
                         // Typed: Type name
                         paramName = parts[parts.length - 1];
                         String typeName = parts[parts.length - 2];
+                        boolean isVarArg = typeName.endsWith("...");
+                        if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
                         paramType = resolveType(typeName);
+                        int nameOffset = text.indexOf(paramName, paramOffset);
+                        if (nameOffset < 0) nameOffset = paramOffset;
+                        FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
+                        paramInfo.setVarArg(isVarArg);
+                        scope.addParameter(paramInfo);
                     } else {
                         // Untyped: just name (type will be inferred from expected FI)
                         paramName = parts[0];
+                        int nameOffset = text.indexOf(paramName, paramOffset);
+                        if (nameOffset < 0) nameOffset = paramOffset;
+                        FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
+                        scope.addParameter(paramInfo);
                     }
-                    
-                    int nameOffset = text.indexOf(paramName, paramOffset);
-                    if (nameOffset < 0) nameOffset = paramOffset;
-                    
-                    FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
-                    scope.addParameter(paramInfo);
                     
                     offset = paramOffset + param.length();
                 }

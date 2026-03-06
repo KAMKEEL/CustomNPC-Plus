@@ -339,8 +339,13 @@ public class MethodCallInfo {
                     setError(ErrorType.UNRESOLVED_METHOD, 
                             "Cannot resolve constructor for '" + methodName + "'");
                 }
-            } else if (receiverType != null && arguments.size() == resolvedMethod.getParameterCount()) {
-                validateArgTypeError();
+            } else if (receiverType != null) {
+                List<FieldInfo> cParams = resolvedMethod.getParameters();
+                boolean ctorVarArg = !cParams.isEmpty() && cParams.get(cParams.size() - 1).isVarArg();
+                boolean ctorCountOk = ctorVarArg
+                        ? arguments.size() >= cParams.size() - 1
+                        : arguments.size() == resolvedMethod.getParameterCount();
+                if (ctorCountOk) validateArgTypeError();
             }
             return;
         }
@@ -356,12 +361,21 @@ public class MethodCallInfo {
         List<FieldInfo> params = resolvedMethod.getParameters();
         int expectedCount = params.size();
         int actualCount = arguments.size();
+        boolean isVarArgMethod = expectedCount > 0 && params.get(expectedCount - 1).isVarArg();
 
         // Check arg count
-        if (actualCount != expectedCount) {
-            setError(ErrorType.WRONG_ARG_COUNT,
-                    "Expected " + expectedCount + " argument(s) but got " + actualCount);
-            return;
+        if (isVarArgMethod) {
+            if (actualCount < expectedCount - 1) {
+                setError(ErrorType.WRONG_ARG_COUNT,
+                        "Expected at least " + (expectedCount - 1) + " argument(s) but got " + actualCount);
+                return;
+            }
+        } else {
+            if (actualCount != expectedCount) {
+                setError(ErrorType.WRONG_ARG_COUNT,
+                        "Expected " + expectedCount + " argument(s) but got " + actualCount);
+                return;
+            }
         }
 
         // Check each argument type
@@ -379,7 +393,10 @@ public class MethodCallInfo {
     }
 
     public void validateArgTypeError() {
-        // Check each argument type
+        List<FieldInfo> params = resolvedMethod.getParameters();
+        int paramCount = params.size();
+        boolean isVarArgMethod = paramCount > 0 && params.get(paramCount - 1).isVarArg();
+
         for (int i = 0; i < arguments.size(); i++) {
             Argument arg = arguments.get(i);
             
@@ -389,10 +406,19 @@ public class MethodCallInfo {
                 continue;  // Skip remaining checks for this argument
             }
             
-            FieldInfo para = resolvedMethod.getParameters().get(i);
+            // Varargs: all args at index >= (paramCount-1) map to the element type of the last param
+            FieldInfo para;
+            TypeInfo paramType;
+            if (isVarArgMethod && i >= paramCount - 1) {
+                para = params.get(paramCount - 1);
+                TypeInfo arrType = para.getTypeInfo();
+                paramType = (arrType != null && arrType.isArray()) ? arrType.getElementType() : arrType;
+            } else {
+                para = params.get(i);
+                paramType = para.getTypeInfo();
+            }
 
             TypeInfo argType = arg.getResolvedType();
-            TypeInfo paramType = para.getTypeInfo();
             if (argType != null && paramType != null) {
                 if (!TypeChecker.isTypeCompatible(paramType, argType)) {
                     setArgTypeError(i, "Expected " + paramType.getDisplayName() +

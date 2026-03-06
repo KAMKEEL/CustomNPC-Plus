@@ -66,6 +66,8 @@ public final class FieldInfo {
     // Enum constant specific info
     private EnumConstantInfo enumConstantInfo;
     
+    private boolean isVarArg = false;
+
     // Type inference support (for JavaScript "any" typed variables)
     // When a variable is declared without type (var x;), it starts as "any" but can be
     // refined through assignments or JSDoc comments
@@ -485,6 +487,9 @@ public final class FieldInfo {
      * Used when type inference determines a more specific type than the declared type.
      * @param inferredType The refined type based on assignments or JSDoc
      */
+    public void setVarArg(boolean isVarArg) { this.isVarArg = isVarArg; }
+    public boolean isVarArg() { return isVarArg; }
+
     public void setInferredType(TypeInfo inferredType) {
         this.inferredType = inferredType;
     }

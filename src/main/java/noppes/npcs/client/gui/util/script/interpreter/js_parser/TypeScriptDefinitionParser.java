@@ -630,12 +630,16 @@ public class TypeScriptDefinitionParser {
             part = part.trim();
             if (part.isEmpty()) continue;
             
-            // Format: name: type or name?: type
+            // Format: name: type  or  name?: type  or  ...name: type
             int colonIndex = part.indexOf(':');
             if (colonIndex > 0) {
                 String name = part.substring(0, colonIndex).trim().replace("?", "");
                 String type = cleanType(part.substring(colonIndex + 1).trim());
-                result.add(new JSMethodInfo.JSParameterInfo(name, type));
+                boolean isVarArg = name.startsWith("...");
+                if (isVarArg) name = name.substring(3).trim();
+                JSMethodInfo.JSParameterInfo param = new JSMethodInfo.JSParameterInfo(name, type);
+                param.setVarArg(isVarArg);
+                result.add(param);
             }
         }
         

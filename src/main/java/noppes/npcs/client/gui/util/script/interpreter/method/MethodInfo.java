@@ -206,7 +206,14 @@ public final class MethodInfo {
                     paramName = jsName;
                 }
             }
-            params.add(FieldInfo.reflectionParam(paramName, paramType));
+
+            FieldInfo fieldInfo = FieldInfo.reflectionParam(paramName, paramType);
+            boolean isVarArg = method.isVarArgs() && i == genericParamTypes.length - 1;
+            if (jsParams != null && i < jsParams.size()) {
+                isVarArg = isVarArg || jsParams.get(i).isVarArg();
+            }
+            fieldInfo.setVarArg(isVarArg);
+            params.add(fieldInfo);
         }
 
         String documentation = null;
@@ -242,7 +249,9 @@ public final class MethodInfo {
             if (paramType == null) {
                 paramType = TypeInfo.fromClass(constructor.getParameterTypes()[i]);
             }
-            params.add(FieldInfo.reflectionParam("arg" + i, paramType));
+            FieldInfo fieldInfo = FieldInfo.reflectionParam("arg" + i, paramType);
+            fieldInfo.setVarArg(constructor.isVarArgs() && i == genericParamTypes.length - 1);
+            params.add(fieldInfo);
         }
         
         return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, true, modifiers, null, null);
@@ -272,7 +281,9 @@ public final class MethodInfo {
             // Use the new getResolvedType method
             TypeInfo paramType = param.getResolvedType(containingType);
             
-            params.add(FieldInfo.reflectionParam(paramName, paramType));
+            FieldInfo fieldInfo = FieldInfo.reflectionParam(paramName, paramType);
+            fieldInfo.setVarArg(param.isVarArg());
+            params.add(fieldInfo);
         }
         
         // JS methods are always public (no access modifiers in .d.ts)

@@ -62,7 +62,7 @@ export interface String {
   length: number;
 
   /** Creates a string from one or more Unicode character codes (e.g., String.fromCharCode(65, 66, 67) returns "ABC") */
-  static fromCharCode(...codes: number[]): string;
+  static fromCharCode(...codes: number): string;
 
   /** Returns the Unicode code point (0–65535) of the character at the specified index. Unlike Java's charAt() + cast, this returns the numeric code directly. */
   charCodeAt(pos: number): number;

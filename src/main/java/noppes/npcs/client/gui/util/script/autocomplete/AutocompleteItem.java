@@ -121,6 +121,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             String paramType = param.getTypeInfo() != null ?
                     getName(param.getTypeInfo()) : "?";
             displayName.append(paramType);
+            if (param.isVarArg()) displayName.append("...");
             if (param.getName() != null && !param.getName().isEmpty()) {
                 displayName.append(" ").append(param.getName());
             }
@@ -269,6 +270,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             // Use resolved type with full generic display
             TypeInfo paramType = param.getResolvedType(contextType);
             String paramTypeName = paramType.isResolved() ? paramType.getDisplayName() : param.getType();
+            if (param.isVarArg()) paramTypeName = paramTypeName + "...";
             displayName.append(paramTypeName).append(" ").append(param.getName());
         }
         displayName.append(")");
@@ -464,7 +466,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             FieldInfo param = method.getParameters().get(i);
             String paramType = param.getTypeInfo() != null ?
                     getName(param.getTypeInfo()) : "?";
-            sb.append(paramType).append(" ").append(param.getName());
+            sb.append(paramType);
+            if (param.isVarArg()) sb.append("...");
+            sb.append(" ").append(param.getName());
         }
         
         sb.append(")");

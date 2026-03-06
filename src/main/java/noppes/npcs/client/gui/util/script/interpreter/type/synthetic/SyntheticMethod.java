@@ -62,11 +62,16 @@ public class SyntheticMethod {
     public MethodInfo toMethodInfo(TypeInfo containingType) {
         List<FieldInfo> paramInfos = new ArrayList<>();
         for (SyntheticParameter param : parameters) {
-            TypeInfo paramType = TypeResolver.getInstance().resolve(param.typeName);
+            String typeName = param.typeName;
+            boolean isVarArg = typeName != null && typeName.endsWith("...");
+            if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
+            TypeInfo paramType = TypeResolver.getInstance().resolve(typeName);
             if (paramType == null) {
-                paramType = TypeInfo.unresolved(param.typeName, param.typeName);
+                paramType = TypeInfo.unresolved(typeName, typeName);
             }
-            paramInfos.add(FieldInfo.parameter(param.name, paramType, -1, null));
+            FieldInfo fieldInfo = FieldInfo.parameter(param.name, paramType, -1, null);
+            fieldInfo.setVarArg(isVarArg);
+            paramInfos.add(fieldInfo);
         }
 
         TypeInfo returnTypeInfo = TypeResolver.getInstance().resolve(returnType);

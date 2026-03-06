@@ -103,10 +103,10 @@ export interface Math {
   log(x: number): number;
 
   /** Returns the largest of zero or more numbers */
-  max(...values: number[]): number;
+  max(...values: number): number;
 
   /** Returns the smallest of zero or more numbers */
-  min(...values: number[]): number;
+  min(...values: number): number;
 
   /** Returns base raised to the power of exponent */
   pow(x: number, y: number): number;

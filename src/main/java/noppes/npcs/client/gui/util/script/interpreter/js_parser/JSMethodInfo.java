@@ -142,11 +142,15 @@ public class JSMethodInfo {
         private final String type;
         private TypeInfo typeInfo;  // Resolved TypeInfo (set during Phase 2)
         private JSMethodInfo containingMethod;  // The type that contains the method with this parameter
-        
+        private boolean isVarArg = false;
+
         public JSParameterInfo(String name, String type) {
             this.name = name;
             this.type = type;
         }
+
+        public void setVarArg(boolean isVarArg) { this.isVarArg = isVarArg; }
+        public boolean isVarArg() { return isVarArg; }
 
         public void setContainingMethod(JSMethodInfo containingMethod) {
             this.containingMethod = containingMethod;

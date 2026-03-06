@@ -1083,6 +1083,9 @@ public class TokenHoverInfo {
             TypeInfo paramType = param.getTypeInfo();
             if (paramType != null) {
                 addTypeSegments(paramType);
+                if (param.isVarArg()) {
+                    addSegment("...", TokenType.DEFAULT.getHexColor());
+                }
                 addSegment(" ", TokenType.DEFAULT.getHexColor());
             }
             addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
@@ -1136,6 +1139,9 @@ public class TokenHoverInfo {
             int paramTypeColor = getColorForClass(paramTypes[i]);
             String paramTypeName = paramTypes[i].getSimpleName();
             splitAndAddTypeName(paramTypeName, paramTypeColor);
+            if (method.isVarArgs() && i == paramTypes.length - 1) {
+                addSegment("...", TokenType.DEFAULT.getHexColor());
+            }
             addSegment(" ", TokenType.DEFAULT.getHexColor());
             // Try to get parameter name if available
             String paramName = params.length > i ? params[i].getName() : "arg" + i;
@@ -1181,6 +1187,9 @@ public class TokenHoverInfo {
             TypeInfo paramType = param.getTypeInfo();
             if (paramType != null) {
                 addTypeSegments(paramType);
+                if (param.isVarArg()) {
+                    addSegment("...", TokenType.DEFAULT.getHexColor());
+                }
                 addSegment(" ", TokenType.DEFAULT.getHexColor());
             }
             addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
