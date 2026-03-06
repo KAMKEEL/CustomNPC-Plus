@@ -40,19 +40,19 @@
  */
 export interface Number {
   /** The largest representable number (~1.79e+308) */
-  MAX_VALUE: number;
+  static readonly MAX_VALUE: number;
 
   /** The smallest representable positive number (~5e-324) */
-  MIN_VALUE: number;
+  static readonly MIN_VALUE: number;
 
   /** Represents "Not a Number" (NaN) - the result of undefined or invalid arithmetic operations */
-  NaN: number;
+  static readonly NaN: number;
 
   /** Represents negative infinity, the result of overflow or division by zero */
-  NEGATIVE_INFINITY: number;
+  static readonly NEGATIVE_INFINITY: number;
 
   /** Represents positive infinity, the result of overflow or division by zero */
-  POSITIVE_INFINITY: number;
+  static readonly POSITIVE_INFINITY: number;
 
   /** Formats the number using exponential notation with optional fractional digits */
   toExponential(fractionDigits: number): string;

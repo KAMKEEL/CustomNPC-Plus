@@ -49,80 +49,80 @@
  */
 export interface Math {
   /** Euler's number (~2.718), the base of natural logarithms */
-  E: number;
+  static readonly E: number;
 
   /** Natural logarithm of 2 (~0.693) */
-  LN2: number;
+  static readonly LN2: number;
 
   /** Natural logarithm of 10 (~2.303) */
-  LN10: number;
+  static readonly LN10: number;
 
   /** Base-2 logarithm of e (~1.443) */
-  LOG2E: number;
+  static readonly LOG2E: number;
 
   /** Base-10 logarithm of e (~0.434) */
-  LOG10E: number;
+  static readonly LOG10E: number;
 
   /** Ratio of a circle's circumference to its diameter (~3.14159) */
-  PI: number;
+  static readonly PI: number;
 
   /** Square root of 0.5 (~0.707) */
-  SQRT1_2: number;
+  static readonly SQRT1_2: number;
 
   /** Square root of 2 (~1.414) */
-  SQRT2: number;
+  static readonly SQRT2: number;
 
   /** Returns the absolute value of a number */
-  abs(x: number): number;
+  static abs(x: number): number;
 
   /** Returns the arccosine (in radians) of a number */
-  acos(x: number): number;
+  static acos(x: number): number;
 
   /** Returns the arcsine (in radians) of a number */
-  asin(x: number): number;
+  static asin(x: number): number;
 
   /** Returns the arctangent (in radians) of a number */
-  atan(x: number): number;
+  static atan(x: number): number;
 
   /** Returns the arctangent of two numbers (y/x), with proper quadrant handling */
-  atan2(y: number, x: number): number;
+  static atan2(y: number, x: number): number;
 
   /** Returns the smallest integer greater than or equal to a number */
-  ceil(x: number): number;
+  static ceil(x: number): number;
 
   /** Returns the cosine (in radians) of a number */
-  cos(x: number): number;
+  static cos(x: number): number;
 
   /** Returns e raised to the power of a number */
-  exp(x: number): number;
+  static exp(x: number): number;
 
   /** Returns the largest integer less than or equal to a number */
-  floor(x: number): number;
+  static floor(x: number): number;
 
   /** Returns the natural logarithm (base e) of a number */
-  log(x: number): number;
+  static log(x: number): number;
 
   /** Returns the largest of zero or more numbers */
-  max(...values: number): number;
+  static max(...values: number): number;
 
   /** Returns the smallest of zero or more numbers */
-  min(...values: number): number;
+  static min(...values: number): number;
 
   /** Returns base raised to the power of exponent */
-  pow(x: number, y: number): number;
+  static pow(x: number, y: number): number;
 
   /** Returns a random number between 0 (inclusive) and 1 (exclusive) */
-  random(): number;
+  static random(): number;
 
   /** Returns the value of a number rounded to the nearest integer */
-  round(x: number): number;
+  static round(x: number): number;
 
   /** Returns the sine (in radians) of a number */
-  sin(x: number): number;
+  static sin(x: number): number;
 
   /** Returns the square root of a number */
-  sqrt(x: number): number;
+  static sqrt(x: number): number;
 
   /** Returns the tangent (in radians) of a number */
-  tan(x: number): number;
+  static tan(x: number): number;
 }

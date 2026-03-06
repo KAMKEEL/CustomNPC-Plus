@@ -55,7 +55,7 @@
  */
 export interface Array {
   /** Returns true if the given object is an array, false otherwise */
-  isArray(arg: any): boolean;
+  static isArray(arg: any): boolean;
 
   /** The number of elements in the array */
   length: number;

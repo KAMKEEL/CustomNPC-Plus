@@ -54,7 +54,7 @@ export interface JSON {
    * @param text - A valid JSON string to parse
    * @returns The parsed JavaScript value
    */
-  parse(text: string): any;
+  static parse(text: string): any;
 
   /**
    * Parses a JSON string with a reviver function that transforms each parsed key-value pair.
@@ -62,14 +62,14 @@ export interface JSON {
    * @param reviver - Function called for each key-value pair; receives the key and parsed value, returns the transformed value
    * @returns The parsed JavaScript value after applying the reviver
    */
-  parse(text: string, reviver: Java.java.util.function.BiFunction<string, any, any>): any;
+  static parse(text: string, reviver: Java.java.util.function.BiFunction<string, any, any>): any;
 
   /**
    * Converts a JavaScript value to a JSON string.
    * @param value - The value to serialize (object, array, string, number, boolean, or null)
    * @returns A JSON-formatted string representation of the value
    */
-  stringify(value: any): string;
+  static stringify(value: any): string;
 
   /**
    * Converts a JavaScript value to a JSON string, using a replacer function to filter or transform properties.
@@ -78,7 +78,7 @@ export interface JSON {
    * @param space - Optional indentation: a number of spaces (up to 10), or a string prefix per level
    * @returns A JSON-formatted string representation of the value
    */
-  stringify(value: any, replacer: Java.java.util.function.BiFunction<string, any, any>, space?: any): string;
+  static stringify(value: any, replacer: Java.java.util.function.BiFunction<string, any, any>, space?: any): string;
 
   /**
    * Converts a JavaScript value to a JSON string, including only the specified properties.
@@ -87,7 +87,7 @@ export interface JSON {
    * @param space - Optional indentation: a number of spaces (up to 10), or a string prefix per level
    * @returns A JSON-formatted string representation of the value
    */
-  stringify(value: any, replacer: string[], space?: any): string;
+  static stringify(value: any, replacer: string[], space?: any): string;
 
   /**
    * Converts a JavaScript value to a JSON string with optional pretty-printing.
@@ -96,5 +96,5 @@ export interface JSON {
    * @param space - Indentation: a number of spaces (up to 10), or a string prefix per level
    * @returns A JSON-formatted string representation of the value
    */
-  stringify(value: any, replacer: null, space: any): string;
+  static stringify(value: any, replacer: null, space: any): string;
 }

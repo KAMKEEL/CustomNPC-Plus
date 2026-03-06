@@ -44,32 +44,32 @@
  */
 export interface GlobalFunctions {
   /** Evaluates JavaScript code in a string (use with caution - slow and potential security issues) */
-  eval(x: any): any;
+  static eval(x: any): any;
 
   /** Parses a string and returns an integer. Stops parsing at the first non-digit character */
-  parseInt(string: string): number;
+  static parseInt(string: string): number;
 
   /** Parses a string and returns an integer using the specified radix (base). Stops parsing at the first non-digit character */
-  parseInt(string: string, radix: number): number;
+  static parseInt(string: string, radix: number): number;
 
   /** Parses a string and returns a floating-point number. Stops parsing at the first invalid character */
-  parseFloat(string: string): number;
+  static parseFloat(string: string): number;
 
   /** Determines whether a value is NaN (not-a-number). The value is first coerced to a number before testing */
-  isNaN(value: any): boolean;
+  static isNaN(value: any): boolean;
 
   /** Determines whether a value is a finite number. The value is first coerced to a number. Returns false for Infinity, -Infinity, and NaN */
-  isFinite(value: any): boolean;
+  static isFinite(value: any): boolean;
 
   /** Decodes a URI by replacing encoded sequences like %20 with their original characters */
-  decodeURI(encodedURI: string): string;
+  static decodeURI(encodedURI: string): string;
 
   /** Decodes URI component by replacing ALL encoded sequences including those for reserved URI characters */
-  decodeURIComponent(encodedURIComponent: string): string;
+  static decodeURIComponent(encodedURIComponent: string): string;
 
   /** Encodes a URI by replacing special characters with %HH sequences (but preserves reserved characters like / : ?) */
-  encodeURI(uri: string): string;
+  static encodeURI(uri: string): string;
 
   /** Encodes URI component by replacing ALL special characters including reserved ones with %HH sequences */
-  encodeURIComponent(uriComponent: string): string;
+  static encodeURIComponent(uriComponent: string): string;
 }

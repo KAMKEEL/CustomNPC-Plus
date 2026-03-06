@@ -52,43 +52,43 @@
  */
 export interface Object {
   /** Creates a new object with the specified prototype and optional property descriptors */
-  create(proto: any, propertiesObject: any): any;
+  static create(proto: any, propertiesObject: any): any;
 
   /** Defines or modifies multiple properties on an object and returns the modified object */
-  defineProperties(obj: any, props: any): any;
+  static defineProperties(obj: any, props: any): any;
 
   /** Defines a new property on an object or modifies an existing property and returns the object */
-  defineProperty(obj: any, prop: string, descriptor: any): any;
+  static defineProperty(obj: any, prop: string, descriptor: any): any;
 
   /** Prevents all modifications to an object (cannot add, modify, or delete properties) */
-  freeze(obj: any): any;
+  static freeze(obj: any): any;
 
   /** Returns a property descriptor for a named property on an object, or undefined if not found */
-  getOwnPropertyDescriptor(obj: any, prop: string): any;
+  static getOwnPropertyDescriptor(obj: any, prop: string): any;
 
   /** Returns an array of all property names (both enumerable and non-enumerable) on an object */
-  getOwnPropertyNames(obj: any): string[];
+  static getOwnPropertyNames(obj: any): string[];
 
   /** Returns the prototype object of the specified object */
-  getPrototypeOf(obj: any): any;
+  static getPrototypeOf(obj: any): any;
 
   /** Determines whether an object is extensible (can have new properties added to it) */
-  isExtensible(obj: any): boolean;
+  static isExtensible(obj: any): boolean;
 
   /** Determines whether an object has been frozen (is immutable) */
-  isFrozen(obj: any): boolean;
+  static isFrozen(obj: any): boolean;
 
   /** Determines whether an object is sealed (cannot add or delete properties) */
-  isSealed(obj: any): boolean;
+  static isSealed(obj: any): boolean;
 
   /** Returns an array of all enumerable property names on an object */
-  keys(obj: any): string[];
+  static keys(obj: any): string[];
 
   /** Prevents new properties from being added to an object but allows modification of existing ones */
-  preventExtensions(obj: any): any;
+  static preventExtensions(obj: any): any;
 
   /** Prevents all modifications to an object except for reading and writing property values */
-  seal(obj: any): any;
+  static seal(obj: any): any;
 
   /** Determines whether an object has a property with the specified name (direct property, not inherited) */
   hasOwnProperty(prop: string): boolean;

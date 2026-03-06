@@ -29,13 +29,13 @@
  */
 export interface Date {
   /** Returns the current time as the number of milliseconds since 1970-01-01 00:00:00 UTC */
-  now(): number;
+  static now(): number;
 
   /** Parses a date string and returns the number of milliseconds since 1970-01-01 00:00:00 UTC */
-  parse(s: string): number;
+  static parse(s: string): number;
 
   /** Returns the number of milliseconds since 1970-01-01 00:00:00 UTC for the given UTC date/time components */
-  UTC(year: number, month: number, date: number, hours: number, minutes: number, seconds: number, ms: number): number;
+  static UTC(year: number, month: number, date: number, hours: number, minutes: number, seconds: number, ms: number): number;
 
   /** Returns the day of the month (1-31) in local time */
   getDate(): number;
