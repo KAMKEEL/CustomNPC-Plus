@@ -576,6 +576,14 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         barrierImpactPauseTicks = 0;
         barrierImpactDestroyOnResume = false;
 
+        // Reset start position and lifetime so the reflected projectile gets a fresh
+        // max-distance budget and lifetime. Without this, re-reflection fails because
+        // the projectile expires from the original launch's distance/time limits.
+        startX = posX;
+        startY = posY;
+        startZ = posZ;
+        deathWorldTime = -1;
+
         // Detach from source ability BEFORE changing ownership.
         // This lets the ability see the projectile as gone and free the caster
         // (e.g., release movement/rotation locks on the player).
