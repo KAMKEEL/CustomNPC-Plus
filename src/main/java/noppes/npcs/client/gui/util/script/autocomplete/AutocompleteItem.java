@@ -628,6 +628,10 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             return ((MethodInfo) sourceData).isStatic();
         } else if (sourceData instanceof FieldInfo) {
             return ((FieldInfo) sourceData).isStatic();
+        } else if (sourceData instanceof JSMethodInfo) {
+            return ((JSMethodInfo) sourceData).isStatic();
+        } else if (sourceData instanceof JSFieldInfo) {
+            return ((JSFieldInfo) sourceData).isStatic();
         }
         return false;
     }
@@ -640,6 +644,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             return ((MethodInfo) sourceData).isFinal();
         } else if (sourceData instanceof FieldInfo) {
             return ((FieldInfo) sourceData).isFinal();
+        }else if (sourceData instanceof JSFieldInfo) {
+            return ((JSFieldInfo) sourceData).isReadonly();
         }
         return false;
     }
