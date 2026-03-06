@@ -960,7 +960,7 @@ public class ScriptDocument {
                             if (paramNames.length > 0) {
                                 String paramName = paramNames[0].trim();
                                 int paramStart = m.start(2) + paramList.indexOf(paramName);
-                                params.add(FieldInfo.parameter(paramName, TypeInfo.unresolved("any", "any"), paramStart, null));
+                                params.add(FieldInfo.parameter(paramName, TypeInfo.ANY, paramStart, null));
                             }
                         }
                     }
@@ -974,8 +974,8 @@ public class ScriptDocument {
                                 int paramStart = paramOffset + paramList.indexOf(pn);
                                 
                                 // Check if JSDoc has a @param tag for this parameter
-                                TypeInfo paramType = TypeInfo.unresolved("any", "any");
-                                if (jsDoc != null) {
+                                TypeInfo paramType = TypeInfo.ANY;
+                                if (jsDoc != null) { 
                                     JSDocParamTag paramTag = jsDoc.getParamTag(pn);
                                     if (paramTag != null && paramTag.getTypeInfo() != null) {
                                         paramType = paramTag.getTypeInfo();
