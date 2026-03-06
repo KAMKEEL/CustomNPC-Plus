@@ -2609,6 +2609,96 @@ public abstract class Ability implements IAbility, IAbilityAction {
         return false;
     }
 
+    /**
+     * Check if a caster's movement in a given direction is blocked by a solid enemy barrier.
+     * Tests a short segment from the caster's current position along the movement direction
+     * against all active dome and panel barriers.
+     *
+     * @return true if a solid enemy barrier blocks the movement
+     */
+    protected static boolean isMovementBlockedByBarrier(EntityLivingBase caster, double dirX, double dirZ, double speed) {
+        if (caster.worldObj == null) return false;
+
+        double nextX = caster.posX + dirX * speed;
+        double nextZ = caster.posZ + dirZ * speed;
+        double eyeY = caster.posY + caster.getEyeHeight() * 0.5;
+
+        java.util.List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(caster.worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier.isDead || barrier.isCharging()) continue;
+            if (!barrier.getBarrierData().solid) continue;
+
+            // Skip barriers owned by or allied to the caster
+            if (barrier.getOwnerEntityId() == caster.getEntityId()) continue;
+            Entity barrierOwner = barrier.getOwnerEntity();
+            if (barrierOwner instanceof EntityLivingBase) {
+                if (AbilityTargetHelper.isAlly(caster, (EntityLivingBase) barrierOwner)) continue;
+            }
+
+            if (barrier instanceof EntityEnergyDome) {
+                EntityEnergyDome dome = (EntityEnergyDome) barrier;
+                float radius = dome.getDomeRadius();
+
+                // Check if the movement segment crosses the dome boundary from outside
+                double ocX = caster.posX - dome.posX;
+                double ocY = eyeY - dome.posY;
+                double ocZ = caster.posZ - dome.posZ;
+                double originDistSq = ocX * ocX + ocY * ocY + ocZ * ocZ;
+                if (originDistSq < (double) radius * radius) continue; // Inside dome, skip
+
+                double rdX = nextX - caster.posX;
+                double rdZ = nextZ - caster.posZ;
+                double a = rdX * rdX + rdZ * rdZ;
+                double b = 2.0 * (ocX * rdX + ocZ * rdZ);
+                double c = ocX * ocX + ocZ * ocZ - (double) radius * radius;
+                double discriminant = b * b - 4.0 * a * c;
+                if (discriminant < 0 || a < 1e-10) continue;
+                double sqrtD = Math.sqrt(discriminant);
+                double t1 = (-b - sqrtD) / (2.0 * a);
+                if (t1 >= 0.0 && t1 <= 1.0) return true;
+            } else if (barrier instanceof EntityEnergyPanel) {
+                EntityEnergyPanel panel = (EntityEnergyPanel) barrier;
+                float halfW = panel.getPanelData().getPanelWidth() * 0.5f;
+                float halfH = panel.getPanelData().getPanelHeight() * 0.5f;
+                float yawRad = (float) Math.toRadians(panel.getPanelYaw());
+                double normalX = -Math.sin(yawRad);
+                double normalZ = Math.cos(yawRad);
+                double cos = Math.cos(yawRad);
+                double sin = Math.sin(yawRad);
+
+                double relX = caster.posX - panel.posX;
+                double relZ = caster.posZ - panel.posZ;
+                double prevDist = relX * normalX + relZ * normalZ;
+
+                double relNX = nextX - panel.posX;
+                double relNZ = nextZ - panel.posZ;
+                double currDist = relNX * normalX + relNZ * normalZ;
+
+                // Check if segment crosses the panel plane
+                if (prevDist * currDist > 0) continue;
+
+                double rayDirX = nextX - caster.posX;
+                double rayDirZ = nextZ - caster.posZ;
+                double denom = rayDirX * normalX + rayDirZ * normalZ;
+                if (Math.abs(denom) < 1e-10) continue;
+
+                double t = -prevDist / denom;
+                if (t < 0.0 || t > 1.0) continue;
+
+                double hitX = caster.posX + rayDirX * t;
+                double hitZ = caster.posZ + rayDirZ * t;
+
+                double localRight = (hitX - panel.posX) * cos + (hitZ - panel.posZ) * sin;
+                if (Math.abs(localRight) > halfW) continue;
+                double localY = eyeY - panel.posY;
+                if (Math.abs(localY) > halfH) continue;
+
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // LINE-OF-SIGHT UTILITIES
     // ═══════════════════════════════════════════════════════════════════

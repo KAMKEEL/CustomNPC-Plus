@@ -202,13 +202,14 @@ public abstract class AbilityMovement extends Ability {
     }
 
     /**
-     * Check if movement direction is blocked by walls.
+     * Check if movement direction is blocked by walls or solid barriers.
      *
      * @return true if blocked
      */
     protected boolean checkBlocked(EntityLivingBase caster, float speed) {
         if (isPreview() || movementDirection == null) return false;
-        return isMovementBlocked(caster, movementDirection.xCoord, movementDirection.zCoord, speed);
+        return isMovementBlocked(caster, movementDirection.xCoord, movementDirection.zCoord, speed)
+            || isMovementBlockedByBarrier(caster, movementDirection.xCoord, movementDirection.zCoord, speed);
     }
 
     // ═══════════════════════════════════════════════════════════════════
