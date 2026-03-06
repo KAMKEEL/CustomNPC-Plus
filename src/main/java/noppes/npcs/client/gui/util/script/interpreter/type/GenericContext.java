@@ -49,6 +49,13 @@ public final class GenericContext {
      * @return a context with applied bindings and bound fallbacks, or EMPTY singleton if receiverType is not generic
      */
     public static GenericContext forReceiver(TypeInfo receiverType) {
+        //  Special edge case: Array.d.ts JS type, bind T to element type so Array<T> methods resolve correctly
+        if (receiverType != null && receiverType.isArray() && receiverType.getElementType() != null) {
+            Map<String, TypeInfo> applied = new HashMap<>();
+            applied.put("T", receiverType.getElementType());
+            return new GenericContext(applied, new HashMap<>());
+        }
+
         // Fast path: return singleton for non-generic types
         if (receiverType == null || !hasGenerics(receiverType)) {
             return EMPTY;

@@ -53,7 +53,7 @@
  * a.sort(function(a, b) { return a - b; }); // Correct numeric sort: [1, 2, 3]
  * ```
  */
-export interface Array {
+export interface Array<T> {
   /** Returns true if the given object is an array, false otherwise */
   static isArray(arg: any): boolean;
 
@@ -61,62 +61,62 @@ export interface Array {
   length: number;
 
   /** Combines two or more arrays and returns a new array without modifying the original */
-  concat(...items: any): any[];
+  concat(...items: T): T[];
 
   /** Tests whether all elements in the array pass the provided test function */
-  every(callback: Java.java.util.function.Function<any, boolean>): boolean;
+  every(callback: Java.java.util.function.Function<T, boolean>): boolean;
 
   /** Creates a new array with all elements that pass the test implemented by the provided function */
-  filter(callback: Java.java.util.function.Function<any, boolean>): any[];
+  filter(callback: Java.java.util.function.Function<T, boolean>): T[];
 
   /** Executes a provided function once for each array element. Returns undefined */
-  forEach(callback: Java.java.util.function.Consumer<any>): void;
+  forEach(callback: Java.java.util.function.Consumer<T>): void;
 
   /** Returns the first index at which an element is found, or -1 if not present */
-  indexOf(searchElement: any, fromIndex: number): number;
+  indexOf(searchElement: T, fromIndex: number): number;
 
   /** Joins all elements of an array into a string separated by the given separator */
   join(separator: string): string;
 
   /** Returns the last index at which an element is found, or -1 if not present */
-  lastIndexOf(searchElement: any, fromIndex: number): number;
+  lastIndexOf(searchElement: T, fromIndex: number): number;
 
   /** Creates a new array with the results of calling a function on every element */
-  map(callback: Java.java.util.function.Function<any, any>): any[];
+  map(callback: Java.java.util.function.Function<T, any>): any[];
 
   /** Removes and returns the last element from the array, modifying the original array */
-  pop(): any;
+  pop(): T;
 
   /** Adds one or more elements to the end of an array and returns the new length */
-  push(...items: any): number;
+  push(...items: T): number;
 
   /** Applies a function against an accumulator and each element to reduce the array to a single value */
-  reduce(callback: Java.java.util.function.BiFunction<any, any, any>, initialValue: any): any;
+  reduce(callback: Java.java.util.function.BiFunction<any, T, any>, initialValue: any): any;
 
   /** Same as reduce() but processes the array from right to left */
-  reduceRight(callback: Java.java.util.function.BiFunction<any, any, any>, initialValue: any): any;
+  reduceRight(callback: Java.java.util.function.BiFunction<any, T, any>, initialValue: any): any;
 
   /** Reverses an array in place. The first element becomes the last, and vice versa */
-  reverse(): any[];
+  reverse(): T[];
 
   /** Removes and returns the first element from the array, modifying the original array */
-  shift(): any;
+  shift(): T;
 
   /** Returns a shallow copy of a portion of an array as a new array object */
-  slice(start: number, end: number): any[];
+  slice(start: number, end: number): T[];
 
   /** Tests whether at least one element in the array passes the test implemented by the provided function */
-  some(callback: Java.java.util.function.Function<any, boolean>): boolean;
+  some(callback: Java.java.util.function.Function<T, boolean>): boolean;
 
   /** Sorts the elements of an array in place and returns the sorted array */
-  sort(compareFn: Java.java.util.function.BiFunction<any, any, number>): any[];
+  sort(compareFn: Java.java.util.function.BiFunction<T, T, number>): T[];
 
   /** Changes the contents of an array by removing or replacing existing elements and/or adding new ones */
-  splice(start: number, deleteCount: number, ...items: any): any[];
+  splice(start: number, deleteCount: number, ...items: T): T[];
 
   /** Returns a string representation of the array */
   toString(): string;
 
   /** Adds one or more elements to the beginning of an array and returns the new length */
-  unshift(...items: any): number;
+  unshift(...items: T): number;
 }
