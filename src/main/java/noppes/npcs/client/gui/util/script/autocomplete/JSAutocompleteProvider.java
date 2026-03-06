@@ -100,6 +100,16 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
                     }
                 }
             }
+            if (!isStaticContext && javaClass != Object.class) {
+                JSTypeInfo objJSType = registry.getType("Object");
+                if (objJSType != null) {
+                    for (JSMethodInfo m : objJSType.getMethods().values()) {
+                        if (!m.isStatic()) {
+                            items.add(AutocompleteItem.fromJSMethod(m, receiverType, 1, context.methodsOnly));
+                        }
+                    }
+                }
+            }
             return;
         }
 
@@ -120,13 +130,22 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             if (!context.methodsOnly && ConfigScript.ShowImplementationFieldsInAutocomplete) {
                 addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), isStaticContext);
             }
-            if (!isStaticContext) {
-                JSTypeInfo objJSType = registry.getType("Object");
-                if (objJSType != null) {
-                    for (JSMethodInfo m : objJSType.getMethods().values()) {
-                        if (!m.isStatic()) {
-                            items.add(AutocompleteItem.fromJSMethod(m, receiverType, 1, context.methodsOnly));
-                        }
+        }
+
+        if (!isStaticContext) {
+            Set<String> addedObjMethods = new HashSet<>();
+            for (Method m : Object.class.getMethods()) {
+                if (!Modifier.isPublic(m.getModifiers()) || Modifier.isStatic(m.getModifiers())) continue;
+                String sig = m.getName() + "(" + m.getParameterCount() + ")";
+                if (addedObjMethods.add(sig)) {
+                    items.add(AutocompleteItem.fromMethod(MethodInfo.fromReflection(m, receiverType), context.methodsOnly));
+                }
+            }
+            JSTypeInfo objJSType = registry.getType("Object");
+            if (objJSType != null) {
+                for (JSMethodInfo m : objJSType.getMethods().values()) {
+                    if (!m.isStatic()) {
+                        items.add(AutocompleteItem.fromJSMethod(m, receiverType, 1, context.methodsOnly));
                     }
                 }
             }

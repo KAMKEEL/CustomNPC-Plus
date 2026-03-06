@@ -662,9 +662,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             MethodInfo methodInfo = (MethodInfo) sourceData;
             java.lang.reflect.Method javaMethod = methodInfo.getJavaMethod();
             if (javaMethod != null) {
-                if (!Object.class.equals(javaMethod.getDeclaringClass())) return false;
-                TypeInfo containingType = methodInfo.getContainingType();
-                return containingType == null || !containingType.getFullName().equals("java.lang.Object");
+                return Object.class.equals(javaMethod.getDeclaringClass());
             }
             TypeInfo containingType = methodInfo.getContainingType();
             return containingType != null
