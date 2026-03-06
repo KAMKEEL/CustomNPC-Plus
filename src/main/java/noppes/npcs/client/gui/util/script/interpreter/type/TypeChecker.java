@@ -48,6 +48,11 @@ public final class TypeChecker {
             // Treat java.lang.Object as "any", universally compatible
             if ("Object".equals(expected.getSimpleName()) || "Object".equals(actual.getSimpleName()) )
                 return true;
+            
+            // Treat String as universally compatible, since JavaScript string literals can be assigned to String 
+            // parameters and String is commonly used as a catch-all type in JS APIs
+            if("String".equals(expected.getSimpleName()))
+                return true;
         }
         
         // Handle null literal - null is compatible with any reference type (non-primitive)
