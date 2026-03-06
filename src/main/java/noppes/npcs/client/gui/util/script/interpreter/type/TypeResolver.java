@@ -935,7 +935,7 @@ public class TypeResolver {
 
         // Not a variable - check if it's a type name by trying to resolve as type
         TypeInfo typeCheck = document.resolveType(identifier);
-        boolean isType = typeCheck != null && typeCheck.isResolved() && !typeCheck.isJSType(); // JS types aren't static access in this context
+        boolean isType = typeCheck != null && typeCheck.isResolved();
         return isStaticAccess(typeCheck, isType);
     }
 

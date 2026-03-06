@@ -62,21 +62,28 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             super.addMemberSuggestions(context, items);
             return;
         }
-        
+
+        boolean isStaticContext = isStaticAccess(receiverExpr, getMemberAccessResolvePosition(context));
+
         // Add synthetic members (e.g., array built-ins: length, clone)
-        for (FieldInfo field : receiverType.syntheticFields)
-            if (!context.methodsOnly)
+        for (FieldInfo field : receiverType.syntheticFields) {
+            if (!context.methodsOnly) {
+                if (isStaticContext && !field.isStatic()) continue;
                 items.add(AutocompleteItem.fromField(field));
-        for (MethodInfo method : receiverType.syntheticMethods)
+            }
+        }
+        for (MethodInfo method : receiverType.syntheticMethods) {
+            if (isStaticContext && !method.isStatic()) continue;
             items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
+        }
 
         // For pure JS types, check JSTypeRegistry
         JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
         if (jsTypeInfo != null) {
             // Pass both: jsTypeInfo (current type in hierarchy) and receiverType (context for type params)
-            addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), context.methodsOnly);
+            addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), context.methodsOnly, isStaticContext);
             if (!context.methodsOnly && ConfigScript.ShowImplementationFieldsInAutocomplete) {
-                addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
+                addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), isStaticContext);
             }
         }
     }
@@ -109,7 +116,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * @param contextType The original TypeInfo context for resolving type parameters (stays constant)
      */
     protected void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added) {
-        addMethodsFromType(type, contextType, items, added, 0, false);
+        addMethodsFromType(type, contextType, items, added, 0, false, false);
     }
     
     /**
@@ -118,9 +125,20 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * @param contextType The original TypeInfo context for resolving type parameters (stays constant)
      * @param forMethodReference If true, insert text will NOT include parentheses
      */
-    protected void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, boolean forMethodReference) {
-        addMethodsFromType(type, contextType, items, added, 0, forMethodReference);
-    }
+     protected void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, boolean forMethodReference) {
+         addMethodsFromType(type, contextType, items, added, 0, forMethodReference, false);
+     }
+
+     /**
+      * Recursively add methods from a type and its parents.
+      * @param type The current JS type to get methods from (changes as we walk up inheritance)
+      * @param contextType The original TypeInfo context for resolving type parameters (stays constant)
+      * @param forMethodReference If true, insert text will NOT include parentheses
+      * @param isStaticContext If true, only add static methods
+      */
+     protected void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, boolean forMethodReference, boolean isStaticContext) {
+         addMethodsFromType(type, contextType, items, added, 0, forMethodReference, isStaticContext);
+     }
     
     /**
      * Recursively add methods from a type and its parents with inheritance depth tracking.
@@ -129,7 +147,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * @param contextType The original TypeInfo context for resolving type parameters (e.g., IPlayer with T → EntityPlayerMP)
      */
     private void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth) {
-        addMethodsFromType(type, contextType, items, added, depth, false);
+        addMethodsFromType(type, contextType, items, added, depth, false, false);
     }
     
     /**
@@ -140,6 +158,10 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * @param forMethodReference If true, insert text will NOT include parentheses
      */
     private void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth, boolean forMethodReference) {
+        addMethodsFromType(type, contextType, items, added, depth, forMethodReference, false);
+    }
+
+    private void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth, boolean forMethodReference, boolean isStaticContext) {
         // Collect base method names (without $N suffix) that we haven't processed yet
         Set<String> baseNames = new HashSet<>();
         for (String key : type.getMethods().keySet()) {
@@ -164,13 +186,14 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             }
             // Add one autocomplete item per overload
             for (JSMethodInfo method : overloads) {
+                if (isStaticContext && !method.isStatic()) continue;
                 items.add(AutocompleteItem.fromJSMethod(method, contextType, depth, forMethodReference));
             }
         }
         
         // Add from parent type with incremented depth - keep same contextType
         if (type.getResolvedParent() != null) {
-            addMethodsFromType(type.getResolvedParent(), contextType, items, added, depth + 1, forMethodReference);
+            addMethodsFromType(type.getResolvedParent(), contextType, items, added, depth + 1, forMethodReference, isStaticContext);
         }
     }
     
@@ -180,7 +203,11 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * @param contextType The original TypeInfo context for resolving type parameters (stays constant)
      */
     protected void addFieldsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added) {
-        addFieldsFromType(type, contextType, items, added, 0);
+        addFieldsFromType(type, contextType, items, added, 0, false);
+    }
+
+    protected void addFieldsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, boolean isStaticContext) {
+        addFieldsFromType(type, contextType, items, added, 0, isStaticContext);
     }
     
     /**
@@ -189,8 +216,13 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * @param contextType The original TypeInfo context for resolving type parameters
      */
     private void addFieldsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth) {
+        addFieldsFromType(type, contextType, items, added, depth, false);
+    }
+
+    private void addFieldsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth, boolean isStaticContext) {
         for (JSFieldInfo field : type.getFields().values()) {
             if (!added.contains(field.getName())) {
+                if (isStaticContext && !field.isStatic()) continue;
                 added.add(field.getName());
                 // Pass contextType (original receiver) for type parameter resolution, not current type
                 items.add(AutocompleteItem.fromJSField(field, contextType, depth));
@@ -199,7 +231,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         
         // Add from parent type with incremented depth - keep same contextType
         if (type.getResolvedParent() != null) {
-            addFieldsFromType(type.getResolvedParent(), contextType, items, added, depth + 1);
+            addFieldsFromType(type.getResolvedParent(), contextType, items, added, depth + 1, isStaticContext);
         }
     }
 
