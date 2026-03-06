@@ -109,7 +109,8 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
 
         x = oldX - 4;
         y += 23;
-        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, x + 5, y, xSize - 20, ySize - 10 - (y - guiTop), 0) {
+        int scrollClipHeight = ySize - 10 - (y - guiTop);
+        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, x + 5, y, xSize - 20, scrollClipHeight, 0) {
             @Override
             public void drawComponents(int mouseX, int mouseY, float partialTicks) {
                 super.drawComponents(mouseX, mouseY, partialTicks);
@@ -217,6 +218,9 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                 effect.frametime
             ));
         }
+
+        int contentBottom = y + 20 + 5;
+        scrollWindow.maxScrollY = Math.max(0, contentBottom - scrollClipHeight);
 
     }
 
