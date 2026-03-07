@@ -1,5 +1,8 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -8,6 +11,9 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.ITagHandler;
 import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.controllers.data.Tag;
+
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -18,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -233,5 +240,70 @@ public class TagController implements ITagHandler {
 
     public HashSet<Tag> getAllTags() {
         return new HashSet<Tag>(this.tags.values());
+    }
+
+    /**
+     * Write a set of tag UUIDs to an NBT compound under the given key.
+     */
+    public static void writeTagUUIDs(NBTTagCompound compound, String key, HashSet<UUID> tagUUIDs) {
+        if (tagUUIDs != null && !tagUUIDs.isEmpty()) {
+            NBTTagList list = new NBTTagList();
+            for (UUID uuid : tagUUIDs) {
+                list.appendTag(new NBTTagString(uuid.toString()));
+            }
+            compound.setTag(key, list);
+        }
+    }
+
+    /**
+     * Read a set of tag UUIDs from an NBT compound under the given key.
+     */
+    public static HashSet<UUID> readTagUUIDs(NBTTagCompound compound, String key) {
+        HashSet<UUID> uuids = new HashSet<>();
+        if (compound.hasKey(key)) {
+            NBTTagList list = compound.getTagList(key, 8);
+            for (int i = 0; i < list.tagCount(); i++) {
+                try {
+                    uuids.add(UUID.fromString(list.getStringTagAt(i)));
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+        return uuids;
+    }
+
+    /**
+     * Remove invalid tag UUIDs (those not in the tag registry).
+     */
+    public static void validateTagUUIDs(HashSet<UUID> tagUUIDs) {
+        TagController tc = getInstance();
+        if (tc == null) return;
+        tagUUIDs.removeIf(uuid -> tc.getTagFromUUID(uuid) == null);
+    }
+
+    /**
+     * Build and send a CategoryTagMap GuiData packet for a set of items.
+     * @param player the target player
+     * @param itemTags map of item name -> tag UUIDs (only validated tags are sent)
+     */
+    public static void sendCategoryTagMap(EntityPlayerMP player, HashMap<String, HashSet<UUID>> itemTags) {
+        NBTTagCompound compound = new NBTTagCompound();
+        NBTTagList entries = new NBTTagList();
+        TagController tc = getInstance();
+        for (Map.Entry<String, HashSet<UUID>> entry : itemTags.entrySet()) {
+            HashSet<UUID> valid = new HashSet<>();
+            for (UUID uuid : entry.getValue()) {
+                if (tc != null && tc.getTagFromUUID(uuid) != null) {
+                    valid.add(uuid);
+                }
+            }
+            if (!valid.isEmpty()) {
+                NBTTagCompound itemEntry = new NBTTagCompound();
+                itemEntry.setString("Name", entry.getKey());
+                writeTagUUIDs(itemEntry, "Tags", valid);
+                entries.appendTag(itemEntry);
+            }
+        }
+        compound.setTag("CategoryTagMap", entries);
+        GuiDataPacket.sendGuiData(player, compound);
     }
 }

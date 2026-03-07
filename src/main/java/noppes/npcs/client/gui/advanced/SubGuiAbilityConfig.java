@@ -8,6 +8,7 @@ import noppes.npcs.controllers.data.AbilityScript;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.gui.SubGuiTagSelect;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -193,6 +194,11 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
         }
 
+        // Tags button on general tab
+        if (activeTab == TAB_GENERAL) {
+            sw.addButton(new GuiNpcButton(40, sw.clipWidth - 95, 5, 80, 20, "gui.tags"));
+        }
+
         // Conditions on target tab — appended after field defs
         if (activeTab == TAB_TARGET) {
             int condY = renderConditions(sw, builder.getLastBuildY(), builder.getNextLabelId());
@@ -321,6 +327,10 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             applyToAbility();
             callback.onAbilitySaved(ability);
             GuiScriptInterface.open(parent, new AbilityScript(ability.getId()));
+            return;
+        }
+        if (id == 40) {
+            setSubGui(new SubGuiTagSelect(ability.getTagUUIDs()));
             return;
         }
         if (id == -1000) {

@@ -8,8 +8,12 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.LinkedItemController;
+import noppes.npcs.controllers.TagController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptLinkedItem;
+
+import java.util.HashSet;
+import java.util.UUID;
 
 public class LinkedItem implements ILinkedItem {
     public static final String LINKED_VERSION_VERSION_TAG = "LinkedVersion";
@@ -32,6 +36,8 @@ public class LinkedItem implements ILinkedItem {
     public int attackSpeed = 10;
     public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 3: Fits in Head -> Boots slot respectively
     public int enchantability;
+
+    public HashSet<UUID> tagUUIDs = new HashSet<>();
 
     public LinkedItem() {
         this("New");
@@ -67,6 +73,8 @@ public class LinkedItem implements ILinkedItem {
         compound.setInteger("MaxItemUseDuration", this.maxItemUseDuration);
         compound.setInteger("ItemUseAction", this.itemUseAction);
 
+        TagController.writeTagUUIDs(compound, "TagUUIDs", tagUUIDs);
+
         if (saveScripts) {
             NBTTagCompound scriptData = new NBTTagCompound();
             LinkedItemScript handler = getScriptHandler();
@@ -96,6 +104,8 @@ public class LinkedItem implements ILinkedItem {
 
         this.maxItemUseDuration = compound.getInteger("MaxItemUseDuration");
         this.itemUseAction = compound.getInteger("ItemUseAction");
+
+        tagUUIDs = TagController.readTagUUIDs(compound, "TagUUIDs");
 
         if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
             LinkedItemScript handler = new LinkedItemScript();
