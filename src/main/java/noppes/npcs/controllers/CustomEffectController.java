@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -657,6 +658,18 @@ public class CustomEffectController implements ICustomEffectHandler {
         return map;
     }
 
+    public HashMap<String, HashSet<UUID>> getItemTagMapForCategory(int catId) {
+        HashMap<String, HashSet<UUID>> tagMap = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, getCustomEffects().keySet());
+        for (int itemId : itemIds) {
+            CustomEffect effect = getCustomEffects().get(itemId);
+            if (effect != null && !effect.tagUUIDs.isEmpty()) {
+                tagMap.put(effect.name, effect.tagUUIDs);
+            }
+        }
+        return tagMap;
+    }
+
     @Override
     public ICustomEffect saveEffect(ICustomEffect customEffect) {
         if (customEffect.getID() < 0) {
@@ -668,6 +681,7 @@ public class CustomEffectController implements ICustomEffectHandler {
         while (hasOther(customEffect.getName(), customEffect.getID()))
             customEffect.setName(customEffect.getName() + "_");
 
+        TagController.validateTagUUIDs(((CustomEffect) customEffect).tagUUIDs);
         getCustomEffects().remove(customEffect.getID());
         getCustomEffects().put(customEffect.getID(), (CustomEffect) customEffect);
 

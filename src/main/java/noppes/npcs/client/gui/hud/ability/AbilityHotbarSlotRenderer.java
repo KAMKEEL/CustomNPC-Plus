@@ -111,6 +111,17 @@ public class AbilityHotbarSlotRenderer extends Gui {
             drawCircle(radius, fillR, fillG, fillB, alpha * 0.8f, true);
         }
 
+        // Toggle active indicator: subtle green outline
+        int toggleState = getToggleState();
+        if (toggleState > 0) {
+            float glowAlpha = 0.45f * slotAlpha;
+            if (altTexture) {
+                drawRoundedRect(-radius, -radius, radius, radius, 0.2f, 0.85f, 0.3f, glowAlpha, true);
+            } else {
+                drawCircle(radius, 0.2f, 0.85f, 0.3f, glowAlpha, true);
+            }
+        }
+
         // Ability icon
         if (icon != null) {
             GL11.glPushMatrix();
@@ -119,7 +130,7 @@ public class AbilityHotbarSlotRenderer extends Gui {
             if (iconNaturalSize <= 0) iconNaturalSize = 16f;
             float iconScale = targetSize / iconNaturalSize;
             GL11.glScalef(iconScale, iconScale, 1);
-            icon.draw(getToggleState(), slotAlpha);
+            icon.draw(toggleState, slotAlpha);
             GL11.glColor4f(1, 1, 1, 1);
             GL11.glPopMatrix();
         }

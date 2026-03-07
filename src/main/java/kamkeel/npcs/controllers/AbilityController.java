@@ -52,6 +52,7 @@ import noppes.npcs.api.ability.IChainedAbility;
 import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.CategoryManager;
+import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
 import kamkeel.npcs.util.FileNameHelper;
@@ -369,6 +370,8 @@ public class AbilityController implements IAbilityHandler {
             }
         }
 
+        TagController.validateTagUUIDs(ability.getTagUUIDs());
+
         File dir = getCustomAbilityDir(name);
         File fileNew = new File(dir, name + ".json_new");
         File fileCurrent = new File(dir, name + ".json");
@@ -524,6 +527,17 @@ public class AbilityController implements IAbilityHandler {
             }
         }
         return map;
+    }
+
+    public HashMap<String, HashSet<UUID>> getCustomAbilityTagMapForCategory(int catId) {
+        HashMap<String, HashSet<UUID>> tagMap = new HashMap<>();
+        for (Map.Entry<String, Ability> entry : customAbilities.entrySet()) {
+            int assignedCat = customAbilityCatMap.getOrDefault(entry.getKey(), CategoryManager.UNCATEGORIZED_ID);
+            if (assignedCat == catId && !entry.getValue().getTagUUIDs().isEmpty()) {
+                tagMap.put(entry.getKey(), entry.getValue().getTagUUIDs());
+            }
+        }
+        return tagMap;
     }
 
     public void moveCustomAbilityToCategory(String name, int destCatId) {

@@ -2208,6 +2208,7 @@ ability.icon.layer=Layer
 
 gui.both=Both
 gui.players=Players
+gui.tags=Tags
 
 # Conditions
 condition.edit=Edit Condition

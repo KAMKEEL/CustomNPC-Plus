@@ -1,7 +1,9 @@
 package noppes.npcs.client.gui.util;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Category;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.Vector;
 
 /**
@@ -32,7 +35,7 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
 
     // ========== Scrolls ==========
     protected GuiCustomScrollIcons catScroll = new GuiCustomScrollIcons(this, 2);
-    protected GuiCustomScroll itemScroll = new GuiCustomScroll(this, 0);
+    protected GuiCustomScrollTagged itemScroll = new GuiCustomScrollTagged(this, 0);
 
     // ========== Data ==========
     protected HashMap<String, Integer> catData = new HashMap<>();
@@ -463,8 +466,24 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
         if (selectedCatId < 0) return new ArrayList<>();
         if (itemSearch.isEmpty()) return new ArrayList<>(itemData.keySet());
         List<String> list = new ArrayList<>();
+        HashMap<String, HashSet<UUID>> tagMap = itemScroll.getItemTagMap();
         for (String name : itemData.keySet()) {
-            if (name.toLowerCase().contains(itemSearch)) list.add(name);
+            if (name.toLowerCase().contains(itemSearch)) {
+                list.add(name);
+            } else if (tagMap != null && tagMap.containsKey(name)) {
+                // Search by tag name — match [tagname] or just tagname
+                HashSet<UUID> uuids = tagMap.get(name);
+                TagController tc = TagController.getInstance();
+                if (tc != null) {
+                    for (UUID uuid : uuids) {
+                        noppes.npcs.controllers.data.Tag tag = tc.getTagFromUUID(uuid);
+                        if (tag != null && tag.name.toLowerCase().contains(itemSearch.replace("[", "").replace("]", ""))) {
+                            list.add(name);
+                            break;
+                        }
+                    }
+                }
+            }
         }
         return list;
     }
@@ -693,6 +712,21 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
+        if (compound.hasKey("CategoryTagMap")) {
+            // Tag map for category items
+            HashMap<String, HashSet<UUID>> tagMap = new HashMap<>();
+            NBTTagList entries = compound.getTagList("CategoryTagMap", 10);
+            for (int i = 0; i < entries.tagCount(); i++) {
+                NBTTagCompound entry = entries.getCompoundTagAt(i);
+                String itemName = entry.getString("Name");
+                HashSet<UUID> uuids = TagController.readTagUUIDs(entry, "Tags");
+                if (!uuids.isEmpty()) {
+                    tagMap.put(itemName, uuids);
+                }
+            }
+            itemScroll.setItemTagMap(tagMap);
+            return;
+        }
         onItemReceived(compound);
         if (pendingNewItemCatId > 0 && hasSelectedItem() && getSelectedItemId() >= 0) {
             sendMovePacket(getSelectedItemId(), pendingNewItemCatId);

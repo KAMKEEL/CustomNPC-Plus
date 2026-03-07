@@ -18,10 +18,13 @@ import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.LinkedItemController;
+import noppes.npcs.controllers.TagController;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.UUID;
 
 public final class CategoryItemsRequestPacket extends AbstractPacket {
     public static String packetName = "NPC|CatItems";
@@ -67,6 +70,12 @@ public final class CategoryItemsRequestPacket extends AbstractPacket {
 
         Map<String, Integer> items = getItemsByCat(type, categoryId);
         ScrollDataPacket.sendScrollData((EntityPlayerMP) player, items, EnumScrollData.CATEGORY_GROUP);
+
+        // Send tag map for the items
+        HashMap<String, HashSet<UUID>> tagMap = getTagMapByCat(type, categoryId);
+        if (tagMap != null && !tagMap.isEmpty()) {
+            TagController.sendCategoryTagMap((EntityPlayerMP) player, tagMap);
+        }
     }
 
     private static Map<String, Integer> getItemsByCat(int type, int catId) {
@@ -78,5 +87,14 @@ public final class CategoryItemsRequestPacket extends AbstractPacket {
             case EnumCategoryType.CHAINED_ABILITY: return AbilityController.Instance.getChainedAbilityItemsByCategoryScrollData(catId);
         }
         return new HashMap<>();
+    }
+
+    private static HashMap<String, HashSet<UUID>> getTagMapByCat(int type, int catId) {
+        switch (type) {
+            case EnumCategoryType.EFFECT: return CustomEffectController.getInstance().getItemTagMapForCategory(catId);
+            case EnumCategoryType.LINKED_ITEM: return LinkedItemController.getInstance().getItemTagMapForCategory(catId);
+            case EnumCategoryType.ABILITY: return AbilityController.Instance.getCustomAbilityTagMapForCategory(catId);
+        }
+        return null;
     }
 }

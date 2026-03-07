@@ -12,6 +12,7 @@ import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.SubGuiColorSelector;
+import noppes.npcs.client.gui.SubGuiTagSelect;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
@@ -159,6 +160,8 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         }
         GuiButtonBiDirectional useActionButton = new GuiButtonBiDirectional(6, x + 120, y, 100, 20, useActions, useActionIndex);
         addButton(useActionButton);
+
+        addButton(new GuiNpcButton(40, x + 230, y, 100, 20, "gui.tags"));
         y += spacing;
 
         // Armor Type: BiDirectional button (None, All, Head, Chestplate, Leggings, Boots)
@@ -335,6 +338,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         } else if (id == -3) {
             PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
             GuiScriptInterface.open(this.parent, new LinkedItemScript(linkedItem.id));
+            return;
+        } else if (id == 40) {
+            setSubGui(new SubGuiTagSelect(linkedItem.tagUUIDs));
             return;
         } else if (id == 20) {
             // Open confirmation for version bump.

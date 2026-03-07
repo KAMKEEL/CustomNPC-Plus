@@ -20,8 +20,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
 public class LinkedItemController implements ILinkedItemHandler {
@@ -215,6 +217,7 @@ public class LinkedItemController implements ILinkedItemHandler {
         while (hasOther(linkedItem.getName(), linkedItem.getId()))
             linkedItem.setName(linkedItem.getName() + "_");
 
+        TagController.validateTagUUIDs(((LinkedItem) linkedItem).tagUUIDs);
         linkedItems.remove(linkedItem.getId());
         linkedItems.put(linkedItem.getId(), (LinkedItem) linkedItem);
         saveLinkedItemsMap();
@@ -386,5 +389,17 @@ public class LinkedItemController implements ILinkedItemHandler {
             }
         }
         return map;
+    }
+
+    public HashMap<String, HashSet<UUID>> getItemTagMapForCategory(int catId) {
+        HashMap<String, HashSet<UUID>> tagMap = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, linkedItems.keySet());
+        for (int itemId : itemIds) {
+            LinkedItem item = linkedItems.get(itemId);
+            if (item != null && !item.tagUUIDs.isEmpty()) {
+                tagMap.put(item.name, item.tagUUIDs);
+            }
+        }
+        return tagMap;
     }
 }

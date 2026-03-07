@@ -7,7 +7,6 @@ import noppes.npcs.controllers.AnimationController;
 import kamkeel.npcs.controllers.data.ability.enums.UserType;
 import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.api.ability.type.IAbilityCounter;
@@ -65,7 +64,7 @@ public class AbilityCounter extends AbilityDefend implements IAbilityCounter {
     protected float performDefend(EntityLivingBase attacker, float amount) {
         // For PERCENT mode with DBC, use the full DBC-calculated damage, not vanilla base
         float incomingDamage = amount;
-        if (DBCAddon.IsAvailable() && attacker instanceof EntityPlayer) {
+        if (DBCAddon.IsAvailable()) {
             incomingDamage = DBCAddon.instance.getAttackerDBCDamage(amount);
         }
 
