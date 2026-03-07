@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.type;
 
+import noppes.npcs.client.gui.util.script.interpreter.ObjectLiteralParser;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Represents resolved type information for a class/interface/enum.
@@ -69,6 +71,9 @@ public class TypeInfo {
      */
     public static final TypeInfo ANY = new TypeInfo("any", "any", "", Kind.CLASS, null, true, null).setPrimitive(true);
     public static final TypeInfo NUMBER = new TypeInfo("number", "number", "", Kind.CLASS, double.class, true, null).setPrimitive(true);
+
+    public static final Supplier<TypeInfo> OBJECT_LITERAL = () -> new TypeInfo("ObjectLiteral", "ObjectLiteral", "",
+            Kind.CLASS, null, true, null);
     
     
     private final String simpleName;       // e.g., "List", "ColorType"
@@ -80,6 +85,7 @@ public class TypeInfo {
     private final TypeInfo enclosingType;  // For inner classes, the outer type (null if top-level)
 
     private boolean isPrimitive;           // Whether this is a primitive type (e.g., int, boolean)
+    private boolean isObjectLiteral;
 
     // JavaScript/TypeScript type info (for types from .d.ts files)
     private final JSTypeInfo jsTypeInfo;   // The JS type info (null if Java type)
@@ -325,6 +331,12 @@ public class TypeInfo {
      */
     public static TypeInfo fromJSTypeInfo(JSTypeInfo jsType) {
         if (jsType == null) return null;
+
+        String syntheticDisplayName = ObjectLiteralParser.getSyntheticObjectLiteralDisplayName(jsType);
+        if (syntheticDisplayName != null) {
+            return new TypeInfo(syntheticDisplayName, jsType.getFullName(), "",
+                    Kind.INTERFACE, null, true, null, jsType);
+        }
         
         String simpleName = jsType.getSimpleName();
         String fullName = jsType.getFullName();
@@ -334,7 +346,24 @@ public class TypeInfo {
         return new TypeInfo(simpleName, fullName, namespace != null ? namespace : "", 
                            Kind.INTERFACE, null, true, null, jsType);
     }
-    
+
+    public static TypeInfo objectLiteral(List<ObjectLiteralParser.ObjectLiteralProperty> properties) {
+        TypeInfo t = OBJECT_LITERAL.get();
+        t.isObjectLiteral = true;
+        if (properties != null) {
+            for (ObjectLiteralParser.ObjectLiteralProperty p : properties) {
+                TypeInfo vt = (p.valueType != null) ? p.valueType : TypeInfo.ANY;
+                t.syntheticFields.add(FieldInfo.external(p.keyName, vt, null, Modifier.PUBLIC));
+            }
+        }
+        return t;
+    }
+
+    public void addOrUpdateSyntheticField(String name, TypeInfo type) {
+        syntheticFields.removeIf(f -> f.getName().equals(name));
+        syntheticFields.add(FieldInfo.external(name, type, null, Modifier.PUBLIC));
+    }
+
     public static void injectJSMembers(TypeInfo target, JSTypeInfo jsExtensions) {
         for (JSFieldInfo jsField : jsExtensions.getFields().values())
             target.syntheticFields.add(FieldInfo.fromJSField(jsField, target));
@@ -413,6 +442,10 @@ public class TypeInfo {
      */
     public boolean isJSType() {
         return jsTypeInfo != null;
+    }
+
+    public boolean isSyntheticObjectLiteralType() {
+        return isObjectLiteral;
     }
     
     /**

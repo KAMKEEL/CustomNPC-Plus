@@ -538,7 +538,7 @@ public final class TypeChecker {
         String[] keywords = {
                 "function", "var", "let", "const", "if", "else", "for", "while", "do",
                 "switch", "case", "break", "continue", "return", "try", "catch", "finally",
-                "throw", "new", "typeof", "instanceof", "in", "of", "this", "null",
+                "throw", "delete", "new", "typeof", "instanceof", "in", "of", "this", "null",
                 "undefined", "true", "false", "async", "await", "yield", "class", "extends",
                 "import", "export", "default"
         };

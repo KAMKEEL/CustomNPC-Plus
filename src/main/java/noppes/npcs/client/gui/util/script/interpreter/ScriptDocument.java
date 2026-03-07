@@ -72,7 +72,7 @@ public class ScriptDocument {
 
     private static final Pattern KEYWORD_JS_PATTERN = Pattern.compile(
             "\\b(function|var|let|const|if|else|for|while|do|switch|case|break|continue|return|" +
-                    "try|catch|finally|throw|new|typeof|instanceof|in|of|this|null|undefined|true|false|" +
+                    "try|catch|finally|throw|delete|new|typeof|instanceof|in|of|this|null|undefined|true|false|" +
                     "class|extends|import|export|default|async|await|yield)\\b");
     
     // Declarations - Updated to capture method parameters
@@ -1865,6 +1865,31 @@ public class ScriptDocument {
         return pos;
     }
 
+    /**
+     * Scans forward from {@code rhsStart} to find where a JavaScript initializer expression ends.
+     *
+     * Unlike Java, JS has no mandatory semicolons, so this method implements a conservative
+     * ASI (Automatic Semicolon Insertion) heuristic:
+     * <ul>
+     *   <li>A {@code ;} at depth 0 always terminates the expression.</li>
+     *   <li>A newline while inside open parens, brackets, or braces does NOT terminate —
+     *       the expression continues on the next line (e.g. multi-line object literals,
+     *       chained calls).</li>
+     *   <li>A newline at depth 0 terminates only if {@link #shouldContinueJsInitializer}
+     *       says the line break is NOT a continuation. Continuation is inferred from
+     *       the current line ending with an operator/open-bracket, or the next line
+     *       starting with {@code .}, {@code ?.}, or {@code [}.</li>
+     * </ul>
+     *
+     * String literals (single/double-quoted) and both comment forms ({@code //} and
+     * {@code /* ... *\/}) are skipped so their contents never affect depth tracking.
+     *
+     * @param source   the full source text to scan
+     * @param rhsStart the index to begin scanning (typically the character after {@code =})
+     * @return the index of the terminating character (a {@code ;} or newline), or
+     *         {@code source.length()} if the source ends before a terminator is found.
+     *         Returns {@code rhsStart} unchanged if {@code rhsStart} is out of bounds.
+     */
     private int findJsInitializerEnd(String source, int rhsStart) {
         if (rhsStart < 0 || rhsStart >= source.length()) {
             return rhsStart;
@@ -1872,9 +1897,84 @@ public class ScriptDocument {
 
         int pos = rhsStart;
         int lineExprStart = rhsStart;
+
+        int parenDepth = 0;
+        int bracketDepth = 0;
+        int braceDepth = 0;
+
+        boolean inString = false;
+        char stringChar = 0;
+        boolean inLineComment = false;
+        boolean inBlockComment = false;
+
         while (pos < source.length()) {
             char c = source.charAt(pos);
-            if (c == ';') {
+            char next = (pos + 1 < source.length()) ? source.charAt(pos + 1) : 0;
+
+            if (inLineComment) {
+                if (c == '\n' || c == '\r') {
+                    inLineComment = false;
+                } else {
+                    pos++;
+                    continue;
+                }
+            }
+
+            if (inBlockComment) {
+                if (c == '*' && next == '/') {
+                    inBlockComment = false;
+                    pos += 2;
+                    continue;
+                }
+                pos++;
+                continue;
+            }
+
+            if (inString) {
+                if (c == '\\') {
+                    pos += (pos + 1 < source.length()) ? 2 : 1;
+                    continue;
+                }
+                if (c == stringChar) {
+                    inString = false;
+                }
+                pos++;
+                continue;
+            }
+
+            if (c == '/' && next == '/') {
+                inLineComment = true;
+                pos += 2;
+                continue;
+            }
+            if (c == '/' && next == '*') {
+                inBlockComment = true;
+                pos += 2;
+                continue;
+            }
+
+            if (c == '"' || c == '\'') {
+                inString = true;
+                stringChar = c;
+                pos++;
+                continue;
+            }
+
+            if (c == '(') {
+                parenDepth++;
+            } else if (c == ')') {
+                parenDepth = Math.max(0, parenDepth - 1);
+            } else if (c == '[') {
+                bracketDepth++;
+            } else if (c == ']') {
+                bracketDepth = Math.max(0, bracketDepth - 1);
+            } else if (c == '{') {
+                braceDepth++;
+            } else if (c == '}') {
+                braceDepth = Math.max(0, braceDepth - 1);
+            }
+
+            if (c == ';' && parenDepth == 0 && bracketDepth == 0 && braceDepth == 0) {
                 return pos;
             }
 
@@ -1885,6 +1985,12 @@ public class ScriptDocument {
                     nextPos++;
                 }
 
+                if (parenDepth != 0 || bracketDepth != 0 || braceDepth != 0) {
+                    pos = nextPos;
+                    lineExprStart = nextPos;
+                    continue;
+                }
+
                 int currentLineEnd = lineBreakPos;
                 while (currentLineEnd > lineExprStart && Character.isWhitespace(source.charAt(currentLineEnd - 1))) {
                     currentLineEnd--;
@@ -1893,17 +1999,17 @@ public class ScriptDocument {
 
                 int nextExprStart = nextPos;
                 while (nextExprStart < source.length()) {
-                    char next = source.charAt(nextExprStart);
-                    if (next == ' ' || next == '\t') {
+                    char n = source.charAt(nextExprStart);
+                    if (n == ' ' || n == '\t') {
                         nextExprStart++;
                         continue;
                     }
-                    if (next == ';') {
+                    if (n == ';') {
                         return nextExprStart;
                     }
-                    if (next == '\n' || next == '\r') {
+                    if (n == '\n' || n == '\r') {
                         nextExprStart++;
-                        if (next == '\r' && nextExprStart < source.length() && source.charAt(nextExprStart) == '\n') {
+                        if (n == '\r' && nextExprStart < source.length() && source.charAt(nextExprStart) == '\n') {
                             nextExprStart++;
                         }
                         continue;
@@ -1917,8 +2023,8 @@ public class ScriptDocument {
 
                 int nextLineEnd = nextExprStart;
                 while (nextLineEnd < source.length()) {
-                    char next = source.charAt(nextLineEnd);
-                    if (next == '\n' || next == '\r' || next == ';') {
+                    char n = source.charAt(nextLineEnd);
+                    if (n == '\n' || n == '\r' || n == ';') {
                         break;
                     }
                     nextLineEnd++;
@@ -3052,7 +3158,11 @@ public class ScriptDocument {
             
         // Numbers - same for both languages
         addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
-        
+
+        if (isJavaScript()) {
+            markObjectLiteralKeys(marks);
+        }
+         
         // Import statements - Java only
         if (!isJavaScript()) {
             markImports(marks);
@@ -3109,7 +3219,94 @@ public class ScriptDocument {
 
         return marks;
     }
-    
+
+    private void markObjectLiteralKeys(List<ScriptLine.Mark> marks) {
+        int i = 0;
+        while (i < text.length()) {
+            int brace = text.indexOf('{', i);
+            if (brace < 0) {
+                return;
+            }
+            i = brace;
+            if (isExcluded(brace) || !isLikelyObjectLiteralStart(brace)) {
+                i++;
+                continue;
+            }
+
+            int end = findMatchingBraceEndInDocument(brace);
+            if (end <= brace) {
+                i++;
+                continue;
+            }
+
+            String objectLiteral = text.substring(brace, end);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis = ObjectLiteralParser.parse(objectLiteral, brace, false, true, null);
+            if (analysis != null) {
+                for (ObjectLiteralParser.ObjectLiteralProperty p : analysis.properties) {
+                    if (p.isIdentifierKey) {
+                        marks.add(new ScriptLine.Mark(p.keyStartAbs, p.keyEndAbs, TokenType.LOCAL_FIELD));
+                    }
+                }
+            }
+
+            i = end;
+        }
+    }
+
+    private boolean isLikelyObjectLiteralStart(int bracePos) {
+        int prev = bracePos - 1;
+        while (prev >= 0 && Character.isWhitespace(text.charAt(prev))) {
+            prev--;
+        }
+        if (prev < 0) {
+            return false;
+        }
+
+        char pc = text.charAt(prev);
+        if (pc == '=' || pc == '(' || pc == '[' || pc == ',' || pc == ':' || pc == '?' || pc == '!' ||
+                pc == '+' || pc == '-' || pc == '*' || pc == '/' || pc == '%' || pc == '&' || pc == '|' ||
+                pc == '^') {
+            return true;
+        }
+
+        if (Character.isJavaIdentifierPart(pc)) {
+            int end = prev + 1;
+            int start = prev;
+            while (start >= 0 && Character.isJavaIdentifierPart(text.charAt(start))) {
+                start--;
+            }
+            start++;
+            String word = text.substring(start, end);
+            return "return".equals(word);
+        }
+
+        return false;
+    }
+
+    private int findMatchingBraceEndInDocument(int braceStart) {
+        int depth = 0;
+        for (int pos = braceStart; pos < text.length(); pos++) {
+            if (isExcluded(pos)) {
+                continue;
+            }
+            char c = text.charAt(pos);
+            if (c == '{') {
+                depth++;
+            } else if (c == '}') {
+                depth--;
+                if (depth == 0) {
+                    return pos + 1;
+                }
+            }
+        }
+        return -1;
+    }
+
+
+
+
+
+
     /**
      * Mark lambda arrow (->) and method reference (::) operators.
      */
@@ -3576,6 +3773,11 @@ public class ScriptDocument {
                 "static", "final", "abstract", "synchronized", "native", "default", "enum",
                 "throws", "super", "assert", "volatile", "transient"
         ));
+
+        if (isJavaScript()) {
+            knownKeywords.add("delete");
+            knownKeywords.add("undefined");
+        }
         
         // Find all identifiers
         Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
@@ -4943,10 +5145,20 @@ public class ScriptDocument {
 
         if (expr.isEmpty()) 
             return null;
+
+        if (isJavaScript() && expr.charAt(0) == '{') {
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis = ObjectLiteralParser.parse(expr, position, true, false, this::resolveExpressionType);
+            if (analysis == null) {
+                return TypeInfo.ANY;
+            }
+            if (!analysis.supportsInference || analysis.inferredType == null) {
+                return TypeInfo.ANY;
+            }
+            return analysis.inferredType;
         }
         
          // Check if expression contains operators - if so, use the full expression resolver
-         // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc.
+         // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc
          // Also route JS function expressions and arrow lambdas through the parser
          if (containsOperators(expr) || expr.contains("::") || expr.contains("->") || expr.startsWith("(") || looksLikeFunctionOrLambda(expr)) {
               return resolveExpressionWithParserAPI(expr, position);
@@ -5066,15 +5278,11 @@ public class ScriptDocument {
                 String fieldName = segments.get(1).name;
                 if (globalFields.containsKey(fieldName)) {
                     currentType = globalFields.get(fieldName).getTypeInfo();
-                    if (currentType != null && segments.get(1).hasArrayAccess) {
-                        currentType = unwrapArrayElement(currentType);
-                    }
+                    currentType = applyBracketAccess(currentType, segments.get(1));
                     // Continue from segment 2
                     for (int i = 2; i < segments.size(); i++) {
                         currentType = resolveChainSegment(currentType, segments.get(i));
-                        if (currentType != null && segments.get(i).hasArrayAccess) {
-                            currentType = unwrapArrayElement(currentType);
-                        }
+                        currentType = applyBracketAccess(currentType, segments.get(i));
                         if (currentType == null) return null;
                     }
                     return currentType;
@@ -5126,16 +5334,12 @@ public class ScriptDocument {
             }
         }
 
-        if (currentType != null && first.hasArrayAccess) {
-            currentType = unwrapArrayElement(currentType);
-        }
+        currentType = applyBracketAccess(currentType, first);
 
         // Resolve the rest of the chain
         for (int i = 1; i < segments.size(); i++) {
             currentType = resolveChainSegment(currentType, segments.get(i));
-            if (currentType != null && segments.get(i).hasArrayAccess) {
-                currentType = unwrapArrayElement(currentType);
-            }
+            currentType = applyBracketAccess(currentType, segments.get(i));
             if (currentType == null) {
                 return null;
             }
@@ -5233,11 +5437,13 @@ public class ScriptDocument {
             }
             
             boolean hasArrayAccess = false;
+            String bracketKey = null;
             while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
                 i++;
             }
             if (i < expr.length() && expr.charAt(i) == '[') {
                 hasArrayAccess = true;
+                int bracketStart = i + 1;
                 int depth = 1;
                 i++;
                 while (i < expr.length() && depth > 0) {
@@ -5246,9 +5452,16 @@ public class ScriptDocument {
                     else if (c == ']') depth--;
                     i++;
                 }
+                String bracketContent = expr.substring(bracketStart, i - 1).trim();
+                if (bracketContent.length() >= 2) {
+                    char q = bracketContent.charAt(0);
+                    if ((q == '"' || q == '\'') && bracketContent.charAt(bracketContent.length() - 1) == q) {
+                        bracketKey = bracketContent.substring(1, bracketContent.length() - 1);
+                    }
+                }
             }
-            
-            segments.add(new ChainSegment(name, start, i, isMethodCall, arguments, hasArrayAccess));
+
+            segments.add(new ChainSegment(name, start, i, isMethodCall, arguments, hasArrayAccess, bracketKey));
             
             // Skip whitespace
             while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
@@ -5365,21 +5578,23 @@ public class ScriptDocument {
         final int start;
         final int end;
         final boolean isMethodCall;
-        final String arguments;  // The text between parentheses for method calls, or null for fields
+        final String arguments;
         final boolean hasArrayAccess;
-        
-        ChainSegment(String name, int start, int end, boolean isMethodCall, String arguments, boolean hasArrayAccess) {
+        final String bracketKey;
+
+        ChainSegment(String name, int start, int end, boolean isMethodCall, String arguments, boolean hasArrayAccess, String bracketKey) {
             this.name = name;
             this.start = start;
             this.end = end;
             this.isMethodCall = isMethodCall;
             this.arguments = arguments;
             this.hasArrayAccess = hasArrayAccess;
+            this.bracketKey = bracketKey;
         }
     }
 
     /**
-     * 
+     *
      */
     private String stripLineComments(String expr) {
         if (!expr.contains("//"))
@@ -5397,7 +5612,22 @@ public class ScriptDocument {
         }
         return result.toString().trim();
     }
-    
+
+    /**
+     * Handle ObjectLiteral bracket access (e.g., obj["field"] or obj[fieldName]) and array access (e.g., items[0]).
+     * @param type
+     * @param seg
+     * @return
+     */
+    private TypeInfo applyBracketAccess(TypeInfo type, ChainSegment seg) {
+        if (type == null || !seg.hasArrayAccess) return type;
+        if (seg.bracketKey != null) {
+            FieldInfo f = type.getFieldInfo(seg.bracketKey);
+            return f != null ? f.getTypeInfo() : TypeInfo.ANY;
+        }
+        if (type.isSyntheticObjectLiteralType()) return TypeInfo.ANY;
+        return unwrapArrayElement(type);
+    }
     /**
      * Extract the element type from an array type, using multiple fallback strategies.
      * 
@@ -5927,15 +6157,11 @@ public class ScriptDocument {
             }
         }
 
-        if (currentType != null && first.hasArrayAccess) {
-            currentType = unwrapArrayElement(currentType);
-        }
+        currentType = applyBracketAccess(currentType, first);
 
         for (int i = 1; i < segments.size(); i++) {
             currentType = resolveChainSegment(currentType, segments.get(i));
-            if (currentType != null && segments.get(i).hasArrayAccess) {
-                currentType = unwrapArrayElement(currentType);
-            }
+            currentType = applyBracketAccess(currentType, segments.get(i));
             if (currentType == null) {
                 return null;
             }
@@ -6499,6 +6725,11 @@ public class ScriptDocument {
                 "throws", "super", "assert", "volatile", "transient"
         ));
 
+        if (isJavaScript()) {
+            knownKeywords.add("delete");
+            knownKeywords.add("undefined");
+        }
+
         // First pass: mark method parameters in their declaration positions
         List<MethodInfo> allMethods = getAllMethods();
         allMethods.addAll(getAllConstructors());
@@ -6577,17 +6808,19 @@ public class ScriptDocument {
                 continue;
             }
 
-            // Check local variables (method scope)
+            FieldInfo localInfo = null;
             if (containingMethod != null) {
                 Map<String, List<FieldInfo>> locals = methodLocals.get(containingMethod.getDeclarationOffset());
                 if (locals != null) {
-                    FieldInfo localInfo = pickVisibleLocal(locals.get(name), position);
-                    if (localInfo != null) {
-                        Object metadata = callInfo != null ? new FieldInfo.ArgInfo(localInfo, callInfo) : localInfo;
-                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, metadata));
-                        continue;
-                    }
+                    localInfo = pickVisibleLocal(locals.get(name), position);
                 }
+            } else {
+                localInfo = pickVisibleTopLevelLocal(name, position);
+            }
+            if (localInfo != null) {
+                Object metadata = callInfo != null ? new FieldInfo.ArgInfo(localInfo, callInfo) : localInfo;
+                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, metadata));
+                continue;
             }
 
             // Check enclosing type fields (when inside method)
@@ -6702,6 +6935,11 @@ public class ScriptDocument {
                 for (FieldInfo field : fields) {
                     field.clearAssignments();
                 }
+            }
+        }
+        for (List<FieldInfo> fields : topLevelLocals.values()) {
+            for (FieldInfo field : fields) {
+                field.clearAssignments();
             }
         }
         // Also clear assignments in script type fields
@@ -6838,6 +7076,8 @@ public class ScriptDocument {
     private void createAndAttachAssignment(String lhs, String rhs, int stmtStart, int equalsPos, int stmtEnd) {
         lhs = lhs.trim();
         rhs = rhs.trim();
+
+        ObjectLiteralParser.DynamicPropertyAccess dynamicPropertyAccess = isJavaScript() ? ObjectLiteralParser.parseDynamicPropertyAccess(lhs, stmtStart) : null;
         
         // Parse the target (LHS)
         // Could be: varName or obj.field or this.field or array[index]
@@ -6902,8 +7142,23 @@ public class ScriptDocument {
             // Extract the variable name before the bracket
             String varName = lhs.substring(0, lhs.indexOf('[')).trim();
             targetName = varName;
-            targetField = resolveVariable(varName, lhsStart);
-            if (targetField != null) {
+            if (dynamicPropertyAccess != null) {
+                ObjectLiteralParser.DynamicFieldResult res = ObjectLiteralParser.resolveExistingField(
+                        dynamicPropertyAccess, this::resolveExpressionType, this::resolveVariable);
+                receiverType = res.receiverType;
+                targetName = res.propertyName;
+                targetField = res.field;
+                if (targetField != null) {
+                    targetType = targetField.getTypeInfo();
+                    reflectionField = targetField.getReflectionField();
+                }
+            }
+
+            if (targetField == null) {
+                targetField = resolveVariable(varName, lhsStart);
+            }
+
+            if (targetField != null && targetType == null) {
                 // The variable type is the array type (e.g., ItemStack[])
                 // Unwrap to get the element type (e.g., ItemStack)
                 targetType = unwrapArrayElement(targetField.getTypeInfo());
@@ -6925,6 +7180,21 @@ public class ScriptDocument {
             sourceType = resolveExpressionType(rhs, equalsPos + 1);
         } finally {
             ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = null;
+        }
+
+        if (dynamicPropertyAccess != null) {
+            ObjectLiteralParser.DynamicFieldResult res = ObjectLiteralParser.extendAndGetField(
+                    dynamicPropertyAccess, receiverType, sourceType,
+                    this::resolveExpressionType, this::resolveVariable);
+            if (res != null) {
+                receiverType = res.receiverType;
+                targetName = res.propertyName;
+                targetField = res.field;
+                if (targetField != null) {
+                    targetType = targetField.getTypeInfo();
+                    reflectionField = targetField.getReflectionField();
+                }
+            }
         }
         
         // Type inference: If the target field has "any" type and no inferred type yet,
@@ -7969,7 +8239,7 @@ public class ScriptDocument {
     public Map<String, FieldInfo> getGlobalFields() {
         return Collections.unmodifiableMap(globalFields);
     }
-    
+
     /**
      * Get all variables available at a specific position.
      * Used by autocomplete to show scope-aware suggestions.
