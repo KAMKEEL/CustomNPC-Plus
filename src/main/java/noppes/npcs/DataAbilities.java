@@ -89,6 +89,9 @@ public class DataAbilities extends AbstractDataAbilities {
     private transient boolean hitScanActive = false;
     private transient EntityLivingBase hitScanTarget = null;
     private transient float currentTrackDelay = 0;
+    private transient float trackedYaw = 0;
+    private transient float trackedPitch = 0;
+    private transient boolean trackLerpedThisTick = false;
 
     /**
      * Bit flag for rotation control (LOCKED or TRACK) in data watcher slot 15
@@ -227,6 +230,9 @@ public class DataAbilities extends AbstractDataAbilities {
 
     @Override
     protected void onPostPhaseTick(Ability ability, EntityLivingBase target) {
+        // Reset per-tick lerp flag so faceTarget only computes the lerp once per tick
+        trackLerpedThisTick = false;
+
         // Update hit scan state - actual facing is deferred to applyRotationControl()
         // which runs AFTER super.onLivingUpdate() to override AI look helper
         if (ability != null && ability.isExecuting() && target != null) {
@@ -885,6 +891,9 @@ public class DataAbilities extends AbstractDataAbilities {
         if (!hitScanActive) {
             hitScanActive = true;
             npc.setBoolFlag(true, ROTATION_CONTROLLED_FLAG);
+            // Capture current rotation as the starting point for lerp
+            trackedYaw = npc.rotationYawHead;
+            trackedPitch = npc.rotationPitch;
         }
         hitScanTarget = target;
         currentTrackDelay = trackDelay;
@@ -906,6 +915,8 @@ public class DataAbilities extends AbstractDataAbilities {
 
         if (trackDelay <= 0) {
             // Instant snap (legacy behavior)
+            trackedYaw = targetYaw;
+            trackedPitch = targetPitch;
             npc.rotationYaw = targetYaw;
             npc.rotationYawHead = targetYaw;
             npc.renderYawOffset = targetYaw;
@@ -915,14 +926,18 @@ public class DataAbilities extends AbstractDataAbilities {
             npc.prevRenderYawOffset = targetYaw;
             npc.prevRotationPitch = targetPitch;
         } else {
-            float lerpFactor = 1.0f / (1.0f + trackDelay);
+            // Only compute the lerp once per tick; subsequent calls just re-stamp values
+            if (!trackLerpedThisTick) {
+                trackLerpedThisTick = true;
+                float lerpFactor = 1.0f / (1.0f + trackDelay);
 
-            // Wrap yaw difference to [-180, 180] for correct interpolation
-            float yawDiff = wrapAngle(targetYaw - npc.rotationYawHead);
-            float pitchDiff = targetPitch - npc.rotationPitch;
+                // Lerp from stored tracked rotation (not entity rotation, which AI may have overwritten)
+                float yawDiff = wrapAngle(targetYaw - trackedYaw);
+                float pitchDiff = targetPitch - trackedPitch;
 
-            float newYaw = npc.rotationYawHead + yawDiff * lerpFactor;
-            float newPitch = npc.rotationPitch + pitchDiff * lerpFactor;
+                trackedYaw = trackedYaw + yawDiff * lerpFactor;
+                trackedPitch = trackedPitch + pitchDiff * lerpFactor;
+            }
 
             // Set prev to current before updating (for smooth client interpolation)
             npc.prevRotationYaw = npc.rotationYaw;
@@ -930,10 +945,10 @@ public class DataAbilities extends AbstractDataAbilities {
             npc.prevRenderYawOffset = npc.renderYawOffset;
             npc.prevRotationPitch = npc.rotationPitch;
 
-            npc.rotationYaw = newYaw;
-            npc.rotationYawHead = newYaw;
-            npc.renderYawOffset = newYaw;
-            npc.rotationPitch = newPitch;
+            npc.rotationYaw = trackedYaw;
+            npc.rotationYawHead = trackedYaw;
+            npc.renderYawOffset = trackedYaw;
+            npc.rotationPitch = trackedPitch;
         }
     }
 
