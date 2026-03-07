@@ -33,13 +33,13 @@ public class RenderEnergyLaser extends RenderEnergy {
             return;
         }
 
-        // Get laser parameters
-        double startX = laser.getStartX();
-        double startY = laser.getStartY();
-        double startZ = laser.getStartZ();
-        double endX = laser.getEndX();
-        double endY = laser.getEndY();
-        double endZ = laser.getEndZ();
+        // Get interpolated laser positions for smooth rendering between ticks
+        double startX = laser.getInterpolatedStartX(partialTicks);
+        double startY = laser.getInterpolatedStartY(partialTicks);
+        double startZ = laser.getInterpolatedStartZ(partialTicks);
+        double endX = laser.getInterpolatedEndX(partialTicks);
+        double endY = laser.getInterpolatedEndY(partialTicks);
+        double endZ = laser.getInterpolatedEndZ(partialTicks);
         float width = laser.getLaserWidth();
         float alpha = 1.0f;
 

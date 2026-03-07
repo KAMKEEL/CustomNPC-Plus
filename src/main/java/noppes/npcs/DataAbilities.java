@@ -88,10 +88,11 @@ public class DataAbilities extends AbstractDataAbilities {
      */
     private transient boolean hitScanActive = false;
     private transient EntityLivingBase hitScanTarget = null;
-    private transient float currentTrackDelay = 0;
+    private transient float currentTrackSpeed = 0;
     private transient float trackedYaw = 0;
     private transient float trackedPitch = 0;
     private transient boolean trackLerpedThisTick = false;
+    private transient boolean preserveTrackedRotation = false;
 
     /**
      * Bit flag for rotation control (LOCKED or TRACK) in data watcher slot 15
@@ -222,9 +223,15 @@ public class DataAbilities extends AbstractDataAbilities {
 
     @Override
     protected void onPreExecute(Ability ability, EntityLivingBase target) {
-        // Snap NPC to face target before execute so startMoving() reads correct rotation
+        // Face target before execute so startMoving() reads correct rotation
+        // Use trackSpeed so the NPC plays catchup rather than instant-snapping
         if (ability.isHitScanForCurrentPhase() && target != null) {
-            faceTarget(target);
+            float speed = ability.getTrackSpeed();
+            if (speed <= 0) {
+                faceTarget(target);
+            } else {
+                faceTarget(target, speed);
+            }
         }
     }
 
@@ -237,7 +244,7 @@ public class DataAbilities extends AbstractDataAbilities {
         // which runs AFTER super.onLivingUpdate() to override AI look helper
         if (ability != null && ability.isExecuting() && target != null) {
             if (ability.isHitScanForCurrentPhase()) {
-                enableHitScan(target, ability.getTrackDelay());
+                enableHitScan(target, ability.getTrackSpeed());
             } else {
                 // Release hit scan if it was previously active
                 if (hitScanActive) {
@@ -260,7 +267,10 @@ public class DataAbilities extends AbstractDataAbilities {
 
     @Override
     protected void onBurstDelayReleaseLocks() {
-        if (hitScanActive) releaseRotationControl();
+        if (hitScanActive) {
+            preserveTrackedRotation = true;
+            releaseRotationControl();
+        }
     }
 
     @Override
@@ -887,34 +897,42 @@ public class DataAbilities extends AbstractDataAbilities {
     /**
      * Enable hit scan tracking for the given target.
      */
-    private void enableHitScan(EntityLivingBase target, float trackDelay) {
+    private void enableHitScan(EntityLivingBase target, float trackSpeed) {
         if (!hitScanActive) {
             hitScanActive = true;
             npc.setBoolFlag(true, ROTATION_CONTROLLED_FLAG);
-            // Capture current rotation as the starting point for lerp
-            trackedYaw = npc.rotationYawHead;
-            trackedPitch = npc.rotationPitch;
+            // Preserve tracked rotation across burst delays so the NPC doesn't snap
+            if (!preserveTrackedRotation) {
+                trackedYaw = npc.rotationYawHead;
+                trackedPitch = npc.rotationPitch;
+            }
+            preserveTrackedRotation = false;
         }
         hitScanTarget = target;
-        currentTrackDelay = trackDelay;
+        currentTrackSpeed = trackSpeed;
     }
 
+    private static final double DEG_TO_RAD = Math.PI / 180.0;
+    private static final double RAD_TO_DEG = 180.0 / Math.PI;
+
     /**
-     * Face the target with optional track delay.
-     * When trackDelay <= 0, snaps instantly (legacy behavior).
-     * When trackDelay > 0, lerps toward the target each tick.
+     * Face the target with optional track speed (linear speed in blocks/second).
+     * When trackSpeed <= 0, snaps instantly.
+     * When trackSpeed > 0, the NPC's aim point moves at trackSpeed blocks/second,
+     * converted to angular velocity based on distance. This makes tracking feel
+     * consistent regardless of range — directly comparable to player movement speed.
      */
-    private void faceTarget(EntityLivingBase target, float trackDelay) {
+    private void faceTarget(EntityLivingBase target, float trackSpeed) {
         double dx = target.posX - npc.posX;
         double dz = target.posZ - npc.posZ;
         double dy = (target.posY + target.getEyeHeight() * 0.5) - (npc.posY + npc.getEyeHeight());
         double distXZ = Math.sqrt(dx * dx + dz * dz);
 
-        float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
-        float targetPitch = (float) (-(Math.atan2(dy, distXZ)) * 180.0 / Math.PI);
+        float targetYaw = (float) (Math.atan2(-dx, dz) * RAD_TO_DEG);
+        float targetPitch = (float) (-(Math.atan2(dy, distXZ)) * RAD_TO_DEG);
 
-        if (trackDelay <= 0) {
-            // Instant snap (legacy behavior)
+        if (trackSpeed <= 0) {
+            // Instant snap
             trackedYaw = targetYaw;
             trackedPitch = targetPitch;
             npc.rotationYaw = targetYaw;
@@ -926,17 +944,27 @@ public class DataAbilities extends AbstractDataAbilities {
             npc.prevRenderYawOffset = targetYaw;
             npc.prevRotationPitch = targetPitch;
         } else {
-            // Only compute the lerp once per tick; subsequent calls just re-stamp values
             if (!trackLerpedThisTick) {
                 trackLerpedThisTick = true;
-                float lerpFactor = 1.0f / (1.0f + trackDelay);
 
-                // Lerp from stored tracked rotation (not entity rotation, which AI may have overwritten)
+                // Convert linear speed (blocks/sec) to angular speed (degrees/tick)
+                // using the actual distance to the target
+                double dist = Math.max(1.0, Math.sqrt(dx * dx + dy * dy + dz * dz));
+                float blocksPerTick = trackSpeed / 20.0f;
+                float maxAngularSpeed = (float) (Math.atan2(blocksPerTick, dist) * RAD_TO_DEG);
+
                 float yawDiff = wrapAngle(targetYaw - trackedYaw);
                 float pitchDiff = targetPitch - trackedPitch;
 
-                trackedYaw = trackedYaw + yawDiff * lerpFactor;
-                trackedPitch = trackedPitch + pitchDiff * lerpFactor;
+                float totalAngle = (float) Math.sqrt(yawDiff * yawDiff + pitchDiff * pitchDiff);
+                if (totalAngle > maxAngularSpeed) {
+                    float scale = maxAngularSpeed / totalAngle;
+                    yawDiff *= scale;
+                    pitchDiff *= scale;
+                }
+
+                trackedYaw = trackedYaw + yawDiff;
+                trackedPitch = trackedPitch + pitchDiff;
             }
 
             // Set prev to current before updating (for smooth client interpolation)
@@ -991,7 +1019,7 @@ public class DataAbilities extends AbstractDataAbilities {
 
         // Server: apply the appropriate rotation
         if (hitScanActive && hitScanTarget != null && !hitScanTarget.isDead) {
-            faceTarget(hitScanTarget, currentTrackDelay);
+            faceTarget(hitScanTarget, currentTrackSpeed);
         } else if (rotationLocked) {
             npc.rotationYaw = lockedYaw;
             npc.rotationYawHead = lockedYawHead;
