@@ -306,18 +306,7 @@ public final class ObjectLiteralParser {
             TypeInfo valueType = null;
             if (inferTypes && typeResolver != null) {
                 String valueExpr = src.substring(valueStart, valueEnd).trim();
-                if (!valueExpr.isEmpty()) {
-                    char vc = valueExpr.charAt(0);
-                    if (vc == '{' || vc == '[') {
-                        // Nested object/array literals degrade to 'any'
-                        valueType = TypeInfo.ANY;
-                    } else {
-                        TypeInfo inferred = typeResolver.resolve(valueExpr, absBase + valueStart);
-                        valueType = (inferred != null) ? inferred : TypeInfo.ANY;
-                    }
-                } else {
-                    valueType = TypeInfo.ANY;
-                }
+                valueType = inferValueType(valueExpr, absBase + valueStart, typeResolver);
             }
 
             int keyStartAbs = absBase + keyStart;
@@ -546,6 +535,28 @@ public final class ObjectLiteralParser {
                 : resolveDynamicPropertyReceiverType(access, typeResolver, varResolver);
         if (!extendSyntheticObjectShape(receiver, access.propertyName, sourceType)) return null;
         return new DynamicFieldResult(receiver, access.propertyName, receiver.getFieldInfo(access.propertyName));
+    }
+
+    private static TypeInfo inferValueType(String valueExpr, int valueStartAbs, ExpressionTypeResolverFn typeResolver) {
+        if (valueExpr == null || valueExpr.isEmpty()) {
+            return TypeInfo.ANY;
+        }
+
+        char first = valueExpr.charAt(0);
+        if (first == '{') {
+            ObjectLiteralAnalysis nested = parse(valueExpr, valueStartAbs, true, false, typeResolver);
+            if (nested != null && nested.supportsInference && nested.inferredType != null) {
+                return nested.inferredType;
+            }
+            return TypeInfo.ANY;
+        }
+
+        if (first == '[') {
+            return TypeInfo.ANY;
+        }
+
+        TypeInfo inferred = typeResolver.resolve(valueExpr, valueStartAbs);
+        return (inferred != null) ? inferred : TypeInfo.ANY;
     }
 
     // ──────────────────────────────────────────────────────────────────────────

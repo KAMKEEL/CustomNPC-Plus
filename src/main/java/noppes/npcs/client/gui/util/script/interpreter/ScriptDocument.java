@@ -3249,7 +3249,7 @@ public class ScriptDocument {
                 }
             }
 
-            i = end;
+            i = brace + 1;
         }
     }
 
