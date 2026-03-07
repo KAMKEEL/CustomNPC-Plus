@@ -19,7 +19,7 @@ class LoopVariableParser {
             "\\bfor\\s*\\(\\s*(?:var|let|const)\\s+(\\w+)\\s+in\\s+([^)]+)\\)");
     private static final Pattern FOR_OF = Pattern.compile(
             "\\bfor\\s*\\(\\s*(?:var|let|const)\\s+(\\w+)\\s+of\\s+([^)]+)\\)");
-    private static final Pattern FOR_IN_OF_LOOKAHEAD = Pattern.compile("^\\s+(?:in|of)\\s");
+    static final Pattern FOR_IN_OF_LOOKAHEAD = Pattern.compile("^\\s+(?:in|of)\\s");
 
     private static final Set<String> SKIP_TYPES = new HashSet<>(Arrays.asList(
             "return", "if", "while", "for", "switch", "catch", "new", "throw"));
@@ -63,6 +63,73 @@ class LoopVariableParser {
             Map<String, List<FieldInfo>> locals = methodLocals.computeIfAbsent(ownerMethod.getDeclarationOffset(), k -> new HashMap<>());
             scanRange(bodyText, bodyStart, bodyEnd, ownerMethod, locals, js);
         }
+
+        scanTopLevelLoops();
+    }
+
+    private void scanTopLevelLoops() {
+        boolean js = doc.isJavaScript();
+
+        if (!js) {
+            for (Matcher m = ENHANCED_FOR.matcher(text); m.find(); ) {
+                int absForPos = m.start();
+                if (doc.isExcluded(absForPos) || isInsideAnyScope(absForPos)) continue;
+                String typeName = m.group(1).trim();
+                String varName = m.group(2);
+                TypeInfo typeInfo = doc.resolveType(typeName);
+                ScopeInfo scope = computeForBodyScope(absForPos, 0, text.length());
+                FieldInfo fi = FieldInfo.localField(varName, typeInfo, m.start(2), null, -1, -1, 0);
+                fi.setScopeInfo(scope);
+                doc.addTopLevelLocal(fi);
+            }
+
+            for (Matcher m = CLASSIC_FOR.matcher(text); m.find(); ) {
+                int absForPos = m.start();
+                if (doc.isExcluded(absForPos) || isInsideAnyScope(absForPos)) continue;
+                String typeName = m.group(1).trim();
+                String varName = m.group(2);
+                if (SKIP_TYPES.contains(typeName)) continue;
+                TypeInfo typeInfo = doc.resolveType(typeName);
+                ScopeInfo scope = computeForBodyScope(absForPos, 0, text.length());
+                FieldInfo fi = FieldInfo.localField(varName, typeInfo, m.start(2), null, -1, -1, 0);
+                fi.setScopeInfo(scope);
+                doc.addTopLevelLocal(fi);
+            }
+        } else {
+            for (Matcher m = FOR_IN.matcher(text); m.find(); ) {
+                int absForPos = m.start();
+                if (doc.isExcluded(absForPos) || isInsideAnyScope(absForPos)) continue;
+                String varName = m.group(1);
+                ScopeInfo scope = computeForBodyScope(absForPos, 0, text.length());
+                FieldInfo fi = FieldInfo.localField(varName, TypeInfo.fromPrimitive("int"), m.start(1), null, -1, -1, 0);
+                fi.setScopeInfo(scope);
+                doc.addTopLevelLocal(fi);
+            }
+
+            for (Matcher m = FOR_OF.matcher(text); m.find(); ) {
+                int absForPos = m.start();
+                if (doc.isExcluded(absForPos) || isInsideAnyScope(absForPos)) continue;
+                String varName = m.group(1);
+                String iterableExpr = m.group(2).trim();
+                TypeInfo iterableType = doc.resolveExpressionType(iterableExpr, absForPos);
+                TypeInfo elementType = (iterableType != null) ? iterableType.getElementType() : null;
+                if (elementType == null) elementType = TypeInfo.ANY;
+                ScopeInfo scope = computeForBodyScope(absForPos, 0, text.length());
+                FieldInfo fi = FieldInfo.localField(varName, elementType, m.start(1), null, -1, -1, 0);
+                fi.setScopeInfo(scope);
+                doc.addTopLevelLocal(fi);
+            }
+        }
+    }
+
+    private boolean isInsideAnyScope(int pos) {
+        for (MethodInfo method : doc.getAllMethods()) {
+            if (method.containsPosition(pos)) return true;
+        }
+        for (InnerCallableScope scope : doc.getInnerScopes()) {
+            if (scope.containsPosition(pos)) return true;
+        }
+        return false;
     }
 
     private void scanRange(String bodyText, int bodyStart, int bodyEnd,

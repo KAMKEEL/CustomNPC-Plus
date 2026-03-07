@@ -113,6 +113,9 @@ public class ScriptDocument {
     private final Map<String, FieldInfo> globalFields = new HashMap<>();
     // Local variables per method (methodStartOffset -> {varName -> FieldInfo})
     private final Map<Integer, Map<String, List<FieldInfo>>> methodLocals = new HashMap<>();
+    // Top-level variables (outside methods) - for JavaScript, these can be treated as globals, but we keep them separate for clarity
+    // Mainly top level loops like for (var x : collection) { } where x is a local variable but not inside a method
+    private final Map<String, List<FieldInfo>> topLevelLocals = new HashMap<>();
 
     // Inner callable scopes (lambdas, JS function expressions) - NOT in methods list
     private final List<InnerCallableScope> innerScopes = new ArrayList<>();
@@ -349,6 +352,7 @@ public class ScriptDocument {
         wildcardPackages.clear();
         excludedRanges.clear();
         methodLocals.clear();
+        topLevelLocals.clear();
         scriptTypes.clear();
         innerScopes.clear();
         methodCalls.clear();
@@ -1442,6 +1446,36 @@ public class ScriptDocument {
         return best;
     }
 
+    private FieldInfo pickVisibleTopLevelLocal(String name, int position) {
+        return pickVisibleLocal(topLevelLocals.get(name), position);
+    }
+
+    void addTopLevelLocal(FieldInfo fieldInfo) {
+        if (fieldInfo == null) {
+            return;
+        }
+        topLevelLocals.computeIfAbsent(fieldInfo.getName(), k -> new ArrayList<>()).add(fieldInfo);
+    }
+
+    private Collection<FieldInfo> getVisibleTopLevelLocals(int position) {
+        List<FieldInfo> visible = new ArrayList<>();
+        for (List<FieldInfo> candidates : topLevelLocals.values()) {
+            FieldInfo best = pickVisibleLocal(candidates, position);
+            if (best != null) {
+                visible.add(best);
+            }
+        }
+        return visible;
+    }
+
+    Collection<FieldInfo> getTopLevelLocalCandidates() {
+        List<FieldInfo> all = new ArrayList<>();
+        for (List<FieldInfo> fields : topLevelLocals.values()) {
+            all.addAll(fields);
+        }
+        return all;
+    }
+
     /**
      * Parse local variables inside methods/functions - UNIFIED for both Java and JavaScript.
      * Stores results in the shared 'methodLocals' map (methodOffset -> varName -> FieldInfo).
@@ -2488,7 +2522,10 @@ public class ScriptDocument {
                     }
                 }
                 if (insideInner) continue;
-                
+
+                int afterVar = m.end(1);
+                if (afterVar < text.length() && LoopVariableParser.FOR_IN_OF_LOOKAHEAD.matcher(text.substring(afterVar)).find()) continue;
+
                 String varName = m.group(1);
                 String initializer = null;
                 int initializerStart = -1;
@@ -2558,6 +2595,10 @@ public class ScriptDocument {
                 int position = m.start(2);
                 
                 if (isExcluded(position))
+                    continue;
+
+                int enclosingParen = findEnclosingParenStart(0, position);
+                if (enclosingParen >= 0 && "for".equals(readKeywordBefore(enclosingParen)))
                     continue;
 
                 int modifiers = parseModifiers(typeNameRaw);
@@ -6900,7 +6941,8 @@ public class ScriptDocument {
         FieldInfo finalTargetField = targetField;
         boolean isScriptField = targetField != null && 
             (globalFields.containsValue(targetField) || 
-             methodLocals.values().stream().anyMatch(m -> m.values().stream().anyMatch(list -> list.contains(finalTargetField))));
+             methodLocals.values().stream().anyMatch(m -> m.values().stream().anyMatch(list -> list.contains(finalTargetField))) ||
+             topLevelLocals.values().stream().anyMatch(list -> list.contains(finalTargetField)));
         
         // Determine if the target field is final
         // For script fields, use the modifiers; for external fields, use reflection
@@ -7653,7 +7695,10 @@ public class ScriptDocument {
             }
         }
         
-        // 3. For Java only: Check if we're inside a script type and look for fields there
+        FieldInfo topLocal = pickVisibleTopLevelLocal(name, position);
+        if (topLocal != null) return topLocal;
+
+        // 4. For Java only: Check if we're inside a script type and look for fields there
         if (!isJavaScript()) {
             ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
             if (enclosingType != null && enclosingType.hasField(name)) {
@@ -7882,6 +7927,14 @@ public class ScriptDocument {
                 }
             }
         }
+        for (List<FieldInfo> fields : topLevelLocals.values()) {
+            for (FieldInfo field : fields) {
+                AssignmentInfo assign = field.findAssignmentAtPosition(position);
+                if (assign != null) {
+                    return assign;
+                }
+            }
+        }
 
         for (AssignmentInfo assign : declarationErrors) {
             if (assign.containsLhsPosition(position)) {
@@ -7974,6 +8027,8 @@ public class ScriptDocument {
             }
         }
         
+        variables.addAll(getVisibleTopLevelLocals(position));
+
         // Add global fields (only those visible at position)
         for (FieldInfo globalField : globalFields.values()) {
             if (globalField.isVisibleAt(position)) {
@@ -8035,6 +8090,11 @@ public class ScriptDocument {
                 for (FieldInfo field : fields) {
                     errored.addAll(field.getErroredAssignments());
                 }
+            }
+        }
+        for (List<FieldInfo> fields : topLevelLocals.values()) {
+            for (FieldInfo field : fields) {
+                errored.addAll(field.getErroredAssignments());
             }
         }
         
@@ -8230,6 +8290,11 @@ public class ScriptDocument {
                     return field.getTypeInfo();
                 }
             }
+        }
+
+        FieldInfo topLevelLocal = pickVisibleTopLevelLocal(varName, position);
+        if (topLevelLocal != null) {
+            return topLevelLocal.getTypeInfo();
         }
 
         // Check global fields
