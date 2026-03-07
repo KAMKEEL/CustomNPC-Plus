@@ -1312,7 +1312,7 @@ public class ScriptDocument {
         return null;
     }
 
-    private int skipWhitespaceAndExcluded(int pos, int limit) {
+    int skipWhitespaceAndExcluded(int pos, int limit) {
         int i = Math.max(pos, 0);
         int max = Math.min(limit, text.length());
         while (i < max) {
@@ -1328,7 +1328,7 @@ public class ScriptDocument {
         return -1;
     }
 
-    private int findStatementEnd(int start, int limit) {
+    int findStatementEnd(int start, int limit) {
         int max = Math.min(limit, text.length());
         int parenDepth = 0;
         int bracketDepth = 0;
@@ -1351,7 +1351,7 @@ public class ScriptDocument {
         return -1;
     }
 
-    private int findEnclosingParenStart(int min, int position) {
+    int findEnclosingParenStart(int min, int position) {
         int depth = 0;
         for (int i = Math.min(position - 1, text.length() - 1); i >= min; i--) {
             if (isExcluded(i)) {
@@ -1370,7 +1370,7 @@ public class ScriptDocument {
         return -1;
     }
 
-    private int findMatchingParen(int openParenIndex, int limit) {
+    int findMatchingParen(int openParenIndex, int limit) {
         if (openParenIndex < 0 || openParenIndex >= text.length()) {
             return -1;
         }
@@ -1392,7 +1392,7 @@ public class ScriptDocument {
         return -1;
     }
 
-    private String readKeywordBefore(int position) {
+    String readKeywordBefore(int position) {
         int i = position - 1;
         while (i >= 0) {
             if (isExcluded(i)) {
@@ -1463,6 +1463,12 @@ public class ScriptDocument {
                 while (m.find()) {
                     int absPos = bodyStart + m.start(2);
                     if (isExcluded(absPos)) continue;
+
+                    int afterVar = m.end(2);
+                    if (afterVar < bodyText.length()) {
+                        String rest = bodyText.substring(afterVar);
+                        if (rest.length() > 0 && java.util.regex.Pattern.compile("^\\s+(?:in|of)\\s").matcher(rest).find()) continue;
+                    }
 
                     boolean insideInner = false;
                     for (InnerCallableScope scope : innerScopes) {
@@ -1583,6 +1589,9 @@ public class ScriptDocument {
                         continue;
                     }
 
+                    int enclosingParen = findEnclosingParenStart(bodyStart, absPos);
+                    if (enclosingParen >= 0 && "for".equals(readKeywordBefore(enclosingParen))) continue;
+
                     int modifiers = parseModifiers(typeName);
 
                     TypeInfo typeInfo;
@@ -1655,11 +1664,10 @@ public class ScriptDocument {
         for (InnerCallableScope scope : innerScopes) {
             parseLocalVariablesInScope(scope);
         }
+
+        new LoopVariableParser(this, text).parse(methodLocals);
     }
-    
-    /**
-     * Parse local variable declarations inside an inner callable scope (lambda or JS function expression).
-     */
+
     private void parseLocalVariablesInScope(InnerCallableScope scope) {
         int start = scope.getBodyStart();
         int end = scope.getBodyEnd();
@@ -1749,6 +1757,12 @@ public class ScriptDocument {
             int declPos = start + m.start();
             if (declPos < start || declPos >= end) continue;
             if (isExcluded(declPos)) continue;
+
+            int afterVar = m.end(1);
+            if (afterVar < rangeText.length()) {
+                String rest = rangeText.substring(afterVar);
+                if (rest.length() > 0 && java.util.regex.Pattern.compile("^\\s+(?:in|of)\\s").matcher(rest).find()) continue;
+            }
             
             String varName = m.group(1);
             String initializer = null;
@@ -7696,7 +7710,7 @@ public class ScriptDocument {
         return pos;
     }
 
-    private MethodInfo findMethodAtPosition(int position) {
+    MethodInfo findMethodAtPosition(int position) {
         for (MethodInfo method : getAllMethods()) {
             if (method.containsPosition(position)) {
                 return method;
@@ -7728,7 +7742,7 @@ public class ScriptDocument {
         return findMethodAtPosition(position);
     }
 
-    private int findMatchingBrace(int openBraceIndex) {
+    int findMatchingBrace(int openBraceIndex) {
         if (openBraceIndex < 0 || openBraceIndex >= text.length())
             return -1;
 
