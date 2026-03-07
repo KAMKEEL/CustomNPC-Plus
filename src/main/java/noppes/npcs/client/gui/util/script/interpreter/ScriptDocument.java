@@ -70,6 +70,11 @@ public class ScriptDocument {
     private static final Pattern KEYWORD_PATTERN = Pattern.compile(
             "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|super|new|typeof|instanceof|import)\\b");
 
+    private static final Pattern KEYWORD_JS_PATTERN = Pattern.compile(
+            "\\b(function|var|let|const|if|else|for|while|do|switch|case|break|continue|return|" +
+                    "try|catch|finally|throw|new|typeof|instanceof|in|of|this|null|undefined|true|false|" +
+                    "class|extends|import|export|default|async|await|yield)\\b");
+    
     // Declarations - Updated to capture method parameters
     private static final Pattern IMPORT_PATTERN = Pattern.compile(
             "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*?)?\\s*(?:;|$)");
@@ -3001,7 +3006,9 @@ public class ScriptDocument {
         
         // Keywords - same for both languages (KEYWORD_PATTERN includes JS keywords like function, var, let, const)
         addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
-        
+        if(isJavaScript())
+            addPatternMarks(marks, KEYWORD_JS_PATTERN, TokenType.KEYWORD);
+            
         // Numbers - same for both languages
         addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
         
