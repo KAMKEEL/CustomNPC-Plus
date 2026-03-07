@@ -4898,8 +4898,9 @@ public class ScriptDocument {
      */
     public TypeInfo resolveExpressionType(String expr, int position) {
         expr = expr.trim();
-        
-        if (expr.isEmpty()) {
+        expr = stripLineComments(expr);
+
+        if (expr.isEmpty()) 
             return null;
         }
         
@@ -5336,6 +5337,26 @@ public class ScriptDocument {
         }
     }
 
+    /**
+     * 
+     */
+    private String stripLineComments(String expr) {
+        if (!expr.contains("//"))
+            return expr;
+
+        String[] lines = expr.split("\n", -1);
+        StringBuilder result = new StringBuilder();
+        for (String line : lines) {
+            int ci = line.indexOf("//");
+            String part = (ci >= 0 ? line.substring(0, ci) : line).trim();
+            if (!part.isEmpty()) {
+                if (result.length() > 0) result.append(' ');
+                result.append(part);
+            }
+        }
+        return result.toString().trim();
+    }
+    
     /**
      * Extract the element type from an array type, using multiple fallback strategies.
      * 
