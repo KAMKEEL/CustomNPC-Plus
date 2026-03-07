@@ -15,6 +15,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
 import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.SubGuiTagSelect;
+import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
@@ -63,12 +65,14 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         guiTop += 7;
         int y = guiTop + 7;
         int x = guiLeft + 4 + 4;
-        addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, x + 36, y, 280, 20, effect.name));
+        addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, x + 36, y, 210, 20, effect.name));
         getTextField(1).setMaxStringLength(40);
         addLabel(new GuiNpcLabel(1, "gui.name", x, y + 5));
 
-        addLabel(new GuiNpcLabel(-1, "ID", x + 320, y + 1));
-        addLabel(new GuiNpcLabel(-2, effect.id + "", x + 320, y + 11));
+        addLabel(new GuiNpcLabel(-1, "ID", x + 250, y + 1));
+        addLabel(new GuiNpcLabel(-2, effect.id + "", x + 250, y + 11));
+
+        addButton(new GuiNpcButton(40, getTextField(1).xPosition + getTextField(1).width + 30, y, 70, 20, "gui.tags"));
 
         y += 23;
 
@@ -242,6 +246,10 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         if (id == -2) {
             PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), originalName));
             GuiScriptInterface.open(parent, new EffectScript(effect.id));
+        }
+        if (id == 40) {
+            setSubGui(new SubGuiTagSelect(effect.tagUUIDs));
+            return;
         }
         if (id == 10) {
             GuiNpcButtonYesNo button = (GuiNpcButtonYesNo) guibutton;

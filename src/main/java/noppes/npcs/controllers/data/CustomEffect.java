@@ -9,8 +9,11 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.ICustomEffect;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomEffectController;
+import noppes.npcs.controllers.TagController;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 
+import java.util.HashSet;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class CustomEffect implements ICustomEffect {
@@ -35,6 +38,8 @@ public class CustomEffect implements ICustomEffect {
     public int frametime = 2;
 
     public int index = 0;
+
+    public HashSet<UUID> tagUUIDs = new HashSet<>();
 
     public CustomEffect() {
     }
@@ -261,6 +266,8 @@ public class CustomEffect implements ICustomEffect {
         compound.setInteger("iconFrameCount", frameCount);
         compound.setInteger("iconFrameTime", frametime);
 
+        TagController.writeTagUUIDs(compound, "TagUUIDs", tagUUIDs);
+
         if (saveScripts) {
             NBTTagCompound scriptData = new NBTTagCompound();
             EffectScript handler = getScriptHandler();
@@ -308,6 +315,8 @@ public class CustomEffect implements ICustomEffect {
             frameCount = Math.max(1, compound.getInteger("iconFrameCount"));
         if (compound.hasKey("iconFrameTime"))
             frametime = Math.max(1, compound.getInteger("iconFrameTime"));
+
+        tagUUIDs = TagController.readTagUUIDs(compound, "TagUUIDs");
 
         if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
             EffectScript handler = new EffectScript();

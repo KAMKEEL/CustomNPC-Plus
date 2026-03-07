@@ -47,6 +47,7 @@ import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.AbilityScript;
@@ -63,8 +64,10 @@ import noppes.npcs.scripted.event.AbilityEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public abstract class Ability implements IAbility, IAbilityAction {
@@ -128,6 +131,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     // Custom data for external mods
     protected NBTTagCompound customData = new NBTTagCompound();
+
+    // Tags
+    protected HashSet<UUID> tagUUIDs = new HashSet<>();
 
     // Magic data — defines magic types and damage splits for this ability
     protected MagicData magicData = new MagicData();
@@ -1526,6 +1532,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setString("telegraphType", telegraphType.name());
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
         nbt.setTag("customData", (NBTTagCompound) customData.copy());
+        TagController.writeTagUUIDs(nbt, "TagUUIDs", tagUUIDs);
         magicData.writeToNBT(nbt);
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
@@ -1625,6 +1632,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         }
         telegraphHeightOffset = nbt.getFloat("telegraphHeightOffset");
         customData = (NBTTagCompound) nbt.getCompoundTag("customData").copy();
+        tagUUIDs = TagController.readTagUUIDs(nbt, "TagUUIDs");
         magicData.readToNBT(nbt);
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
@@ -2328,6 +2336,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
 
     public NBTTagCompound getCustomData() {
         return customData;
+    }
+
+    public HashSet<UUID> getTagUUIDs() {
+        return tagUUIDs;
+    }
+
+    public void setTagUUIDs(HashSet<UUID> tagUUIDs) {
+        this.tagUUIDs = tagUUIDs;
     }
 
     public MagicData getMagicData() {
