@@ -331,13 +331,16 @@ public class MethodCallInfo {
     public void validate() {
         if (isConstructor) {
             if (resolvedMethod == null) {
-                // For constructors, check if the type has any constructors at all
-                if (receiverType != null && receiverType.hasConstructors()) {
-                    setError(ErrorType.WRONG_ARG_COUNT, 
-                            "No constructor in '" + receiverType.getSimpleName() + "' matches " + arguments.size() + " argument(s)");
-                } else {
-                    setError(ErrorType.UNRESOLVED_METHOD, 
-                            "Cannot resolve constructor for '" + methodName + "'");
+                // Don't report missing JS constructors as unresolved method error, since they may be created dynamically at runtime
+                boolean isJSType = receiverType != null && receiverType.isJSType();
+                if (!isJSType) {
+                    if (receiverType != null && receiverType.hasConstructors()) {
+                        setError(ErrorType.WRONG_ARG_COUNT, 
+                                "No constructor in '" + receiverType.getSimpleName() + "' matches " + arguments.size() + " argument(s)");
+                    } else {
+                        setError(ErrorType.UNRESOLVED_METHOD, 
+                                "Cannot resolve constructor for '" + methodName + "'");
+                    }
                 }
             } else if (receiverType != null) {
                 List<FieldInfo> cParams = resolvedMethod.getParameters();

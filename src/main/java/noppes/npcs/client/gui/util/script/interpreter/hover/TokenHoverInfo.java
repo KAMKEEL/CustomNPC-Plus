@@ -243,6 +243,9 @@ public class TokenHoverInfo {
             if (callInfo.hasStaticAccessError()) {
                 errors.add(callInfo.getErrorMessage());
             }
+            if (callInfo.getErrorType() == MethodCallInfo.ErrorType.UNRESOLVED_METHOD) {
+                errors.add(callInfo.getErrorMessage());
+            }
         }
         
         // Show field access errors
