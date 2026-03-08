@@ -145,6 +145,12 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
     protected void drawItemDetails(int x, int y, int w) {}
     protected void saveCurrentItem() {}
 
+    /**
+     * Hook for name-based items (e.g. abilities) that don't use numeric IDs.
+     * Called when a new item needs to be moved to a category but getSelectedItemId() returns -1.
+     */
+    protected void onMoveNewItem(int catId) {}
+
     protected void setPrevItemName(String name) {
         this.prevItemName = name;
     }
@@ -728,9 +734,13 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
             return;
         }
         onItemReceived(compound);
-        if (pendingNewItemCatId > 0 && hasSelectedItem() && getSelectedItemId() >= 0) {
-            sendMovePacket(getSelectedItemId(), pendingNewItemCatId);
-            if (selectedCatId >= 0) requestItemsInCategory(selectedCatId);
+        if (pendingNewItemCatId > 0 && hasSelectedItem()) {
+            if (getSelectedItemId() >= 0) {
+                sendMovePacket(getSelectedItemId(), pendingNewItemCatId);
+                if (selectedCatId >= 0) requestItemsInCategory(selectedCatId);
+            } else {
+                onMoveNewItem(pendingNewItemCatId);
+            }
         }
         pendingNewItemCatId = -1;
         initGui();
