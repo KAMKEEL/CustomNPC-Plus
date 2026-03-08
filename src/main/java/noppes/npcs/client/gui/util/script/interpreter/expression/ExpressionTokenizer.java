@@ -106,9 +106,16 @@ public class ExpressionTokenizer {
                 continue;
             }
             
-            // Check for lambda arrow
+            // Check for lambda arrow (Java ->)
             if (pos + 1 < len && c == '-' && expr.charAt(pos + 1) == '>') {
                 tokens.add(new ExpressionToken(ExpressionToken.TokenKind.LAMBDA_ARROW, "->", pos, pos + 2));
+                pos += 2;
+                continue;
+            }
+            
+            // Check for JS arrow (=>)
+            if (pos + 1 < len && c == '=' && expr.charAt(pos + 1) == '>') {
+                tokens.add(new ExpressionToken(ExpressionToken.TokenKind.JS_ARROW, "=>", pos, pos + 2));
                 pos += 2;
                 continue;
             }

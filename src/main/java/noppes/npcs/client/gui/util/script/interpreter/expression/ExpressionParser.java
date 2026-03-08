@@ -24,6 +24,7 @@ public class ExpressionParser {
         int checkpoint = pos;
         List<String> paramNames = null;
         int lambdaStart = current().getStart();
+        boolean isJSArrow = false;
         
         // Try to parse parameter list
         if (check(ExpressionToken.TokenKind.IDENTIFIER)) {
@@ -33,6 +34,10 @@ public class ExpressionParser {
             if (check(ExpressionToken.TokenKind.LAMBDA_ARROW)) {
                 paramNames = new ArrayList<>();
                 paramNames.add(paramName);
+            } else if (check(ExpressionToken.TokenKind.JS_ARROW)) {
+                paramNames = new ArrayList<>();
+                paramNames.add(paramName);
+                isJSArrow = true;
             } else {
                 // Not a lambda, rewind
                 pos = checkpoint;
@@ -72,6 +77,8 @@ public class ExpressionParser {
                     advance(); // consume ')'
                     if (check(ExpressionToken.TokenKind.LAMBDA_ARROW)) {
                         // Valid lambda!
+                    } else if (check(ExpressionToken.TokenKind.JS_ARROW)) {
+                        isJSArrow = true;
                     } else {
                         // Not a lambda, rewind
                         pos = checkpoint;
@@ -87,7 +94,7 @@ public class ExpressionParser {
         
         if (paramNames != null) {
             // This is a lambda! Parse it
-            advance(); // consume '->'
+            advance(); // consume '->' or '=>'
             
             // Parse body
             ExpressionNode body;
@@ -122,6 +129,8 @@ public class ExpressionParser {
             }
             
             // Create lambda node (scopeRef will be set during type resolution)
+            if (isJSArrow) 
+                return new ExpressionNode.JSArrowNode(paramNames, body, isBlock, lambdaStart, bodyEnd);
             return new ExpressionNode.LambdaNode(paramNames, body, isBlock, lambdaStart, bodyEnd);
         }
         

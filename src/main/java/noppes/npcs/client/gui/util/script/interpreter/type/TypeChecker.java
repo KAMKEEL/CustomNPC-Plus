@@ -534,7 +534,7 @@ public final class TypeChecker {
         return keywords;
     }
 
-    public static String[] getJaveScriptKeywords() {
+    public static String[] getJavaScriptKeywords() {
         String[] keywords = {
                 "function", "var", "let", "const", "if", "else", "for", "while", "do",
                 "switch", "case", "break", "continue", "return", "try", "catch", "finally",
@@ -545,5 +545,14 @@ public final class TypeChecker {
         
         
         return keywords;
+    }
+    
+    public static boolean isJavaScriptKeyword(String keyword) {
+        for (String k : getJavaScriptKeywords()) {
+            if (k.equals(keyword)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

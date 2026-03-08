@@ -346,6 +346,6 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
     }
 
     public String[] getKeywords() {
-        return TypeChecker.getJaveScriptKeywords();
+        return TypeChecker.getJavaScriptKeywords();
     }
 }

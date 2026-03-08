@@ -182,6 +182,10 @@ public class ExpressionTypeResolver {
             return resolveJSFunctionType((ExpressionNode.JSFunctionNode) node);
         }
         
+        if (node instanceof ExpressionNode.JSArrowNode) {
+            return resolveJSArrowType((ExpressionNode.JSArrowNode) node);
+        }
+        
         if (node instanceof ExpressionNode.MethodReferenceNode) {
             return resolveMethodReferenceType((ExpressionNode.MethodReferenceNode) node);
         }
@@ -377,6 +381,85 @@ public class ExpressionTypeResolver {
                 // Check if absolute position is in range
                 if (absolutePos >= scope.getHeaderStart() && absolutePos < scope.getFullEnd()) {
                     // Verify parameter names match
+                    if (scope.getParameters().size() == paramNames.size()) {
+                        boolean match = true;
+                        for (int i = 0; i < paramNames.size(); i++) {
+                            if (!scope.getParameters().get(i).getName().equals(paramNames.get(i))) {
+                                match = false;
+                                break;
+                            }
+                        }
+                        if (match) {
+                            return scope;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
+    private TypeInfo resolveJSArrowType(ExpressionNode.JSArrowNode arrowNode) {
+        TypeInfo expectedType = CURRENT_EXPECTED_TYPE;
+        
+        if (expectedType == null) {
+            TypeInfo functionType = context.resolveTypeName("Function");
+            if (functionType != null && functionType.isResolved()) {
+                return functionType;
+            }
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        MethodInfo sam = expectedType.getSingleAbstractMethod();
+        if (sam != null && document != null) {
+            InnerCallableScope scope = findJSArrowScopeByPosition(arrowNode.getStart(), arrowNode.getParameterNames());
+            
+            if (scope != null) {
+                scope.setExpectedType(expectedType);
+                
+                List<FieldInfo> samParams = sam.getParameters();
+                List<FieldInfo> arrowParams = scope.getParameters();
+                
+                if (samParams.size() == arrowParams.size()) {
+                    for (int i = 0; i < arrowParams.size(); i++) {
+                        TypeInfo inferredType = samParams.get(i).getTypeInfo();
+                        if (inferredType != null) {
+                            arrowParams.get(i).setInferredType(inferredType);
+                        }
+                    }
+                }
+            }
+            
+            return expectedType;
+        }
+        
+        String typeName = expectedType.getFullName();
+        if (typeName != null && (typeName.contains("Function") || typeName.contains("Consumer") || 
+                                 typeName.contains("Predicate") || typeName.contains("Supplier") ||
+                                 typeName.equals("java.lang.Runnable"))) {
+            if (arrowNode.getScopeRef() != null) {
+                arrowNode.getScopeRef().setExpectedType(expectedType);
+            }
+            return expectedType;
+        }
+        
+        if (typeName != null && typeName.equals("Function")) {
+            return expectedType;
+        }
+        
+        return TypeInfo.fromClass(Object.class);
+    }
+    
+    private InnerCallableScope findJSArrowScopeByPosition(int expressionRelativePos, List<String> paramNames) {
+        if (document == null) {
+            return null;
+        }
+        
+        int absolutePos = basePosition + expressionRelativePos;
+        
+        for (InnerCallableScope scope : document.getInnerScopes()) {
+            if (scope.getKind() == InnerCallableScope.Kind.JS_ARROW_FUNC) {
+                if (absolutePos >= scope.getHeaderStart() && absolutePos < scope.getFullEnd()) {
                     if (scope.getParameters().size() == paramNames.size()) {
                         boolean match = true;
                         for (int i = 0; i < paramNames.size(); i++) {

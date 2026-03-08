@@ -2282,6 +2282,8 @@ public class ScriptDocument {
         
         if (isJavaScript()) {
             parseJSFunctionExpressions();
+            parseJSArrowFunctions();
+            parseJSShorthandMethods();
         } else {
             parseJavaLambdas();
         }
@@ -2542,6 +2544,160 @@ public class ScriptDocument {
         }
     }
 
+    private void parseJSArrowFunctions() {
+        String arrowToken = "=>";
+        int pos = 0;
+        while ((pos = text.indexOf(arrowToken, pos)) >= 0) {
+            if (isExcluded(pos)) {
+                pos += 2;
+                continue;
+            }
+
+            int arrowPos = pos;
+            int headerStart = findArrowFunctionHeaderStart(arrowPos);
+            if (headerStart < 0) {
+                pos += 2;
+                continue;
+            }
+
+            int bodyStart = arrowPos + 2;
+            while (bodyStart < text.length() && Character.isWhitespace(text.charAt(bodyStart))) {
+                bodyStart++;
+            }
+
+            if (bodyStart >= text.length()) {
+                pos += 2;
+                continue;
+            }
+
+            int bodyEnd;
+            if (text.charAt(bodyStart) == '{') {
+                bodyEnd = findMatchingBrace(bodyStart);
+                if (bodyEnd < 0) bodyEnd = text.length();
+                else bodyEnd++;
+            } else {
+                bodyEnd = findLambdaExpressionEnd(bodyStart);
+            }
+
+            InnerCallableScope scope = new InnerCallableScope(
+                InnerCallableScope.Kind.JS_ARROW_FUNC,
+                headerStart,
+                arrowPos + 2,
+                bodyStart,
+                bodyEnd
+            );
+
+            parseArrowFunctionParameters(scope, headerStart, arrowPos);
+            innerScopes.add(scope);
+            pos = bodyEnd;
+        }
+    }
+
+    private int findArrowFunctionHeaderStart(int arrowPos) {
+        int pos = arrowPos - 1;
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
+            pos--;
+        }
+        if (pos < 0) return -1;
+
+        if (text.charAt(pos) == ')') {
+            int depth = 1;
+            pos--;
+            while (pos >= 0 && depth > 0) {
+                if (isExcluded(pos)) { pos--; continue; }
+                char c = text.charAt(pos);
+                if (c == ')') depth++;
+                else if (c == '(') depth--;
+                pos--;
+            }
+            return pos + 1;
+        } else if (Character.isJavaIdentifierPart(text.charAt(pos))) {
+            while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) {
+                pos--;
+            }
+            return pos + 1;
+        }
+        return -1;
+    }
+
+    private void parseArrowFunctionParameters(InnerCallableScope scope, int headerStart, int arrowPos) {
+        String headerText = text.substring(headerStart, arrowPos).trim();
+
+        if (headerText.startsWith("(") && headerText.endsWith(")")) {
+            String paramsText = headerText.substring(1, headerText.length() - 1).trim();
+            if (!paramsText.isEmpty()) {
+                String[] params = paramsText.split(",");
+                int offset = headerStart + 1;
+                for (String param : params) {
+                    param = param.trim();
+                    if (param.isEmpty()) continue;
+
+                    int nameOffset = text.indexOf(param, offset);
+                    if (nameOffset < 0) nameOffset = offset;
+
+                    FieldInfo paramInfo = FieldInfo.parameter(param, TypeInfo.ANY, nameOffset, null);
+                    scope.addParameter(paramInfo);
+                    offset = nameOffset + param.length();
+                }
+            }
+        } else {
+            if (ObjectLiteralParser.isSimpleIdentifier(headerText)) {
+                int nameOffset = text.indexOf(headerText, headerStart);
+                if (nameOffset < 0) nameOffset = headerStart;
+                FieldInfo paramInfo = FieldInfo.parameter(headerText, TypeInfo.ANY, nameOffset, null);
+                scope.addParameter(paramInfo);
+            }
+        }
+    }
+
+    private void parseJSShorthandMethods() {
+        Pattern shorthandPattern = Pattern.compile("(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
+        Matcher m = shorthandPattern.matcher(text);
+
+        while (m.find()) {
+            int start = m.start();
+            if (isExcluded(start)) continue;
+
+            if (!isInsideObjectLiteral(start)) continue;
+
+            String methodName = m.group(1);
+            if (TypeChecker.isJavaScriptKeyword(methodName)) continue;
+
+            int headerStart = m.start(1);
+            int bodyStart = m.end() - 1;
+            int bodyEnd = findMatchingBrace(bodyStart);
+            if (bodyEnd < 0) bodyEnd = text.length();
+            else bodyEnd++;
+
+            InnerCallableScope scope = new InnerCallableScope(
+                InnerCallableScope.Kind.JS_SHORTHAND_METHOD,
+                headerStart,
+                bodyStart,
+                bodyStart,
+                bodyEnd
+            );
+
+            String paramsText = m.group(2).trim();
+            if (!paramsText.isEmpty()) {
+                String[] params = paramsText.split(",");
+                int offset = m.start(2);
+                for (String param : params) {
+                    param = param.trim();
+                    if (param.isEmpty()) continue;
+
+                    int nameOffset = text.indexOf(param, offset);
+                    if (nameOffset < 0) nameOffset = offset;
+
+                    FieldInfo paramInfo = FieldInfo.parameter(param, TypeInfo.ANY, nameOffset, null);
+                    scope.addParameter(paramInfo);
+                    offset = nameOffset + param.length();
+                }
+            }
+
+            innerScopes.add(scope);
+        }
+    }
+    
     private boolean isFunctionDeclaration(int funcStart) {
         // A function declaration is a statement, check context:
         // - If preceded by = or ( or , or : or [ it's an expression
@@ -3572,7 +3728,9 @@ public class ScriptDocument {
     private void validateLambdaReturnTypes(List<ScriptLine.Mark> marks) {
         for (InnerCallableScope scope : innerScopes) {
             if (scope.getKind() == InnerCallableScope.Kind.JAVA_LAMBDA || 
-                scope.getKind() == InnerCallableScope.Kind.JS_FUNCTION_EXPR) {
+                scope.getKind() == InnerCallableScope.Kind.JS_FUNCTION_EXPR ||
+                scope.getKind() == InnerCallableScope.Kind.JS_ARROW_FUNC ||
+                scope.getKind() == InnerCallableScope.Kind.JS_SHORTHAND_METHOD) {
                 validateLambdaReturnType(scope, marks);
             }
         }
@@ -5160,7 +5318,7 @@ public class ScriptDocument {
          // Check if expression contains operators - if so, use the full expression resolver
          // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc
          // Also route JS function expressions and arrow lambdas through the parser
-         if (containsOperators(expr) || expr.contains("::") || expr.contains("->") || expr.startsWith("(") || looksLikeFunctionOrLambda(expr)) {
+         if (containsOperators(expr) || expr.contains("::") || expr.contains("->") || expr.contains("=>") || expr.startsWith("(") || looksLikeFunctionOrLambda(expr)) {
               return resolveExpressionWithParserAPI(expr, position);
           }
         

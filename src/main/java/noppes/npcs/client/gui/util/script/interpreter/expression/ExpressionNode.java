@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.expression;
 
+import noppes.npcs.client.gui.util.script.interpreter.InnerCallableScope;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -318,6 +319,47 @@ public abstract class ExpressionNode {
                 sb.append(bodyText);
             }
             sb.append(" }");
+            return sb.toString();
+        }
+    }
+    
+    public static class JSArrowNode extends ExpressionNode {
+        private final List<String> parameterNames;
+        private final ExpressionNode body;
+        private final boolean isBlock;
+        private InnerCallableScope scopeRef;
+        
+        public JSArrowNode(List<String> parameterNames, ExpressionNode body, boolean isBlock, int start, int end) {
+            super(start, end);
+            this.parameterNames = parameterNames != null ? new ArrayList<>(parameterNames) : new ArrayList<>();
+            this.body = body;
+            this.isBlock = isBlock;
+        }
+        
+        public List<String> getParameterNames() { return Collections.unmodifiableList(parameterNames); }
+        public ExpressionNode getBody() { return body; }
+        public boolean isBlock() { return isBlock; }
+        public InnerCallableScope getScopeRef() { return scopeRef; }
+        public void setScopeRef(InnerCallableScope scope) { 
+            this.scopeRef = scope; 
+        }
+        
+        @Override
+        public TypeInfo resolveType(TypeResolverContext resolver) {
+            return TypeInfo.fromClass(Object.class);
+        }
+        
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("(");
+            sb.append(String.join(", ", parameterNames));
+            sb.append(") => ");
+            if (isBlock) {
+                sb.append("{ ... }");
+            } else if (body != null) {
+                sb.append(body);
+            }
             return sb.toString();
         }
     }

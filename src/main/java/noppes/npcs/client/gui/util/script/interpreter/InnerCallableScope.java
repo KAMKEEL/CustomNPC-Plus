@@ -15,7 +15,9 @@ public class InnerCallableScope {
     
     public enum Kind {
         JAVA_LAMBDA,
-        JS_FUNCTION_EXPR
+        JS_FUNCTION_EXPR,
+        JS_ARROW_FUNC,
+        JS_SHORTHAND_METHOD
     }
     
     private final Kind kind;
