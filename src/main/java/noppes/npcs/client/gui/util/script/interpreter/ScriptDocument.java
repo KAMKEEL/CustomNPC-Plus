@@ -2177,11 +2177,15 @@ public class ScriptDocument {
         TypeInfo currentType = null;
         
         // Resolve the first segment
+        if ("this".equals(firstIdent)) {
+            currentType = resolveThisType(identStart);
+        }
+
         TypeInfo typeCheck = resolveType(firstIdent);
-        if (typeCheck != null && typeCheck.isResolved()) {
+        if (currentType == null && typeCheck != null && typeCheck.isResolved()) {
             // Static access like Event.player or scriptType.field
             currentType = typeCheck;
-        } else {
+        } else if (currentType == null) {
             // Variable access
             FieldInfo varInfo = resolveVariable(firstIdent, identStart);
             currentType = (varInfo != null) ? varInfo.getTypeInfo() : null;
@@ -6956,8 +6960,30 @@ public class ScriptDocument {
             // 5. Enclosing type fields (if inside method)
             // 6. Global fields
             // 7. Script type fields
+
+            boolean breakOuterLoop = false;
+            // Mark the parameter name at its declaration site in the parameter list.
+            // Example: marks the first 'item' in func = (item) => item + 1
+            // Needed because the header region is outside the scope body, so findInnermostScopeAt won't find it.
+            for (InnerCallableScope scope : innerScopes) {
+                for (FieldInfo param : scope.getParameters()) {
+                    int declStart = param.getDeclarationOffset();
+                    if (declStart == m.start(1) && name.equals(param.getName())) {
+                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER, param));
+                        breakOuterLoop = true;
+                        break;
+                    }
+                }
+                if (breakOuterLoop) 
+                    break;
+                
+            }
+            if (breakOuterLoop) 
+                continue;
             
-            // Check inner callable scope parameters first (lambda/function expressions)
+              
+            // Resolve parameter/local usage sites inside the scope body via the innermost enclosing scope.
+            // Example: marks the second 'item' in func = (item) => item + 1
             Object innermostScope = findInnermostScopeAt(m.start(1));
             if (innermostScope instanceof InnerCallableScope) {
                 InnerCallableScope innerScope = (InnerCallableScope) innermostScope;
