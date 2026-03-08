@@ -3,6 +3,7 @@ package noppes.npcs.scripted.entity;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.api.entity.IEnergyBeam;
+import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptEnergyBeam<T extends EntityAbilityBeam> extends ScriptEnergyProjectile<T> implements IEnergyBeam {
@@ -61,5 +62,23 @@ public class ScriptEnergyBeam<T extends EntityAbilityBeam> extends ScriptEnergyP
     @Override
     protected void launchFromOwner(EntityLivingBase target) {
         entity.startFiring(target);
+    }
+
+    @Override
+    public void fireAt(IEntity target) {
+        entity.setAttachedToOwner(false);
+        super.fireAt(target);
+    }
+
+    @Override
+    public void fireAt(double x, double y, double z) {
+        entity.setAttachedToOwner(false);
+        super.fireAt(x, y, z);
+    }
+
+    @Override
+    public void fireDirection(float yaw, float pitch) {
+        entity.setAttachedToOwner(false);
+        super.fireDirection(yaw, pitch);
     }
 }
