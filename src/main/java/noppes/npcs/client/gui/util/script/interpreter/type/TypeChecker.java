@@ -33,6 +33,14 @@ public final class TypeChecker {
         if (expected == null) return true; // void can accept anything (shouldn't happen)
         if (actual == null) return true; // Can't verify, assume compatible
 
+        // Handle array types: compatible if element types are compatible
+        if (expected.isArray() && actual.isArray()) {
+            TypeInfo expectedElement = expected.getElementType();
+            TypeInfo actualElement = actual.getElementType();
+            if (expectedElement != null && actualElement != null) 
+                return isTypeCompatible(expectedElement, actualElement);
+        }
+        
         // Script method reference placeholder: only compatible with functional interface params.
         // Used to help overload selection choose SAM overloads in JavaScript.
         if ("__script_method_ref__".equals(actual.getFullName())) {

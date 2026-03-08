@@ -1114,10 +1114,6 @@ public final class ObjectLiteralParser {
             return TypeInfo.ANY;
         }
 
-        if (first == '[') {
-            return TypeInfo.ANY;
-        }
-
         TypeInfo inferred = typeResolver.resolve(valueExpr, valueStartAbs);
         return (inferred != null) ? inferred : TypeInfo.ANY;
     }

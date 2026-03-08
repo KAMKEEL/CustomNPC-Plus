@@ -5347,6 +5347,12 @@ public class ScriptDocument {
               return resolveExpressionWithParserAPI(expr, position);
           }
         
+        // JS array literals: [], [a, b], ["hi", "bye"]
+        if (isJavaScript() && expr.startsWith("[") && expr.endsWith("]")) {
+            String inner = expr.substring(1, expr.length() - 1).trim();
+            return TypeInfo.arrayOf(unifyJsArrayElementType(inner, position + 1));
+        }
+
         // Invalid expressions starting with brackets
         if (expr.startsWith("[") || expr.startsWith("]")) {
             return null; // Invalid syntax
@@ -5429,6 +5435,13 @@ public class ScriptDocument {
                 FieldInfo varInfo = resolveVariable(typeName, position);
                 if (varInfo != null && varInfo.getTypeInfo() instanceof ClassTypeInfo) {
                     return ((ClassTypeInfo) varInfo.getTypeInfo()).getInstanceType();
+                }
+                if (isJavaScript() && typeName.equals("Array")) {
+                    String rest = expr.substring(newMatcher.end()).trim();
+                    String argsText = (rest.startsWith("(") && rest.endsWith(")"))
+                            ? rest.substring(1, rest.length() - 1).trim()
+                            : "";
+                    return TypeInfo.arrayOf(unifyJsArrayElementType(argsText, position));
                 }
                 TypeInfo baseType = resolveType(typeName);
                 if (baseType == null) return null;
@@ -5751,6 +5764,28 @@ public class ScriptDocument {
         }
         
         return argTypes;
+    }
+
+    /**
+     * For JavaScript array literals, unify the element types to determine the array's element type.
+     */
+    private TypeInfo unifyJsArrayElementType(String argsText, int position) {
+        if (argsText.isEmpty()) return TypeInfo.ANY;
+        TypeInfo[] elementTypes = parseArgumentTypes(argsText, position);
+        if (elementTypes.length == 1 && TypeInfo.NUMBER.equals(elementTypes[0])) return TypeInfo.ANY;
+        TypeInfo common = null;
+        boolean allSame = true;
+        for (TypeInfo t : elementTypes) {
+            boolean isUnresolvable = t == null || TypeInfo.NULL.equals(t);
+            if (isUnresolvable) continue;
+            if (common == null) {
+                common = t;
+            } else if (!common.equals(t)) {
+                allSame = false;
+                break;
+            }
+        }
+        return allSame && common != null ? common : TypeInfo.ANY;
     }
 
     /**

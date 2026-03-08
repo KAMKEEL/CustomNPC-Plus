@@ -73,12 +73,14 @@ export interface Array<T> {
   forEach(callback: Java.java.util.function.Consumer<T>): void;
 
   /** Returns the first index at which an element is found, or -1 if not present */
+  indexOf(searchElement: T): number;
   indexOf(searchElement: T, fromIndex: number): number;
 
   /** Joins all elements of an array into a string separated by the given separator */
   join(separator: string): string;
 
   /** Returns the last index at which an element is found, or -1 if not present */
+  lastIndexOf(searchElement: T): number;
   lastIndexOf(searchElement: T, fromIndex: number): number;
 
   /** Creates a new array with the results of calling a function on every element */
@@ -91,9 +93,11 @@ export interface Array<T> {
   push(...items: T[]): number;
 
   /** Applies a function against an accumulator and each element to reduce the array to a single value */
+  reduce(callback: Java.java.util.function.BiFunction<any, T, any>): any;
   reduce(callback: Java.java.util.function.BiFunction<any, T, any>, initialValue: any): any;
 
   /** Same as reduce() but processes the array from right to left */
+  reduceRight(callback: Java.java.util.function.BiFunction<any, T, any>): any;
   reduceRight(callback: Java.java.util.function.BiFunction<any, T, any>, initialValue: any): any;
 
   /** Reverses an array in place. The first element becomes the last, and vice versa */
