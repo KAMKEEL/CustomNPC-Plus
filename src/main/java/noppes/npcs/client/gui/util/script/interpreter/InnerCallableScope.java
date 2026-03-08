@@ -29,6 +29,7 @@ public class InnerCallableScope {
     private final Map<String, FieldInfo> locals = new HashMap<>();
     private InnerCallableScope parentScope;  // Enclosing inner scope (for nested lambdas)
     private TypeInfo expectedType;  // The expected functional interface type (set during resolution)
+    private TypeInfo containingObjectType;  // For object-literal methods, the synthetic object-literal type
     
     public InnerCallableScope(Kind kind, int headerStart, int headerEnd, int bodyStart, int bodyEnd) {
         this.kind = kind;
@@ -48,10 +49,12 @@ public class InnerCallableScope {
     public Map<String, FieldInfo> getLocals() { return locals; }
     public InnerCallableScope getParentScope() { return parentScope; }
     public TypeInfo getExpectedType() { return expectedType; }
+    public TypeInfo getContainingObjectType() { return containingObjectType; }
     
     // Setters
     public void setParentScope(InnerCallableScope parent) { this.parentScope = parent; }
     public void setExpectedType(TypeInfo type) { this.expectedType = type; }
+    public void setContainingObjectType(TypeInfo type) { this.containingObjectType = type; }
     
     public void addParameter(FieldInfo param) {
         parameters.add(param);

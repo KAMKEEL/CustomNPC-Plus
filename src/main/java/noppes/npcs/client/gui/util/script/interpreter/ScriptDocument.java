@@ -5394,7 +5394,7 @@ public class ScriptDocument {
         
         // "this" keyword
         if (expr.equals("this")) {
-            return findEnclosingScriptType(position);
+            return resolveThisType(position);
         }
         
         if (expr.startsWith("new ")) {
@@ -5430,7 +5430,7 @@ public class ScriptDocument {
         TypeInfo currentType = null;
         
         if (first.name.equals("this")) {
-            currentType = findEnclosingScriptType(position);
+            currentType = resolveThisType(position);
             // Handle this.field where we don't have a script type
             if (currentType == null && segments.size() > 1 && !segments.get(1).isMethodCall) {
                 String fieldName = segments.get(1).name;
@@ -5909,8 +5909,23 @@ public class ScriptDocument {
         }
         return null;
     }
-    
 
+    /**
+     * Resolve the type of "this" at a given position by finding the innermost scope and checking for containing object types.
+     * For both Java and JavaScript, this will correctly resolve to the appropriate type based on the current context (e.g., enclosing class, script type, or synthetic type).
+     * @param position
+     * @return
+     */
+    TypeInfo resolveThisType(int position) {
+        Object innermostScope = findInnermostScopeAt(position);
+        if (innermostScope instanceof InnerCallableScope) {
+            TypeInfo objectType = ((InnerCallableScope) innermostScope).getContainingObjectType();
+            if (objectType != null && objectType.isResolved()) {
+                return objectType;
+            }
+        }
+        return findEnclosingScriptType(position);
+    }
 
     // ==================== OPERATOR EXPRESSION RESOLUTION ====================
     
@@ -6099,7 +6114,7 @@ public class ScriptDocument {
             @Override
             public TypeInfo resolveIdentifier(String name) {
                 if ("this".equals(name)) {
-                    return findEnclosingScriptType(position);
+                    return resolveThisType(position);
                 }
                 if ("super".equals(name)) {
                     // Resolve super to parent class type
@@ -6257,7 +6272,7 @@ public class ScriptDocument {
         
         // "this" keyword
         if (expr.equals("this")) {
-            return findEnclosingScriptType(position);
+            return resolveThisType(position);
         }
         
         // "new Type()" expressions
@@ -6289,7 +6304,7 @@ public class ScriptDocument {
         TypeInfo currentType = null;
         
         if (first.name.equals("this")) {
-            currentType = findEnclosingScriptType(position);
+            currentType = resolveThisType(position);
         } else {
             // Check if first segment is a type name
             TypeInfo typeCheck = resolveType(first.name);
@@ -8228,7 +8243,7 @@ public class ScriptDocument {
         // First check inner callable scopes (most specific)
         InnerCallableScope innermost = null;
         for (InnerCallableScope scope : innerScopes) {
-            if (scope.containsPosition(position)) {
+            if (scope.containsPosition(position) || scope.containsHeaderPosition(position)) {
                 if (innermost == null || scope.getBodyStart() > innermost.getBodyStart()) {
                     innermost = scope;
                 }

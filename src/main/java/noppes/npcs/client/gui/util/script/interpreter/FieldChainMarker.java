@@ -188,7 +188,10 @@ public class FieldChainMarker {
 
         if (ctx.firstIsThis) {
             // 'this' - resolve to enclosing class/global fields
-            ctx.currentType = ctx.enclosingType;
+            ctx.currentType = document.resolveThisType(chainStart);
+            if (ctx.currentType == null) {
+                ctx.currentType = ctx.enclosingType;
+            }
         } else if (ctx.firstIsSuper) {
             // 'super' - resolve to parent class
             if (ctx.enclosingType != null && ctx.enclosingType.hasSuperClass()) {
@@ -228,7 +231,7 @@ public class FieldChainMarker {
 
         // Case 2: this.field
         if (index == 1 && ctx.firstIsThis) {
-            return resolveThisFieldMark(ctx);
+            return resolveThisFieldMark(ctx); 
         }
 
         // Case 3: super.field
@@ -286,17 +289,18 @@ public class FieldChainMarker {
         boolean found = false;
         FieldInfo fieldInfo = null;
 
-        // First check enclosing script type fields
-        if (ctx.enclosingType != null && ctx.enclosingType.hasField(segment)) {
+        TypeInfo thisType = ctx.currentType != null ? ctx.currentType : ctx.enclosingType;
+
+        if (thisType != null && thisType.hasField(segment)) {
             found = true;
-            fieldInfo = ctx.enclosingType.getFieldInfo(segment);
+            fieldInfo = thisType.getFieldInfo(segment);
         } else if (document.getGlobalFields().containsKey(segment)) {
             found = true;
             fieldInfo = document.getGlobalFields().get(segment);
         }
 
         if (found) {
-            FieldAccessInfo accessInfo = document.createFieldAccessInfo(segment, pos[0], pos[1], ctx.enclosingType,
+            FieldAccessInfo accessInfo = document.createFieldAccessInfo(segment, pos[0], pos[1], thisType,
                     fieldInfo, isLast, false);
 
             return new MarkResult(new ScriptLine.Mark(pos[0], pos[1], getFieldTokenType(fieldInfo), accessInfo),
