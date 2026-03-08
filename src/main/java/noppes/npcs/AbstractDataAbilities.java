@@ -785,6 +785,9 @@ public abstract class AbstractDataAbilities {
         // Fire tick event
         fireTickEvent(currentAbility, target);
 
+        // Script may have completed/cancelled the ability during the tick event
+        if (currentAbility == null || !currentAbility.isExecuting()) return;
+
         // Fire extender tick hook (e.g., per-tick resource drain)
         if (!AbilityController.Instance.fireOnAbilityTick(currentAbility, entity, target,
             currentAbility.getPhase(), currentAbility.getCurrentTick())) {

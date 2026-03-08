@@ -106,7 +106,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
     protected LockMode lockMovement = LockMode.WINDUP;
     protected RotationMode rotationMode = RotationMode.FREE;
     protected LockMode rotationPhase = LockMode.WINDUP_AND_ACTIVE;
-    protected float trackDelay = 0;       // 0 = instant tracking (legacy). Higher = slower lerp toward target.
+    protected float trackSpeed = 0;       // 0 = instant tracking. Linear tracking speed in blocks/second.
     protected int windUpColor = 0x80FF4400;   // Telegraph color during wind up
     protected int activeColor = 0xC0FF0000;   // Telegraph warning/active color
 
@@ -771,9 +771,9 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 .hover("ability.hover.rotationPhase")
                 .visibleWhen(() -> this.rotationMode != RotationMode.FREE)
         ).tab("General"));
-        defs.add(FieldDef.floatField("ability.trackDelay", this::getTrackDelay, this::setTrackDelay)
-            .range(0.0f, 20.0f)
-            .hover("ability.hover.trackDelay")
+        defs.add(FieldDef.floatField("ability.trackSpeed", this::getTrackSpeed, this::setTrackSpeed)
+            .range(0.0f, 12.0f)
+            .hover("ability.hover.trackSpeed")
             .visibleWhen(() -> this.rotationMode == RotationMode.TRACK)
             .tab("General"));
         defs.add(FieldDef.row(
@@ -1516,7 +1516,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setInteger("lockMovement", lockMovement.ordinal());
         nbt.setInteger("rotationMode", rotationMode.ordinal());
         nbt.setInteger("rotationPhase", rotationPhase.ordinal());
-        nbt.setFloat("trackDelay", trackDelay);
+        nbt.setFloat("trackSpeed", trackSpeed);
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
         nbt.setString("windUpSound", windUpSound);
@@ -1613,7 +1613,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         lockMovement = LockMode.fromOrdinal(nbt.getInteger("lockMovement"));
         rotationMode = RotationMode.fromOrdinal(nbt.getInteger("rotationMode"));
         rotationPhase = LockMode.fromOrdinal(nbt.getInteger("rotationPhase"));
-        trackDelay = nbt.hasKey("trackDelay") ? nbt.getFloat("trackDelay") : 0;
+        trackSpeed = nbt.hasKey("trackSpeed") ? nbt.getFloat("trackSpeed") : 0;
         windUpColor = nbt.hasKey("windUpColor") ? nbt.getInteger("windUpColor") : 0x80FF4400;
         activeColor = nbt.hasKey("activeColor") ? nbt.getInteger("activeColor") : 0xC0FF0000;
         windUpSound = nbt.getString("windUpSound");
@@ -1958,13 +1958,14 @@ public abstract class Ability implements IAbility, IAbilityAction {
         this.rotationPhase = rotationPhase;
     }
 
-    public float getTrackDelay() {
-        return trackDelay;
+    public float getTrackSpeed() {
+        return trackSpeed;
     }
 
-    public void setTrackDelay(float trackDelay) {
-        this.trackDelay = trackDelay;
+    public void setTrackSpeed(float trackSpeed) {
+        this.trackSpeed = trackSpeed;
     }
+
 
     /**
      * API method: Get lock movement type as integer.
@@ -2027,22 +2028,22 @@ public abstract class Ability implements IAbility, IAbilityAction {
     }
 
     /**
-     * API method: Get track delay for TRACK rotation mode.
-     * 0 = instant tracking (legacy). Higher = slower lerp toward target.
+     * API method: Get track speed for TRACK rotation mode (blocks/second).
+     * 0 = instant tracking. Comparable to player sprint speed (~5.6 blocks/sec).
      */
     @Override
-    public float getTrackDelayValue() {
-        return trackDelay;
+    public float getTrackSpeedValue() {
+        return trackSpeed;
     }
 
     /**
-     * API method: Set track delay for TRACK rotation mode.
+     * API method: Set track speed for TRACK rotation mode (blocks/second).
      *
-     * @param delay 0 = instant tracking. Higher = slower lerp toward target.
+     * @param speed 0 = instant tracking. ~4 = dodgeable while sprinting. ~6 = barely undodgeable.
      */
     @Override
-    public void setTrackDelayValue(float delay) {
-        this.trackDelay = Math.max(0, delay);
+    public void setTrackSpeedValue(float speed) {
+        this.trackSpeed = Math.max(0, speed);
     }
 
     /**

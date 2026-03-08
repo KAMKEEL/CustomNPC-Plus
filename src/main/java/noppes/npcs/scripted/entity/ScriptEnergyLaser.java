@@ -3,7 +3,6 @@ package noppes.npcs.scripted.entity;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.api.entity.IEnergyLaser;
-import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnergyProjectile<T> implements IEnergyLaser {
@@ -92,18 +91,12 @@ public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnerg
     // ==================== FIRE ====================
 
     @Override
-    public void fireAt(IEntity target) {
-        ensureSpawned();
-        EntityLivingBase mcTarget = null;
-        if (target != null && target.getMCEntity() instanceof EntityLivingBase) {
-            mcTarget = (EntityLivingBase) target.getMCEntity();
-        }
-        entity.startMoving(mcTarget);
+    protected void launchFromOwner(EntityLivingBase target) {
+        entity.startMoving(target);
     }
 
     @Override
     public void fireAt(double x, double y, double z) {
-        ensureSpawned();
         double dx = x - entity.posX;
         double dy = y - entity.posY;
         double dz = z - entity.posZ;
@@ -111,6 +104,6 @@ public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnerg
         if (len > 0) {
             entity.setDirection(dx / len, dy / len, dz / len);
         }
-        entity.startMoving(null);
+        ensureSpawned();
     }
 }
