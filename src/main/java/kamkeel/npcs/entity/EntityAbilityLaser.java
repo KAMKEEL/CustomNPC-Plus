@@ -47,6 +47,10 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     // End point for rendering
     private double endX, endY, endZ;
 
+    // Previous tick positions for partial tick interpolation
+    private double prevStartX, prevStartY, prevStartZ;
+    private double prevEndX, prevEndY, prevEndZ;
+
     // Block hit deduplication — prevents event/explosion spam every tick
     private int lastBlockHitX = Integer.MIN_VALUE;
     private int lastBlockHitY = Integer.MIN_VALUE;
@@ -107,10 +111,16 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             }
         }
 
-        // Initialize end point
+        // Initialize end point and prev positions
         this.endX = x;
         this.endY = y;
         this.endZ = z;
+        this.prevStartX = x;
+        this.prevStartY = y;
+        this.prevStartZ = z;
+        this.prevEndX = x;
+        this.prevEndY = y;
+        this.prevEndZ = z;
     }
 
     @Override
@@ -137,6 +147,14 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
             updateCharging();
             return;
         }
+
+        // Save previous positions for partial tick interpolation
+        prevStartX = startX;
+        prevStartY = startY;
+        prevStartZ = startZ;
+        prevEndX = endX;
+        prevEndY = endY;
+        prevEndZ = endZ;
 
         // Origin/direction tracking runs on BOTH sides so the client can render the beam.
         // Once reflected, never resume owner-tracking — the laser flies in a fixed direction.
@@ -285,6 +303,14 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.endX = startX;
         this.endY = startY;
         this.endZ = startZ;
+
+        // Initialize prev positions to current so first frame doesn't jump
+        this.prevStartX = startX;
+        this.prevStartY = startY;
+        this.prevStartZ = startZ;
+        this.prevEndX = startX;
+        this.prevEndY = startY;
+        this.prevEndZ = startZ;
     }
 
     private boolean setDirectionTowardTarget(EntityLivingBase target, double sourceX, double sourceY, double sourceZ) {
@@ -733,6 +759,30 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         return endZ;
     }
 
+    public double getInterpolatedStartX(float partialTicks) {
+        return prevStartX + (startX - prevStartX) * partialTicks;
+    }
+
+    public double getInterpolatedStartY(float partialTicks) {
+        return prevStartY + (startY - prevStartY) * partialTicks;
+    }
+
+    public double getInterpolatedStartZ(float partialTicks) {
+        return prevStartZ + (startZ - prevStartZ) * partialTicks;
+    }
+
+    public double getInterpolatedEndX(float partialTicks) {
+        return prevEndX + (endX - prevEndX) * partialTicks;
+    }
+
+    public double getInterpolatedEndY(float partialTicks) {
+        return prevEndY + (endY - prevEndY) * partialTicks;
+    }
+
+    public double getInterpolatedEndZ(float partialTicks) {
+        return prevEndZ + (endZ - prevEndZ) * partialTicks;
+    }
+
     public double getDirX() {
         return dirX;
     }
@@ -761,6 +811,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.endX = posX;
         this.endY = posY;
         this.endZ = posZ;
+        this.prevStartX = posX;
+        this.prevStartY = posY;
+        this.prevStartZ = posZ;
+        this.prevEndX = posX;
+        this.prevEndY = posY;
+        this.prevEndZ = posZ;
     }
 
     // ==================== REFLECTION SYNC ====================
@@ -862,6 +918,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.endX = posX;
         this.endY = posY;
         this.endZ = posZ;
+        this.prevStartX = posX;
+        this.prevStartY = posY;
+        this.prevStartZ = posZ;
+        this.prevEndX = posX;
+        this.prevEndY = posY;
+        this.prevEndZ = posZ;
 
         // Precompute initial direction from owner look for launch.
         Vec3 look = owner == null ? null : owner.getLookVec();

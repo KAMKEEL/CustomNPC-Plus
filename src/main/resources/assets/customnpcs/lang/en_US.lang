@@ -2071,8 +2071,8 @@ ability.hover.weight=Higher weight = more likely to be chosen when multiple abil
 ability.hover.lockMovement=Prevents NPC pathfinding during the selected phases (Windup, Active, or Both)
 ability.hover.rotationMode=Free: normal AI rotation. Locked: freeze facing direction. Track: force face target for precise aiming.
 ability.hover.rotationPhase=When the rotation mode applies (Windup, Active, or Both)
-ability.trackDelay=Track Delay
-ability.hover.trackDelay=How sluggish tracking is. 0 = instant (impossible to dodge). Higher = slower rotation toward target. Default 3 for lasers.
+ability.trackSpeed=Track Speed
+ability.hover.trackSpeed=Tracking speed in blocks/sec. 0 = instant. Sprint speed is ~5.6. Default 4 for lasers (dodgeable while sprinting).
 ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
 ability.hover.ignoreIFrames=Temporarily clears target hurt resistance before applying ability damage, then restores it.
 ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)

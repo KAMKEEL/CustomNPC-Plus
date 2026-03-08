@@ -1,7 +1,6 @@
 package noppes.npcs.scripted.entity;
 
 import kamkeel.npcs.entity.EntityEnergyProjectile;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.entity.IEnergyProjectile;
@@ -261,8 +260,14 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
 
     public void fireAt(IEntity target) {
         if (target != null) {
-            Entity mcTarget = target.getMCEntity();
-            setMotionToward(mcTarget.posX, mcTarget.posY + mcTarget.getEyeHeight(), mcTarget.posZ);
+            EntityLivingBase living = resolveLivingTarget(target);
+            if (living != null) {
+                entity.setTargetEntityId(living.getEntityId());
+                setMotionToward(living.posX, living.posY + living.getEyeHeight(), living.posZ);
+            } else {
+                net.minecraft.entity.Entity mcTarget = target.getMCEntity();
+                setMotionToward(mcTarget.posX, mcTarget.posY + mcTarget.getEyeHeight(), mcTarget.posZ);
+            }
         }
         ensureSpawned();
     }
@@ -273,24 +278,22 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
     }
 
     public void fireDirection(float yaw, float pitch) {
-        float yawRad = (float) Math.toRadians(yaw);
-        float pitchRad = (float) Math.toRadians(pitch);
-        entity.motionX = -Math.sin(yawRad) * Math.cos(pitchRad) * entity.getSpeed();
-        entity.motionY = -Math.sin(pitchRad) * entity.getSpeed();
-        entity.motionZ = Math.cos(yawRad) * Math.cos(pitchRad) * entity.getSpeed();
+        setMotionFromDirection(yaw, pitch);
         ensureSpawned();
     }
 
     public void fireFrom(IEntityLivingBase caster) {
         if (caster == null) return;
         initFromCaster(caster);
-        fireDirection(caster.getRotation(), caster.getPitch());
+        launchFromOwner(null);
+        ensureSpawned();
     }
 
     public void fireFrom(IEntityLivingBase caster, IEntity target) {
         if (caster == null) return;
         initFromCaster(caster);
-        fireAt(target);
+        launchFromOwner(resolveLivingTarget(target));
+        ensureSpawned();
     }
 
     /**
@@ -302,6 +305,37 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
         double eyeY = mc.posY + mc.getEyeHeight();
         entity.setPosition(mc.posX, eyeY, mc.posZ);
         entity.setStartPosition(mc.posX, eyeY, mc.posZ);
+    }
+
+    /**
+     * Hook for subclasses to call their entity's full launch sequence (startMoving/startFiring).
+     * Called by fireFrom methods — handles look-vector snap, charge exit, homing init, etc.
+     * Default: sets motion toward target, or along owner's look direction if target is null.
+     */
+    protected void launchFromOwner(EntityLivingBase target) {
+        if (target != null) {
+            setMotionToward(target.posX, target.posY + target.getEyeHeight(), target.posZ);
+        } else {
+            net.minecraft.entity.Entity owner = entity.getOwnerEntity();
+            if (owner != null) {
+                setMotionFromDirection(owner.rotationYaw, owner.rotationPitch);
+            }
+        }
+    }
+
+    private void setMotionFromDirection(float yaw, float pitch) {
+        float yawRad = (float) Math.toRadians(yaw);
+        float pitchRad = (float) Math.toRadians(pitch);
+        entity.motionX = -Math.sin(yawRad) * Math.cos(pitchRad) * entity.getSpeed();
+        entity.motionY = -Math.sin(pitchRad) * entity.getSpeed();
+        entity.motionZ = Math.cos(yawRad) * Math.cos(pitchRad) * entity.getSpeed();
+    }
+
+    protected static EntityLivingBase resolveLivingTarget(IEntity target) {
+        if (target != null && target.getMCEntity() instanceof EntityLivingBase) {
+            return (EntityLivingBase) target.getMCEntity();
+        }
+        return null;
     }
 
     /**
