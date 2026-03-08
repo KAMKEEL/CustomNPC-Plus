@@ -353,15 +353,42 @@ public class TypeInfo {
         if (properties != null) {
             for (ObjectLiteralParser.ObjectLiteralProperty p : properties) {
                 TypeInfo vt = (p.valueType != null) ? p.valueType : TypeInfo.ANY;
-                t.syntheticFields.add(FieldInfo.external(p.keyName, vt, null, Modifier.PUBLIC));
+                if (p.isCallable()) {
+                    ObjectLiteralParser.CallableInfo ci = p.callableInfo;
+                    t.syntheticFields.add(FieldInfo.external(p.keyName, TypeInfo.ANY, null, Modifier.PUBLIC));
+                    TypeInfo returnType = ci.returnsThis() ? t : ci.returnType;
+                    if (returnType == null) {
+                        returnType = t;
+                    }
+                    List<FieldInfo> params = new ArrayList<>();
+                    for (String paramName : ci.parameterNames) {
+                        params.add(FieldInfo.external(paramName, TypeInfo.ANY, null, Modifier.PUBLIC));
+                    }
+                    t.syntheticMethods.add(MethodInfo.external(p.keyName, returnType, t,
+                            params, Modifier.PUBLIC, null));
+                } else {
+                    t.syntheticFields.add(FieldInfo.external(p.keyName, vt, null, Modifier.PUBLIC));
+                }
             }
         }
         return t;
     }
 
-    public void addOrUpdateSyntheticField(String name, TypeInfo type) {
-        syntheticFields.removeIf(f -> f.getName().equals(name));
+    public void addSyntheticField(String name, TypeInfo type) {
         syntheticFields.add(FieldInfo.external(name, type, null, Modifier.PUBLIC));
+    }
+
+    public void removeSyntheticField(String name) {
+        syntheticFields.removeIf(f -> f.getName().equals(name));
+    }
+
+    public void addSyntheticMethod(String name, TypeInfo returnType, List<FieldInfo> params) {
+        syntheticMethods.add(MethodInfo.external(name, returnType, this,
+                params != null ? params : Collections.emptyList(), Modifier.PUBLIC, null));
+    }
+
+    public void removeSyntheticMethod(String name) {
+        syntheticMethods.removeIf(m -> m.getName().equals(name));
     }
 
     public static void injectJSMembers(TypeInfo target, JSTypeInfo jsExtensions) {

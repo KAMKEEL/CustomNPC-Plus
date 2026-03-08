@@ -136,6 +136,11 @@ public class ScriptDocument {
     // SAM context tracking for named function references
     // Maps method name -> first SAM signature applied (for conflict detection)
     private final Map<String, MethodInfo> scriptMethodSamContexts = new HashMap<>();
+
+    // Cached object literal analyses, keyed by brace-start offset in text.
+    // Populated once in parseObjectLiterals() and consumed by markObjectLiteralKeys,
+    // resolveExpressionType, and attachObjectLiteralContext.
+    private final Map<Integer, ObjectLiteralParser.ObjectLiteralAnalysis> objectLiterals = new HashMap<>();
     
     // Thread-local to communicate SAM conflict errors from resolveIdentifier back to parseMethodArguments
     // Set when injectSamParameterTypes detects a conflict, cleared after argument is created
@@ -359,6 +364,7 @@ public class ScriptDocument {
         externalFieldAssignments.clear();
         declarationErrors.clear();
         scriptMethodSamContexts.clear();
+        objectLiterals.clear();
         
         // Unified pipeline for both languages
         List<ScriptLine.Mark> marks = formatUnified();
@@ -700,6 +706,9 @@ public class ScriptDocument {
         
         // Parse and validate assignments (reassignments) - UNIFIED for both languages
         parseAssignments();
+
+        // Cache object literals after globals/locals are available for accurate value-type inference
+        parseObjectLiterals();
 
         // Detect method overrides and interface implementations for script types - Java only
         if (!isJavaScript()) {
@@ -2662,7 +2671,7 @@ public class ScriptDocument {
             int start = m.start();
             if (isExcluded(start)) continue;
 
-            if (!isInsideObjectLiteral(start)) continue;
+            if (!ObjectLiteralParser.isInsideObjectLiteral(start,this)) continue;
 
             String methodName = m.group(1);
             if (TypeChecker.isJavaScriptKeyword(methodName)) continue;
@@ -3381,36 +3390,42 @@ public class ScriptDocument {
     }
 
     private void markObjectLiteralKeys(List<ScriptLine.Mark> marks) {
+        for (ObjectLiteralParser.ObjectLiteralAnalysis analysis : objectLiterals.values()) {
+            for (ObjectLiteralParser.ObjectLiteralProperty p : analysis.properties) {
+                if (p.isIdentifierKey) {
+                    marks.add(new ScriptLine.Mark(p.keyStartAbs, p.keyEndAbs, TokenType.LOCAL_FIELD));
+                }
+            }
+        }
+    }
+
+    private void parseObjectLiterals() {
+        if (!isJavaScript()) return;
         int i = 0;
         while (i < text.length()) {
             int brace = text.indexOf('{', i);
-            if (brace < 0) {
-                return;
-            }
-            i = brace;
+            if (brace < 0) break;
             if (isExcluded(brace) || !isLikelyObjectLiteralStart(brace)) {
-                i++;
+                i = brace + 1;
                 continue;
             }
-
             int end = findMatchingBraceEndInDocument(brace);
             if (end <= brace) {
-                i++;
+                i = brace + 1;
                 continue;
             }
-
             String objectLiteral = text.substring(brace, end);
-            ObjectLiteralParser.ObjectLiteralAnalysis analysis = ObjectLiteralParser.parse(objectLiteral, brace, false, true, null);
-            if (analysis != null) {
-                for (ObjectLiteralParser.ObjectLiteralProperty p : analysis.properties) {
-                    if (p.isIdentifierKey) {
-                        marks.add(new ScriptLine.Mark(p.keyStartAbs, p.keyEndAbs, TokenType.LOCAL_FIELD));
-                    }
-                }
-            }
-
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
+                    ObjectLiteralParser.parse(objectLiteral, brace, true, true, this::resolveExpressionType, this::getScriptMethodInfo);
+            if (analysis != null) 
+                objectLiterals.put(brace, analysis);
+            
             i = brace + 1;
         }
+        // Wire each object-literal inner scope to its containing object type (needs the cache)
+        for (InnerCallableScope scope : innerScopes) 
+            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
+        
     }
 
     private boolean isLikelyObjectLiteralStart(int bracePos) {
@@ -5305,11 +5320,17 @@ public class ScriptDocument {
         expr = expr.trim();
         expr = stripLineComments(expr);
 
+        if (expr.endsWith(".")) 
+            expr = expr.substring(0, expr.length() - 1).trim();
+        
         if (expr.isEmpty()) 
             return null;
 
         if (isJavaScript() && expr.charAt(0) == '{') {
-            ObjectLiteralParser.ObjectLiteralAnalysis analysis = ObjectLiteralParser.parse(expr, position, true, false, this::resolveExpressionType);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis = objectLiterals.get(position);
+            if (analysis == null) 
+                analysis = ObjectLiteralParser.parse(expr, position, true, false, this::resolveExpressionType, this::getScriptMethodInfo);
+            
             if (analysis == null) {
                 return TypeInfo.ANY;
             }
@@ -6022,10 +6043,16 @@ public class ScriptDocument {
                     return true;
                     
                 case '<':
-                    // Could be < > <= >= << or generics
+                    // <<, <= are always operators
                     if (next == '<' || next == '=') return true;
-                    // Check if this looks like relational (not generic type params)
-                    // Generics typically follow a type name directly with no space
+                    // If preceded by digit/)/] it's definitely a relational operator (not a generic)
+                    prevIdx = i - 1;
+                    while (prevIdx >= 0 && Character.isWhitespace(expr.charAt(prevIdx))) prevIdx--;
+                    if (prevIdx >= 0) {
+                        char prevC = expr.charAt(prevIdx);
+                        if (Character.isDigit(prevC) || prevC == ')' || prevC == ']') return true;
+                    }
+                    // Generics follow an uppercase type name; anything else is relational
                     int nextNonSpace = i + 1;
                     while (nextNonSpace < expr.length() && Character.isWhitespace(expr.charAt(nextNonSpace))) nextNonSpace++;
                     if (nextNonSpace < expr.length() && !Character.isUpperCase(expr.charAt(nextNonSpace))) {
@@ -6034,8 +6061,15 @@ public class ScriptDocument {
                     break;
                     
                 case '>':
+                    // >>, >= are always operators
                     if (next == '>' || next == '=') return true;
-                    // Similar check for generics
+                    // If preceded by digit/)/] it's definitely a relational operator (not closing generic)
+                    prevIdx = i - 1;
+                    while (prevIdx >= 0 && Character.isWhitespace(expr.charAt(prevIdx))) prevIdx--;
+                    if (prevIdx >= 0) {
+                        char prevC = expr.charAt(prevIdx);
+                        if (Character.isDigit(prevC) || prevC == ')' || prevC == ']') return true;
+                    }
                     break;
                     
                 case '!':
@@ -6651,7 +6685,7 @@ public class ScriptDocument {
     /**
      * Get the best matching script method overload based on argument types.
      */
-    private MethodInfo getScriptMethodInfo(String methodName, TypeInfo[] argTypes) {
+     MethodInfo getScriptMethodInfo(String methodName, TypeInfo[] argTypes) {
         List<MethodInfo> candidates = new ArrayList<>();
         
         // Collect all methods with matching name
@@ -7383,7 +7417,7 @@ public class ScriptDocument {
 
         if (dynamicPropertyAccess != null) {
             ObjectLiteralParser.DynamicFieldResult res = ObjectLiteralParser.extendAndGetField(
-                    dynamicPropertyAccess, receiverType, sourceType,
+                    dynamicPropertyAccess, receiverType, sourceType, rhs,
                     this::resolveExpressionType, this::resolveVariable);
             if (res != null) {
                 receiverType = res.receiverType;
@@ -8321,6 +8355,10 @@ public class ScriptDocument {
 
     public List<InnerCallableScope> getInnerScopes() {
         return Collections.unmodifiableList(innerScopes);
+    }
+
+    public ObjectLiteralParser.ObjectLiteralAnalysis getObjectLiteral(int braceOffset) {
+        return objectLiterals.get(braceOffset);
     }
 
     public List<ScriptTypeInfo> getScriptTypes() {
