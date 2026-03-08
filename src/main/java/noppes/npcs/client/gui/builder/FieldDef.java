@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
+import noppes.npcs.client.gui.select.GuiTexturePathSelection;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
@@ -167,6 +168,20 @@ public class FieldDef {
             gui -> {
                 GuiSoundSelection s = (GuiSoundSelection) gui;
                 if (s.selectedResource != null) setter.accept(s.selectedResource.toString());
+            })
+            .buttonLabel(() -> {
+                String s = getter.get();
+                return s == null || s.isEmpty() ? "gui.none" : s;
+            })
+            .clearable(() -> setter.accept(""));
+    }
+
+    public static FieldDef textureSubGui(String label, Supplier<String> getter, Consumer<String> setter) {
+        return subGuiField(label,
+            () -> new GuiTexturePathSelection(getter.get()),
+            gui -> {
+                GuiTexturePathSelection t = (GuiTexturePathSelection) gui;
+                if (t.selectedResource != null) setter.accept(t.selectedResource.toString());
             })
             .buttonLabel(() -> {
                 String s = getter.get();
