@@ -184,6 +184,14 @@ public class SyncController {
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
         PartyInfoPacket.sendPartyData(player);
+
+        // Sync skin overlays after full handshake to ensure the client is ready.
+        // Overlays are not part of getSyncNBTFull(), and packets sent during
+        // PlayerLoggedInEvent can arrive before the client entity exists.
+        PlayerData data = PlayerData.get(player);
+        if (data != null) {
+            data.skinOverlays.updateClient();
+        }
     }
 
     private static EnumMap<EnumSyncType, Integer> getServerRevisionSnapshot() {
