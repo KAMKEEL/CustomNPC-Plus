@@ -2352,7 +2352,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     public void setSpeed(float speed) {
+        float oldSpeed = homingData.getSpeed();
         homingData.setSpeed(speed);
+        // Rescale current motion vector to match new speed
+        if (addedToChunk && !worldObj.isRemote) {
+            double len = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+            if (len > 0) {
+                double scale = speed / len;
+                motionX *= scale;
+                motionY *= scale;
+                motionZ *= scale;
+            }
+        }
     }
 
     public AnchorPoint getAnchorPoint() {
