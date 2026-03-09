@@ -5,6 +5,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiScriptTextArea.UndoData;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
@@ -35,6 +36,7 @@ public class SearchReplaceBar {
 
     // ==================== DIMENSIONS ====================
     private int x, y, width;
+    public GuiNPCInterface ownerGui;
     private int barHeight = 24;
     private int replaceBarHeight = 22;
     private int textFieldWidth = 150;
@@ -538,7 +540,7 @@ public class SearchReplaceBar {
         }
 
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GuiUtil.setScissorClip(fieldX + 2, fieldY, fieldWidth - 4, fieldHeight);
+        GuiUtil.setScissorClip(fieldX + 2, fieldY, fieldWidth - 4, fieldHeight, ownerGui);
 
 
         // Draw selection highlight
@@ -604,7 +606,7 @@ public class SearchReplaceBar {
         }
 
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GuiUtil.setScissorClip(fieldX + 2, fieldY, fieldWidth - 4, fieldHeight);
+        GuiUtil.setScissorClip(fieldX + 2, fieldY, fieldWidth - 4, fieldHeight, ownerGui);
 
         {
             // Draw selection highlight

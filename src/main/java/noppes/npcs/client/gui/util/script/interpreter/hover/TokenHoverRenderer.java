@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class TokenHoverRenderer {
     /**
      * Render the hover tooltip.
      */
-    public static void render(HoverState hoverState, int viewportX, int viewportWidth, int viewportY, int viewportHeight) {
+    public static void render(HoverState hoverState, int viewportX, int viewportWidth, int viewportY, int viewportHeight, GuiNPCInterface gui) {
         if (!hoverState.isTooltipVisible()) return;
         hoverState.updateSmoothScroll();
         
@@ -186,7 +187,7 @@ public class TokenHoverRenderer {
         
         // Render the tooltip
         renderTooltipBox(tooltipX, tooltipY, boxWidth, maxContentWidth, info, hoverState,
-                totalContentHeight, visibleContentHeight);
+                totalContentHeight, visibleContentHeight, gui);
     }
 
     /**
@@ -206,7 +207,7 @@ public class TokenHoverRenderer {
      * Render the tooltip box with all content.
      */
     private static void renderTooltipBox(int x, int y, int boxWidth, int wrapWidth, TokenHoverInfo info,
-                                         HoverState hoverState, int totalContentHeight, int visibleContentHeight) {
+                                         HoverState hoverState, int totalContentHeight, int visibleContentHeight, GuiNPCInterface gui) {
 
         boolean hasScrollbar = totalContentHeight > visibleContentHeight;
         // Wrap at the actual box content area width, not the max allowed width.
@@ -228,12 +229,13 @@ public class TokenHoverRenderer {
         Gui.drawRect(x, y, x + 1, y + boxHeight, BORDER_COLOR);
         Gui.drawRect(x + boxWidth - 1, y, x + boxWidth, y + boxHeight, BORDER_COLOR);
 
-        // Set up GL scissor to clip scrollable content within the tooltip box (inside borders)
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int sf = sr.getScaleFactor();
-        int clipX = (x + 1) * sf;
-        int clipY = (sr.getScaledHeight() - (y + boxHeight - 1 - BOTTOM_GAP)) * sf;
+        double panX = gui != null ? gui.getPanX() : 0;
+        double panY = gui != null ? gui.getPanY() : 0;
+        int clipX = (int)((x + 1 - panX) * sf);
+        int clipY = (int)((sr.getScaledHeight() - (y - panY + boxHeight - 1 - BOTTOM_GAP)) * sf);
         int clipW = (hasScrollbar ? boxWidth - PADDING - 1 : boxWidth - 2) * sf;
         int clipH = (boxHeight - 2 - BOTTOM_GAP) * sf;
         GL11.glEnable(GL11.GL_SCISSOR_TEST);

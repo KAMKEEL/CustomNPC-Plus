@@ -10,11 +10,19 @@ import org.lwjgl.opengl.GL11;
 public class GuiUtil {
 
     public static void setScissorClip(int x, int y, int width, int height) {
+        setScissorClip(x, y, width, height, null);
+    }
+
+    public static void setScissorClip(int x, int y, int width, int height, GuiNPCInterface gui) {
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int scale = res.getScaleFactor();
 
-
+        if (gui != null) {
+            x -= (int) gui.getPanX();
+            y -= (int) gui.getPanY();
+        }
+        
         // Adjust position to Top-Left origin (OpenGL window/screen space uses bottom-left origin)
         y = mc.displayHeight - y * scale;
         height *= scale;

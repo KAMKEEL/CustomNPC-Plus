@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import org.lwjgl.opengl.GL11;
@@ -71,6 +72,7 @@ public class AutocompleteMenu extends Gui {
     
     // ==================== POSITION ====================
     private int x, y;
+    public GuiNPCInterface ownerGui;
     private int width, height;
     private int menuWidth;
     private int visibleItemsCount; // Actual number of items that fit in the menu
@@ -909,6 +911,11 @@ public class AutocompleteMenu extends Gui {
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int scaleFactor = sr.getScaleFactor();
+
+        if (ownerGui != null) {
+            x -= (int) ownerGui.getPanX();
+            y -= (int) ownerGui.getPanY();
+        }
 
         int scissorX = x * scaleFactor;
         int scissorY = mc.displayHeight - (y + height) * scaleFactor;

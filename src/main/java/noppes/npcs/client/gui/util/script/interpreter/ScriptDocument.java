@@ -87,7 +87,7 @@ public class ScriptDocument {
     // Also matches ',' as a delimiter so that "int x, y, z;" is recognized
     // (the first declarator "int x," is captured; continuations are scanned manually).
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
+            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
     private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
     
     // Cast expression pattern: captures type name inside cast parentheses
@@ -109,7 +109,14 @@ public class ScriptDocument {
     private Map<String, ImportData> importsBySimpleName = new HashMap<>();
 
     // Script-defined types (classes, interfaces, enums defined in the script)
+    // PRIMARY: simple name → ScriptTypeInfo (backward-compatible, top-level only)
     private final Map<String, ScriptTypeInfo> scriptTypes = new HashMap<>();
+    // SECONDARY: dollar-separated full name → ScriptTypeInfo (all types including nested)
+    // Enables O(1) lookup by qualified name for any nesting depth (e.g., "Outer$Middle$Inner")
+    private final Map<String, ScriptTypeInfo> scriptTypesByFullName = new HashMap<>();
+    // TERTIARY: dot-separated display name → ScriptTypeInfo (for resolveType("Outer.Inner"))
+    // Populated alongside scriptTypesByFullName during parsing; matches user-written syntax
+    private final Map<String, ScriptTypeInfo> scriptTypesByDotName = new HashMap<>();
     
     private final List<MethodInfo> methods = new ArrayList<>();
     private final Map<String, FieldInfo> globalFields = new HashMap<>();
@@ -361,6 +368,8 @@ public class ScriptDocument {
         methodLocals.clear();
         topLevelLocals.clear();
         scriptTypes.clear();
+        scriptTypesByFullName.clear();
+        scriptTypesByDotName.clear();
         innerScopes.clear();
         methodCalls.clear();
         externalFieldAssignments.clear();
@@ -488,8 +497,10 @@ public class ScriptDocument {
         return false;
     }
 
-    /** Inclusive version for precision with end offset
-     Check GuiScriptTextArea#handleCharacterInput */
+    /**
+     * Like isExcluded but uses inclusive end bound (position <= range end).
+     * Used by auto-pair logic where the cursor sits right at a string boundary.
+     */
     public boolean isExcludedInclusive(int position) {
         for (int[] range : excludedRanges) {
             if (position >= range[0] && position <= range[1]) {
@@ -498,7 +509,21 @@ public class ScriptDocument {
         }
         return false;
     }
-    
+
+    /**
+     * Check if a position falls inside one of the type's inner class bodies.
+     * Used to prevent field/constructor declarations inside inner classes
+     * from being misattributed to the outer class during member parsing.
+     */
+    private boolean isInsideNestedType(int position, ScriptTypeInfo type) {
+        for (ScriptTypeInfo inner : type.getInnerClasses()) {
+            if (inner.containsPosition(position)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Get the list of excluded ranges (comments, strings, etc.).
      * Used by AutocompleteManager to skip over excluded regions.
@@ -719,89 +744,147 @@ public class ScriptDocument {
     }
 
     /**
-     * Parse class, interface, and enum declarations defined in the script.
-     * Creates ScriptTypeInfo instances and stores them for later resolution.
-     * Java only - JavaScript doesn't use class declarations in the same way.
+     * Intermediate record for type declarations discovered in Pass 1 of parseScriptTypes().
+     * Holds raw data before hierarchy relationships are established in Pass 2.
+     */
+    private static class RawTypeDeclaration {
+        final String name;
+        final TypeInfo.Kind kind;
+        final int declOffset;
+        final int bodyStart;
+        final int bodyEnd;
+        final int modifiers;
+        final String extendsClause;
+        final String implementsClause;
+        final JSDocInfo jsDoc;
+
+        RawTypeDeclaration(String name, TypeInfo.Kind kind, int declOffset, int bodyStart, int bodyEnd,
+                           int modifiers, String extendsClause, String implementsClause, JSDocInfo jsDoc) {
+            this.name = name;
+            this.kind = kind;
+            this.declOffset = declOffset;
+            this.bodyStart = bodyStart;
+            this.bodyEnd = bodyEnd;
+            this.modifiers = modifiers;
+            this.extendsClause = extendsClause;
+            this.implementsClause = implementsClause;
+            this.jsDoc = jsDoc;
+        }
+    }
+
+    /**
+     * Parse class, interface, and enum declarations using a two-pass strategy.
+     *
+     * Pass 1: Regex scan discovers all type declarations with their body spans.
+     * Pass 2: Sort by bodyStart, then use a stack to determine parent-child nesting.
+     *         The stack invariant is: top = innermost enclosing type for the current position.
+     *         This correctly handles arbitrary nesting depth in O(n) time.
      */
     private void parseScriptTypes() {
-        // Pattern: [modifiers] (class|interface|enum) ClassName [optional ()] [extends Parent] [implements I1, I2...] { ... }
-        // Matches optional modifiers (public, private, static, final, abstract) before class/interface/enum
-        // Also allows optional () after the class name (common mistake)
-        // Groups: 1=class|interface|enum, 2=TypeName, 3=extends clause (optional), 4=implements clause (optional)
+        // ========== PASS 1: Discover all type declarations (flat list) ==========
         Pattern typeDecl = Pattern.compile(
                 "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*(?:extends\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*(?:implements\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*\\{");
-        
+
+        List<RawTypeDeclaration> rawDeclarations = new ArrayList<>();
         Matcher m = typeDecl.matcher(text);
         while (m.find()) {
             if (isExcluded(m.start()))
                 continue;
-            
+
             String kindStr = m.group(1);
             String typeName = m.group(2);
-            String extendsClause = m.group(3);     // e.g., "ParentClass" or null
-            String implementsClause = m.group(4); // e.g., "Interface1, Interface2" or null
-            
+            String extendsClause = m.group(3);
+            String implementsClause = m.group(4);
+
             int bodyStart = text.indexOf('{', m.start());
             int bodyEnd = findMatchingBrace(bodyStart);
-            
             if (bodyEnd < 0) {
                 bodyEnd = text.length();
             }
-            
+
             TypeInfo.Kind kind;
             switch (kindStr) {
                 case "interface": kind = TypeInfo.Kind.INTERFACE; break;
                 case "enum": kind = TypeInfo.Kind.ENUM; break;
                 default: kind = TypeInfo.Kind.CLASS; break;
             }
-            
-            // Extract modifiers from the matched text
+
             String fullMatch = text.substring(m.start(), m.end());
             int modifiers = parseModifiers(fullMatch);
-
             JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
-            
-            ScriptTypeInfo scriptType = ScriptTypeInfo.create(
-                    typeName, kind, m.start(), bodyStart, bodyEnd, modifiers);
 
-            if (jsDoc != null) {
-                scriptType.setJSDocInfo(jsDoc);
+            rawDeclarations.add(new RawTypeDeclaration(
+                    typeName, kind, m.start(), bodyStart, bodyEnd,
+                    modifiers, extendsClause, implementsClause, jsDoc));
+        }
+
+        // ========== PASS 2: Build hierarchy using stack-based containment ==========
+        // Sort by bodyStart ascending so outer types are processed before inner types
+        rawDeclarations.sort(Comparator.comparingInt(r -> r.bodyStart));
+
+        // Stack tracks the nesting chain: top = current innermost enclosing type
+        Deque<ScriptTypeInfo> parentStack = new ArrayDeque<>();
+
+        for (RawTypeDeclaration raw : rawDeclarations) {
+            // Pop any parent whose body has ended before this declaration starts.
+            // This handles sibling types at the same level: when we reach InnerB,
+            // InnerA (whose bodyEnd <= InnerB.bodyStart) gets popped, leaving Outer on top.
+            while (!parentStack.isEmpty() && parentStack.peek().getBodyEnd() <= raw.bodyStart) {
+                parentStack.pop();
             }
 
-            // Store the script type first so it can be resolved by other types
-            scriptTypes.put(typeName, scriptType);
+            ScriptTypeInfo scriptType;
+            if (parentStack.isEmpty()) {
+                // Top-level type: no enclosing parent
+                scriptType = ScriptTypeInfo.create(
+                        raw.name, raw.kind, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
+                scriptTypes.put(raw.name, scriptType);
+            } else {
+                // Inner type: parent is top of stack. createInner sets outerClass link
+                // and adds this type to the parent's innerClasses list.
+                ScriptTypeInfo parent = parentStack.peek();
+                scriptType = ScriptTypeInfo.createInner(
+                        raw.name, raw.kind, parent, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
+            }
 
-            // Process extends clause (parent class)
-            if (extendsClause != null && !extendsClause.trim().isEmpty()) {
-                String parentName = extendsClause.trim();
-                TypeInfo parentType = resolveType(parentName);
+            if (raw.jsDoc != null) {
+                scriptType.setJSDocInfo(raw.jsDoc);
+            }
+
+            // Register in all lookup maps for O(1) access by any naming convention
+            scriptTypesByFullName.put(scriptType.getFullName(), scriptType);
+            scriptTypesByDotName.put(scriptType.getDotSeparatedName(), scriptType);
+
+            // Push onto stack — this type can contain further nested types
+            parentStack.push(scriptType);
+
+            // Resolve extends clause (parent class inheritance)
+            if (raw.extendsClause != null && !raw.extendsClause.trim().isEmpty()) {
+                String parentName = raw.extendsClause.trim();
+                TypeInfo parentType = resolveType(parentName, raw.declOffset);
                 if (parentType == null) {
-                    // Create unresolved type info for display purposes
                     parentType = TypeInfo.unresolved(parentName, parentName);
                 }
                 scriptType.setSuperClass(parentType, parentName);
             }
 
-            // Process implements clause (interfaces)
-            if (implementsClause != null && !implementsClause.trim().isEmpty()) {
-                String[] interfaceNames = implementsClause.split(",");
+            // Resolve implements clause (interfaces)
+            if (raw.implementsClause != null && !raw.implementsClause.trim().isEmpty()) {
+                String[] interfaceNames = raw.implementsClause.split(",");
                 for (String ifaceName : interfaceNames) {
                     String trimmedName = ifaceName.trim();
                     if (trimmedName.isEmpty())
                         continue;
-
-                    TypeInfo ifaceType = resolveType(trimmedName);
+                    TypeInfo ifaceType = resolveType(trimmedName, raw.declOffset);
                     if (ifaceType == null) {
-                        // Create unresolved type info for display purposes
                         ifaceType = TypeInfo.unresolved(trimmedName, trimmedName);
                     }
                     scriptType.addImplementedInterface(ifaceType, trimmedName);
                 }
             }
 
-            // Parse fields and methods inside this type AFTER adding the scriptType globally, so its members can reference it
+            // Parse fields and methods inside this type
             parseScriptTypeMembers(scriptType);
-            
         }
     }
 
@@ -825,6 +908,8 @@ public class ScriptDocument {
         while (cm.find()) {
             int absPos = bodyStart + 1 + cm.start();
             if (isExcluded(absPos)) continue;
+            // Skip constructors found inside a nested type's body — they belong to the inner class
+            if (isInsideNestedType(absPos, scriptType)) continue;
             
             String paramList = cm.group(1);
             
@@ -1039,7 +1124,8 @@ public class ScriptDocument {
 
                 String returnType = m.group(1);
 
-                if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum") || returnType.equals("new")) {
+                if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum") || returnType.equals("new")
+                        || TypeResolver.isModifier(returnType)) {
                     continue;
                 }
                 
@@ -1063,12 +1149,9 @@ public class ScriptDocument {
                 int nameOffset = m.start(2);
                 int fullDeclOffset = findFullDeclarationStart(m.start(1), text);
 
-                ScriptTypeInfo scriptType = null;
-                for (ScriptTypeInfo type : scriptTypes.values())
-                    if (type.containsPosition(bodyStart)) {
-                        scriptType = type;
-                        break;
-                    }
+                // Use findEnclosingScriptType (recursive descent) so methods declared
+                // inside inner classes are attributed to the innermost containing type.
+                ScriptTypeInfo scriptType = findEnclosingScriptType(bodyStart);
                 
                 // Parse parameters with their actual positions
                 List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
@@ -1076,7 +1159,7 @@ public class ScriptDocument {
                 MethodInfo methodInfo = MethodInfo.declaration(
                         methodName,
                         scriptType,
-                        resolveType(returnType),
+                        resolveType(returnType, m.start(1)),
                         params,
                         fullDeclOffset,
                         typeOffset,
@@ -1252,7 +1335,7 @@ public class ScriptDocument {
             String paramName = m.group(2);
             boolean isVarArg = typeName.endsWith("...");
             if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
-            TypeInfo typeInfo = resolveType(typeName);
+            TypeInfo typeInfo = resolveType(typeName, paramListStart);
             // Store the absolute position of the parameter name
             int paramNameStart = paramListStart + m.start(2);
             FieldInfo fieldInfo = FieldInfo.parameter(paramName, typeInfo, paramNameStart, null);
@@ -1704,7 +1787,7 @@ public class ScriptDocument {
                         if (enclosingParen1 >= 0) continue;
 
                         int greedyModifiers = parseModifiers(realTypeName);
-                        TypeInfo greedyTypeInfo = resolveType(realTypeName);
+                        TypeInfo greedyTypeInfo = resolveType(realTypeName, firstVarAbsPos);
 
                         // Register the first variable (extracted from the greedy type group)
                         FieldInfo firstField = FieldInfo.localField(firstVar, greedyTypeInfo, firstVarAbsPos,
@@ -1789,7 +1872,8 @@ public class ScriptDocument {
                         int rhsStart = bodyStart + m.end();
                         typeInfo = inferTypeFromExpression(rhsStart);
                     } else {
-                        typeInfo = resolveType(typeName);
+                        // Use position-aware resolution so inner class type names resolve in scope
+                        typeInfo = resolveType(typeName, bodyStart + m.start(2));
                     }
                     
                     int initStart = -1, initEnd = -1;
@@ -1938,7 +2022,7 @@ public class ScriptDocument {
 
                 String greedyTypeName = stripModifiers(realTypeNameRaw);
                 int greedyModifiers = parseModifiers(realTypeNameRaw);
-                TypeInfo greedyVarType = resolveType(greedyTypeName);
+                TypeInfo greedyVarType = resolveType(greedyTypeName, firstVarAbsPos);
 
                 // Register the first variable
                 FieldInfo firstField = FieldInfo.localField(firstVar, greedyVarType, firstVarAbsPos,
@@ -2359,7 +2443,7 @@ public class ScriptDocument {
             
             if (position > typeStart) {
                 String typeName = text.substring(typeStart, position);
-                return resolveType(typeName);
+                return resolveType(typeName, typeStart);
             }
             return null;
         }
@@ -2446,7 +2530,7 @@ public class ScriptDocument {
             currentType = resolveThisType(identStart);
         }
 
-        TypeInfo typeCheck = resolveType(firstIdent);
+        TypeInfo typeCheck = resolveType(firstIdent, identStart);
         if (currentType == null && typeCheck != null && typeCheck.isResolved()) {
             // Static access like Event.player or scriptType.field
             currentType = typeCheck;
@@ -3184,12 +3268,10 @@ public class ScriptDocument {
                     int greedyModifiers = parseModifiers(realTypeNameRaw);
                     String greedyTypeName = stripModifiers(realTypeNameRaw);
 
-                    ScriptTypeInfo greedyContainingType = null;
-                    for (ScriptTypeInfo scriptType : scriptTypes.values())
-                        if (scriptType.containsPosition(firstVarAbsPos)) {
-                            greedyContainingType = scriptType;
-                            break;
-                        }
+                    // Use findEnclosingScriptType (recursive descent) so inner class fields
+                    // are attributed to the innermost containing type, not just the first
+                    // HashMap match (which could be the outer class).
+                    ScriptTypeInfo greedyContainingType = findEnclosingScriptType(firstVarAbsPos);
 
                     boolean greedyInsideMethod = false;
                     if (greedyContainingType != null && isInsideNestedMethod(firstVarAbsPos,
@@ -3203,7 +3285,7 @@ public class ScriptDocument {
                     if (greedyInsideMethod) continue;
 
                     String greedyDocumentation = extractDocumentationBefore(m.start());
-                    TypeInfo greedyTypeInfo = resolveType(greedyTypeName);
+                    TypeInfo greedyTypeInfo = resolveType(greedyTypeName, firstVarAbsPos);
 
                     // Register the first variable (no initializer since the regex consumed it into the type group)
                     FieldInfo firstField = FieldInfo.globalField(firstVar, greedyTypeInfo, firstVarAbsPos,
@@ -3261,12 +3343,10 @@ public class ScriptDocument {
                 int modifiers = parseModifiers(typeNameRaw);
                 String typeName = stripModifiers(typeNameRaw);
 
-                ScriptTypeInfo containingScriptType = null;
-                for (ScriptTypeInfo scriptType : scriptTypes.values())
-                    if (scriptType.containsPosition(position)) {
-                        containingScriptType = scriptType;
-                        break;
-                    }
+                // Use findEnclosingScriptType (recursive descent) so inner class fields
+                // are attributed to the innermost containing type, not just the first
+                // HashMap match (which could be the outer class).
+                ScriptTypeInfo containingScriptType = findEnclosingScriptType(position);
 
                 // Check if inside a method - if so, it's a local, not global
                 boolean insideMethod = false;
@@ -3308,7 +3388,8 @@ public class ScriptDocument {
                     }
                 }
                 
-                TypeInfo typeInfo = resolveType(typeName);
+                // Use position-aware resolution so inner class type names resolve correctly
+                TypeInfo typeInfo = resolveType(typeName, position);
                 FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation, initStart, initEnd, modifiers);
 
                 if (containingScriptType != null) {
@@ -3595,6 +3676,53 @@ public class ScriptDocument {
         
         return resolveTypeAndTrackUsage(typeName);
     }
+
+    /**
+     * Position-aware type resolution overload.
+     * Resolves a type name with positional context so that an unqualified inner class name
+     * (e.g., just "Inner") resolves correctly when the cursor/position is inside the body
+     * of an enclosing type that declares that inner class.
+     *
+     * Resolution order:
+     * 1. Standard resolveType(typeName) — handles simple names, dot-names, imports, primitives
+     * 2. If unresolved and the name is a simple identifier (no dots), check the enclosing
+     *    type at 'position' for an inner class with that name.
+     *    This walks the nesting hierarchy upward so "Inner" resolves even from deeply nested code.
+     *
+     * @param typeName The type name to resolve (simple or dot-separated)
+     * @param position The absolute offset in the script text for scope context
+     * @return The resolved TypeInfo, or an unresolved TypeInfo if not found
+     */
+    public TypeInfo resolveType(String typeName, int position) {
+        // First: delegate to the standard (positionless) resolver
+        TypeInfo resolved = resolveType(typeName);
+
+        // If already resolved, no need for positional fallback
+        if (resolved != null && resolved.isResolved()) {
+            return resolved;
+        }
+
+        // Positional fallback: only applies to simple names (no dots) that could be
+        // inner classes visible from the current scope. Dot-separated names like
+        // "Outer.Inner" are already handled by scriptTypesByDotName in resolveType().
+        if (typeName != null && !typeName.contains(".")) {
+            // Walk the enclosing type hierarchy upward from the innermost type at this position.
+            // At each level, check if there's an inner class matching the name.
+            // This mirrors Java's scoping rules where inner classes shadow outer-scope types.
+            ScriptTypeInfo enclosing = findEnclosingScriptType(position);
+            while (enclosing != null) {
+                ScriptTypeInfo inner = enclosing.getInnerClass(typeName);
+                if (inner != null) {
+                    return inner;
+                }
+                // Move up to the parent type — inner classes of outer types are also in scope
+                enclosing = enclosing.getOuterClass();
+            }
+        }
+
+        // Return whatever resolveType() returned (possibly unresolved)
+        return resolved;
+    }
     
     /**
      * Resolve a type and track the import usage for unused import detection.
@@ -3629,7 +3757,12 @@ public class ScriptDocument {
             else if (!baseName.contains(".") && scriptTypes.containsKey(baseName)) {
                 resolved = scriptTypes.get(baseName);
             }
-            // Fully-qualified
+            // Script-defined inner types (dot-separated, e.g., "Outer.Inner")
+            // Checked before Java full-name resolution so script types shadow Java types
+            else if (baseName.contains(".") && scriptTypesByDotName.containsKey(baseName)) {
+                resolved = scriptTypesByDotName.get(baseName);
+            }
+            // Fully-qualified Java types
             else if (baseName.contains(".")) {
                 resolved = typeResolver.resolveFullName(baseName);
             }
@@ -4058,7 +4191,7 @@ public class ScriptDocument {
         
         // Handle qualified names (a.b.ClassName)
         if (target.contains(".")) {
-            TypeInfo typeInfo = resolveType(target);
+            TypeInfo typeInfo = resolveType(target, position);
             if (typeInfo != null && typeInfo.isResolved()) {
                 return typeInfo;
             }
@@ -4073,7 +4206,7 @@ public class ScriptDocument {
         }
         
         // Try as type name (class reference like String::valueOf)
-        TypeInfo typeInfo = resolveType(target);
+        TypeInfo typeInfo = resolveType(target, position);
         if (typeInfo != null && typeInfo.isResolved()) {
             return typeInfo;
         }
@@ -4627,7 +4760,22 @@ public class ScriptDocument {
                 nameType = TokenType.CLASS_DECL;
             }
             String typeName = m.group(2);
-            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), nameType, scriptTypes.get(typeName)));
+            // Look up the ScriptTypeInfo: try top-level first, then search all types
+            // by simple name + declaration range (declarationOffset..bodyEnd) to handle inner classes.
+            // Cannot use containsPosition() here because the class NAME sits before the opening '{',
+            // i.e., in [declarationOffset, bodyStart) — outside the body range checked by containsPosition.
+            ScriptTypeInfo typeInfo = scriptTypes.get(typeName);
+            if (typeInfo == null) {
+                for (ScriptTypeInfo candidate : scriptTypesByFullName.values()) {
+                    if (candidate.getSimpleName().equals(typeName)
+                            && m.start(2) >= candidate.getDeclarationOffset()
+                            && m.start(2) < candidate.getBodyEnd()) {
+                        typeInfo = candidate;
+                        break;
+                    }
+                }
+            }
+            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), nameType, typeInfo));
 
             // Mark extends clause
             if (m.group(3) != null) {
@@ -4650,7 +4798,8 @@ public class ScriptDocument {
      * Adds marks for all enum constants in script-defined enums.
      */
     private void markEnumConstants(List<ScriptLine.Mark> marks) {
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        // Iterate all types (including inner) so enum constants in nested enums are marked
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             if (!scriptType.isEnum()) 
                 continue;
 
@@ -4677,8 +4826,8 @@ public class ScriptDocument {
             return;
 
 
-        // Resolve the parent type
-        TypeInfo parentType = resolveType(trimmedName);
+        // Resolve the parent type with position context for inner class names
+        TypeInfo parentType = resolveType(trimmedName, clauseStart);
         TokenType tokenType;
 
         if (parentType != null && parentType.isResolved()) {
@@ -4725,8 +4874,8 @@ public class ScriptDocument {
             }
             int actualStart = currentPos + leadingSpaces;
 
-            // Resolve the interface type
-            TypeInfo ifaceType = resolveType(trimmedName);
+            // Resolve the interface type with position context for inner class names
+            TypeInfo ifaceType = resolveType(trimmedName, actualStart);
             TokenType tokenType;
 
             if (ifaceType != null && ifaceType.isResolved()) {
@@ -5111,8 +5260,8 @@ public class ScriptDocument {
             }
         }
 
-        // Also check methods inside script types
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        // Also check methods inside script types (including inner classes)
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             for (MethodInfo method : scriptType.getAllMethodsFlat()) {
                 if (!method.isDeclaration())
                     continue;
@@ -5898,7 +6047,7 @@ public class ScriptDocument {
                             : "";
                     return TypeInfo.arrayOf(unifyJsArrayElementType(argsText, position));
                 }
-                TypeInfo baseType = resolveType(typeName);
+                TypeInfo baseType = resolveType(typeName, position);
                 if (baseType == null) return null;
                 String rest = expr.substring(newMatcher.end());
                 int dims = 0;
@@ -5949,7 +6098,7 @@ public class ScriptDocument {
             }
         } else {
             // Check if first segment is a type name for static access
-            TypeInfo typeCheck = resolveType(first.name);
+            TypeInfo typeCheck = resolveType(first.name, position);
             if (typeCheck != null && typeCheck.isResolved()) {
                 currentType = typeCheck;
             }
@@ -6397,6 +6546,27 @@ public class ScriptDocument {
             if (hasField) {
                 return (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
             }
+
+            // Field not found — check if the segment names an inner class.
+            // This handles chains like Outer.Inner where Inner is a nested type, not a field.
+            if (currentType instanceof ScriptTypeInfo) {
+                ScriptTypeInfo innerClass = ((ScriptTypeInfo) currentType).getInnerClass(segment.name);
+                if (innerClass != null) {
+                    return innerClass;
+                }
+            }
+            // Also check Java inner classes via reflection (e.g., Map.Entry)
+            if (currentType.getJavaClass() != null) {
+                try {
+                    for (Class<?> nested : currentType.getJavaClass().getDeclaredClasses()) {
+                        if (java.lang.reflect.Modifier.isPublic(nested.getModifiers())
+                                && nested.getSimpleName().equals(segment.name)) {
+                            return TypeInfo.fromClass(nested);
+                        }
+                    }
+                } catch (SecurityException ignored) { }
+            }
+
             return null;
         }
     }
@@ -6676,7 +6846,7 @@ public class ScriptDocument {
                 }
                 
                 if (name.length() > 0) {
-                    TypeInfo typeCheck = resolveType(name);
+                    TypeInfo typeCheck = resolveType(name, position);
                     if (typeCheck != null && typeCheck.isResolved()) {
                         return typeCheck;
                     }
@@ -6845,7 +7015,7 @@ public class ScriptDocument {
             currentType = resolveThisType(position);
         } else {
             // Check if first segment is a type name
-            TypeInfo typeCheck = resolveType(first.name);
+            TypeInfo typeCheck = resolveType(first.name, position);
             if (typeCheck != null && typeCheck.isResolved()) {
                 currentType = typeCheck;
             }
@@ -7048,16 +7218,31 @@ public class ScriptDocument {
     }
 
     /**
-     * Find the script-defined type that contains the given position.
-     * Used for resolving 'this' references.
+     * Find the innermost script-defined type that contains the given position.
+     * Uses recursive descent: starts from top-level types in scriptTypes, then drills
+     * into inner classes. This is O(depth) rather than O(total_types).
      */
-    ScriptTypeInfo findEnclosingScriptType(int position) {
-        for (ScriptTypeInfo type : scriptTypes.values()) {
-            if (type.containsPosition(position)) {
-                return type;
+    public ScriptTypeInfo findEnclosingScriptType(int position) {
+for (ScriptTypeInfo type:scriptTypes.values()) {
+        if (type.containsPosition(position)) {
+        return findInnermostType(type,position);
+    }
+                                  }
+                 return null;
+        }
+
+    /**
+     * Recursively descend into inner classes to find the innermost type containing the position.
+     * At each level, if an inner class contains the position, recurse into it.
+     * If no inner class matches, the current parent is the innermost enclosing type.
+     */
+    private ScriptTypeInfo findInnermostType(ScriptTypeInfo parent, int position) {
+        for (ScriptTypeInfo inner : parent.getInnerClasses()) {
+            if (inner.containsPosition(position)) {
+                return findInnermostType(inner, position);
             }
         }
-        return null;
+        return parent;
     }
 
     /**
@@ -7416,7 +7601,7 @@ public class ScriptDocument {
         }
         
         // Check if the method's declaration position is inside any script type's body
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             if (scriptType.containsPosition(declPos)) {
                 return true;
             }
@@ -7456,6 +7641,7 @@ public class ScriptDocument {
         Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
         Matcher m = identifier.matcher(text);
 
+        identifierLoop:
         while (m.find()) {
             String name = m.group(1);
             int position = m.start(1);
@@ -7569,8 +7755,11 @@ public class ScriptDocument {
                 }
             }
 
-            // Check other script type fields (only if position is within that type's boundaries)
-            for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            // Check other script type fields (only if position is within that type's boundaries).
+            // Use continue identifierLoop to exit the outer while when a match is found —
+            // a plain 'continue' would only skip to the next scriptType, causing fall-through
+            // to the UNDEFINED_VAR mark even after a GLOBAL_FIELD mark was already added.
+            for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
                 if (scriptType.hasField(name)) {
                     // Only check if position is within this script type's class body
                     if (position >= scriptType.getBodyStart() && position <= scriptType.getBodyEnd()) {
@@ -7581,7 +7770,7 @@ public class ScriptDocument {
                         if (fieldInfo.isVisibleAt(position)) {
                             Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
                             marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
-                            continue;
+                            continue identifierLoop;
                         }
                     }
                 }
@@ -7675,8 +7864,8 @@ public class ScriptDocument {
                 field.clearAssignments();
             }
         }
-        // Also clear assignments in script type fields
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        // Also clear assignments in script type fields (including inner classes)
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             for (FieldInfo field : scriptType.getFields().values()) {
                 field.clearAssignments();
             }
@@ -8121,7 +8310,7 @@ public class ScriptDocument {
      * Also validates that all interface methods are implemented and constructors match.
      */
     private void detectMethodInheritance() {
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             scriptType.clearErrors();  // Clear previous errors
             detectMethodInheritanceForType(scriptType);
             scriptType.validate();  // Validate after detecting inheritance
@@ -8353,8 +8542,8 @@ public class ScriptDocument {
             // Skip in import/package statements
             if (isInImportOrPackage(typeStart)) continue;
             
-            // Resolve the type
-            TypeInfo info = resolveType(typeName);
+            // Resolve the type with position context for inner class names
+            TypeInfo info = resolveType(typeName, typeStart);
             if (info != null && info.isResolved()) {
                 // Mark the type with its appropriate color
                 marks.add(new ScriptLine.Mark(typeStart, typeEnd, info.getTokenType(), info));
@@ -8420,8 +8609,9 @@ public class ScriptDocument {
                 }
             }
             
-            // Try to resolve the class
-            TypeInfo info = resolveType(className);
+            // Use position-aware resolution so inner class names (e.g., OrbBuilder inside Outer)
+            // resolve via the positional fallback that walks enclosing.getInnerClass(name).
+            TypeInfo info = resolveType(className, start);
             if (info != null && info.isResolved()) {
                 marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
             } else {
@@ -8447,8 +8637,30 @@ public class ScriptDocument {
             if (isInImportOrPackage(start))
                 continue;
 
-            // Try to resolve the class
-            TypeInfo info = resolveType(className);
+            // When the class name is preceded by a dot (e.g., OrbBuilder in AbilityLine.OrbBuilder),
+            // walk backwards to reconstruct the full qualified name and resolve via scriptTypesByDotName.
+            // resolveType(simpleNameOnly) fails outside the enclosing class body; the qualified name always works.
+            // We also track outerQualStart so we can detect 'new' before the full qualified name.
+            String resolveKey = className;
+            int outerQualStart = start;
+            if (isPrecededByDot(start)) {
+                int pos = start - 1;
+                while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) pos--;
+                while (pos >= 0 && text.charAt(pos) == '.') {
+                    pos--;
+                    while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) pos--;
+                    int identEnd = pos + 1;
+                    while (pos > 0 && (Character.isLetterOrDigit(text.charAt(pos - 1)) || text.charAt(pos - 1) == '_')) pos--;
+                    resolveKey = text.substring(pos, identEnd) + "." + resolveKey;
+                    outerQualStart = pos;
+                    pos--;
+                    while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) pos--;
+                }
+            }
+            TypeInfo info = resolveType(resolveKey, start);
+            if (info == null || !info.isResolved()) {
+                info = resolveType(className, start);
+            }
             boolean isClassTypeInfo = false;
             ClassTypeInfo classRef = null;
             FieldInfo varInfo = null;
@@ -8465,6 +8677,19 @@ public class ScriptDocument {
             
             if (info != null && info.isResolved()) {
                 boolean isNewCreation = newKeyword != null && newKeyword.trim().equals("new");
+                // For dot-qualified types like 'new AbilityLine.OrbBuilder(...)', the regex never
+                // captures 'new' in group 1 because 'new' precedes 'AbilityLine', not 'OrbBuilder'.
+                // Detect it by checking whether outerQualStart is preceded by the 'new' keyword.
+                if (!isNewCreation && outerQualStart < start) {
+                    int checkPos = outerQualStart - 1;
+                    while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) checkPos--;
+                    if (checkPos >= 2 && "new".equals(text.substring(checkPos - 2, checkPos + 1))) {
+                        char beforeNew = checkPos >= 3 ? text.charAt(checkPos - 3) : ' ';
+                        if (!Character.isLetterOrDigit(beforeNew) && beforeNew != '_') {
+                            isNewCreation = true;
+                        }
+                    }
+                }
                 boolean isConstructorDecl = info instanceof ScriptTypeInfo && className.equals(info.getSimpleName());
                 
                 // Check if this is a "new" expression or constructor declaration
@@ -8500,8 +8725,17 @@ public class ScriptDocument {
                                                            .toArray(TypeInfo[]::new);
 
 
-                            // Try to find matching constructor (may be null if not found)
-                            MethodInfo constructor = info.hasConstructors() ? info.findConstructor(argTypes) : null;
+                            // Try to find matching constructor (may be null if not found).
+                            // First try exact type-match; if that fails but constructors exist, fall back to
+                            // arg-count match so validate() can fire a WRONG_ARG_TYPE error instead of
+                            // incorrectly treating the call as "no constructor matches N arguments".
+                            MethodInfo constructor = null;
+                            if (info.hasConstructors()) {
+                                constructor = info.findConstructor(argTypes);
+                                if (constructor == null) {
+                                    constructor = info.findConstructor(argCount);
+                                }
+                            }
                             
                             // Create MethodCallInfo for constructor
                             // Use the actual variable name (className) for variables, not the class's simple name
@@ -8889,15 +9123,16 @@ public class ScriptDocument {
     }
 
     public List<ScriptTypeInfo> getScriptTypes() {
-        return scriptTypes.values().stream().collect(Collectors.toList());
+        // Return all types including inner classes — needed by error underline rendering,
+        // validation loops, and mark building so inner classes get full treatment
+        return new ArrayList<>(scriptTypesByFullName.values());
     }
 
     public List<MethodInfo> getAllMethods() {
         List<MethodInfo> allMethods = new ArrayList<>(methods);
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        // Iterate all types (including inner) so nested class methods are included
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             allMethods.addAll(scriptType.getAllMethodsFlat());
-            // Include constructors so their parameters are recognized
-          //  allMethods.addAll(scriptType.getConstructors());
         }
         
         return allMethods;
@@ -8905,7 +9140,8 @@ public class ScriptDocument {
 
     public List<MethodInfo> getAllConstructors() {
         List<MethodInfo> allConstructors = new ArrayList<>();
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        // Iterate all types (including inner) so nested class constructors are included
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             allConstructors.addAll(scriptType.getConstructors());
         }
         return allConstructors;
@@ -8929,7 +9165,7 @@ public class ScriptDocument {
 
     public List<EnumConstantInfo> getAllEnumConstants() {
         List<EnumConstantInfo> enums = new ArrayList<>();
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             if (!scriptType.hasEnumConstants())
                 continue;
 
@@ -8989,7 +9225,7 @@ public class ScriptDocument {
             }
         }
 
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             for (FieldInfo field : scriptType.getFields().values()) {
                 AssignmentInfo assign = field.findAssignmentAtPosition(position);
                 if (assign != null)
@@ -9140,7 +9376,7 @@ public class ScriptDocument {
         }
 
 
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+        for (ScriptTypeInfo scriptType : scriptTypesByFullName.values()) {
             for (FieldInfo field : scriptType.getFields().values()) {
                 errored.addAll(field.getErroredAssignments());
             }
@@ -9398,8 +9634,17 @@ public class ScriptDocument {
     
     /**
      * Get script types as a Map (needed by autocomplete).
+     * Returns only top-level types keyed by simple name for backward compatibility.
      */
     public Map<String, ScriptTypeInfo> getScriptTypesMap() {
         return Collections.unmodifiableMap(scriptTypes);
+    }
+
+    /**
+     * Get all script types including inner classes, keyed by full ($-separated) name.
+     * Use this when you need to iterate or look up inner classes.
+     */
+    public Map<String, ScriptTypeInfo> getAllScriptTypes() {
+        return Collections.unmodifiableMap(scriptTypesByFullName);
     }
 }

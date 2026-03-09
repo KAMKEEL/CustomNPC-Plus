@@ -642,6 +642,23 @@ public class ScriptTypeInfo extends TypeInfo {
     // ==================== INNER CLASS LOOKUP ====================
     
     /**
+     * Get the dot-separated display name for this type.
+     * Top-level: "MyClass"
+     * Inner: "Outer.Inner"  
+     * Deeply nested: "Outer.Middle.Inner"
+     *
+     * This is what users write in type annotations and what resolveType() should accept.
+     * Recursively walks the outerClass chain to build the full user-facing qualified name.
+     */
+    public String getDotSeparatedName() {
+        if (outerClass == null) {
+            return getSimpleName();
+        }
+        // Recurse up the nesting hierarchy: each level prepends "Parent." to the name
+        return outerClass.getDotSeparatedName() + "." + getSimpleName();
+    }
+
+    /**
      * Find an inner class by name.
      */
     public ScriptTypeInfo getInnerClass(String name) {
@@ -652,7 +669,6 @@ public class ScriptTypeInfo extends TypeInfo {
         }
         return null;
     }
-    
     
     // Script types are always considered resolved since they're defined in the script
     @Override

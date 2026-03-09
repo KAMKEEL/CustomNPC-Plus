@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.janino.EventJaninoScript;
 
 /**
  * Script handler for Recipe scripts (both carpentry and anvil).
@@ -40,6 +41,11 @@ public class RecipeScript extends SingleScriptHandler implements IScriptHandlerP
     @Override
     public ScriptContext getContext() {
         return ScriptContext.RECIPE;
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.RECIPE);
     }
 
     @Override
