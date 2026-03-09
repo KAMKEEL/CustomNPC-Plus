@@ -51,7 +51,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         this(world);
         this.noClip = true;
         this.stepHeight = 0.0F;
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.setDomeRadius(domeRadius);
         // Defensive copy: entities must never share data objects with the source ability.
         this.displayData = display != null ? display.copy() : new EnergyDisplayData();

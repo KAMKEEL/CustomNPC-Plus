@@ -184,7 +184,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.startY = y;
         this.startZ = z;
 
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.targetEntityId = target != null ? target.getEntityId() : -1;
 
         // Visual
