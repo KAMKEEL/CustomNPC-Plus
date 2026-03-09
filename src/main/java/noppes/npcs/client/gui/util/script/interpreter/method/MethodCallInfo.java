@@ -104,6 +104,10 @@ public class MethodCallInfo {
     
     private boolean isConstructor;
 
+    // For Java.type() ClassTypeInfo constructor access
+    // i.e var IntArray = Java.type("int[]"); var array = new IntArray() 
+    public boolean isClassTypeAccess;
+    
     public MethodCallInfo(String methodName, int methodNameStart, int methodNameEnd,
                           int openParenOffset, int closeParenOffset,
                           List<Argument> arguments, TypeInfo receiverType,
@@ -333,7 +337,7 @@ public class MethodCallInfo {
             if (resolvedMethod == null) {
                 // Don't report missing JS constructors as unresolved method error, since they may be created dynamically at runtime
                 boolean isJSType = receiverType != null && receiverType.isJSType();
-                if (!isJSType) {
+                if (!isJSType && !isClassTypeAccess) {
                     if (receiverType != null && receiverType.hasConstructors()) {
                         setError(ErrorType.WRONG_ARG_COUNT, 
                                 "No constructor in '" + receiverType.getSimpleName() + "' matches " + arguments.size() + " argument(s)");

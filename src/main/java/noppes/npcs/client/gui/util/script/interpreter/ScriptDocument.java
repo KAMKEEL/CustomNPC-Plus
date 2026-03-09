@@ -8407,16 +8407,17 @@ public class ScriptDocument {
 
             // Try to resolve the class
             TypeInfo info = resolveType(className);
-            boolean isVariableHoldingClass = false;
-            
+            boolean isClassTypeInfo = false;
+            ClassTypeInfo classRef = null;
+            FieldInfo varInfo = null;
             // If not a class name, check if it's a variable holding a ClassTypeInfo
             if ((info == null || !info.isResolved()) && isJavaScript()) {
-                FieldInfo varInfo = resolveVariable(className, start);
+                varInfo = resolveVariable(className, start);
                 if (varInfo != null && varInfo.getTypeInfo() instanceof ClassTypeInfo) {
                     // Variable holds a class reference (like var File = Java.type("java.io.File"))
-                    ClassTypeInfo classRef = (ClassTypeInfo) varInfo.getTypeInfo();
+                    classRef = (ClassTypeInfo) varInfo.getTypeInfo();
                     info = classRef.getInstanceType();
-                    isVariableHoldingClass = true;
+                    isClassTypeInfo = true;
                 }
             }
             
@@ -8463,17 +8464,18 @@ public class ScriptDocument {
                             // Create MethodCallInfo for constructor
                             // Use the actual variable name (className) for variables, not the class's simple name
                             MethodCallInfo ctorCall;
-                            if (isVariableHoldingClass) {
+                            if (isClassTypeInfo) {
                                 // Use constructor directly with variable name
                                 ctorCall = new MethodCallInfo(
                                     className,           // Use variable name, not class name
                                     start, end,
                                     openParen, closeParen,
                                     arguments,
-                                    info,                // The actual class type
+                                        classRef,                // The actual class type
                                     constructor,
                                     false
                                 ).setConstructor(true);
+                                ctorCall.isClassTypeAccess = true;
                             } else {
                                 // Use factory method for regular types
                                 ctorCall = MethodCallInfo.constructor(
@@ -8483,7 +8485,11 @@ public class ScriptDocument {
                             
                             ctorCall.validate();
                             methodCalls.add(ctorCall);  // Add to methodCalls list for error tracking
-                            marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), ctorCall));
+
+
+                            TokenType type = isClassTypeInfo ? varInfo.isGlobal() ? TokenType.GLOBAL_FIELD
+                                    : TokenType.LOCAL_FIELD : info.getTokenType();
+                            marks.add(new ScriptLine.Mark(start, end, type, isClassTypeInfo ? varInfo : ctorCall));
                             continue;
                         }
                     }
