@@ -332,6 +332,31 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                     items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
                 }
             }
+
+            // Add inner classes of the enclosing type as type suggestions
+            for (ScriptTypeInfo inner : enclosingType.getInnerClasses()) {
+                items.add(AutocompleteItem.fromType(inner));
+            }
+
+            // Walk up the outerClass chain to include outer class members and sibling types.
+            // Inside a nested class, users can access outer class fields/methods/sibling types.
+            ScriptTypeInfo outer = enclosingType.getOuterClass();
+            while (outer != null) {
+                for (ScriptTypeInfo sibling : outer.getInnerClasses()) {
+                    if (sibling != enclosingType) {
+                        items.add(AutocompleteItem.fromType(sibling));
+                    }
+                }
+                for (FieldInfo field : outer.getFields().values()) {
+                    items.add(AutocompleteItem.fromField(field));
+                }
+                for (List<MethodInfo> overloads : outer.getMethods().values()) {
+                    for (MethodInfo method : overloads) {
+                        items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
+                    }
+                }
+                outer = outer.getOuterClass();
+            }
         }
         
         // Add script-defined methods
@@ -435,15 +460,11 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     
     /**
      * Find the enclosing script type at a position.
-     * This is a workaround since findEnclosingScriptType is package-private.
+     * Delegates to ScriptDocument's recursive descent implementation
+     * which correctly returns the innermost enclosing type for nested classes.
      */
     protected ScriptTypeInfo findEnclosingType(int position) {
-        for (ScriptTypeInfo type : document.getScriptTypesMap().values()) {
-            if (type.containsPosition(position)) {
-                return type;
-            }
-        }
-        return null;
+        return document.findEnclosingScriptType(position);
     }
     
     /**

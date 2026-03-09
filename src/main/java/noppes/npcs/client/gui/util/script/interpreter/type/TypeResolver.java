@@ -932,7 +932,15 @@ public class TypeResolver {
             // For complex expressions, resolve as expression and check the result type
             TypeInfo exprType = document.resolveExpressionType(identifier, position);
             // Only static if the expression result is itself a ClassTypeInfo (e.g., Java.type("File"))
-            return isStaticAccess(exprType, false);
+            if (isStaticAccess(exprType, false))
+                return true;
+            // Dotted script type name like "Outer.Inner" is always static access
+            if (!identifier.contains("(") && !identifier.contains("[") && !document.containsOperators(identifier)) {
+                TypeInfo dotResolved = document.resolveType(identifier);
+                if (dotResolved instanceof ScriptTypeInfo) 
+                    return true;
+            }
+            return false;
         }
 
         // Simple identifier - check if it's a variable/field (instance access)

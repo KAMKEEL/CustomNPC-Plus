@@ -991,6 +991,9 @@ public class TokenHoverInfo {
      * - JS types with namespace: "IPlayerEvent.InteractEvent"
      */
     public String getName(TypeInfo type){
+        if (type instanceof ScriptTypeInfo) {
+            return ((ScriptTypeInfo) type).getDotSeparatedName();
+        }
         return type.getDisplayName();
     }
 
