@@ -9,7 +9,6 @@ import kamkeel.npcs.client.renderer.lightning.LightningBolt;
 import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import net.minecraft.client.Minecraft;
@@ -50,7 +49,6 @@ public class ClientTickHandler {
             if (mc.theWorld == null) {
                 ClientCacheHandler.clearCache();
                 ClientAbilityState.reset();
-                RequestProperSpawnData.clear();
                 if (EnergyChargePreviewManager.ClientInstance != null) {
                     EnergyChargePreviewManager.ClientInstance.clear();
                 }

@@ -3,6 +3,7 @@ package noppes.npcs.scripted.entity;
 import kamkeel.npcs.entity.EntityAbilityLaser;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.api.entity.IEnergyLaser;
+import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnergyProjectile<T> implements IEnergyLaser {
@@ -96,7 +97,14 @@ public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnerg
     }
 
     @Override
+    public void fireAt(IEntity target) {
+        entity.setTrackOwnerOrigin(false);
+        super.fireAt(target);
+    }
+
+    @Override
     public void fireAt(double x, double y, double z) {
+        entity.setTrackOwnerOrigin(false);
         double dx = x - entity.posX;
         double dy = y - entity.posY;
         double dz = z - entity.posZ;
@@ -104,6 +112,19 @@ public class ScriptEnergyLaser<T extends EntityAbilityLaser> extends ScriptEnerg
         if (len > 0) {
             entity.setDirection(dx / len, dy / len, dz / len);
         }
+        ensureSpawned();
+    }
+
+    @Override
+    public void fireDirection(float yaw, float pitch) {
+        entity.setTrackOwnerOrigin(false);
+        float yawRad = (float) Math.toRadians(yaw);
+        float pitchRad = (float) Math.toRadians(pitch);
+        entity.setDirection(
+            -Math.sin(yawRad) * Math.cos(pitchRad),
+            -Math.sin(pitchRad),
+            Math.cos(yawRad) * Math.cos(pitchRad)
+        );
         ensureSpawned();
     }
 }

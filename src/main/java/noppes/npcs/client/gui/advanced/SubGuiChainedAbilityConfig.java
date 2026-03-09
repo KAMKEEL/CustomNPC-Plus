@@ -175,7 +175,7 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
             java.util.function.BooleanSupplier layerVisible = () -> chainIcon.getLayerCount() > idx;
             String sectionLabel = net.minecraft.util.StatCollector.translateToLocal("ability.icon.layer") + " " + (idx + 1);
             fieldDefs.add(FieldDef.section(sectionLabel).tab("Icon").visibleWhen(layerVisible));
-            fieldDefs.add(FieldDef.stringField("gui.texture",
+            fieldDefs.add(FieldDef.textureSubGui("gui.texture",
                     () -> chainIcon.getLayer(idx).texture,
                     t -> chainIcon.setLayerTexture(idx, t))
                 .tab("Icon").visibleWhen(layerVisible));

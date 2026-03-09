@@ -305,6 +305,15 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
     }
 
     @Override
+    protected void onMoveNewItem(int catId) {
+        String name = prevItemName;
+        if (name != null && !name.isEmpty()) {
+            PacketClient.sendClient(new AbilityCategoryMovePacket(getCategoryType(), name, catId));
+            if (selectedCatId >= 0) requestItemsInCategory(selectedCatId);
+        }
+    }
+
+    @Override
     protected GuiScreen getWindowedVariant() {
         return new GuiNpcManageAbilities(originalNpc, false);
     }

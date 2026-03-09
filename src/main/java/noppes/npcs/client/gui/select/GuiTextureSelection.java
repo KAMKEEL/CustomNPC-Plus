@@ -54,10 +54,20 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     private final HashMap<String, TextureData> textures = new HashMap<>();
 
     // --- Cache static fields ---
-    private static final long CACHE_DURATION = 180000L; // 3 minutes in milliseconds
+    static final long CACHE_DURATION = 180000L; // 3 minutes in milliseconds
     private static long lastCacheTime = 0;
     private static HashMap<String, List<TextureData>> cachedDomains = new HashMap<>();
     public static HashMap<String, TextureData> cachedTextures = new HashMap<>();
+
+    public static final long CACHE_DURATION_MS = CACHE_DURATION;
+
+    public static long lastCacheTime() {
+        return lastCacheTime;
+    }
+
+    public static HashMap<String, List<TextureData>> cachedDomains() {
+        return cachedDomains;
+    }
 
     public GuiTextureSelection(EntityNPCInterface npc, String texture) {
         this.npc = npc;

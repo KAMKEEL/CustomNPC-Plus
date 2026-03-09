@@ -57,6 +57,14 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
 
             mixins.add("MixinItemStack");
         }
+
+        // Server Only Mixins
+        if (!client) {
+            if (ConfigMixin.EntitySpawnFixMixin) {
+                mixins.add("MixinEntityTrackerEntry");
+            }
+        }
+
         return mixins;
     }
 

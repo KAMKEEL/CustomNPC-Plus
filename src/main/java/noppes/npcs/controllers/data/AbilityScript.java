@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.network.packets.request.script.AbilityScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.janino.EventJaninoScript;
 
 /**
  * Script handler for ability scripts.
@@ -33,6 +34,11 @@ public class AbilityScript extends SingleScriptHandler implements IScriptHandler
     @Override
     public ScriptContext getContext() {
         return ScriptContext.ABILITY;
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.ABILITY);
     }
 
     @Override

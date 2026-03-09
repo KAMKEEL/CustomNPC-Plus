@@ -40,6 +40,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     private float desiredLength = 0.0f; // Intended beam reach (grows to maxLength)
     private float currentLength = 0.0f; // Actual length after block truncation (visual + collision)
     private boolean fullyExtended = false;
+    private boolean trackOwnerOrigin = true; // When false, laser fires independently (fireAt mode)
 
     // Direction (normalized)
     private double dirX, dirY, dirZ;
@@ -158,7 +159,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
         // Origin/direction tracking runs on BOTH sides so the client can render the beam.
         // Once reflected, never resume owner-tracking — the laser flies in a fixed direction.
-        if (!reflected) {
+        // When trackOwnerOrigin is false (fireAt mode), skip owner tracking entirely.
+        if (!reflected && trackOwnerOrigin) {
             updateLaserOriginAndDirection();
         }
 
@@ -727,6 +729,14 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.dirZ = z;
     }
 
+    public boolean isTrackOwnerOrigin() {
+        return trackOwnerOrigin;
+    }
+
+    public void setTrackOwnerOrigin(boolean track) {
+        this.trackOwnerOrigin = track;
+    }
+
     public float getCurrentLength() {
         return currentLength;
     }
@@ -868,6 +878,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         this.desiredLength = nbt.getFloat("DesiredLength");
         this.currentLength = nbt.getFloat("CurrentLength");
         this.fullyExtended = nbt.getBoolean("FullyExtended");
+        this.trackOwnerOrigin = !nbt.hasKey("TrackOwnerOrigin") || nbt.getBoolean("TrackOwnerOrigin");
         this.endX = nbt.getDouble("EndX");
         this.endY = nbt.getDouble("EndY");
         this.endZ = nbt.getDouble("EndZ");
@@ -886,6 +897,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         nbt.setFloat("DesiredLength", desiredLength);
         nbt.setFloat("CurrentLength", currentLength);
         nbt.setBoolean("FullyExtended", fullyExtended);
+        nbt.setBoolean("TrackOwnerOrigin", trackOwnerOrigin);
         nbt.setDouble("EndX", endX);
         nbt.setDouble("EndY", endY);
         nbt.setDouble("EndZ", endZ);
