@@ -35,7 +35,7 @@
  */
 def embedMixin = !project.hasProperty("nomixin");
 dependencies {
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.5.4-GTNH:dev")
+//    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.5.4-GTNH:dev")
     if (!project.hasProperty("noNashorn")) {
         runtimeOnlyNonPublishable("curse.maven:Nashorn-374413:2924946")
     }
