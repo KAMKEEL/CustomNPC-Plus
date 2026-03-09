@@ -7,6 +7,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -72,5 +73,6 @@ public class EffectSavePacket extends AbstractPacket {
         }
 
         NoppesUtilServer.sendCustomEffectDataAll((EntityPlayerMP) player);
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, effect.writeToNBT(false));
     }
 }

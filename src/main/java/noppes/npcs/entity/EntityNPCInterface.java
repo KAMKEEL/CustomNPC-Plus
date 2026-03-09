@@ -14,7 +14,6 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.packets.data.ChatBubblePacket;
 import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
-import kamkeel.npcs.network.packets.data.RequestProperSpawnData;
 import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.npc.UpdateNpcPacket;
 import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
@@ -233,10 +232,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
     public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
-
-    // For Client-Side Use Only
-    public int clientFixAttempts = 0;
-    public long clientFixLastRequestMillis = 0L;
 
     public EntityNPCInterface(World world) {
         super(world);
@@ -1846,7 +1841,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         NBTTagCompound compound = new NBTTagCompound();
         display.writeToNBT(compound);
         compound.setDouble("MaxHealth", stats.maxHealth);
-        compound.setFloat("CurrentHealth", getHealth());
         compound.setTag("Armor", NBTTags.nbtItemStackList(inventory.getArmor()));
         compound.setTag("Weapons", NBTTags.nbtItemStackList(inventory.getWeapons()));
         compound.setInteger("Speed", ais.getWalkingSpeed());
@@ -1889,19 +1883,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         try {
             readSpawnData(ByteBufUtils.readNBT(buf));
         } catch (IOException e) {
-            if (this.worldObj != null && this.worldObj.isRemote) {
-                RequestProperSpawnData.reportMissingData(this);
-            }
+            e.printStackTrace();
         }
     }
 
     public void readSpawnData(NBTTagCompound compound) {
-        if (this.worldObj != null && this.worldObj.isRemote) {
-            if(requestClientFix(compound))
-                return;
-        }
-
-        float preservedHealth = getHealth();
         stats.maxHealth = compound.getDouble("MaxHealth");
         ais.setWalkingSpeed(compound.getInteger("Speed"));
         stats.hideKilledBody = compound.getBoolean("DeadBody");
@@ -1926,12 +1912,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         ais.bodyOffsetY = compound.getFloat("OffsetY");
 
         this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
-        if (compound.hasKey("CurrentHealth", Constants.NBT.TAG_FLOAT)) {
-            setHealth(MathHelper.clamp_float(compound.getFloat("CurrentHealth"), 0.0F, getMaxHealth()));
-        } else {
-            // Keep previous client health if packet came from an older sender format.
-            setHealth(MathHelper.clamp_float(preservedHealth, 0.0F, getMaxHealth()));
-        }
         inventory.setArmor(NBTTags.getItemStackList(compound.getTagList("Armor", 10)));
         inventory.setWeapons(NBTTags.getItemStackList(compound.getTagList("Weapons", 10)));
         advanced.setRole(compound.getInteger("Role"));
@@ -1998,16 +1978,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         } else {
             return super.handleWaterMovement();
         }
-    }
-
-    public boolean requestClientFix(NBTTagCompound compound){
-        if((compound.hasNoTags() || !compound.hasKey("MaxHealth", Constants.NBT.TAG_DOUBLE))){
-            RequestProperSpawnData.reportMissingData(this);
-            return true;
-        }
-        clientFixAttempts = 0;
-        clientFixLastRequestMillis = 0L;
-        return false;
     }
 
     public boolean canBreatheUnderwater() {

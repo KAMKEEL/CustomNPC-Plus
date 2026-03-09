@@ -649,7 +649,6 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new SpecialKeyStatePacket());
 
         PLAYER_PACKET.registerPacket(new SyncRevisionInfoPacket());
-        PLAYER_PACKET.registerPacket(new RequestProperSpawnData());
 
         // CustomGUI Packets
         PLAYER_PACKET.registerPacket(new CustomGuiButtonPacket());

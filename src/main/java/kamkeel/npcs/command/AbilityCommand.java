@@ -231,12 +231,12 @@ public class AbilityCommand extends CommandKamkeelBase {
         }
 
         Ability ability = AbilityController.Instance.resolveAbility(abilityKey);
-        String canonicalKey = abilityKey;
-        String displayName = abilityKey;
-        if (ability != null) {
-            canonicalKey = ability.getId() != null ? ability.getId() : abilityKey;
-            displayName = ability.getDisplayName();
+        if (ability == null) {
+            sendError(sender, "Ability not found: " + abilityKey);
+            return;
         }
+        String canonicalKey = ability.getId() != null ? ability.getId() : abilityKey;
+        String displayName = ability.getDisplayName();
 
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         if (!data.abilityData.hasUnlockedAbility(canonicalKey)) {
@@ -376,8 +376,8 @@ public class AbilityCommand extends CommandKamkeelBase {
                 // Chained ability
                 String chainName = key.substring(PlayerAbilityData.CHAIN_PREFIX.length());
                 ChainedAbility chain = AbilityController.Instance.resolveChainedAbility(chainName);
-                String displayName = chain != null ? chain.getDisplayName() : chainName;
-                sendResult(sender, prefix + "\u00A7d[Chain] \u00A7b" + displayName);
+                String display = chain != null ? chain.getDisplayName() : chainName;
+                sendResult(sender, prefix + "\u00A7d[Chain] \u00A7b" + display);
             } else {
                 // Regular ability
                 Ability ability = AbilityController.Instance.resolveAbility(key);

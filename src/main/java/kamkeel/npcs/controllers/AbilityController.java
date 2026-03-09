@@ -823,6 +823,35 @@ public class AbilityController implements IAbilityHandler {
         return null;
     }
 
+    /**
+     * Resolve a chained ability by key and return the live (non-copied) reference.
+     * For validation/permission checks only — do NOT expose or modify the returned chain.
+     * Uses the same lookup chain as {@link #resolveChainedAbility(String)}.
+     */
+    public ChainedAbility peekChainedAbility(String key) {
+        if (key == null || key.isEmpty()) return null;
+
+        ChainedAbility byId = chainedAbilitiesById.get(key);
+        if (byId != null) return byId;
+
+        ChainedAbility chain = chainedAbilities.get(key);
+        if (chain != null) return chain;
+
+        for (Map.Entry<String, ChainedAbility> entry : chainedAbilities.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue();
+            }
+        }
+
+        String sanitizedKey = FileNameHelper.sanitizeTextInput(key);
+        if (!sanitizedKey.equals(key)) {
+            ChainedAbility sanitized = chainedAbilities.get(sanitizedKey);
+            if (sanitized != null) return sanitized;
+        }
+
+        return null;
+    }
+
     public boolean canResolveChainedAbility(String key) {
         if (key == null || key.isEmpty()) return false;
         if (chainedAbilitiesById.containsKey(key)) return true;
@@ -1014,18 +1043,36 @@ public class AbilityController implements IAbilityHandler {
     public Ability peekAbility(String key) {
         if (key == null || key.isEmpty()) return null;
 
+        // Custom: UUID lookup
         Ability byUuid = customAbilitiesById.get(key);
         if (byUuid != null) return byUuid;
 
+        // Built-in: exact key
         Ability builtIn = builtAbilities.get(key);
         if (builtIn != null) return builtIn;
 
-        for (Ability ability : builtAbilities.values()) {
-            if (key.equals(ability.getId())) return ability;
+        // Built-in: case-insensitive key
+        for (Map.Entry<String, Ability> entry : builtAbilities.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue();
+            }
         }
 
+        // Built-in: by ID (case-insensitive)
+        for (Ability ability : builtAbilities.values()) {
+            if (key.equalsIgnoreCase(ability.getId())) return ability;
+        }
+
+        // Custom: exact name
         Ability custom = customAbilities.get(key);
         if (custom != null) return custom;
+
+        // Custom: case-insensitive name
+        for (Map.Entry<String, Ability> entry : customAbilities.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue();
+            }
+        }
 
         return null;
     }
