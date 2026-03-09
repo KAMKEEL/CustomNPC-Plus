@@ -5397,7 +5397,31 @@ public class ScriptDocument {
                         methodCalls.add(callInfo);
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                     } else {
-                        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
+                        // Not a top-level script method or engine function — check if the call site is inside
+                        // a ScriptTypeInfo whose method table contains this name (implicit 'this' call).
+                        // e.g. getYaw() called without 'this.' or 'abilityLine.' inside AbilityLine resolves via AbilityLine's method hierarchy.
+                        ScriptTypeInfo callerType = findEnclosingScriptType(nameStart);
+                  
+                        if (callerType != null && callerType.hasMethodInHierarchy(methodName)) {
+                            TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
+                            MethodInfo implicitMethod = callerType.getBestMethodOverload(methodName, argTypes);
+                            if (implicitMethod != null && implicitMethod.getParameters().size() == arguments.size()) {
+                                arguments = parseMethodArguments(openParen + 1, closeParen, implicitMethod);
+                            }
+                            MethodCallInfo callInfo = new MethodCallInfo(
+                                methodName, nameStart, nameEnd, openParen, closeParen,
+                                arguments, callerType, implicitMethod
+                            );
+                            if (!isFollowedByDot(closeParen)) {
+                                TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
+                                if (expectedType != null) callInfo.setExpectedType(expectedType);
+                            }
+                            callInfo.validate();
+                            methodCalls.add(callInfo);
+                            marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
+                        } else {
+                            marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
+                        }
                     }
                 }
             }
@@ -5950,6 +5974,16 @@ public class ScriptDocument {
             }
             if (currentType == null && isGlobalEngineFunction(first.name)) {
                 currentType = getGlobalEngineFunctionReturnType(first.name);
+            }
+            if (currentType == null) {
+                // Implicit 'this' call: bare method name inside a ScriptTypeInfo body (e.g. getYaw() inside AbilityLine.foo())
+                ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+                if (enclosingType != null && enclosingType.hasMethodInHierarchy(first.name)) {
+                    MethodInfo implicitMethod = enclosingType.getMethodInfoInHierarchy(first.name);
+                    if (implicitMethod != null) {
+                        currentType = implicitMethod.getReturnType();
+                    }
+                }
             }
         }
 
