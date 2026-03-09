@@ -736,6 +736,22 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         setTargetEntityId(-1);
     }
 
+    // ==================== PROPERTY SYNC ====================
+
+    @Override
+    protected void writeProjectileClientSyncData(NBTTagCompound nbt) {
+        nbt.setFloat("BeamWidth", beamWidth);
+        nbt.setFloat("HeadSize", headSize);
+        nbt.setBoolean("AttachedToOwner", isAttachedToOwner());
+    }
+
+    @Override
+    protected void applyProjectileClientSyncData(NBTTagCompound nbt) {
+        beamWidth = nbt.getFloat("BeamWidth");
+        headSize = nbt.getFloat("HeadSize");
+        setAttachedToOwner(nbt.getBoolean("AttachedToOwner"));
+    }
+
     // ==================== NBT ====================
 
     @Override

@@ -15,6 +15,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
+import kamkeel.npcs.network.packets.data.energy.ProjectileClientSyncPacket;
 import kamkeel.npcs.network.packets.data.energy.ProjectileReflectPacket;
 import kamkeel.npcs.network.packets.data.energyexplosion.EnergyExplosionSpawnPacket;
 import kamkeel.npcs.util.AnchorPointHelper;
@@ -688,6 +689,93 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     protected void sendReflectionSync() {
         if (worldObj == null || worldObj.isRemote) return;
         ProjectileReflectPacket.sendToTracking(this, writeReflectionData());
+    }
+
+    // ==================== CLIENT SYNC ====================
+
+    /**
+     * Write all client-relevant state: position, motion, visual, and movement properties.
+     * Subclasses should override writeProjectileClientSyncData for type-specific fields.
+     */
+    public NBTTagCompound writeClientSyncData() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        // Position & motion
+        nbt.setDouble("PosX", posX);
+        nbt.setDouble("PosY", posY);
+        nbt.setDouble("PosZ", posZ);
+        nbt.setDouble("MotionX", motionX);
+        nbt.setDouble("MotionY", motionY);
+        nbt.setDouble("MotionZ", motionZ);
+        // Size & visual
+        nbt.setFloat("Size", size);
+        nbt.setFloat("RotationSpeed", displayData.getRotationSpeed());
+        nbt.setFloat("InnerAlpha", displayData.getInnerAlpha());
+        nbt.setBoolean("OuterColorEnabled", displayData.isOuterColorEnabled());
+        nbt.setFloat("OuterColorWidth", displayData.getOuterColorWidth());
+        nbt.setFloat("OuterColorAlpha", displayData.getOuterColorAlpha());
+        // Lightning
+        nbt.setBoolean("LightningEffect", hasLightningEffect());
+        nbt.setFloat("LightningDensity", getLightningDensity());
+        nbt.setFloat("LightningRadius", getLightningRadius());
+        nbt.setInteger("LightningFadeTime", getLightningFadeTime());
+        // Movement
+        nbt.setFloat("Speed", getSpeed());
+        nbt.setBoolean("Homing", isHoming());
+        nbt.setFloat("HomingStrength", getHomingStrength());
+        nbt.setFloat("HomingRange", getHomingRange());
+        writeProjectileClientSyncData(nbt);
+        return nbt;
+    }
+
+    /**
+     * Apply client sync data from server.
+     * Subclasses should override applyProjectileClientSyncData for type-specific fields.
+     */
+    public void applyClientSyncData(NBTTagCompound nbt) {
+        // Position & motion
+        setPosition(nbt.getDouble("PosX"), nbt.getDouble("PosY"), nbt.getDouble("PosZ"));
+        motionX = nbt.getDouble("MotionX");
+        motionY = nbt.getDouble("MotionY");
+        motionZ = nbt.getDouble("MotionZ");
+        syncPositionStateToCurrent(true);
+        // Size & visual
+        setProjectileSize(nbt.getFloat("Size"));
+        displayData.setRotationSpeed(nbt.getFloat("RotationSpeed"));
+        displayData.setInnerAlpha(nbt.getFloat("InnerAlpha"));
+        displayData.setOuterColorEnabled(nbt.getBoolean("OuterColorEnabled"));
+        displayData.setOuterColorWidth(nbt.getFloat("OuterColorWidth"));
+        displayData.setOuterColorAlpha(nbt.getFloat("OuterColorAlpha"));
+        // Lightning
+        setLightningEffect(nbt.getBoolean("LightningEffect"));
+        setLightningDensity(nbt.getFloat("LightningDensity"));
+        setLightningRadius(nbt.getFloat("LightningRadius"));
+        setLightningFadeTime(nbt.getInteger("LightningFadeTime"));
+        // Movement
+        setSpeed(nbt.getFloat("Speed"));
+        setHomingEnabled(nbt.getBoolean("Homing"));
+        setHomingStrength(nbt.getFloat("HomingStrength"));
+        setHomingRange(nbt.getFloat("HomingRange"));
+        applyProjectileClientSyncData(nbt);
+    }
+
+    /**
+     * Subclass hook: write type-specific client sync data.
+     */
+    protected void writeProjectileClientSyncData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Subclass hook: apply type-specific client sync data on client.
+     */
+    protected void applyProjectileClientSyncData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Send full client sync to all tracking clients.
+     */
+    public void sendClientSync() {
+        if (worldObj == null || worldObj.isRemote) return;
+        ProjectileClientSyncPacket.sendToTracking(this, writeClientSyncData());
     }
 
     protected double[] getBarrierImpactNormal(EntityEnergyBarrier barrier, double velocityX, double velocityY, double velocityZ) {
@@ -1662,7 +1750,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     /**
      * Sync prev/lastTick and optional interpolation state to current entity position.
      */
-    protected void syncPositionStateToCurrent(boolean resetInterpolation) {
+    public void syncPositionStateToCurrent(boolean resetInterpolation) {
         syncPositionState(posX, posY, posZ, resetInterpolation);
     }
 
@@ -2264,7 +2352,18 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
     }
 
     public void setSpeed(float speed) {
+        float oldSpeed = homingData.getSpeed();
         homingData.setSpeed(speed);
+        // Rescale current motion vector to match new speed
+        if (addedToChunk && !worldObj.isRemote) {
+            double len = Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+            if (len > 0) {
+                double scale = speed / len;
+                motionX *= scale;
+                motionY *= scale;
+                motionZ *= scale;
+            }
+        }
     }
 
     public AnchorPoint getAnchorPoint() {

@@ -712,6 +712,22 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         this.mode = mode;
     }
 
+    // ==================== CLIENT SYNC ====================
+
+    @Override
+    protected void writeBarrierClientSyncData(NBTTagCompound nbt) {
+        nbt.setFloat("PanelWidth", panelData.panelWidth);
+        nbt.setFloat("PanelHeight", panelData.panelHeight);
+        nbt.setFloat("PanelYaw", panelYaw);
+    }
+
+    @Override
+    protected void applyBarrierClientSyncData(NBTTagCompound nbt) {
+        panelData.panelWidth = nbt.getFloat("PanelWidth");
+        panelData.panelHeight = nbt.getFloat("PanelHeight");
+        panelYaw = nbt.getFloat("PanelYaw");
+    }
+
     // ==================== NBT ====================
 
     @Override
