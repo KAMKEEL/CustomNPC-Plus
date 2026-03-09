@@ -1032,7 +1032,9 @@ public class ScriptDocument {
 
             Matcher m = methodWithBody.matcher(text);
             while (m.find()) {
-                if (isExcluded(m.start()))
+                String methodName = m.group(2);
+
+                if (isExcluded(m.start()) || isKeyword(methodName))
                     continue;
 
                 String returnType = m.group(1);
@@ -1041,7 +1043,6 @@ public class ScriptDocument {
                     continue;
                 }
                 
-                String methodName = m.group(2);
                 String paramList = m.group(3);
                 String delimiter = m.group(4);
                 boolean hasBody = delimiter.equals("{");
@@ -5210,7 +5211,7 @@ public class ScriptDocument {
             int nameEnd = m.end(1);
             String methodName = m.group(1);
 
-            if (isExcluded(nameStart))
+            if (isExcluded(nameStart) || isKeyword(methodName))
                 continue;
 
             // Skip if in import/package statement
@@ -5428,6 +5429,12 @@ public class ScriptDocument {
         }
     }
     
+    public boolean isKeyword(String word){
+        Set<String> keywords = new HashSet<>(Arrays.asList(TypeChecker.getJavaKeywords()));
+        if (isJavaScript())
+            keywords.addAll(Arrays.asList(TypeChecker.getJavaScriptKeywords()));
+        return keywords.contains(word);
+    }
     /**
      * Check if a method call is a static access (Class.method() style).
      * Returns true if the immediate receiver before the dot is a class name (uppercase).
