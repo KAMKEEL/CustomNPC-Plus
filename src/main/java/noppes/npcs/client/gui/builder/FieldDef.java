@@ -177,17 +177,15 @@ public class FieldDef {
     }
 
     public static FieldDef textureSubGui(String label, Supplier<String> getter, Consumer<String> setter) {
-        return subGuiField(label,
-            () -> new GuiTexturePathSelection(getter.get()),
-            gui -> {
-                GuiTexturePathSelection t = (GuiTexturePathSelection) gui;
-                if (t.selectedResource != null) setter.accept(t.selectedResource.toString());
-            })
-            .buttonLabel(() -> {
-                String s = getter.get();
-                return s == null || s.isEmpty() ? "gui.none" : s;
-            })
-            .clearable(() -> setter.accept(""));
+        FieldDef def = new FieldDef(label, FieldType.STRING_BROWSE);
+        def.getter = () -> getter.get();
+        def.setter = v -> setter.accept(v != null ? v.toString() : "");
+        def.subGuiFactory = () -> new GuiTexturePathSelection(getter.get());
+        def.subGuiResultHandler = gui -> {
+            GuiTexturePathSelection t = (GuiTexturePathSelection) gui;
+            if (t.selectedResource != null) setter.accept(t.selectedResource.toString());
+        };
+        return def;
     }
 
     public static FieldDef animSubGui(String label,

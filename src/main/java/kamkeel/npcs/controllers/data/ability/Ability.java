@@ -968,7 +968,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
                                      java.util.function.BooleanSupplier visible) {
         String sectionLabel = StatCollector.translateToLocal("ability.icon.layer") + " " + (layerIndex + 1);
         defs.add(FieldDef.section(sectionLabel).tab("Effects").visibleWhen(visible));
-        defs.add(FieldDef.stringField("gui.texture",
+        defs.add(FieldDef.textureSubGui("gui.texture",
                 () -> icon.getLayer(layerIndex).texture,
                 t -> icon.setLayerTexture(layerIndex, t))
             .tab("Effects").visibleWhen(visible));

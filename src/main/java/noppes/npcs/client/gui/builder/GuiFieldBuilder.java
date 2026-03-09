@@ -334,6 +334,25 @@ public class GuiFieldBuilder {
                 clearId++;
                 break;
             }
+            case STRING_BROWSE: {
+                // Text field for manual input (URLs, paths) + browse button
+                int btnW = 20;
+                int tfW = fieldW - btnW - 2;
+                String sVal = def.getValue() != null ? def.getValue().toString() : "";
+                GuiNpcTextField tf = new GuiNpcTextField(widgetId, parent, fontRenderer, fieldX, y, tfW, 20, sVal);
+                if (!def.isEnabled()) tf.setEnabled(false);
+                if (hover != null) tf.setHoverText(hover);
+                sw.addTextField(tf);
+                textFieldMap.put(widgetId, def);
+                widgetId++;
+                // Browse button
+                GuiNpcButton browseBtn = new GuiNpcButton(clearId, fieldX + tfW + 2, y, btnW, 20, "...");
+                if (!def.isEnabled()) browseBtn.setEnabled(false);
+                sw.addButton(browseBtn);
+                buttonFieldMap.put(clearId, def);
+                clearId++;
+                break;
+            }
             default:
                 // Unknown type — skip, incrementing IDs to stay in sync
                 widgetId++;
@@ -349,7 +368,7 @@ public class GuiFieldBuilder {
         int fieldX = colLLabel + labelW + labelPadding;
         // Available width before the scrollbar
         int maxW = contentRight - fieldX - 15;
-        if (def.getType() == FieldType.SUB_GUI && maxW > 0) {
+        if ((def.getType() == FieldType.SUB_GUI || def.getType() == FieldType.STRING_BROWSE) && maxW > 0) {
             // SUB_GUI fields fill all available width up to the scrollbar
             fieldW = maxW;
         } else if (maxW > 0 && fieldW > maxW) {
@@ -374,6 +393,8 @@ public class GuiFieldBuilder {
                 return 120;
             case SUB_GUI:
                 return def.hasClearAction() ? 175 : 200;
+            case STRING_BROWSE:
+                return 200;
             default:
                 return 80;
         }
@@ -434,6 +455,15 @@ public class GuiFieldBuilder {
                     });
                 }
                 return true;
+            case STRING_BROWSE:
+                if (def.getSubGuiFactory() != null) {
+                    parent.setSubGuiWithResult(def.getSubGuiFactory().get(), sub -> {
+                        if (def.getSubGuiResultHandler() != null) {
+                            def.getSubGuiResultHandler().accept(sub);
+                        }
+                    });
+                }
+                return true;
             default:
                 return false;
         }
@@ -473,6 +503,7 @@ public class GuiFieldBuilder {
                 }
                 return false;
             case STRING:
+            case STRING_BROWSE:
                 String newVal = field.getText();
                 Object old = def.getValue();
                 String oldVal = old != null ? old.toString() : "";
