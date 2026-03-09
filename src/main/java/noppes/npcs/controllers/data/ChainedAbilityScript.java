@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.network.packets.request.script.ChainedAbilityScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.janino.EventJaninoScript;
 
 /**
  * Script handler for chained ability scripts.
@@ -28,6 +29,11 @@ public class ChainedAbilityScript extends SingleScriptHandler implements IScript
      */
     public ChainedAbilityScript(String chainId) {
         this.chainId = chainId != null ? chainId : "";
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.CHAINED_ABILITY);
     }
 
     @Override
