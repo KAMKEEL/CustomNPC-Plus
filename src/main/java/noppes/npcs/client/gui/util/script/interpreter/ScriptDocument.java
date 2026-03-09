@@ -1752,6 +1752,7 @@ public class ScriptDocument {
                         MultiDeclaratorParser.scanJavaContinuationDeclarators(bodyText, greedyScanStart, bodyStart,
                             (cVarName, cAbsNamePos, cAbsInitStart, cAbsInitEnd) -> {
                                 if (isExcluded(cAbsNamePos)) return;
+                                if (findEnclosingParenStart(bodyStart, cAbsNamePos) >= 0) return;
                                 FieldInfo cField = FieldInfo.localField(cVarName, greedySharedType, cAbsNamePos,
                                         fMethod3, cAbsInitStart, cAbsInitEnd, greedySharedMod);
                                 ScopeInfo cScope = computeBlockScope(bodyStart, bodyEnd, cAbsNamePos);
