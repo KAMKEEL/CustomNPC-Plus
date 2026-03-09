@@ -63,7 +63,7 @@ import noppes.npcs.api.IBlock;
 import noppes.npcs.api.ICommand;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.IDamageSource;
-import noppes.npcs.api.IEnergyController;
+import noppes.npcs.api.IEnergyHandler;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
 import noppes.npcs.api.IPos;
@@ -623,7 +623,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     @Override
-    public IEnergyController getEnergyController() {
+    public IEnergyHandler getEnergyHandler() {
         return EnergyController.Instance;
     }
 

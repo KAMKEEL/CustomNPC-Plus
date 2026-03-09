@@ -1,12 +1,12 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.data.energy.IEnergyHandler;
+import kamkeel.npcs.controllers.data.energy.IEnergyExtender;
 import kamkeel.npcs.entity.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.api.IEnergyController;
+import noppes.npcs.api.IEnergyHandler;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.*;
 import noppes.npcs.api.entity.IEnergyExplosion;
@@ -22,22 +22,22 @@ import java.util.List;
  * damage through registered handlers when entities have customDamageData
  * but no sourceAbility.
  */
-public class EnergyController implements IEnergyController {
+public class EnergyController implements IEnergyHandler {
 
     public static EnergyController Instance = new EnergyController();
 
-    private final List<IEnergyHandler> handlers = new ArrayList<>();
+    private final List<IEnergyExtender> extenders = new ArrayList<>();
 
     // ═══════════════════════════════════════════════════════════════════
     // HANDLER REGISTRATION
     // ═══════════════════════════════════════════════════════════════════
 
-    public void registerHandler(IEnergyHandler handler) {
-        handlers.add(handler);
+    public void registerExtender(IEnergyExtender handler) {
+        extenders.add(handler);
     }
 
-    public List<IEnergyHandler> getHandlers() {
-        return handlers;
+    public List<IEnergyExtender> getExtenders() {
+        return extenders;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -53,7 +53,7 @@ public class EnergyController implements IEnergyController {
                                        double kbDirX, double kbDirZ,
                                        float damageMultiplier,
                                        NBTTagCompound damageData) {
-        for (IEnergyHandler handler : handlers) {
+        for (IEnergyExtender handler : extenders) {
             if (handler.onEnergyDamage(energyEntity, owner, target, damage,
                 knockback, knockbackUp, kbDirX, kbDirZ, damageMultiplier, damageData)) {
                 return true;
@@ -68,7 +68,7 @@ public class EnergyController implements IEnergyController {
     public float fireModifyEnergyDamage(Entity energyEntity, EntityLivingBase owner,
                                          float baseDamage, NBTTagCompound damageData) {
         float damage = baseDamage;
-        for (IEnergyHandler handler : handlers) {
+        for (IEnergyExtender handler : extenders) {
             damage = handler.modifyEnergyDamage(energyEntity, owner, damage, damageData);
         }
         return damage;
@@ -150,7 +150,7 @@ public class EnergyController implements IEnergyController {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // IEnergyController (Script API methods)
+    // IEnergyHandler (Script API methods)
     // ═══════════════════════════════════════════════════════════════════
 
     @Override
