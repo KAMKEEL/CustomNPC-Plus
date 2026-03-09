@@ -2660,12 +2660,10 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 EntityEnergyDome dome = (EntityEnergyDome) barrier;
                 float radius = dome.getDomeRadius();
 
-                // Check if the movement segment crosses the dome boundary from outside
+                // Check if the movement segment crosses the dome boundary (either direction)
                 double ocX = caster.posX - dome.posX;
                 double ocY = eyeY - dome.posY;
                 double ocZ = caster.posZ - dome.posZ;
-                double originDistSq = ocX * ocX + ocY * ocY + ocZ * ocZ;
-                if (originDistSq < (double) radius * radius) continue; // Inside dome, skip
 
                 double rdX = nextX - caster.posX;
                 double rdZ = nextZ - caster.posZ;
@@ -2676,7 +2674,8 @@ public abstract class Ability implements IAbility, IAbilityAction {
                 if (discriminant < 0 || a < 1e-10) continue;
                 double sqrtD = Math.sqrt(discriminant);
                 double t1 = (-b - sqrtD) / (2.0 * a);
-                if (t1 >= 0.0 && t1 <= 1.0) return true;
+                double t2 = (-b + sqrtD) / (2.0 * a);
+                if ((t1 >= 0.0 && t1 <= 1.0) || (t2 >= 0.0 && t2 <= 1.0)) return true;
             } else if (barrier instanceof EntityEnergyPanel) {
                 EntityEnergyPanel panel = (EntityEnergyPanel) barrier;
                 float halfW = panel.getPanelData().getPanelWidth() * 0.5f;
