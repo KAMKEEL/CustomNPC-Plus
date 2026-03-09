@@ -423,15 +423,6 @@ public class EntityEnergySweeper extends EntityEnergyAbility {
 
     // ==================== NBT ====================
 
-    @Override
-    protected void readEntityFromNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
 
     @Override
     protected void writeSpawnNBT(NBTTagCompound nbt) {

@@ -834,15 +834,6 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
     // NBT SERIALIZATION
     // ═══════════════════════════════════════════════════════════════════
 
-    @Override
-    protected void readEntityFromNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
 
     // ═══════════════════════════════════════════════════════════════════
     // SPAWN DATA (ByteBuf for client sync)

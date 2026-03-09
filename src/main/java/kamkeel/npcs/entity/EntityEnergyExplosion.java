@@ -289,15 +289,6 @@ public class EntityEnergyExplosion extends EntityEnergyAbility {
 
     // ==================== NBT ====================
 
-    @Override
-    protected void readEntityFromNBT(NBTTagCompound nbt) {
-        // Intentionally empty - transient visual entity.
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        // Intentionally empty - transient visual entity.
-    }
 
     @Override
     protected void writeSpawnNBT(NBTTagCompound nbt) {
