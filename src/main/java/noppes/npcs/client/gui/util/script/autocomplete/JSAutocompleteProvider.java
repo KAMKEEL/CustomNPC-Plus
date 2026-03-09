@@ -114,15 +114,18 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             return;
         }
 
+        Set<String> syntheticMethodNames = new HashSet<>();
+        for (MethodInfo method : receiverType.getSyntheticMethods()) {
+            syntheticMethodNames.add(method.getName());
+            if (isStaticContext && !method.isStatic()) continue;
+            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
+        }
         for (FieldInfo field : receiverType.getSyntheticFields()) {
             if (!context.methodsOnly) {
                 if (isStaticContext && !field.isStatic()) continue;
+                if (syntheticMethodNames.contains(field.getName())) continue;
                 items.add(AutocompleteItem.fromField(field));
             }
-        }
-        for (MethodInfo method : receiverType.getSyntheticMethods()) {
-            if (isStaticContext && !method.isStatic()) continue;
-            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
         }
 
         JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
