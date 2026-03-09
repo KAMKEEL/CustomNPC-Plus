@@ -1084,7 +1084,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (parent != null)
             parent.fullscreenButton.draw(xMouse, yMouse);
         
-        // Draw search/replace bar (overlays viewport)
+        searchBar.ownerGui = parent;
         searchBar.draw(xMouse, yMouse);
         
         // Draw go to line dialog (overlays everything)
@@ -1092,7 +1092,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
 
-        // Draw autocomplete menu (overlays code area)
+        autocompleteManager.getMenu().ownerGui = parent;
         autocompleteManager.draw(xMouse, yMouse);
 
         // Draw hover tooltips (on top of everything)
@@ -1101,7 +1101,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int viewportWidth = width - LINE_NUMBER_GUTTER_WIDTH;
             int viewportY = y;
             int viewportHeight = height;
-            TokenHoverRenderer.render(hoverState, viewportX, viewportWidth+xOffset, viewportY, viewportHeight);
+            TokenHoverRenderer.render(hoverState, viewportX, viewportWidth+xOffset, viewportY, viewportHeight,parent);
         }
 
         // Draw gutter icon tooltip
@@ -1114,9 +1114,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int scaleFactor = sr.getScaleFactor();
-        int scissorX = (this.x) * scaleFactor;
-        int scissorY = (sr.getScaledHeight() - (this.y + this.height)) * scaleFactor;
-        int scissorW = (this.width) * scaleFactor;
+        double panX = parent != null ? parent.getPanX() : 0;
+        double panY = parent != null ? parent.getPanY() : 0;
+        int scissorX = (int)((this.x - panX) * scaleFactor);
+        int scissorY = (int)((sr.getScaledHeight() - (this.y - panY + this.height)) * scaleFactor);
+        int scissorW = this.width * scaleFactor;
         int scissorH = this.height * scaleFactor;
         GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
     }

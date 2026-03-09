@@ -76,7 +76,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
      */
      public double currentPanX, currentPanY;
 
-    public static double activePanX, activePanY;
+    public double getPanX() { return currentPanX; }
+    public double getPanY() { return currentPanY; }
 
     protected double minPanX, maxPanX, minPanY, maxPanY;
     protected int panViewportX, panViewportY, panViewportWidth, panViewportHeight;
@@ -507,8 +508,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
         if (panning) {
             GL11.glPushMatrix();
             GL11.glTranslated(-currentPanX, -currentPanY, 0);
-            activePanX = currentPanX;
-            activePanY = currentPanY;
         }
 
         if (background != null && mc.renderEngine != null) {
@@ -557,8 +556,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
         if (panning) {
             GL11.glPopMatrix();
-            activePanX = 0;
-            activePanY = 0;
         }
 
         if (subgui != null) {
