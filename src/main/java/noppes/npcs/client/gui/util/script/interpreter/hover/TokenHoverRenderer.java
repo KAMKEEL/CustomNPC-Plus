@@ -308,6 +308,7 @@ public class TokenHoverRenderer {
                 currentY += SEPARATOR_HEIGHT + SEPARATOR_SPACING;
             }
             
+            boolean previousVisibleJSDocWasCode = false;
             for (int di = 0; di < jsDocLines.size(); di++) {
                 TokenHoverInfo.DocumentationLine docLine = jsDocLines.get(di);
                 
@@ -327,12 +328,12 @@ public class TokenHoverRenderer {
                     blockH -= LINE_SPACING * 2; // subtract trailing LINE_SPACING (present inside bg) + one more to visually balance top/bottom
                     blockH += CODE_VPAD;
                     // Draw background
-                    Gui.drawRect(textX - 2, currentY - CODE_VPAD,
-                                 textX - 2 + effectiveWrapWidth + 4, currentY - CODE_VPAD + blockH,
+                    Gui.drawRect(textX , currentY - CODE_VPAD,
+                                 textX  + effectiveWrapWidth + 4, currentY - CODE_VPAD + blockH,
                                  CODE_BG_COLOR);
                     // Left accent bar
-                    Gui.drawRect(textX - 2, currentY - CODE_VPAD,
-                                 textX, currentY - CODE_VPAD + blockH,
+                    Gui.drawRect(textX, currentY - CODE_VPAD,
+                                 textX+2, currentY - CODE_VPAD + blockH,
                                  CODE_ACCENT_COLOR);
                 }
                 
@@ -343,15 +344,19 @@ public class TokenHoverRenderer {
                         int codeWrapW = Math.max(10, effectiveWrapWidth - CODE_INDENT - explicitIndent);
                         currentY = drawWrappedSegments(codeX, currentY, codeWrapW, docLine.segments);
                         currentY += LINE_SPACING;
+                        previousVisibleJSDocWasCode = true;
                     } else {
                         currentY += lineHeight / 2;
                     }
                 } else if (!docLine.isEmpty()) {
+                    if (previousVisibleJSDocWasCode) {
+                        currentY += LINE_SPACING;
+                    }
                     currentY = drawWrappedSegments(textX, currentY, effectiveWrapWidth, docLine.segments);
                     currentY += LINE_SPACING;
+                    previousVisibleJSDocWasCode = false;
                 } else {
-                    // blank spacer line
-                    currentY += lineHeight / 2;
+                    currentY += (di > 0 && jsDocLines.get(di - 1).isCodeLine) ? LINE_SPACING : lineHeight / 2;
                 }
             }
         }
@@ -642,16 +647,22 @@ public class TokenHoverRenderer {
                 totalHeight += SEPARATOR_HEIGHT + SEPARATOR_SPACING;
             }
 
-            for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
+            boolean previousVisibleJSDocWasCode = false;
+            for (int i = 0; i < jsDocLines.size(); i++) {
+                TokenHoverInfo.DocumentationLine docLine = jsDocLines.get(i);
                 if (!docLine.isEmpty()) {
                     int explicitIndent = docLine.isCodeLine
                         ? docLine.codeLeadingSpaces * ClientProxy.Font.width(" ")
                         : 0;
                     int wrapW = Math.max(10, contentWidth - (docLine.isCodeLine ? CODE_INDENT : 0) - explicitIndent);
+                    if (!docLine.isCodeLine && previousVisibleJSDocWasCode) {
+                        totalHeight += LINE_SPACING;
+                    }
                     totalHeight += calculateSegmentsHeight(wrapW, docLine.segments);
                     totalHeight += LINE_SPACING;
+                    previousVisibleJSDocWasCode = docLine.isCodeLine;
                 } else {
-                    totalHeight += lineHeight / 2;
+                    totalHeight += (i > 0 && jsDocLines.get(i - 1).isCodeLine) ? LINE_SPACING : lineHeight / 2;
                 }
             }
         }
