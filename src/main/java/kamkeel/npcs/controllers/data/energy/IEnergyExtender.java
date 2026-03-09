@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * Registered with EnergyController. DBC Addon implements this to route
  * script-created energy entity damage through the DBC damage pipeline.
  */
-public interface IEnergyHandler {
+public interface IEnergyExtender {
 
     /**
      * Handle damage for an energy entity with custom damage data.

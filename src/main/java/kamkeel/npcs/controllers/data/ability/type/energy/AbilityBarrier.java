@@ -292,6 +292,14 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         barrierData.absorbing = absorbing;
     }
 
+    public float getAbsorbRadius() {
+        return barrierData.absorbRadius;
+    }
+
+    public void setAbsorbRadius(float radius) {
+        barrierData.absorbRadius = radius;
+    }
+
     // Reflection data
     public boolean isReflect() {
         return barrierData.reflect;
@@ -395,6 +403,9 @@ public abstract class AbilityBarrier extends AbilityEnergy {
             .range(0, 10).visibleWhen(this::isKnockbackEnabled));
         defs.add(FieldDef.boolField("ability.absorbing", this::isAbsorbing, this::setAbsorbing)
             .hover("ability.hover.absorbing"));
+        defs.add(FieldDef.floatField("ability.absorbRadius", this::getAbsorbRadius, this::setAbsorbRadius)
+            .range(-1, 128).visibleWhen(this::isAbsorbing)
+            .hover("ability.hover.absorbRadius"));
         defs.add(FieldDef.boolField("ability.reflect", this::isReflect, this::setReflect)
             .hover("ability.hover.reflect"));
         defs.add(FieldDef.floatField("ability.reflectStrength", this::getReflectStrengthPct, this::setReflectStrengthPct)
