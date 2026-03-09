@@ -183,6 +183,7 @@ public class SkinOverlay implements ISkinOverlay {
     private void updateClient() {
         if (this.parent != null) {
             this.parent.updateClient();
+            this.parent.save();
         }
     }
 }
