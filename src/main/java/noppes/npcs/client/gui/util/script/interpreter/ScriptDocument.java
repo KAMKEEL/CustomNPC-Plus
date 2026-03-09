@@ -1701,7 +1701,7 @@ public class ScriptDocument {
                         }
 
                         int enclosingParen1 = findEnclosingParenStart(bodyStart, firstVarAbsPos);
-                        if (enclosingParen1 >= 0 && "for".equals(readKeywordBefore(enclosingParen1))) continue;
+                        if (enclosingParen1 >= 0) continue;
 
                         int greedyModifiers = parseModifiers(realTypeName);
                         TypeInfo greedyTypeInfo = resolveType(realTypeName);
