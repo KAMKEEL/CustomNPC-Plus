@@ -55,7 +55,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                              EnergyBarrierData barrier, EnergyPanelData panel) {
         this(world);
         this.setPosition(x, y + panel.heightOffset, z);
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.panelYaw = yaw;
         this.prevPanelYaw = yaw;
         this.mode = mode;
