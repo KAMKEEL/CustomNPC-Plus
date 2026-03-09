@@ -218,6 +218,20 @@ public class EntityEnergySlicer extends EntityEnergyProjectile {
         this.sliceThickness = thickness;
     }
 
+    // ==================== PROPERTY SYNC ====================
+
+    @Override
+    protected void writeProjectileClientSyncData(NBTTagCompound nbt) {
+        nbt.setFloat("SliceWidth", sliceWidth);
+        nbt.setFloat("SliceThickness", sliceThickness);
+    }
+
+    @Override
+    protected void applyProjectileClientSyncData(NBTTagCompound nbt) {
+        sliceWidth = nbt.getFloat("SliceWidth");
+        sliceThickness = nbt.getFloat("SliceThickness");
+    }
+
     // ==================== NBT ====================
 
     @Override

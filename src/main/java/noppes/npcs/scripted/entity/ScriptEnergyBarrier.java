@@ -140,4 +140,12 @@ public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEn
     public int getBarrierType() {
         return entity instanceof EntityEnergyDome ? 0 : 1;
     }
+
+    // ==================== SYNC ====================
+
+    public void syncClient() {
+        if (entity.addedToChunk) {
+            entity.sendClientSync();
+        }
+    }
 }

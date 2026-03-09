@@ -2,6 +2,7 @@ package kamkeel.npcs.entity;
 
 import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyBarrierData;
+import kamkeel.npcs.network.packets.data.energy.BarrierClientSyncPacket;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import kamkeel.npcs.util.CNPCDebug;
 import net.minecraft.entity.Entity;
@@ -742,6 +743,78 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
 
     public int getTicksAlive() {
         return ticksAlive;
+    }
+
+    // ==================== CLIENT SYNC ====================
+
+    /**
+     * Write all client-relevant barrier state for sync.
+     * Subclasses should override writeBarrierClientSyncData for type-specific fields.
+     */
+    public NBTTagCompound writeClientSyncData() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        // Position
+        nbt.setDouble("PosX", posX);
+        nbt.setDouble("PosY", posY);
+        nbt.setDouble("PosZ", posZ);
+        // Display
+        nbt.setInteger("InnerColor", getInnerColor());
+        nbt.setFloat("InnerAlpha", getInnerAlpha());
+        nbt.setInteger("OuterColor", getOuterColor());
+        nbt.setBoolean("OuterColorEnabled", isOuterColorEnabled());
+        nbt.setFloat("OuterColorWidth", getOuterColorWidth());
+        nbt.setFloat("OuterColorAlpha", getOuterColorAlpha());
+        nbt.setFloat("RotationSpeed", getRotationSpeed());
+        // Lightning
+        nbt.setBoolean("LightningEffect", hasLightningEffect());
+        nbt.setFloat("LightningDensity", getLightningDensity());
+        nbt.setFloat("LightningRadius", getLightningRadius());
+        nbt.setInteger("LightningFadeTime", getLightningFadeTime());
+        writeBarrierClientSyncData(nbt);
+        return nbt;
+    }
+
+    /**
+     * Apply client sync data from server.
+     * Subclasses should override applyBarrierClientSyncData for type-specific fields.
+     */
+    public void applyClientSyncData(NBTTagCompound nbt) {
+        // Position
+        setPosition(nbt.getDouble("PosX"), nbt.getDouble("PosY"), nbt.getDouble("PosZ"));
+        // Display
+        displayData.setInnerColor(nbt.getInteger("InnerColor"));
+        displayData.setInnerAlpha(nbt.getFloat("InnerAlpha"));
+        displayData.setOuterColor(nbt.getInteger("OuterColor"));
+        displayData.setOuterColorEnabled(nbt.getBoolean("OuterColorEnabled"));
+        displayData.setOuterColorWidth(nbt.getFloat("OuterColorWidth"));
+        displayData.setOuterColorAlpha(nbt.getFloat("OuterColorAlpha"));
+        displayData.setRotationSpeed(nbt.getFloat("RotationSpeed"));
+        // Lightning
+        setLightningEffect(nbt.getBoolean("LightningEffect"));
+        setLightningDensity(nbt.getFloat("LightningDensity"));
+        setLightningRadius(nbt.getFloat("LightningRadius"));
+        setLightningFadeTime(nbt.getInteger("LightningFadeTime"));
+        applyBarrierClientSyncData(nbt);
+    }
+
+    /**
+     * Subclass hook: write type-specific client sync data (dome radius, panel dimensions, etc.).
+     */
+    protected void writeBarrierClientSyncData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Subclass hook: apply type-specific client sync data on client.
+     */
+    protected void applyBarrierClientSyncData(NBTTagCompound nbt) {
+    }
+
+    /**
+     * Send full client sync to all tracking clients.
+     */
+    public void sendClientSync() {
+        if (worldObj == null || worldObj.isRemote) return;
+        BarrierClientSyncPacket.sendToTracking(this, writeClientSyncData());
     }
 
     // ==================== NBT HELPERS ====================

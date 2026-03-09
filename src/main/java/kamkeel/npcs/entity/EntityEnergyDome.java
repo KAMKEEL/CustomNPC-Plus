@@ -681,6 +681,18 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         );
     }
 
+    // ==================== CLIENT SYNC ====================
+
+    @Override
+    protected void writeBarrierClientSyncData(NBTTagCompound nbt) {
+        nbt.setFloat("DomeRadius", domeRadius);
+    }
+
+    @Override
+    protected void applyBarrierClientSyncData(NBTTagCompound nbt) {
+        setDomeRadius(nbt.getFloat("DomeRadius"));
+    }
+
     // ==================== NBT ====================
 
     @Override

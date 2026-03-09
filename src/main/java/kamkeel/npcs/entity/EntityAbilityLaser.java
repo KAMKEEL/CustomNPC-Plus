@@ -865,6 +865,28 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         if (nbt.hasKey("MaxLength")) maxLength = nbt.getFloat("MaxLength");
     }
 
+    // ==================== PROPERTY SYNC ====================
+
+    @Override
+    protected void writeProjectileClientSyncData(NBTTagCompound nbt) {
+        nbt.setFloat("LaserWidth", laserWidth);
+        nbt.setFloat("ExpansionSpeed", expansionSpeed);
+        nbt.setFloat("MaxLength", maxLength);
+        nbt.setDouble("DirX", dirX);
+        nbt.setDouble("DirY", dirY);
+        nbt.setDouble("DirZ", dirZ);
+    }
+
+    @Override
+    protected void applyProjectileClientSyncData(NBTTagCompound nbt) {
+        laserWidth = nbt.getFloat("LaserWidth");
+        expansionSpeed = nbt.getFloat("ExpansionSpeed");
+        maxLength = nbt.getFloat("MaxLength");
+        dirX = nbt.getDouble("DirX");
+        dirY = nbt.getDouble("DirY");
+        dirZ = nbt.getDouble("DirZ");
+    }
+
     // ==================== NBT ====================
 
     @Override

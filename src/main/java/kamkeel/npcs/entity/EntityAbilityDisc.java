@@ -432,6 +432,22 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         returning = nbt.getBoolean("Returning");
     }
 
+    // ==================== PROPERTY SYNC ====================
+
+    @Override
+    protected void writeProjectileClientSyncData(NBTTagCompound nbt) {
+        nbt.setFloat("DiscRadius", discRadius);
+        nbt.setFloat("DiscThickness", discThickness);
+        nbt.setBoolean("Vertical", vertical);
+    }
+
+    @Override
+    protected void applyProjectileClientSyncData(NBTTagCompound nbt) {
+        discRadius = nbt.getFloat("DiscRadius");
+        discThickness = nbt.getFloat("DiscThickness");
+        vertical = nbt.getBoolean("Vertical");
+    }
+
     // ==================== NBT ====================
 
     @Override

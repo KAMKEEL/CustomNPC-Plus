@@ -79,4 +79,10 @@ public enum EnumDataPacket {
 
     // Energy Projectile Reflection Sync
     PROJECTILE_REFLECT,
+
+    // Energy Projectile Client Sync (position, motion, visual, and movement properties)
+    PROJECTILE_CLIENT_SYNC,
+
+    // Energy Barrier Client Sync (visual properties and barrier-specific data)
+    BARRIER_CLIENT_SYNC,
 }

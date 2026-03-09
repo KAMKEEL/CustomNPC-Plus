@@ -353,12 +353,20 @@ public class ScriptEnergyProjectile<T extends EntityEnergyProjectile> extends Sc
         }
     }
 
+    public void syncClient() {
+        if (entity.addedToChunk) {
+            entity.sendClientSync();
+        }
+    }
+
     protected void ensureSpawned() {
         if (!entity.addedToChunk && entity.worldObj != null) {
             entity.worldObj.spawnEntityInWorld(entity);
             if (!entity.worldObj.isRemote) {
                 EventHooks.onEnergyProjectileFired(entity);
             }
+        } else if (entity.addedToChunk) {
+            entity.sendClientSync();
         }
     }
 
