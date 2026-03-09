@@ -201,7 +201,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
                               double x, double y, double z) {
         this(world);
         this.zoneType = type;
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         // Snap to ground with tiny offset to prevent z-clipping
         double groundY = Ability.findGroundLevel(world, x, y, z) + GROUND_OFFSET;
         this.setPosition(x, groundY, z);
@@ -213,7 +213,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
      */
     public void initAsHazard(Entity owner, double x, double y, double z) {
         this.zoneType = ZoneType.HAZARD;
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         double groundY = Ability.findGroundLevel(worldObj, x, y, z) + GROUND_OFFSET;
         this.setPosition(x, groundY, z);
         this.ticksSinceDamage = damageInterval;
@@ -225,7 +225,7 @@ public class EntityAbilityZone extends Entity implements IEntityAdditionalSpawnD
      */
     public void initAsTrap(Entity owner, double x, double y, double z) {
         this.zoneType = ZoneType.TRAP;
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         double groundY = Ability.findGroundLevel(worldObj, x, y, z) + GROUND_OFFSET;
         this.setPosition(x, groundY, z);
         this.ticksSinceLastTrigger = triggerCooldown;
