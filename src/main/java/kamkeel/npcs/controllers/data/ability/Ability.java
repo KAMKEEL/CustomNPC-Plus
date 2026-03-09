@@ -46,7 +46,7 @@ import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
@@ -2910,7 +2910,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         instanceScript.setLanguage(template.getLanguage());
         instanceScript.setEnabled(true);
 
-        ScriptContainer clone = ((ScriptContainer) template.container).createInstanceScope(instanceScript);
+        IScriptUnit clone = template.container.createInstanceScope(instanceScript);
         instanceScript.addScriptUnit(clone);
 
         return instanceScript;

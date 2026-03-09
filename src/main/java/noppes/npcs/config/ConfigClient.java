@@ -315,7 +315,7 @@ public class ConfigClient {
                 7.0,
                 "Distance in blocks at which owner's energy projectiles reach full alpha."
             );
-            ProximityAlphaDistance = (float) Math.max(1.0, ProximityAlphaDistanceProperty.getDouble(7.0));
+            ProximityAlphaDistance = (float) Math.max(1.0, ProximityAlphaDistanceProperty.getDouble(10.0));
 
             ProximityAlphaAgeTicksProperty = config.get(
                 RENDERING,

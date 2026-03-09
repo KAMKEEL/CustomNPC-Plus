@@ -11,6 +11,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ScriptHookController;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.janino.annotations.ParamName;
 import org.codehaus.commons.compiler.InternalCompilerException;
@@ -121,6 +122,15 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     }
 
     public void unload() {
+    }
+
+    @Override
+    public IScriptUnit createInstanceScope(IScriptHandler instanceHandler) {
+        IScriptUnit instance = instanceHandler.createJaninoScriptUnit();
+        if (instance == null) return null;
+        instance.setScript(this.script);
+        instance.setExternalScripts(new ArrayList<>(this.externalScripts));
+        return instance;
     }
 
 

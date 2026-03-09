@@ -10,7 +10,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.ability.IChainedAbility;
-import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.data.IScriptUnit;
 import kamkeel.npcs.util.FileNameHelper;
 
 import java.util.ArrayList;
@@ -516,7 +516,7 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         instanceScript.setLanguage(template.getLanguage());
         instanceScript.setEnabled(true);
 
-        ScriptContainer clone = ((ScriptContainer) template.container).createInstanceScope(instanceScript);
+        IScriptUnit clone = template.container.createInstanceScope(instanceScript);
         instanceScript.addScriptUnit(clone);
 
         return instanceScript;

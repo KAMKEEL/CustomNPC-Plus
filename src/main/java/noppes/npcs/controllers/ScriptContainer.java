@@ -71,7 +71,8 @@ public class ScriptContainer implements IScriptUnit {
      *
      * @param instanceHandler the script handler for the instance
      */
-    public ScriptContainer createInstanceScope(IScriptHandler instanceHandler) {
+    @Override
+    public IScriptUnit createInstanceScope(IScriptHandler instanceHandler) {
         if (this.engine == null) {
             this.setEngine(this.getLanguage());
         }
