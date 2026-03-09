@@ -470,8 +470,34 @@ public class FormatHelper {
      * Normalize whitespace (multiple spaces → single space)
      */
     private String normalizeWhitespace(String code) {
-        // Replace multiple spaces with single space, but preserve indentation
-        return code.replaceAll("  +", " ");
+        String result = code.replaceAll("  +", " ");
+
+        // Re-join operator characters that got split by spaces.
+        // Order: longest tokens first so that e.g. ">>>" is rejoined before ">>".
+        result = result.replaceAll(">\\s+>\\s+>\\s*=", ">>>=");
+        result = result.replaceAll(">\\s+>\\s+=",      ">>=");
+        result = result.replaceAll("<\\s+<\\s+=",      "<<=");
+        result = result.replaceAll(">\\s+>\\s+>",      ">>>");
+        result = result.replaceAll(">\\s+>",           ">>");
+        result = result.replaceAll("<\\s+<",           "<<");
+        result = result.replaceAll("=\\s+=\\s+=",      "===");
+        result = result.replaceAll("!\\s+=\\s+=",      "!==");
+        result = result.replaceAll("=\\s+=",           "==");
+        result = result.replaceAll("!\\s+=",           "!=");
+        result = result.replaceAll(">\\s+=",           ">=");
+        result = result.replaceAll("<\\s+=",           "<=");
+        result = result.replaceAll("\\+\\s+=",         "+=");
+        result = result.replaceAll("-\\s+=",           "-=");
+        result = result.replaceAll("\\*\\s+=",         "*=");
+        result = result.replaceAll("/\\s+=",           "/=");
+        result = result.replaceAll("%\\s+=",           "%=");
+        result = result.replaceAll("&\\s+=",           "&=");
+        result = result.replaceAll("\\|\\s+=",         "|=");
+        result = result.replaceAll("\\^\\s+=",         "^=");
+        result = result.replaceAll("&\\s+&",           "&&");
+        result = result.replaceAll("\\|\\s+\\|",       "||");
+
+        return result;
     }
 
     /**
@@ -499,8 +525,10 @@ public class FormatHelper {
             result = formatSimpleAssignment(result);
         }
 
-        // Comparison operators
+        // Comparison operators (longer tokens first to avoid sub-string clobbering)
         if (settings.spaceAroundComparison) {
+            result = formatBinaryOp(result, "===", " === ");
+            result = formatBinaryOp(result, "!==", " !== ");
             result = formatBinaryOp(result, "==", " == ");
             result = formatBinaryOp(result, "!=", " != ");
             result = formatBinaryOp(result, "<=", " <= ");
@@ -529,12 +557,24 @@ public class FormatHelper {
         return result;
     }
 
-    /**
-     * Format a binary operator with proper spacing
-     */
     private String formatBinaryOp(String code, String op, String replacement) {
-        // First normalize: remove extra spaces around the operator
-        String pattern = "\\s*" + Pattern.quote(op) + "\\s*";
+        String quotedOp = Pattern.quote(op);
+        // Negative lookahead/lookbehind guards prevent matching a shorter operator
+        // token inside a longer one (e.g. >> must not match inside >>=).
+        String lookBehind = "";
+        String lookAhead  = "";
+
+        switch (op) {
+            case ">>":  lookBehind = "(?<!>)"; lookAhead  = "(?![>=])"; break;
+            case "<<":  lookBehind = "(?<!<)"; lookAhead  = "(?![<=])"; break;
+            case ">=":  lookBehind = "(?<!>)";   break;
+            case "<=":  lookBehind = "(?<!<)";   break;
+            case "==":  lookBehind = "(?<![!=])"; lookAhead  = "(?!=)";    break;
+            case "!=":  lookAhead  = "(?!=)";    break;
+            default: break;
+        }
+
+        String pattern = lookBehind + "\\s*" + quotedOp + lookAhead + "\\s*";
         return code.replaceAll(pattern, replacement);
     }
 
@@ -554,7 +594,7 @@ public class FormatHelper {
                 boolean isCompound = prev == '!' || prev == '<' || prev == '>' ||
                     prev == '+' || prev == '-' || prev == '*' ||
                     prev == '/' || prev == '%' || prev == '&' ||
-                    prev == '|' || prev == '^';
+                    prev == '|' || prev == '^' || prev == '=';
                 boolean isEquality = next == '=';
 
                 if (!isCompound && !isEquality) {
