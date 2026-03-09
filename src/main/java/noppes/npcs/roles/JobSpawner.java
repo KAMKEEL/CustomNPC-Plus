@@ -47,6 +47,7 @@ public class JobSpawner extends JobInterface {
 
     private EntityLivingBase target;
 
+    private boolean isResetting = false;
 
     public JobSpawner(EntityNPCInterface npc) {
         super(npc);
@@ -314,16 +315,25 @@ public class JobSpawner extends JobInterface {
 
     @Override
     public void reset() {
-        number = 0;
-        if (spawned.isEmpty())
-            spawned = getNearbySpawned();
+        if (isResetting)
+            return;
+        isResetting = true;
+        try {
+            number = 0;
+            if (spawned.isEmpty())
+                spawned = getNearbySpawned();
 
-        target = null;
-        checkSpawns();
+            target = null;
+            checkSpawns();
+        } finally {
+            isResetting = false;
+        }
     }
 
     @Override
     public void delete() {
+        if (isResetting)
+            return;
         if (spawnType == 3 && npc.stats.spawnCycle == 3) {
             spawnEntity(compound1);
             spawnEntity(compound2);
