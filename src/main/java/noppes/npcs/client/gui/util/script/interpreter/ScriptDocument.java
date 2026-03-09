@@ -84,8 +84,10 @@ public class ScriptDocument {
             "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile(
             "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
+    // Also matches ',' as a delimiter so that "int x, y, z;" is recognized
+    // (the first declarator "int x," is captured; continuations are scanned manually).
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;)");
+            "\\b([A-Za-z_][a-zA-Z0-9_<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
     private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
     
     // Cast expression pattern: captures type name inside cast parentheses
@@ -1534,7 +1536,7 @@ public class ScriptDocument {
                     int initializerEnd = -1;
                     if (m.group(3) != null) {
                         initializerStart = skipSegmentWhitespace(bodyText, m.end(3));
-                        initializerEnd = findJsInitializerEnd(bodyText, initializerStart);
+                        initializerEnd = findJsInitializerEnd(bodyText, initializerStart, true);
                         if (initializerEnd > initializerStart) {
                             initializer = bodyText.substring(initializerStart, initializerEnd).trim();
                             if (initializer.isEmpty()) {
@@ -1618,6 +1620,53 @@ public class ScriptDocument {
                     }
 
                     locals.computeIfAbsent(varName, k -> new ArrayList<>()).add(fieldInfo);
+
+                    // --- Multi-declarator continuation for JS ---
+                    // For "var a=1, b='x', c=player;" the regex only matched 'a'.
+                    // Scan forward from the end of this declarator for comma-separated
+                    // continuation names (b, c, ...) that share the same var/let/const keyword.
+                    final String fKind = kind;
+                    final MethodInfo fMethod = method;
+                    final int fBodyStart = bodyStart;
+                    final int fBodyEnd = bodyEnd;
+                    final Map<String, List<FieldInfo>> fLocals = locals;
+                    int contScanStart = MultiDeclaratorParser.jsDeclaratorScanStart(bodyText, m.end(2), m.group(3) != null, initializerEnd);
+                    MultiDeclaratorParser.scanJSContinuationDeclarators(this, bodyText, contScanStart, bodyStart,
+                        (cVarName, cAbsNamePos, cInit, cAbsInitStart, cAbsInitEnd) -> {
+                            if (isExcluded(cAbsNamePos)) return;
+                            boolean cInsideInner = false;
+                            for (InnerCallableScope sc : innerScopes) {
+                                if (sc.containsPosition(cAbsNamePos)) { cInsideInner = true; break; }
+                            }
+                            if (cInsideInner) return;
+
+                            TypeInfo cType = null;
+                            if (cInit != null && !cInit.isEmpty()) {
+                                TypeInfo inferred = resolveExpressionType(cInit, cAbsInitStart);
+                                if (!TypeInfo.NULL.equals(inferred)) cType = inferred;
+                            }
+                            if (cType == null) cType = TypeInfo.ANY;
+
+                            FieldInfo cField = FieldInfo.localField(cVarName, cType, cAbsNamePos, fMethod,
+                                    cAbsInitStart, cAbsInitEnd, 0);
+                            ScopeInfo cScope;
+                            if ("var".equals(fKind)) {
+                                cScope = new ScopeInfo(fBodyStart, fBodyEnd, false, "method");
+                            } else {
+                                cScope = computeBlockScope(fBodyStart, fBodyEnd, cAbsNamePos);
+                            }
+                            cField.setScopeInfo(cScope);
+
+                            if (fLocals.containsKey(cVarName) || globalFields.containsKey(cVarName)) {
+                                AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                    cVarName, cAbsNamePos, cAbsNamePos + cVarName.length(),
+                                    "Variable '" + cVarName + "' is already defined in the scope");
+                                dupErr.setScopeInfo(cScope);
+                                declarationErrors.add(dupErr);
+                                return;
+                            }
+                            fLocals.computeIfAbsent(cVarName, k -> new ArrayList<>()).add(cField);
+                        });
                 }
             } else {
                 // Java: Type varName = expr; or Type varName;
@@ -1629,6 +1678,96 @@ public class ScriptDocument {
                     
                     int absPos = bodyStart + m.start(2);
                     if (isExcluded(absPos)) continue;
+
+                    // --- FIX: Detect greedy regex consuming commas into the type name ---
+                    // FIELD_DECL_PATTERN allows commas in its type character class (for generics).
+                    // This causes "int x, y, z = 10;" to match as type="int x, y," name="z" delim="=".
+                    // When a depth-0 comma exists in typeName, the regex swallowed extra declarators.
+                    // We extract the real type and first variable, then let the continuation scanner
+                    // handle ALL variables (including the regex-matched one).
+                    int commaInType = MultiDeclaratorParser.findFirstDepthZeroComma(typeName);
+                    if (commaInType >= 0) {
+                        String realTypeName = MultiDeclaratorParser.extractRealTypeFromGreedyMatch(typeName, commaInType);
+                        String firstVar = MultiDeclaratorParser.extractFirstVarFromGreedyMatch(typeName, commaInType);
+                        int firstVarAbsPos = MultiDeclaratorParser.findFirstVarPosition(
+                                bodyText, m.start(1), typeName, commaInType) + bodyStart;
+
+                        // Skip control flow keywords on the real type
+                        if (realTypeName.equals("return") || realTypeName.equals("if") || realTypeName.equals("while") ||
+                            realTypeName.equals("for") || realTypeName.equals("switch") || realTypeName.equals("catch") ||
+                            realTypeName.equals("new") || realTypeName.equals("throw")) {
+                            continue;
+                        }
+
+                        int enclosingParen1 = findEnclosingParenStart(bodyStart, firstVarAbsPos);
+                        if (enclosingParen1 >= 0 && "for".equals(readKeywordBefore(enclosingParen1))) continue;
+
+                        int greedyModifiers = parseModifiers(realTypeName);
+                        TypeInfo greedyTypeInfo = resolveType(realTypeName);
+
+                        // Register the first variable (extracted from the greedy type group)
+                        FieldInfo firstField = FieldInfo.localField(firstVar, greedyTypeInfo, firstVarAbsPos,
+                                method, -1, -1, greedyModifiers);
+                        ScopeInfo firstScope = computeBlockScope(bodyStart, bodyEnd, firstVarAbsPos);
+                        firstField.setScopeInfo(firstScope);
+
+                        List<FieldInfo> existingFirst = locals.get(firstVar);
+                        if (existingFirst != null) {
+                            boolean dup = false;
+                            for (FieldInfo prev : existingFirst) {
+                                ScopeInfo prevScope = prev.getScopeInfo();
+                                if (prevScope != null && prevScope.containsPosition(firstVarAbsPos)) {
+                                    dup = true;
+                                    break;
+                                }
+                            }
+                            if (dup || globalFields.containsKey(firstVar)) {
+                                AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                    firstVar, firstVarAbsPos, firstVarAbsPos + firstVar.length(),
+                                    "Variable '" + firstVar + "' is already defined in the scope");
+                                dupErr.setScopeInfo(firstScope);
+                                declarationErrors.add(dupErr);
+                            } else {
+                                locals.computeIfAbsent(firstVar, k -> new ArrayList<>()).add(firstField);
+                            }
+                        } else if (globalFields.containsKey(firstVar)) {
+                            AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                firstVar, firstVarAbsPos, firstVarAbsPos + firstVar.length(),
+                                "Variable '" + firstVar + "' is already defined in the scope");
+                            dupErr.setScopeInfo(firstScope);
+                            declarationErrors.add(dupErr);
+                        } else {
+                            locals.computeIfAbsent(firstVar, k -> new ArrayList<>()).add(firstField);
+                        }
+
+                        // Scan continuations from the first depth-0 comma in the type group.
+                        // This will pick up all remaining variables (y, z, etc.) including the
+                        // regex-matched varName which was the last one consumed by the greedy match.
+                        final TypeInfo greedySharedType = greedyTypeInfo;
+                        final int greedySharedMod = greedyModifiers;
+                        final MethodInfo fMethod3 = method;
+                        final Map<String, List<FieldInfo>> fLocals3 = locals;
+                        int greedyScanStart = m.start(1) + commaInType;
+                        MultiDeclaratorParser.scanJavaContinuationDeclarators(bodyText, greedyScanStart, bodyStart,
+                            (cVarName, cAbsNamePos, cAbsInitStart, cAbsInitEnd) -> {
+                                if (isExcluded(cAbsNamePos)) return;
+                                FieldInfo cField = FieldInfo.localField(cVarName, greedySharedType, cAbsNamePos,
+                                        fMethod3, cAbsInitStart, cAbsInitEnd, greedySharedMod);
+                                ScopeInfo cScope = computeBlockScope(bodyStart, bodyEnd, cAbsNamePos);
+                                cField.setScopeInfo(cScope);
+
+                                if (fLocals3.containsKey(cVarName) || globalFields.containsKey(cVarName)) {
+                                    AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                        cVarName, cAbsNamePos, cAbsNamePos + cVarName.length(),
+                                        "Variable '" + cVarName + "' is already defined in the scope");
+                                    dupErr.setScopeInfo(cScope);
+                                    declarationErrors.add(dupErr);
+                                    return;
+                                }
+                                fLocals3.computeIfAbsent(cVarName, k -> new ArrayList<>()).add(cField);
+                            });
+                        continue;
+                    }
                     
                     // Skip control flow keywords
                     if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
@@ -1704,6 +1843,37 @@ public class ScriptDocument {
                     }
 
                     locals.computeIfAbsent(varName, k -> new ArrayList<>()).add(fieldInfo);
+
+                    // --- Multi-declarator continuation for Java ---
+                    // For "int x = 1, y, z = 3;" FIELD_DECL_PATTERN matched "int x =" (or "int x,").
+                    // Scan forward for comma-separated continuation declarators (y, z)
+                    // that share the same declared type from the first match.
+                    final TypeInfo sharedType = typeInfo;
+                    final int sharedModifiers = modifiers;
+                    final MethodInfo fMethod2 = method;
+                    final Map<String, List<FieldInfo>> fLocals2 = locals;
+                    int javaScanStart = MultiDeclaratorParser.javaDeclaratorScanStart(bodyText, delimiter, m.end(3), 
+                            initEnd >= 0 ? initEnd - bodyStart : -1);
+                    if (javaScanStart >= 0) {
+                        MultiDeclaratorParser.scanJavaContinuationDeclarators(bodyText, javaScanStart, bodyStart,
+                            (cVarName, cAbsNamePos, cAbsInitStart, cAbsInitEnd) -> {
+                                if (isExcluded(cAbsNamePos)) return;
+                                FieldInfo cField = FieldInfo.localField(cVarName, sharedType, cAbsNamePos,
+                                        fMethod2, cAbsInitStart, cAbsInitEnd, sharedModifiers);
+                                ScopeInfo cScope = computeBlockScope(bodyStart, bodyEnd, cAbsNamePos);
+                                cField.setScopeInfo(cScope);
+
+                                if (fLocals2.containsKey(cVarName) || globalFields.containsKey(cVarName)) {
+                                    AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                        cVarName, cAbsNamePos, cAbsNamePos + cVarName.length(),
+                                        "Variable '" + cVarName + "' is already defined in the scope");
+                                    dupErr.setScopeInfo(cScope);
+                                    declarationErrors.add(dupErr);
+                                    return;
+                                }
+                                fLocals2.computeIfAbsent(cVarName, k -> new ArrayList<>()).add(cField);
+                            });
+                    }
                 }
             }
         }
@@ -1745,6 +1915,48 @@ public class ScriptDocument {
             String typeNameRaw = m.group(1);
             String varName = m.group(2);
             String delimiter = m.group(3);
+
+            // --- FIX: Detect greedy regex consuming commas into the type name ---
+            // Same issue as the other call sites: FIELD_DECL_PATTERN greedily consumes
+            // multi-declarator commas into group(1). Handle by extracting the real type
+            // and first variable, then scanning continuations from the first comma.
+            int commaInType = MultiDeclaratorParser.findFirstDepthZeroComma(typeNameRaw);
+            if (commaInType >= 0) {
+                String realTypeNameRaw = MultiDeclaratorParser.extractRealTypeFromGreedyMatch(typeNameRaw, commaInType);
+                String firstVar = MultiDeclaratorParser.extractFirstVarFromGreedyMatch(typeNameRaw, commaInType);
+                int firstVarAbsPos = MultiDeclaratorParser.findFirstVarPosition(
+                        rangeText, m.start(1), typeNameRaw, commaInType) + start;
+
+                // Skip control flow keywords on the real type
+                if (realTypeNameRaw.equals("return") || realTypeNameRaw.equals("if") || realTypeNameRaw.equals("while") ||
+                    realTypeNameRaw.equals("for") || realTypeNameRaw.equals("switch") || realTypeNameRaw.equals("catch") ||
+                    realTypeNameRaw.equals("new") || realTypeNameRaw.equals("throw")) {
+                    continue;
+                }
+
+                String greedyTypeName = stripModifiers(realTypeNameRaw);
+                int greedyModifiers = parseModifiers(realTypeNameRaw);
+                TypeInfo greedyVarType = resolveType(greedyTypeName);
+
+                // Register the first variable
+                FieldInfo firstField = FieldInfo.localField(firstVar, greedyVarType, firstVarAbsPos,
+                        null, -1, -1, greedyModifiers);
+                scope.addLocal(firstVar, firstField);
+
+                // Scan continuations from the first depth-0 comma
+                final TypeInfo greedySharedType = greedyVarType;
+                final int greedySharedMod = greedyModifiers;
+                final InnerCallableScope fScope3 = scope;
+                int greedyScanStart = m.start(1) + commaInType;
+                MultiDeclaratorParser.scanJavaContinuationDeclarators(rangeText, greedyScanStart, start,
+                    (cVarName, cAbsNamePos, cAbsInitStart, cAbsInitEnd) -> {
+                        if (isExcluded(cAbsNamePos)) return;
+                        FieldInfo cField = FieldInfo.localField(cVarName, greedySharedType, cAbsNamePos,
+                                null, cAbsInitStart, cAbsInitEnd, greedySharedMod);
+                        fScope3.addLocal(cVarName, cField);
+                    });
+                continue;
+            }
             
             // Skip control flow keywords
             if (typeNameRaw.equals("return") || typeNameRaw.equals("if") || typeNameRaw.equals("while") ||
@@ -1788,6 +2000,22 @@ public class ScriptDocument {
             int absPos = start + m.start(2);
             FieldInfo localVar = FieldInfo.localField(varName, varType, absPos, null, initStart, initEnd, modifiers);
             scope.addLocal(varName, localVar);
+
+            // Multi-declarator continuation for Java: "int x, y = 2, z;"
+            final TypeInfo sharedType = varType;
+            final int sharedModifiers = modifiers;
+            final InnerCallableScope fScope2 = scope;
+            int javaScanStart = MultiDeclaratorParser.javaDeclaratorScanStart(rangeText, delimiter, m.end(3),
+                    initEnd >= 0 ? initEnd - start : -1);
+            if (javaScanStart >= 0) {
+                MultiDeclaratorParser.scanJavaContinuationDeclarators(rangeText, javaScanStart, start,
+                    (cVarName, cAbsNamePos, cAbsInitStart, cAbsInitEnd) -> {
+                        if (isExcluded(cAbsNamePos)) return;
+                        FieldInfo cField = FieldInfo.localField(cVarName, sharedType, cAbsNamePos,
+                                null, cAbsInitStart, cAbsInitEnd, sharedModifiers);
+                        fScope2.addLocal(cVarName, cField);
+                    });
+            }
         }
     }
     
@@ -1818,7 +2046,8 @@ public class ScriptDocument {
             int initializerEnd = -1;
             if (m.group(2) != null) {
                 initializerStart = skipSegmentWhitespace(rangeText, m.end(2));
-                initializerEnd = findJsInitializerEnd(rangeText, initializerStart);
+                // Use comma-aware termination so multi-declarator RHS is bounded correctly
+                initializerEnd = findJsInitializerEnd(rangeText, initializerStart, true);
                 if (initializerEnd > initializerStart) {
                     initializer = rangeText.substring(initializerStart, initializerEnd).trim();
                     if (initializer.isEmpty()) {
@@ -1864,10 +2093,27 @@ public class ScriptDocument {
             }
             
             scope.addLocal(varName, localVar);
+
+            // Multi-declarator continuation: scan for "var a=1, b, c=3"
+            final InnerCallableScope fScope = scope;
+            int contScanStart = MultiDeclaratorParser.jsDeclaratorScanStart(rangeText, m.end(1), m.group(2) != null, initializerEnd);
+            MultiDeclaratorParser.scanJSContinuationDeclarators(this, rangeText, contScanStart, start,
+                (cVarName, cAbsNamePos, cInit, cAbsInitStart, cAbsInitEnd) -> {
+                    if (isExcluded(cAbsNamePos)) return;
+                    TypeInfo cType = null;
+                    if (cInit != null && !cInit.isEmpty()) {
+                        TypeInfo inferred = resolveExpressionType(cInit, cAbsInitStart);
+                        if (!TypeInfo.NULL.equals(inferred)) cType = inferred;
+                    }
+                    if (cType == null) cType = TypeInfo.ANY;
+                    FieldInfo cField = FieldInfo.localField(cVarName, cType, cAbsNamePos, null,
+                            cAbsInitStart, cAbsInitEnd, 0);
+                    fScope.addLocal(cVarName, cField);
+                });
         }
     }
 
-    private int skipSegmentWhitespace(String source, int pos) {
+    int skipSegmentWhitespace(String source, int pos) {
         while (pos < source.length() && Character.isWhitespace(source.charAt(pos))) {
             pos++;
         }
@@ -1899,7 +2145,11 @@ public class ScriptDocument {
      *         {@code source.length()} if the source ends before a terminator is found.
      *         Returns {@code rhsStart} unchanged if {@code rhsStart} is out of bounds.
      */
-    private int findJsInitializerEnd(String source, int rhsStart) {
+    int findJsInitializerEnd(String source, int rhsStart) {
+        return findJsInitializerEnd(source, rhsStart, false);
+    }
+
+    int findJsInitializerEnd(String source, int rhsStart, boolean stopAtTopLevelComma) {
         if (rhsStart < 0 || rhsStart >= source.length()) {
             return rhsStart;
         }
@@ -1984,6 +2234,10 @@ public class ScriptDocument {
             }
 
             if (c == ';' && parenDepth == 0 && bracketDepth == 0 && braceDepth == 0) {
+                return pos;
+            }
+
+            if (stopAtTopLevelComma && c == ',' && parenDepth == 0 && bracketDepth == 0 && braceDepth == 0) {
                 return pos;
             }
 
@@ -2807,7 +3061,8 @@ public class ScriptDocument {
                 int initializerEnd = -1;
                 if (m.group(2) != null) {
                     initializerStart = skipSegmentWhitespace(text, m.end(2));
-                    initializerEnd = findJsInitializerEnd(text, initializerStart);
+                    // Use comma-aware termination for multi-declarator support
+                    initializerEnd = findJsInitializerEnd(text, initializerStart, true);
                     if (initializerEnd > initializerStart) {
                         initializer = text.substring(initializerStart, initializerEnd).trim();
                         if (initializer.isEmpty()) {
@@ -2859,6 +3114,41 @@ public class ScriptDocument {
                 } else {
                     globalFields.put(varName, fieldInfo);
                 }
+
+                // Multi-declarator continuation for global JS: "var a=1, b='x', c;"
+                int contScanStart = MultiDeclaratorParser.jsDeclaratorScanStart(text, m.end(1), m.group(2) != null, initializerEnd);
+                MultiDeclaratorParser.scanJSContinuationDeclarators(this, text, contScanStart, 0,
+                    (cVarName, cAbsNamePos, cInit, cAbsInitStart, cAbsInitEnd) -> {
+                        if (isExcluded(cAbsNamePos)) return;
+                        boolean cInsideMethod = false;
+                        for (MethodInfo method : getAllMethods()) {
+                            if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                        }
+                        if (cInsideMethod) return;
+                        boolean cInsideInner = false;
+                        for (InnerCallableScope sc : innerScopes) {
+                            if (sc.containsPosition(cAbsNamePos)) { cInsideInner = true; break; }
+                        }
+                        if (cInsideInner) return;
+
+                        TypeInfo cType = null;
+                        if (cInit != null && !cInit.isEmpty()) {
+                            TypeInfo inferred = resolveExpressionType(cInit, cAbsInitStart);
+                            if (!TypeInfo.NULL.equals(inferred)) cType = inferred;
+                        }
+                        if (cType == null) cType = TypeInfo.ANY;
+
+                        FieldInfo cField = FieldInfo.globalField(cVarName, cType, cAbsNamePos, null,
+                                cAbsInitStart, cAbsInitEnd, 0);
+                        if (globalFields.containsKey(cVarName)) {
+                            AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                cVarName, cAbsNamePos, cAbsNamePos + cVarName.length(),
+                                "Variable '" + cVarName + "' is already defined in the scope");
+                            declarationErrors.add(dupErr);
+                        } else {
+                            globalFields.put(cVarName, cField);
+                        }
+                    });
             }
         } else {
             // Java: [modifiers] Type fieldName [= expr];
@@ -2871,6 +3161,96 @@ public class ScriptDocument {
                 
                 if (isExcluded(position))
                     continue;
+
+                // --- FIX: Detect greedy regex consuming commas into the type name ---
+                // Same issue as parseLocalVariables: FIELD_DECL_PATTERN greedily consumes
+                // multi-declarator commas into group(1). When a depth-0 comma exists in
+                // typeNameRaw, extract the real type and first variable, then let the
+                // continuation scanner handle ALL variables.
+                int commaInType = MultiDeclaratorParser.findFirstDepthZeroComma(typeNameRaw);
+                if (commaInType >= 0) {
+                    String realTypeNameRaw = MultiDeclaratorParser.extractRealTypeFromGreedyMatch(typeNameRaw, commaInType);
+                    String firstVar = MultiDeclaratorParser.extractFirstVarFromGreedyMatch(typeNameRaw, commaInType);
+                    int firstVarAbsPos = MultiDeclaratorParser.findFirstVarPosition(
+                            text, m.start(1), typeNameRaw, commaInType);
+
+                    if (isExcluded(firstVarAbsPos)) continue;
+
+                    int enclosingParen1 = findEnclosingParenStart(0, firstVarAbsPos);
+                    if (enclosingParen1 >= 0 && "for".equals(readKeywordBefore(enclosingParen1))) continue;
+
+                    int greedyModifiers = parseModifiers(realTypeNameRaw);
+                    String greedyTypeName = stripModifiers(realTypeNameRaw);
+
+                    ScriptTypeInfo greedyContainingType = null;
+                    for (ScriptTypeInfo scriptType : scriptTypes.values())
+                        if (scriptType.containsPosition(firstVarAbsPos)) {
+                            greedyContainingType = scriptType;
+                            break;
+                        }
+
+                    boolean greedyInsideMethod = false;
+                    if (greedyContainingType != null && isInsideNestedMethod(firstVarAbsPos,
+                            greedyContainingType.getBodyStart(), greedyContainingType.getBodyEnd()))
+                        greedyInsideMethod = true;
+                    else {
+                        for (MethodInfo method : getAllMethods()) {
+                            if (method.containsPosition(firstVarAbsPos)) { greedyInsideMethod = true; break; }
+                        }
+                    }
+                    if (greedyInsideMethod) continue;
+
+                    String greedyDocumentation = extractDocumentationBefore(m.start());
+                    TypeInfo greedyTypeInfo = resolveType(greedyTypeName);
+
+                    // Register the first variable (no initializer since the regex consumed it into the type group)
+                    FieldInfo firstField = FieldInfo.globalField(firstVar, greedyTypeInfo, firstVarAbsPos,
+                            greedyDocumentation, -1, -1, greedyModifiers);
+                    if (greedyContainingType != null) {
+                        greedyContainingType.addField(firstField);
+                    } else if (globalFields.containsKey(firstVar)) {
+                        AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                            firstVar, firstVarAbsPos, firstVarAbsPos + firstVar.length(),
+                            "Variable '" + firstVar + "' is already defined in the scope");
+                        declarationErrors.add(dupErr);
+                    } else {
+                        globalFields.put(firstVar, firstField);
+                    }
+
+                    // Scan continuations from the first depth-0 comma in the type group
+                    final TypeInfo greedySharedType = greedyTypeInfo;
+                    final int greedySharedMod = greedyModifiers;
+                    final ScriptTypeInfo fGreedyContType = greedyContainingType;
+                    int greedyScanStart = m.start(1) + commaInType;
+                    MultiDeclaratorParser.scanJavaContinuationDeclarators(text, greedyScanStart, 0,
+                        (cVarName, cAbsNamePos, cAbsInitStart, cAbsInitEnd) -> {
+                            if (isExcluded(cAbsNamePos)) return;
+                            boolean cInsideMethod = false;
+                            if (fGreedyContType != null && isInsideNestedMethod(cAbsNamePos,
+                                    fGreedyContType.getBodyStart(), fGreedyContType.getBodyEnd()))
+                                cInsideMethod = true;
+                            else {
+                                for (MethodInfo method : getAllMethods()) {
+                                    if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                            }
+                            if (cInsideMethod) return;
+
+                            FieldInfo cField = FieldInfo.globalField(cVarName, greedySharedType, cAbsNamePos,
+                                    null, cAbsInitStart, cAbsInitEnd, greedySharedMod);
+                            if (fGreedyContType != null) {
+                                fGreedyContType.addField(cField);
+                            } else if (globalFields.containsKey(cVarName)) {
+                                AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                    cVarName, cAbsNamePos, cAbsNamePos + cVarName.length(),
+                                    "Variable '" + cVarName + "' is already defined in the scope");
+                                declarationErrors.add(dupErr);
+                            } else {
+                                globalFields.put(cVarName, cField);
+                            }
+                        });
+                    continue;
+                }
 
                 int enclosingParen = findEnclosingParenStart(0, position);
                 if (enclosingParen >= 0 && "for".equals(readKeywordBefore(enclosingParen)))
@@ -2911,11 +3291,14 @@ public class ScriptDocument {
                     initStart = m.start(3);
                     int searchPos = m.end(3);
                     int depth = 0;
+                    // Stop at ',' or ';' at depth 0 so that multi-declarator
+                    // statements like "int x = 1, y, z = 3;" correctly bound
+                    // the initializer of x to just "1" (not "1, y, z = 3").
                     while (searchPos < text.length()) {
                         char c = text.charAt(searchPos);
                         if (c == '(' || c == '[' || c == '{') depth++;
                         else if (c == ')' || c == ']' || c == '}') depth--;
-                        else if (c == ';' && depth == 0) {
+                        else if ((c == ';' || c == ',') && depth == 0) {
                             initEnd = searchPos;
                             break;
                         }
@@ -2935,6 +3318,46 @@ public class ScriptDocument {
                     declarationErrors.add(dupError);
                 } else {
                     globalFields.put(fieldName, fieldInfo);
+                }
+
+                // --- Multi-declarator continuation for global Java fields ---
+                // For "int x = 1, y, z = 3;" FIELD_DECL_PATTERN matched "int x ="
+                // (or "int x,"). Scan forward for comma-separated continuation
+                // declarators (y, z) that share the same declared type.
+                final TypeInfo sharedType = typeInfo;
+                final int sharedModifiers = modifiers;
+                final ScriptTypeInfo fContainingType = containingScriptType;
+                int javaScanStart = MultiDeclaratorParser.javaDeclaratorScanStart(text, delimiter, m.end(3),
+                        initEnd >= 0 ? initEnd : -1);
+                if (javaScanStart >= 0) {
+                    MultiDeclaratorParser.scanJavaContinuationDeclarators(text, javaScanStart, 0,
+                        (cVarName, cAbsNamePos, cAbsInitStart, cAbsInitEnd) -> {
+                            if (isExcluded(cAbsNamePos)) return;
+                            // Check if inside a method — if so, skip (it's a local, not global)
+                            boolean cInsideMethod = false;
+                            if (fContainingType != null && isInsideNestedMethod(cAbsNamePos,
+                                    fContainingType.getBodyStart(), fContainingType.getBodyEnd()))
+                                cInsideMethod = true;
+                            else {
+                                for (MethodInfo method : getAllMethods()) {
+                                    if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                            }
+                            if (cInsideMethod) return;
+
+                            FieldInfo cField = FieldInfo.globalField(cVarName, sharedType, cAbsNamePos,
+                                    null, cAbsInitStart, cAbsInitEnd, sharedModifiers);
+                            if (fContainingType != null) {
+                                fContainingType.addField(cField);
+                            } else if (globalFields.containsKey(cVarName)) {
+                                AssignmentInfo dupErr = AssignmentInfo.duplicateDeclaration(
+                                    cVarName, cAbsNamePos, cAbsNamePos + cVarName.length(),
+                                    "Variable '" + cVarName + "' is already defined in the scope");
+                                declarationErrors.add(dupErr);
+                            } else {
+                                globalFields.put(cVarName, cField);
+                            }
+                        });
                 }
             }
         }
@@ -7247,15 +7670,29 @@ public class ScriptDocument {
                 continue;
             }
             
-            // Find the start of this statement (previous ; or { or } or start of text)
+            // Find the start of this statement: walk backward to ';', '{', '}', or a
+            // depth-0 ',' (multi-declarator separator like "int x=1, y=2").
+            // Track '()'/`[]` depth so commas inside argument lists are not treated
+            // as declarator separators.
             int stmtStart = equalsPos - 1;
-            while (stmtStart >= 0) {
-                char c = text.charAt(stmtStart);
-                if (c == ';' || c == '{' || c == '}') {
-                    stmtStart++;
-                    break;
+            {
+                int backDepth = 0;
+                while (stmtStart >= 0) {
+                    char c = text.charAt(stmtStart);
+                    if (c == ')' || c == ']') {
+                        backDepth++;
+                    } else if (c == '(' || c == '[') {
+                        if (backDepth == 0) { stmtStart++; break; }
+                        backDepth--;
+                    } else if (c == ';' || c == '{' || c == '}') {
+                        stmtStart++;
+                        break;
+                    } else if (c == ',' && backDepth == 0) {
+                        stmtStart++;
+                        break;
+                    }
+                    stmtStart--;
                 }
-                stmtStart--;
             }
             if (stmtStart < 0) stmtStart = 0;
             
@@ -7270,13 +7707,20 @@ public class ScriptDocument {
                 while (rhsBoundaryStart < text.length() && Character.isWhitespace(text.charAt(rhsBoundaryStart))) {
                     rhsBoundaryStart++;
                 }
-                stmtEnd = findJsInitializerEnd(text, rhsBoundaryStart);
+                // For multi-declarator JS statements (var a=1, b=2), the RHS of
+                // each declarator must stop at the top-level comma. We detect this
+                // by checking if the statement begins with var/let/const.
+                boolean isMultiDecl = MultiDeclaratorParser.startsWithJSKeyword(text, stmtStart, equalsPos);
+                stmtEnd = findJsInitializerEnd(text, rhsBoundaryStart, isMultiDecl);
                 if (stmtEnd < equalsPos + 1) {
                     stmtEnd = equalsPos + 1;
                 }
             } else {
-                stmtEnd = text.indexOf(';', equalsPos);
-                if (stmtEnd < 0) stmtEnd = text.length();
+                // For Java, stop at depth-0 ',' or ';' so that each declarator in
+                // "int x='str', y=20, z='str'" is bounded independently.
+                // findJsInitializerEnd handles string literals and bracket depth correctly.
+                stmtEnd = findJsInitializerEnd(text, equalsPos + 1, true);
+                if (stmtEnd < equalsPos + 1) stmtEnd = equalsPos + 1;
             }
             
             // Extract LHS (before =) and RHS (after =)
