@@ -337,6 +337,9 @@ public class TelegraphController implements ITelegraphHandler {
                 case CONE:
                     telegraph = Telegraph.cone(5.0f, 45.0f);
                     break;
+                case SQUARE:
+                    telegraph = Telegraph.square(3.0f);
+                    break;
                 case POINT:
                     telegraph = Telegraph.point();
                     break;
