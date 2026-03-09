@@ -2165,6 +2165,7 @@ ability.solid=Solid
 ability.knockbackEnabled=Knockback
 ability.knockbackStrength=Knockback Strength
 ability.absorbing=Absorbing
+ability.absorbRadius=Absorb Radius
 ability.reflect=Reflect
 ability.reflectStrength=Strength (%)
 ability.meleeEnabled=Allows Melee
@@ -2175,6 +2176,7 @@ ability.hover.followCaster=Dome stays centered on the caster as they move
 ability.hover.solid=Entities cannot pass through the barrier boundary
 ability.hover.knockbackEnabled=Repulsion field pushing entities away from barrier surface
 ability.hover.absorbing=Damage dealt to the caster is redirected to the barrier's health
+ability.hover.absorbRadius=Max distance from the barrier for absorption to work. -1 = unlimited, 0 = barrier extent (dome radius or panel size x3), positive = block radius
 ability.hover.reflect=Rebounds non-breaking projectiles and reduces their damage by Strength
 ability.targetOwner=Target Owner
 ability.hover.targetOwner=Sets the reflected projectile's target to the original caster. With homing enabled, the projectile will home toward its former caster.
