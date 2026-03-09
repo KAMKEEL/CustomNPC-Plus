@@ -62,7 +62,7 @@ public class ConfigClient {
     public static float ProximityAlphaMin = 0.15f;
 
     public static Property ProximityAlphaDistanceProperty;
-    public static float ProximityAlphaDistance = 7.0f;
+    public static float ProximityAlphaDistance = 10.0f;
 
     public static Property ProximityAlphaAgeTicksProperty;
     public static int ProximityAlphaAgeTicks = 60;
