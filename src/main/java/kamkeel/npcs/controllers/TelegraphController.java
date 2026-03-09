@@ -309,6 +309,11 @@ public class TelegraphController implements ITelegraphHandler {
     }
 
     @Override
+    public ITelegraph createSquare(float radius) {
+        return new ScriptTelegraph(Telegraph.square(radius));
+    }
+
+    @Override
     public ITelegraph createPoint() {
         return new ScriptTelegraph(Telegraph.point());
     }
