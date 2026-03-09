@@ -102,6 +102,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
         this.xSize = 420;
+        this.isPannableGUI = true;
         this.setBackground("menubg.png");
     }
 
@@ -142,6 +143,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     public void initGui() {
         // ==================== BASE LAYOUT CALCULATION ====================
+        isPanning = false;
         this.ySize = (int) ((double) this.xSize * 0.56D);
         if ((double) this.ySize > (double) this.height * 0.95D) {
             this.ySize = (int) ((double) this.height * 0.95D);
@@ -334,6 +336,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
             this.addScroll(scroll);
         }
+
+        computePanBounds(editorX, editorY, editorWidth, editorHeight);
     }
     /**
      * Initialize the settings tab layout (console view).
@@ -376,6 +380,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             // Language button requires options to be available
             this.getButton(103).enabled = languageOptions.size() > 0;
         }
+
+        int consoleX = this.guiLeft + 4 + yoffset;
+        int consoleY = this.guiTop + 6 + yoffset;
+        int consoleW = this.xSize - 160 - yoffset;
+        int consoleH = (int) ((float) this.ySize * 0.92F) - yoffset * 2;
+        computePanBounds(consoleX, consoleY, consoleW, consoleH);
     }
 
     public GuiScriptInterface setDimensions(int x, int y) {
@@ -393,21 +403,35 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected ScriptContext getScriptContext() {
         return handler.getContext();
     }
-    
-    // ==================== MOUSE HANDLING ====================
 
     @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check if click is within autocomplete menu bounds and consume it if so
+    protected boolean isPannableArea(int mx, int my) {
+        if (activeTab > 0 && fullscreenButton.isMouseOver(mx, my)) {
+            return false;
+        }
+
+        GuiScriptTextArea activeArea = getActiveScriptArea();
+        if (activeArea != null && activeArea.isPointOnAutocompleteMenu(mx, my)) {
+            return false;
+        }
+
+        return super.isPannableArea(mx, my);
+    }
+
+    @Override
+    public void mouseClicked(int i, int j, int k) {
+        int adjX = panAdjustedX(i);
+        int adjY = panAdjustedY(j);
+
         GuiScriptTextArea activeArea = getActiveScriptArea();
         boolean isOverAutocomplete = activeArea != null
-                && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
+                && activeArea.isPointOnAutocompleteMenu(adjX, adjY);
         if (isOverAutocomplete) {
-            activeArea.mouseClicked(mouseX, mouseY, mouseButton);
+            activeArea.mouseClicked(adjX, adjY, k);
             return;
         }
 
-        super.mouseClicked(mouseX, mouseY, mouseButton);
+        super.mouseClicked(i, j, k);
     }
 
     public String previousHookClicked = "";
