@@ -77,17 +77,20 @@ public class RenderEnergyDisc extends RenderEnergy {
         // Inner scale defines the core size
         float innerScale = 0.6f;
 
+        // Proximity alpha fade for owner
+        float proximityAlpha = getProximityAlphaFactor(disc, x, y, z);
+
         // Render outer square (translucent) - only if enabled
         // outerColorWidth is an additive offset from inner size
         if (disc.isOuterColorEnabled()) {
             float outerScale = innerScale + disc.getOuterColorWidth();
             GL11.glDepthMask(false);
-            renderFlatSquare(disc.getOuterColor(), disc.getOuterColorAlpha(), radius * outerScale, thickness);
+            renderFlatSquare(disc.getOuterColor(), disc.getOuterColorAlpha() * proximityAlpha, radius * outerScale, thickness);
             GL11.glDepthMask(true);
         }
 
         // Render inner square (solid)
-        renderFlatSquare(disc.getInnerColor(), disc.getInnerAlpha(), radius * innerScale, thickness * 1.2f);
+        renderFlatSquare(disc.getInnerColor(), disc.getInnerAlpha() * proximityAlpha, radius * innerScale, thickness * 1.2f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();

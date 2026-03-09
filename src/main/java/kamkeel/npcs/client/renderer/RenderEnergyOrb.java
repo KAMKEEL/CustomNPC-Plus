@@ -69,6 +69,9 @@ public class RenderEnergyOrb extends RenderEnergy {
         // Inner scale defines the core size
         float innerScale = 0.6f;
 
+        // Proximity alpha fade for owner
+        float proximityAlpha = getProximityAlphaFactor(orb, x, y, z);
+
         // Render outer cube (translucent) - only if enabled
         // outerColorWidth is an additive offset from inner size
         if (orb.isOuterColorEnabled()) {
@@ -76,14 +79,14 @@ public class RenderEnergyOrb extends RenderEnergy {
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
             GL11.glScalef(outerScale, outerScale, outerScale);
-            renderCube(orb.getOuterColor(), orb.getOuterColorAlpha(), 0.5f);
+            renderCube(orb.getOuterColor(), orb.getOuterColorAlpha() * proximityAlpha, 0.5f);
             GL11.glPopMatrix();
             GL11.glDepthMask(true);
         }
 
         // Render inner cube (solid)
         GL11.glScalef(innerScale, innerScale, innerScale);
-        renderCube(orb.getInnerColor(), orb.getInnerAlpha(), 0.5f);
+        renderCube(orb.getInnerColor(), orb.getInnerAlpha() * proximityAlpha, 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();

@@ -5,11 +5,14 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityEnergyAbility;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -336,6 +339,68 @@ public abstract class RenderEnergy extends Render {
 
         state.update(density, radius, outerColor, innerColor, fadeTime);
         state.render();
+    }
+
+    // ==================== PROXIMITY ALPHA ====================
+
+    /**
+     * Calculate a proximity-based alpha multiplier for owner's energy projectiles.
+     * Returns a factor between ProximityAlphaMin and 1.0 based on:
+     * - Distance from camera (close = faded, far = full)
+     * - Entity age (young = faded, old = full; ignored while charging)
+     * <p>
+     * Only applies to the owning player's client. Non-owners always get 1.0.
+     *
+     * @param entity the energy projectile entity
+     * @param x      camera-relative X (from doRender)
+     * @param y      camera-relative Y (from doRender)
+     * @param z      camera-relative Z (from doRender)
+     * @return alpha multiplier between ProximityAlphaMin and 1.0
+     */
+    protected float getProximityAlphaFactor(EntityEnergyAbility entity, double x, double y, double z) {
+        return getProximityAlphaFactor(entity, x, y, z, false);
+    }
+
+    /**
+     * Overload that allows forcing proximity-only fade (no age fade-out).
+     * Used for attached beams and lasers that stay connected to the owner.
+     *
+     * @param alwaysUseProximity if true, age factor is ignored (proximity fade never expires)
+     */
+    protected float getProximityAlphaFactor(EntityEnergyAbility entity, double x, double y, double z, boolean alwaysUseProximity) {
+        float minAlpha = ConfigClient.ProximityAlphaMin;
+        if (minAlpha >= 1.0f) return 1.0f;
+
+        // Only apply to the owner's client
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player == null || entity.getOwnerEntityId() != player.getEntityId()) {
+            return 1.0f;
+        }
+
+        // Distance factor: ramp from minAlpha at 0 to 1.0 at maxDist
+        float maxDist = ConfigClient.ProximityAlphaDistance;
+        float dist = (float) Math.sqrt(x * x + y * y + z * z);
+        float distFactor = Math.min(1.0f, dist / maxDist);
+
+        // Age factor: ramp from 0 to 1.0 over ageTicks
+        // Charging, attached beams/lasers, and alwaysUseProximity skip age fade
+        float ageFactor;
+        if (entity.isCharging() || alwaysUseProximity) {
+            ageFactor = 0.0f; // Always apply full proximity fade
+        } else {
+            int ageTicks = ConfigClient.ProximityAlphaAgeTicks;
+            if (ageTicks <= 0) {
+                ageFactor = 1.0f; // Age fade disabled
+            } else {
+                ageFactor = Math.min(1.0f, (float) entity.ticksExisted / ageTicks);
+            }
+        }
+
+        // Combined: take the max of both factors (either being far OR being old restores alpha)
+        float combinedFactor = Math.max(distFactor, ageFactor);
+
+        // Lerp between minAlpha and 1.0
+        return minAlpha + (1.0f - minAlpha) * combinedFactor;
     }
 
     @Override
