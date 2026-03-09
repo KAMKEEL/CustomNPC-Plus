@@ -47,17 +47,20 @@ public class RenderEnergySlicer extends RenderEnergy {
 
         float innerScale = 0.7f;
 
+        // Proximity alpha fade for owner
+        float proximityAlpha = getProximityAlphaFactor(slicer, x, y, z);
+
         // Render outer blade (translucent glow)
         if (slicer.isOuterColorEnabled()) {
             float outerScale = 1.0f + slicer.getOuterColorWidth() * 0.2f;
             GL11.glDepthMask(false);
-            renderBlade(slicer.getOuterColor(), slicer.getOuterColorAlpha(),
+            renderBlade(slicer.getOuterColor(), slicer.getOuterColorAlpha() * proximityAlpha,
                 width * 0.5f * outerScale, thickness * 2.0f, 0.05f);
             GL11.glDepthMask(true);
         }
 
         // Render inner blade (solid core)
-        renderBlade(slicer.getInnerColor(), slicer.getInnerAlpha(),
+        renderBlade(slicer.getInnerColor(), slicer.getInnerAlpha() * proximityAlpha,
             width * 0.5f * innerScale, thickness, 0.03f);
 
         GL11.glPopMatrix();
