@@ -27,8 +27,11 @@ public class RenderEnergyLaser extends RenderEnergy {
 
         setupRenderState();
 
+        // Proximity alpha fade for owner (lasers are always attached, never age out)
+        float proximityAlpha = getProximityAlphaFactor(laser, x, y, z, true);
+
         if (laser.isCharging()) {
-            renderChargingOrb(laser, x, y, z, partialTicks);
+            renderChargingOrb(laser, x, y, z, partialTicks, proximityAlpha);
             restoreRenderState();
             return;
         }
@@ -126,14 +129,14 @@ public class RenderEnergyLaser extends RenderEnergy {
             renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
                 renderEndX, renderEndY, renderEndZ,
                 horzX, horzY, horzZ, vertX, vertY, vertZ,
-                outerWidth, laser.getOuterColor(), alpha * 0.4f);
+                outerWidth, laser.getOuterColor(), alpha * 0.4f * proximityAlpha);
 
             // Render middle layer (halfway between inner and outer)
             float midWidth = innerWidth + (outerWidth - innerWidth) * 0.5f;
             renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
                 renderEndX, renderEndY, renderEndZ,
                 horzX, horzY, horzZ, vertX, vertY, vertZ,
-                midWidth, laser.getOuterColor(), alpha * 0.7f);
+                midWidth, laser.getOuterColor(), alpha * 0.7f * proximityAlpha);
             GL11.glDepthMask(true);
         }
 
@@ -141,7 +144,7 @@ public class RenderEnergyLaser extends RenderEnergy {
         renderBeamRectangle(renderStartX, renderStartY, renderStartZ,
             renderEndX, renderEndY, renderEndZ,
             horzX, horzY, horzZ, vertX, vertY, vertZ,
-            innerWidth, laser.getInnerColor(), alpha * laser.getInnerAlpha());
+            innerWidth, laser.getInnerColor(), alpha * laser.getInnerAlpha() * proximityAlpha);
 
         // Render lightning along the laser beam
         if (laser.hasLightningEffect() && laser.getCurrentLength() > 0.1f) {
@@ -152,7 +155,7 @@ public class RenderEnergyLaser extends RenderEnergy {
         restoreRenderState();
     }
 
-    private void renderChargingOrb(EntityAbilityLaser laser, double x, double y, double z, float partialTicks) {
+    private void renderChargingOrb(EntityAbilityLaser laser, double x, double y, double z, float partialTicks, float proximityAlpha) {
         float headSize = laser.getLaserWidth() * 0.5f;
         float chargeProgress = laser.getInterpolatedChargeProgress(partialTicks);
         float size = headSize * chargeProgress;
@@ -184,7 +187,7 @@ public class RenderEnergyLaser extends RenderEnergy {
         // Render outer glow only if enabled
         if (laser.isOuterColorEnabled()) {
             float outerScale = innerScale + laser.getOuterColorWidth();
-            float outerAlpha = laser.getOuterColorAlpha();
+            float outerAlpha = laser.getOuterColorAlpha() * proximityAlpha;
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
             GL11.glScalef(outerScale, outerScale, outerScale);
@@ -195,7 +198,7 @@ public class RenderEnergyLaser extends RenderEnergy {
 
         // Render inner core
         GL11.glScalef(innerScale, innerScale, innerScale);
-        renderCube(innerColor, laser.getInnerAlpha(), 0.5f);
+        renderCube(innerColor, laser.getInnerAlpha() * proximityAlpha, 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();

@@ -57,6 +57,16 @@ public class ConfigClient {
     public static Property LowResExplosionProperty;
     public static boolean LowResExplosion = false;
 
+    // Proximity Alpha (owner-only fade for energy projectiles near camera)
+    public static Property ProximityAlphaMinProperty;
+    public static float ProximityAlphaMin = 0.15f;
+
+    public static Property ProximityAlphaDistanceProperty;
+    public static float ProximityAlphaDistance = 7.0f;
+
+    public static Property ProximityAlphaAgeTicksProperty;
+    public static int ProximityAlphaAgeTicks = 60;
+
     /**
      * Questing Properties
      **/
@@ -290,6 +300,30 @@ public class ConfigClient {
                 "Disables most Energy Explosion voxel rendering and keeps particle effects only."
             );
             LowResExplosion = LowResExplosionProperty.getBoolean(false);
+
+            ProximityAlphaMinProperty = config.get(
+                RENDERING,
+                "Proximity Alpha Min",
+                0.15,
+                "Minimum alpha for owner's energy projectiles when very close to camera. Set to 1.0 to disable proximity fade."
+            );
+            ProximityAlphaMin = (float) Math.max(0.0, Math.min(1.0, ProximityAlphaMinProperty.getDouble(0.15)));
+
+            ProximityAlphaDistanceProperty = config.get(
+                RENDERING,
+                "Proximity Alpha Distance",
+                7.0,
+                "Distance in blocks at which owner's energy projectiles reach full alpha."
+            );
+            ProximityAlphaDistance = (float) Math.max(1.0, ProximityAlphaDistanceProperty.getDouble(7.0));
+
+            ProximityAlphaAgeTicksProperty = config.get(
+                RENDERING,
+                "Proximity Alpha Age Ticks",
+                60,
+                "After this many ticks alive, proximity alpha fade is disabled (projectile always renders at full alpha). Does not apply while charging or to attached beams/lasers."
+            );
+            ProximityAlphaAgeTicks = Math.max(0, ProximityAlphaAgeTicksProperty.getInt(60));
 
             DialogSpeedProperty = config.get(VISUAL, "Dialog Speed", true, "Only set for gradual dialogs");
             DialogSpeed = DialogSpeedProperty.getInt(10);

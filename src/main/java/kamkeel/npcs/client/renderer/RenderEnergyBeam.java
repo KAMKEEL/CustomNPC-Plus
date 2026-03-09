@@ -34,9 +34,12 @@ public class RenderEnergyBeam extends RenderEnergy {
 
         setupRenderState();
 
+        // Proximity alpha fade for owner (attached beams always use proximity, never age out)
+        float proximityAlpha = getProximityAlphaFactor(beam, x, y, z, beam.isAttachedToOwner());
+
         // Handle charging state (windup phase) - render only growing orb
         if (beam.isCharging()) {
-            renderChargingOrb(beam, x, y, z, partialTicks);
+            renderChargingOrb(beam, x, y, z, partialTicks, proximityAlpha);
             restoreRenderState();
             return;
         }
@@ -65,7 +68,7 @@ public class RenderEnergyBeam extends RenderEnergy {
         float headSize = beam.getHeadSize();
         int innerColor = beam.getInnerColor();
         int outerColor = beam.getOuterColor();
-        float outerAlpha = beam.getOuterColorAlpha();
+        float outerAlpha = beam.getOuterColorAlpha() * proximityAlpha;
 
         // Render everything relative to origin position
         GL11.glPushMatrix();
@@ -77,10 +80,10 @@ public class RenderEnergyBeam extends RenderEnergy {
         // Render tail orb at origin (0,0,0) - only in anchored mode
         // Don't render if head is too close to origin (would cause overlap/extra orb appearance)
         if (beam.shouldRenderTailOrb() && headDistFromOrigin > headSize * 0.5) {
-            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), outerAlpha, beam.getInnerAlpha());
+            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), outerAlpha, beam.getInnerAlpha() * proximityAlpha);
         }
 
-        float innerAlpha = beam.getInnerAlpha();
+        float innerAlpha = beam.getInnerAlpha() * proximityAlpha;
 
         // Render trail segments with smooth connections (with fading for non-anchored)
         if (beam.hasFadingTrail()) {
@@ -101,7 +104,7 @@ public class RenderEnergyBeam extends RenderEnergy {
      * Render the charging orb during windup phase.
      * Grows from 0 to headSize based on charge progress.
      */
-    private void renderChargingOrb(EntityAbilityBeam beam, double x, double y, double z, float partialTicks) {
+    private void renderChargingOrb(EntityAbilityBeam beam, double x, double y, double z, float partialTicks, float proximityAlpha) {
         float headSize = beam.getHeadSize();
         float chargeProgress = beam.getInterpolatedChargeProgress(partialTicks);
         float size = headSize * chargeProgress;
@@ -133,7 +136,7 @@ public class RenderEnergyBeam extends RenderEnergy {
         // Render outer glow only if enabled
         if (beam.isOuterColorEnabled()) {
             float outerScale = innerScale + beam.getOuterColorWidth();
-            float outerAlpha = beam.getOuterColorAlpha();
+            float outerAlpha = beam.getOuterColorAlpha() * proximityAlpha;
             GL11.glDepthMask(false);
             GL11.glPushMatrix();
             GL11.glScalef(outerScale, outerScale, outerScale);
@@ -144,7 +147,7 @@ public class RenderEnergyBeam extends RenderEnergy {
 
         // Render inner core
         GL11.glScalef(innerScale, innerScale, innerScale);
-        renderCube(innerColor, beam.getInnerAlpha(), 0.5f);
+        renderCube(innerColor, beam.getInnerAlpha() * proximityAlpha, 0.5f);
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();
