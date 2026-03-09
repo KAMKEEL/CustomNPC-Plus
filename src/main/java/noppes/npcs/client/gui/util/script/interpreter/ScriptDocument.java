@@ -3765,6 +3765,44 @@ public class ScriptDocument {
             // Fully-qualified Java types
             else if (baseName.contains(".")) {
                 resolved = typeResolver.resolveFullName(baseName);
+                // Fallback: "SimpleName.InnerClass" where SimpleName is a known import
+                // e.g., "Map.Entry" when java.util.Map is imported → java.util.Map$Entry
+                if (resolved == null || !resolved.isResolved()) {
+                    int firstDot = baseName.indexOf('.');
+                    String outerSimple = baseName.substring(0, firstDot);
+                    String innerPath = baseName.substring(firstDot + 1);
+                    TypeInfo outerType = typeResolver.resolveSimpleName(outerSimple, importsBySimpleName, wildcardPackages);
+                    if (outerType != null && outerType.isResolved() && outerType.getJavaClass() != null) {
+                        Class<?> currentClass = outerType.getJavaClass();
+                        for (String part : innerPath.split("\\.")) {
+                            Class<?> found = null;
+                            for (Class<?> inner : currentClass.getClasses()) {
+                                if (inner.getSimpleName().equals(part)) {
+                                    found = inner;
+                                    break;
+                                }
+                            }
+                            currentClass = found;
+                            if (currentClass == null) break;
+                        }
+                        if (currentClass != null) {
+                            resolved = TypeInfo.fromClass(currentClass);
+                            // Track import usage for the outer class
+                            ImportData usedImport = importsBySimpleName.get(outerSimple);
+                            if (usedImport != null) {
+                                usedImport.incrementUsage();
+                            } else if (wildcardPackages != null) {
+                                String resultPkg = outerType.getPackageName();
+                                for (ImportData imp : imports) {
+                                    if (imp.isWildcard() && resultPkg != null && resultPkg.equals(imp.getFullPath())) {
+                                        imp.incrementUsage();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             // Imported/simple
             else {
@@ -3957,8 +3995,68 @@ public class ScriptDocument {
         }
     }
 
+    /**
+     * Two-phase object literal parsing.
+     *
+     * <p><b>Phase 1 (structure-only)</b>: parse every object literal with a no-op type
+     * resolver.  This produces {@link ObjectLiteralParser.ObjectLiteralAnalysis} entries
+     * whose property <em>names</em> are correct but whose value types are all {@code ANY}.
+     * The synthetic {@link TypeInfo} shapes built from those names are then attached to
+     * the corresponding {@link InnerCallableScope}s via
+     * {@link ObjectLiteralParser#attachObjectLiteralContext}, so that
+     * {@code resolveThisType()} can return the containing object literal type for
+     * {@code this.property} chains.</p>
+     *
+     * <p><b>Phase 2 (full resolution)</b>: re-parse with the real
+     * {@code this::resolveExpressionType} callback.  Because scopes now have their
+     * {@code containingObjectType} wired, expressions like {@code return this.faah.length}
+     * inside method bodies resolve correctly instead of falling back to {@code ANY}.</p>
+     */
     private void parseObjectLiterals() {
         if (!isJavaScript()) return;
+
+        List<int[]> braceRanges = findObjectLiteralBraces();
+        if (braceRanges.isEmpty())
+            return;
+
+        // Phase 1: structure-only — property names extracted, value types = ANY
+        ObjectLiteralParser.ExpressionTypeResolverFn nullResolver = (expr, pos) -> null;
+        for (int[] range : braceRanges) {
+            String objectLiteral = text.substring(range[0], range[1]);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
+                    ObjectLiteralParser.parse(objectLiteral, range[0], true, true, nullResolver,
+                            this::getScriptMethodInfo);
+            if (analysis != null)
+                objectLiterals.put(range[0], analysis);
+        }
+
+        for (InnerCallableScope scope : innerScopes)
+            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
+
+        // Phase 2: full resolution — accurate value / return types via resolveExpressionType
+        for (int[] range : braceRanges) {
+            String objectLiteral = text.substring(range[0], range[1]);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
+                    ObjectLiteralParser.parse(objectLiteral, range[0], true, true, this::resolveExpressionType,
+                            this::getScriptMethodInfo);
+            if (analysis != null)
+                objectLiterals.put(range[0], analysis);
+        }
+
+        // Re-attach with fully-resolved types (reset so the guard allows re-attachment)
+        for (InnerCallableScope scope : innerScopes) {
+            scope.setContainingObjectType(null);
+            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
+        }
+    }
+
+    /**
+     * Scan the document for opening braces that are likely object-literal starts and
+     * return their {@code [start, end)} ranges.  Shared by both parsing phases to avoid
+     * duplicate scanning.
+     */
+    private List<int[]> findObjectLiteralBraces() {
+        List<int[]> ranges = new ArrayList<>();
         int i = 0;
         while (i < text.length()) {
             int brace = text.indexOf('{', i);
@@ -3972,18 +4070,10 @@ public class ScriptDocument {
                 i = brace + 1;
                 continue;
             }
-            String objectLiteral = text.substring(brace, end);
-            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
-                    ObjectLiteralParser.parse(objectLiteral, brace, true, true, this::resolveExpressionType, this::getScriptMethodInfo);
-            if (analysis != null) 
-                objectLiterals.put(brace, analysis);
-            
+            ranges.add(new int[]{brace, end});
             i = brace + 1;
         }
-        // Wire each object-literal inner scope to its containing object type (needs the cache)
-        for (InnerCallableScope scope : innerScopes) 
-            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
-        
+        return ranges;
     }
 
     private boolean isLikelyObjectLiteralStart(int bracePos) {
