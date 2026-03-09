@@ -630,7 +630,13 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
 
     /**
      * Find a barrier that would absorb damage for the given entity (its caster).
-     * Returns the barrier if: absorbing is enabled AND entity is the barrier's owner.
+     * Returns the barrier if: absorbing is enabled, entity is the barrier's owner,
+     * and entity is within the barrier's absorb radius of the barrier's current position.
+     *
+     * Absorb radius behavior:
+     *  -1 = no limit (absorb regardless of distance)
+     *   0 = uses the barrier's extent as the radius (dome radius, panel half-size, etc.)
+     *  >0 = owner must be within this many blocks of the barrier entity
      */
     public static EntityEnergyBarrier getAbsorbingBarrier(Entity entity) {
         if (entity == null || entity.worldObj == null) return null;
@@ -638,7 +644,33 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         for (EntityEnergyBarrier barrier : barriers) {
             if (barrier.isDead) continue;
             if (!barrier.barrierData.absorbing) continue;
-            if (barrier.ownerEntityId == entity.getEntityId()) {
+            if (barrier.ownerEntityId != entity.getEntityId()) continue;
+
+            float absorbRadius = barrier.barrierData.absorbRadius;
+
+            // -1 = unlimited range
+            if (absorbRadius < 0) {
+                return barrier;
+            }
+
+            // 0 = use barrier's own extent as the effective radius
+            // Domes: dome radius. Panels: max(width, height) * 0.5 + 1.0, doubled.
+            float effectiveRadius;
+            if (absorbRadius > 0) {
+                effectiveRadius = absorbRadius;
+            } else if (barrier instanceof EntityEnergyDome) {
+                effectiveRadius = barrier.getMaxExtent();
+            } else {
+                effectiveRadius = barrier.getMaxExtent() * 3.0f;
+            }
+
+            // Distance check from barrier's current position to the owner
+            double dx = entity.posX - barrier.posX;
+            double dy = (entity.posY + entity.height * 0.5) - barrier.posY;
+            double dz = entity.posZ - barrier.posZ;
+            double distSq = dx * dx + dy * dy + dz * dz;
+
+            if (distSq <= (double) effectiveRadius * effectiveRadius) {
                 return barrier;
             }
         }

@@ -121,6 +121,14 @@ public class ScriptEnergyBarrier<T extends EntityEnergyBarrier> extends ScriptEn
         entity.getBarrierData().absorbing = absorbing;
     }
 
+    public float getAbsorbRadius() {
+        return entity.getBarrierData().absorbRadius;
+    }
+
+    public void setAbsorbRadius(float radius) {
+        entity.getBarrierData().absorbRadius = radius;
+    }
+
     public boolean isReflect() {
         return entity.getBarrierData().reflect;
     }

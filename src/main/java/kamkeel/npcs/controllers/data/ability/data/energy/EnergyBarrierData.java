@@ -32,6 +32,11 @@ public class EnergyBarrierData {
 
     // Absorbing: caster's damage is redirected to the barrier
     public boolean absorbing = false;
+    // Absorb radius: max distance from barrier's current position for absorption to work
+    // -1 = no radius limit (absorb regardless of distance)
+    //  0 = use barrier's own extent as the radius (dome radius, panel half-size, etc.)
+    // positive = owner must be within this many blocks of the barrier entity
+    public float absorbRadius = 0.0f;
 
     // Melee: barrier can be hit by melee attacks
     public boolean meleeEnabled = false;
@@ -148,6 +153,14 @@ public class EnergyBarrierData {
         this.targetOwner = targetOwner;
     }
 
+    public float getAbsorbRadius() {
+        return absorbRadius;
+    }
+
+    public void setAbsorbRadius(float absorbRadius) {
+        this.absorbRadius = absorbRadius;
+    }
+
     // ==================== NBT ====================
 
     public void writeNBT(NBTTagCompound nbt) {
@@ -160,6 +173,7 @@ public class EnergyBarrierData {
         nbt.setBoolean("barrierKnockback", knockbackEnabled);
         nbt.setFloat("barrierKnockbackStr", knockbackStrength);
         nbt.setBoolean("barrierAbsorbing", absorbing);
+        nbt.setFloat("barrierAbsorbRadius", absorbRadius);
         nbt.setBoolean("barrierMelee", meleeEnabled);
         nbt.setFloat("barrierMeleeMult", meleeDamageMultiplier);
         nbt.setBoolean("barrierReflect", reflect);
@@ -183,6 +197,7 @@ public class EnergyBarrierData {
         knockbackEnabled = nbt.hasKey("barrierKnockback") && nbt.getBoolean("barrierKnockback");
         knockbackStrength = nbt.hasKey("barrierKnockbackStr") ? nbt.getFloat("barrierKnockbackStr") : 1.0f;
         absorbing = nbt.hasKey("barrierAbsorbing") && nbt.getBoolean("barrierAbsorbing");
+        absorbRadius = nbt.hasKey("barrierAbsorbRadius") ? nbt.getFloat("barrierAbsorbRadius") : 0.0f;
         meleeEnabled = nbt.hasKey("barrierMelee") && nbt.getBoolean("barrierMelee");
         meleeDamageMultiplier = nbt.hasKey("barrierMeleeMult") ? nbt.getFloat("barrierMeleeMult") : 1.0f;
         reflect = nbt.hasKey("barrierReflect") && nbt.getBoolean("barrierReflect");
@@ -207,6 +222,7 @@ public class EnergyBarrierData {
         copy.knockbackEnabled = knockbackEnabled;
         copy.knockbackStrength = knockbackStrength;
         copy.absorbing = absorbing;
+        copy.absorbRadius = absorbRadius;
         copy.meleeEnabled = meleeEnabled;
         copy.meleeDamageMultiplier = meleeDamageMultiplier;
         copy.reflect = reflect;
