@@ -85,9 +85,7 @@ public final class GenericContext {
                 String name = declared.getName();
                 if (name == null || name.isEmpty()) continue;
                 TypeInfo bound = declared.getBoundTypeInfo();
-                if (bound != null && bound.isResolved()) {
-                    bounds.put(name, bound);
-                }
+                bounds.put(name, (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT);
             }
         }
 
