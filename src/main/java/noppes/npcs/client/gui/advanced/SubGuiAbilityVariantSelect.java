@@ -88,12 +88,15 @@ public class SubGuiAbilityVariantSelect extends SubGuiInterface implements ICust
         scroll.setSize(190, 155);
 
         // Mark blank separators and group headers as non-interactive colored entries
+        scroll.nonInteractive.add("");
         scroll.colors.put("", 0x000000);
         if (lastGroup != null) {
             for (int i = 0; i < variants.size(); i++) {
                 String group = variants.get(i).getGroup();
-                if (group != null)
+                if (group != null) {
+                    scroll.nonInteractive.add(group);
                     scroll.colors.put(group, 0xFFFF00); // Yellow
+                }
             }
         }
 

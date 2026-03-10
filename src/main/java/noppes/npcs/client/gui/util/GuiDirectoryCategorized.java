@@ -245,6 +245,8 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
             for (String name : navNames) {
                 catScroll.colors.put(name, name.equals(prevCatName) ? 0xFF5555 : 0xFFAA00);
             }
+        } else if (movePhase == 0) {
+            catScroll.setSelectable(true);
         }
 
         addScroll(catScroll);

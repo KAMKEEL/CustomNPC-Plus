@@ -199,7 +199,7 @@ public class GuiNpcMobSpawnerFullscreen extends GuiDirectory implements IGuiData
         navScroll.setSelected(getNavSelection());
         navScroll.scrollY = Math.min(savedNavScroll, Math.max(0, navScroll.maxScrollY));
 
-        // Phase 2: color nav items orange (selectable) or red (current location, not selectable)
+        // Phase 2: color nav items orange (selectable) or red (current location)
         if (movePhase == 2) {
             String currentNav = getNavSelection();
             for (String name : navNames) {
