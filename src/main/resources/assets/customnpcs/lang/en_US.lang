@@ -2470,3 +2470,5 @@ animation.mirror=Mirror
 gui.builtin.tag=(Built-in)
 ability.damage=Damage
 ability.allowed=Allowed
+gui.move.confirmLine=Move %d item(s) to:
+gui.category=Category

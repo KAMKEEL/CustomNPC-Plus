@@ -63,6 +63,10 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
     // ========== New Item Category ==========
     protected int pendingNewItemCatId = -1;
 
+    // ========== Pending Move Destination ==========
+    private int pendingMoveDestCatId = -1;
+    private String pendingMoveDestName = "";
+
     // ========== Category Data Loaded ==========
     private boolean itemDataLoaded = false;
 
@@ -231,16 +235,16 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
         catScroll.setSelected(prevCatName);
         catScroll.scrollY = Math.max(0, Math.min(savedCatScrollY, catScroll.maxScrollY));
 
-        // Phase 1: categories are locked (RED labels, not clickable)
+        // Phase 1: categories locked (not clickable)
         if (movePhase == 1) {
             catScroll.setSelectable(false);
-            for (String name : navNames) {
-                catScroll.colors.put(name, 0xFF5555);
-            }
         }
-        // Phase 2: ensure scroll is clickable for destination selection
+        // Phase 2: color nav items orange (selectable) or red (current/source category)
         if (movePhase == 2) {
             catScroll.setSelectable(true);
+            for (String name : navNames) {
+                catScroll.colors.put(name, name.equals(prevCatName) ? 0xFF5555 : 0xFFAA00);
+            }
         }
 
         addScroll(catScroll);
@@ -606,12 +610,14 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
             String selected = catScroll.getSelected();
             if (selected == null) return;
 
-            // Move phase 2: destination selected
+            // Move phase 2: destination selected — show confirmation
             if (movePhase == 2) {
                 if (!selected.equals(prevCatName)) {
                     Integer destCatId = catData.get(selected);
                     if (destCatId != null) {
-                        executeMoveItems(destCatId);
+                        pendingMoveDestCatId = destCatId;
+                        pendingMoveDestName = selected;
+                        setSubGui(new SubGuiCategoryMoveConfirm(moveSelection.size(), selected));
                     }
                 }
                 return;
@@ -771,6 +777,16 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
                     prevCatName = name;
                 }
             }
+        }
+        if (subgui instanceof SubGuiCategoryMoveConfirm) {
+            SubGuiCategoryMoveConfirm confirm = (SubGuiCategoryMoveConfirm) subgui;
+            if (confirm.confirmed && !moveSelection.isEmpty() && pendingMoveDestCatId >= 0) {
+                executeMoveItems(pendingMoveDestCatId);
+            } else {
+                // Cancelled — stay in phase 2
+            }
+            pendingMoveDestCatId = -1;
+            pendingMoveDestName = "";
         }
         onSubGuiClosed(subgui);
     }
