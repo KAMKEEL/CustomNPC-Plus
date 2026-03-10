@@ -2,24 +2,156 @@ package noppes.npcs.client.gui.util.script;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Configurable code formatter with IntelliJ-like settings.
  * <p>
+ * Architecture: Token-based pipeline (tokenize → format → reconstruct).
+ * <p>
+ * The formatter processes code in three phases:
+ * <ol>
+ *   <li><b>Tokenize</b> — Splits code segments into typed tokens
+ *       (operators, keywords, identifiers, literals, punctuation, whitespace).
+ *       Multi-character operators are matched longest-first to avoid sub-token clobbering.</li>
+ *   <li><b>Format</b> — Applies spacing rules to each token pair based on their types
+ *       and the current {@link FormatSettings}. Context-aware: distinguishes unary from
+ *       binary operators, generic brackets from comparison operators, etc.</li>
+ *   <li><b>Reconstruct</b> — Joins formatted tokens back into a code string.</li>
+ * </ol>
+ * <p>
+ * String literals and comments are identified before tokenization and passed through
+ * unchanged (the "preserve regions" approach). Line-by-line processing preserves
+ * original structure and indentation.
+ * <p>
  * Features:
- * - Operator spacing (a+b → a + b)
- * - Whitespace normalization (a   b → a b)
- * - Long line wrapping
- * - Bracket spacing configuration
- * - Preserves string content and comments
+ * <ul>
+ *   <li>Operator spacing (a+b → a + b)</li>
+ *   <li>Whitespace normalization (a   b → a b)</li>
+ *   <li>Long line wrapping</li>
+ *   <li>Bracket spacing configuration</li>
+ *   <li>Preserves string content and comments</li>
+ * </ul>
  */
 public class FormatHelper {
+
+    // ==================== TOKEN TYPES ====================
+
+    /**
+     * Token type classification for the formatter tokenizer.
+     */
+    enum TokenType {
+        /** String literal: "..." or '...' (with escape handling) */
+        STRING_LITERAL,
+        /** Block comment: /&#42; ... &#42;/ */
+        BLOCK_COMMENT,
+        /** Line comment: // ... */
+        LINE_COMMENT,
+        /** Multi-char or single-char operator: ==, !=, >=, +, -, etc. */
+        OPERATOR,
+        /** Control-flow keyword: if, while, for, switch, catch, else, return, etc. */
+        KEYWORD,
+        /** ( */
+        PAREN_OPEN,
+        /** ) */
+        PAREN_CLOSE,
+        /** [ */
+        BRACKET_OPEN,
+        /** ] */
+        BRACKET_CLOSE,
+        /** { */
+        BRACE_OPEN,
+        /** } */
+        BRACE_CLOSE,
+        /** , */
+        COMMA,
+        /** ; */
+        SEMICOLON,
+        /** : */
+        COLON,
+        /** . */
+        DOT,
+        /** Variable name, method name, type name, etc. */
+        IDENTIFIER,
+        /** Numeric literal */
+        NUMBER,
+        /** Spaces, tabs (not newlines — those are line delimiters) */
+        WHITESPACE
+    }
+
+    // ==================== TOKEN CLASS ====================
+
+    /**
+     * A single token produced by the tokenizer.
+     */
+    static class Token {
+        final TokenType type;
+        final String value;
+        final int position; // position in original code segment
+
+        Token(TokenType type, String value, int position) {
+            this.type = type;
+            this.value = value;
+            this.position = position;
+        }
+
+        @Override
+        public String toString() {
+            return type + "(" + value + ")@" + position;
+        }
+    }
+
+    // ==================== OPERATOR CLASSIFICATION ====================
+
+    /**
+     * Multi-character operators ordered longest-first for greedy matching.
+     */
+    private static final String[] MULTI_CHAR_OPERATORS = {
+        ">>>=",      // unsigned right shift assign
+        "===", "!==", // JS strict equality
+        "<<=", ">>=", // shift assign
+        ">>>",        // unsigned right shift
+        "+=", "-=", "*=", "/=", "%=", // compound assign
+        "&=", "|=", "^=",             // bitwise compound assign
+        "&&", "||",   // logical
+        "==", "!=",   // equality
+        "<=", ">=",   // comparison
+        "<<", ">>",   // shift
+        "++", "--",   // increment/decrement
+        "->", "=>",   // arrow operators (Java lambda, JS arrow)
+    };
+
+    /**
+     * Single-character operators. Note: < and > are handled specially
+     * (could be generics).
+     */
+    private static final String SINGLE_CHAR_OPERATORS = "=+-*/%&|^!~<>?";
+
+    /**
+     * Keywords that get special spacing before parentheses.
+     */
+    private static final String[] CONTROL_KEYWORDS = {
+        "if", "while", "for", "switch", "catch",
+        "else", "return", "new", "throw", "typeof", "instanceof",
+        "in", "of", "var", "let", "const", "function", "class",
+        "try", "finally", "do", "case", "default", "break", "continue",
+        "void", "delete", "yield", "await", "async", "extends", "implements",
+        "import", "export", "package", "interface", "enum", "abstract",
+        "static", "final", "synchronized", "volatile", "transient", "native",
+        "this", "super", "null", "true", "false", "undefined",
+        "public", "private", "protected"
+    };
+
+    /**
+     * Keywords that require a space before '(' when setting is enabled.
+     */
+    private static final String[] PAREN_KEYWORDS = {
+        "if", "while", "for", "switch", "catch"
+    };
 
     // ==================== SETTINGS ====================
 
     /**
-     * Formatting configuration - similar to IntelliJ Code Style settings
+     * Formatting configuration — similar to IntelliJ Code Style settings.
      */
     public static class FormatSettings {
         // Spaces around operators
@@ -117,7 +249,7 @@ public class FormatHelper {
     // ==================== MAIN FORMAT METHOD ====================
 
     /**
-     * Format the entire text with all configured options
+     * Format the entire text with all configured options.
      */
     public String format(String text) {
         if (text == null || text.isEmpty()) return text;
@@ -127,7 +259,7 @@ public class FormatHelper {
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < lines.length; i++) {
-            String line = formatLine(lines[i], text, getLineStartOffset(lines, i));
+            String line = formatLine(lines[i]);
 
             if (settings.trimTrailingWhitespace) {
                 line = trimTrailing(line);
@@ -206,7 +338,7 @@ public class FormatHelper {
     }
 
     /**
-     * Split content by semicolons, preserving those in strings and for-loops
+     * Split content by semicolons, preserving those in strings and for-loops.
      */
     private List<String> splitBySemicolons(String content) {
         List<String> statements = new ArrayList<>();
@@ -215,11 +347,10 @@ public class FormatHelper {
         boolean inString = false;
         boolean inChar = false;
         boolean escaped = false;
-        int forLoopDepth = 0; // Track for(...) depth to preserve semicolons
+        int forLoopDepth = 0;
 
         for (int i = 0; i < content.length(); i++) {
             char c = content.charAt(i);
-            char prev = i > 0 ? content.charAt(i - 1) : ' ';
 
             // Track strings
             if (c == '\"' && !escaped && !inChar) {
@@ -267,18 +398,10 @@ public class FormatHelper {
         return statements;
     }
 
-    private int getLineStartOffset(String[] lines, int lineIndex) {
-        int offset = 0;
-        for (int i = 0; i < lineIndex; i++) {
-            offset += lines[i].length() + 1; // +1 for \n
-        }
-        return offset;
-    }
-
     /**
-     * Format a single line of code
+     * Format a single line of code.
      */
-    private String formatLine(String line, String fullText, int lineOffset) {
+    private String formatLine(String line) {
         if (line.trim().isEmpty()) return line;
 
         // Preserve leading indentation
@@ -304,14 +427,14 @@ public class FormatHelper {
         }
 
         // Format the content
-        String formatted = formatContent(content, fullText, lineOffset + indent);
+        String formatted = formatContent(content);
 
         return indentation + formatted;
     }
 
     /**
      * Check if a line appears to be a continuation of a previous line
-     * (i.e., starts with an operator, dot, or other continuation character)
+     * (i.e., starts with an operator, dot, or other continuation character).
      */
     private boolean isContinuationLine(String trimmedContent) {
         if (trimmedContent.isEmpty()) return false;
@@ -331,43 +454,71 @@ public class FormatHelper {
     }
 
     /**
-     * Format line content, preserving strings and comments
+     * Format line content, preserving strings and comments.
+     * Splits content into code segments and preserved regions (strings/comments),
+     * then tokenizes and formats each code segment.
      */
-    private String formatContent(String content, String fullText, int offset) {
-        // Find string/comment regions to preserve
+    private String formatContent(String content) {
         List<int[]> preserveRegions = findPreserveRegions(content);
 
         if (preserveRegions.isEmpty()) {
-            // No strings/comments, format everything
             return formatCodeSegment(content);
         }
 
-        // Build result by formatting non-preserved regions
         StringBuilder result = new StringBuilder();
         int lastEnd = 0;
 
         for (int[] region : preserveRegions) {
-            // Format code before this preserved region
             if (region[0] > lastEnd) {
                 String codeSegment = content.substring(lastEnd, region[0]);
-                result.append(formatCodeSegment(codeSegment));
+                String formatted = formatCodeSegment(codeSegment);
+                result.append(formatted);
+
+                // Ensure space between code ending with operator and following preserved region
+                if (!formatted.isEmpty() && !formatted.endsWith(" ")) {
+                    char lastChar = formatted.charAt(formatted.length() - 1);
+                    boolean operatorEnd = SINGLE_CHAR_OPERATORS.indexOf(lastChar) >= 0;
+                    boolean identifierEnd = Character.isJavaIdentifierPart(lastChar);
+                    if (operatorEnd || identifierEnd) {
+                        result.append(' ');
+                    }
+                }
             }
 
-            // Append preserved region unchanged
-            result.append(content.substring(region[0], region[1]));
+            // Ensure space before line comments (// ...)
+            String preserved = content.substring(region[0], region[1]);
+            if (preserved.startsWith("//") && result.length() > 0 && result.charAt(result.length() - 1) != ' ') {
+                result.append(' ');
+            }
+
+            // Normalize line comment: ensure space after // prefix
+            if (preserved.startsWith("//") && preserved.length() > 2 && preserved.charAt(2) != ' ') {
+                preserved = "// " + preserved.substring(2);
+            }
+
+            result.append(preserved);
             lastEnd = region[1];
         }
 
-        // Format remaining code after last preserved region
         if (lastEnd < content.length()) {
-            result.append(formatCodeSegment(content.substring(lastEnd)));
+            String codeSegment = content.substring(lastEnd);
+            String formatted = formatCodeSegment(codeSegment);
+            // Ensure space after block comment end (*/) before code tokens
+            if (result.length() > 1 && !formatted.isEmpty()) {
+                String tail = result.substring(result.length() - 2);
+                char nextChar = formatted.charAt(0);
+                if (tail.equals("*/") && nextChar != ';' && nextChar != ',' && nextChar != ')') {
+                    result.append(' ');
+                }
+            }
+            result.append(formatted);
         }
 
         return result.toString();
     }
 
     /**
-     * Find string literals and comments that should not be formatted
+     * Find string literals and comments that should not be formatted.
      */
     private List<int[]> findPreserveRegions(String content) {
         List<int[]> regions = new ArrayList<>();
@@ -418,7 +569,7 @@ public class FormatHelper {
     }
 
     /**
-     * Find end of string/char literal
+     * Find end of string/char literal.
      */
     private int findStringEnd(String content, int start, char quote) {
         int i = start + 1;
@@ -436,434 +587,838 @@ public class FormatHelper {
         return content.length();
     }
 
-    // ==================== CODE SEGMENT FORMATTING ====================
+    // ==================== TOKEN-BASED CODE SEGMENT FORMATTING ====================
 
     /**
-     * Format a code segment (no strings/comments)
+     * Format a code segment (no strings/comments) using the token pipeline:
+     * tokenize → format → reconstruct.
      */
     private String formatCodeSegment(String code) {
         if (code.isEmpty()) return code;
 
-        String result = code;
+        // Phase 1: Tokenize
+        List<Token> tokens = tokenize(code);
 
-        // Normalize whitespace first
+        // Phase 1.5: Merge split operators (e.g. = = → ==, > = → >=)
         if (settings.normalizeWhitespace) {
-            result = normalizeWhitespace(result);
+            tokens = mergeSplitOperators(tokens);
         }
 
-        // Apply operator spacing
-        result = formatOperators(result);
+        // Phase 1.75: Split >> and >>> into individual > tokens when in generic context.
+        // Must run AFTER merge so that merged >> tokens get split back when generic.
+        tokens = splitGenericShiftOperators(tokens);
 
-        // Apply bracket spacing
-        result = formatBrackets(result);
+        // Phase 2: Format (apply spacing rules)
+        List<Token> formatted = formatTokens(tokens);
 
-        // Apply keyword spacing
-        result = formatKeywords(result);
+        // Phase 3: Reconstruct
+        return reconstruct(formatted);
+    }
 
-        // Apply punctuation spacing
-        result = formatPunctuation(result);
+    // ==================== PHASE 1: TOKENIZER ====================
+
+    /**
+     * Tokenize a code segment into a list of typed tokens.
+     * Multi-character operators are matched longest-first.
+     * Whitespace is collapsed into single-space tokens when normalizeWhitespace is enabled.
+     */
+    private List<Token> tokenize(String code) {
+        List<Token> tokens = new ArrayList<>();
+        int i = 0;
+        int len = code.length();
+
+        while (i < len) {
+            char c = code.charAt(i);
+
+            // Whitespace
+            if (c == ' ' || c == '\t') {
+                int start = i;
+                while (i < len && (code.charAt(i) == ' ' || code.charAt(i) == '\t')) {
+                    i++;
+                }
+                String ws = settings.normalizeWhitespace ? " " : code.substring(start, i);
+                tokens.add(new Token(TokenType.WHITESPACE, ws, start));
+                continue;
+            }
+
+            // Try multi-char operators (longest first)
+            String multiOp = matchMultiCharOperator(code, i);
+            if (multiOp != null) {
+                tokens.add(new Token(TokenType.OPERATOR, multiOp, i));
+                i += multiOp.length();
+                continue;
+            }
+
+            // Punctuation (single-char tokens with specific types)
+            if (c == '(') { tokens.add(new Token(TokenType.PAREN_OPEN, "(", i)); i++; continue; }
+            if (c == ')') { tokens.add(new Token(TokenType.PAREN_CLOSE, ")", i)); i++; continue; }
+            if (c == '[') { tokens.add(new Token(TokenType.BRACKET_OPEN, "[", i)); i++; continue; }
+            if (c == ']') { tokens.add(new Token(TokenType.BRACKET_CLOSE, "]", i)); i++; continue; }
+            if (c == '{') { tokens.add(new Token(TokenType.BRACE_OPEN, "{", i)); i++; continue; }
+            if (c == '}') { tokens.add(new Token(TokenType.BRACE_CLOSE, "}", i)); i++; continue; }
+            if (c == ',') { tokens.add(new Token(TokenType.COMMA, ",", i)); i++; continue; }
+            if (c == ';') { tokens.add(new Token(TokenType.SEMICOLON, ";", i)); i++; continue; }
+            if (c == ':' && i + 1 < len && code.charAt(i + 1) == ':') {
+                tokens.add(new Token(TokenType.OPERATOR, "::", i));
+                i += 2;
+                continue;
+            }
+            if (c == ':') { tokens.add(new Token(TokenType.COLON, ":", i)); i++; continue; }
+            if (c == '.') { tokens.add(new Token(TokenType.DOT, ".", i)); i++; continue; }
+
+            // Single-char operators (=, +, -, *, /, %, &, |, ^, !, ~, <, >, ?)
+            if (SINGLE_CHAR_OPERATORS.indexOf(c) >= 0) {
+                tokens.add(new Token(TokenType.OPERATOR, String.valueOf(c), i));
+                i++;
+                continue;
+            }
+
+            // Number
+            if (Character.isDigit(c) || (c == '.' && i + 1 < len && Character.isDigit(code.charAt(i + 1)))) {
+                int start = i;
+                // Handle hex (0x...), binary (0b...), octal (0o...)
+                if (c == '0' && i + 1 < len) {
+                    char next = code.charAt(i + 1);
+                    if (next == 'x' || next == 'X' || next == 'b' || next == 'B' || next == 'o' || next == 'O') {
+                        i += 2;
+                        while (i < len && isHexDigit(code.charAt(i))) i++;
+                        tokens.add(new Token(TokenType.NUMBER, code.substring(start, i), start));
+                        continue;
+                    }
+                }
+                while (i < len && (Character.isDigit(code.charAt(i)) || code.charAt(i) == '.')) i++;
+                // Handle suffixes like L, f, d
+                if (i < len && "LlFfDd".indexOf(code.charAt(i)) >= 0) i++;
+                tokens.add(new Token(TokenType.NUMBER, code.substring(start, i), start));
+                continue;
+            }
+
+            // Annotation: @ followed by identifier → single token (@Override, @Deprecated)
+            if (c == '@') {
+                int start = i;
+                i++;
+                // Skip whitespace between @ and annotation name
+                while (i < len && (code.charAt(i) == ' ' || code.charAt(i) == '\t')) i++;
+                if (i < len && Character.isJavaIdentifierStart(code.charAt(i))) {
+                    while (i < len && Character.isJavaIdentifierPart(code.charAt(i))) i++;
+                    String annotation = "@" + code.substring(start + 1, i).trim();
+                    tokens.add(new Token(TokenType.IDENTIFIER, annotation, start));
+                } else {
+                    tokens.add(new Token(TokenType.IDENTIFIER, "@", start));
+                }
+                continue;
+            }
+
+            // Identifier or keyword
+            if (Character.isJavaIdentifierStart(c)) {
+                int start = i;
+                while (i < len && Character.isJavaIdentifierPart(code.charAt(i))) i++;
+                String word = code.substring(start, i);
+                if (isKeyword(word)) {
+                    tokens.add(new Token(TokenType.KEYWORD, word, start));
+                } else {
+                    tokens.add(new Token(TokenType.IDENTIFIER, word, start));
+                }
+                continue;
+            }
+
+            // Anything else — emit as identifier (safety fallback)
+            tokens.add(new Token(TokenType.IDENTIFIER, String.valueOf(c), i));
+            i++;
+        }
+
+        return tokens;
+    }
+
+    /**
+     * Try to match a multi-character operator at the given position.
+     * Checks longest operators first for correct greedy matching.
+     */
+    private String matchMultiCharOperator(String code, int pos) {
+        for (String op : MULTI_CHAR_OPERATORS) {
+            if (pos + op.length() <= code.length() &&
+                code.substring(pos, pos + op.length()).equals(op)) {
+                return op;
+            }
+        }
+        return null;
+    }
+
+    private boolean isHexDigit(char c) {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || c == '_';
+    }
+
+    private boolean isKeyword(String word) {
+        for (String kw : CONTROL_KEYWORDS) {
+            if (kw.equals(word)) return true;
+        }
+        return false;
+    }
+
+    // ==================== PHASE 1.25: SPLIT GENERIC SHIFT OPERATORS ====================
+
+    /**
+     * Split {@code >>} and {@code >>>} operator tokens into individual {@code >}
+     * tokens when they appear inside a generic type context (e.g., {@code List<Map<String, Integer>>}).
+     * <p>
+     * Without this, the greedy tokenizer matches {@code >>} as the right-shift operator,
+     * causing the formatter to add spaces around it as an arithmetic/bitwise operator.
+     */
+    private List<Token> splitGenericShiftOperators(List<Token> tokens) {
+        int genericDepth = 0;
+        List<Token> result = new ArrayList<>();
+
+        for (int i = 0; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+
+            if (t.type == TokenType.OPERATOR && t.value.equals("<")) {
+                Token before = findPrevNonWhitespaceInList(result);
+                if (before != null && before.type == TokenType.IDENTIFIER && !before.value.isEmpty()
+                    && Character.isUpperCase(before.value.charAt(0))) {
+                    genericDepth++;
+                }
+            }
+
+            if (genericDepth > 0 && t.type == TokenType.OPERATOR
+                && (t.value.equals(">>") || t.value.equals(">>>"))) {
+                for (int c = 0; c < t.value.length(); c++) {
+                    result.add(new Token(TokenType.OPERATOR, ">", t.position + c));
+                    genericDepth--;
+                    if (genericDepth < 0) genericDepth = 0;
+                }
+                continue;
+            }
+
+            if (t.type == TokenType.OPERATOR && t.value.equals(">")) {
+                if (genericDepth > 0) {
+                    genericDepth--;
+                }
+            }
+
+            result.add(t);
+        }
+
+        return result;
+    }
+
+    private Token findPrevNonWhitespaceInList(List<Token> tokens) {
+        for (int i = tokens.size() - 1; i >= 0; i--) {
+            if (tokens.get(i).type != TokenType.WHITESPACE) {
+                return tokens.get(i);
+            }
+        }
+        return null;
+    }
+
+    // ==================== PHASE 1.5: MERGE SPLIT OPERATORS ====================
+
+    /**
+     * Merge operator tokens that were split by whitespace in the original code.
+     * Example: tokens [=] [ws] [=] → single token [==].
+     * This handles the case where users type "x = = y" and the formatter
+     * should recognize it as "x == y" (the == operator was split).
+     *
+     * Merge candidates (longest first):
+     *   > > > =  →  >>>=       = = =  →  ===       ! = =  →  !==
+     *   > > =    →  >>=        < < =  →  <<=       > > >  →  >>>
+     *   > >      →  >>         < <    →  <<        = =    →  ==
+     *   ! =      →  !=         > =    →  >=        < =    →  <=
+     *   + =      →  +=         - =    →  -=        * =    →  *=
+     *   / =      →  /=         % =    →  %=        & =    →  &=
+     *   | =      →  |=         ^ =    →  ^=        & &    →  &&
+     *   | |      →  ||
+     */
+    private List<Token> mergeSplitOperators(List<Token> tokens) {
+        // Extract only operator values (ignoring whitespace between them)
+        // and try to merge consecutive operators into known multi-char operators
+        List<Token> result = new ArrayList<>();
+        int i = 0;
+
+        while (i < tokens.size()) {
+            Token t = tokens.get(i);
+
+            if (t.type == TokenType.OPERATOR) {
+                // Try to merge with following operator tokens (skipping whitespace)
+                String merged = tryMergeOperators(tokens, i);
+                if (merged != null && merged.length() > t.value.length()) {
+                    result.add(new Token(TokenType.OPERATOR, merged, t.position));
+                    // Skip past all the tokens we consumed
+                    i = skipMergedTokens(tokens, i, merged);
+                    continue;
+                }
+            }
+
+            // Merge split :: (method reference) — two COLON tokens with optional whitespace
+            if (t.type == TokenType.COLON) {
+                int next = i + 1;
+                while (next < tokens.size() && tokens.get(next).type == TokenType.WHITESPACE) next++;
+                if (next < tokens.size() && tokens.get(next).type == TokenType.COLON) {
+                    result.add(new Token(TokenType.OPERATOR, "::", t.position));
+                    i = next + 1;
+                    continue;
+                }
+            }
+
+            result.add(t);
+            i++;
+        }
 
         return result;
     }
 
     /**
-     * Normalize whitespace (multiple spaces → single space)
+     * Try to merge operator tokens starting at index, skipping whitespace between them.
+     * Returns the merged operator string if a known multi-char operator is formed,
+     * or null if no merge is possible.
      */
-    private String normalizeWhitespace(String code) {
-        // Replace multiple spaces with single space, but preserve indentation
-        return code.replaceAll("  +", " ");
+    private String tryMergeOperators(List<Token> tokens, int startIdx) {
+        StringBuilder ops = new StringBuilder();
+        List<Integer> opIndices = new ArrayList<>();
+        boolean hasWhitespaceBetween = false;
+
+        for (int i = startIdx; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            if (t.type == TokenType.OPERATOR) {
+                ops.append(t.value);
+                opIndices.add(i);
+            } else if (t.type == TokenType.WHITESPACE) {
+                if (!opIndices.isEmpty()) {
+                    hasWhitespaceBetween = true;
+                }
+                continue;
+            } else {
+                break;
+            }
+        }
+
+        String allOps = ops.toString();
+
+        for (String multiOp : MULTI_CHAR_OPERATORS) {
+            if (allOps.startsWith(multiOp) && multiOp.length() > 1) {
+                // Don't merge ++ or -- when whitespace separated the operators.
+                // Whitespace-separated +/+ or -/- means binary op + unary op (e.g. a - -b),
+                // not increment/decrement. Real ++ and -- are tokenized as single tokens.
+                if (hasWhitespaceBetween && (multiOp.equals("++") || multiOp.equals("--"))) {
+                    continue;
+                }
+                return multiOp;
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Format operator spacing
+     * Skip past the tokens that were consumed by the merge.
+     * Returns the index of the first token AFTER the merged sequence.
      */
-    private String formatOperators(String code) {
-        String result = code;
+    private int skipMergedTokens(List<Token> tokens, int startIdx, String merged) {
+        int charsConsumed = 0;
+        int i = startIdx;
 
-        // Assignment operators
-        if (settings.spaceAroundAssignment) {
-            // Compound assignments first (longer patterns first)
-            result = formatBinaryOp(result, "+=", " += ");
-            result = formatBinaryOp(result, "-=", " -= ");
-            result = formatBinaryOp(result, "*=", " *= ");
-            result = formatBinaryOp(result, "/=", " /= ");
-            result = formatBinaryOp(result, "%=", " %= ");
-            result = formatBinaryOp(result, "&=", " &= ");
-            result = formatBinaryOp(result, "|=", " |= ");
-            result = formatBinaryOp(result, "^=", " ^= ");
-            result = formatBinaryOp(result, "<<=", " <<= ");
-            result = formatBinaryOp(result, ">>=", " >>= ");
-            result = formatBinaryOp(result, ">>>=", " >>>= ");
-
-            // Simple assignment (but not ==, !=, <=, >=)
-            result = formatSimpleAssignment(result);
+        while (i < tokens.size() && charsConsumed < merged.length()) {
+            Token t = tokens.get(i);
+            if (t.type == TokenType.OPERATOR) {
+                charsConsumed += t.value.length();
+            }
+            // Skip whitespace tokens between operators
+            i++;
         }
 
-        // Comparison operators
-        if (settings.spaceAroundComparison) {
-            result = formatBinaryOp(result, "==", " == ");
-            result = formatBinaryOp(result, "!=", " != ");
-            result = formatBinaryOp(result, "<=", " <= ");
-            result = formatBinaryOp(result, ">=", " >= ");
-            // Simple < > (but not generics)
-            result = formatComparisonOperators(result);
+        return i;
+    }
+
+    // ==================== PHASE 2: TOKEN FORMATTER ====================
+
+    /**
+     * Apply formatting rules to a token list, producing a new list with
+     * whitespace tokens inserted/removed/adjusted according to settings.
+     * <p>
+     * The formatter works by iterating through tokens and deciding what
+     * whitespace should appear between each pair of non-whitespace tokens.
+     */
+    private List<Token> formatTokens(List<Token> tokens) {
+        // First, strip existing whitespace tokens to normalize
+        List<Token> stripped = new ArrayList<>();
+        for (Token t : tokens) {
+            if (t.type != TokenType.WHITESPACE) {
+                stripped.add(t);
+            }
         }
 
-        // Logical operators
-        if (settings.spaceAroundLogical) {
-            result = formatBinaryOp(result, "&&", " && ");
-            result = formatBinaryOp(result, "||", " || ");
-        }
+        if (stripped.isEmpty()) return tokens;
 
-        // Arithmetic operators
-        if (settings.spaceAroundArithmetic) {
-            // Handle ++ and -- first to avoid conflicts
-            result = formatArithmeticOperators(result);
-        }
+        // Now rebuild with correct spacing
+        List<Token> result = new ArrayList<>();
+        result.add(stripped.get(0));
 
-        // Bitwise operators (but not in generics)
-        if (settings.spaceAroundBitwise) {
-            result = formatBitwiseOperators(result);
+        for (int i = 1; i < stripped.size(); i++) {
+            Token prev = stripped.get(i - 1);
+            Token curr = stripped.get(i);
+
+            // Determine the previous non-whitespace before prev (for context)
+            Token prevPrev = i >= 2 ? stripped.get(i - 2) : null;
+
+            String spacing = determineSpacing(prevPrev, prev, curr, stripped, i);
+
+            if (!spacing.isEmpty()) {
+                result.add(new Token(TokenType.WHITESPACE, spacing, -1));
+            }
+            result.add(curr);
         }
 
         return result;
     }
 
     /**
-     * Format a binary operator with proper spacing
+     * Determine the spacing string that should appear between prev and curr tokens.
+     * Returns "" for no space, " " for single space.
+     *
+     * @param prevPrev token before prev (may be null)
+     * @param prev     the token before the gap
+     * @param curr     the token after the gap
+     * @param allTokens all stripped tokens
+     * @param currIdx  index of curr in allTokens
      */
-    private String formatBinaryOp(String code, String op, String replacement) {
-        // First normalize: remove extra spaces around the operator
-        String pattern = "\\s*" + Pattern.quote(op) + "\\s*";
-        return code.replaceAll(pattern, replacement);
-    }
+    private String determineSpacing(Token prevPrev, Token prev, Token curr,
+                                     List<Token> allTokens, int currIdx) {
 
-    /**
-     * Format simple assignment = (not ==, !=, <=, >=, etc.)
-     */
-    private String formatSimpleAssignment(String code) {
-        StringBuilder result = new StringBuilder();
-        int i = 0;
-        while (i < code.length()) {
-            char c = code.charAt(i);
-            if (c == '=') {
-                // Check it's not part of ==, !=, <=, >=, +=, etc.
-                char prev = i > 0 ? code.charAt(i - 1) : ' ';
-                char next = i + 1 < code.length() ? code.charAt(i + 1) : ' ';
-
-                boolean isCompound = prev == '!' || prev == '<' || prev == '>' ||
-                    prev == '+' || prev == '-' || prev == '*' ||
-                    prev == '/' || prev == '%' || prev == '&' ||
-                    prev == '|' || prev == '^';
-                boolean isEquality = next == '=';
-
-                if (!isCompound && !isEquality) {
-                    // Ensure space before =
-                    if (result.length() > 0 && result.charAt(result.length() - 1) != ' ') {
-                        result.append(' ');
-                    }
-                    result.append('=');
-                    // Ensure space after =
-                    if (next != ' ') {
-                        result.append(' ');
-                    }
-                } else {
-                    result.append(c);
-                }
-            } else {
-                result.append(c);
-            }
-            i++;
+        // ---- DOT: never space around dots (method chains, property access) ----
+        if (prev.type == TokenType.DOT || curr.type == TokenType.DOT) {
+            return "";
         }
-        return result.toString();
-    }
 
-    /**
-     * Format < and > comparison operators (avoiding generics)
-     */
-    private String formatComparisonOperators(String code) {
-        StringBuilder result = new StringBuilder();
-        int i = 0;
-        while (i < code.length()) {
-            char c = code.charAt(i);
-
-            if ((c == '<' || c == '>') && !isLikelyGeneric(code, i, c)) {
-                char prev = i > 0 ? code.charAt(i - 1) : ' ';
-                char next = i + 1 < code.length() ? code.charAt(i + 1) : ' ';
-
-                // Skip if part of <<, >>, <=, >=
-                if ((c == '<' && next == '<') || (c == '>' && next == '>') ||
-                    next == '=' || prev == '<' || prev == '>') {
-                    result.append(c);
-                } else {
-                    // Add spacing
-                    if (result.length() > 0 && result.charAt(result.length() - 1) != ' ') {
-                        result.append(' ');
-                    }
-                    result.append(c);
-                    if (next != ' ' && next != '=') {
-                        result.append(' ');
-                    }
-                }
-            } else {
-                result.append(c);
-            }
-            i++;
+        // ---- OPERATOR SPACING ----
+        if (prev.type == TokenType.OPERATOR || curr.type == TokenType.OPERATOR) {
+            return determineOperatorSpacing(prevPrev, prev, curr, allTokens, currIdx);
         }
-        return result.toString();
+
+        // ---- KEYWORD before PAREN_OPEN: if (...), while (...), etc. ----
+        if (prev.type == TokenType.KEYWORD && curr.type == TokenType.PAREN_OPEN) {
+            return determineKeywordParenSpacing(prev);
+        }
+
+        // ---- IDENTIFIER before PAREN_OPEN: method call foo(...) ----
+        if (prev.type == TokenType.IDENTIFIER && curr.type == TokenType.PAREN_OPEN) {
+            return settings.spaceBeforeMethodParens ? " " : "";
+        }
+
+        // ---- PAREN_CLOSE before BRACE_OPEN: ) { ----
+        if (prev.type == TokenType.PAREN_CLOSE && curr.type == TokenType.BRACE_OPEN) {
+            return settings.spaceBeforeOpenBrace ? " " : "";
+        }
+
+        // ---- KEYWORD before BRACE_OPEN: else {, try {, finally { ----
+        if (prev.type == TokenType.KEYWORD && curr.type == TokenType.BRACE_OPEN) {
+            return settings.spaceBeforeOpenBrace ? " " : "";
+        }
+
+        // ---- IDENTIFIER/NUMBER/OPERATOR(>) before BRACE_OPEN: class Foo {, enum Bar { ----
+        if ((prev.type == TokenType.IDENTIFIER || prev.type == TokenType.NUMBER ||
+             (prev.type == TokenType.OPERATOR && prev.value.equals(">")))
+            && curr.type == TokenType.BRACE_OPEN) {
+            return settings.spaceBeforeOpenBrace ? " " : "";
+        }
+
+        // ---- PAREN_OPEN / PAREN_CLOSE: inner spacing ----
+        if (prev.type == TokenType.PAREN_OPEN) {
+            if (curr.type == TokenType.PAREN_CLOSE) return ""; // empty ()
+            return settings.spaceWithinParens ? " " : "";
+        }
+        if (curr.type == TokenType.PAREN_CLOSE) {
+            return settings.spaceWithinParens ? " " : "";
+        }
+
+        // ---- BRACKET_OPEN / BRACKET_CLOSE: inner spacing ----
+        if (prev.type == TokenType.BRACKET_OPEN) {
+            if (curr.type == TokenType.BRACKET_CLOSE) return ""; // empty []
+            return settings.spaceWithinBrackets ? " " : "";
+        }
+        if (curr.type == TokenType.BRACKET_CLOSE) {
+            return settings.spaceWithinBrackets ? " " : "";
+        }
+
+        // ---- COMMA spacing ----
+        if (prev.type == TokenType.COMMA) {
+            return settings.spaceAfterComma ? " " : "";
+        }
+        if (curr.type == TokenType.COMMA) {
+            return settings.spaceBeforeComma ? " " : "";
+        }
+
+        // ---- SEMICOLON spacing ----
+        if (prev.type == TokenType.SEMICOLON) {
+            return settings.spaceAfterSemicolon ? " " : "";
+        }
+        if (curr.type == TokenType.SEMICOLON) {
+            return settings.spaceBeforeSemicolon ? " " : "";
+        }
+
+        // ---- COLON spacing (ternary : always gets space, label : uses settings) ----
+        if (prev.type == TokenType.COLON) {
+            if (isTernaryColon(allTokens, currIdx - 1)) return " ";
+            return settings.spaceAfterColon ? " " : "";
+        }
+        if (curr.type == TokenType.COLON) {
+            if (isTernaryColon(allTokens, currIdx)) return " ";
+            return settings.spaceBeforeColon ? " " : "";
+        }
+
+        // ---- IDENTIFIER/NUMBER next to BRACKET_OPEN: arr[0] no space ----
+        if ((prev.type == TokenType.IDENTIFIER || prev.type == TokenType.NUMBER ||
+             prev.type == TokenType.PAREN_CLOSE) && curr.type == TokenType.BRACKET_OPEN) {
+            return "";
+        }
+
+        // ---- BRACKET_CLOSE before IDENTIFIER/KEYWORD: int[] name, String[] args ----
+        if (prev.type == TokenType.BRACKET_CLOSE &&
+            (curr.type == TokenType.IDENTIFIER || curr.type == TokenType.KEYWORD ||
+             curr.type == TokenType.NUMBER)) {
+            return " ";
+        }
+
+        // ---- KEYWORD next to KEYWORD, IDENTIFIER, etc: must have space ----
+        if (prev.type == TokenType.KEYWORD &&
+            (curr.type == TokenType.KEYWORD || curr.type == TokenType.IDENTIFIER ||
+             curr.type == TokenType.NUMBER)) {
+            return " ";
+        }
+        if (curr.type == TokenType.KEYWORD &&
+            (prev.type == TokenType.KEYWORD || prev.type == TokenType.IDENTIFIER ||
+             prev.type == TokenType.NUMBER || prev.type == TokenType.PAREN_CLOSE ||
+             prev.type == TokenType.BRACE_CLOSE)) {
+            return " ";
+        }
+
+        // ---- IDENTIFIER/NUMBER adjacency: need space ----
+        if ((prev.type == TokenType.IDENTIFIER || prev.type == TokenType.NUMBER) &&
+            (curr.type == TokenType.IDENTIFIER || curr.type == TokenType.NUMBER)) {
+            return " ";
+        }
+
+        // ---- PAREN_CLOSE before IDENTIFIER/KEYWORD: ) instanceof, (int) x ----
+        if (prev.type == TokenType.PAREN_CLOSE &&
+            (curr.type == TokenType.IDENTIFIER || curr.type == TokenType.NUMBER)) {
+            return " ";
+        }
+
+        // ---- BRACE_OPEN: space after { when followed by code ----
+        if (prev.type == TokenType.BRACE_OPEN) {
+            if (curr.type == TokenType.BRACE_CLOSE) return ""; // empty {}
+            return settings.spaceWithinBraces ? " " : "";
+        }
+        // ---- BRACE_CLOSE: space before } when preceded by code ----
+        if (curr.type == TokenType.BRACE_CLOSE) {
+            return settings.spaceWithinBraces ? " " : "";
+        }
+
+        // Default: no space
+        return "";
     }
 
     /**
-     * Check if < or > is likely part of a generic type declaration
+     * Determine spacing around an operator token, considering whether it's
+     * unary, binary, assignment, comparison, logical, arithmetic, or bitwise.
      */
-    private boolean isLikelyGeneric(String code, int pos, char bracket) {
-        if (bracket == '<') {
-            // Check for pattern like List<, Map<, etc.
-            if (pos > 0) {
-                int start = pos - 1;
-                while (start > 0 && Character.isLetterOrDigit(code.charAt(start - 1))) {
-                    start--;
+    private String determineOperatorSpacing(Token prevPrev, Token prev, Token curr,
+                                             List<Token> allTokens, int currIdx) {
+        // When prev is the operator
+        if (prev.type == TokenType.OPERATOR) {
+            String op = prev.value;
+
+            // ++ and -- : never add spaces around them (they bind tightly)
+            if (op.equals("++") || op.equals("--")) {
+                return settings.spaceAroundUnaryIncDec ? " " : "";
+            }
+
+            // :: method reference: no spaces
+            if (op.equals("::")) {
+                return "";
+            }
+
+            // Arrow operators -> and => always get spaces
+            if (op.equals("->") || op.equals("=>")) {
+                return " ";
+            }
+
+            // Determine operator category and apply setting
+            if (isAssignmentOperator(op)) {
+                return settings.spaceAroundAssignment ? " " : "";
+            }
+            if (isComparisonOperator(op)) {
+                if ((op.equals("<") || op.equals(">")) && isGenericContext(allTokens, currIdx - 1)) {
+                    if (op.equals(">") && (curr.type == TokenType.IDENTIFIER || curr.type == TokenType.KEYWORD)) {
+                        return " ";
+                    }
+                    return "";
                 }
-                String before = code.substring(start, pos);
-                // Common generic types or capital letter start (type name)
-                if (!before.isEmpty() && Character.isUpperCase(before.charAt(0))) {
+                return settings.spaceAroundComparison ? " " : "";
+            }
+            if (isLogicalOperator(op)) {
+                return settings.spaceAroundLogical ? " " : "";
+            }
+            // Unary ! and ~ — check before bitwise since ~ is in both categories
+            if (op.equals("!") || op.equals("~")) {
+                return settings.spaceAroundUnaryNot ? " " : "";
+            }
+            if (isBitwiseOperator(op)) {
+                return settings.spaceAroundBitwise ? " " : "";
+            }
+            if (isArithmeticOperator(op)) {
+                // Check unary context: was this operator unary?
+                // prevPrev is the token before this operator
+                if (isUnaryOperatorToken(op, null, prevPrev)) {
+                    return "";  // No space after unary operator
+                }
+                return settings.spaceAroundArithmetic ? " " : "";
+            }
+            // Ternary ?
+            if (op.equals("?")) {
+                return " ";
+            }
+
+            // Default for unknown operators
+            return " ";
+        }
+
+        // When curr is the operator
+        if (curr.type == TokenType.OPERATOR) {
+            String op = curr.value;
+
+            // ++ and -- : never add spaces around them
+            if (op.equals("++") || op.equals("--")) {
+                return settings.spaceAroundUnaryIncDec ? " " : "";
+            }
+
+            // :: method reference: no spaces
+            if (op.equals("::")) {
+                return "";
+            }
+
+            if (op.equals("->") || op.equals("=>")) {
+                return " ";
+            }
+
+            if (isAssignmentOperator(op)) {
+                return settings.spaceAroundAssignment ? " " : "";
+            }
+            if (isComparisonOperator(op)) {
+                if ((op.equals("<") || op.equals(">")) && isGenericContext(allTokens, currIdx)) {
+                    // Space before < when preceded by a keyword (e.g. public <T>)
+                    if (op.equals("<") && prev.type == TokenType.KEYWORD) {
+                        return " ";
+                    }
+                    return "";
+                }
+                return settings.spaceAroundComparison ? " " : "";
+            }
+            if (isLogicalOperator(op)) {
+                return settings.spaceAroundLogical ? " " : "";
+            }
+            // Unary ! and ~ — check before bitwise since ~ is in both categories
+            if (op.equals("!") || op.equals("~")) {
+                return settings.spaceAroundUnaryNot ? " " : "";
+            }
+            if (isBitwiseOperator(op)) {
+                return settings.spaceAroundBitwise ? " " : "";
+            }
+            if (isArithmeticOperator(op)) {
+                // Check if unary
+                if (isUnaryOperatorToken(op, prevPrev, prev)) {
+                    return "";  // No space before unary operator
+                }
+                return settings.spaceAroundArithmetic ? " " : "";
+            }
+            // Ternary ?
+            if (op.equals("?")) {
+                return " ";
+            }
+
+            return " ";
+        }
+
+        return " ";
+    }
+
+    /**
+     * Determine spacing between a keyword and a following open-paren.
+     * Applies settings for if/while/for/switch/catch keywords.
+     */
+    private String determineKeywordParenSpacing(Token keyword) {
+        String kw = keyword.value;
+        if (kw.equals("if")) return settings.spaceBeforeIfParens ? " " : "";
+        if (kw.equals("while")) return settings.spaceBeforeWhileParens ? " " : "";
+        if (kw.equals("for")) return settings.spaceBeforeForParens ? " " : "";
+        if (kw.equals("switch")) return settings.spaceBeforeSwitchParens ? " " : "";
+        if (kw.equals("catch")) return settings.spaceBeforeCatchParens ? " " : "";
+        // For other keywords followed by paren (e.g. return(...) — unusual but allowed)
+        return " ";
+    }
+
+    // ---- Operator classification helpers ----
+
+    /**
+     * Check if a colon at the given index is part of a ternary expression (? :)
+     * by scanning backwards for a matching ? operator.
+     */
+    private boolean isTernaryColon(List<Token> tokens, int colonIdx) {
+        for (int i = colonIdx - 1; i >= 0; i--) {
+            Token t = tokens.get(i);
+            if (t.type == TokenType.OPERATOR && t.value.equals("?")) return true;
+            if (t.type == TokenType.SEMICOLON || t.type == TokenType.BRACE_OPEN ||
+                t.type == TokenType.BRACE_CLOSE) return false;
+        }
+        return false;
+    }
+
+    private boolean isAssignmentOperator(String op) {
+        switch (op) {
+            case "=": case "+=": case "-=": case "*=": case "/=": case "%=":
+            case "&=": case "|=": case "^=": case "<<=": case ">>=": case ">>>=":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private boolean isComparisonOperator(String op) {
+        switch (op) {
+            case "==": case "!=": case "===": case "!==":
+            case "<": case ">": case "<=": case ">=":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private boolean isLogicalOperator(String op) {
+        return op.equals("&&") || op.equals("||");
+    }
+
+    private boolean isBitwiseOperator(String op) {
+        switch (op) {
+            case "&": case "|": case "^": case "~":
+            case "<<": case ">>": case ">>>":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private boolean isArithmeticOperator(String op) {
+        return op.equals("+") || op.equals("-") || op.equals("*") ||
+               op.equals("/") || op.equals("%");
+    }
+
+    /**
+     * Determine if an operator is in unary context based on the previous token.
+     * Unary context: after operator, open paren/bracket/brace, comma, semicolon,
+     * colon, keyword, or at start of expression.
+     */
+    private boolean isUnaryOperatorToken(String op, Token prevPrev, Token prevToken) {
+        // Only +, - can be unary in arithmetic context
+        if (!op.equals("+") && !op.equals("-")) return false;
+
+        // If prevToken is null (start of expression) → unary
+        if (prevToken == null) return true;
+
+        // After these token types → unary
+        switch (prevToken.type) {
+            case OPERATOR:
+            case PAREN_OPEN:
+            case BRACKET_OPEN:
+            case BRACE_OPEN:
+            case COMMA:
+            case SEMICOLON:
+            case COLON:
+            case KEYWORD:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if a < or > operator at the given token index is likely part of a
+     * generic type declaration (e.g., List<String>).
+     * Uses surrounding token context rather than regex.
+     */
+    private boolean isGenericContext(List<Token> tokens, int opIdx) {
+        if (opIdx < 0 || opIdx >= tokens.size()) return false;
+
+        Token opToken = tokens.get(opIdx);
+        String op = opToken.value;
+
+        if (op.equals("<")) {
+            // Check if preceded by an identifier that looks like a type (starts with uppercase)
+            // or by known generic-compatible keywords (var, let, const)
+            Token before = findPrevNonWhitespace(tokens, opIdx);
+            if (before != null) {
+                if (before.type == TokenType.IDENTIFIER && !before.value.isEmpty() &&
+                    Character.isUpperCase(before.value.charAt(0))) {
+                    return true;
+                }
+                if (before.type == TokenType.KEYWORD &&
+                    (before.value.equals("var") || before.value.equals("let") ||
+                     before.value.equals("const"))) {
                     return true;
                 }
             }
-            // Check if there's a matching >
+            // Check if there's a matching > ahead
             int depth = 1;
-            for (int i = pos + 1; i < code.length() && depth > 0; i++) {
-                char c = code.charAt(i);
-                if (c == '<') depth++;
-                else if (c == '>') depth--;
-                else if (c == ';' || c == '{' || c == '}') break; // Not a generic
+            for (int i = opIdx + 1; i < tokens.size() && depth > 0; i++) {
+                Token t = tokens.get(i);
+                if (t.type == TokenType.WHITESPACE) continue;
+                if (t.type == TokenType.OPERATOR && t.value.equals("<")) depth++;
+                else if (t.type == TokenType.OPERATOR && t.value.equals(">")) depth--;
+                else if (t.type == TokenType.SEMICOLON || t.type == TokenType.BRACE_OPEN ||
+                         t.type == TokenType.BRACE_CLOSE) break; // Not a generic
             }
             return depth == 0;
-        } else { // '>'
+        } else if (op.equals(">")) {
             // Check if there's a matching < before
             int depth = 1;
-            for (int i = pos - 1; i >= 0 && depth > 0; i--) {
-                char c = code.charAt(i);
-                if (c == '>') depth++;
-                else if (c == '<') depth--;
-                else if (c == ';' || c == '{' || c == '}') break;
+            for (int i = opIdx - 1; i >= 0 && depth > 0; i--) {
+                Token t = tokens.get(i);
+                if (t.type == TokenType.WHITESPACE) continue;
+                if (t.type == TokenType.OPERATOR && t.value.equals(">")) depth++;
+                else if (t.type == TokenType.OPERATOR && t.value.equals("<")) depth--;
+                else if (t.type == TokenType.SEMICOLON || t.type == TokenType.BRACE_OPEN ||
+                         t.type == TokenType.BRACE_CLOSE) break;
             }
             return depth == 0;
         }
+
+        return false;
     }
 
     /**
-     * Format arithmetic operators (+, -, *, /, %)
+     * Find the previous non-whitespace token before the given index.
      */
-    private String formatArithmeticOperators(String code) {
-        StringBuilder result = new StringBuilder();
-        int i = 0;
-        while (i < code.length()) {
-            char c = code.charAt(i);
-            char next = i + 1 < code.length() ? code.charAt(i + 1) : ' ';
-            char prev = i > 0 ? code.charAt(i - 1) : ' ';
-
-            boolean isArithOp = c == '+' || c == '-' || c == '*' || c == '/' || c == '%';
-
-            if (isArithOp) {
-                // Skip ++, --, +=, -=, *=, /=, %=, and unary +/-
-                if ((c == '+' && next == '+') || (c == '-' && next == '-') ||
-                    (c == '+' && prev == '+') || (c == '-' && prev == '-') ||
-                    next == '=') {
-                    result.append(c);
-                } else if (isUnaryContext(code, i)) {
-                    // Unary + or - (after operator, open paren, comma, etc.)
-                    result.append(c);
-                } else {
-                    // Binary operator - add spacing
-                    if (result.length() > 0 && result.charAt(result.length() - 1) != ' ') {
-                        result.append(' ');
-                    }
-                    result.append(c);
-                    if (next != ' ' && next != '=' && !((c == '+' && next == '+') || (c == '-' && next == '-'))) {
-                        result.append(' ');
-                    }
-                }
-            } else {
-                result.append(c);
+    private Token findPrevNonWhitespace(List<Token> tokens, int idx) {
+        for (int i = idx - 1; i >= 0; i--) {
+            if (tokens.get(i).type != TokenType.WHITESPACE) {
+                return tokens.get(i);
             }
-            i++;
         }
-        return result.toString();
+        return null;
     }
 
-    /**
-     * Check if position is in a unary context (operator is unary, not binary)
-     */
-    private boolean isUnaryContext(String code, int pos) {
-        if (pos == 0) return true;
-
-        // Look back for context
-        int i = pos - 1;
-        while (i >= 0 && code.charAt(i) == ' ') {
-            i--;
-        }
-
-        if (i < 0) return true;
-
-        char prev = code.charAt(i);
-        // Unary context after: ( [ { , ; = + - * / % < > & | ^ ? :
-        return prev == '(' || prev == '[' || prev == '{' || prev == ',' ||
-            prev == ';' || prev == '=' || prev == '+' || prev == '-' ||
-            prev == '*' || prev == '/' || prev == '%' || prev == '<' ||
-            prev == '>' || prev == '&' || prev == '|' || prev == '^' ||
-            prev == '?' || prev == ':' || prev == '!';
-    }
+    // ==================== PHASE 3: RECONSTRUCTOR ====================
 
     /**
-     * Format bitwise operators
+     * Reconstruct formatted code from a list of tokens.
      */
-    private String formatBitwiseOperators(String code) {
-        String result = code;
-
-        // Shift operators first
-        result = formatBinaryOp(result, ">>>", " >>> ");
-        result = formatBinaryOp(result, "<<", " << ");
-        result = formatBinaryOp(result, ">>", " >> ");
-
-        // Single & | ^ (not && ||)
+    private String reconstruct(List<Token> tokens) {
         StringBuilder sb = new StringBuilder();
-        int i = 0;
-        while (i < result.length()) {
-            char c = result.charAt(i);
-            char next = i + 1 < result.length() ? result.charAt(i + 1) : ' ';
-            char prev = i > 0 ? result.charAt(i - 1) : ' ';
-
-            if ((c == '&' && next != '&' && prev != '&' && next != '=') ||
-                (c == '|' && next != '|' && prev != '|' && next != '=') ||
-                (c == '^' && next != '=')) {
-                if (sb.length() > 0 && sb.charAt(sb.length() - 1) != ' ') {
-                    sb.append(' ');
-                }
-                sb.append(c);
-                if (next != ' ') {
-                    sb.append(' ');
-                }
-            } else {
-                sb.append(c);
-            }
-            i++;
+        for (Token t : tokens) {
+            sb.append(t.value);
         }
-
         return sb.toString();
     }
 
-    // ==================== BRACKET FORMATTING ====================
-
     /**
-     * Format bracket spacing
-     */
-    private String formatBrackets(String code) {
-        String result = code;
-
-        // Parentheses
-        if (settings.spaceWithinParens) {
-            result = result.replaceAll("\\(\\s*", "( ");
-            result = result.replaceAll("\\s*\\)", " )");
-        } else {
-            result = result.replaceAll("\\(\\s+", "(");
-            result = result.replaceAll("\\s+\\)", ")");
-        }
-
-        // Square brackets
-        if (settings.spaceWithinBrackets) {
-            result = result.replaceAll("\\[\\s*", "[ ");
-            result = result.replaceAll("\\s*\\]", " ]");
-        } else {
-            result = result.replaceAll("\\[\\s+", "[");
-            result = result.replaceAll("\\s+\\]", "]");
-        }
-
-        // Curly braces (for array initializers inline)
-        // Note: standalone braces for blocks are handled by indentation logic
-
-        return result;
-    }
-
-    // ==================== KEYWORD FORMATTING ====================
-
-    /**
-     * Format keyword spacing (if, while, for, etc.)
-     */
-    private String formatKeywords(String code) {
-        String result = code;
-
-        if (settings.spaceBeforeIfParens) {
-            result = result.replaceAll("\\bif\\s*\\(", "if (");
-        } else {
-            result = result.replaceAll("\\bif\\s+\\(", "if(");
-        }
-
-        if (settings.spaceBeforeWhileParens) {
-            result = result.replaceAll("\\bwhile\\s*\\(", "while (");
-        } else {
-            result = result.replaceAll("\\bwhile\\s+\\(", "while(");
-        }
-
-        if (settings.spaceBeforeForParens) {
-            result = result.replaceAll("\\bfor\\s*\\(", "for (");
-        } else {
-            result = result.replaceAll("\\bfor\\s+\\(", "for(");
-        }
-
-        if (settings.spaceBeforeSwitchParens) {
-            result = result.replaceAll("\\bswitch\\s*\\(", "switch (");
-        } else {
-            result = result.replaceAll("\\bswitch\\s+\\(", "switch(");
-        }
-
-        if (settings.spaceBeforeCatchParens) {
-            result = result.replaceAll("\\bcatch\\s*\\(", "catch (");
-        } else {
-            result = result.replaceAll("\\bcatch\\s+\\(", "catch(");
-        }
-
-        // Space before opening brace
-        if (settings.spaceBeforeOpenBrace) {
-            result = result.replaceAll("\\)\\s*\\{", ") {");
-        } else {
-            result = result.replaceAll("\\)\\s+\\{", "){");
-        }
-
-        return result;
-    }
-
-    // ==================== PUNCTUATION FORMATTING ====================
-
-    /**
-     * Format punctuation spacing (commas, semicolons, colons)
-     */
-    private String formatPunctuation(String code) {
-        String result = code;
-
-        // Commas
-        if (settings.spaceAfterComma && !settings.spaceBeforeComma) {
-            result = result.replaceAll("\\s*,\\s*", ", ");
-        } else if (settings.spaceAfterComma && settings.spaceBeforeComma) {
-            result = result.replaceAll("\\s*,\\s*", " , ");
-        } else if (!settings.spaceAfterComma && settings.spaceBeforeComma) {
-            result = result.replaceAll("\\s*,\\s*", " ,");
-        } else {
-            result = result.replaceAll("\\s*,\\s*", ",");
-        }
-
-        // Semicolons (but not in for loops - handle more carefully)
-        // This is tricky because for(;;) should be handled differently
-        // For now, just handle trailing semicolons
-        if (settings.trimTrailingWhitespace) {
-            result = result.replaceAll("\\s+;", ";");
-        }
-
-        return result;
-    }
-
-    /**
-     * Trim trailing whitespace from a line
+     * Trim trailing whitespace from a line.
      */
     private String trimTrailing(String line) {
         int end = line.length();
@@ -876,17 +1431,74 @@ public class FormatHelper {
     // ==================== STATIC UTILITIES ====================
 
     /**
-     * Format code with default settings
+     * Format code with default settings.
      */
     public static String formatCode(String code) {
         return new FormatHelper().format(code);
     }
 
     /**
-     * Format code with custom settings
+     * Format code with custom settings.
      */
     public static String formatCode(String code, FormatSettings settings) {
         return new FormatHelper(settings).format(code);
+    }
+
+    /**
+     * Sanitize clipboard text for paste into the script editor.
+     * <p>
+     * This is a <b>paste-only</b> cleanup intended to prevent large trailing
+     * whitespace runs from causing misleading soft-wrap splits in the editor.
+     * <p>
+     * Processing:
+     * <ul>
+     *   <li>Normalizes line separators ({@code \r\n} and bare {@code \r}) to {@code \n}.</li>
+     *   <li>For each line, strips trailing spaces/tabs <b>only</b> when the trailing
+     *       whitespace run length is &ge; {@code trimThreshold}.</li>
+     *   <li>Preserves all leading whitespace, interior spacing, and newline structure
+     *       (trailing empty lines are kept).</li>
+     * </ul>
+     * The threshold avoids clobbering intentional minor trailing spaces while still
+     * removing the large padding blocks that confuse soft-wrap layout.
+     *
+     * @param clipboard     the raw clipboard text (may be {@code null} or empty)
+     * @param trimThreshold minimum trailing whitespace run length to trigger trimming;
+     *                      runs shorter than this are left intact
+     * @return sanitized text, or the original reference if {@code null}/empty
+     */
+    public static String sanitizeClipboard(String clipboard, int trimThreshold) {
+        if (clipboard == null || clipboard.isEmpty()) {
+            return clipboard;
+        }
+
+        // Normalize line separators: \r\n -> \n, then bare \r -> \n
+        String normalized = clipboard.replace("\r\n", "\n").replace("\r", "\n");
+
+        String[] lines = normalized.split("\n", -1);
+        StringBuilder result = new StringBuilder(normalized.length());
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            // Measure trailing whitespace run length
+            int end = line.length();
+            while (end > 0 && (line.charAt(end - 1) == ' ' || line.charAt(end - 1) == '\t')) {
+                end--;
+            }
+            int trailingLen = line.length() - end;
+
+            if (trailingLen >= trimThreshold) {
+                result.append(line, 0, end);
+            } else {
+                result.append(line);
+            }
+
+            if (i < lines.length - 1) {
+                result.append('\n');
+            }
+        }
+
+        return result.toString();
     }
 
     // ==================== LINE WRAPPING ====================
@@ -932,7 +1544,7 @@ public class FormatHelper {
     }
 
     /**
-     * Get visual length of a line (tabs count as 4 spaces)
+     * Get visual length of a line (tabs count as 4 spaces).
      */
     private int getVisualLength(String line) {
         int len = 0;
@@ -947,7 +1559,7 @@ public class FormatHelper {
     }
 
     /**
-     * Extract leading indentation from a line
+     * Extract leading indentation from a line.
      */
     private String extractIndent(String line) {
         int i = 0;
@@ -958,7 +1570,7 @@ public class FormatHelper {
     }
 
     /**
-     * Wrap a single-line comment (// style)
+     * Wrap a single-line comment (// style).
      */
     private String wrapCommentLine(String line, int maxWidth) {
         if (!settings.wrapComments) return line;
@@ -1005,7 +1617,7 @@ public class FormatHelper {
     }
 
     /**
-     * Wrap a block comment line (* style)
+     * Wrap a block comment line (* style).
      */
     private String wrapBlockCommentLine(String line, int maxWidth) {
         if (!settings.wrapComments) return line;
@@ -1081,21 +1693,184 @@ public class FormatHelper {
     }
 
     /**
-     * Wrap a code line at appropriate break points
+     * Find the start position of an inline line comment ({@code //}) in a code line,
+     * correctly skipping {@code //} inside string literals and block comments.
+     *
+     * @return index of the {@code //} in content, or -1 if no inline comment exists
+     */
+    private int findInlineCommentStart(String content) {
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            char prev = i > 0 ? content.charAt(i - 1) : 0;
+
+            if ((c == '"' || c == '\'') && prev != '\\') {
+                if (!inString) {
+                    inString = true;
+                    stringChar = c;
+                } else if (c == stringChar) {
+                    inString = false;
+                }
+            }
+
+            if (inString) continue;
+
+            // Skip block comments
+            if (c == '/' && i + 1 < content.length() && content.charAt(i + 1) == '*') {
+                int endBlock = content.indexOf("*/", i + 2);
+                if (endBlock >= 0) {
+                    i = endBlock + 1;
+                    continue;
+                }
+            }
+
+            if (c == '/' && i + 1 < content.length() && content.charAt(i + 1) == '/') {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Word-wrap a comment string across multiple {@code //} continuation lines.
+     * Each continuation line uses the given prefix (indent + "// ").
+     *
+     * @param commentText the text after {@code //} (already trimmed)
+     * @param prefix      indent + "// " for each continuation line
+     * @param maxWidth    maximum line width
+     * @param firstLineCapacity chars available on the first output line (-1 to start fresh)
+     * @return the wrapped comment lines joined with newlines
+     */
+    private String wordWrapComment(String commentText, String prefix, int maxWidth,
+                                    int firstLineCapacity) {
+        if (commentText.isEmpty()) return "//";
+
+        String[] words = commentText.split("\\s+");
+        int prefixLen = getVisualLength(prefix);
+        int contentWidth = maxWidth - prefixLen;
+        if (contentWidth <= 10) {
+            return "// " + commentText;
+        }
+
+        StringBuilder result = new StringBuilder();
+        boolean onFirstLine = (firstLineCapacity > 0);
+        int capacity = onFirstLine ? firstLineCapacity : contentWidth;
+        int lineLen = 0;
+
+        if (!onFirstLine) {
+            result.append(prefix);
+        } else {
+            result.append("// ");
+            lineLen = 3;
+        }
+
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            int wordLen = word.length();
+
+            if (lineLen + (lineLen > (onFirstLine ? 3 : 0) ? 1 : 0) + wordLen > capacity && lineLen > 0) {
+                result.append("\n").append(prefix);
+                lineLen = 0;
+                capacity = contentWidth;
+                onFirstLine = false;
+            }
+
+            if (lineLen > 0) {
+                result.append(" ");
+                lineLen++;
+            }
+
+            result.append(word);
+            lineLen += wordLen;
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Wrap a code line at appropriate break points, with intelligent inline comment handling.
+     * <p>
+     * If the line has a trailing {@code // comment}, the comment is extracted first.
+     * The code portion is wrapped normally, then the comment is reattached:
+     * <ul>
+     *   <li>If code + comment fit within maxWidth → keep inline</li>
+     *   <li>If only the code fits → comment moves to its own indented line</li>
+     *   <li>If the comment is very long → it gets word-wrapped across multiple lines</li>
+     * </ul>
      */
     private String wrapCodeLine(String line, int maxWidth) {
         String indent = extractIndent(line);
         String content = line.substring(indent.length());
 
-        // Additional indent for wrapped lines
-        String wrapIndent = indent + spaces(settings.wrapIndentSpaces);
+        // --- Phase 1: Detect and extract inline comment ---
+        int commentStart = findInlineCommentStart(content);
+        String codePart = content;
+        String commentPart = null;
 
-        // Find break points - positions where we can break the line
+        if (commentStart >= 0) {
+            codePart = content.substring(0, commentStart);
+            commentPart = content.substring(commentStart);
+            // Trim trailing space from code part
+            while (!codePart.isEmpty() && codePart.charAt(codePart.length() - 1) == ' ') {
+                codePart = codePart.substring(0, codePart.length() - 1);
+            }
+        }
+
+        // --- Phase 2: Wrap the code part (without the comment) ---
+        String wrappedCode = wrapCodeContent(codePart, indent, maxWidth);
+
+        // --- Phase 3: Reattach the comment intelligently ---
+        if (commentPart == null) {
+            return wrappedCode;
+        }
+
+        // Find the last line of the wrapped code to measure available space
+        int lastNewline = wrappedCode.lastIndexOf('\n');
+        String lastLine = (lastNewline >= 0) ? wrappedCode.substring(lastNewline + 1) : wrappedCode;
+        int lastLineLen = getVisualLength(lastLine);
+
+        // Measure the comment: " // comment text"
+        int commentLen = 1 + getVisualLength(commentPart); // +1 for the space separator
+
+        // Strategy A: Comment fits inline on the last line
+        if (lastLineLen + commentLen <= maxWidth) {
+            return wrappedCode + " " + commentPart;
+        }
+
+        // Strategy B: Comment on its own line(s), indented to match original code level
+        String commentIndent = indent;
+        String commentText = commentPart.startsWith("//") ?
+            commentPart.substring(2).trim() : commentPart;
+        String commentPrefix = commentIndent + "// ";
+        int availableWidth = maxWidth - getVisualLength(commentPrefix);
+
+        if (availableWidth > 10 && getVisualLength(commentText) > availableWidth) {
+            // Word-wrap the long comment
+            String wrappedComment = wordWrapComment(commentText, commentPrefix, maxWidth, -1);
+            return wrappedCode + "\n" + wrappedComment;
+        } else {
+            return wrappedCode + "\n" + commentPrefix + commentText;
+        }
+    }
+
+    /**
+     * Core code wrapping logic (extracted from old wrapCodeLine, operates on code without comments).
+     */
+    private String wrapCodeContent(String content, String indent, int maxWidth) {
+        String wrapIndent = indent + spaces(settings.wrapIndentSpaces);
+        String fullLine = indent + content;
+
+        if (getVisualLength(fullLine) <= maxWidth) {
+            return fullLine;
+        }
+
         List<BreakPoint> breakPoints = findBreakPoints(content);
 
         if (breakPoints.isEmpty()) {
-            // No good break points, just return as-is
-            return line;
+            return fullLine;
         }
 
         StringBuilder result = new StringBuilder();
@@ -1110,17 +1885,13 @@ public class FormatHelper {
             String segment = content.substring(lastBreak, segmentEnd);
             int segmentLen = getVisualLength(segment);
 
-            // Check if adding this segment would exceed max width
             if (currentLen + segmentLen > maxWidth && !isFirstLine) {
-                // Break here
                 result.append("\n").append(wrapIndent);
                 currentLen = getVisualLength(wrapIndent);
                 isFirstLine = false;
 
-                // Trim leading space from continuation if any
                 segment = trimLeading(segment);
             } else if (currentLen + segmentLen > maxWidth && isFirstLine && lastBreak > 0) {
-                // Even first segment is too long after indent, break before it
                 result.append("\n").append(wrapIndent);
                 currentLen = getVisualLength(wrapIndent);
                 isFirstLine = false;
@@ -1132,7 +1903,6 @@ public class FormatHelper {
             isFirstLine = false;
         }
 
-        // Append remaining content
         if (lastBreak < content.length()) {
             String remaining = content.substring(lastBreak);
             int remLen = getVisualLength(remaining);
@@ -1149,7 +1919,7 @@ public class FormatHelper {
     }
 
     /**
-     * Trim leading whitespace (Java 8 compatible)
+     * Trim leading whitespace (Java 8 compatible).
      */
     private String trimLeading(String s) {
         int start = 0;
@@ -1160,7 +1930,7 @@ public class FormatHelper {
     }
 
     /**
-     * A potential line break point
+     * A potential line break point.
      */
     private static class BreakPoint {
         int position;      // Position in string (after this char)
@@ -1174,7 +1944,7 @@ public class FormatHelper {
     }
 
     /**
-     * Find good positions to break a line
+     * Find good positions to break a line.
      */
     private List<BreakPoint> findBreakPoints(String content) {
         List<BreakPoint> points = new ArrayList<>();
@@ -1253,7 +2023,7 @@ public class FormatHelper {
     }
 
     /**
-     * Create a string of n spaces
+     * Create a string of n spaces.
      */
     private String spaces(int n) {
         StringBuilder sb = new StringBuilder();
@@ -1264,7 +2034,7 @@ public class FormatHelper {
     }
 
     /**
-     * Format and wrap code in one step
+     * Format and wrap code in one step.
      */
     public String formatAndWrap(String text, int maxWidth) {
         String formatted = format(text);

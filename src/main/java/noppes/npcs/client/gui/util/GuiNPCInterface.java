@@ -61,6 +61,30 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public float bgScaleZ = 1;
     public int bgTextureHeight = 256;  // Actual content height in texture (for bottom border stitching)
 
+    // ==================== VIEWPORT PANNING ====================
+    /**
+     * If true, this GUI supports viewport panning via click-drag on empty areas.
+     * Subclasses set this to true and call computePanBounds() to enable.
+     */
+    protected boolean isPannableGUI = false;
+    protected boolean isPanning = false;
+    protected double panStartX, panStartY;
+
+    /**
+     * Cumulative pan offset in scaled GUI pixels.
+     * Positive values = viewport shifted right/down (content appears to move left/up).
+     */
+     public double currentPanX, currentPanY;
+
+    public double getPanX() { return currentPanX; }
+    public double getPanY() { return currentPanY; }
+
+    protected double minPanX, maxPanX, minPanY, maxPanY;
+    protected int panViewportX, panViewportY, panViewportWidth, panViewportHeight;
+
+    /** Pan-adjusted mouse coordinates, updated every frame in drawScreen for hit-testing panned components. */
+    protected int panAdjMouseX, panAdjMouseY;
+
     public GuiNPCInterface(EntityNPCInterface npc) {
         this.player = Minecraft.getMinecraft().thePlayer;
         this.npc = npc;
@@ -161,28 +185,39 @@ public abstract class GuiNPCInterface extends GuiScreen {
         if (subgui != null)
             subgui.mouseClicked(i, j, k);
         else {
-            for (GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
-                if (tf.enabled)
-                    tf.mouseClicked(i, j, k);
+            int adjX = isPannableGUI ? panAdjustedX(i) : i;
+            int adjY = isPannableGUI ? panAdjustedY(j) : j;
+
+            if (isPannableGUI && k == 0 && isPannableArea(adjX, adjY)) {
+                isPanning = true;
+                panStartX = i;
+                panStartY = j;
+                return;
+            }
+
+            mouseEvent(adjX, adjY, k);
+            vanillaMouseClicked(adjX, adjY, k);
 
             for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-                guiScrollableComponent.mouseClicked(i, j, k);
+                guiScrollableComponent.mouseClicked(adjX, adjY, k);
             }
 
             if (k == 0) {
                 for (GuiCustomScroll scroll : new ArrayList<GuiCustomScroll>(scrolls.values())) {
-                    scroll.mouseClicked(i, j, k);
+                    scroll.mouseClicked(adjX, adjY, k);
                 }
             }
-            // Process diagram mouse clicks
             for (GuiDiagram diagram : diagrams.values()) {
-                if (diagram.isWithin(i, j)) {
-                    if (diagram.mouseClicked(i, j, k))
+                if (diagram.isWithin(adjX, adjY)) {
+                    if (diagram.mouseClicked(adjX, adjY, k))
                         return;
                 }
             }
-            mouseEvent(i, j, k);
-            vanillaMouseClicked(i, j, k);
+
+            for (GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
+                if (tf.enabled)
+                    tf.mouseClicked(adjX, adjY, k);
+
         }
     }
 
@@ -223,7 +258,12 @@ public abstract class GuiNPCInterface extends GuiScreen {
             subgui.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
             return;
         }
-        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+        if (isPannableGUI && isPanning) {
+            return;
+        }
+        int adjX = isPannableGUI ? panAdjustedX(mouseX) : mouseX;
+        int adjY = isPannableGUI ? panAdjustedY(mouseY) : mouseY;
+        super.mouseClickMove(adjX, adjY, clickedMouseButton, timeSinceLastClick);
     }
 
     @Override
@@ -232,10 +272,70 @@ public abstract class GuiNPCInterface extends GuiScreen {
             subgui.mouseMovedOrUp(mouseX, mouseY, state);
             return;
         }
-        super.mouseMovedOrUp(mouseX, mouseY, state);
+        if (isPannableGUI && state == 0 && isPanning) {
+            isPanning = false;
+            panStartX = 0;
+            panStartY = 0;
+            return;
+        }
+        int adjX = isPannableGUI ? panAdjustedX(mouseX) : mouseX;
+        int adjY = isPannableGUI ? panAdjustedY(mouseY) : mouseY;
+        super.mouseMovedOrUp(adjX, adjY, state);
     }
 
     public void mouseEvent(int i, int j, int k) {
+    }
+
+    // ==================== VIEWPORT PANNING METHODS ====================
+
+    protected boolean isPannableArea(int mx, int my) {
+        for (Object obj : this.buttonList) {
+            GuiButton btn = (GuiButton) obj;
+            if (btn.visible && mx >= btn.xPosition && mx < btn.xPosition + btn.width
+                && my >= btn.yPosition && my < btn.yPosition + btn.height) {
+                return false;
+            }
+        }
+
+        for (GuiCustomScroll scroll : scrolls.values()) {
+            if (scroll.visible && scroll.isMouseOver(mx, my)) {
+                return false;
+            }
+        }
+
+        for (GuiNpcTextField tf : textfields.values()) {
+            if (tf.enabled && mx >= tf.xPosition && mx < tf.xPosition + tf.width
+                && my >= tf.yPosition && my < tf.yPosition + tf.height) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected void computePanBounds(int vpX, int vpY, int vpW, int vpH) {
+        this.panViewportX = vpX;
+        this.panViewportY = vpY;
+        this.panViewportWidth = vpW;
+        this.panViewportHeight = vpH;
+
+        int panRange = Math.max(this.width, this.height) / 2;
+        this.minPanX = -panRange;
+        this.maxPanX = panRange;
+        this.minPanY = -panRange;
+        this.maxPanY = panRange;
+    }
+
+    protected int panAdjustedX(int rawMouseX) {
+        return rawMouseX + (int) currentPanX;
+    }
+
+    protected int panAdjustedY(int rawMouseY) {
+        return rawMouseY + (int) currentPanY;
+    }
+
+    public boolean hasPanOffset() {
+        return isPannableGUI && (currentPanX != 0 || currentPanY != 0);
     }
 
     @Override
@@ -375,8 +475,40 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void drawScreen(int i, int j, float f) {
         mouseX = i;
         mouseY = j;
+
+        boolean panning = hasPanOffset();
+        int drawX = panning ? panAdjustedX(i) : i;
+        int drawY = panning ? panAdjustedY(j) : j;
+        panAdjMouseX = drawX;
+        panAdjMouseY = drawY;
+
+        // Smooth pan: update pan offset every frame using raw mouse delta
+        if (isPannableGUI && isPanning && Mouse.isButtonDown(0)) {
+            double deltaX = i - panStartX;
+            double deltaY = j - panStartY;
+
+            currentPanX = Math.max(minPanX, Math.min(maxPanX, currentPanX - deltaX));
+            currentPanY = Math.max(minPanY, Math.min(maxPanY, currentPanY - deltaY));
+
+            panStartX = i;
+            panStartY = j;
+
+            panning = hasPanOffset();
+            drawX = panning ? panAdjustedX(i) : i;
+            drawY = panning ? panAdjustedY(j) : j;
+            panAdjMouseX = drawX;
+            panAdjMouseY = drawY;
+        } else if (isPanning && !Mouse.isButtonDown(0)) {
+            isPanning = false;
+        }
+
         if (drawDefaultBackground && subgui == null)
             drawDefaultBackground();
+
+        if (panning) {
+            GL11.glPushMatrix();
+            GL11.glTranslated(-currentPanX, -currentPanY, 0);
+        }
 
         if (background != null && mc.renderEngine != null) {
             drawBackground();
@@ -386,45 +518,45 @@ public abstract class GuiNPCInterface extends GuiScreen {
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
         for (GuiNpcLabel label : labels.values())
             label.drawLabel(this, fontRendererObj);
-        for (GuiNpcTextField tf : textfields.values()) {
-            tf.drawTextBox(i, j);
-        }
         for (GuiCustomScroll scroll : scrolls.values()) {
             scroll.updateSubGUI(subGui);
-            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            scroll.drawScreen(drawX, drawY, f, !subGui && scroll.isMouseOver(drawX, drawY) ? Mouse.getDWheel() : 0);
         }
-        // Draw scrollable windows.
         for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            guiScrollableComponent.drawScreen(drawX, drawY, f, !subGui && guiScrollableComponent.isMouseOver(drawX, drawY) ? Mouse.getDWheel() : 0);
         }
         for (GuiDiagram diagram : diagrams.values()) {
-            diagram.drawDiagram(i, j, subGui);
+            diagram.drawDiagram(drawX, drawY, subGui);
         }
-        super.drawScreen(i, j, f);
+        super.drawScreen(drawX, drawY, f);
         for (GuiCustomScroll scroll : scrolls.values())
             if (scroll.hoverableText) {
-                scroll.drawHover(i, j);
+                scroll.drawHover(drawX, drawY);
             }
         for (GuiNpcButton button : buttons.values()) {
             button.updateSubGUI(subGui);
             if (!button.hoverableText.isEmpty()) {
-                button.drawHover(i, j, subGui);
+                button.drawHover(drawX, drawY, subGui);
             }
         }
-        for (GuiNpcTextField textField : textfields.values()) {
-            if (textField.hasHoverText()) {
-                textField.drawHover(i, j, subGui);
-            }
+        for (GuiNpcTextField tf : textfields.values()) {
+            tf.drawTextBox(drawX, drawY);
+            if (tf.hasHoverText())
+                tf.drawHover(drawX, drawY, subGui);
         }
 
         for(GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-            if (guiScrollableComponent.isMouseOver(mouseX, mouseY)) {
-                guiScrollableComponent.drawHoverTexts(mouseX, mouseY);
+            if (guiScrollableComponent.isMouseOver(drawX, drawY)) {
+                guiScrollableComponent.drawHoverTexts(drawX, drawY);
             }
         }
 
         for (GuiScreen gui : extra.values())
-            gui.drawScreen(i, j, f);
+            gui.drawScreen(drawX, drawY, f);
+
+        if (panning) {
+            GL11.glPopMatrix();
+        }
 
         if (subgui != null) {
             subgui.drawScreen(i, j, f);

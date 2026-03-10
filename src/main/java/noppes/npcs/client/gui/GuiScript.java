@@ -16,6 +16,8 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextArea;
 import noppes.npcs.client.gui.util.GuiScriptTextArea;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -88,17 +90,24 @@ public class GuiScript extends GuiScriptInterface {
         super.initGui();
         this.guiTop += 10;
 
-        // ==================== TOP BUTTONS (hidden in fullscreen) ====================
-        if (!isFullscreen) {
-            GuiMenuTopButton top;
-            addTopButton(top = new GuiMenuTopButton(13, guiLeft + 4, guiTop - 17, "script.scripts"));
-            addTopButton(new GuiMenuTopButton(16, guiLeft + (xSize - 102), guiTop - 17, "eventscript.eventScripts"));
-            addTopButton(new GuiMenuTopButton(17, guiLeft + (xSize - 22), guiTop - 17, "X"));
-            top.active = showScript;
-            addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
-            top.active = !showScript;
-            addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
+        if (isFullscreen) {
+            FullscreenConfig.paddingTop = 30;
         }
+
+        // ==================== TOP BUTTONS ====================
+        boolean isFullscreenView = isFullscreen && showScript;
+        int menuX = isFullscreenView ? FullscreenConfig.paddingLeft : guiLeft + 4;
+        int menuY = isFullscreenView ? FullscreenConfig.paddingTop - 20 : guiTop - 17;
+        int rightX = isFullscreenView ? width - FullscreenConfig.paddingRight : guiLeft + xSize;
+
+        GuiMenuTopButton top;
+        addTopButton(top = new GuiMenuTopButton(13, menuX, menuY, "script.scripts"));
+        addTopButton(new GuiMenuTopButton(16, rightX - 102, menuY, "eventscript.eventScripts"));
+        addTopButton(new GuiMenuTopButton(17, rightX - 22, menuY, "X"));
+        top.active = showScript;
+        addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
+        top.active = !showScript;
+        addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
 
         if (showScript) {
             initScriptView();
@@ -162,6 +171,10 @@ public class GuiScript extends GuiScriptInterface {
         String language = (container != null) ? container.getLanguage() : script.getLanguage();
         activeArea.setLanguage(language);
         activeArea.setScriptContext(getScriptContext());
+        
+        // Set editor globals based on the active NPC hook
+        String hookName = EnumScriptType.values()[activeTab].function;
+        applyEditorGlobals(activeArea, hookName);
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -242,6 +255,19 @@ public class GuiScript extends GuiScriptInterface {
         } else {
             getButton(103).enabled = languageOptions.size() > 0;
         }
+    }
+
+    // Apply editor globals for the active NPC hook.
+    private void applyEditorGlobals(GuiScriptTextArea activeArea, String hookName) {
+        if (activeArea == null) 
+            return;
+        
+        ScriptTextContainer textContainer = activeArea.getContainer();
+        if (textContainer == null) 
+            return;
+        
+        if (script != null) 
+            textContainer.setEditorGlobalsMap(script.getEditorGlobals(hookName));
     }
 
     @Override
@@ -382,24 +408,4 @@ public class GuiScript extends GuiScriptInterface {
             initGui();
         }
     }
-
-    @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawScreen(mouseX, mouseY, partialTicks);
-
-        // Draw fullscreen button when in script view (GuiScript uses 0-based activeTab)
-        if (showScript) {
-            fullscreenButton.draw(mouseX, mouseY);
-        }
-    }
-
-    @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check fullscreen button first when in script view
-        if (showScript && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return;
-        }
-        super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
 }
-

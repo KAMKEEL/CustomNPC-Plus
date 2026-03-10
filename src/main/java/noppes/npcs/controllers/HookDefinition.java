@@ -148,9 +148,9 @@ public class HookDefinition implements IHookDefinition {
             }
 
             // Build required imports from event type
-            String importName = getImportForClass(eventType);
-            if (importName != null) {
-                builder.requiredImports(importName);
+            String[] importNames = getImportsForClass(eventType);
+            if (importNames.length > 0) {
+                builder.requiredImports(importNames);
             }
         }
 
@@ -185,26 +185,31 @@ public class HookDefinition implements IHookDefinition {
     }
 
     /**
-     * Get the import statement needed for a class.
-     * For nested classes, returns the enclosing class.
+     * Get the import statements needed for a class.
+     * For nested classes, includes both enclosing and nested names.
      */
-    private static String getImportForClass(Class<?> clazz) {
+    private static String[] getImportsForClass(Class<?> clazz) {
         if (clazz == null || clazz.isPrimitive()) {
-            return null;
+            return new String[0];
         }
 
-        // For nested classes, get the top-level enclosing class
+        String fullName = clazz.getName();
+        if (fullName.startsWith("java.lang.")) {
+            return new String[0];
+        }
+
         Class<?> enclosing = clazz;
         while (enclosing.getEnclosingClass() != null) {
             enclosing = enclosing.getEnclosingClass();
         }
 
-        String name = enclosing.getName();
-        if (name.startsWith("java.lang.")) {
-            return null;
+        String enclosingName = enclosing.getName();
+        String nestedName = fullName.replace('$', '.');
+        if (!nestedName.equals(enclosingName)) {
+            return new String[]{enclosingName, nestedName};
         }
 
-        return name;
+        return new String[]{enclosingName};
     }
 
     // ==================== Builder ====================
@@ -231,9 +236,9 @@ public class HookDefinition implements IHookDefinition {
             if (clazz != null) {
                 this.eventClassName = clazz.getName();
 
-                String importName = getImportForClass(clazz);
-                if (importName != null) {
-                    this.requiredImports = new String[]{importName};
+                String[] importNames = getImportsForClass(clazz);
+                if (importNames.length > 0) {
+                    this.requiredImports = importNames;
                 }
 
                 if (clazz.isAnnotationPresent(Cancelable.class)) {

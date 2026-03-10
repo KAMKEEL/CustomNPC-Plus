@@ -45,6 +45,8 @@ dependencies {
 
     shadowImplementation(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
     annotationProcessor(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
+    
+    testImplementation("junit:junit:4.13.2")
 
     if(embedMixin){
         // Normal Jar will include built in Mixins

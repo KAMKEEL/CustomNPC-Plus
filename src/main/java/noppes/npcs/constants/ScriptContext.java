@@ -136,6 +136,12 @@ public class ScriptContext {
      */
     private final List<String> namespaces;
 
+    /**
+     * Fully qualified names of the event interface classes this context supports.
+     * Only populated when registered via the Class<?> overload.
+     */
+    private final List<String> namespaceFQNs = new ArrayList<>();
+
     // ==================== CONSTRUCTOR ====================
 
     private ScriptContext(String id, String hookContext, String... namespaces) {
@@ -153,6 +159,16 @@ public class ScriptContext {
      */
     public List<String> getNamespaces() {
         return Collections.unmodifiableList(namespaces);
+    }
+
+    /**
+     * Get the fully qualified names of event interface classes this context supports.
+     * Only populated for contexts registered with Class<?> references.
+     *
+     * @return Unmodifiable list of FQN strings (e.g., "noppes.npcs.api.event.INpcEvent")
+     */
+    public List<String> getNamespaceFQNs() {
+        return Collections.unmodifiableList(namespaceFQNs);
     }
 
     /**
@@ -220,7 +236,11 @@ public class ScriptContext {
         for (int i = 0; i < eventClasses.length; i++) {
             namespaces[i] = eventClasses[i].getSimpleName();
         }
-        return register(id, hookContext, namespaces);
+        ScriptContext context = register(id, hookContext, namespaces);
+        for (Class<?> clazz : eventClasses) {
+            context.namespaceFQNs.add(clazz.getName().replace('$', '.'));
+        }
+        return context;
     }
 
     /**

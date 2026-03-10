@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
 import noppes.npcs.client.gui.util.ITextChangeListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -32,15 +33,11 @@ import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptHandlerPacket;
 import noppes.npcs.controllers.data.IScriptUnit;
+import noppes.npcs.janino.JaninoScript;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener, ITextfieldListener {
@@ -105,6 +102,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
         this.xSize = 420;
+        this.isPannableGUI = true;
         this.setBackground("menubg.png");
     }
 
@@ -119,6 +117,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         // Initialize hooks from handler
         gui.hookList = new ArrayList<>(handler.getHooks());
+
+        JSTypeRegistry registry = JSTypeRegistry.getInstance();
+        if (!registry.isInitialized()) {
+            registry.initializeFromResources();
+        }
+        registry.syncHooksFromScriptHookControllerIfNeeded();
 
         // Request data from server
         if (handler instanceof IScriptHandlerPacket)
@@ -139,6 +143,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     public void initGui() {
         // ==================== BASE LAYOUT CALCULATION ====================
+        isPanning = false;
         this.ySize = (int) ((double) this.xSize * 0.56D);
         if ((double) this.ySize > (double) this.height * 0.95D) {
             this.ySize = (int) ((double) this.height * 0.95D);
@@ -278,6 +283,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());
+        activeArea.enableCodeHighlighting();
+
+        updateScriptDocumentImports(activeArea, container);
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -328,8 +336,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
             this.addScroll(scroll);
         }
-    }
 
+        computePanBounds(editorX, editorY, editorWidth, editorHeight);
+    }
     /**
      * Initialize the settings tab layout (console view).
      */
@@ -371,6 +380,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             // Language button requires options to be available
             this.getButton(103).enabled = languageOptions.size() > 0;
         }
+
+        int consoleX = this.guiLeft + 4 + yoffset;
+        int consoleY = this.guiTop + 6 + yoffset;
+        int consoleW = this.xSize - 160 - yoffset;
+        int consoleH = (int) ((float) this.ySize * 0.92F) - yoffset * 2;
+        computePanBounds(consoleX, consoleY, consoleW, consoleH);
     }
 
     public GuiScriptInterface setDimensions(int x, int y) {
@@ -389,30 +404,34 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         return handler.getContext();
     }
 
-    // ==================== RENDERING ====================
-
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawScreen(mouseX, mouseY, partialTicks);
-
-        // Draw fullscreen button on top of everything when on script editor tab
-        // Skip for useSettingsToggle GUIs (like GuiScript) - they handle this themselves
-        if (this.activeTab > 0 && !useSettingsToggle && !handler.isSingleContainer()) {
-            fullscreenButton.draw(mouseX, mouseY);
+    protected boolean isPannableArea(int mx, int my) {
+        if (activeTab > 0 && fullscreenButton.isMouseOver(mx, my)) {
+            return false;
         }
+
+        GuiScriptTextArea activeArea = getActiveScriptArea();
+        if (activeArea != null && activeArea.isPointOnAutocompleteMenu(mx, my)) {
+            return false;
+        }
+
+        return super.isPannableArea(mx, my);
     }
 
-    // ==================== MOUSE HANDLING ====================
-
     @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check fullscreen button first when on script editor tab
-        // Skip for useSettingsToggle GUIs (like GuiScript) - they handle this themselves
-        if (this.activeTab > 0 && !useSettingsToggle && !handler.isSingleContainer() && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
+    public void mouseClicked(int i, int j, int k) {
+        int adjX = panAdjustedX(i);
+        int adjY = panAdjustedY(j);
+
+        GuiScriptTextArea activeArea = getActiveScriptArea();
+        boolean isOverAutocomplete = activeArea != null
+                && activeArea.isPointOnAutocompleteMenu(adjX, adjY);
+        if (isOverAutocomplete) {
+            activeArea.mouseClicked(adjX, adjY, k);
             return;
         }
 
-        super.mouseClicked(mouseX, mouseY, mouseButton);
+        super.mouseClicked(i, j, k);
     }
 
     public String previousHookClicked = "";
@@ -435,8 +454,37 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             this.getTextField(2).setText(this.getTextField(2).getText() + addString);
             previousHookClicked = "";
+
+            updateScriptDocumentImports(getActiveScriptArea(), container);
         } else {
             previousHookClicked = hook;
+        }
+    }
+
+    public void updateScriptDocumentImports(GuiScriptTextArea activeArea, IScriptUnit container) {
+        // For JaninoScripts, add implicit imports (default imports + hook signature types)
+        // These allow the syntax highlighter to resolve types without explicit import statements
+        if (container instanceof JaninoScript) {
+            JaninoScript<?> janinoScript = (JaninoScript<?>) container;
+            ScriptContext ctx = getScriptContext();
+            // Add default imports (e.g., noppes.npcs.api.*, noppes.npcs.api.entity.*, etc.)
+            activeArea.addImplicitImports(janinoScript.getDefaultImports());
+
+            // Add hook types from signatures (parameters + return types)
+            // e.g., INpcEvent.InitEvent, Color, String, IOverlayContext, etc.
+            Set<String> hookTypes = janinoScript.getHookTypes();
+            activeArea.addImplicitImports(hookTypes.toArray(new String[0]));
+
+            // Add wildcard imports for each event class in the script context: INpcEvent.*, IProjectileEvent.*
+            // so nested types like INpcEvent.CollideEvent resolve without explicit import
+            Set<String> wildcardImports = new HashSet<>();
+            for (String fqn : ctx.getNamespaceFQNs())
+                wildcardImports.add(fqn + ".*");
+            activeArea.addImplicitImports(wildcardImports.toArray(new String[0]));
+
+
+            // Format to update which implicit imports are actually used
+            activeArea.formatCodeText();
         }
     }
 

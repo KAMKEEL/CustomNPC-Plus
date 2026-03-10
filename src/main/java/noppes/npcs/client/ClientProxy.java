@@ -159,6 +159,8 @@ import noppes.npcs.client.gui.roles.GuiNpcTransporter;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.script.PackageFinder;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.type.ClassIndex;
 import noppes.npcs.client.model.ModelNPCGolem;
 import noppes.npcs.client.model.ModelNpcCrystal;
 import noppes.npcs.client.model.ModelNpcDragon;
@@ -863,6 +865,8 @@ public class ClientProxy extends CommonProxy {
     public void buildPackageIndex() {
         try {
             PackageFinder.init(Thread.currentThread().getContextClassLoader());
+            ClassIndex.init();
+            JSTypeRegistry.getInstance().initializeFromResources();
         } catch (IOException e) {
         }
     }
