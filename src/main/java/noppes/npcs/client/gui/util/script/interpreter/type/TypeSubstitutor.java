@@ -92,9 +92,16 @@ public class TypeSubstitutor {
         
         String typeName = type.getSimpleName();
         
-        // Check if this type is itself a type variable
-        if (!type.isResolved()) {
-            TypeInfo substitution = bindings.get(typeName);
+        // Check if this type is itself a type variable.
+        // Two cases:
+        //  1. Unresolved TypeInfo (Java reflection path: TypeInfo.fromGenericType creates these for T, E, K, V)
+        //  2. TypeInfo.typeParameter() (script-defined path: resolved but tagged as a type parameter)
+        // For tagged type parameters, use getTypeParameterName() as the lookup key — bounded params have
+        // the bound's simpleName as their simpleName (e.g., "Entity" for T extends Entity), so using
+        // simpleName would incorrectly look up "Entity" instead of "T".
+        if (!type.isResolved() || type.isTypeParameter()) {
+            String lookupKey = type.isTypeParameter() ? type.getTypeParameterName() : typeName;
+            TypeInfo substitution = bindings.get(lookupKey);
             if (substitution != null) {
                 return substitution;
             }

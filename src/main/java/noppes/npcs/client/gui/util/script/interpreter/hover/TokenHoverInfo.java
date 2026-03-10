@@ -519,6 +519,11 @@ public class TokenHoverInfo {
     private void extractClassInfo(Token token) {
         TypeInfo typeInfo = token.getTypeInfo();
         if (typeInfo == null) return;
+
+        if (typeInfo.isTypeParameter()) {
+            extractTypeParameterInfo(typeInfo);
+            return;
+        }
         
         packageName = getPackageName(typeInfo);
         
@@ -715,6 +720,19 @@ public class TokenHoverInfo {
             declaration.add(new TextSegment("\n", TokenType.DEFAULT.getHexColor()));
             additionalInfo.add("Constructor");
             buildConstructorDeclaration(constructor, typeInfo);
+        }
+    }
+
+    private void extractTypeParameterInfo(TypeInfo typeInfo) {
+        iconIndicator = "T";
+        String paramName = typeInfo.getTypeParameterName();
+
+        addSegment("type parameter ", TokenType.MODIFIER.getHexColor());
+        addSegment(paramName, TokenType.IMPORTED_CLASS.getHexColor());
+
+        if (typeInfo.getJavaClass() != null && typeInfo.getJavaClass() != Object.class) {
+            addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+            addSegment(typeInfo.getSimpleName(), getColorForTypeInfo(typeInfo));
         }
     }
 
@@ -933,6 +951,9 @@ public class TokenHoverInfo {
 
     public String getPackageName(TypeInfo type) {
         if (type == null)
+            return null;
+
+        if (type.isTypeParameter())
             return null;
 
         TypeInfo base = type.isArray() ? type.getElementType() : type;

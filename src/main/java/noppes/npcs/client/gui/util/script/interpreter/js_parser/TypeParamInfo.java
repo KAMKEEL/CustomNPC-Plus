@@ -30,6 +30,10 @@ public class TypeParamInfo {
         return boundTypeInfo;
     }
 
+    public void setBoundTypeInfo(TypeInfo boundTypeInfo) {
+        this.boundTypeInfo = boundTypeInfo;
+    }
+
     /**
      * Resolve the bound type using TypeResolver.
      * Called during Phase 2 after all types are loaded.
