@@ -766,6 +766,112 @@ input[type="reset"] {
   border-top: 1px solid var(--border) !important;
 }
 
+/* ══════════════════════════════════════════════
+   SEARCH RESULTS DROPDOWN (jQuery UI Autocomplete)
+   ══════════════════════════════════════════════ */
+
+.ui-autocomplete {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border2) !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  z-index: 9999 !important;
+  list-style: none !important;
+  padding: 4px 0 !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Category headers (Modules, Packages, Types, Members, SearchTags) */
+.ui-autocomplete .ui-autocomplete-category {
+  background: var(--bg3) !important;
+  color: var(--text-dim) !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 7px !important;
+  padding: 6px 10px !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-top: 1px solid var(--border) !important;
+  cursor: default !important;
+}
+
+/* Individual result items */
+.ui-autocomplete .ui-menu-item {
+  background: var(--bg2) !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+.ui-autocomplete .ui-menu-item > div,
+.ui-autocomplete .ui-menu-item-wrapper {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  padding: 6px 12px !important;
+  border: none !important;
+  cursor: pointer !important;
+  line-height: 1.5 !important;
+}
+
+/* Hover / focus state */
+.ui-autocomplete .ui-menu-item > div.ui-state-active,
+.ui-autocomplete .ui-menu-item > div.ui-state-focus,
+.ui-autocomplete .ui-menu-item-wrapper.ui-state-active,
+.ui-autocomplete .ui-menu-item-wrapper.ui-state-focus,
+.ui-autocomplete .ui-state-active,
+.ui-autocomplete .ui-state-focus {
+  background: rgba(123, 47, 255, 0.1) !important;
+  color: var(--purple) !important;
+  border: none !important;
+  border-left: 2px solid var(--purple) !important;
+  margin: 0 !important;
+}
+
+/* Highlighted matching text */
+.resultHighlight {
+  color: var(--green) !important;
+  font-weight: 600 !important;
+}
+
+/* Search tag result extras */
+.searchTagHolderResult {
+  color: var(--text-dim) !important;
+  font-size: 10px !important;
+}
+
+.searchTagDescResult {
+  color: var(--text-dim) !important;
+  font-size: 10px !important;
+  font-style: italic !important;
+}
+
+/* "No results found" */
+.ui-autocomplete .ui-menu-item:only-child > div {
+  color: var(--text-dim) !important;
+  font-style: italic !important;
+}
+
+/* Override jQuery UI defaults that bleed through */
+.ui-widget {
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.ui-widget-content {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+  border-color: var(--border2) !important;
+}
+
+.ui-menu .ui-menu-item {
+  padding: 0 !important;
+}
+
+/* Watermark style for search input placeholder */
+.watermark {
+  color: var(--text-dim) !important;
+}
+
 /* ── Misc ── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
