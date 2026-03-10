@@ -177,6 +177,7 @@ jobs:
 
       - name: Build index page
         run: |
+          mkdir -p .github/pages/public
           cp gh-pages-index/manifest.json .github/pages/public/manifest.json
           npm run build --prefix .github/pages
 
